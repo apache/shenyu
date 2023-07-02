@@ -35,6 +35,7 @@ import org.apache.shenyu.common.enums.ApiSourceEnum;
 import org.apache.shenyu.common.enums.ApiStateEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 
@@ -45,21 +46,22 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractApiDocRegistrar extends AbstractApiRegistrar<ApiDocRegisterDTO> {
-
+    
     private static final String API_DOC_VERSION = "v0.01";
-
+    
     private final RpcTypeEnum rpcTypeEnum;
-
+    
     private final String host;
-
+    
     private final Integer port;
-
+    
     private final Boolean addPrefixed;
-
+    private final ClientRegisterConfig clientRegisterConfig;
+    
     private final Matcher<ApiBean> apiBeanMatcher = new AnnotatedApiBeanMatcher(ApiModule.class);
-
+    
     private final Matcher<ApiBean.ApiDefinition> apiDefinitionMatcher = new AnnotatedApiDefinitionMatcher(ApiDoc.class);
-
+    
     protected AbstractApiDocRegistrar(final ShenyuClientRegisterEventPublisher publisher,
                                       final ClientRegisterConfig clientRegisterConfig) {
         super(publisher);
@@ -67,43 +69,44 @@ public abstract class AbstractApiDocRegistrar extends AbstractApiRegistrar<ApiDo
         this.host = clientRegisterConfig.getHost();
         this.port = clientRegisterConfig.getPort();
         this.addPrefixed = clientRegisterConfig.getAddPrefixed();
+        this.clientRegisterConfig = clientRegisterConfig;
     }
-
+    
     @Override
     protected Boolean match(final ApiBean apiBean) {
         return apiBeanMatcher.match(apiBean);
     }
-
+    
     @Override
     protected Boolean match(final ApiBean.ApiDefinition apiDefinition) {
         return apiDefinitionMatcher.match(apiDefinition);
     }
-
+    
     @Override
     protected List<ApiDocRegisterDTO> parse(final ApiBean.ApiDefinition apiDefinition) {
-
+        
         ApiDoc apiDoc = apiDefinition.getAnnotation(ApiDoc.class);
-
+        
         List<String> tags = apiDoc.tags().length == 1 && StringUtils.isBlank(apiDoc.tags()[0]) ? Lists.newArrayList() : Arrays.asList(apiDoc.tags());
-
+        
         String desc = apiDoc.desc();
-
-        String apiPath = apiDefinition.getApiPath();
-
+        
+        String apiPath = PathUtils.pathJoin(clientRegisterConfig.getContextPath(), apiDefinition.getApiBean().getBeanPath(), apiDefinition.getMethodPath());
+        
         HttpApiSpecificInfo httpApiSpecificInfo = doParse(apiDefinition);
-
+        
         List<ApiDocRegisterDTO> apiDocRegisters = new ArrayList<>();
-
+        
         String documentJson = buildDocumentJson(tags, apiPath, apiDefinition.getApiMethod());
-
+        
         String extJson = buildExtJson(apiDefinition);
-
+        
         for (ApiHttpMethodEnum apiHttpMethodEnum : httpApiSpecificInfo.apiHttpMethodEnums) {
             ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                     .consume(httpApiSpecificInfo.consume)
                     .produce(httpApiSpecificInfo.produce)
                     .httpMethod(apiHttpMethodEnum.getValue())
-                    .contextPath(apiDefinition.getContextPath())
+                    .contextPath(clientRegisterConfig.getContextPath())
                     .ext(extJson)
                     .document(documentJson)
                     .rpcType(rpcTypeEnum.getName())
@@ -118,10 +121,10 @@ public abstract class AbstractApiDocRegistrar extends AbstractApiRegistrar<ApiDo
                     .build();
             apiDocRegisters.add(build);
         }
-
+        
         return apiDocRegisters;
     }
-
+    
     private String buildDocumentJson(final List<String> tags, final String path, final Method method) {
         Map<String, Object> documentMap = ImmutableMap.<String, Object>builder()
                 .put("tags", tags)
@@ -130,40 +133,40 @@ public abstract class AbstractApiDocRegistrar extends AbstractApiRegistrar<ApiDo
                 .put("responses", OpenApiUtils.generateDocumentResponse(path)).build();
         return GsonUtils.getInstance().toJson(documentMap);
     }
-
+    
     private String buildExtJson(final ApiBean.ApiDefinition apiDefinition) {
-
+        
         ApiDocRegisterDTO.ApiExt ext = new ApiDocRegisterDTO.ApiExt();
-
+        
         ext.setHost(host);
         ext.setPort(port);
-        ext.setServiceName(apiDefinition.getServiceName());
+        ext.setServiceName(apiDefinition.getApiBean().getBeanClass().getName());
         ext.setMethodName(apiDefinition.getApiMethodName());
         ext.setParameterTypes(apiDefinition.getParameterTypes());
-        ext.setRpcExt(apiDefinition.getRpcExt());
+        ext.setRpcExt(apiDefinition.getPropertiesValue("RpcExt"));
         ext.setAddPrefixed(addPrefixed);
-
+        
         if (rpcTypeEnum == RpcTypeEnum.HTTP) {
             ext.setProtocol(ShenyuClientConstants.HTTP);
         }
-
+        
         if (rpcTypeEnum == RpcTypeEnum.WEB_SOCKET) {
             ext.setProtocol(ShenyuClientConstants.WS);
         }
-
+        
         return GsonUtils.getInstance().toJson(ext);
     }
-
+    
     protected abstract HttpApiSpecificInfo doParse(ApiBean.ApiDefinition apiDefinition);
-
+    
     public static class HttpApiSpecificInfo {
-
+        
         private final String produce;
-
+        
         private final String consume;
-
+        
         private final List<ApiHttpMethodEnum> apiHttpMethodEnums;
-
+        
         public HttpApiSpecificInfo(final String produce,
                                    final String consume,
                                    final List<ApiHttpMethodEnum> apiHttpMethodEnums) {
@@ -171,30 +174,33 @@ public abstract class AbstractApiDocRegistrar extends AbstractApiRegistrar<ApiDo
             this.consume = consume;
             this.apiHttpMethodEnums = apiHttpMethodEnums;
         }
-
+        
         /**
          * Gets Produce.
+         *
          * @return Produce
          */
         public String getProduce() {
             return produce;
         }
-
+        
         /**
          * Gets Consume.
+         *
          * @return Consume
          */
         public String getConsume() {
             return consume;
         }
-
+        
         /**
          * Gets ApiHttpMethodEnums.
+         *
          * @return ApiHttpMethodEnums
          */
         public List<ApiHttpMethodEnum> getApiHttpMethodEnums() {
             return apiHttpMethodEnums;
         }
-
+        
     }
 }

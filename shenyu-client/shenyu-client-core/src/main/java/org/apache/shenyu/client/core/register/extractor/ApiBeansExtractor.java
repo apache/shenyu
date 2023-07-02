@@ -22,8 +22,17 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 
+/**
+ * Main responsibilities: Get the possible API class classes and corresponding methods, and initialize and resolve them Different<br>
+ * <ul>
+ *     <li>clients correspond to different implementations<li>
+ *         <li>In the Spring web scenario, collect controller <li>
+ *             <li> java EE web scenarios, collect servlet path Dubbo <li>
+ *                 <li> scenarios, and collect Dubbo Service APIs <li> <li> In other RPC scenarios, collect RPC Service APIs <li>
+ *                     <ul>
+ */
 public interface ApiBeansExtractor {
-
+    
     /**
      * Extract apiBeans from applicationContext.
      *
@@ -31,4 +40,11 @@ public interface ApiBeansExtractor {
      * @return apiBeans
      */
     List<ApiBean> extract(ApplicationContext applicationContext);
+    
+    /**
+     * client name.
+     *
+     * @return name
+     */
+    String clientName();
 }

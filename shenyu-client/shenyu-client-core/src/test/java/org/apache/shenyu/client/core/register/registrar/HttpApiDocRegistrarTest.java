@@ -22,6 +22,7 @@ import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,42 +33,41 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class HttpApiDocRegistrarTest {
-
+    
     private final HttpApiDocRegistrar httpApiDocRegistrar =
             new HttpApiDocRegistrar(null, new TestClientRegisterConfig());
-
+    
     @Test
     public void testDoParse() throws Exception {
-
+        
         ApiBean apiBean = createSimpleApiBean();
-
+        
         AbstractApiDocRegistrar.HttpApiSpecificInfo httpApiSpecificInfo =
                 httpApiDocRegistrar.doParse(apiBean.getApiDefinitions().get(0));
         List<ApiHttpMethodEnum> apiHttpMethodEnums =
                 Lists.newArrayList(ApiHttpMethodEnum.values());
-
+        
         apiHttpMethodEnums.remove(ApiHttpMethodEnum.NOT_HTTP);
-
+        
         assertThat(httpApiSpecificInfo.getApiHttpMethodEnums(), Matchers.contains(
                 apiHttpMethodEnums.toArray(new ApiHttpMethodEnum[0])));
-
+        
         assertThat(httpApiSpecificInfo.getConsume(), Matchers.is("application/json"));
-
+        
         assertThat(httpApiSpecificInfo.getProduce(), Matchers.is("application/json"));
-
+        
     }
-
+    
     private ApiBean createSimpleApiBean() throws Exception {
-
-        ApiBean apiBean = new ApiBean("testContext",
-                TestApiBeanAnnotatedClassAndMethod.class.getName(), ((Class<?>) TestApiBeanAnnotatedClassAndMethod.class).getDeclaredConstructor().newInstance(),
-                "/testClass", TestApiBeanAnnotatedClassAndMethod.class);
-
+        
+        ApiBean apiBean = new ApiBean(RpcTypeEnum.HTTP.getName(),
+                TestApiBeanAnnotatedClassAndMethod.class.getName(), ((Class<?>) TestApiBeanAnnotatedClassAndMethod.class).getDeclaredConstructor().newInstance());
+        
         apiBean.addApiDefinition(TestApiBeanAnnotatedClassAndMethod.class.getMethod("testMethod"), "/testMethod");
-
+        
         return apiBean;
     }
-
+    
     @ApiModule("testClass")
     @RestController
     @RequestMapping("/testClass")
@@ -78,5 +78,5 @@ public class HttpApiDocRegistrarTest {
             return "";
         }
     }
-
+    
 }

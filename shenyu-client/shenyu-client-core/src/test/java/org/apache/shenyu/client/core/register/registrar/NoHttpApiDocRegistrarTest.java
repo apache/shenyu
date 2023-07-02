@@ -22,6 +22,7 @@ import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -30,24 +31,25 @@ import static org.hamcrest.Matchers.is;
 public class NoHttpApiDocRegistrarTest {
     private final NoHttpApiDocRegistrar noHttpApiDocRegistrar =
             new NoHttpApiDocRegistrar(null, new TestClientRegisterConfig());
-
+    
     @Test
     public void testDoParse() {
-
-        ApiBean apiBean = new ApiBean(null, null, null, null, TestApiBeanAnnotatedClassAndMethod.class);
-
+        final TestApiBeanAnnotatedClassAndMethod bean = new TestApiBeanAnnotatedClassAndMethod();
+        
+        ApiBean apiBean = new ApiBean(RpcTypeEnum.HTTP.getName(), "bean", bean);
+        
         apiBean.addApiDefinition(null, null);
-
+        
         AbstractApiDocRegistrar.HttpApiSpecificInfo httpApiSpecificInfo =
                 noHttpApiDocRegistrar.doParse(apiBean.getApiDefinitions().get(0));
-
+        
         assertThat(httpApiSpecificInfo.getApiHttpMethodEnums().get(0), is(ApiHttpMethodEnum.NOT_HTTP));
-
+        
         assertThat(httpApiSpecificInfo.getConsume(), is(ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE));
-
+        
         assertThat(httpApiSpecificInfo.getProduce(), is(ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE));
     }
-
+    
     @ApiModule("testClass")
     static class TestApiBeanAnnotatedClassAndMethod {
         @ApiDoc(desc = "testMethod")
