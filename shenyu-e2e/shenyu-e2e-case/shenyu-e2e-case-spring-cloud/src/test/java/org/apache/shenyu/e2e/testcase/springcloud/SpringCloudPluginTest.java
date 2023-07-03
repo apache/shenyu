@@ -44,6 +44,9 @@ import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import java.util.List;
 
+/**
+ * Testing spring-cloud plugin.
+ */
 @ShenYuTest(
         mode = ShenYuEngineConfigure.Mode.DOCKER,
         services = {
@@ -54,6 +57,7 @@ import java.util.List;
                         parameters = {
                                 @ShenYuTest.Parameter(key = "username", value = "admin"),
                                 @ShenYuTest.Parameter(key = "password", value = "123456"),
+                                @ShenYuTest.Parameter(key = "dataSyn", value = "admin_websocket")
                         }
                 ),
                 @ShenYuTest.ServiceConfigure(
@@ -63,15 +67,12 @@ import java.util.List;
                         type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
                         parameters = {
                                 @ShenYuTest.Parameter(key = "application", value = "spring.cloud.discovery.enabled:true,eureka.client.enabled:true"),
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "websocket")
+                                @ShenYuTest.Parameter(key = "dataSyn", value = "gateway_websocket")
                         }
                 )
         },
-        dockerComposeFile = "classpath:./docker-compose.{storage:h2}.yml"
+        dockerComposeFile = "classpath:./docker-compose.mysql.yml"
 )
-/**
- * Testing spring-cloud plugin.
- */
 public class SpringCloudPluginTest {
     List<String> selectorIds = Lists.newArrayList();
 
