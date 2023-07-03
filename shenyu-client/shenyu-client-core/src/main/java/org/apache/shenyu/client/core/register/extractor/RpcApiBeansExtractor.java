@@ -15,29 +15,26 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.registrar;
+package org.apache.shenyu.client.core.register.extractor;
 
-import org.apache.shenyu.client.core.register.ApiBean;
-
-import java.util.List;
-
-public interface ApiRegistrar {
+/**
+ * Main responsibilities: Get the possible API class classes and corresponding methods,
+ * and initialize and resolve them Different.<br>
+ * <ul>
+ *     <li>clients correspond to different implementations
+ *     <li>In the Spring web scenario, collect controller
+ *     <li> java EE web scenarios, collect servlet path Dubbo
+ *     <li> scenarios, and collect Dubbo Service APIs
+ *     <li> In other RPC scenarios, collect RPC Service APIs
+ * </ul>
+ */
+public interface RpcApiBeansExtractor extends ApiBeansExtractor {
+    
     
     /**
-     * Registers ApiBean.
+     * client name.
      *
-     * @param beans apiBean to register
+     * @return name
      */
-    default void register(List<ApiBean> beans) {
-        for (ApiBean bean : beans) {
-            register(bean);
-        }
-    }
-    
-    /**
-     * Registers ApiBean.
-     *
-     * @param apiBean apiBean to register
-     */
-    void register(ApiBean apiBean);
+    String clientName();
 }

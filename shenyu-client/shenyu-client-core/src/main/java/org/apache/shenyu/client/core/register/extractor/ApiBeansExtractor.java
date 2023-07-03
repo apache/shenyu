@@ -43,10 +43,4 @@ public interface ApiBeansExtractor {
      */
     List<ApiBean> extract(ApplicationContext applicationContext);
     
-    /**
-     * client name.
-     *
-     * @return name
-     */
-    String clientName();
 }
