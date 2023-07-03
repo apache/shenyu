@@ -90,7 +90,7 @@
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.ProxySelectorDO">
         UPDATE proxy_selector
         SET
-        name=#{id, jdbcType=VARCHAR},
+        name=#{name, jdbcType=VARCHAR},
         plugin_name=#{pluginName,jdbcType=VARCHAR},
         type=#{type,jdbcType=VARCHAR},
         forward_port=#{forwardPort,jdbcType=INTEGER},
@@ -107,6 +107,26 @@
         <foreach item="id" collection="ids" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
         </foreach>
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM proxy_selector
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByHandlerId" resultType="org.apache.shenyu.admin.model.entity.ProxySelectorDO">
+        SELECT ps.id , ps.name, ps.plugin_name , ps.type, ps.forward_port , ps.props
+        FROM proxy_selector ps inner join discovery_rel dr on ps.id = dr.proxy_selector_id
+        where dr.discovery_handler_id = #{discoveryHandlerId}
+    </select>
+
+    <select id="selectByDiscoveryId" resultType="org.apache.shenyu.admin.model.entity.ProxySelectorDO">
+        SELECT ps.id , ps.name, ps.plugin_name , ps.type, ps.forward_port , ps.props
+        FROM proxy_selector ps inner join discovery_rel dr on ps.id = dr.proxy_selector_id
+        inner join discovery_handler dh on dh.id = dr.discovery_handler_id
+        where dh.discovery__id = #{discoveryId}
     </select>
 
     <delete id="deleteByIds" parameterType="java.util.List">

@@ -23,6 +23,11 @@ import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.apache.http.HttpHost;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.OperatorEnum;
@@ -36,6 +41,8 @@ import org.elasticsearch.client.RestClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -56,6 +63,8 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
 
     private static ElasticsearchClient client;
 
+    private static final Logger LOG = LoggerFactory.getLogger(LoggingElasticSearchPluginTest.class);
+
     @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.LOGGING_ELASTIC_SEARCH.getName(), "{\"host\":\"shenyu-elasticsearch\", \"port\": \"9200\"}");
@@ -68,6 +77,24 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
                 .build();
         transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         client = new ElasticsearchClient(transport);
+        OkHttpClient client = new OkHttpClient();
+        MediaType mediaType = MediaType.parse("application/json");
+        RequestBody body = RequestBody.create(mediaType, "{\"number_of_replicas\":0}");
+        Request request = new Request.Builder()
+                .url("http://localhost:9200/_settings")
+                .put(body)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("cache-control", "no-cache")
+                .build();
+        Response response = client.newCall(request).execute();
+        LOG.info("response {},", response.body().string());
+        Request balanceRequest = new Request.Builder()
+                .url("http://localhost:9200/_cluster/reroute?retry_failed=true")
+                .post(null)
+                .addHeader("cache-control", "no-cache")
+                .build();
+        Response balanceResponse = client.newCall(balanceRequest).execute();
+        LOG.info("balanceResponse {},", balanceResponse.body().string());
     }
 
     @Test

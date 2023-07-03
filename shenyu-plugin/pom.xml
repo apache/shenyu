@@ -23,48 +23,48 @@
         <version>2.6.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>shenyu-plugin</artifactId>
     <packaging>pom</packaging>
+    
     <modules>
         <module>shenyu-plugin-api</module>
         <module>shenyu-plugin-base</module>
-        <module>shenyu-plugin-divide</module>
-        <module>shenyu-plugin-ratelimiter</module>
-        <module>shenyu-plugin-sign</module>
-        <module>shenyu-plugin-hystrix</module>
-        <module>shenyu-plugin-springcloud</module>
         <module>shenyu-plugin-httpclient</module>
         <module>shenyu-plugin-rewrite</module>
         <module>shenyu-plugin-waf</module>
         <module>shenyu-plugin-global</module>
-        <module>shenyu-plugin-sentinel</module>
-        <module>shenyu-plugin-resilience4j</module>
-        <module>shenyu-plugin-sofa</module>
-        <module>shenyu-plugin-tars</module>
         <module>shenyu-plugin-context-path</module>
-        <module>shenyu-plugin-grpc</module>
         <module>shenyu-plugin-redirect</module>
-        <module>shenyu-plugin-motan</module>
         <module>shenyu-plugin-modify-response</module>
         <module>shenyu-plugin-request</module>
-        <module>shenyu-plugin-oauth2</module>
-        <module>shenyu-plugin-jwt</module>
         <module>shenyu-plugin-response</module>
         <module>shenyu-plugin-param-mapping</module>
-        <module>shenyu-plugin-cryptor</module>
-        <module>shenyu-plugin-websocket</module>
-        <module>shenyu-plugin-dubbo</module>
         <module>shenyu-plugin-uri</module>
-        <module>shenyu-plugin-general-context</module>
-        <module>shenyu-plugin-mqtt</module>
         <module>shenyu-plugin-metrics</module>
         <module>shenyu-plugin-cache</module>
         <module>shenyu-plugin-logging</module>
         <module>shenyu-plugin-mock</module>
-        <module>shenyu-plugin-casdoor</module>
-        <module>shenyu-plugin-key-auth</module>
-        <module>shenyu-plugin-brpc</module>
-        <module>shenyu-plugin-tcp</module>
+        <module>shenyu-plugin-proxy</module>
+        <module>shenyu-plugin-security</module>
+        <module>shenyu-plugin-fault-tolerance</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    
 </project>

@@ -545,6 +545,7 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) 
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('39', 'casdoor', 'Authentication', 40, '{"endpoint":"http://localhost:8000"}', '0');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`) VALUES ('40', 'keyAuth', 'Authentication', 150, '0');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('41', 'brpc', 'Proxy', 310,'{"address":"127.0.0.1","port":"8005","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}','0');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`) VALUES ('42','tcp','Proxy', 320, '1');
 
 /*insert plugin_handle data for sentinel*/
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613195784246', '10', 'flowRuleGrade', 'flowRuleGrade', 3, 2, 8, '{"required":"1","defaultValue":"1","rule":""}');
@@ -987,17 +988,36 @@ CREATE TABLE IF NOT EXISTS `tag_relation`
     PRIMARY KEY (`id`)
 );
 
+
 -- ----------------------------
 -- Table structure for discovery
 -- ----------------------------
-CREATE TABLE `discovery`
+CREATE TABLE IF NOT EXISTS `discovery`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
     `name`         varchar(255)  NOT NULL COMMENT 'the discovery name',
+    `level`        varchar(64)  NOT NULL COMMENT '0 selector,1 plugin  2 global',
+    `plugin_name`  varchar(255)   COMMENT 'the plugin name',
     `type`         varchar(64)   NOT NULL COMMENT 'local,zookeeper,etcd,consul,nacos',
     `server_list`  varchar(255)   COMMENT 'register server url (,)',
-    `listener_node` varchar(255)   COMMENT 'register server listener to node',
     `props`     text  COMMENT 'the discovery pops (json) ',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
+
+
+-- ----------------------------
+-- Table structure for discovery_handler
+-- ----------------------------
+DROP TABLE IF EXISTS `discovery_handler`;
+CREATE TABLE `discovery_handler`
+(
+    `id`           varchar(128) NOT NULL COMMENT 'primary key id',
+    `discovery_id` varchar(128) NOT NULL COMMENT 'the discovery id',
+    `handler`         varchar(255) NOT NULL COMMENT 'the handler',
+    `listener_node` varchar(255) COMMENT 'register server listener to node',
+    `props`     text COMMENT 'the discovery pops (json) ',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`)
@@ -1006,7 +1026,7 @@ CREATE TABLE `discovery`
 -- ----------------------------
 -- Table structure for discovery_upstream
 -- ----------------------------
-CREATE TABLE `discovery_upstream`
+CREATE TABLE IF NOT EXISTS `discovery_upstream`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
     `discovery_handler_id` varchar(128)  NOT NULL COMMENT 'the discovery handler id',
@@ -1023,7 +1043,7 @@ CREATE TABLE `discovery_upstream`
 -- ----------------------------
 -- Table structure for proxy_selector
 -- ----------------------------
-CREATE TABLE `proxy_selector`
+CREATE TABLE IF NOT EXISTS `proxy_selector`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
     `name`         varchar(255)  NOT NULL COMMENT 'the proxy name',
@@ -1039,18 +1059,14 @@ CREATE TABLE `proxy_selector`
 -- ----------------------------
 -- Table structure for discovery_rel
 -- ----------------------------
-CREATE TABLE `discovery_rel`
+CREATE TABLE IF NOT EXISTS `discovery_rel`
 (
     `id`           varchar(128) NOT NULL COMMENT 'primary key id',
-    `level`        varchar(64)  NOT NULL COMMENT 'plugin or selector',
-    `discovery_id` varchar(128) NOT NULL COMMENT 'the discovery id',
-    `service_id` varchar(128)   NOT NULL COMMENT 'the selector id or proxy selector id',
+    `plugin_name`  varchar(255) NOT NULL COMMENT 'the plugin name',
+    `discovery_handler_id` varchar(128) NOT NULL COMMENT 'the discovery handler id',
+    `selector_id` varchar(128) COMMENT 'the selector id ',
+    `proxy_selector_id` varchar(128) COMMENT 'the proxy selector id',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`)
 );
-
-
-
-
-

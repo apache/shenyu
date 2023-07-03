@@ -40,8 +40,7 @@ public final class LogCollectConfigUtils {
 
     private static GenericGlobalConfig genericGlobalConfig;
 
-    private static final GenericGlobalConfig DEFAULT_GLOBAL_LOG_CONFIG =
-            new GenericGlobalConfig();
+    private static final GenericGlobalConfig DEFAULT_GLOBAL_LOG_CONFIG = new GenericGlobalConfig();
 
     private static Map<String, Sampler> apiSamplerMap = new HashMap<>();
 

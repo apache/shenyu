@@ -19,7 +19,6 @@ package org.apache.shenyu.springboot.starter.gateway;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
@@ -82,16 +81,7 @@ public class ShenyuConfigurationTest {
             }
         );
     }
-
-    @Test
-    public void testRpcParamTransformPlugin() {
-        applicationContextRunner.run(context -> {
-                ShenyuPlugin plugin = context.getBean("paramTransformPlugin", ShenyuPlugin.class);
-                assertNotNull(plugin);
-            }
-        );
-    }
-
+    
     @Test
     public void testCommonPluginDataSubscriber() {
         applicationContextRunner.run(context -> {

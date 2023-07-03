@@ -22,6 +22,8 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: shenyu-bootstrap
+  codec:
+    max-in-memory-size: 64MB
 #  cloud:
 #    nacos:
 #      discovery:
@@ -33,6 +35,8 @@ management:
       enabled: false
 
 shenyu:
+  httpclient:
+    maxInMemorySize: 64
   metrics:
     enabled: true
     name: prometheus

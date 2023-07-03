@@ -56,7 +56,8 @@
         url,
         status,
         weight,
-        props,date_created,
+        props,
+        date_created,
         date_updated)
         VALUES (
         #{id, jdbcType=VARCHAR},
@@ -70,7 +71,7 @@
         #{dateUpdated, jdbcType=TIMESTAMP})
     </insert>
 
-    <update id="update" parameterType="org.apache.shenyu.admin.model.entity.ProxySelectorDO">
+    <update id="update" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO">
         UPDATE discovery_upstream
         SET
         discovery_handler_id=#{discoveryHandlerId, jdbcType=VARCHAR},
@@ -80,6 +81,33 @@
         weight=#{weight,jdbcType=INTEGER},
         props=#{props,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
+        WHERE id=#{id, jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO">
+        UPDATE discovery_upstream
+        SET
+        <if test="discoveryHandlerId != null">
+            discovery_handler_id=#{discoveryHandlerId, jdbcType=VARCHAR},
+        </if>
+        <if test="protocol != null">
+            protocol=#{protocol,jdbcType=VARCHAR},
+        </if>
+        <if test="url != null">
+            url=#{url,jdbcType=VARCHAR},
+        </if>
+        <if test="status != null">
+            status=#{status,jdbcType=INTEGER},
+        </if>
+        <if test="weight != null">
+            weight=#{weight,jdbcType=INTEGER},
+        </if>
+        <if test="props != null">
+            props=#{props,jdbcType=VARCHAR},
+        </if>
+        <if test="dateUpdated != null">
+            date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
+        </if>
         WHERE id=#{id, jdbcType=VARCHAR}
     </update>
 
@@ -93,10 +121,69 @@
         </foreach>
     </select>
 
+    <select id="selectByDiscoveryHandlerId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery_upstream
+        WHERE discovery_handler_id=#{discoveryHandlerId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByProxySelectorId" resultMap="BaseResultMap">
+        SELECT
+            du.id,
+            du.date_created,
+            du.date_updated,
+            du.discovery_handler_id,
+            du.protocol,
+            du.url,
+            du.status,
+            du.weight,
+            du.props
+        FROM discovery_upstream du
+        INNER JOIN discovery_rel dr ON du.discovery_handler_id = dr.discovery_handler_id
+        <where>
+            dr.proxy_selector_id = #{proxySelectorId , jdbcType=VARCHAR}
+        </where>
+    </select>
+
     <delete id="deleteByIds" parameterType="java.util.List">
         DELETE FROM discovery_upstream WHERE id IN
         <foreach item="id" collection="ids" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
         </foreach>
+    </delete>
+
+    <insert id="saveBatch" parameterType="java.util.List">
+        INSERT INTO discovery_upstream (
+        id,
+        discovery_handler_id,
+        protocol,
+        url,
+        status,
+        weight,
+        props,
+        date_created,
+        date_updated)
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (#{item.id, jdbcType=VARCHAR},
+            #{item.discoveryHandlerId,jdbcType=VARCHAR},
+            #{item.protocol,jdbcType=VARCHAR},
+            #{item.url,jdbcType=VARCHAR},
+            #{item.status,jdbcType=INTEGER},
+            #{item.weight,jdbcType=INTEGER},
+            #{item.props,jdbcType=VARCHAR},
+            #{item.dateCreated, jdbcType=TIMESTAMP},
+            #{item.dateUpdated, jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+
+    <delete id="deleteByDiscoveryHandlerId" parameterType="java.lang.String">
+        DELETE FROM discovery_upstream
+        WHERE discovery_handler_id = #{discoveryHandlerId, jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByUrl">
+        DELETE FROM discovery_upstream WHERE url = #{url}
     </delete>
 </mapper>

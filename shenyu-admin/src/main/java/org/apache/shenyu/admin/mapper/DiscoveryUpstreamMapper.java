@@ -45,6 +45,23 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      */
     List<DiscoveryUpstreamDO> selectByIds(@Param("ids") List<String> ids);
 
+
+    /**
+     * selectByProxySelectorId.
+     *
+     * @param proxySelectorId proxySelectorId
+     * @return DiscoveryUpstreamDO list
+     */
+    List<DiscoveryUpstreamDO> selectByProxySelectorId(@Param("proxySelectorId") String proxySelectorId);
+
+    /**
+     * selectByDiscoveryHandlerId.
+     *
+     * @param discoveryHandlerId discovery handler id
+     * @return discoveryUpstreamDO list
+     */
+    List<DiscoveryUpstreamDO> selectByDiscoveryHandlerId(@Param("discoveryHandlerId") String discoveryHandlerId);
+
     /**
      * insert.
      *
@@ -62,10 +79,42 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
     int update(DiscoveryUpstreamDO discoveryUpstreamDO);
 
     /**
+     * update selective.
+     *
+     * @param discoveryUpstreamDO discoveryUpstreamDO
+     * @return rows int
+     */
+    int updateSelective(DiscoveryUpstreamDO discoveryUpstreamDO);
+
+    /**
      * deleteByIds.
      *
      * @param ids id list
      * @return rows int
      */
     int deleteByIds(@Param("ids") List<String> ids);
+
+    /**
+     * save discovery upstream list.
+     *
+     * @param list discovery upstream list
+     * @return result
+     */
+    int saveBatch(@Param("list") List<DiscoveryUpstreamDO> list);
+
+    /**
+     * delete discovery upstream by discovery handler id.
+     *
+     * @param discoveryHandlerId discovery handler id
+     * @return result
+     */
+    int deleteByDiscoveryHandlerId(@Param("discoveryHandlerId") String discoveryHandlerId);
+
+    /**
+     * deleteByUrl.
+     *
+     * @param url url
+     * @return rows int
+     */
+    int deleteByUrl(@Param("url") String url);
 }

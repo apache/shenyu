@@ -26,9 +26,9 @@ import java.util.Objects;
  * uri util.
  */
 public class UriUtils {
-    
+
     private static final String PRE_FIX = "/";
-    
+
     /**
      * create URI {@link URI}.
      *
@@ -41,7 +41,7 @@ public class UriUtils {
         }
         return null;
     }
-    
+
     /**
      * Repair data string.
      *
@@ -51,7 +51,7 @@ public class UriUtils {
     public static String repairData(final String name) {
         return name.startsWith(PRE_FIX) ? name : PRE_FIX + name;
     }
-    
+
     /**
      * Remove prefix string.
      *
@@ -80,7 +80,7 @@ public class UriUtils {
      * appendScheme.
      *
      * @param scheme scheme
-     * @param url url
+     * @param url    url
      * @return {@link String}
      */
     public static String appendScheme(final String url, final String scheme) {
@@ -89,5 +89,26 @@ public class UriUtils {
             schemeUrl = scheme + "://" + schemeUrl;
         }
         return schemeUrl;
+    }
+
+    /**
+     * get actual port.
+     *
+     * @param scheme scheme eg:http
+     * @param port   port
+     * @return {@link int}
+     */
+    public static int getActualPort(final String scheme, final Integer port) {
+        Integer actualPort = port;
+        if (Objects.isNull(port) || port.intValue() < 0) {
+            if (!"http".equals(scheme) && !"ws".equals(scheme)) {
+                if ("https".equals(scheme) || "wss".equals(scheme)) {
+                    actualPort = 443;
+                }
+            } else {
+                actualPort = 80;
+            }
+        }
+        return actualPort;
     }
 }

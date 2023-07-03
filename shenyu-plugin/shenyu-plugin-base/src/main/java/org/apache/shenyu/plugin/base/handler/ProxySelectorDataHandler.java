@@ -18,9 +18,6 @@
 package org.apache.shenyu.plugin.base.handler;
 
 import org.apache.shenyu.common.dto.ProxySelectorData;
-import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
-
-import java.util.List;
 
 /**
  * ProxySelectorDataHandler.
@@ -30,10 +27,9 @@ public interface ProxySelectorDataHandler {
     /**
      * handlerProxySelector.
      *
-     * @param selectorData  selectorData
-     * @param upstreamsList upstreamsList
+     * @param selectorData selectorData
      */
-    void handlerProxySelector(ProxySelectorData selectorData, List<DiscoveryUpstream> upstreamsList);
+    void handlerProxySelector(ProxySelectorData selectorData);
 
 
     /**

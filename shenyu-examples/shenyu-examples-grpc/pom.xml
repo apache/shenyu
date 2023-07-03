@@ -73,6 +73,12 @@
             <artifactId>grpc-all</artifactId>
             <version>${grpc.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>grpc-okhttp</artifactId>
+                    <groupId>io.grpc</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

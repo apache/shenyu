@@ -115,7 +115,8 @@ public class ShenyuClientShutdownHook {
                         LOG.info("sleep {}ms", shutdownWaitTime);
                         try {
                             TimeUnit.MILLISECONDS.sleep(shutdownWaitTime);
-                        } catch (InterruptedException ignore) {
+                        } catch (InterruptedException ex) {
+                            LOG.error(ex.getMessage(), ex);
                         }
                         hook.run();
                     }, hook.getName());

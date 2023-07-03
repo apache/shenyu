@@ -24,7 +24,6 @@ import java.util.Objects;
 
 /**
  * configuration group.
- *
  */
 public enum ConfigGroupEnum {
 
@@ -53,12 +52,15 @@ public enum ConfigGroupEnum {
      */
     META_DATA,
 
+    /**
+     * ProxySelector data group enum.
+     */
+    PROXY_SELECTOR,
 
     /**
-     * proxy selector enum.
+     * discoveryUpstream data group enum.
      */
-    PROXY_SELECTOR;
-
+    DISCOVER_UPSTREAM;
 
     /**
      * Acquire by name config group enum.
