@@ -101,6 +101,6 @@ public final class RewritePluginTest {
 
     @Test
     public void testGetOrder() {
-        assertEquals(rewritePlugin.getOrder(), 90);
+        assertEquals(rewritePlugin.getOrder(), -2);
     }
 }
