@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.client.core.register;
 
-import org.apache.shenyu.common.utils.PathUtils;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.lang.NonNull;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -26,39 +27,81 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
+/**
+ * An API bean maps a collection of API pairs whose information comes from a class.
+ */
 public class ApiBean {
-
+    
+    /**
+     * client name.<br>
+     * In general, it refers to the client type (RPC type), and users distinguish between multiple clients.
+     */
+    private final String clientName;
+    
+    /**
+     * bean Instance name.<br>
+     * It can be a bean name for spring, it can be a Java variable name.
+     */
     private final String beanName;
-
+    
+    /**
+     * bean instance.
+     */
     private final Object beanInstance;
-
-    private final String beanPath;
-
-    private final String contextPath;
-
+    
+    /**
+     * bean class.
+     */
     private final Class<?> beanClass;
-
-    private final List<ApiDefinition> apiDefinitions = new ArrayList<>();
-
-    private final String serviceName;
-
-    public ApiBean(final String contextPath, final String beanName, final Object beanInstance, final String beanPath, final Class<?> beanClass) {
-
-        this.contextPath = contextPath;
-
+    
+    /**
+     * API collection.
+     */
+    private final List<ApiDefinition> apiDefinitions;
+    
+    /**
+     * supper uri.
+     */
+    private String beanPath;
+    
+    /**
+     * Custom properties for beans.
+     */
+    private final Properties beanProperties = new Properties();
+    
+    public ApiBean(@NonNull final String clientName, @NonNull final String beanName, @NonNull final Object beanInstance, @NonNull final List<ApiDefinition> apiDefinitions) {
+        this.clientName = clientName;
         this.beanName = beanName;
-
         this.beanInstance = beanInstance;
-
-        this.beanPath = beanPath;
-
-        this.beanClass = beanClass;
-
-        this.serviceName = beanClass.getName();
+        this.beanClass = getCorrectedClass(beanInstance);
+        this.apiDefinitions = apiDefinitions;
+        this.beanPath = beanClass.getSimpleName();
+        for (ApiDefinition apiDefinition : apiDefinitions) {
+            apiDefinition.apiBean = this;
+        }
     }
-
+    
+    public ApiBean(@NonNull final String clientName, @NonNull final String beanName, @NonNull final Object beanInstance) {
+        this.clientName = clientName;
+        this.beanName = beanName;
+        this.beanInstance = beanInstance;
+        this.beanClass = getCorrectedClass(beanInstance);
+        this.beanPath = beanClass.getSimpleName();
+        this.apiDefinitions = new ArrayList<>(5);
+    }
+    
+    public ApiBean(@NonNull final String clientName, @NonNull final String beanName, @NonNull final Object beanInstance, final String beanPath) {
+        this.clientName = clientName;
+        this.beanName = beanName;
+        this.beanInstance = beanInstance;
+        this.beanClass = getCorrectedClass(beanInstance);
+        this.beanPath = beanPath;
+        this.apiDefinitions = new ArrayList<>(5);
+    }
+    
     /**
      * Adds apiDefinition to apiBean.
      *
@@ -66,22 +109,19 @@ public class ApiBean {
      * @param methodPath methodPath
      */
     public void addApiDefinition(final Method method, final String methodPath) {
-        ApiDefinition apiDefinition = new ApiDefinition(method, methodPath);
+        ApiDefinition apiDefinition = new ApiDefinition(this, method, methodPath);
         apiDefinitions.add(apiDefinition);
     }
-
+    
     /**
-     * Adds apiDefinition to apiBean.
+     * get clientName.
      *
-     * @param method     apiMethod
-     * @param methodPath methodPath
-     * @param rpcExt     rpcExt
+     * @return clientName
      */
-    public void addApiDefinition(final Method method, final String methodPath, final String rpcExt) {
-        ApiDefinition apiDefinition = new ApiDefinition(method, methodPath, rpcExt);
-        apiDefinitions.add(apiDefinition);
+    public String getClientName() {
+        return clientName;
     }
-
+    
     /**
      * Gets apiDefinitions.
      *
@@ -90,7 +130,7 @@ public class ApiBean {
     public List<ApiDefinition> getApiDefinitions() {
         return apiDefinitions;
     }
-
+    
     /**
      * Gets bean instance.
      *
@@ -99,7 +139,7 @@ public class ApiBean {
     public Object getBeanInstance() {
         return beanInstance;
     }
-
+    
     /**
      * Gets bean name.
      *
@@ -108,7 +148,7 @@ public class ApiBean {
     public String getBeanName() {
         return beanName;
     }
-
+    
     /**
      * Gets bean class.
      *
@@ -117,7 +157,7 @@ public class ApiBean {
     public Class<?> getBeanClass() {
         return beanClass;
     }
-
+    
     /**
      * Gets bean path.
      *
@@ -126,7 +166,27 @@ public class ApiBean {
     public String getBeanPath() {
         return beanPath;
     }
-
+    
+    /**
+     * add properties value.
+     *
+     * @param name  name
+     * @param value value
+     */
+    public void addProperties(final String name, final String value) {
+        beanProperties.put(name, value);
+    }
+    
+    /**
+     * get properties.
+     *
+     * @param name name
+     * @return value
+     */
+    public String getPropertiesValue(final String name) {
+        return beanProperties.getProperty(name);
+    }
+    
     /**
      * Gets annotation from Bean Class.
      *
@@ -137,48 +197,96 @@ public class ApiBean {
     public <A extends Annotation> A getAnnotation(final Class<A> annotationClass) {
         return AnnotatedElementUtils.findMergedAnnotation(beanClass, annotationClass);
     }
-
-    /**
-     * Gets context path.
-     *
-     * @return context path
-     */
-    public String getContextPath() {
-        return contextPath;
-    }
-
-    /**
-     * Gets serviceName.
-     *
-     * @return serviceName
-     */
-    public String getServiceName() {
-        return serviceName;
-    }
-
-    public final class ApiDefinition {
-
-        private final Method apiMethod;
-
-        private final String methodPath;
-
-        private final String rpcExt;
-
-        private final String parameterTypes;
-
-        private ApiDefinition(final Method apiMethod, final String methodPath) {
-            this(apiMethod, methodPath, "{}");
+    
+    private Class<?> getCorrectedClass(final Object bean) {
+        Class<?> clazz = bean.getClass();
+        if (AopUtils.isAopProxy(bean)) {
+            clazz = AopUtils.getTargetClass(bean);
         }
-
-        private ApiDefinition(final Method apiMethod, final String methodPath, final String rpcExt) {
+        return clazz;
+    }
+    
+    /**
+     * set beanPath.
+     *
+     * @param beanPath beanPath
+     */
+    public void setBeanPath(final String beanPath) {
+        this.beanPath = beanPath;
+    }
+    
+    /**
+     * API corresponds to an accessible interface proxy service, which can be an http service, RPC service, TCP service.
+     */
+    
+    public static final class ApiDefinition {
+        
+        /**
+         * Function information for the service.
+         */
+        private final Method apiMethod;
+        
+        /**
+         * The instance of the class in which the function resides.
+         */
+        private ApiBean apiBean;
+        
+        /**
+         * The URI path after conversion to the HTTP service.
+         */
+        private String methodPath;
+        
+        /**
+         * api custom properties.<br>
+         * The properties of each client are different.
+         */
+        private final Properties apiProperties = new Properties();
+        
+        public ApiDefinition(final Method apiMethod) {
+            this.apiMethod = apiMethod;
+            this.methodPath = apiMethod.getName();
+        }
+        
+        public ApiDefinition(final ApiBean apiBean, final Method apiMethod) {
+            this.apiBean = apiBean;
+            this.apiMethod = apiMethod;
+        }
+        
+        private ApiDefinition(final ApiBean apiBean, final Method apiMethod, final String methodPath) {
+            this.apiBean = apiBean;
             this.apiMethod = apiMethod;
             this.methodPath = methodPath;
-            this.rpcExt = rpcExt;
-            this.parameterTypes = Optional.ofNullable(apiMethod)
-                    .map(m -> Arrays.stream(m.getParameterTypes()).map(Class::getName)
-                            .collect(Collectors.joining(","))).orElse(null);
         }
-
+        
+        /**
+         * set methodPath.
+         *
+         * @param methodPath methodPath
+         */
+        public void setMethodPath(final String methodPath) {
+            this.methodPath = methodPath;
+        }
+        
+        /**
+         * add properties value.
+         *
+         * @param name  name
+         * @param value value
+         */
+        public void addProperties(final String name, final String value) {
+            apiProperties.put(name, value);
+        }
+        
+        /**
+         * get properties.
+         *
+         * @param name name
+         * @return value
+         */
+        public String getPropertiesValue(final String name) {
+            return apiProperties.getProperty(name);
+        }
+        
         /**
          * Get Api Method.
          *
@@ -187,7 +295,7 @@ public class ApiBean {
         public Method getApiMethod() {
             return apiMethod;
         }
-
+        
         /**
          * Gets api method Name.
          *
@@ -196,25 +304,16 @@ public class ApiBean {
         public String getApiMethodName() {
             return apiMethod.getName();
         }
-
+        
         /**
          * Gets bean path.
          *
          * @return bean path.
          */
         public String getBeanPath() {
-            return beanPath;
+            return apiBean.beanPath;
         }
-
-        /**
-         * Gets api path.
-         *
-         * @return api path.
-         */
-        public String getApiPath() {
-            return PathUtils.pathJoin(contextPath, beanPath, methodPath);
-        }
-
+        
         /**
          * Gets method path.
          *
@@ -223,34 +322,26 @@ public class ApiBean {
         public String getMethodPath() {
             return methodPath;
         }
-
+        
         /**
          * Gets bean class.
          *
          * @return bean class
          */
         public Class<?> getBeanClass() {
-            return beanClass;
+            return apiBean.beanClass;
         }
-
+        
         /**
          * Gets api bean.
          *
          * @return api bean
          */
         public ApiBean getApiBean() {
-            return ApiBean.this;
+            return apiBean;
         }
-
-        /**
-         * Gets context path.
-         *
-         * @return context path
-         */
-        public String getContextPath() {
-            return contextPath;
-        }
-
+        
+        
         /**
          * Get the annotation from Method.
          *
@@ -261,32 +352,18 @@ public class ApiBean {
         public <A extends Annotation> A getAnnotation(final Class<A> annotationClass) {
             return AnnotatedElementUtils.findMergedAnnotation(apiMethod, annotationClass);
         }
-
-        /**
-         * Gets serviceName.
-         *
-         * @return serviceName
-         */
-        public String getServiceName() {
-            return serviceName;
-        }
-
-        /**
-         * Gets rpcExt.
-         *
-         * @return rpcExt.
-         */
-        public String getRpcExt() {
-            return rpcExt;
-        }
-
+        
         /**
          * Gets parameterTypes.
          *
          * @return parameterTypes
          */
         public String getParameterTypes() {
-            return parameterTypes;
+            return Optional.ofNullable(apiMethod)
+                    .map(m -> Arrays.stream(m.getParameterTypes())
+                            .map(Class::getName)
+                            .collect(Collectors.joining(",")))
+                    .orElse(null);
         }
     }
 }
