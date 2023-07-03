@@ -2204,4 +2204,91 @@ COMMENT ON COLUMN "public"."tag_relation"."tag_id" IS 'tag id';
 COMMENT ON COLUMN "public"."tag_relation"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."tag_relation"."date_updated" IS 'update time';
 
+-- ----------------------------
+-- Table structure for discovery
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."discovery";
+CREATE TABLE "public"."discovery" (
+    "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "level" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+    "plugin_name" varchar(255) COLLATE "pg_catalog"."default",
+    "type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+    "server_list" varchar(255) COLLATE "pg_catalog"."default",
+    "props" text COLLATE "pg_catalog"."default",
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."discovery"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."discovery"."name" IS 'the discovery name';
+COMMENT ON COLUMN "public"."discovery"."level" IS '0 selector,1 plugin  2 global';
+COMMENT ON COLUMN "public"."discovery"."plugin_name" IS 'the plugin name';
+COMMENT ON COLUMN "public"."discovery"."type" IS 'local,zookeeper,etcd,consul,nacos';
+COMMENT ON COLUMN "public"."discovery"."server_list" IS 'register server url (,)';
+COMMENT ON COLUMN "public"."discovery"."props" IS 'the discovery pops (json) ';
+COMMENT ON COLUMN "public"."discovery"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."discovery"."date_updated" IS 'update time';
 
+-- ----------------------------
+-- Table structure for discovery_handler
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."discovery_handler";
+CREATE TABLE "public"."discovery_handler" (
+    "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "handler" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "listener_node" varchar(255) COLLATE "pg_catalog"."default",
+    "props" text COLLATE "pg_catalog"."default",
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."discovery_handler"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."discovery_handler"."discovery_id" IS 'the discovery id';
+COMMENT ON COLUMN "public"."discovery_handler"."handler" IS 'the handler';
+COMMENT ON COLUMN "public"."discovery_handler"."listener_node" IS 'register server listener to node';
+COMMENT ON COLUMN "public"."discovery_handler"."props" IS 'the discovery pops (json) ';
+COMMENT ON COLUMN "public"."discovery_handler"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."discovery_handler"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for discovery_rel
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."discovery_rel";
+CREATE TABLE "public"."discovery_rel" (
+    "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "plugin_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_handler_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "selector_id" varchar(128) COLLATE "pg_catalog"."default",
+    "proxy_selector_id" varchar(128) COLLATE "pg_catalog"."default",
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."discovery_rel"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."discovery_rel"."plugin_name" IS 'the plugin name';
+COMMENT ON COLUMN "public"."discovery_rel"."discovery_handler_id" IS 'the discovery handler id';
+COMMENT ON COLUMN "public"."discovery_rel"."selector_id" IS 'the selector id';
+COMMENT ON COLUMN "public"."discovery_rel"."proxy_selector_id" IS 'the proxy selector id';
+COMMENT ON COLUMN "public"."discovery_rel"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."discovery_rel"."date_updated" IS 'update time';
+-- ----------------------------
+-- Table structure for alert_template
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."alert_template";
+CREATE TABLE "public"."alert_template" (
+    "id"            varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name"          varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "strategy_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "content"       varchar(1000) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."alert_template"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."alert_template"."name" IS  'alert template name';
+COMMENT ON COLUMN "public"."alert_template"."strategy_name" IS 'alert template strategy name';
+COMMENT ON COLUMN "public"."alert_template"."content" IS 'alert template content';
+COMMENT ON COLUMN "public"."alert_template"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."alert_template"."date_updated" IS 'update time';

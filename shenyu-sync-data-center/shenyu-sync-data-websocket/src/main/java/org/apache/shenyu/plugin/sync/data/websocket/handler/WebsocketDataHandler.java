@@ -21,8 +21,10 @@ import java.util.EnumMap;
 import java.util.List;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 
 /**
  * The type Websocket cache handler.
@@ -40,12 +42,16 @@ public class WebsocketDataHandler {
      */
     public WebsocketDataHandler(final PluginDataSubscriber pluginDataSubscriber,
                                 final List<MetaDataSubscriber> metaDataSubscribers,
-                                final List<AuthDataSubscriber> authDataSubscribers) {
+                                final List<AuthDataSubscriber> authDataSubscribers,
+                                final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
+                                final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
         ENUM_MAP.put(ConfigGroupEnum.PLUGIN, new PluginDataHandler(pluginDataSubscriber));
         ENUM_MAP.put(ConfigGroupEnum.SELECTOR, new SelectorDataHandler(pluginDataSubscriber));
         ENUM_MAP.put(ConfigGroupEnum.RULE, new RuleDataHandler(pluginDataSubscriber));
         ENUM_MAP.put(ConfigGroupEnum.APP_AUTH, new AuthDataHandler(authDataSubscribers));
         ENUM_MAP.put(ConfigGroupEnum.META_DATA, new MetaDataHandler(metaDataSubscribers));
+        ENUM_MAP.put(ConfigGroupEnum.PROXY_SELECTOR, new ProxySelectorDataHandler(proxySelectorDataSubscribers));
+        ENUM_MAP.put(ConfigGroupEnum.DISCOVER_UPSTREAM, new DiscoveryUpstreamDataHandler(discoveryUpstreamDataSubscribers));
     }
 
     /**
@@ -58,4 +64,5 @@ public class WebsocketDataHandler {
     public void executor(final ConfigGroupEnum type, final String json, final String eventType) {
         ENUM_MAP.get(type).handle(json, eventType);
     }
+
 }

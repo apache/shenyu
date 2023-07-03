@@ -22,18 +22,20 @@
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
-        <result column="level" jdbcType="VARCHAR" property="level"/>
-        <result column="discovery_id" jdbcType="VARCHAR" property="discoveryId"/>
+        <result column="plugin_name" jdbcType="VARCHAR" property="pluginName"/>
+        <result column="discovery_handler_id" jdbcType="VARCHAR" property="discoveryHandlerId"/>
         <result column="selector_id" jdbcType="VARCHAR" property="selectorId"/>
+        <result column="proxy_selector_id" jdbcType="VARCHAR" property="proxySelectorId"/>
     </resultMap>
     
     <sql id="Base_Column_List">
         id,
         date_created,
         date_updated,
-        level,
-        discovery_id,
-        selector_id
+        plugin_name,
+        discovery_handler_id,
+        selector_id,
+        proxy_selector_id
     </sql>
     
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -42,22 +44,31 @@
         FROM discovery_rel
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
+
+    <select id="selectByProxySelectorId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery_rel
+        WHERE proxy_selector_id = #{proxySelectorId, jdbcType=VARCHAR}
+    </select>
     
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryRelDO">
         INSERT INTO discovery_rel
         (id,
         date_created,
         date_updated,
-        level
-        discovery_id,
-        selector_id)
+        plugin_name,
+        discovery_handler_id,
+        selector_id,
+        proxy_selector_id)
         VALUES
         (#{id, jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
         #{dateUpdated, jdbcType=TIMESTAMP},
-        #{level, jdbcType=VARCHAR},
-        #{discoveryId, jdbcType=VARCHAR},
-        #{selectorId, jdbcType=VARCHAR})
+        #{pluginName, jdbcType=VARCHAR},
+        #{discoveryHandlerId, jdbcType=VARCHAR},
+        #{selectorId, jdbcType=VARCHAR}),
+        #{proxySelectorId, jdbcType=VARCHAR})
     </insert>
     
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryRelDO">
@@ -70,14 +81,17 @@
             <if test="dateUpdated != null">
                 date_updated,
             </if>
-            <if test="level != null">
-                level,
+            <if test="pluginName != null">
+                plugin_name,
             </if>
-            <if test="discoveryId != null">
-                discovery_id,
+            <if test="discoveryHandlerId != null">
+                discovery_handler_id,
             </if>
             <if test="selectorId != null">
                 selector_id,
+            </if>
+            <if test="proxySelectorId != null">
+                proxy_selector_id,
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -88,14 +102,17 @@
             <if test="dateUpdated != null">
                 #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
-            <if test="level != null">
-                #{level, jdbcType=VARCHAR},
+            <if test="pluginName != null">
+                #{pluginName, jdbcType=VARCHAR},
             </if>
-            <if test="discoveryId != null">
-                #{discoveryId, jdbcType=VARCHAR},
+            <if test="discoveryHandlerId != null">
+                #{discoveryHandlerId, jdbcType=VARCHAR},
             </if>
             <if test="selectorId != null">
                 #{selectorId, jdbcType=VARCHAR},
+            </if>
+            <if test="proxySelectorId != null">
+                #{proxySelectorId, jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -104,9 +121,10 @@
         UPDATE discovery_rel
         SET date_created = #{dateCreated, jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
-        level = #{level, jdbcType=VARCHAR},
-        discovery_id = #{discoveryId, jdbcType=VARCHAR},
-        selector_id = #{selectorId, jdbcType=VARCHAR}
+        plugin_name = #{pluginName, jdbcType=VARCHAR},
+        discovery_handler_id = #{discoveryHandlerId, jdbcType=VARCHAR},
+        selector_id = #{selectorId, jdbcType=VARCHAR},
+        proxy_selector_id = #{proxySelectorId, jdbcType=VARCHAR}
         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
     
@@ -119,14 +137,17 @@
             <if test="dateUpdated != null">
                 date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
-            <if test="level != null">
-                level = #{level, jdbcType=VARCHAR},
+            <if test="pluginName != null">
+                plugin_name = #{pluginName, jdbcType=VARCHAR},
             </if>
-            <if test="discoveryId != null">
-                discovery_id = #{discoveryId, jdbcType=VARCHAR},
+            <if test="discoveryHandlerId != null">
+                discovery_handler_id = #{discoveryHandlerId, jdbcType=VARCHAR},
             </if>
             <if test="selectorId != null">
                 selector_id = #{selectorId, jdbcType=VARCHAR},
+            </if>
+            <if test="proxySelectorId != null">
+                proxy_selector_id = #{proxySelectorId, jdbcType=VARCHAR},
             </if>
         </set>
         WHERE id = #{id, jdbcType=VARCHAR}

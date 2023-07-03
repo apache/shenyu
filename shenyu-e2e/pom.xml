@@ -54,6 +54,8 @@
         <rest-assured.version>5.2.0</rest-assured.version>
         <jetbrains-annotations.version>23.0.0</jetbrains-annotations.version>
         <apache-rat-plugin.version>0.13</apache-rat-plugin.version>
+        <spring-boot.version>2.7.13</spring-boot.version>
+        <spring-framework.version>5.3.28</spring-framework.version>
     </properties>
 
     <modules>
