@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.publish;
 
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
@@ -65,7 +64,6 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
     
     public RuleEventPublisher(final ApplicationEventPublisher publisher,
                               final RuleConditionMapper ruleConditionMapper,
-                              final PluginMapper pluginMapper,
                               final RuleMapper ruleMapper) {
         this.publisher = publisher;
         this.ruleConditionMapper = ruleConditionMapper;
