@@ -35,7 +35,7 @@ import java.util.Optional;
 @ShenyuBrpcService
 public class BrpcTestServiceImpl implements BrpcTestService {
 
-    private static final Integer SIZE = 1024 * 1024;
+    private static final Integer SIZE = 20000;
 
     @Override
     @ShenyuBrpcClient("/getArray")
