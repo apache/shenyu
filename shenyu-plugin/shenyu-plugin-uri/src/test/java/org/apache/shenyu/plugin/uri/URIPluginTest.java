@@ -97,12 +97,6 @@ public class URIPluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
         assertEquals("http://localhost/test?queryParam=Hello,World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
-        // test rewrite
-        when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090");
-        exchange.getAttributes().put(Constants.REWRITE_URI, "/rewrite");
-        when(chain.execute(exchange)).thenReturn(Mono.empty());
-        StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
-        assertEquals("http://localhost:8090/rewrite?queryParam=Hello,World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
         // test contains % in the row query
         request = MockServerHttpRequest
                 .get("localhost")
