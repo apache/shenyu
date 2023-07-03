@@ -80,7 +80,7 @@ public final class MultiRequestPluginTest extends AbstractPluginDataInit {
 
     private static final String TEST_USER_NAME = "user_name";
 
-    private static final String AFTER_REWRITING_PATH = "/test/modifyRequest";
+    private static final String AFTER_REWRITING_PATH = "/http/test/modifyRequest";
 
     private static final RsaStrategy RSA_STRATEGY = new RsaStrategy();
 
