@@ -30,7 +30,6 @@ package org.apache.shenyu.client.core.register.extractor;
  */
 public interface RpcApiBeansExtractor extends ApiBeansExtractor {
     
-    
     /**
      * client name.
      *
