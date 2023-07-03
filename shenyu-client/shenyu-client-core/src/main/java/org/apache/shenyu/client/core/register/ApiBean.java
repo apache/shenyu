@@ -73,7 +73,6 @@ public class ApiBean {
      */
     private final Properties beanProperties = new Properties();
     
-    
     public ApiBean(@NonNull final String clientName, @NonNull final String beanName, @NonNull final Object beanInstance, @NonNull final List<ApiDefinition> apiDefinitions) {
         this.clientName = clientName;
         this.beanName = beanName;
