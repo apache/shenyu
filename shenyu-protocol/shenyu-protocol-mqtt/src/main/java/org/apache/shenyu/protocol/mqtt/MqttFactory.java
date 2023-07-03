@@ -65,6 +65,8 @@ public class MqttFactory {
                 break;
             case PUBACK:
             case DISCONNECT:
+                messageType.disconnect(ctx);
+                break;
             default:
                 break;
         }
