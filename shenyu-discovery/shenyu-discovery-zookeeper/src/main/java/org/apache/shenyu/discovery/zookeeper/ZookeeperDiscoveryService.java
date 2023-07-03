@@ -176,15 +176,13 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public List<String> getRegisterData(final String key) {
         try {
-            TreeCache treeCache = cacheMap.get(key);
-            if (Objects.isNull(treeCache)) {
-                return Collections.emptyList();
-            }
+            List<String> children = client.getChildren().forPath(key);
             List<String> datas = new ArrayList<>();
-            treeCache.getCurrentChildren(key).forEach((k, cd) -> {
-                byte[] ret = cd.getData();
-                datas.add(Objects.isNull(ret) ? null : new String(ret, StandardCharsets.UTF_8));
-            });
+            for (String child : children) {
+                String nodePath = key + "/" + child;
+                byte[] data = client.getData().forPath(nodePath);
+                datas.add(new String(data, StandardCharsets.UTF_8));
+            }
             return datas;
         } catch (Exception e) {
             throw new ShenyuException(e);

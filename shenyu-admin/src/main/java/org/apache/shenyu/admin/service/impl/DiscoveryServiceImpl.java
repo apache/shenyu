@@ -138,6 +138,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void syncData() {
         LOG.info("shenyu DiscoveryService sync db ");
         List<DiscoveryDO> discoveryDOS = discoveryMapper.selectAll();
@@ -145,9 +146,9 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(d.getType());
             discoveryProcessor.createDiscovery(d);
             proxySelectorMapper.selectByDiscoveryId(d.getId()).stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).forEach(ps -> {
-                DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectByProxySelectorId(d.getId());
+                DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectByProxySelectorId(ps.getId());
                 discoveryProcessor.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), ps);
-                discoveryProcessor.fetchAll(discoveryHandlerDO.getDiscoveryId());
+                discoveryProcessor.fetchAll(discoveryHandlerDO.getId());
             });
         });
     }

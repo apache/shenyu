@@ -37,6 +37,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -83,18 +84,20 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         switch (currentEvent) {
             case ADDED:
                 upstreamDataList.forEach(d -> {
-                    d.setId(UUIDUtils.getInstance().generateShortUuid());
-                    d.setDateCreated(new Timestamp(System.currentTimeMillis()));
-                    d.setDateUpdated(new Timestamp(System.currentTimeMillis()));
-                    discoveryUpstreamMapper.insert(DiscoveryTransfer.INSTANCE.mapToDo(d));
-                    LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", d.getUrl());
+                    if (Objects.isNull(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryHandlerId, d.getUrl()))) {
+                        d.setId(UUIDUtils.getInstance().generateShortUuid());
+                        d.setDateCreated(new Timestamp(System.currentTimeMillis()));
+                        d.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+                        discoveryUpstreamMapper.insert(DiscoveryTransfer.INSTANCE.mapToDo(d));
+                        LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", d.getUrl());
+                    }
                 });
                 break;
             case UPDATED:
-                upstreamDataList.forEach(d -> {
-                    DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryTransfer.INSTANCE.mapToDo(d);
-                    discoveryUpstreamMapper.update(discoveryUpstreamDO);
-                    LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}", discoveryUpstreamDO.getUrl());
+                upstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(discoveryUpstreamDO -> {
+                    discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
+                    int effect = discoveryUpstreamMapper.updateDiscoveryHandlerIdAndUrl(discoveryUpstreamDO);
+                    LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}, effect = {} ", discoveryUpstreamDO.getUrl(), effect);
                 });
                 break;
             case DELETED:

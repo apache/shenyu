@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
@@ -47,6 +48,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -111,7 +113,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     @Override
     public void createProxySelector(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
         ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
-        String key = buildProxySelectorKey(discoveryHandlerDTO);
+        String key = buildProxySelectorKey(discoveryHandlerDTO.getListenerNode());
         if (Objects.isNull(shenyuDiscoveryService)) {
             LOG.warn("before start ProxySelector you need init DiscoveryId={}", discoveryHandlerDTO.getDiscoveryId());
             return;
@@ -151,7 +153,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     @Override
     public void removeProxySelector(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
         ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
-        String key = buildProxySelectorKey(discoveryHandlerDTO);
+        String key = buildProxySelectorKey(discoveryHandlerDTO.getListenerNode());
         shenyuDiscoveryService.unWatcher(key);
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE,
                 Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
@@ -169,17 +171,32 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         String discoveryId = discoveryHandlerDO.getDiscoveryId();
         if (discoveryServiceCache.containsKey(discoveryId)) {
             ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryId);
-            List<String> childData = shenyuDiscoveryService.getRegisterData(discoveryHandlerDO.getListenerNode());
+            List<String> childData = shenyuDiscoveryService.getRegisterData(buildProxySelectorKey(discoveryHandlerDO.getListenerNode()));
             List<DiscoveryUpstreamData> discoveryUpstreamDataList = childData.stream().map(s -> GsonUtils.getGson().fromJson(s, DiscoveryUpstreamData.class))
                     .collect(Collectors.toList());
-            discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerId);
-            discoveryUpstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(d -> {
-                d.setId(UUIDUtils.getInstance().generateShortUuid());
-                d.setDiscoveryHandlerId(discoveryHandlerId);
-                d.setDateCreated(new Timestamp(System.currentTimeMillis()));
-                d.setDateUpdated(new Timestamp(System.currentTimeMillis()));
-                discoveryUpstreamMapper.insert(d);
-            });
+            Set<String> urlList = discoveryUpstreamDataList.stream().map(DiscoveryUpstreamData::getUrl).collect(Collectors.toSet());
+            List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+            Set<String> dbUrlList = discoveryUpstreamDOS.stream().map(DiscoveryUpstreamDO::getUrl).collect(Collectors.toSet());
+            List<String> deleteIds = new ArrayList<>();
+            for (DiscoveryUpstreamDO discoveryUpstreamDO : discoveryUpstreamDOS) {
+                if (!urlList.contains(discoveryUpstreamDO.getUrl())) {
+                    deleteIds.add(discoveryUpstreamDO.getId());
+                }
+            }
+            if(!deleteIds.isEmpty()){
+                discoveryUpstreamMapper.deleteByIds(deleteIds);
+            }
+            for (DiscoveryUpstreamData currDiscoveryUpstreamDate : discoveryUpstreamDataList) {
+                if(!dbUrlList.contains(currDiscoveryUpstreamDate.getUrl())){
+                    DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryTransfer.INSTANCE.mapToDo(currDiscoveryUpstreamDate);
+                    discoveryUpstreamDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                    discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
+                    discoveryUpstreamDO.setDateCreated(new Timestamp(System.currentTimeMillis()));
+                    discoveryUpstreamDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+                    discoveryUpstreamMapper.insert(discoveryUpstreamDO);
+                }
+            }
+
             ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectByHandlerId(discoveryHandlerId);
             DiscoverySyncData discoverySyncData = new DiscoverySyncData();
             discoverySyncData.setSelectorId(proxySelectorDO.getId());
@@ -194,11 +211,11 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     /**
      * buildProxySelectorKey.
      *
-     * @param discoveryHandlerDTO discoveryHandlerDTO
+     * @param listenerNode listenerNode
      * @return key
      */
-    private String buildProxySelectorKey(final DiscoveryHandlerDTO discoveryHandlerDTO) {
-        return StringUtils.isNotBlank(discoveryHandlerDTO.getListenerNode()) ? discoveryHandlerDTO.getListenerNode() : DEFAULT_LISTENER_NODE;
+    private String buildProxySelectorKey(final String listenerNode) {
+        return StringUtils.isNotBlank(listenerNode) ? listenerNode : DEFAULT_LISTENER_NODE;
     }
 
 
