@@ -63,6 +63,12 @@
         WHERE dr.proxy_selector_id = #{proxySelectorId, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        from discovery_handler
+    </select>
+
     <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
             parameterType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
         INSERT INTO discovery_handler

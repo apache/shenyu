@@ -129,6 +129,10 @@
         where dh.discovery_id = #{discoveryId, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM proxy_selector
+    </select>
+
     <delete id="deleteByIds" parameterType="java.util.List">
         DELETE FROM proxy_selector WHERE id IN
         <foreach item="id" collection="ids" open="(" separator="," close=")">

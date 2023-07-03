@@ -43,6 +43,7 @@ import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -321,5 +322,11 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
         discoveryProcessorHolder.chooseProcessor(discoveryDO.getType()).fetchAll(discoveryHandlerId);
+    }
+
+    @Override
+    public List<ProxySelectorData> listAll() {
+        return proxySelectorMapper.selectAll().stream()
+                .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
     }
 }

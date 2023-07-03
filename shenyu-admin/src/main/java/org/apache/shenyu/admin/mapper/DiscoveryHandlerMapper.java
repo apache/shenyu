@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * DiscoveryHandlerMapper.
@@ -94,4 +95,12 @@ public interface DiscoveryHandlerMapper extends ExistProvider {
      * @return DiscoveryHandlerDO
      */
     DiscoveryHandlerDO selectByProxySelectorId(@Param("proxySelectorId") String proxySelectorId);
+
+    /**
+     * DiscoveryHandlerDOList.
+     *
+     * @return DiscoveryHandlerDOListx
+     */
+    List<DiscoveryHandlerDO> selectAll();
+
 }

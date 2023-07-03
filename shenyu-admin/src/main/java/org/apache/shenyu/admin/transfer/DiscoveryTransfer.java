@@ -77,7 +77,6 @@ public enum DiscoveryTransfer {
         return discoveryUpstreamData;
     }
 
-
     /**
      * mapToData.
      *
@@ -96,7 +95,12 @@ public enum DiscoveryTransfer {
         return discoveryUpstreamData;
     }
 
-
+    /**
+     * mapToData.
+     *
+     * @param proxySelectorDTO proxySelectorDTO
+     * @return ProxySelectorData
+     */
     public ProxySelectorData mapToData(ProxySelectorDTO proxySelectorDTO) {
         ProxySelectorData proxySelectorData = new ProxySelectorData();
         proxySelectorData.setId(proxySelectorDTO.getId());
@@ -110,6 +114,31 @@ public enum DiscoveryTransfer {
         return proxySelectorData;
     }
 
+    /**
+     * mapToData.
+     *
+     * @param proxySelectorDO proxySelectorDO
+     * @return ProxySelectorData
+     */
+    public ProxySelectorData mapToData(ProxySelectorDO proxySelectorDO) {
+        ProxySelectorData proxySelectorData = new ProxySelectorData();
+        proxySelectorData.setId(proxySelectorDO.getId());
+        proxySelectorData.setName(proxySelectorDO.getName());
+        proxySelectorData.setPluginName(proxySelectorDO.getPluginName());
+        proxySelectorData.setType(proxySelectorDO.getType());
+        proxySelectorData.setForwardPort(proxySelectorDO.getForwardPort());
+        String props = proxySelectorDO.getProps();
+        Properties properties = GsonUtils.getInstance().fromJson(props, Properties.class);
+        proxySelectorData.setProps(properties);
+        return proxySelectorData;
+    }
+
+    /**
+     * mapToDTO.
+     *
+     * @param proxySelectorDO proxySelectorDO
+     * @return ProxySelectorDTO
+     */
     public ProxySelectorDTO mapToDTO(ProxySelectorDO proxySelectorDO) {
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
         proxySelectorDTO.setName(proxySelectorDO.getName());
@@ -120,6 +149,12 @@ public enum DiscoveryTransfer {
         return proxySelectorDTO;
     }
 
+    /**
+     * mapToDTO.
+     *
+     * @param discoveryHandlerDO discoveryHandlerDO
+     * @return DiscoveryHandlerDTO
+     */
     public DiscoveryHandlerDTO mapToDTO(DiscoveryHandlerDO discoveryHandlerDO) {
         DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
         discoveryHandlerDTO.setDiscoveryId(discoveryHandlerDO.getDiscoveryId());
@@ -130,6 +165,12 @@ public enum DiscoveryTransfer {
         return discoveryHandlerDTO;
     }
 
+    /**
+     * mapToDTO.
+     *
+     * @param discoveryUpstreamDO discoveryUpstreamDO
+     * @return DiscoveryUpstreamDTO
+     */
     public DiscoveryUpstreamDTO mapToDTO(DiscoveryUpstreamDO discoveryUpstreamDO) {
         DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
         discoveryUpstreamDTO.setProps(discoveryUpstreamDO.getProps());
@@ -141,4 +182,5 @@ public enum DiscoveryTransfer {
         discoveryUpstreamDTO.setWeight(discoveryUpstreamDO.getWeight());
         return discoveryUpstreamDTO;
     }
+
 }

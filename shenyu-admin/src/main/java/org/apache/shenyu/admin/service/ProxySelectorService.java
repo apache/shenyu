@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
 import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 
 import java.util.List;
 
@@ -65,4 +66,12 @@ public interface ProxySelectorService {
      * @param discoveryHandlerId discoveryHandlerId
      */
     void fetchData(String discoveryHandlerId);
+
+    /**
+     * listAll.
+     *
+     * @return ProxySelectorDTOList
+     */
+    List<ProxySelectorData> listAll();
+
 }
