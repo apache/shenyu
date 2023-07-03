@@ -141,6 +141,7 @@ public enum DiscoveryTransfer {
      */
     public ProxySelectorDTO mapToDTO(ProxySelectorDO proxySelectorDO) {
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+        proxySelectorDTO.setId(proxySelectorDO.getId());
         proxySelectorDTO.setName(proxySelectorDO.getName());
         proxySelectorDTO.setType(proxySelectorDO.getType());
         proxySelectorDTO.setProps(proxySelectorDO.getProps());
