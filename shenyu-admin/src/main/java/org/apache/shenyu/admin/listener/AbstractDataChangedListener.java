@@ -207,6 +207,52 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     }
 
     /**
+     * invoke this method when ProxySelector was changed.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
+     */
+    public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
+        if (CollectionUtils.isEmpty(changed)) {
+            return;
+        }
+        this.updateProxySelectorDataCache();
+        this.afterProxySelectorChanged(changed, eventType);
+    }
+
+    /**
+     * After proxySelector changed.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
+     */
+    protected void afterProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
+    }
+
+    /**
+     * invoke this method when DiscoveryUpstream was changed.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
+     */
+    public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
+        if (CollectionUtils.isEmpty(changed)) {
+            return;
+        }
+        this.updateDiscoveryUpstreamDataCache();
+        this.afterDiscoveryUpstreamDataChanged(changed, eventType);
+    }
+
+    /**
+     * After DiscoveryUpstreamData changed.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
+     */
+    protected void afterDiscoveryUpstreamDataChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
+    }
+
+    /**
      * After selector changed.
      *
      * @param changed   the changed
