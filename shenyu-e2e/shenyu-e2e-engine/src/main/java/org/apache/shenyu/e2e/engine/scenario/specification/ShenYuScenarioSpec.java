@@ -34,7 +34,7 @@ public class ShenYuScenarioSpec implements ScenarioSpec {
     
     private final AfterEachSpec afterEachSpec;
 
-    public ShenYuScenarioSpec(String name, BeforeEachSpec beforeEachSpec, CaseSpec caseSpec, AfterEachSpec afterEachSpec) {
+    public ShenYuScenarioSpec(final String name, BeforeEachSpec beforeEachSpec, CaseSpec caseSpec, AfterEachSpec afterEachSpec) {
         this.name = name;
         this.beforeEachSpec = beforeEachSpec;
         this.caseSpec = caseSpec;
@@ -95,7 +95,7 @@ public class ShenYuScenarioSpec implements ScenarioSpec {
         
         private CaseSpec caseSpec;
         
-        public ShenYuScenarioSpecBuilder name(String name) {
+        public ShenYuScenarioSpecBuilder name(final String name) {
             this.name = name;
             return this;
         }

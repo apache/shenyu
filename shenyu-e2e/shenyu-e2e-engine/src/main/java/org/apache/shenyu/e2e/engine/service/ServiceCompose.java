@@ -25,11 +25,11 @@ public interface ServiceCompose {
     
     void start();
     
-    AdminClient newAdminClient(String scenarioId);
+    AdminClient newAdminClient(final String scenarioId);
     
-    GatewayClient newGatewayClient(String scenarioId);
+    GatewayClient newGatewayClient(final String scenarioId);
     
-    ExternalServiceClient newExternalServiceClient(String externalServiceName);
+    ExternalServiceClient newExternalServiceClient(final String externalServiceName);
 
     void stop();
 }

@@ -132,7 +132,7 @@ public class DockerServiceCompose implements ServiceCompose {
             if (stateOpt.isPresent()) {
                 ContainerState state = stateOpt.get();
                 List<String> bindings = state.getPortBindings();
-                for (String binding : bindings) {
+                for (final String binding : bindings) {
                     tableView.addRow(serviceConfigure.getServiceName(), binding.split(":"));
                 }
             }
@@ -165,17 +165,17 @@ public class DockerServiceCompose implements ServiceCompose {
     }
     
     @Override
-    public GatewayClient newGatewayClient(String scenarioId) {
+    public GatewayClient newGatewayClient(final String scenarioId) {
         return new GatewayClient(scenarioId, getGatewayBaseUrl(), gatewayConfigure.getProperties());
     }
     
     @Override
-    public AdminClient newAdminClient(String scenarioId) {
+    public AdminClient newAdminClient(final String scenarioId) {
         return new AdminClient(scenarioId, getAdminBaseUrl(), adminConfigure.getProperties());
     }
     
     @Override
-    public ExternalServiceClient newExternalServiceClient(String externalServiceName) {
+    public ExternalServiceClient newExternalServiceClient(final String externalServiceName) {
         DockerServiceConfigure dockerServiceConfigure = configure.getExternalServices().stream()
                 .filter(e -> externalServiceName.equals(e.getServiceName()))
                 .findFirst()
@@ -202,7 +202,7 @@ public class DockerServiceCompose implements ServiceCompose {
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
             String[] sonValues = value.split(",");
-            for (String sonValue : sonValues) {
+            for (final String sonValue : sonValues) {
                 String[] subModule = sonValue.split("\\:");
 
                 String[] subModulePath = subModule[0].split("\\.");
@@ -245,7 +245,7 @@ public class DockerServiceCompose implements ServiceCompose {
      * @param path path
      * @param dockerServiceConfigure dockerServiceConfigure
      */
-    private void chooseDataSyn(String path, DockerServiceConfigure dockerServiceConfigure) {
+    private void chooseDataSyn(final String path, DockerServiceConfigure dockerServiceConfigure) {
         String yamlFilePath = path;
         try (InputStream inputStream = new FileInputStream(yamlFilePath)) {
             Yaml yaml = new Yaml();

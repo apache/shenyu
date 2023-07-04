@@ -92,7 +92,7 @@ public class DataSynHandler {
         GATEWAY_APOLLO_MAP.put("namespace", "application");
     }
 
-    public static Map<String, Object> getDataSynMap(String dataSyn) {
+    public static Map<String, Object> getDataSynMap(final String dataSyn) {
         return DATA_SYN_MAP.get(dataSyn);
     }
 }

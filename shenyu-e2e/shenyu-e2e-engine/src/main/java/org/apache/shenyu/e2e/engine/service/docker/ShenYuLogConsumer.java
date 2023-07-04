@@ -28,7 +28,7 @@ public class ShenYuLogConsumer extends Slf4jLogConsumer {
 
     private static final Logger log = LoggerFactory.getLogger("docker-compose");
     
-    public ShenYuLogConsumer(String serviceName) {
+    public ShenYuLogConsumer(final String serviceName) {
         super(log);
         withPrefix("service_name:" + serviceName);
     }

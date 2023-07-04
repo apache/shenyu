@@ -45,7 +45,7 @@ public class ResourceDataTemplate {
      * @param plugin plugin
      * @return SelectorData.Builder
      */
-    public static SelectorData.SelectorDataBuilder newSelectorBuilder(@NotNull String name, Plugin plugin) {
+    public static SelectorData.SelectorDataBuilder newSelectorBuilder(final @NotNull String name, final Plugin plugin) {
         return SelectorData.builder()
                 .name(name)
                 .plugin(plugin)
@@ -64,11 +64,17 @@ public class ResourceDataTemplate {
      * @param name name
      * @return RuleData.Builder
      */
-    public static RuleData.RuleDataBuilder newRuleBuilder(@Nonnull String name) {
+    public static RuleData.RuleDataBuilder newRuleBuilder(final @Nonnull String name) {
         return newRuleBuilder(name, null);
     }
     
-    public static RuleData.RuleDataBuilder newRuleBuilder(@Nonnull String name, String selectorId) {
+    /**
+     * new rule builder.
+     * @param name name
+     * @param selectorId selectorId
+     * @return RuleData.RuleDataBuilder
+     */
+    public static RuleData.RuleDataBuilder newRuleBuilder(final @Nonnull String name, final String selectorId) {
         return RuleData.builder()
                 .name(name)
                 .matchMode(MatchMode.AND)
@@ -103,11 +109,19 @@ public class ResourceDataTemplate {
      * @param value value
      * @return Condition
      */
-    public static Condition newCondition(Condition.ParamType type, Condition.Operator opt, String value) {
+    public static Condition newCondition(final Condition.ParamType type, final Condition.Operator opt, final String value) {
         return newCondition(type, opt, null, value);
     }
     
-    public static Condition newCondition(Condition.ParamType type, Condition.Operator opt, @Nullable String key, String value) {
+    /**
+     * new condition.
+     * @param type type
+     * @param opt opt
+     * @param key key
+     * @param value value
+     * @return Condition
+     */
+    public static Condition newCondition(final Condition.ParamType type, final Condition.Operator opt, final @Nullable String key, final String value) {
         return Condition.builder()
                 .paramType(type)
                 .operator(opt)
@@ -116,7 +130,14 @@ public class ResourceDataTemplate {
                 .build();
     }
     
-    public static List<Condition> newConditions(Condition.ParamType type, Condition.Operator opt, String value) {
+    /**
+     * new conditions.
+     * @param type type
+     * @param opt opt
+     * @param value value
+     * @return List
+     */
+    public static List<Condition> newConditions(final Condition.ParamType type, final Condition.Operator opt, final String value) {
         ArrayList<Condition> list = new ArrayList<>();
         list.add(newCondition(type, opt, value));
         return list;
@@ -128,13 +149,18 @@ public class ResourceDataTemplate {
      * @param url url
      * @return Upstream
      */
-    public static Upstreams.Upstream newUpstream(String url) {
+    public static Upstreams.Upstream newUpstream(final String url) {
         return Upstreams.Upstream.builder()
                 .upstreamUrl(url)
                 .build();
     }
     
-    public static Upstreams newUpstreamsBuilder(String url) {
+    /**
+     * new upstream builder.
+     * @param url url
+     * @return Upstreams
+     */
+    public static Upstreams newUpstreamsBuilder(final String url) {
         return Upstreams.builder().add(newUpstream(url)).build();
     }
 }

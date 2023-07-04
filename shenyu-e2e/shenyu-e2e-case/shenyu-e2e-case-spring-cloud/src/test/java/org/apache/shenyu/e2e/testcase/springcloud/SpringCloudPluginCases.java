@@ -383,7 +383,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                 .build();
     }
 
-    public static void verifierUri(String handle) throws JsonProcessingException {
+    public static void verifierUri(final String handle) throws JsonProcessingException {
         SpringCloudSelectorHandle springCloudSelectorHandle = mapper.readValue(handle, SpringCloudSelectorHandle.class);
         Assertions.assertEquals("springCloud-test", springCloudSelectorHandle.getServiceId());
         Assertions.assertEquals(false, springCloudSelectorHandle.getGray());

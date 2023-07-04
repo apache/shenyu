@@ -30,15 +30,23 @@ public enum SelectorType {
     
     private final String id;
     
-    SelectorType(int id) {
+    SelectorType(final int id) {
         this.id = String.valueOf(id);
     }
     
+    /**
+     * id.
+     * @return String
+     */
     @JsonValue
     public String getId() {
         return id;
     }
     
+    /**
+     * alias.
+     * @return String
+     */
     public String alias() {
         return name().toLowerCase(Locale.ROOT);
     }

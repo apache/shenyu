@@ -22,51 +22,80 @@ import java.util.Objects;
 
 /**
  * SelectorData.
- *
  * @since 2.0.0
  */
 public class SelectorCacheData {
-
+    
+    /**
+     * id.
+     */
     private String id;
-
+    
+    /**
+     * plugin id.
+     */
     private String pluginId;
-
+    
     /**
      * plugin name.
      */
     private String pluginName;
-
+    
+    /**
+     * select name.
+     */
     private String name;
-
+    
     /**
      * matchMode（0 and  1 or).
      */
     private Integer matchMode;
-
+    
     /**
      * type（false full，true custom).
      */
     private Integer type;
-
+    
+    /**
+     * sort.
+     */
     private Integer sort;
-
+    
+    /**
+     * enabled.
+     */
     private Boolean enabled;
-
+    
+    /**
+     * logged.
+     */
     private Boolean logged;
-
+    
+    /**
+     * continued.
+     */
     private Boolean continued = Boolean.TRUE;
-
+    
+    /**
+     * handle.
+     */
     private String handle;
-
+    
+    /**
+     * condition list.
+     */
     private List<ConditionData> conditionList;
-
+    
+    /**
+     * orginal condition list.
+     */
     private List<ConditionData> beforeConditionList;
-
+    
     /**
      * match restful api.
      */
     private Boolean matchRestful;
-
+    
     /**
      * no args constructor.
      */

@@ -82,7 +82,7 @@ public enum NamingResolver {
         this.namingMap = ImmutableMap.<String, String>builder().putAll(_namingMap).build();
     }
     
-    private static String getAddressFromBaseUrl(String baseUrl) {
+    private static String getAddressFromBaseUrl(final String baseUrl) {
         String address = baseUrl.replaceFirst("http(s)*://", "");
         if (address.contains("/")) {
             int index = address.indexOf('/');
@@ -97,7 +97,7 @@ public enum NamingResolver {
      * @param name represents serviceName, hostname, or domain.
      * @return return resulted ip if resolved success. otherwise, return name.
      */
-    public String resolve(String name) {
+    public String resolve(final String name) {
         String rst = namingMap.get(name);
         if (!Strings.isNullOrEmpty(rst)) {
             log.info("resolved {} to {} by docker-compose", name, rst);

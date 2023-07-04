@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.nullValue;
  */
 public class HttpCheckers {
     
-    public static HttpChecker notExists(String endpoint) {
+    public static HttpChecker notExists(final String endpoint) {
         return notExists(Method.GET, endpoint);
     }
 
@@ -56,7 +56,7 @@ public class HttpCheckers {
         };
     }
 
-    public static HttpChecker exists(String endpoint) {
+    public static HttpChecker exists(final String endpoint) {
         return exists(Method.GET, endpoint);
     }
 

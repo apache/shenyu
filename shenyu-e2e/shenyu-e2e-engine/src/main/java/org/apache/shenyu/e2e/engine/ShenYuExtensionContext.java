@@ -80,7 +80,7 @@ public class ShenYuExtensionContext {
         return gatewayClient;
     }
     
-    public ExternalServiceClient getExternalServiceClient(String externalServiceName) {
+    public ExternalServiceClient getExternalServiceClient(final String externalServiceName) {
         if (Objects.isNull(externalServiceClientMap)) {
             externalServiceClientMap = Maps.newHashMap();
         }

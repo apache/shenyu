@@ -36,21 +36,36 @@ public class IdManagers {
         INSTANCE;
         
         private BiMap<String, String> name2id;
-        public void set(BiMap<String, String> name2id) {
+        
+        /**
+         * set the name 2 id mapping BiMap.
+         * @param name2id name2id
+         */
+        public void set(final BiMap<String, String> name2id) {
             this.name2id = name2id;
             StringJoiner joiner = new StringJoiner(",");
-            for (Map.Entry entry : name2id.entrySet()) {
-                joiner.add(entry.getKey().toString());
+            for (Map.Entry<String, String> entry : name2id.entrySet()) {
+                joiner.add(entry.getKey());
             }
             log.info("plugin list: " + joiner);
 
         }
         
-        public String getIdByName(String name) {
+        /**
+         * get id by name.
+         * @param name name
+         * @return String
+         */
+        public String getIdByName(final String name) {
             return this.name2id.get(name);
         }
         
-        public String getNameById(String id) {
+        /**
+         * get name by id.
+         * @param id id
+         * @return String
+         */
+        public String getNameById(final String id) {
             return this.name2id.inverse().get(id);
         }
     }
@@ -58,17 +73,32 @@ public class IdManagers {
     public enum Rules {
         INSTANCE;
         
-        private BiMap<String, String> name2id = HashBiMap.create();
-    
-        public void put(String name, String id) {
+        private final BiMap<String, String> name2id = HashBiMap.create();
+        
+        /**
+         * put name and id into the biMap of the single instance.
+         * @param name name
+         * @param id id
+         */
+        public void put(final String name, final String id) {
             name2id.put(name, id);
         }
         
-        public String getIdByName(String name) {
+        /**
+         * get id by name.
+         * @param name name
+         * @return String
+         */
+        public String getIdByName(final String name) {
             return this.name2id.get(name);
         }
         
-        public String getNameById(String id) {
+        /**
+         * get name by id.
+         * @param id id
+         * @return String
+         */
+        public String getNameById(final String id) {
             return this.name2id.inverse().get(id);
         }
     }
@@ -77,16 +107,31 @@ public class IdManagers {
         INSTANCE;
         
         private final BiMap<String, String> name2id = HashBiMap.create();
-    
-        public void put(String name, String id) {
+        
+        /**
+         * put name and id into the biMap of the single instance.
+         * @param name name
+         * @param id id
+         */
+        public void put(final String name, final String id) {
             name2id.put(name, id);
         }
         
-        public String getIdByName(String name) {
+        /**
+         * get id by name.
+         * @param name name
+         * @return String
+         */
+        public String getIdByName(final String name) {
             return this.name2id.get(name);
         }
         
-        public String getNameById(String id) {
+        /**
+         * get name by id.
+         * @param id id
+         * @return String
+         */
+        public String getNameById(final String id) {
             return this.name2id.inverse().get(id);
         }
     }

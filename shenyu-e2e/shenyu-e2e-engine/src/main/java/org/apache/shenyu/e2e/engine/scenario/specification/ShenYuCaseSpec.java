@@ -38,7 +38,7 @@ public class ShenYuCaseSpec implements CaseSpec {
     
     private final List<Verifier> verifiers;
 
-    public ShenYuCaseSpec(String name, List<Verifier> verifiers) {
+    public ShenYuCaseSpec(final String name, List<Verifier> verifiers) {
         this.name = name;
         this.verifiers = verifiers;
     }
@@ -67,7 +67,7 @@ public class ShenYuCaseSpec implements CaseSpec {
         return new ShenYuTestCaseSpecBuilder();
     }
     
-    public static ShenYuTestCaseSpecBuilder builder(String name) {
+    public static ShenYuTestCaseSpecBuilder builder(final String name) {
         return new ShenYuTestCaseSpecBuilder(name);
     }
 
@@ -80,11 +80,11 @@ public class ShenYuCaseSpec implements CaseSpec {
         public ShenYuTestCaseSpecBuilder() {
         }
 
-        public ShenYuTestCaseSpecBuilder(String name) {
+        public ShenYuTestCaseSpecBuilder(final String name) {
             this.name = name;
         }
 
-        public ShenYuTestCaseSpecBuilder name(String name) {
+        public ShenYuTestCaseSpecBuilder name(final String name) {
             this.name = name;
             return this;
         }
@@ -94,7 +94,7 @@ public class ShenYuCaseSpec implements CaseSpec {
             return this;
         }
     
-        public ShenYuTestCaseSpecBuilder addVerifier(String endpoint, Matcher<?> matcher, Matcher<?>... matchers) {
+        public ShenYuTestCaseSpecBuilder addVerifier(final String endpoint, Matcher<?> matcher, Matcher<?>... matchers) {
             return addVerifier(Method.GET, endpoint, matcher, matchers);
         }
         
@@ -102,7 +102,7 @@ public class ShenYuCaseSpec implements CaseSpec {
             return add(supplier -> supplier.when().request(method, endpoint).then().assertThat().body(matcher, matchers));
         }
         
-        public ShenYuTestCaseSpecBuilder addExists(String endpoint) {
+        public ShenYuTestCaseSpecBuilder addExists(final String endpoint) {
             return addExists(Method.GET, endpoint);
         }
         
@@ -110,7 +110,7 @@ public class ShenYuCaseSpec implements CaseSpec {
             return add(exists(method, endpoint));
         }
     
-        public ShenYuTestCaseSpecBuilder addNotExists(String endpoint) {
+        public ShenYuTestCaseSpecBuilder addNotExists(final String endpoint) {
             return addNotExists(Method.GET, endpoint);
         }
         

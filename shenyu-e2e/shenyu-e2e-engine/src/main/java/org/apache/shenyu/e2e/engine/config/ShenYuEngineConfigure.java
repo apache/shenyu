@@ -156,7 +156,7 @@ public class ShenYuEngineConfigure {
 
             private final Properties properties;
 
-            public HostServiceConfigure(String serviceName, String baseUrl, Properties properties) {
+            public HostServiceConfigure(final String serviceName, String baseUrl, Properties properties) {
                 this.serviceName = serviceName;
                 this.baseUrl = baseUrl;
                 this.properties = properties;
@@ -201,7 +201,7 @@ public class ShenYuEngineConfigure {
 
         private final List<DockerServiceConfigure> externalServices;
 
-        public DockerConfigure(String dockerComposeFile, DockerServiceConfigure admin, DockerServiceConfigure gateway, List<DockerServiceConfigure> externalServices) {
+        public DockerConfigure(final String dockerComposeFile, DockerServiceConfigure admin, DockerServiceConfigure gateway, List<DockerServiceConfigure> externalServices) {
             this.dockerComposeFile = dockerComposeFile;
             this.admin = admin;
             this.gateway = gateway;
@@ -254,7 +254,7 @@ public class ShenYuEngineConfigure {
 
             private final Properties properties;
 
-            public DockerServiceConfigure(String schema, String serviceName, int port, Properties properties) {
+            public DockerServiceConfigure(final String schema, String serviceName, int port, Properties properties) {
                 this.schema = schema;
                 this.serviceName = serviceName;
                 this.port = port;
@@ -348,7 +348,7 @@ public class ShenYuEngineConfigure {
         return new HostServiceConfigure(configure.serviceName(), configure.baseUrl(), toProperties(configure.parameters()));
     }
     
-    private static DockerConfigure parseDockerServiceConfigures(String dockerComposeFile, ServiceConfigure[] serviceConfigures) {
+    private static DockerConfigure parseDockerServiceConfigures(final String dockerComposeFile, ServiceConfigure[] serviceConfigures) {
         Preconditions.checkNotNull(Strings.emptyToNull(dockerComposeFile), "dockerComposeFile is required in docker-compose mode");
         
         DockerServiceConfigure admin = null;

@@ -61,7 +61,7 @@ public class DockerComposeFile {
         this.file = file;
     }
     
-    public static DockerComposeFile parse(String fileName) {
+    public static DockerComposeFile parse(final String fileName) {
         final File file = Assertions.assertDoesNotThrow(
                 () -> ResourceUtils.getFile(fileName),
                 "docker-compose file '" + fileName + "' is not found"
