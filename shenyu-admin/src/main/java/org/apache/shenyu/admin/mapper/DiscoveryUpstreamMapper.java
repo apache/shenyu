@@ -132,6 +132,7 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      * updateDiscoveryHandlerIdAndUrl.
      *
      * @param discoveryUpstreamDO discoveryUpstreamDO
+     * @return rows
      */
     int updateDiscoveryHandlerIdAndUrl(DiscoveryUpstreamDO discoveryUpstreamDO);
 }

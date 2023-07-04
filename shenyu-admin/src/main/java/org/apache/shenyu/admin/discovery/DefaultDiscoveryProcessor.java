@@ -183,11 +183,11 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
                     deleteIds.add(discoveryUpstreamDO.getId());
                 }
             }
-            if(!deleteIds.isEmpty()){
+            if (!deleteIds.isEmpty()) {
                 discoveryUpstreamMapper.deleteByIds(deleteIds);
             }
             for (DiscoveryUpstreamData currDiscoveryUpstreamDate : discoveryUpstreamDataList) {
-                if(!dbUrlList.contains(currDiscoveryUpstreamDate.getUrl())){
+                if (!dbUrlList.contains(currDiscoveryUpstreamDate.getUrl())) {
                     DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryTransfer.INSTANCE.mapToDo(currDiscoveryUpstreamDate);
                     discoveryUpstreamDO.setId(UUIDUtils.getInstance().generateShortUuid());
                     discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
