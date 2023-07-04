@@ -73,7 +73,7 @@ public class ProxySelectorController {
     /**
      * proxy selector add api.
      *
-     * @param id the id
+     * @param id                  the id
      * @param proxySelectorAddDTO {@link ProxySelectorAddDTO}
      * @return {@linkplain ShenyuAdminResult}
      */
@@ -108,4 +108,19 @@ public class ProxySelectorController {
 
         return ShenyuAdminResult.success(proxySelectorService.create(proxySelectorAddDTO), null);
     }
+
+
+    /**
+     * fetch data.
+     *
+     * @param discoveryHandlerId discoveryHandlerId
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PutMapping("fetch/{discoveryHandlerId}")
+    public ShenyuAdminResult fetchData(@PathVariable("discoveryHandlerId") final String discoveryHandlerId) {
+
+        proxySelectorService.fetchData(discoveryHandlerId);
+        return ShenyuAdminResult.success();
+    }
+
 }

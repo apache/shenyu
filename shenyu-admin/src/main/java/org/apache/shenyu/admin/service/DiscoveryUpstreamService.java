@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 
 import java.util.List;
 
@@ -38,4 +39,11 @@ public interface DiscoveryUpstreamService {
      * @return the string
      */
     String delete(List<String> ids);
+
+    /**
+     * listAll.
+     *
+     * @return DiscoverySyncDataList
+     */
+    List<DiscoverySyncData> listAll();
 }

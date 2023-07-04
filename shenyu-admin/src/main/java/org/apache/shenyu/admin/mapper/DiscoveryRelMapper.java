@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 
 /**
@@ -44,6 +45,7 @@ public interface DiscoveryRelMapper {
 
     /**
      * insert discoveryRelDO.
+     *
      * @param discoveryRelDO discoveryRelDO.
      * @return rows
      */
@@ -75,8 +77,18 @@ public interface DiscoveryRelMapper {
 
     /**
      * delete discoveryRel by id.
+     *
      * @param id primary key.
      * @return rows.
      */
     int delete(String id);
+
+    /**
+     * selectByDiscoveryHandlerId.
+     *
+     * @param discoveryHandlerId discoveryHandlerId
+     * @return DiscoveryRelDO
+     */
+    DiscoveryRelDO selectByDiscoveryHandlerId(@Param("discoveryHandlerId") String discoveryHandlerId);
+
 }

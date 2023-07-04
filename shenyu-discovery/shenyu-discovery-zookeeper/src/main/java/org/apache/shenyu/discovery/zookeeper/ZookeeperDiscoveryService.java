@@ -40,6 +40,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Zookeeper for shenyu discovery service.
@@ -90,7 +93,9 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
         });
         this.client.start();
         try {
-            this.client.blockUntilConnected();
+            if (!this.client.blockUntilConnected(30, TimeUnit.SECONDS)) {
+                throw new ShenyuException("shenyu start ZookeeperDiscoveryService failure 30 seconds timeout");
+            }
         } catch (InterruptedException e) {
             throw new ShenyuException(e);
         }
@@ -122,11 +127,8 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
                 DiscoveryDataChangedEvent dataChangedEvent;
                 if (Objects.nonNull(data) && Objects.nonNull(data.getData())) {
                     String currentPath = data.getPath();
-                    String parentPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
-                    String parentData = this.getData(parentPath);
                     String currentData = new String(data.getData(), StandardCharsets.UTF_8);
-                    String resultData = parentData + "|" + currentData;
-                    LOGGER.info("shenyu find resultData ={}", resultData);
+                    LOGGER.info("shenyu find resultData ={}", currentData);
                     Stat stat = data.getStat();
                     boolean isEphemeral = Objects.nonNull(stat) && stat.getEphemeralOwner() > 0;
                     if (!isEphemeral) {
@@ -135,16 +137,16 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
                     }
                     switch (event.getType()) {
                         case NODE_ADDED:
-                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, resultData, DiscoveryDataChangedEvent.Event.ADDED);
+                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, currentData, DiscoveryDataChangedEvent.Event.ADDED);
                             break;
                         case NODE_UPDATED:
-                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, resultData, DiscoveryDataChangedEvent.Event.UPDATED);
+                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, currentData, DiscoveryDataChangedEvent.Event.UPDATED);
                             break;
                         case NODE_REMOVED:
-                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, resultData, DiscoveryDataChangedEvent.Event.DELETED);
+                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, currentData, DiscoveryDataChangedEvent.Event.DELETED);
                             break;
                         default:
-                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, resultData, DiscoveryDataChangedEvent.Event.IGNORED);
+                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, currentData, DiscoveryDataChangedEvent.Event.IGNORED);
                             break;
                     }
                     listener.onChange(dataChangedEvent);
@@ -171,15 +173,26 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     }
 
     @Override
-    public String getData(final String key) {
+    public List<String> getRegisterData(final String key) {
         try {
-            TreeCache treeCache = cacheMap.get(key);
-            if (Objects.isNull(treeCache)) {
-                return null;
+            List<String> children = client.getChildren().forPath(key);
+            List<String> datas = new ArrayList<>();
+            for (String child : children) {
+                String nodePath = key + "/" + child;
+                byte[] data = client.getData().forPath(nodePath);
+                datas.add(new String(data, StandardCharsets.UTF_8));
             }
-            ChildData currentData = treeCache.getCurrentData(key);
-            byte[] ret = currentData.getData();
-            return Objects.isNull(ret) ? null : new String(ret, StandardCharsets.UTF_8);
+            return datas;
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+
+    @Override
+    public Boolean exits(final String key) {
+        try {
+            Stat stat = this.client.checkExists().forPath(key);
+            return stat != null;
         } catch (Exception e) {
             throw new ShenyuException(e);
         }

@@ -24,12 +24,16 @@ import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.ProxySelectorService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -81,8 +85,17 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     @Resource
     private SelectorService selectorService;
 
+    /**
+     * The MetaData service.
+     */
     @Resource
     private MetaDataService metaDataService;
+
+    @Resource
+    private ProxySelectorService proxySelectorService;
+
+    @Resource
+    private DiscoveryUpstreamService discoveryUpstreamService;
 
     /**
      * fetch configuration from cache.
@@ -103,11 +116,15 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
                 return buildConfigData(config, SelectorData.class);
             case META_DATA:
                 return buildConfigData(config, MetaData.class);
+            case PROXY_SELECTOR:
+                return buildConfigData(config, ProxySelectorData.class);
+            case DISCOVER_UPSTREAM:
+                return buildConfigData(config, DiscoverySyncData.class);
             default:
                 throw new IllegalStateException("Unexpected groupKey: " + groupKey);
         }
     }
-    
+
     @Override
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -116,7 +133,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateAppAuthCache();
         this.afterAppAuthChanged(changed, eventType);
     }
-    
+
     /**
      * After app auth changed.
      *
@@ -125,7 +142,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
     }
-    
+
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -134,7 +151,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateMetaDataCache();
         this.afterMetaDataChanged(changed, eventType);
     }
-    
+
     /**
      * After meta data changed.
      *
@@ -143,7 +160,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
     }
-    
+
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -152,7 +169,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updatePluginCache();
         this.afterPluginChanged(changed, eventType);
     }
-    
+
     /**
      * After plugin changed.
      *
@@ -161,7 +178,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
     }
-    
+
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -170,7 +187,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateRuleCache();
         this.afterRuleChanged(changed, eventType);
     }
-    
+
     /**
      * After rule changed.
      *
@@ -179,7 +196,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
     }
-    
+
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -188,7 +205,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateSelectorCache();
         this.afterSelectorChanged(changed, eventType);
     }
-    
+
     /**
      * After selector changed.
      *
@@ -197,20 +214,21 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
     }
-    
+
     @Override
     public final void afterPropertiesSet() {
         this.refreshLocalCache();
         this.afterInitialize();
     }
-    
+
     protected abstract void afterInitialize();
-    
+
     /**
      * if md5 is not the same as the original, then update lcoal cache.
+     *
      * @param group ConfigGroupEnum
-     * @param <T> the type of class
-     * @param data the new config data
+     * @param <T>   the type of class
+     * @param data  the new config data
      */
     protected <T> void updateCache(final ConfigGroupEnum group, final List<T> data) {
         String json = GsonUtils.getInstance().toJson(data);
@@ -218,7 +236,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
         LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
     }
-    
+
     /**
      * refresh local cache.
      */
@@ -228,44 +246,55 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateRuleCache();
         this.updateSelectorCache();
         this.updateMetaDataCache();
+        this.updateProxySelectorDataCache();
+        this.updateDiscoveryUpstreamDataCache();
     }
-    
+
     /**
      * Update selector cache.
      */
     protected void updateSelectorCache() {
         this.updateCache(ConfigGroupEnum.SELECTOR, selectorService.listAll());
     }
-    
+
     /**
      * Update rule cache.
      */
     protected void updateRuleCache() {
         this.updateCache(ConfigGroupEnum.RULE, ruleService.listAll());
     }
-    
+
     /**
      * Update plugin cache.
      */
     protected void updatePluginCache() {
         this.updateCache(ConfigGroupEnum.PLUGIN, pluginService.listAll());
     }
-    
+
     /**
      * Update app auth cache.
      */
     protected void updateAppAuthCache() {
         this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAll());
     }
-    
+
     /**
      * Update meta data cache.
      */
     protected void updateMetaDataCache() {
         this.updateCache(ConfigGroupEnum.META_DATA, metaDataService.listAll());
     }
-    
+
+    protected void updateProxySelectorDataCache() {
+        this.updateCache(ConfigGroupEnum.PROXY_SELECTOR, proxySelectorService.listAll());
+    }
+
+    protected void updateDiscoveryUpstreamDataCache() {
+        this.updateCache(ConfigGroupEnum.DISCOVER_UPSTREAM, discoveryUpstreamService.listAll());
+    }
+
     private <T> ConfigData<T> buildConfigData(final ConfigDataCache config, final Class<T> dataType) {
         return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), GsonUtils.getInstance().fromList(config.getJson(), dataType));
     }
+
 }
