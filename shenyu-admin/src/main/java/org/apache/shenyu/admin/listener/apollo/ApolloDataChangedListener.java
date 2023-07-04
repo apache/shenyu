@@ -35,8 +35,13 @@ public class ApolloDataChangedListener extends AbstractListDataChangedListener {
      * @param apolloClient the apollo client
      */
     public ApolloDataChangedListener(final ApolloClient apolloClient) {
-        super(new ChangeData(ApolloPathConstants.PLUGIN_DATA_ID, ApolloPathConstants.SELECTOR_DATA_ID,
-                ApolloPathConstants.RULE_DATA_ID, ApolloPathConstants.AUTH_DATA_ID, ApolloPathConstants.META_DATA_ID, ApolloPathConstants.PROXY_SELECTOR_DATA_ID));
+        super(new ChangeData(ApolloPathConstants.PLUGIN_DATA_ID,
+                ApolloPathConstants.SELECTOR_DATA_ID,
+                ApolloPathConstants.RULE_DATA_ID,
+                ApolloPathConstants.AUTH_DATA_ID,
+                ApolloPathConstants.META_DATA_ID,
+                ApolloPathConstants.PROXY_SELECTOR_DATA_ID,
+                ApolloPathConstants.DISCOVERY_DATA_ID));
         this.apolloClient = apolloClient;
     }
 

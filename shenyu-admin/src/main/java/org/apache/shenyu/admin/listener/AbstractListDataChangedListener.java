@@ -416,6 +416,11 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
         private final String proxySelectorDataId;
 
         /**
+         * discovery data id.
+         */
+        private final String discoveryDataId;
+
+        /**
          * ChangeData.
          *
          * @param pluginDataId   pluginDataId
@@ -426,13 +431,14 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
          */
         public ChangeData(final String pluginDataId, final String selectorDataId,
                           final String ruleDataId, final String authDataId,
-                          final String metaDataId, final String proxySelectorDataId) {
+                          final String metaDataId, final String proxySelectorDataId, final String discoveryDataId) {
             this.pluginDataId = pluginDataId;
             this.selectorDataId = selectorDataId;
             this.ruleDataId = ruleDataId;
             this.authDataId = authDataId;
             this.metaDataId = metaDataId;
             this.proxySelectorDataId = proxySelectorDataId;
+            this.discoveryDataId = discoveryDataId;
         }
 
         /**
@@ -488,6 +494,16 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
         public String getProxySelectorDataId() {
             return proxySelectorDataId;
         }
+
+        /**
+         * get discoveryDataId.
+         *
+         * @return discoveryDataId
+         */
+        public String getDiscoveryDataId() {
+            return discoveryDataId;
+        }
+
     }
 
 }
