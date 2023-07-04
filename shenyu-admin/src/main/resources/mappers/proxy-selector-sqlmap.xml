@@ -123,10 +123,21 @@
     </select>
 
     <select id="selectByDiscoveryId" resultType="org.apache.shenyu.admin.model.entity.ProxySelectorDO">
-        SELECT ps.id , ps.name, ps.plugin_name , ps.type, ps.forward_port , ps.props
-        FROM proxy_selector ps inner join discovery_rel dr on ps.id = dr.proxy_selector_id
+        SELECT
+        ps.id ,
+        ps.name,
+        ps.plugin_name ,
+        ps.type,
+        ps.forward_port ,
+        ps.props
+        FROM proxy_selector ps
+        inner join discovery_rel dr on ps.id = dr.proxy_selector_id
         inner join discovery_handler dh on dh.id = dr.discovery_handler_id
-        where dh.discovery__id = #{discoveryId}
+        where dh.discovery_id = #{discoveryId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM proxy_selector
     </select>
 
     <delete id="deleteByIds" parameterType="java.util.List">

@@ -20,7 +20,7 @@ package org.apache.shenyu.client.springcloud.register;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.extractor.BaseAnnotationApiBeansExtractor;
-import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
+import org.apache.shenyu.client.core.register.extractor.RpcApiBeansExtractor;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.lang.NonNull;
@@ -36,7 +36,7 @@ import java.util.Objects;
  * Support for Spring Cloud. <br>
  * Should inherit from SpringMvcApiBeansExtractor.
  */
-public class SpringCloudApiBeansExtractor extends BaseAnnotationApiBeansExtractor implements ApiBeansExtractor {
+public class SpringCloudApiBeansExtractor extends BaseAnnotationApiBeansExtractor implements RpcApiBeansExtractor {
     
     private final List<Class<? extends Annotation>> supportedApiAnnotations = new ArrayList<>(1);
     

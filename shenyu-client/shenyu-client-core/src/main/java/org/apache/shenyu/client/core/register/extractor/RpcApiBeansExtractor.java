@@ -15,41 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service;
+package org.apache.shenyu.client.core.register.extractor;
 
-import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
-import org.apache.shenyu.admin.model.vo.DiscoveryVO;
-
-import java.util.List;
-
-public interface DiscoveryService {
-
+/**
+ * Main responsibilities: Get the possible API class classes and corresponding methods,
+ * and initialize and resolve them Different.<br>
+ * <ul>
+ *     <li>clients correspond to different implementations
+ *     <li>In the Spring web scenario, collect controller
+ *     <li> java EE web scenarios, collect servlet path Dubbo
+ *     <li> scenarios, and collect Dubbo Service APIs
+ *     <li> In other RPC scenarios, collect RPC Service APIs
+ * </ul>
+ */
+public interface RpcApiBeansExtractor extends ApiBeansExtractor {
+    
     /**
-     * the list of discovery type.
+     * client name.
      *
-     * @return the list of discovery type
+     * @return name
      */
-    List<String> typeEnums();
-
-    /**
-     * get the discovery by plugin and name.
-     *
-     * @param pluginName plugin name
-     * @param level      level
-     * @return the discovery
-     */
-    DiscoveryVO discovery(String pluginName, String level);
-
-    /**
-     * Create or update string.
-     *
-     * @param discoveryDTO the discovery dto
-     * @return the string
-     */
-    DiscoveryVO createOrUpdate(DiscoveryDTO discoveryDTO);
-
-    /**
-     * syncData.
-     */
-    void syncData();
+    String clientName();
 }

@@ -28,6 +28,7 @@ import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.config.properties.NacosProperties;
 import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
 import org.apache.shenyu.admin.listener.etcd.EtcdClient;
+import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
@@ -89,6 +90,9 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     @Mock
     private MetaDataService metaDataService;
 
+    @Mock
+    private DiscoveryService discoveryService;
+
     @BeforeAll
     public static void setUpBeforeClass() throws Exception {
         zkServer = new TestingServer();
@@ -130,7 +134,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     @Test
     public void testZookeeperDataInit() {
         final SyncDataService syncDataService = new SyncDataServiceImpl(appAuthService, pluginService, selectorService,
-                ruleService, eventPublisher, metaDataService);
+                ruleService, eventPublisher, metaDataService, discoveryService);
         DataSyncConfiguration.ZookeeperListener zookeeperListener = new DataSyncConfiguration.ZookeeperListener();
         assertNotNull(zookeeperListener.zookeeperDataChangedInit(zkClient));
     }

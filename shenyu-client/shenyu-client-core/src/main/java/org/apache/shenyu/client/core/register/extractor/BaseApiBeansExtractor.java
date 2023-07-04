@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * BaseApiBeansExtractor.<br>
  * Used to demonstrate the basic behavior of the extractor.
  */
-public abstract class BaseApiBeansExtractor implements ApiBeansExtractor {
+public abstract class BaseApiBeansExtractor implements RpcApiBeansExtractor {
     
     protected static final Logger LOG = LoggerFactory.getLogger(BaseApiBeansExtractor.class);
     
