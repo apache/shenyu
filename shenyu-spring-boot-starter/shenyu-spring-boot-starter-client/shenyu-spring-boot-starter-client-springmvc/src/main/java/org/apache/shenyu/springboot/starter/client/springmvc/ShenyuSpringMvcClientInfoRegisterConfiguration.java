@@ -41,10 +41,10 @@ import org.springframework.core.env.Environment;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnBean(ClientRegisterConfiguration.class)
 public class ShenyuSpringMvcClientInfoRegisterConfiguration {
-
+    
     public ShenyuSpringMvcClientInfoRegisterConfiguration() {
     }
-
+    
     /**
      * ClientInfoRefreshedEventListener Bean.
      *
@@ -57,19 +57,18 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
                                                                     final ShenyuClientRegisterEventPublisher publisher) {
         return new ClientInfoRefreshedEventListener(clientRegisterConfig, publisher);
     }
-
+    
     /**
      * ApiBeansExtractor Bean.
      *
-     * @param clientRegisterConfig clientRegisterConfig
      * @return apiBeansExtractor
      */
     @Bean
     @ConditionalOnMissingBean
-    public ApiBeansExtractor apiBeansExtractor(final ClientRegisterConfig clientRegisterConfig) {
-        return new SpringMvcApiBeansExtractor(clientRegisterConfig.getContextPath());
+    public ApiBeansExtractor apiBeansExtractor() {
+        return new SpringMvcApiBeansExtractor();
     }
-
+    
     /**
      * Builds ApiMetaRegistrar Bean.
      *
@@ -81,10 +80,10 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     @ConditionalOnProperty(value = "shenyu.register.api.meta.enabled", matchIfMissing = true, havingValue = "true")
     public AbstractApiMetaRegistrar buildApiMetaRegistrar(final ShenyuClientRegisterEventPublisher publisher,
                                                           final ClientRegisterConfig clientRegisterConfig) {
-
+        
         return new SpringMvcApiMetaRegister(publisher, clientRegisterConfig);
     }
-
+    
     /**
      * Builds ApiDocRegistrar  Bean.
      *
@@ -98,7 +97,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
                                                         final ClientRegisterConfig clientRegisterConfig) {
         return new HttpApiDocRegistrar(publisher, clientRegisterConfig);
     }
-
+    
     /**
      * ClientRegisterConfig Bean.
      *

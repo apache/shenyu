@@ -2365,3 +2365,34 @@ comment on column PROXY_SELECTOR.date_created
   is 'create time';
 comment on column PROXY_SELECTOR.date_updated
   is 'update time';
+
+create table alert_template
+(
+    id            varchar(128) not null,
+    name          varchar(255) not null,
+    strategy_name varchar(255) not null,
+    content       varchar(1000) not null,
+    date_created  timestamp(3) default SYSDATE not null,
+    date_updated  timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+)
+;
+-- Add comments to the columns
+comment
+on column ALTER_TEMPLATE.id
+  is 'primary key id';
+comment
+on column ALTER_TEMPLATE.name
+  is 'alert template name';
+comment
+on column ALTER_TEMPLATE.strategy_name
+  is 'alert template strategy name';
+comment
+on column ALTER_TEMPLATE.content
+  is 'alert template content';
+comment
+on column ALTER_TEMPLATE.date_created
+  is 'create time';
+comment
+on column ALTER_TEMPLATE.date_updated
+  is 'update time';

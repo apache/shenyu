@@ -22,6 +22,8 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: shenyu-bootstrap
+  codec:
+    max-in-memory-size: 64MB
 
 management:
   health:
@@ -29,6 +31,8 @@ management:
       enabled: false
 
 shenyu:
+  httpclient:
+    maxInMemorySize: 5
   switchConfig:
     local: true
   cross:

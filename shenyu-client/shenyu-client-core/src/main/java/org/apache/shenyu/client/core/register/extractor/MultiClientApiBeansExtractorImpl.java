@@ -15,29 +15,30 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.registrar;
+package org.apache.shenyu.client.core.register.extractor;
 
 import org.apache.shenyu.client.core.register.ApiBean;
+import org.springframework.context.ApplicationContext;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-public interface ApiRegistrar {
+/**
+ * MultiClientApiBeansExtractorImpl.
+ * Multi-client collector
+ */
+public class MultiClientApiBeansExtractorImpl implements ApiBeansExtractor {
     
-    /**
-     * Registers ApiBean.
-     *
-     * @param beans apiBean to register
-     */
-    default void register(List<ApiBean> beans) {
-        for (ApiBean bean : beans) {
-            register(bean);
-        }
+    private final List<RpcApiBeansExtractor> rpcApiBeansExtractors;
+    
+    public MultiClientApiBeansExtractorImpl(final List<RpcApiBeansExtractor> rpcApiBeansExtractors) {
+        this.rpcApiBeansExtractors = rpcApiBeansExtractors;
     }
     
-    /**
-     * Registers ApiBean.
-     *
-     * @param apiBean apiBean to register
-     */
-    void register(ApiBean apiBean);
+    @Override
+    public List<ApiBean> extract(final ApplicationContext applicationContext) {
+        return rpcApiBeansExtractors.stream()
+                .flatMap(e -> e.extract(applicationContext).stream())
+                .collect(Collectors.toList());
+    }
 }
