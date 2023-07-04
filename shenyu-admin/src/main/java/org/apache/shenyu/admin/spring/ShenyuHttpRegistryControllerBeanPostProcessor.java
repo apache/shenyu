@@ -36,7 +36,7 @@ public class ShenyuHttpRegistryControllerBeanPostProcessor implements BeanPostPr
     public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
         if (bean instanceof ShenyuClientHttpRegistryController) {
             try {
-                RequestMappingHandlerMapping requestMappingHandlerMapping = SpringBeanUtils.getInstance().getBean(RequestMappingHandlerMapping.class);
+                RequestMappingHandlerMapping requestMappingHandlerMapping = SpringBeanUtils.getInstance().getBean("requestMappingHandlerMapping", RequestMappingHandlerMapping.class);
                 Method method = requestMappingHandlerMapping.getClass().getSuperclass().getSuperclass().getDeclaredMethod("detectHandlerMethods", Object.class);
                 method.setAccessible(true);
                 method.invoke(requestMappingHandlerMapping, beanName);
