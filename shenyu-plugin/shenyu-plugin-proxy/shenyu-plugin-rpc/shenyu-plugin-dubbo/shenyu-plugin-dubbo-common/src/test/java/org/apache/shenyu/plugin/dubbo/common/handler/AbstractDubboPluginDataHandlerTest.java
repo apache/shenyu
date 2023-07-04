@@ -22,8 +22,6 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.junit.Assert;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -87,8 +85,6 @@ public class AbstractDubboPluginDataHandlerTest {
 
         handler.removeSelector(selectorData);
         assertNull(AbstractDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle("1"));
-
-
     }
 
     @Test
