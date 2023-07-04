@@ -169,7 +169,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updatePluginCache();
         this.afterPluginChanged(changed, eventType);
     }
-
+    
     /**
      * After plugin changed.
      *
@@ -178,7 +178,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
     }
-
+    
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -187,7 +187,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateRuleCache();
         this.afterRuleChanged(changed, eventType);
     }
-
+    
     /**
      * After rule changed.
      *
@@ -196,7 +196,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
     }
-
+    
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -204,6 +204,52 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         }
         this.updateSelectorCache();
         this.afterSelectorChanged(changed, eventType);
+    }
+
+    /**
+     * invoke this method when ProxySelector was changed.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
+     */
+    public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
+        if (CollectionUtils.isEmpty(changed)) {
+            return;
+        }
+        this.updateProxySelectorDataCache();
+        this.afterProxySelectorChanged(changed, eventType);
+    }
+
+    /**
+     * After proxySelector changed.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
+     */
+    protected void afterProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
+    }
+
+    /**
+     * invoke this method when DiscoveryUpstream was changed.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
+     */
+    public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
+        if (CollectionUtils.isEmpty(changed)) {
+            return;
+        }
+        this.updateDiscoveryUpstreamDataCache();
+        this.afterDiscoveryUpstreamDataChanged(changed, eventType);
+    }
+
+    /**
+     * After DiscoveryUpstreamData changed.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
+     */
+    protected void afterDiscoveryUpstreamDataChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
     }
 
     /**
@@ -236,7 +282,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
         LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
     }
-
+    
     /**
      * refresh local cache.
      */
@@ -270,14 +316,14 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     protected void updatePluginCache() {
         this.updateCache(ConfigGroupEnum.PLUGIN, pluginService.listAll());
     }
-
+    
     /**
      * Update app auth cache.
      */
     protected void updateAppAuthCache() {
         this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAll());
     }
-
+    
     /**
      * Update meta data cache.
      */

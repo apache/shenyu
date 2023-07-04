@@ -21,6 +21,8 @@ import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.http.AccessTokenManager;
 import org.apache.shenyu.sync.data.http.HttpSyncDataService;
@@ -49,7 +51,7 @@ import java.util.Objects;
 public class HttpSyncDataConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpSyncDataConfiguration.class);
-    
+
     /**
      * Http config http config.
      *
@@ -60,7 +62,7 @@ public class HttpSyncDataConfiguration {
     public HttpConfig httpConfig() {
         return new HttpConfig();
     }
-    
+
     /**
      * Rest template.
      *
@@ -75,11 +77,11 @@ public class HttpSyncDataConfiguration {
         factory.setWriteTimeout(Objects.isNull(httpConfig.getWriteTimeout()) ? (int) HttpConstants.CLIENT_POLLING_WRITE_TIMEOUT : httpConfig.getWriteTimeout());
         return new RestTemplate(factory);
     }
-    
+
     /**
      * AccessTokenManager.
      *
-     * @param httpConfig the http config.
+     * @param httpConfig   the http config.
      * @param restTemplate the rest template.
      * @return the access token manager.
      */
@@ -87,16 +89,18 @@ public class HttpSyncDataConfiguration {
     public AccessTokenManager accessTokenManager(final HttpConfig httpConfig, final RestTemplate restTemplate) {
         return new AccessTokenManager(restTemplate, httpConfig);
     }
-    
+
     /**
      * Http sync data service.
      *
-     * @param httpConfig the http config
-     * @param pluginSubscriber the plugin subscriber
-     * @param restTemplate the rest template
-     * @param metaSubscribers the meta subscribers
-     * @param authSubscribers the auth subscribers
+     * @param httpConfig         the http config
+     * @param pluginSubscriber   the plugin subscriber
+     * @param restTemplate       the rest template
+     * @param metaSubscribers    the meta subscribers
+     * @param authSubscribers    the auth subscribers
      * @param accessTokenManager the access token manager
+     * @param proxySelectorDataSubscribers the proxySelectorData subscribers
+     * @param discoveryUpstreamDataSubscribers the discoveryUpstreamData subscribers
      * @return the sync data service
      */
     @Bean
@@ -105,7 +109,9 @@ public class HttpSyncDataConfiguration {
                                                final ObjectProvider<RestTemplate> restTemplate,
                                                final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
                                                final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
-                                               final ObjectProvider<AccessTokenManager> accessTokenManager) {
+                                               final ObjectProvider<AccessTokenManager> accessTokenManager,
+                                               final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscribers,
+                                               final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
         LOGGER.info("you use http long pull sync shenyu data");
         return new HttpSyncDataService(
                 Objects.requireNonNull(httpConfig.getIfAvailable()),
@@ -113,6 +119,8 @@ public class HttpSyncDataConfiguration {
                 Objects.requireNonNull(restTemplate.getIfAvailable()),
                 metaSubscribers.getIfAvailable(Collections::emptyList),
                 authSubscribers.getIfAvailable(Collections::emptyList),
+                proxySelectorDataSubscribers.getIfAvailable(Collections::emptyList),
+                discoveryUpstreamDataSubscribers.getIfAvailable(Collections::emptyList),
                 Objects.requireNonNull(accessTokenManager.getIfAvailable())
         );
     }
