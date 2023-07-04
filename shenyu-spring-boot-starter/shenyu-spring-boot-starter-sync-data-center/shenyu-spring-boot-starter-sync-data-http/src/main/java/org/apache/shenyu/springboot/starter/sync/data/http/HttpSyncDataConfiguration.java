@@ -99,6 +99,8 @@ public class HttpSyncDataConfiguration {
      * @param metaSubscribers    the meta subscribers
      * @param authSubscribers    the auth subscribers
      * @param accessTokenManager the access token manager
+     * @param proxySelectorDataSubscribers the proxySelectorData subscribers
+     * @param discoveryUpstreamDataSubscribers the discoveryUpstreamData subscribers
      * @return the sync data service
      */
     @Bean
