@@ -39,7 +39,7 @@ public class NacosDataChangedListener extends AbstractListDataChangedListener {
 
     public NacosDataChangedListener(final ConfigService configService) {
         super(new ChangeData(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.SELECTOR_DATA_ID,
-                NacosPathConstants.RULE_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID, NacosPathConstants.PROXY_SELECTOR_DATA_ID));
+                NacosPathConstants.RULE_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID, NacosPathConstants.PROXY_SELECTOR_DATA_ID, NacosPathConstants.DISCOVERY_DATA_ID));
         this.configService = configService;
     }
 
