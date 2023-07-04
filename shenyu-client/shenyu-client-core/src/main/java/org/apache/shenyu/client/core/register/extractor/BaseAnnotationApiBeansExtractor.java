@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * AnnotationApiBeansExtractor.<br>
  * API extraction converter that supports annotation.
  */
-public abstract class BaseAnnotationApiBeansExtractor extends BaseApiBeansExtractor implements ApiBeansExtractor {
+public abstract class BaseAnnotationApiBeansExtractor extends BaseApiBeansExtractor implements RpcApiBeansExtractor {
     
     @Override
     protected Map<String, Object> extractSupportBeans(final ApplicationContext applicationContext) {

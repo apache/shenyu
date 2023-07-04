@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -213,6 +214,22 @@ public class ApiBean {
      */
     public void setBeanPath(final String beanPath) {
         this.beanPath = beanPath;
+    }
+    
+    /**
+     * deep copy.
+     *
+     * @return ApiBean
+     */
+    public ApiBean copy() {
+        final ApiBean copy = new ApiBean(clientName, beanName, beanInstance, beanPath);
+        beanProperties.forEach((k, v) -> copy.addProperties(k.toString(), Objects.toString(v)));
+        for (ApiDefinition definition : apiDefinitions) {
+            final ApiDefinition newDefinition = new ApiDefinition(this, definition.apiMethod, definition.methodPath);
+            definition.apiProperties.forEach((k, v) -> newDefinition.addProperties(k.toString(), Objects.toString(v)));
+            copy.apiDefinitions.add(newDefinition);
+        }
+        return copy;
     }
     
     /**
