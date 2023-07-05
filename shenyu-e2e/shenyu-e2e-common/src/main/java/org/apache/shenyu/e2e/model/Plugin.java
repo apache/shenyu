@@ -131,7 +131,7 @@ public enum Plugin {
         }
         if (Objects.nonNull(error)) {
             log.warn("please paste follow lines to org.apache.shenyu.e2e.client.admin.model.Plugin:{}", builder);
-//            throw error; // TODO Don't throw it temporarily
+            // throw error; // TODO Don't throw it temporarily
         }
     }
 }
