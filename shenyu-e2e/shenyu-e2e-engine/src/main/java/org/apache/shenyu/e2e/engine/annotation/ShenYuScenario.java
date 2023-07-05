@@ -37,7 +37,7 @@ public @interface ShenYuScenario {
     
     /**
      * scenario provider class.
-     * @return Class<? extends ShenYuScenarioProvider>
+     * @return Class&lt;? extends ShenYuScenarioProvider&gt;
      */
     Class<? extends ShenYuScenarioProvider> provider();
     

@@ -34,7 +34,7 @@ public interface ScenarioSpec {
      * Verify which type the class belongs to.
      *
      * @param type type
-     * @param <T> &ltT&gt
+     * @param <T> &lt;T&gt;
      * @return T
      */
     default <T> T getByType(Class<T> type) {
