@@ -211,7 +211,6 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 discoveryProcessor.createDiscovery(discoveryDO);
             }
             if (fillDiscovery) {
-                discoveryProcessor.createDiscovery(discoveryDO);
                 // insert discovery handler
                 String discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();
                 DiscoveryHandlerDO discoveryHandlerDO = DiscoveryHandlerDO.builder()

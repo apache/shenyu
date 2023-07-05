@@ -84,7 +84,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
         this.client.getConnectionStateListenable().addListener((c, newState) -> {
             if (newState == ConnectionState.RECONNECTED) {
                 nodeDataMap.forEach((k, v) -> {
-                    if (!this.isExist(k)) {
+                    if (!this.exits(k)) {
                         this.createOrUpdate(k, v, CreateMode.EPHEMERAL);
                         LOGGER.info("zookeeper client register instance success: key={}|value={}", k, v);
                     }
@@ -101,7 +101,8 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-    private boolean isExist(final String key) {
+    @Override
+    public Boolean exits(String key) {
         try {
             return null != client.checkExists().forPath(key);
         } catch (Exception e) {
@@ -188,15 +189,6 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-    @Override
-    public Boolean exits(final String key) {
-        try {
-            Stat stat = this.client.checkExists().forPath(key);
-            return stat != null;
-        } catch (Exception e) {
-            throw new ShenyuException(e);
-        }
-    }
 
     @Override
     public void shutdown() {
