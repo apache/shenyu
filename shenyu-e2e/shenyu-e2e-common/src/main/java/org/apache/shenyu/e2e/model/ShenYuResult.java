@@ -26,6 +26,8 @@ import java.io.IOException;
  * ShenYu result.
  */
 public class ShenYuResult {
+    
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private int code;
 
@@ -33,12 +35,17 @@ public class ShenYuResult {
     
     private JsonNode data;
     
-    private static final ObjectMapper mapper = new ObjectMapper();
-    
-    public <Data> Data toObject(Class<Data> type) throws IOException {
-        return mapper.readValue(data.traverse(), type);
+    /**
+     * transform to data object.
+     * @param type type
+     * @param <DATA> target type
+     * @return Data
+     * @throws IOException IOException
+     */
+    public <DATA> DATA toObject(final Class<DATA> type) throws IOException {
+        return MAPPER.readValue(data.traverse(), type);
     }
-
+    
     /**
      * get code.
      *
@@ -53,7 +60,7 @@ public class ShenYuResult {
      *
      * @param code code
      */
-    public void setCode(int code) {
+    public void setCode(final int code) {
         this.code = code;
     }
 
@@ -71,7 +78,7 @@ public class ShenYuResult {
      *
      * @param message message
      */
-    public void setMessage(String message) {
+    public void setMessage(final String message) {
         this.message = message;
     }
 
@@ -89,7 +96,7 @@ public class ShenYuResult {
      *
      * @param data data
      */
-    public void setData(JsonNode data) {
+    public void setData(final JsonNode data) {
         this.data = data;
     }
 }
