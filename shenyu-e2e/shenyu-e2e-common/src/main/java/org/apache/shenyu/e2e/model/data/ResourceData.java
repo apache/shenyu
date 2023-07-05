@@ -29,16 +29,28 @@ import java.io.IOException;
  */
 public interface ResourceData {
     
+    /**
+     * gei id.
+     * @return String
+     */
     String getId();
     
+    /**
+     * get name.
+     * @return String
+     */
     String getName();
     
+    /**
+     * set resource name.
+     * @param name name
+     */
     void setName(String name);
 
     class IntToStringSerializer extends JsonSerializer<String> {
         
         @Override
-        public void serialize(String name, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+        public void serialize(final String name, final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider) throws IOException {
             String id = Selectors.INSTANCE.getIdByName(name);
             jsonGenerator.writeString(id);
         }

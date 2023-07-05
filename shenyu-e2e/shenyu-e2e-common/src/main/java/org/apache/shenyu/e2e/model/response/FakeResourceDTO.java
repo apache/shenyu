@@ -25,7 +25,7 @@ import java.util.Date;
  * Fake resourceDTO.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class FakeResourceDTO implements ResourceDTO{
+public class FakeResourceDTO implements ResourceDTO {
     
     private String id;
     
@@ -56,7 +56,7 @@ public class FakeResourceDTO implements ResourceDTO{
      *
      * @param id id
      */
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -75,7 +75,7 @@ public class FakeResourceDTO implements ResourceDTO{
      *
      * @param name name
      */
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 }

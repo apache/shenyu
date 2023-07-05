@@ -26,33 +26,60 @@ import java.util.Objects;
  * @since 2.0.0
  */
 public class RuleCacheData {
-
+    
+    /**
+     * id.
+     */
     private String id;
-
+    
+    /**
+     * name.
+     */
     private String name;
-
+    
+    /**
+     * plugin name.
+     */
     private String pluginName;
-
+    
+    /**
+     * selector id.
+     */
     private String selectorId;
 
     /**
-     * match way（0 and  1 or).
+     * match way（0 or 1).
      */
     private Integer matchMode;
-
+    
+    /**
+     * sort.
+     */
     private Integer sort;
-
+    
+    /**
+     * enabled or not.
+     */
     private Boolean enabled;
-
-    private Boolean loged;
+    
+    /**
+     * logged.
+     */
+    private Boolean logged;
 
     /**
      * handle message（different plugin have different handle to mark ,json style）.
      */
     private String handle;
-
+    
+    /**
+     * condition data list.
+     */
     private List<ConditionData> conditionDataList;
-
+    
+    /**
+     * before condition list.
+     */
     private List<ConditionData> beforeConditionDataList;
 
     /**
@@ -79,7 +106,7 @@ public class RuleCacheData {
         this.matchMode = builder.matchMode;
         this.sort = builder.sort;
         this.enabled = builder.enabled;
-        this.loged = builder.loged;
+        this.logged = builder.loged;
         this.handle = builder.handle;
         this.conditionDataList = builder.conditionDataList;
         this.beforeConditionDataList = builder.beforeConditionDataList;
@@ -240,18 +267,18 @@ public class RuleCacheData {
      *
      * @return loged
      */
-    public Boolean getLoged() {
-        return loged;
+    public Boolean getLogged() {
+        return logged;
     }
 
     /**
      * set loged.
      *
-     * @param loged loged
+     * @param logged loged
      * @return this
      */
-    public RuleCacheData setLoged(final Boolean loged) {
-        this.loged = loged;
+    public RuleCacheData setLogged(final Boolean logged) {
+        this.logged = logged;
         return this;
     }
 
@@ -347,7 +374,7 @@ public class RuleCacheData {
                 && Objects.equals(matchMode, ruleCacheData.matchMode)
                 && Objects.equals(sort, ruleCacheData.sort)
                 && Objects.equals(enabled, ruleCacheData.enabled)
-                && Objects.equals(loged, ruleCacheData.loged)
+                && Objects.equals(logged, ruleCacheData.logged)
                 && Objects.equals(handle, ruleCacheData.handle)
                 && Objects.equals(conditionDataList, ruleCacheData.conditionDataList)
                 && Objects.equals(beforeConditionDataList, ruleCacheData.beforeConditionDataList)
@@ -356,7 +383,7 @@ public class RuleCacheData {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, pluginName, selectorId, matchMode, sort, enabled, loged, handle, conditionDataList,
+        return Objects.hash(id, name, pluginName, selectorId, matchMode, sort, enabled, logged, handle, conditionDataList,
                 beforeConditionDataList, matchRestful);
     }
 
@@ -382,7 +409,7 @@ public class RuleCacheData {
                 + ", enabled="
                 + enabled
                 + ", loged="
-                + loged
+                + logged
                 + ", handle='"
                 + handle
                 + '\''
