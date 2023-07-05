@@ -205,7 +205,7 @@ public class ApiBean {
     /**
      * set status.
      *
-     * @param status
+     * @param status status
      */
     public void setStatus(final Status status) {
         this.status = status;
@@ -465,6 +465,6 @@ public class ApiBean {
          * <br>
          * Status that has already been registered should be skipped
          */
-        REGISTERED;
+        REGISTERED
     }
 }
