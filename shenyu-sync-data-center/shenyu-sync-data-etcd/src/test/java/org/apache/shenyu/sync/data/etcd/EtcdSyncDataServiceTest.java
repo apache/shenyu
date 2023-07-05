@@ -133,7 +133,7 @@ public class EtcdSyncDataServiceTest {
             public void onSubscribe(final PluginData pluginData) {
                 subscribeList.add(pluginData);
             }
-        }, Collections.emptyList(), Collections.emptyList());
+        }, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         assertThat(subscribeList.size(), is(1));
         assertThat(subscribeList.get(0).getName(), is("divide"));
     }
@@ -154,7 +154,7 @@ public class EtcdSyncDataServiceTest {
                         .findFirst().orElse(null);
                 subscribeList.remove(pluginDataDel);
             }
-        }, Collections.emptyList(), Collections.emptyList());
+        }, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         subscribeList.clear();
         final Method deletePlugin = EtcdSyncDataService.class.getDeclaredMethod("deletePlugin", String.class);
         final Method cachePluginData = EtcdSyncDataService.class.getDeclaredMethod("cachePluginData", String.class);
@@ -185,7 +185,7 @@ public class EtcdSyncDataServiceTest {
                                 .findFirst().orElse(null);
                         subscribeList.remove(metaDataDel);
                     }
-                }), Collections.emptyList());
+                }), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         subscribeList.clear();
         final Method cacheMetaData = EtcdSyncDataService.class.getDeclaredMethod("cacheMetaData", String.class);
         final Method deleteMetaData = EtcdSyncDataService.class.getDeclaredMethod("unCacheMetaData", MetaData.class);
@@ -216,7 +216,7 @@ public class EtcdSyncDataServiceTest {
                                 .findFirst().orElse(null);
                         subscribeList.remove(appAuthDataOld);
                     }
-                }));
+                }), Collections.emptyList(), Collections.emptyList());
         subscribeList.clear();
         final Method cacheAuthData = EtcdSyncDataService.class.getDeclaredMethod("cacheAuthData", String.class);
         final Method unCacheAuthData = EtcdSyncDataService.class.getDeclaredMethod("unCacheAuthData", String.class);
@@ -233,7 +233,7 @@ public class EtcdSyncDataServiceTest {
     @Test
     public void closeTest() {
         etcdSyncDataService = new EtcdSyncDataService(etcdClient, mock(PluginDataSubscriber.class), Collections.emptyList(),
-                Collections.emptyList());
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         assertDoesNotThrow(() -> etcdSyncDataService.close());
     }
 
@@ -271,7 +271,7 @@ public class EtcdSyncDataServiceTest {
         etcdSyncDataService = new EtcdSyncDataService(etcdClient,
                 mock(PluginDataSubscriber.class),
                 Collections.emptyList(),
-                Collections.emptyList());
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         final Field etcdClient = EtcdSyncDataService.class.getDeclaredField("etcdClient");
         etcdClient.setAccessible(true);
         etcdClient.set(etcdSyncDataService, mockEtcdClient);
