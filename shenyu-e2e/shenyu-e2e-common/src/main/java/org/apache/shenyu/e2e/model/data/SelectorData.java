@@ -35,8 +35,11 @@ import java.util.List;
 /**
  * selector data.
  */
-public class SelectorData implements ResourceData {
+public final class SelectorData implements ResourceData {
     
+    /**
+     * id.
+     */
     private String id;
     
     private String name;
@@ -109,7 +112,7 @@ public class SelectorData implements ResourceData {
      *
      * @param id id
      */
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -129,7 +132,7 @@ public class SelectorData implements ResourceData {
      * @param name name
      */
     @Override
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -147,7 +150,7 @@ public class SelectorData implements ResourceData {
      *
      * @param plugin plugin
      */
-    public void plugin(Plugin plugin) {
+    public void plugin(final Plugin plugin) {
         this.plugin = plugin;
     }
 
@@ -165,7 +168,7 @@ public class SelectorData implements ResourceData {
      *
      * @param type type
      */
-    public void setType(SelectorType type) {
+    public void setType(final SelectorType type) {
         this.type = type;
     }
 
@@ -183,7 +186,7 @@ public class SelectorData implements ResourceData {
      *
      * @param matchMode matchMode
      */
-    public void setMatchMode(MatchMode matchMode) {
+    public void setMatchMode(final MatchMode matchMode) {
         this.matchMode = matchMode;
     }
 
@@ -201,7 +204,7 @@ public class SelectorData implements ResourceData {
      *
      * @param enabled enabled
      */
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -219,7 +222,7 @@ public class SelectorData implements ResourceData {
      *
      * @param logged logged
      */
-    public void setLogged(boolean logged) {
+    public void setLogged(final boolean logged) {
         this.logged = logged;
     }
 
@@ -237,7 +240,7 @@ public class SelectorData implements ResourceData {
      *
      * @param continued continued
      */
-    public void setContinued(boolean continued) {
+    public void setContinued(final boolean continued) {
         this.continued = continued;
     }
 
@@ -255,7 +258,7 @@ public class SelectorData implements ResourceData {
      *
      * @param handle handle
      */
-    public void handle(PluginHandle handle) {
+    public void handle(final PluginHandle handle) {
         this.handle = handle;
     }
 
@@ -273,7 +276,7 @@ public class SelectorData implements ResourceData {
      *
      * @param conditionList conditionList
      */
-    public void conditionList(List<Condition> conditionList) {
+    public void conditionList(final List<Condition> conditionList) {
         this.conditionList = conditionList;
     }
 
@@ -291,7 +294,7 @@ public class SelectorData implements ResourceData {
      *
      * @param sort sort
      */
-    public void setSort(int sort) {
+    public void setSort(final int sort) {
         this.sort = sort;
     }
 
@@ -309,16 +312,16 @@ public class SelectorData implements ResourceData {
      *
      * @param matchRestful matchRestful
      */
-    public void setMatchRestful(boolean matchRestful) {
+    public void setMatchRestful(final boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
 
     static class PluginHandleSerializer extends JsonSerializer<PluginHandle> {
-        private static final ObjectMapper mapper = new ObjectMapper();
+        private static final ObjectMapper MAPPER = new ObjectMapper();
         
         @Override
-        public void serialize(PluginHandle pluginHandle, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-            String content = mapper.writer().writeValueAsString(pluginHandle);
+        public void serialize(final PluginHandle pluginHandle, final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider) throws IOException {
+            String content = MAPPER.writer().writeValueAsString(pluginHandle);
             jsonGenerator.writeString(Strings.nullToEmpty(content));
         }
     }
@@ -378,7 +381,7 @@ public class SelectorData implements ResourceData {
          * @param id id
          * @return this
          */
-        public SelectorDataBuilder id(String id) {
+        public SelectorDataBuilder id(final String id) {
             this.id = id;
             return this;
         }
@@ -389,7 +392,7 @@ public class SelectorData implements ResourceData {
          * @param name name
          * @return this
          */
-        public SelectorDataBuilder name(String name) {
+        public SelectorDataBuilder name(final String name) {
             this.name = name;
             return this;
         }
@@ -400,7 +403,7 @@ public class SelectorData implements ResourceData {
          * @param plugin plugin
          * @return this
          */
-        public SelectorDataBuilder plugin(Plugin plugin) {
+        public SelectorDataBuilder plugin(final Plugin plugin) {
             this.plugin = plugin;
             return this;
         }
@@ -411,7 +414,7 @@ public class SelectorData implements ResourceData {
          * @param type type
          * @return this
          */
-        public SelectorDataBuilder type(SelectorType type) {
+        public SelectorDataBuilder type(final SelectorType type) {
             this.type = type;
             return this;
         }
@@ -422,7 +425,7 @@ public class SelectorData implements ResourceData {
          * @param matchMode matchMode
          * @return this
          */
-        public SelectorDataBuilder matchMode(MatchMode matchMode) {
+        public SelectorDataBuilder matchMode(final MatchMode matchMode) {
             this.matchMode = matchMode;
             return this;
         }
@@ -433,7 +436,7 @@ public class SelectorData implements ResourceData {
          * @param enabled enabled
          * @return this
          */
-        public SelectorDataBuilder enabled(boolean enabled) {
+        public SelectorDataBuilder enabled(final boolean enabled) {
             this.enabled = enabled;
             return this;
         }
@@ -444,7 +447,7 @@ public class SelectorData implements ResourceData {
          * @param logged logged
          * @return this
          */
-        public SelectorDataBuilder logged(boolean logged) {
+        public SelectorDataBuilder logged(final boolean logged) {
             this.logged = logged;
             return this;
         }
@@ -455,7 +458,7 @@ public class SelectorData implements ResourceData {
          * @param continued continued
          * @return this
          */
-        public SelectorDataBuilder continued(boolean continued) {
+        public SelectorDataBuilder continued(final boolean continued) {
             this.continued = continued;
             return this;
         }
@@ -466,7 +469,7 @@ public class SelectorData implements ResourceData {
          * @param handle handle
          * @return this
          */
-        public SelectorDataBuilder handle(PluginHandle handle) {
+        public SelectorDataBuilder handle(final PluginHandle handle) {
             this.handle = handle;
             return this;
         }
@@ -477,7 +480,7 @@ public class SelectorData implements ResourceData {
          * @param conditionList conditionList
          * @return this
          */
-        public SelectorDataBuilder conditionList(List<Condition> conditionList) {
+        public SelectorDataBuilder conditionList(final List<Condition> conditionList) {
             this.conditionList = conditionList;
             return this;
         }
@@ -488,7 +491,7 @@ public class SelectorData implements ResourceData {
          * @param sort sort
          * @return this
          */
-        public SelectorDataBuilder sort(int sort) {
+        public SelectorDataBuilder sort(final int sort) {
             this.sort = sort;
             return this;
         }
@@ -499,7 +502,7 @@ public class SelectorData implements ResourceData {
          * @param matchRestful matchRestful
          * @return this
          */
-        public SelectorDataBuilder matchRestful(boolean matchRestful) {
+        public SelectorDataBuilder matchRestful(final boolean matchRestful) {
             this.matchRestful = matchRestful;
             return this;
         }

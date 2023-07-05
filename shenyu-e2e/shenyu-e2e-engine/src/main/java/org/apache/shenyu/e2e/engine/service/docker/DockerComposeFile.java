@@ -35,8 +35,12 @@ public class DockerComposeFile {
 
     private final List<String> services;
     
-
     private final File file;
+    
+    DockerComposeFile(final List<String> services, final File file) {
+        this.services = services;
+        this.file = file;
+    }
 
     /**
      * get services.
@@ -55,20 +59,21 @@ public class DockerComposeFile {
     public File getFile() {
         return file;
     }
-
-    DockerComposeFile(List<String> services, File file) {
-        this.services = services;
-        this.file = file;
-    }
     
-    public static DockerComposeFile parse(String fileName) {
+    /**
+     * parse file to a docker compose file.
+     * @param fileName fileName
+     * @return DockerComposeFile
+     */
+    @SuppressWarnings("unchecked")
+    public static DockerComposeFile parse(final String fileName) {
         final File file = Assertions.assertDoesNotThrow(
-                () -> ResourceUtils.getFile(fileName),
-                "docker-compose file '" + fileName + "' is not found"
+            () -> ResourceUtils.getFile(fileName),
+            "docker-compose file '" + fileName + "' is not found"
         );
         final InputStream compose = Assertions.assertDoesNotThrow(
-                () -> new FileInputStream(file),
-                "docker-compose file '" + fileName + "' is not found"
+            () -> new FileInputStream(file),
+            "docker-compose file '" + fileName + "' is not found"
         );
         final Yaml yaml = new Yaml(new LoaderOptions());
         Map<String, Object> content = yaml.load(compose);

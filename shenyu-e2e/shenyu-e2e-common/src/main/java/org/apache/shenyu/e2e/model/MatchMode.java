@@ -30,15 +30,23 @@ public enum MatchMode {
     
     private final String id;
     
-    MatchMode(int id) {
+    MatchMode(final int id) {
         this.id = String.valueOf(id);
     }
     
+    /**
+     * get id.
+     * @return String
+     */
     @JsonValue
     public String getId() {
         return id;
     }
     
+    /**
+     * get alias of match mode name.
+     * @return String
+     */
     public String alias() {
         return name().toLowerCase(Locale.ROOT);
     }

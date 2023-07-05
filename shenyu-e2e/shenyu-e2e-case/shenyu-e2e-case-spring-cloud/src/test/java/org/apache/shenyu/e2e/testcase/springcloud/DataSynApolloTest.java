@@ -62,7 +62,7 @@ import java.util.List;
 public class DataSynApolloTest {
 
     @Test
-    void testDataSyn(AdminClient adminClient, GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
+    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
         Thread.sleep(10000);
         List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();

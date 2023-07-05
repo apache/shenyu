@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.e2e.engine.annotation;
 
-
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioInvocationContextProvider;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.junit.jupiter.api.TestTemplate;
@@ -36,6 +35,10 @@ import java.lang.annotation.Target;
 @ExtendWith(ShenYuScenarioInvocationContextProvider.class)
 public @interface ShenYuScenario {
     
+    /**
+     * scenario provider class.
+     * @return Class&lt;? extends ShenYuScenarioProvider&gt;
+     */
     Class<? extends ShenYuScenarioProvider> provider();
     
 }

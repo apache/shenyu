@@ -27,19 +27,34 @@ import java.util.List;
 /**
  * Rule data.
  */
-public class RuleData implements ResourceData {
+public final class RuleData implements ResourceData {
     
+    /**
+     * id.
+     */
     private String id;
     
+    /**
+     * name.
+     */
     private String name;
     
+    /**
+     * selector id.
+     */
     private String selectorId;
     
     @JsonProperty("loged")
     private boolean logged;
     
+    /**
+     * match mode.
+     */
     private MatchMode matchMode;
     
+    /**
+     * sort.
+     */
     private int sort;
     
     @JsonSerialize(using = RuleHandle.Serializer.class)
@@ -51,8 +66,14 @@ public class RuleData implements ResourceData {
     @JsonProperty("ruleConditions")
     private List<Condition> conditionList;
     
+    /**
+     * enabled or not.
+     */
     private boolean enabled;
     
+    /**
+     * match restful or not.
+     */
     private Boolean matchRestful;
 
     /**
@@ -87,7 +108,7 @@ public class RuleData implements ResourceData {
      *
      * @param id id
      */
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -107,7 +128,7 @@ public class RuleData implements ResourceData {
      * @param name name
      */
     @Override
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -126,7 +147,7 @@ public class RuleData implements ResourceData {
      *
      * @param selectorId selectorId
      */
-    public void setSelectorId(String selectorId) {
+    public void setSelectorId(final String selectorId) {
         this.selectorId = selectorId;
     }
 
@@ -153,7 +174,7 @@ public class RuleData implements ResourceData {
      *
      * @param logged logged
      */
-    public void setLogged(boolean logged) {
+    public void setLogged(final boolean logged) {
         this.logged = logged;
     }
 
@@ -162,7 +183,7 @@ public class RuleData implements ResourceData {
      *
      * @param matchMode matchMode
      */
-    public void setMatchMode(MatchMode matchMode) {
+    public void setMatchMode(final MatchMode matchMode) {
         this.matchMode = matchMode;
     }
 
@@ -180,7 +201,7 @@ public class RuleData implements ResourceData {
      *
      * @param sort sort
      */
-    public void setSort(int sort) {
+    public void setSort(final int sort) {
         this.sort = sort;
     }
 
@@ -198,7 +219,7 @@ public class RuleData implements ResourceData {
      *
      * @param handle handle
      */
-    public void setHandle(RuleHandle handle) {
+    public void setHandle(final RuleHandle handle) {
         this.handle = handle;
     }
 
@@ -216,7 +237,7 @@ public class RuleData implements ResourceData {
      *
      * @param conditionList conditionList
      */
-    public void conditionList(List<Condition> conditionList) {
+    public void conditionList(final List<Condition> conditionList) {
         this.conditionList = conditionList;
     }
 
@@ -234,7 +255,7 @@ public class RuleData implements ResourceData {
      *
      * @param enabled enabled
      */
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -252,7 +273,7 @@ public class RuleData implements ResourceData {
      *
      * @param matchRestful matchRestful
      */
-    public void setMatchRestful(Boolean matchRestful) {
+    public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
 

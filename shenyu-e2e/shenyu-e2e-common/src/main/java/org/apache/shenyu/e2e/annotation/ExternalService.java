@@ -28,5 +28,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExternalService {
+    
+    /**
+     * service name.
+     * @return String
+     */
     String serviceName() default "";
 }

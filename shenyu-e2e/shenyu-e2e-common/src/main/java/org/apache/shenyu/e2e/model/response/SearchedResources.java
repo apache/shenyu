@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Searched resources.
  *
- * @param <T> <T>
+ * @param <T> resourceDTO
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchedResources<T extends ResourceDTO> {
@@ -53,7 +53,7 @@ public class SearchedResources<T extends ResourceDTO> {
      *
      * @param pageNum pageNum
      */
-    public void setPageNum(int pageNum) {
+    public void setPageNum(final int pageNum) {
         this.pageNum = pageNum;
     }
 
@@ -71,7 +71,7 @@ public class SearchedResources<T extends ResourceDTO> {
      *
      * @param pageSize pageSize
      */
-    public void setPageSize(int pageSize) {
+    public void setPageSize(final int pageSize) {
         this.pageSize = pageSize;
     }
 
@@ -89,7 +89,7 @@ public class SearchedResources<T extends ResourceDTO> {
      *
      * @param total total
      */
-    public void setTotal(int total) {
+    public void setTotal(final int total) {
         this.total = total;
     }
 
@@ -107,7 +107,7 @@ public class SearchedResources<T extends ResourceDTO> {
      *
      * @param pages pages
      */
-    public void setPages(int pages) {
+    public void setPages(final int pages) {
         this.pages = pages;
     }
 
@@ -125,7 +125,7 @@ public class SearchedResources<T extends ResourceDTO> {
      *
      * @param list list
      */
-    public void setList(List<T> list) {
+    public void setList(final List<T> list) {
         this.list = list;
     }
 }
