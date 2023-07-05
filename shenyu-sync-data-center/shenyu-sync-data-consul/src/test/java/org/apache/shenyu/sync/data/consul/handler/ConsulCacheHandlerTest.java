@@ -66,7 +66,7 @@ public final class ConsulCacheHandlerTest {
             public void unSubscribe(final PluginData pluginData) {
                 unsubscribeList.add(pluginData);
             }
-        }, Collections.emptyList(), Collections.emptyList());
+        }, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         consulCacheHandler.updatePluginData(pluginData);
         assertEquals(2, onSubscribeList.size());
         assertEquals(2, unsubscribeList.size());
@@ -104,7 +104,7 @@ public final class ConsulCacheHandlerTest {
             public void unSelectorSubscribe(final SelectorData selectorData) {
                 unsubscribeList.add(selectorData);
             }
-        }, Collections.emptyList(), Collections.emptyList());
+        }, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         consulCacheHandler.updateSelectorMap(selectorDataParam);
         assertEquals(2, subscribeList.size());
         assertEquals(2, unsubscribeList.size());
@@ -137,7 +137,7 @@ public final class ConsulCacheHandlerTest {
             public void unRuleSubscribe(final RuleData ruleData) {
                 unsubscribeList.add(ruleData);
             }
-        }, Collections.emptyList(), Collections.emptyList());
+        }, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         consulCacheHandler.updateRuleMap(ruleDataParam);
         assertEquals(2, subscribeList.size());
         assertEquals(2, unsubscribeList.size());
@@ -166,7 +166,7 @@ public final class ConsulCacheHandlerTest {
             }
         };
         ConsulCacheHandler consulCacheHandler = new ConsulCacheHandler(null, Lists.newArrayList(metaDataSubscriber),
-                Collections.emptyList());
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         consulCacheHandler.updateMetaDataMap(metaDataParam);
         assertEquals(2, subscribeList.size());
         assertEquals(2, unsubscribeList.size());
@@ -199,7 +199,7 @@ public final class ConsulCacheHandlerTest {
             }
         };
         ConsulCacheHandler consulCacheHandler = new ConsulCacheHandler(null,
-                Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
+                Collections.emptyList(), Lists.newArrayList(authDataSubscriber), Collections.emptyList(), Collections.emptyList());
 
         consulCacheHandler.updateAuthMap(appAuthDataParam);
         assertEquals(2, subscribeList.size());
@@ -209,7 +209,7 @@ public final class ConsulCacheHandlerTest {
     @Test
     public void testError() {
         ConsulCacheHandler consulCacheHandler = new ConsulCacheHandler(null,
-                Collections.emptyList(), Collections.emptyList());
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         assertDoesNotThrow(() -> consulCacheHandler.updateAuthMap("errorJson"));
         assertDoesNotThrow(() -> consulCacheHandler.updateMetaDataMap("errorJson"));
         assertDoesNotThrow(() -> consulCacheHandler.updateRuleMap("errorJson"));
