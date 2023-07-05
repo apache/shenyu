@@ -59,9 +59,9 @@ public class TcpBootstrapServer implements BootstrapServer {
 
     @Override
     public void start(final TcpServerConfiguration tcpServerConfiguration) {
-        String loadBalanceAlgorithm = tcpServerConfiguration.getProps().getOrDefault("loadBalanceAlgorithm", "random").toString();
-        String bossGroupThreadCount = tcpServerConfiguration.getProps().getOrDefault("bossGroupThreadCount", "1").toString();
-        String workerGroupThreadCount = tcpServerConfiguration.getProps().getOrDefault("workerGroupThreadCount", "12").toString();
+        final String loadBalanceAlgorithm = tcpServerConfiguration.getProps().getOrDefault("loadBalanceAlgorithm", "random").toString();
+        final String bossGroupThreadCount = tcpServerConfiguration.getProps().getOrDefault("bossGroupThreadCount", "1").toString();
+        final String workerGroupThreadCount = tcpServerConfiguration.getProps().getOrDefault("workerGroupThreadCount", "12").toString();
         DefaultConnectionConfigProvider connectionConfigProvider = new DefaultConnectionConfigProvider(loadBalanceAlgorithm, tcpServerConfiguration.getPluginSelectorName());
         this.bridge = new TcpConnectionBridge();
         connectionContext = new ConnectionContext(connectionConfigProvider);

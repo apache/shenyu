@@ -28,7 +28,6 @@ public class TcpServerConfiguration {
 
     private int port = 9500;
 
-
     private Properties props = new Properties();
 
     /**
