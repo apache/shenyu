@@ -65,6 +65,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
         String maxSleepTimeMilliseconds = config.getProps().getProperty("maxSleepTimeMilliseconds", "1000");
         String connectionTimeoutMilliseconds = config.getProps().getProperty("connectionTimeoutMilliseconds", "1000");
         String sessionTimeoutMilliseconds = config.getProps().getProperty("sessionTimeoutMilliseconds", "1000");
+        String namespace = config.getProps().getProperty("namespace", "");
         String digest = config.getProps().getProperty("digest", null);
         ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(Integer.parseInt(baseSleepTimeMilliseconds), Integer.parseInt(maxRetries), Integer.parseInt(maxSleepTimeMilliseconds));
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
@@ -72,7 +73,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
                 .retryPolicy(retryPolicy)
                 .connectionTimeoutMs(Integer.parseInt(connectionTimeoutMilliseconds))
                 .sessionTimeoutMs(Integer.parseInt(sessionTimeoutMilliseconds))
-                .namespace(config.getName());
+                .namespace(namespace);
         if (StringUtils.isNoneBlank(digest)) {
             builder.authorization("digest", digest.getBytes(StandardCharsets.UTF_8));
         }

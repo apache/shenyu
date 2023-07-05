@@ -106,7 +106,6 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         String props = discoveryDO.getProps();
         Properties properties = GsonUtils.getGson().fromJson(props, Properties.class);
         DiscoveryConfig discoveryConfig = new DiscoveryConfig();
-        discoveryConfig.setName(discoveryDO.getName());
         discoveryConfig.setType(type);
         discoveryConfig.setProps(properties);
         discoveryConfig.setServerList(discoveryDO.getServerList());
