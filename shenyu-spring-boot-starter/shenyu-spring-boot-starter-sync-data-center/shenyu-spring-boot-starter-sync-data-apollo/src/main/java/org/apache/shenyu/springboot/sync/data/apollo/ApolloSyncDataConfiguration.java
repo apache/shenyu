@@ -23,6 +23,7 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.apollo.ApolloDataService;
 import org.apache.shenyu.sync.data.apollo.config.ApolloConfig;
 import org.slf4j.Logger;
@@ -65,16 +66,19 @@ public class ApolloSyncDataConfiguration {
      * @param metaSubscribers the meta subscribers
      * @param authSubscribers the auth subscribers
      * @param proxySelectorDataSubscriber the proxySelector subscribers
+     * @param discoveryUpstreamDataSubscribers the discoveryUpstream subscribers
      * @return the apollo config
      */
     @Bean
     public ApolloDataService apolloSyncDataService(final ObjectProvider<Config> configService, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                                    final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
                                                    final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
-                                                   final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscriber) {
+                                                   final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscriber,
+                                                   final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
         LOGGER.info("you use apollo sync shenyu data.......");
         return new ApolloDataService(configService.getIfAvailable(), pluginSubscriber.getIfAvailable(),
-                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList), proxySelectorDataSubscriber.getIfAvailable(Collections::emptyList));
+                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList), proxySelectorDataSubscriber.getIfAvailable(Collections::emptyList),
+                discoveryUpstreamDataSubscribers.getIfAvailable());
     }
 
     /**

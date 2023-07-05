@@ -226,7 +226,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
                 DiscoveryRelDO discoveryRelDO = DiscoveryRelDO.builder()
                         .id(UUIDUtils.getInstance().generateShortUuid())
-                        .pluginName(proxySelectorAddDTO.getName())
+                        .pluginName(proxySelectorAddDTO.getPluginName())
                         .discoveryHandlerId(discoveryHandlerId)
                         .proxySelectorId(proxySelectorId)
                         .selectorId("")
