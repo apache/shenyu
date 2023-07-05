@@ -70,6 +70,12 @@ public abstract class BaseAnnotationApiProcessor<T extends Annotation> implement
         return false;
     }
     
+    /**
+     * match.
+     *
+     * @param definition definition
+     * @return true
+     */
     public boolean match(final ApiBean.ApiDefinition definition) {
         return false;
     }

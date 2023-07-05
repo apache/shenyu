@@ -30,7 +30,7 @@ import java.util.List;
  */
 public abstract class BaseApiRegistrarImpl implements ApiRegistrar, InitializingBean {
     
-    protected final List<ApiProcessor> processors = new ArrayList<>();
+    private final List<ApiProcessor> processors = new ArrayList<>();
     
     @Override
     public void afterPropertiesSet() {
@@ -92,12 +92,12 @@ public abstract class BaseApiRegistrarImpl implements ApiRegistrar, Initializing
      *
      * @param api api
      */
-    protected abstract void doRegisterApi(final ApiBean.ApiDefinition api);
+    protected abstract void doRegisterApi(ApiBean.ApiDefinition api);
     
     /**
      * register bean.
      *
      * @param apiBean bean
      */
-    protected abstract void doRegisterBean(final ApiBean apiBean);
+    protected abstract void doRegisterBean(ApiBean apiBean);
 }
