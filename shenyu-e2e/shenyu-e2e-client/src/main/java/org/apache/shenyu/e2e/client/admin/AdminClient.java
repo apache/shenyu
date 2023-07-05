@@ -321,6 +321,7 @@ public class AdminClient {
         return dto;
     }
     
+    @SuppressWarnings("unchecked")
     private <T extends ResourceData, R extends ResourceDTO> R create(final String uri, final T data) {
         log.info("trying to create resource({}) name: {}", data.getClass().getSimpleName(), data.getName());
         
