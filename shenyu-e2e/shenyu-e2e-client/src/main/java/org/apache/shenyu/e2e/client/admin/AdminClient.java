@@ -446,7 +446,7 @@ public class AdminClient {
         return rst;
     }
 
-    public void startPlugin(String id, MultiValueMap<String, String> formData) {
+    public void changePluginStatus(String id, MultiValueMap<String, String> formData) {
         putResource("/plugin", id, SelectorDTO.class, formData);
     }
 

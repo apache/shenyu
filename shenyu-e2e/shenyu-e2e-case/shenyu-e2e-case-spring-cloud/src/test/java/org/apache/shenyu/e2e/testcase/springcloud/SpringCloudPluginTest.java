@@ -106,7 +106,7 @@ public class SpringCloudPluginTest {
         formData.add("enabled","true");
         formData.add("role","Proxy");
         formData.add("sort","200");
-        adminClient.startPlugin("8", formData);
+        adminClient.changePluginStatus("8", formData);
         String id = "";
         for (int i = 0; i < selectorDTOList.size(); i++) {
             if (selectorDTOList.get(i).getHandle() != "") {
@@ -157,7 +157,7 @@ public class SpringCloudPluginTest {
         formData.add("enabled","false");
         formData.add("role","Proxy");
         formData.add("sort","200");
-        client.startPlugin("8", formData);
+        client.changePluginStatus("8", formData);
     }
 }
 
