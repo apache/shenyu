@@ -23,15 +23,22 @@
             <artifactId>shenyu-plugin-logging-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
-            <groupId>io.github.huaweicloud</groupId>
-            <artifactId>lts-sdk-common</artifactId>
-            <version>1.0.1</version>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>31.1-jre</version>
         </dependency>
         <dependency>
             <groupId>io.github.huaweicloud</groupId>
             <artifactId>lts-sdk-java</artifactId>
             <version>1.0.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>

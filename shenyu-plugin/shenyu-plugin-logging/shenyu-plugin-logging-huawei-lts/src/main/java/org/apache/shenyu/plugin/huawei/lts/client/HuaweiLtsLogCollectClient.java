@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.plugin.huawei.lts.client;
 
 import com.alibaba.fastjson.JSONObject;
@@ -13,10 +30,8 @@ import com.huaweicloud.lts.producer.model.log.LogContent;
 import com.huaweicloud.lts.producer.model.log.LogItem;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.huawei.lts.config.HuaweiLogCollectConfig;
 import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
-import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.slf4j.Logger;
@@ -27,9 +42,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -46,17 +59,16 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
 
     private ThreadPoolExecutor threadExecutor;
 
-
     @Override
     public void initClient0(@NonNull final HuaweiLogCollectConfig.HuaweiLtsLogConfig huaweiLtsLogConfig) {
-        String accessKeyId = huaweiLtsLogConfig.getAccessKeyId();
-        String accessKeySecret = huaweiLtsLogConfig.getAccessKeySecret();
-        String regionName = huaweiLtsLogConfig.getRegionName();
-        this.projectId=huaweiLtsLogConfig.getProjectId();
+        final String accessKeyId = huaweiLtsLogConfig.getAccessKeyId();
+        final String accessKeySecret = huaweiLtsLogConfig.getAccessKeySecret();
+        final String regionName = huaweiLtsLogConfig.getRegionName();
+        this.projectId = huaweiLtsLogConfig.getProjectId();
         this.logGroupId = huaweiLtsLogConfig.getLogGroupId();
         this.logStreamId = huaweiLtsLogConfig.getLogStreamId();
-        if ( StringUtils.isBlank(accessKeyId) || StringUtils.isBlank(accessKeySecret)||StringUtils.isBlank(projectId)
-                || StringUtils.isBlank(regionName)|| StringUtils.isBlank(logGroupId)||StringUtils.isBlank(logStreamId)) {
+        if (StringUtils.isBlank(accessKeyId) || StringUtils.isBlank(accessKeySecret) || StringUtils.isBlank(projectId)
+                || StringUtils.isBlank(regionName) || StringUtils.isBlank(logGroupId) || StringUtils.isBlank(logStreamId)) {
             LOG.error("init Huawei lts client error, please check projectId, accessKeyId, accessKeySecret, regionName, logGroupId or logStreamId");
             return;
         }
@@ -86,9 +98,9 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
                 // 重试的最大退避时间
                 .setMaxRetryBackoffMs(huaweiLtsLogConfig.getMaxRetryBackoffMs())
                 // 默认false, true: 可以跨云上报日志, false: 仅能在华为云ecs主机上报日志
-                 .setEnableLocalTest(Boolean.parseBoolean(huaweiLtsLogConfig.getEnableLocalTest()))
+                .setEnableLocalTest(Boolean.parseBoolean(huaweiLtsLogConfig.getEnableLocalTest()))
                 // 超过1M的日志, 拆分后丢弃大于1M的数据
-                 .setGiveUpExtraLongSingleLog(Boolean.parseBoolean(huaweiLtsLogConfig.getEnableLocalTest()))
+                .setGiveUpExtraLongSingleLog(Boolean.parseBoolean(huaweiLtsLogConfig.getEnableLocalTest()))
                 .builder();
         this.producer = appender.getProducer();
 
@@ -96,7 +108,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
     }
 
     @Override
-    public void consume0(@NonNull List<ShenyuRequestLog> logs) throws Exception {
+    public void consume0(@NonNull final List<ShenyuRequestLog> logs) throws Exception {
         logs.forEach(this::sendLog);
     }
 
@@ -111,6 +123,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
             }
         }
     }
+
     /**
      * send log to Tencent cls.
      *
@@ -118,7 +131,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
      */
     private void sendLog(final ShenyuRequestLog log) {
         final List<LogItem> logItems = new ArrayList<>();
-        List<LogItem> logItemList = new ArrayList<>();
+        final List<LogItem> logItemList = new ArrayList<>();
         LogItem logItem = new LogItem();
         logItem.setTenantProjectId(projectId);
         logItems.add(logItem);
@@ -134,7 +147,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
 
         try {
             final ListenableFuture<Result> f = producer.send(logGroupId, logStreamId, logItemList);
-            Futures.addCallback(f, new ProducerFutureCallback(logGroupId,logStreamId), threadExecutor);
+            Futures.addCallback(f, new ProducerFutureCallback(logGroupId, logStreamId), threadExecutor);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (ProducerException e) {
@@ -170,7 +183,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
 
         private final String logStreamId;
 
-        ProducerFutureCallback(final String logGroupId,final String logStreamId) {
+        ProducerFutureCallback(final String logGroupId, final String logStreamId) {
             this.logGroupId = logGroupId;
             this.logStreamId = logStreamId;
         }
@@ -184,7 +197,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
         public void onFailure(final Throwable throwable) {
             if (throwable instanceof ResultFailedException) {
                 Result result = ((ResultFailedException) throwable).getResult();
-                LOGGER.error("Failed to send logs, logGroupId={}, logStreamId={}, result={}", logGroupId,logStreamId, result);
+                LOGGER.error("Failed to send logs, logGroupId={}, logStreamId={}, result={}", logGroupId, logStreamId, result);
             } else {
                 LOGGER.error("Failed to send log, e={}", throwable.getMessage());
             }
