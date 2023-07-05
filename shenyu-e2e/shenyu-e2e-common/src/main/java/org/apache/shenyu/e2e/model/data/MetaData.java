@@ -23,7 +23,6 @@ import java.util.Objects;
 
 /**
  * meta data.
- * @see org.apache.shenyu.admin.model.entity.ApiDO
  */
 public class MetaData {
     

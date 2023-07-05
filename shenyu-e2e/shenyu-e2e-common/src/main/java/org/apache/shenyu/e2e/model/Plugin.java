@@ -100,7 +100,7 @@ public enum Plugin {
     
     /**
      * alias 2 id map.
-     * @return Map&ltString, String&gt map.
+     * @return Map&lt;String, String&gt; map.
      */
     public static Map<String, String> toMap() {
         return Arrays.stream(Plugin.values()).collect(Collectors.toMap(Plugin::getAlias, Plugin::getId));
