@@ -42,6 +42,7 @@
         <module>shenyu-protocol</module>
         <module>shenyu-loadbalancer</module>
         <module>shenyu-dist</module>
+        <module>shenyu-e2e</module>
         <module>shenyu-alert</module>
         <module>shenyu-sdk</module>
         <module>shenyu-discovery</module>
