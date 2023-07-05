@@ -1488,8 +1488,8 @@ INSERT INTO `resource` VALUES ('1529402639372435659', '1529402639284355099', 'SH
 INSERT INTO `resource` VALUES ('1529402639372435660', '1529402639284355099', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:hystrixRule:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639372435661', '1529402639284355099', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:hystrixRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639372435662', '1529402639284355099', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:hystrix:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1534577121923309568', '', 'Document', '', '/document', '', 0, 3, 'file-text', 0, 0, '', 1, '2022-06-09 00:44:32', '2022-06-09 01:06:45');
-INSERT INTO `resource` VALUES ('1534585430311051264', '1534577121923309568', 'API document', '', '/document/apidoc', '', 1, 0, 'api', 0, 0, '', 1, '2022-06-09 01:17:32', '2022-06-09 01:17:32');
+INSERT INTO `resource` VALUES ('1534577121923309568', '', 'SHENYU.MENU.DOCUMENT', '', '/document', '', 0, 3, 'file-text', 0, 0, '', 1, '2022-06-09 00:44:32', '2022-06-09 01:06:45');
+INSERT INTO `resource` VALUES ('1534585430311051264', '1534577121923309568', 'SHENYU.MENU.DOCUMENT.APIDOC', '', '/document/apidoc', '', 1, 0, 'api', 0, 0, '', 1, '2022-06-09 01:17:32', '2022-06-09 01:17:32');
 INSERT INTO `resource` VALUES ('1534585531108564992', '1534585430311051264', 'send', '', '', '', 2, 0, '', 1, 0, 'document:apirun:send', 1, '2022-06-09 01:17:56', '2022-06-09 01:17:56');
 
 INSERT INTO `resource` VALUES ('1534585531108564993', '1346775491550474240', 'loggingAliyunSls', 'loggingAliyunSls', '/plug/loggingAliyunSls', 'loggingAliyunSls', 1, 0, 'pic-center', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
