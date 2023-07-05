@@ -29,18 +29,17 @@ public class ShenYuScenarioParameterResolver implements ParameterResolver {
     
     private final ScenarioSpec scenarioSpec;
     
-    public ShenYuScenarioParameterResolver(ScenarioSpec scenarioSpec) {
+    public ShenYuScenarioParameterResolver(final ScenarioSpec scenarioSpec) {
         this.scenarioSpec = scenarioSpec;
     }
     
-    
     @Override
-    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+    public boolean supportsParameter(final ParameterContext parameterContext, final ExtensionContext extensionContext) throws ParameterResolutionException {
         return AnnotationUtils.isAnnotated(parameterContext.getParameter().getType(), ShenYuScenarioParameter.class);
     }
     
     @Override
-    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+    public Object resolveParameter(final ParameterContext parameterContext, final ExtensionContext extensionContext) throws ParameterResolutionException {
         return scenarioSpec.getByType(parameterContext.getParameter().getType());
     }
 

@@ -19,7 +19,6 @@ package org.apache.shenyu.e2e.engine.scenario.function;
 
 import io.restassured.specification.RequestSpecification;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
-import org.apache.shenyu.e2e.engine.scenario.function.Waiting;
 
 import java.util.function.Supplier;
 
@@ -29,10 +28,18 @@ import java.util.function.Supplier;
 @FunctionalInterface
 public interface HttpWaiting extends Waiting {
     
+    /**
+     * wait for client.
+     * @param client client
+     */
     default void waitFor(GatewayClient client) {
         waitFor(client.getHttpRequesterSupplier());
     }
     
+    /**
+     * wait for request specification.
+     * @param supplier supplier
+     */
     void waitFor(Supplier<RequestSpecification> supplier);
 
 }

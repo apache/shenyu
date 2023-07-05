@@ -34,7 +34,7 @@ public class ShenYuScenarioSpec implements ScenarioSpec {
     
     private final AfterEachSpec afterEachSpec;
 
-    public ShenYuScenarioSpec(String name, BeforeEachSpec beforeEachSpec, CaseSpec caseSpec, AfterEachSpec afterEachSpec) {
+    public ShenYuScenarioSpec(final String name, final BeforeEachSpec beforeEachSpec, final CaseSpec caseSpec, final AfterEachSpec afterEachSpec) {
         this.name = name;
         this.beforeEachSpec = beforeEachSpec;
         this.caseSpec = caseSpec;
@@ -80,7 +80,11 @@ public class ShenYuScenarioSpec implements ScenarioSpec {
     public AfterEachSpec getAfterEachSpec() {
         return afterEachSpec;
     }
-
+    
+    /**
+     * scenario specification builder.
+     * @return ShenYuScenarioSpecBuilder
+     */
     public static ShenYuScenarioSpecBuilder builder() {
         return new ShenYuScenarioSpecBuilder();
     }
@@ -95,26 +99,50 @@ public class ShenYuScenarioSpec implements ScenarioSpec {
         
         private CaseSpec caseSpec;
         
-        public ShenYuScenarioSpecBuilder name(String name) {
+        /**
+         * name.
+         * @param name name
+         * @return ShenYuScenarioSpecBuilder
+         */
+        public ShenYuScenarioSpecBuilder name(final String name) {
             this.name = name;
             return this;
         }
         
-        public ShenYuScenarioSpecBuilder beforeEachSpec(BeforeEachSpec beforeEachSpec) {
+        /**
+         * before each spec.
+         * @param beforeEachSpec beforeEachSpec
+         * @return ShenYuScenarioSpecBuilder
+         */
+        public ShenYuScenarioSpecBuilder beforeEachSpec(final BeforeEachSpec beforeEachSpec) {
             this.beforeEachSpec = beforeEachSpec;
             return this;
         }
         
-        public ShenYuScenarioSpecBuilder caseSpec(CaseSpec caseSpec) {
+        /**
+         * case spec.
+         * @param caseSpec caseSpec
+         * @return ShenYuScenarioSpecBuilder
+         */
+        public ShenYuScenarioSpecBuilder caseSpec(final CaseSpec caseSpec) {
             this.caseSpec = caseSpec;
             return this;
         }
         
-        public ShenYuScenarioSpecBuilder afterEachSpec(AfterEachSpec afterEachSpec) {
+        /**
+         * after each spec.
+         * @param afterEachSpec afterEachSpec
+         * @return ShenYuScenarioSpecBuilder
+         */
+        public ShenYuScenarioSpecBuilder afterEachSpec(final AfterEachSpec afterEachSpec) {
             this.afterEachSpec = afterEachSpec;
             return this;
         }
         
+        /**
+         * build.
+         * @return ShenYuScenarioSpec
+         */
         public ShenYuScenarioSpec build() {
             Assertions.assertNotNull(caseSpec, "CaseSpec is required.");
             if (Strings.isNullOrEmpty(name)) {

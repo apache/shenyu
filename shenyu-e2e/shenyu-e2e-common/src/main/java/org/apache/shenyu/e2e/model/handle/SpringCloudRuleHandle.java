@@ -34,12 +34,16 @@ public class SpringCloudRuleHandle implements RuleHandle {
     public SpringCloudRuleHandle() {
     }
 
-    public SpringCloudRuleHandle(Builder builder) {
+    public SpringCloudRuleHandle(final Builder builder) {
         this.loadBalance = builder.loadBalance;
         this.path = builder.path;
         this.timeout = builder.timeout;
     }
-
+    
+    /**
+     * builder.
+     * @return Builder
+     */
     public static Builder builder() {
         return new Builder();
     }
@@ -58,7 +62,7 @@ public class SpringCloudRuleHandle implements RuleHandle {
      *
      * @param loadBalance loadBalance
      */
-    public void setLoadBalance(String loadBalance) {
+    public void setLoadBalance(final String loadBalance) {
         this.loadBalance = loadBalance;
     }
 
@@ -76,7 +80,7 @@ public class SpringCloudRuleHandle implements RuleHandle {
      *
      * @param path path
      */
-    public void setPath(String path) {
+    public void setPath(final String path) {
         this.path = path;
     }
 
@@ -94,7 +98,7 @@ public class SpringCloudRuleHandle implements RuleHandle {
      *
      * @param timeout timeout
      */
-    public void setTimeout(long timeout) {
+    public void setTimeout(final long timeout) {
         this.timeout = timeout;
     }
 
@@ -114,7 +118,11 @@ public class SpringCloudRuleHandle implements RuleHandle {
          */
         private Builder() {
         }
-
+        
+        /**
+         * build.
+         * @return SpringCloudRuleHandle
+         */
         public SpringCloudRuleHandle build() {
             return new SpringCloudRuleHandle(this);
         }
@@ -125,7 +133,7 @@ public class SpringCloudRuleHandle implements RuleHandle {
          * @param loadBalance loadBalance
          * @return this
          */
-        public Builder loadBalance(String loadBalance) {
+        public Builder loadBalance(final String loadBalance) {
             this.loadBalance = loadBalance;
             return this;
         }
@@ -136,7 +144,7 @@ public class SpringCloudRuleHandle implements RuleHandle {
          * @param path path
          * @return this
          */
-        public Builder path(String path) {
+        public Builder path(final String path) {
             this.path = path;
             return this;
         }
@@ -147,7 +155,7 @@ public class SpringCloudRuleHandle implements RuleHandle {
          * @param timeout timeout
          * @return this
          */
-        public Builder timeout(long timeout) {
+        public Builder timeout(final long timeout) {
             this.timeout = timeout;
             return this;
         }

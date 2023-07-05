@@ -23,13 +23,34 @@ import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 
 public interface ServiceCompose {
     
+    /**
+     * service compose start.
+     */
     void start();
     
+    /**
+     * new a scenario of admin client.
+     * @param scenarioId scenarioId
+     * @return AdminClient
+     */
     AdminClient newAdminClient(String scenarioId);
     
+    /**
+     * new a scenario gateway client.
+     * @param scenarioId scenarioId
+     * @return GatewayClient
+     */
     GatewayClient newGatewayClient(String scenarioId);
     
+    /**
+     * new an external service client with the extendServiceName.
+     * @param externalServiceName externalServiceName
+     * @return ExternalServiceClient
+     */
     ExternalServiceClient newExternalServiceClient(String externalServiceName);
-
+    
+    /**
+     * service compose stop.
+     */
     void stop();
 }

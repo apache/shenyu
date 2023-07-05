@@ -23,37 +23,40 @@ import java.util.Map;
 /**
  * Gateway DataSyn Handler.
  */
-public class DataSynHandler {
-
-    private static final Map<String, Map<String, Object>> DATA_SYN_MAP = new HashMap<>();
-
+public class DataSyncHandler {
+    
+    private static final Map<String, Map<String, Object>> DATA_SYNC_MAP = new HashMap<>();
+    
     private static final Map<String, Object> ADMIN_WEBSOCKET_MAP = new HashMap<>();
-
+    
     private static final Map<String, Object> GATEWAY_WEBSOCKET_MAP = new HashMap<>();
-
+    
     private static final Map<String, Object> ZOOKEEPER_MAP = new HashMap<>();
-
+    
     private static final Map<String, Object> ADMIN_APOLLO_MAP = new HashMap<>();
-
+    
     private static final Map<String, Object> GATEWAY_APOLLO_MAP = new HashMap<>();
-
+    
     private static final Map<String, Object> ADMIN_HTTP_MAP = new HashMap<>();
-
+    
     private static final Map<String, Object> GATEWAY_HTTP_MAP = new HashMap<>();
-
+    
     private static final Map<String, Object> NACOS_MAP = new HashMap<>();
-
+    
     private static final Map<String, Object> ACM_MAP = new HashMap<>();
-
+    
+    /**
+     * init data sync handler.
+     */
     public static void init() {
-        DATA_SYN_MAP.put("admin_websocket", ADMIN_WEBSOCKET_MAP);
-        DATA_SYN_MAP.put("gateway_websocket", GATEWAY_WEBSOCKET_MAP);
-        DATA_SYN_MAP.put("zookeeper", ZOOKEEPER_MAP);
-        DATA_SYN_MAP.put("admin_apollo",ADMIN_APOLLO_MAP);
-        DATA_SYN_MAP.put("gateway_apollo",GATEWAY_APOLLO_MAP);
-        DATA_SYN_MAP.put("admin_http", ADMIN_HTTP_MAP);
-        DATA_SYN_MAP.put("gateway_http", GATEWAY_HTTP_MAP);
-        DATA_SYN_MAP.put("nacos", NACOS_MAP);
+        DATA_SYNC_MAP.put("admin_websocket", ADMIN_WEBSOCKET_MAP);
+        DATA_SYNC_MAP.put("gateway_websocket", GATEWAY_WEBSOCKET_MAP);
+        DATA_SYNC_MAP.put("zookeeper", ZOOKEEPER_MAP);
+        DATA_SYNC_MAP.put("admin_apollo", ADMIN_APOLLO_MAP);
+        DATA_SYNC_MAP.put("gateway_apollo", GATEWAY_APOLLO_MAP);
+        DATA_SYNC_MAP.put("admin_http", ADMIN_HTTP_MAP);
+        DATA_SYNC_MAP.put("gateway_http", GATEWAY_HTTP_MAP);
+        DATA_SYNC_MAP.put("nacos", NACOS_MAP);
 
         ADMIN_WEBSOCKET_MAP.put("enabled", "true");
         GATEWAY_WEBSOCKET_MAP.put("urls", "ws://admin:9095/websocket");
@@ -91,8 +94,13 @@ public class DataSynHandler {
         GATEWAY_APOLLO_MAP.put("clusterName", "test");
         GATEWAY_APOLLO_MAP.put("namespace", "application");
     }
-
-    public static Map<String, Object> getDataSynMap(String dataSyn) {
-        return DATA_SYN_MAP.get(dataSyn);
+    
+    /**
+     * get data sync map.
+     * @param dataSyn dataSyn
+     * @return Map
+     */
+    public static Map<String, Object> getDataSynMap(final String dataSyn) {
+        return DATA_SYNC_MAP.get(dataSyn);
     }
 }
