@@ -103,7 +103,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     }
 
     @Override
-    public Boolean exits(String key) {
+    public Boolean exits(final String key) {
         try {
             return null != client.checkExists().forPath(key);
         } catch (Exception e) {
@@ -189,7 +189,6 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
             throw new ShenyuException(e);
         }
     }
-
 
     @Override
     public void shutdown() {

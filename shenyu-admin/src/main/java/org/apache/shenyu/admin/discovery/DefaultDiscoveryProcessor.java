@@ -102,13 +102,13 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
             return;
         }
         String type = discoveryDO.getType();
-        ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(type);
         String props = discoveryDO.getProps();
         Properties properties = GsonUtils.getGson().fromJson(props, Properties.class);
         DiscoveryConfig discoveryConfig = new DiscoveryConfig();
         discoveryConfig.setType(type);
         discoveryConfig.setProps(properties);
         discoveryConfig.setServerList(discoveryDO.getServerList());
+        ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(type);
         discoveryService.init(discoveryConfig);
         discoveryServiceCache.put(discoveryDO.getId(), discoveryService);
         dataChangedEventListenerCache.put(discoveryDO.getId(), new HashSet<>());
