@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LoginInfo {
+    
     @JsonAlias("userName")
     private String username;
     
@@ -48,7 +49,7 @@ public class LoginInfo {
      *
      * @param username username
      */
-    public void setUsername(String username) {
+    public void setUsername(final String username) {
         this.username = username;
     }
 
@@ -66,7 +67,7 @@ public class LoginInfo {
      *
      * @param token token
      */
-    public void setToken(String token) {
+    public void setToken(final String token) {
         this.token = token;
     }
 
@@ -84,7 +85,7 @@ public class LoginInfo {
      *
      * @param enabled enabled
      */
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -102,7 +103,7 @@ public class LoginInfo {
      *
      * @param expiredTime expiredTime
      */
-    public void setExpiredTime(long expiredTime) {
+    public void setExpiredTime(final long expiredTime) {
         this.expiredTime = expiredTime;
     }
 }

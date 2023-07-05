@@ -30,8 +30,13 @@ public class WaitingForStrategies {
     private static final String GET = "GET";
 
     private static final String ACTUATOR_HEALTH = "/actuator/health";
-
-    public static WaitStrategy newAdminStrategy(int port) {
+    
+    /**
+     * new a admin http wait strategy.
+     * @param port port
+     * @return WaitStrategy
+     */
+    public static WaitStrategy newAdminStrategy(final int port) {
         return new HttpWaitStrategy()
                 .allowInsecure()
                 .forPort(port)
@@ -42,7 +47,12 @@ public class WaitingForStrategies {
                 .withStartupTimeout(Duration.ofMinutes(3));
     }
     
-    public static WaitStrategy newGatewayStrategy(int port) {
+    /**
+     * new a gateway http wait strategy.
+     * @param port port
+     * @return WaitStrategy
+     */
+    public static WaitStrategy newGatewayStrategy(final int port) {
         return new HttpWaitStrategy()
                 .allowInsecure()
                 .forPort(port)

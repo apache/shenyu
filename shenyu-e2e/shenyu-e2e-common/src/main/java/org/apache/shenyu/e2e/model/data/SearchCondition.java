@@ -24,15 +24,15 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * The condition of searching.
  */
 @JsonInclude(Include.NON_NULL)
-public class SearchCondition {
-
-    public static QueryCondition QUERY_ALL = new QueryCondition() {
+public final class SearchCondition {
     
+    public static final QueryCondition QUERY_ALL = new QueryCondition() {
+        
         @Override
         public String getExcluded() {
             return null;
         }
-    
+        
         @Override
         public String getKeyword() {
             return null;
@@ -49,7 +49,17 @@ public class SearchCondition {
     private int pageSize;
     
     private QueryCondition condition;
-
+    
+    /**
+     * builder constructor.
+     * @param builder builder
+     */
+    private SearchCondition(final Builder builder) {
+        this.pageNum = builder.pageNum;
+        this.pageSize = builder.pageSize;
+        this.condition = builder.condition;
+    }
+    
     /**
      * class builder.
      *
@@ -57,17 +67,6 @@ public class SearchCondition {
      */
     public static Builder builder() {
         return new Builder();
-    }
-
-    /**
-     * builder constructor.
-     *
-     * @param builder builder
-     */
-    private SearchCondition(Builder builder) {
-        this.pageNum = builder.pageNum;
-        this.pageSize = builder.pageSize;
-        this.condition = builder.condition;
     }
 
     /**
@@ -84,7 +83,7 @@ public class SearchCondition {
      *
      * @param pageNum pageNum
      */
-    public void setPageNum(int pageNum) {
+    public void setPageNum(final int pageNum) {
         this.pageNum = pageNum;
     }
 
@@ -102,7 +101,7 @@ public class SearchCondition {
      *
      * @param pageSize pageSize
      */
-    public void setPageSize(int pageSize) {
+    public void setPageSize(final int pageSize) {
         this.pageSize = pageSize;
     }
 
@@ -120,7 +119,7 @@ public class SearchCondition {
      *
      * @param condition condition
      */
-    public void setCondition(QueryCondition condition) {
+    public void setCondition(final QueryCondition condition) {
         this.condition = condition;
     }
 
@@ -168,7 +167,7 @@ public class SearchCondition {
          * @param pageNum pageNum
          * @return this
          */
-        public Builder pageNum(int pageNum) {
+        public Builder pageNum(final int pageNum) {
             this.pageNum = pageNum;
             return this;
         }
@@ -179,7 +178,7 @@ public class SearchCondition {
          * @param pageSize pageSize
          * @return this
          */
-        public Builder pageSize(int pageSize) {
+        public Builder pageSize(final int pageSize) {
             this.pageSize = pageSize;
             return this;
         }
@@ -190,7 +189,7 @@ public class SearchCondition {
          * @param condition condition
          * @return this
          */
-        public Builder condition(QueryCondition condition) {
+        public Builder condition(final QueryCondition condition) {
             this.condition = condition;
             return this;
         }

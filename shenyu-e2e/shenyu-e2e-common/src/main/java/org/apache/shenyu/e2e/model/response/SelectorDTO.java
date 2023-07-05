@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * SelectorDTO.
  */
-public class SelectorDTO implements ResourceDTO {
+public final class SelectorDTO implements ResourceDTO {
     
     private String id;
     
@@ -67,7 +67,7 @@ public class SelectorDTO implements ResourceDTO {
 
     }
 
-    private SelectorDTO(Builder builder) {
+    private SelectorDTO(final Builder builder) {
         this.id = builder.id;
         this.pluginId = builder.pluginId;
         this.name = builder.name;
@@ -84,7 +84,11 @@ public class SelectorDTO implements ResourceDTO {
         this.dateCreated = builder.dateCreated;
         this.dateUpdated = builder.dateUpdated;
     }
-
+    
+    /**
+     * builder.
+     * @return Builder
+     */
     public static Builder builder() {
         return new Builder();
     }
@@ -104,7 +108,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param id id
      */
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -122,7 +126,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param pluginId pluginId
      */
-    public void setPluginId(String pluginId) {
+    public void setPluginId(final String pluginId) {
         this.pluginId = pluginId;
     }
 
@@ -141,7 +145,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param name name
      */
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -159,7 +163,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param matchMode matchMode
      */
-    public void setMatchMode(int matchMode) {
+    public void setMatchMode(final int matchMode) {
         this.matchMode = matchMode;
     }
 
@@ -173,11 +177,11 @@ public class SelectorDTO implements ResourceDTO {
     }
 
     /**
-     * set matchModeName
+     * set matchModeName.
      *
      * @param matchModeName matchModeName
      */
-    public void setMatchModeName(String matchModeName) {
+    public void setMatchModeName(final String matchModeName) {
         this.matchModeName = matchModeName;
     }
 
@@ -195,7 +199,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param type type
      */
-    public void setType(int type) {
+    public void setType(final int type) {
         this.type = type;
     }
 
@@ -213,7 +217,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param typeName typeName
      */
-    public void setTypeName(String typeName) {
+    public void setTypeName(final String typeName) {
         this.typeName = typeName;
     }
 
@@ -231,7 +235,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param sort sort
      */
-    public void setSort(int sort) {
+    public void setSort(final int sort) {
         this.sort = sort;
     }
 
@@ -249,7 +253,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param enabled enabled
      */
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -267,7 +271,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param logged logged
      */
-    public void setLogged(boolean logged) {
+    public void setLogged(final boolean logged) {
         this.logged = logged;
     }
 
@@ -285,7 +289,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param continued continued
      */
-    public void setContinued(boolean continued) {
+    public void setContinued(final boolean continued) {
         this.continued = continued;
     }
 
@@ -303,7 +307,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param handle handle
      */
-    public void setHandle(String handle) {
+    public void setHandle(final String handle) {
         this.handle = handle;
     }
 
@@ -321,7 +325,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param conditionList conditionList
      */
-    public void setConditionList(List<Condition> conditionList) {
+    public void setConditionList(final List<Condition> conditionList) {
         this.conditionList = conditionList;
     }
 
@@ -340,7 +344,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param dateCreated dateCreated
      */
-    public void setDateCreated(Date dateCreated) {
+    public void setDateCreated(final Date dateCreated) {
         this.dateCreated = dateCreated;
     }
 
@@ -359,7 +363,7 @@ public class SelectorDTO implements ResourceDTO {
      *
      * @param dateUpdated dateUpdated
      */
-    public void setDateUpdated(Date dateUpdated) {
+    public void setDateUpdated(final Date dateUpdated) {
         this.dateUpdated = dateUpdated;
     }
 
@@ -402,82 +406,161 @@ public class SelectorDTO implements ResourceDTO {
         private Builder() {
 
         }
-
+        
+        /**
+         * build.
+         * @return SelectorDTO
+         */
         public SelectorDTO build() {
             return new SelectorDTO(this);
         }
-
-        public Builder id(String id) {
+        
+        /**
+         * id.
+         * @param id id
+         * @return Builder
+         */
+        public Builder id(final String id) {
             this.id = id;
             return this;
         }
-
-        public Builder pluginId(String pluginId) {
+        
+        /**
+         * plugin id.
+         * @param pluginId pluginId
+         * @return Builder
+         */
+        public Builder pluginId(final String pluginId) {
             this.pluginId = pluginId;
             return this;
         }
-
-        public Builder name(String name) {
+        
+        /**
+         * name.
+         * @param name name
+         * @return Builder
+         */
+        public Builder name(final String name) {
             this.name = name;
             return this;
         }
-
-        public Builder matchMode(int matchMode) {
+        
+        /**
+         * match mode.
+         * @param matchMode matchMode
+         * @return Builder
+         */
+        public Builder matchMode(final int matchMode) {
             this.matchMode = matchMode;
             return this;
         }
-
-        public Builder matchModeName(String matchModeName) {
+        
+        /**
+         * match mode name.
+         * @param matchModeName matchModeName
+         * @return Builder
+         */
+        public Builder matchModeName(final String matchModeName) {
             this.matchModeName = matchModeName;
             return this;
         }
-
-        public Builder type(int type) {
+        
+        /**
+         * type.
+         * @param type type
+         * @return Builder
+         */
+        public Builder type(final int type) {
             this.type = type;
             return this;
         }
-
-        public Builder typeName(String typeName) {
+        
+        /**
+         * type name.
+         * @param typeName typeName
+         * @return Builder
+         */
+        public Builder typeName(final String typeName) {
             this.typeName = typeName;
             return this;
         }
-
-        public Builder sort(int sort) {
+        
+        /**
+         * sort.
+         * @param sort sort
+         * @return Builder
+         */
+        public Builder sort(final int sort) {
             this.sort = sort;
             return this;
         }
-
-        public Builder enabled(boolean enabled) {
+        
+        /**
+         * enabled.
+         * @param enabled enabled
+         * @return Builder
+         */
+        public Builder enabled(final boolean enabled) {
             this.enabled = enabled;
             return this;
         }
-
-        public Builder logged(boolean logged) {
+        
+        /**
+         * logged.
+         * @param logged logged
+         * @return Builder
+         */
+        public Builder logged(final boolean logged) {
             this.logged = logged;
             return this;
         }
-
-        public Builder continued(boolean continued) {
+        
+        /**
+         * continued.
+         * @param continued continued
+         * @return Builder
+         */
+        public Builder continued(final boolean continued) {
             this.continued = continued;
             return this;
         }
-
-        public Builder handle(String handle) {
+        
+        /**
+         * handle.
+         * @param handle handle
+         * @return Builder
+         */
+        public Builder handle(final String handle) {
             this.handle = handle;
             return this;
         }
-
-        public Builder conditionList(List<Condition> conditionList) {
+        
+        /**
+         * condition list.
+         * @param conditionList conditionList
+         * @return Builder
+         */
+        public Builder conditionList(final List<Condition> conditionList) {
             this.conditionList = conditionList;
             return this;
         }
-
-        public Builder dateCreated(Date dateCreated) {
+        
+        /**
+         * create date.
+         * @param dateCreated dateCreated
+         * @return Builder
+         */
+        public Builder dateCreated(final Date dateCreated) {
             this.dateCreated = dateCreated;
             return this;
         }
-
-        public Builder dateUpdated(Date dateUpdated) {
+        
+        /**
+         * update date.
+         * @param dateUpdated dateUpdated
+         * @return Builder
+         */
+        public Builder dateUpdated(final Date dateUpdated) {
             this.dateUpdated = dateUpdated;
             return this;
         }

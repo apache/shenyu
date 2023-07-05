@@ -50,17 +50,17 @@ public class GatewayClient {
 
     private static final Logger log = LoggerFactory.getLogger(GatewayClient.class);
     
+    private static final RestTemplate TEMPLATE = new RestTemplateBuilder().build();
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    
     private final String scenarioId;
 
     private final String baseUrl;
     
     private final Properties properties;
 
-    private static final RestTemplate template = new RestTemplateBuilder().build();
-
-    private static final ObjectMapper mapper = new ObjectMapper();
-
-    public GatewayClient(String scenarioId, String baseUrl, Properties properties) {
+    public GatewayClient(final String scenarioId, final String baseUrl, final Properties properties) {
         this.scenarioId = scenarioId;
         this.baseUrl = baseUrl;
         this.properties = properties;
@@ -74,7 +74,11 @@ public class GatewayClient {
     public String getBaseUrl() {
         return baseUrl;
     }
-
+    
+    /**
+     * get http request specification.
+     * @return Supplier
+     */
     public Supplier<RequestSpecification> getHttpRequesterSupplier() {
         return () -> given().baseUri(getBaseUrl())
                 .filter((req, resp, ctx) -> {
@@ -96,44 +100,59 @@ public class GatewayClient {
                 })
                 .when();
     }
-
+    
+    /**
+     * get meta data cache.
+     * @return List List
+     * @throws JsonProcessingException JsonProcessingException
+     */
     public List<MetaData> getMetaDataCache() throws JsonProcessingException {
-        ResponseEntity<List> response = template.exchange(baseUrl + "/actuator/metadata", HttpMethod.GET, null, List.class);
+        ResponseEntity<List> response = TEMPLATE.exchange(baseUrl + "/actuator/metadata", HttpMethod.GET, null, List.class);
         List body = response.getBody();
         Map<String, MetaData> s = (Map<String, MetaData>) body.get(0);
         List<MetaData> metaDataList = new ArrayList<>();
         for (Map.Entry entry : s.entrySet()) {
-            String json = mapper.writeValueAsString(entry.getValue());
-            MetaData metaData = mapper.readValue(json, MetaData.class);
+            String json = MAPPER.writeValueAsString(entry.getValue());
+            MetaData metaData = MAPPER.readValue(json, MetaData.class);
             metaDataList.add(metaData);
         }
         return metaDataList;
     }
-
+    
+    /**
+     * get selector cache.
+     * @return List List
+     * @throws JsonProcessingException JsonProcessingException
+     */
     public List<SelectorCacheData> getSelectorCache() throws JsonProcessingException {
-        ResponseEntity<List> response = template.exchange(baseUrl + "/actuator/selectorData", HttpMethod.GET, null, List.class);
+        ResponseEntity<List> response = TEMPLATE.exchange(baseUrl + "/actuator/selectorData", HttpMethod.GET, null, List.class);
         List body = response.getBody();
         Map<String, SelectorCacheData> s = (Map<String, SelectorCacheData>) body.get(0);
         List<SelectorCacheData> selectorDataList = new ArrayList<>();
         for (Map.Entry entry : s.entrySet()) {
             List list = (List) entry.getValue();
-            String json = mapper.writeValueAsString(list.get(0));
-            SelectorCacheData selectorData = mapper.readValue(json, SelectorCacheData.class);
+            String json = MAPPER.writeValueAsString(list.get(0));
+            SelectorCacheData selectorData = MAPPER.readValue(json, SelectorCacheData.class);
             selectorDataList.add(selectorData);
         }
         return selectorDataList;
     }
-
+    
+    /**
+     * get rule cache.
+     * @return List list
+     * @throws JsonProcessingException JsonProcessingException
+     */
     public List<RuleCacheData> getRuleCache() throws JsonProcessingException {
-        ResponseEntity<List> response = template.exchange(baseUrl + "/actuator/ruleData", HttpMethod.GET, null, List.class);
+        ResponseEntity<List> response = TEMPLATE.exchange(baseUrl + "/actuator/ruleData", HttpMethod.GET, null, List.class);
         List body = response.getBody();
         Map<String, RuleCacheData> s = (Map<String, RuleCacheData>) body.get(0);
         List<RuleCacheData> ruleDataList = new ArrayList<>();
         for (Map.Entry entry : s.entrySet()) {
             List list = (List) entry.getValue();
             for (int i = 0; i < list.size(); i++) {
-                String json = mapper.writeValueAsString(list.get(i));
-                RuleCacheData ruleData = mapper.readValue(json, RuleCacheData.class);
+                String json = MAPPER.writeValueAsString(list.get(i));
+                RuleCacheData ruleData = MAPPER.readValue(json, RuleCacheData.class);
                 ruleDataList.add(ruleData);
             }
         }

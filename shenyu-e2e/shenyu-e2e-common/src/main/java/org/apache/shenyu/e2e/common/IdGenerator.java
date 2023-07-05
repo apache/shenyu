@@ -23,11 +23,19 @@ import java.time.LocalTime;
  * Id Generator.
  */
 public class IdGenerator {
-    
+
+    /**
+     * generate scenario id.
+     * @return String id
+     */
     public static String generateScenarioId() {
         return Long.toHexString(LocalTime.now().toNanoOfDay());
     }
     
+    /**
+     * generate test id.
+     * @return String id
+     */
     public static String generateTestId() {
         return Integer.toHexString(LocalTime.now().getNano());
     }

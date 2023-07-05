@@ -30,29 +30,45 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.TYPE})
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith({ShenYuExtension.class, ShenYuLogExtension.class})
 @TestInstance(Lifecycle.PER_CLASS)
 public @interface ShenYuTest {
     
     /**
+     * <p>
      * Indices whether the depended on services run under ShenYu e2e engine managed.
      * </p>
+     * <p>
      * Mode.DOCKER: under ShenYu e2e engine managed.
      * </p>
+     * <p>
      * Mode.HOST: ShenYu e2e engine unmanaged the services.
      * </p>
      *
-     * {@see Mode}
+     * {@code Mode}
+     * @return Mode
      */
     @ShenYuValue("{shenyu.e2e.mode}")
     Mode mode() default Mode.DOCKER;
     
+    /**
+     * services configs.
+     * @return ServiceConfigure[]
+     */
     ServiceConfigure[] services() default {};
     
+    /**
+     * share key.
+     * @return String
+     */
     String sharedKey() default "global";
     
+    /**
+     * docker compose file.
+     * @return String
+     */
     @ShenYuValue("{shenyu.e2e.docker-compose}")
     String dockerComposeFile() default "docker-compose.yml";
     
@@ -62,39 +78,55 @@ public @interface ShenYuTest {
         
         /**
          * Indices the service's name.
+         * @return String service name.
          */
         @ShenYuValue("{shenyu.e2e.services[].serviceName}")
         String serviceName();
         
         /**
+         * <p>
          * Indices the HTTP schema to access to service.
          * </p>
          * That is available for {@link Mode#DOCKER}
+         * @return String schema
          */
         @ShenYuValue("{shenyu.e2e.services[].schema}")
         String schema() default "http";
     
         /**
+         * <p>
          * Indices the port of service.
          * </p>
          * That is available for {@link Mode#DOCKER}
+         *  TODO to support multi ports for service
+         * @return int port
          */
         @ShenYuValue("{shenyu.e2e.services[].port}")
-        int port() default -1; // TODO to support multi ports for service
+        int port() default -1;
     
         /**
+         * <p>
          * Indices the baseUrl of service.
          * </p>
          * That is available for {@link Mode#HOST}
+         * @return String base url
          */
         @ShenYuValue("{shenyu.e2e.services[].baseUrl}")
         String baseUrl() default "";
-    
+        
+        /**
+         * <p>
+         * Indices the service type of service.
+         * </p>
+         * {@code ServiceType}
+         * @return ServiceType
+         */
         @ShenYuValue("{shenyu.e2e.services[].type}")
         ServiceType type() default ServiceType.SHENYU_ADMIN;
     
         /**
          * Indices more configures about connection.
+         * @return Parameter[]
          */
         Parameter[] parameters() default {};
     }
