@@ -2273,6 +2273,31 @@ COMMENT ON COLUMN "public"."discovery_rel"."selector_id" IS 'the selector id';
 COMMENT ON COLUMN "public"."discovery_rel"."proxy_selector_id" IS 'the proxy selector id';
 COMMENT ON COLUMN "public"."discovery_rel"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."discovery_rel"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for proxy_selector
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."proxy_selector";
+CREATE TABLE "public"."proxy_selector"
+(
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name"         varchar(128) COLLATE "pg_catalog"."default",
+    "plugin_name"  varchar(128) COLLATE "pg_catalog"."default",
+    "type"         varchar(128) COLLATE "pg_catalog"."default",
+    "forward_port" int4 NOT NULL,
+    "props"        text COLLATE "pg_catalog"."default",
+    "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+;
+COMMENT ON COLUMN "public"."proxy_selector"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."proxy_selector"."name" IS 'the proxy_selector name';
+COMMENT ON COLUMN "public"."proxy_selector"."plugin_name" IS 'the plugin name';
+COMMENT ON COLUMN "public"."proxy_selector"."type" IS 'the type ';
+COMMENT ON COLUMN "public"."proxy_selector"."forward_port" IS 'the forward port';
+COMMENT ON COLUMN "public"."proxy_selector"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."proxy_selector"."date_updated" IS 'update time';
+
 -- ----------------------------
 -- Table structure for alert_template
 -- ----------------------------
@@ -2292,3 +2317,4 @@ COMMENT ON COLUMN "public"."alert_template"."strategy_name" IS 'alert template s
 COMMENT ON COLUMN "public"."alert_template"."content" IS 'alert template content';
 COMMENT ON COLUMN "public"."alert_template"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."alert_template"."date_updated" IS 'update time';
+
