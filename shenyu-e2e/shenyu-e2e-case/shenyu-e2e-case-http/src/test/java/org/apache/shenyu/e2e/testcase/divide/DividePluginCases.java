@@ -89,6 +89,10 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .build();
     }
     
+    /**
+     * test divide with uri path pattern.
+     * @return ShenYuScenarioSpec
+     */
     public ShenYuScenarioSpec testDivideWithUriPathPattern() {
         return ShenYuScenarioSpec.builder()
                 .name("single-divide uri path_pattern]")
@@ -123,6 +127,10 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .build();
     }
     
+    /**
+     * test divide with uri start with.
+     * @return ShenYuScenarioSpec
+     */
     public ShenYuScenarioSpec testDivideWithUriStartWith() {
         return ShenYuScenarioSpec.builder()
                 .name("single-divide uri starts_with]")
@@ -156,6 +164,10 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .build();
     }
     
+    /**
+     * test divide with end with.
+     * @return ShenYuScenarioSpec
+     */
     public ShenYuScenarioSpec testDivideWithEndWith() {
         return ShenYuScenarioSpec.builder()
                 .name("single-divide uri ends_with]")
@@ -191,6 +203,10 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .build();
     }
     
+    /**
+     * test divide with method get.
+     * @return ShenYuScenarioSpec
+     */
     public ShenYuScenarioSpec testDivideWithMethodGet() {
         return ShenYuScenarioSpec.builder()
                 .name("single-divide method GET")
@@ -231,6 +247,10 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .build();
     }
     
+    /**
+     * test divide with method post.
+     * @return ShenYuScenarioSpec
+     */
     public ShenYuScenarioSpec testDivideWithMethodPost() {
         return ShenYuScenarioSpec.builder()
                 .name("single-divide method POST")
@@ -271,6 +291,10 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .build();
     }
     
+    /**
+     * test divide with method put.
+     * @return ShenYuScenarioSpec
+     */
     public ShenYuScenarioSpec testDivideWithMethodPut() {
         return ShenYuScenarioSpec.builder()
                 .name("single-divide method PUT")
@@ -311,6 +335,10 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .build();
     }
     
+    /**
+     * test divide with method delete.
+     * @return ShenYuScenarioSpec
+     */
     public ShenYuScenarioSpec testDivideWithMethodDelete() {
         return ShenYuScenarioSpec.builder()
                 .name("single-divide method DELETE")

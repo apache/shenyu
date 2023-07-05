@@ -26,7 +26,7 @@ import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.common.TableView;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.DockerConfigure;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.DockerConfigure.DockerServiceConfigure;
-import org.apache.shenyu.e2e.engine.handler.DataSynHandler;
+import org.apache.shenyu.e2e.engine.handler.DataSyncHandler;
 import org.apache.shenyu.e2e.engine.service.docker.DockerComposeFile;
 import org.apache.shenyu.e2e.engine.service.docker.ShenYuLogConsumer;
 import org.slf4j.Logger;
@@ -36,12 +36,12 @@ import org.testcontainers.containers.DockerComposeContainer;
 import org.testcontainers.shaded.org.yaml.snakeyaml.DumperOptions;
 import org.testcontainers.shaded.org.yaml.snakeyaml.Yaml;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,12 +69,12 @@ public class DockerServiceCompose implements ServiceCompose {
 
     private List<DockerServiceConfigure> externalServiceConfigurations;
 
-    public DockerServiceCompose(DockerConfigure configure) {
+    public DockerServiceCompose(final DockerConfigure configure) {
         this.configure = configure;
         this.adminConfigure = configure.getAdmin();
         this.gatewayConfigure = configure.getGateway();
         modifyGatewayConfiguration(this.gatewayConfigure);
-        DataSynHandler.init();
+        DataSyncHandler.init();
         chooseDataSyn(GATEWAY_YML_LOCATION, this.gatewayConfigure);
         chooseDataSyn(ADMIN_YML_LOCATION, this.adminConfigure);
         DockerComposeFile parsedDockerComposeFile = DockerComposeFile.parse(configure.getDockerComposeFile());
@@ -83,6 +83,10 @@ public class DockerServiceCompose implements ServiceCompose {
         services.forEach(name -> container.withLogConsumer(name, new ShenYuLogConsumer(name)));
     }
     
+    /**
+     * start.
+     */
+    @Override
     public void start() {
         exposedServices();
         waitingForAvailable();
@@ -157,7 +161,7 @@ public class DockerServiceCompose implements ServiceCompose {
         return getBaseUrlByService(gatewayConfigure);
     }
     
-    private String getBaseUrlByService(DockerServiceConfigure configure) {
+    private String getBaseUrlByService(final DockerServiceConfigure configure) {
         return configure.getSchema() + "://"
                 + container.getServiceHost(configure.getServiceName(), configure.getPort())
                 + ":"
@@ -184,6 +188,10 @@ public class DockerServiceCompose implements ServiceCompose {
         return new ExternalServiceClient(url, dockerServiceConfigure.getProperties());
     }
     
+    /**
+     * stop.
+     */
+    @Override
     public void stop() {
         container.stop();
     }
@@ -193,17 +201,17 @@ public class DockerServiceCompose implements ServiceCompose {
      *
      * @param gatewayConfigure gatewayConfigure
      */
-    private void modifyGatewayConfiguration(DockerServiceConfigure gatewayConfigure) {
+    private void modifyGatewayConfiguration(final DockerServiceConfigure gatewayConfigure) {
         String value = gatewayConfigure.getProperties().getProperty("application");
         if (Objects.isNull(value)) {
             return;
         }
-        try (InputStream inputStream = new FileInputStream(GATEWAY_YML_LOCATION)) {
+        try (InputStream inputStream = Files.newInputStream(Paths.get(GATEWAY_YML_LOCATION))) {
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
             String[] sonValues = value.split(",");
             for (final String sonValue : sonValues) {
-                String[] subModule = sonValue.split("\\:");
+                String[] subModule = sonValue.split(":");
 
                 String[] subModulePath = subModule[0].split("\\.");
 
@@ -215,15 +223,16 @@ public class DockerServiceCompose implements ServiceCompose {
             options.setExplicitStart(true);
             options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
             yaml = new Yaml(options);
-            try (OutputStream outputStream = new FileOutputStream(GATEWAY_YML_LOCATION)) {
+            try (OutputStream outputStream = Files.newOutputStream(Paths.get(GATEWAY_YML_LOCATION))) {
                 yaml.dump(yamlData, new OutputStreamWriter(outputStream));
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
     }
 
-    private void modifyYamlValue(Map<String, Object> yamlData, String[] subModulePath, String newValue) {
+    @SuppressWarnings("unchecked")
+    private void modifyYamlValue(final Map<String, Object> yamlData, final String[] subModulePath, final String newValue) {
         if (subModulePath.length == 0) {
             return;
         }
@@ -245,14 +254,14 @@ public class DockerServiceCompose implements ServiceCompose {
      * @param path path
      * @param dockerServiceConfigure dockerServiceConfigure
      */
-    private void chooseDataSyn(final String path, DockerServiceConfigure dockerServiceConfigure) {
-        String yamlFilePath = path;
-        try (InputStream inputStream = new FileInputStream(yamlFilePath)) {
+    @SuppressWarnings("unchecked")
+    private void chooseDataSyn(final String path, final DockerServiceConfigure dockerServiceConfigure) {
+        try (InputStream inputStream = Files.newInputStream(Paths.get(path))) {
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
             Map<String, Object> shenyuParameter = (Map<String, Object>) yamlData.get("shenyu");
             Map<String, Object> parameter = (Map<String, Object>) shenyuParameter.get("sync");
-            Map<String, Object> subParameters = DataSynHandler.getDataSynMap(dockerServiceConfigure.getProperties().getProperty("dataSyn"));
+            Map<String, Object> subParameters = DataSyncHandler.getDataSynMap(dockerServiceConfigure.getProperties().getProperty("dataSyn"));
             String synMethod = "";
             if (dockerServiceConfigure.getProperties().getProperty("dataSyn").contains("_")) {
                 synMethod = dockerServiceConfigure.getProperties().getProperty("dataSyn").split("_")[1];
@@ -267,12 +276,12 @@ public class DockerServiceCompose implements ServiceCompose {
             options.setExplicitStart(true);
             options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
             yaml = new Yaml(options);
-            try (OutputStream outputStream = new FileOutputStream(yamlFilePath)) {
+            try (OutputStream outputStream = Files.newOutputStream(Paths.get(path))) {
                 yaml.dump(yamlData, new OutputStreamWriter(outputStream));
                 log.info("YAML file modified successfully.");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
     }
 }

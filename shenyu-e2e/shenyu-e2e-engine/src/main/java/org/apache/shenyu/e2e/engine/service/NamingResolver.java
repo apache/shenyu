@@ -37,27 +37,37 @@ import java.util.stream.Collectors;
  * Resolve name.
  */
 public enum NamingResolver {
+    
     INSTANCE;
 
     private static final Logger log = LoggerFactory.getLogger(NamingResolver.class);
     
     private Map<String, String> namingMap;
     
-    public void ofHostConfigure(List<HostServiceConfigure> serviceConfigures) {
+    /**
+     * resolve name of host configure.
+     * @param serviceConfigures serviceConfigures
+     */
+    public void ofHostConfigure(final List<HostServiceConfigure> serviceConfigures) {
         namingMap = serviceConfigures.stream()
-                .collect(Collectors.toMap(
-                                HostServiceConfigure::getServiceName,
-                                c -> getAddressFromBaseUrl(c.getBaseUrl())
-                        )
-                );
+            .collect(Collectors.toMap(
+                    HostServiceConfigure::getServiceName,
+                    c -> getAddressFromBaseUrl(c.getBaseUrl())
+                )
+            );
     }
     
-    public void ofDockerConfigure(DockerComposeContainer<?> container) {
-        final Map<String, String> _namingMap = Maps.newHashMap();
+    /**
+     * resolve name of docker configure.
+     * @param container container
+     */
+    public void ofDockerConfigure(final DockerComposeContainer<?> container) {
+        final Map<String, String> namingMap = Maps.newHashMap();
         try {
             Field field = container.getClass().getDeclaredField("serviceInstanceMap");
             field.setAccessible(true);
             Map<String, ?> serviceInstanceMap = (Map<String, ?>) field.get(container);
+            field.setAccessible(false);
             
             serviceInstanceMap.keySet().forEach(e -> {
                 if (container.getContainerByServiceName(e).isPresent()) {
@@ -70,16 +80,15 @@ public enum NamingResolver {
                             .findFirst()
                             .ifPresent(net -> {
                                 String ip = net.getValue().getIpAddress();
-                                Objects.requireNonNull(net.getValue().getAliases()).forEach(alias -> _namingMap.put(alias, ip));
+                                Objects.requireNonNull(net.getValue().getAliases()).forEach(alias -> namingMap.put(alias, ip));
                             });
                 } else {
                     log.warn("service {} not exists", e);
                 }
             });
-            System.out.println(_namingMap);
         } catch (NoSuchFieldException | IllegalAccessException ignore) {
         }
-        this.namingMap = ImmutableMap.<String, String>builder().putAll(_namingMap).build();
+        this.namingMap = ImmutableMap.<String, String>builder().putAll(namingMap).build();
     }
     
     private static String getAddressFromBaseUrl(final String baseUrl) {

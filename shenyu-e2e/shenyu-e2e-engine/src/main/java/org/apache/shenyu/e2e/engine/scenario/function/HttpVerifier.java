@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.e2e.engine.scenario.function;
 
-import org.apache.shenyu.e2e.engine.scenario.function.Verifier;
-
 /**
  * Http Verifier interface.
  */

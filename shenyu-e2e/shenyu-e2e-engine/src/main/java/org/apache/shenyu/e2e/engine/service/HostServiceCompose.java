@@ -33,9 +33,9 @@ import java.util.Objects;
  */
 public class HostServiceCompose implements ServiceCompose {
     
-    private HostConfigure configure;
+    private final HostConfigure configure;
 
-    public HostServiceCompose(HostConfigure configure) {
+    public HostServiceCompose(final HostConfigure configure) {
         this.configure = configure;
     }
 
@@ -47,7 +47,11 @@ public class HostServiceCompose implements ServiceCompose {
     public HostConfigure getConfigure() {
         return configure;
     }
-
+    
+    /**
+     * start.
+     */
+    @Override
     public void start() {
         List<HostServiceConfigure> configures = Lists.newArrayList(configure.getExternalServices());
         if (Objects.nonNull(configure.getAdmin())) {
@@ -80,6 +84,10 @@ public class HostServiceCompose implements ServiceCompose {
         return new ExternalServiceClient(serviceConfigure.getBaseUrl(), serviceConfigure.getProperties());
     }
     
+    /**
+     * stop.
+     */
+    @Override
     public void stop() {
     
     }
