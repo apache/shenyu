@@ -163,6 +163,13 @@ jobs:
           docker load --input /tmp/apache-shenyu-bootstrap.tar
           docker image ls -a
 
+      - name: Set up JDK 8 for Building ShenYu
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          cache: maven
+
       - name: Build examples with Maven
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
 
