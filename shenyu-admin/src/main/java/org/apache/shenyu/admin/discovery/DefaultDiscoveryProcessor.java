@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -101,10 +102,13 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
             return;
         }
         String type = discoveryDO.getType();
-        ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(type);
         String props = discoveryDO.getProps();
-        DiscoveryConfig discoveryConfig = GsonUtils.getGson().fromJson(props, DiscoveryConfig.class);
+        Properties properties = GsonUtils.getGson().fromJson(props, Properties.class);
+        DiscoveryConfig discoveryConfig = new DiscoveryConfig();
+        discoveryConfig.setType(type);
+        discoveryConfig.setProps(properties);
         discoveryConfig.setServerList(discoveryDO.getServerList());
+        ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(type);
         discoveryService.init(discoveryConfig);
         discoveryServiceCache.put(discoveryDO.getId(), discoveryService);
         dataChangedEventListenerCache.put(discoveryDO.getId(), new HashSet<>());
