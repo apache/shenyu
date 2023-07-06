@@ -44,6 +44,8 @@
         <module>shenyu-dist</module>
         <module>shenyu-alert</module>
         <module>shenyu-sdk</module>
+        <module>shenyu-discovery</module>
+        <module>shenyu-kubernetes-controller</module>
     </modules>
 
     <licenses>
@@ -77,13 +79,11 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <hutool.version>4.0.8</hutool.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jasypt.version>1.9.2</jasypt.version>
         <springfox.version>2.6.1</springfox.version>
         <mybatis.starter.version>2.2.2</mybatis.starter.version>
         <mysql.version>8.0.29</mysql.version>
-        <druid.version>1.2.11</druid.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <guava.version>31.1-jre</guava.version>
         <commons-collections4.version>4.4</commons-collections4.version>
@@ -99,7 +99,7 @@
         <alibaba.dubbo.version>2.6.12</alibaba.dubbo.version>
         <apache.dubbo.version>3.1.1</apache.dubbo.version>
         <gson.version>2.9.0</gson.version>
-        <okhttp.version>3.12.1</okhttp.version>
+        <okhttp.version>4.9.3</okhttp.version>
         <prometheus-java-client.version>0.15.0</prometheus-java-client.version>
         <prometheus-jmx.version>0.15.0</prometheus-jmx.version>
         <swagger.version>2.9.2</swagger.version>
@@ -114,7 +114,7 @@
         <shiro.version>1.8.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
         <motan.version>1.2.0</motan.version>
-        <spring-boot.version>2.6.8</spring-boot.version>
+        <spring-boot.version>2.7.13</spring-boot.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
         <jetcd-core.version>0.7.3</jetcd-core.version>
@@ -137,6 +137,7 @@
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>1.10.17</eureka.version>
         <javatuples.version>1.2</javatuples.version>
+        <k8s-client.version>17.0.2</k8s-client.version>
         <polaris-dependencies.version>1.10.5</polaris-dependencies.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
@@ -159,6 +160,7 @@
         <jaxb.api.version>2.3.1</jaxb.api.version>
         <mail.version>1.6.2</mail.version>
         <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
+        <maven-assembly-plugin.version>3.5.0</maven-assembly-plugin.version>
         <ojdbc8.version>19.3.0.0</ojdbc8.version>
         <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>
         <spring-cloud-netflix-ribbon.version>2.2.10.RELEASE</spring-cloud-netflix-ribbon.version>
@@ -168,6 +170,15 @@
         <caffeine.version>2.9.3</caffeine.version>
         <httpasyncclient.version>4.1.5</httpasyncclient.version>
         <asm.version>9.2</asm.version>
+        <apollo.version>2.1.0</apollo.version>
+        <resilience.version>1.7.1</resilience.version>
+        <sentinel.version>1.8.3</sentinel.version>
+        <lettuce.version>6.1.2.RELEASE</lettuce.version>
+        <aliyun-log.version>0.6.70</aliyun-log.version>
+        <protobuf-java.version>3.19.6</protobuf-java.version>
+        <aliyun-log-producer.version>0.3.10</aliyun-log-producer.version>
+        <tencent-log-sdk.version>1.0.9</tencent-log-sdk.version>
+        <jsonpath.version>2.4.0</jsonpath.version>
     </properties>
 
     <dependencyManagement>
@@ -333,12 +344,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.projectreactor</groupId>
-                <artifactId>reactor-spring</artifactId>
-                <version>${reactor-spring.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>com.caucho</groupId>
                 <artifactId>hessian</artifactId>
                 <version>${hessian.version}</version>
@@ -371,6 +376,18 @@
                     </exclusion>
                 </exclusions>
                 <version>${zookeeper.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.ctrip.framework.apollo</groupId>
+                <artifactId>apollo-client</artifactId>
+                <version>${apollo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.ctrip.framework.apollo</groupId>
+                <artifactId>apollo-openapi</artifactId>
+                <version>${apollo.version}</version>
             </dependency>
 
             <dependency>
@@ -489,6 +506,12 @@
                 <groupId>com.netflix.eureka</groupId>
                 <artifactId>eureka-client</artifactId>
                 <version>${eureka.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.kubernetes</groupId>
+                <artifactId>client-java-spring-integration</artifactId>
+                <version>${k8s-client.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

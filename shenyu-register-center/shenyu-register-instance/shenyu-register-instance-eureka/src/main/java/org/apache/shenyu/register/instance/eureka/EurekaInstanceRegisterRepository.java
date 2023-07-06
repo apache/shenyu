@@ -36,12 +36,10 @@ import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,8 +51,6 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
     private EurekaClient eurekaClient;
 
     private EurekaHttpClient eurekaHttpClient;
-
-    private final List<String> watcher = new ArrayList<>();
 
     @Override
     public void init(final RegisterConfig config) {
@@ -87,15 +83,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
     }
 
     @Override
-    public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
-        if (!watcher.contains(selectKey)) {
-            synchronized (this) {
-                if (!watcher.contains(selectKey)) {
-                    watcher.add(selectKey);
-                    eurekaClient.registerEventListener(event -> watcherListener.listener(getInstances(selectKey)));
-                }
-            }
-        }
+    public List<InstanceEntity> selectInstances(final String selectKey) {
         return getInstances(selectKey);
     }
 

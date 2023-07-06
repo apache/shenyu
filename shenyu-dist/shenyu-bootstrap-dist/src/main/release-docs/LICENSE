@@ -215,16 +215,17 @@ Apache 2.0 licenses
 The following components are provided under the Apache License. See project link for details.
 The text of each license is the standard Apache 2.0 license.
 
-    accessors-smart 2.4.8: https://www.minidev.net, Apache 2.0
+    accessors-smart 2.4.11: https://www.minidev.net, Apache 2.0
     annotations 4.1.1.4: http://source.android.com, Apache 2.0
+    annotations 13.0: http://source.android.com, Apache 2.0
     archaius-core 0.7.6: https://github.com/Netflix/archaius, Apache 2.0
-    assertj-core 3.21.0: http://assertj.org/assertj-core, Apache 2.0
+    assertj-core 3.22.0: http://assertj.org/assertj-core, Apache 2.0
     brave 5.1.0: https://zipkin.io, Apache 2.0
-    brave-instrumentation-http 5.13.9: https://zipkin.io, Apache 2.0
+    brave-instrumentation-http 5.16.0: https://zipkin.io, Apache 2.0
     brave-opentracing 0.31.1: https://zipkin.io, Apache 2.0
     brave-tests 5.1.0: https://zipkin.io, Apache 2.0
     breeze-core 0.1.4: https://mvnrepository.com/artifact/com.weibo/breeze-core, Apache 2.0
-	bouncy-castle-bc 2.10.1: https://mvnrepository.com/artifact/org.apache.pulsar/bouncy-castle-bc, Apache 2.0
+	bouncy-castle-bc 2.10.1-pkg: https://mvnrepository.com/artifact/org.apache.pulsar/bouncy-castle-bc, Apache 2.0
     audience-annotations 0.5.0: https://yetus.apache.org/audience-annotations, Apache 2.0
     auto-value-annotations 1.7: https://github.com/google/auto/tree/master/value, Apache 2.0
     bolt 1.5.6: https://github.com/alipay/sofa-bolt, Apache 2.0
@@ -237,7 +238,7 @@ The text of each license is the standard Apache 2.0 license.
     clickhouse-http-client 0.3.2-patch11: https://mvnrepository.com/artifact/com.clickhouse/clickhouse-http-client, Apache 2.0
 	collector 0.15.0: http://github.com/prometheus/jmx_exporter, Apache 2.0
     commons-beanutils 1.9.4: https://github.com/apache/commons-beanutils, Apache 2.0
-    commons-cli 1.12: https://github.com/apache/commons-cli, Apache 2.0
+    commons-cli 1.2: https://github.com/apache/commons-cli, Apache 2.0
     commons-codec 1.15: https://github.com/apache/commons-codec, Apache 2.0
     commons-collections 3.2.2: https://github.com/apache/commons-collections, Apache 2.0
     commons-collections4 4.4: https://github.com/apache/commons-collections, Apache 2.0
@@ -268,9 +269,9 @@ The text of each license is the standard Apache 2.0 license.
     google-http-client-jackson2 1.34.0: https://github.com/googleapis/google-http-java-client/google-http-client-jackson2, Apache 2.0
     grpc-all 1.33.1 https://github.com/grpc/grpc, Apache 2.0
     grpc-alts 1.33.1 https://github.com/grpc/grpc, Apache 2.0
-    grpc-api 1.28.0 https://github.com/grpc/grpc, Apache 2.0
+    grpc-api 1.33.1 https://github.com/grpc/grpc, Apache 2.0
     grpc-auth 1.33.1: https://github.com/grpc/grpc, Apache 2.0
-    grpc-context 1.28.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-context 1.33.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-core 1.33.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-grpclb 1.33.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-netty 1.33.1: https://github.com/grpc/grpc, Apache 2.0
@@ -285,31 +286,32 @@ The text of each license is the standard Apache 2.0 license.
     gson 2.9.0: https://github.com/google/gson, Apache 2.0
     guava 31.1-jre: https://github.com/google/guava, Apache 2.0
     hessian 3.3.7: http://github.com/alipay/sofa-hessian, Apache 2.0
+    hessian 4.0.38: http://github.com/alipay/sofa-hessian, Apache 2.0
     httpasyncclient 4.1.5: https://github.com/apache/httpcomponents-client , Apache 2.0
     hibernate-validator 6.0.18.Final: https://github.com/hibernate/hibernate-validator, Apache 2.0
     httpclient 4.5.13: http://hc.apache.org/httpcomponents-client, Apache 2.0
-    httpcore 4.4.15: http://hc.apache.org/httpcomponents-core-ga, Apache 2.0
-    httpcore-nio 4.4.15: http://hc.apache.org/httpcomponents-core-ga, Apache 2.0
-    httpmime 4.5.13: http://hc.apache.org/httpcomponents-client, Apache 2.0
+    httpcore 4.4.16: http://hc.apache.org/httpcomponents-core-ga, Apache 2.0
+    httpcore-nio 4.4.16: http://hc.apache.org/httpcomponents-core-ga, Apache 2.0
+    httpmime 4.5.14: http://hc.apache.org/httpcomponents-client, Apache 2.0
     hystrix-core 1.5.18: https://github.com/Netflix/Hystrix, Apache 2.0
     hystrix-metrics-event-stream 1.5.18: https://github.com/Netflix/Hystrix, Apache 2.0
     hystrix-serialization 1.5.18: https://github.com/Netflix/Hystrix, Apache 2.0
     j2objc-annotations 1.3 https://github.com/google/j2objc, Apache 2.0
-    jackson-annotations 2.13.3: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-core 2.13.3: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-annotations 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-core 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
     jackson-coreutils 1.6: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-databind 2.13.3: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-dataformat-yaml 2.13.3: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-datatype-jdk8 2.13.3: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-datatype-jsr310 2.13.3: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-jaxrs-base 2.13.3: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-jaxrs-json-provider 2.13.3: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-module-afterburner 2.13.3: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-module-jaxb-annotations 2.13.3: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-module-parameter-names 2.13.3: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-databind 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-dataformat-yaml 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-datatype-jdk8 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-datatype-jsr310 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-jaxrs-base 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-jaxrs-json-provider 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-module-afterburner 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-module-jaxb-annotations 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-module-parameter-names 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
     jakarta.validation-api 2.0.1: http://beanvalidation.org, Apache 2.0
     javapoet 1.8.0: https://github.com/square/javapoet, Apache 2.0
-    javaassist 3.20.0-GA: https://github.com/jboss-javassist/javassist, Apache 2.0
+    javassist 3.20.0-GA: https://github.com/jboss-javassist/javassist, Apache 2.0
     jboss-logging 3.4.3.Final: http://www.jboss.org, Apache 2.0
     jetcd-api 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
     jetcd-common 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
@@ -321,11 +323,11 @@ The text of each license is the standard Apache 2.0 license.
     jjwt-impl 0.11.5: https://jwt.io, Apache 2.0
     jjwt-jackson 0.11.5: https://jwt.io, Apache 2.0
     json-patch 1.9: https://github.com/fge/json-patch, Apache 2.0 and LGPL
-    json-path 2.6.0: https://github.com/jayway/JsonPath, Apache 2.0
-    json-smart 2.4.8: https://www.minidev.net/, Apache 2.0
+    json-path 2.7.0: https://github.com/jayway/JsonPath, Apache 2.0
+    json-smart 2.4.11: https://www.minidev.net/, Apache 2.0
     jsr305 3.0.2: http://findbugs.sourceforge.net/, Apache 2.0
-    kafka-clients 3.0.1: https://github.com/apache/kafka, Apache 2.0
-    lettuce-core 6.1.8.RELEASE: http://github.com/lettuce-io/lettuce-core, Apache 2.0
+    kafka-clients 3.1.2: https://github.com/apache/kafka, Apache 2.0
+    lettuce-core 6.1.10.RELEASE: http://github.com/lettuce-io/lettuce-core, Apache 2.0
     listenablefuture 9999.0-empty-to-avoid-conflict-with-guava: https://github.com/google/guava, Apache 2.0
     log4j-api 2.17.2: https://logging.apache.org/log4j/2.x/log4j-api, Apache 2.0
     log4j-1.2-api 2.17.2:  https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-1.2-api, Apache 2.0
@@ -334,54 +336,59 @@ The text of each license is the standard Apache 2.0 license.
     lz4 1.3.0: https://github.com/jpountz/lz4-java, Apache 2.0
     lz4-java 1.8.0: https://github.com/jpountz/lz4-java, Apache 2.0
     metrics-core 3.0.1: https://mvnrepository.com/artifact/com.codahale.metrics/metrics-core, Apache 2.0
-    micrometer-core 1.8.6: https://github.com/micrometer-metrics/micrometer, Apache 2.0
+    micrometer-core 1.9.12: https://github.com/micrometer-metrics/micrometer, Apache 2.0
     motan-core 1.2.0 https://github.com/weibocom/motan, Apache 2.0
     motan-transport-netty4 1.2.0 https://github.com/weibocom/motan, Apache 2.0
     motan-registry-zookeeper 1.2.0 https://github.com/weibocom/motan, Apache 2.0
     motan-springsupport 1.2.0 https://github.com/weibocom/motan, Apache 2.0
     msg-simple 1.1: https://github.com/fge/msg-simple, Apache 2.0 and LGPL
-    netty-all 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-buffer 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-codec 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-codec-dns 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-codec-haproxy 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-codec-http2 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-codec-http 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-codec-memcache 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-codec-mqtt 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-codec-redis 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-codec-smtp 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-codec-socks 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-codec-stomp 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-codec-xml 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-common 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-handler 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-handler-proxy 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-incubator-codec-classes-quic 0.0.26.Final: https://github.com/netty, Apache 2.0
-    netty-incubator-codec-native-quic 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-resolver 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-resolver-dns 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-resolver-dns-classes-macos 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-resolver-dns-native-macos 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-resolver-dns-native-macos 4.1.77.Final-osx-aarch_64: https://github.com/netty, Apache 2.0
-    netty-resolver-dns-native-macos 4.1.77.Final-osx-x86_64: https://github.com/netty, Apache 2.0
-    netty-transport 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-transport-classes-epoll 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-transport-classes-kqueue 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-transport-native-epoll 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-transport-native-epoll 4.1.77.Final-linux-aarch_64: https://github.com/netty, Apache 2.0
-    netty-transport-native-epoll 4.1.77.Final-linux-x86_64: https://github.com/netty, Apache 2.0
-    netty-transport-native-kqueue 4.1.77.Final-osx-aarch_64: https://github.com/netty, Apache 2.0
-    netty-transport-native-kqueue 4.1.77.Final-osx-x86_64: https://github.com/netty, Apache 2.0
-    netty-transport-native-unix-common 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-transport-rxtx 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-transport-sctp 4.1.77.Final: https://github.com/netty, Apache 2.0
-    netty-transport-udt 4.1.77.Final: https://github.com/netty, Apache 2.0
+    netty-all 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-buffer 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-codec 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-codec-dns 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-codec-haproxy 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-codec-http2 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-codec-http 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-codec-memcache 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-codec-mqtt 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-codec-redis 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-codec-smtp 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-codec-socks 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-codec-stomp 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-codec-xml 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-common 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-handler 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-handler-proxy 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-incubator-codec-classes-quic 0.0.45.Final: https://github.com/netty, Apache 2.0
+    netty-incubator-codec-classes-quic 0.0.45.Final: https://github.com/netty, Apache 2.0
+    netty-incubator-codec-native-quic 0.0.45.Final-linux-x86_64: https://github.com/netty, Apache 2.0
+    netty-resolver 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-resolver-dns 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-resolver-dns-classes-macos 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-resolver-dns-native-macos 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-resolver-dns-native-macos 4.1.94.Final-osx-aarch_64: https://github.com/netty, Apache 2.0
+    netty-resolver-dns-native-macos 4.1.94.Final-osx-x86_64: https://github.com/netty, Apache 2.0
+    netty-transport 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-transport-classes-epoll 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-transport-classes-kqueue 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-transport-native-epoll 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-transport-native-epoll 4.1.94.Final-linux-aarch_64: https://github.com/netty, Apache 2.0
+    netty-transport-native-epoll 4.1.94.Final-linux-x86_64: https://github.com/netty, Apache 2.0
+    netty-transport-native-kqueue 4.1.94.Final-osx-aarch_64: https://github.com/netty, Apache 2.0
+    netty-transport-native-kqueue 4.1.94.Final-osx-x86_64: https://github.com/netty, Apache 2.0
+    netty-transport-native-unix-common 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-transport-rxtx 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-transport-sctp 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-transport-udt 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-resolver-dns-classes-macos 4.1.94.Final: https://github.com/netty, Apache 2.0
+    netty-resolver-dns-native-macos 4.1.94.Final-osx-x86_64 https://github.com/netty, Apache 2.0
+    netty-transport-native-epoll 4.1.94.Final-linux-x86_64 https://github.com/netty, Apache 2.0
+    netty-handler-ssl-ocsp 4.1.94.Final-linux-x86_64 https://github.com/netty, Apache 2.0
     nio-multipart-parser 1.1.0: https://github.com/synchronoss/nio-multipart/nio-multipart-parser, Apache 2.0
     nio-stream-storage 1.1.3: https://github.com/synchronoss/nio-stream-storage, Apache 2.0
     okhttp 2.7.4: https://github.com/square/okhttp, Apache 2.0
     okhttp 3.14.9: https://github.com/square/okhttp, Apache 2.0
-    okio 1.17.2: https://github.com/square/okio, Apache 2.0
+    okio 2.8.0: https://github.com/square/okio, Apache 2.0
     opencensus-api 0.24.0: https://github.com/census-instrumentation/opencensus-java, Apache 2.0
     opencensus-contrib-http-util 0.24.0: https://github.com/census-instrumentation/opencensus-java, Apache 2.0
     opencensus-proto 0.2.0: https://github.com/census-instrumentation/opencensus-proto, Apache 2.0
@@ -391,13 +398,13 @@ The text of each license is the standard Apache 2.0 license.
     opentracing-util 0.22.0: https://github.com/opentracing/opentracing-java, Apache 2.0
     perfmark-api 0.19.0: https://github.com/perfmark/perfmark, Apache 2.0
     proto-google-common-protos 1.17.0: https://github.com/googleapis/common-protos-java, Apache 2.0
-    reactor-core 3.4.18.RELEASE: https://github.com/reactor/reactor-core, Apache 2.0
-    reactor-extra 3.4.8.RELEASE: https://github.com/reactor/reactor-addons, Apache 2.0
-    reactor-netty 1.0.19.RELEASE: https://github.com/reactor/reactor-netty, Apache 2.0
-    reactor-netty-core 1.0.19.RELEASE: https://github.com/reactor/reactor-netty, Apache 2.0
-    reactor-netty-http 1.0.19.RELEASE: https://github.com/reactor/reactor-netty, Apache 2.0
-    reactor-netty-http-brave 1.0.19.RELEASE: https://github.com/reactor/reactor-netty, Apache 2.0
-    reactor-netty-incubator-quic 0.0.8.RELEASE: https://github.com/reactor/reactor-netty, Apache 2.0
+    reactor-core 3.4.30: https://github.com/reactor/reactor-core, Apache 2.0
+    reactor-extra 3.4.10: https://github.com/reactor/reactor-addons, Apache 2.0
+    reactor-netty 1.0.33: https://github.com/reactor/reactor-netty, Apache 2.0
+    reactor-netty-core 1.0.33: https://github.com/reactor/reactor-netty, Apache 2.0
+    reactor-netty-http 1.0.33: https://github.com/reactor/reactor-netty, Apache 2.0
+    reactor-netty-http-brave 1.0.33: https://github.com/reactor/reactor-netty, Apache 2.0
+    reactor-netty-incubator-quic 0.0.22: https://github.com/reactor/reactor-netty, Apache 2.0
     resilience4j-circuitbreaker 1.7.1: https://resilience4j.readme.io, Apache 2.0
     resilience4j-core 1.7.1: https://resilience4j.readme.io, Apache 2.0
     resilience4j-ratelimiter 1.7.1: https://resilience4j.readme.io, Apache 2.0
@@ -412,32 +419,32 @@ The text of each license is the standard Apache 2.0 license.
     sentinel-core 1.8.3: https://github.com/alibaba/Sentinel/sentinel-core, Apache 2.0
     sentinel-reactor-adapter 1.8.3: https://github.com/alibaba/Sentinel/sentinel-adapter/sentinel-reactor-adapter, Apache 2.0
     sentinel-spring-webflux-adapter 1.8.3: https://github.com/alibaba/Sentinel/sentinel-adapter/sentinel-spring-webflux-adapter, Apache 2.0
-    simpleclient_common 0.12.0: https://github.com/prometheus/client_java, Apache 2.0
+    simpleclient_common 0.15.0: https://github.com/prometheus/client_java, Apache 2.0
     simpleclient_hotspot 0.15.0: https://github.com/prometheus/client_java, Apache 2.0
     simpleclient_httpserver 0.15.0: https://github.com/prometheus/client_java, Apache 2.0
-    simpleclient_tracer_common 0.12.0: https://github.com/prometheus/client_java, Apache 2.0
-    simpleclient_tracer_otel_agent 0.12.0: https://github.com/prometheus/client_java, Apache 2.0
-    simpleclient_tracer_otel 0.12.0: https://github.com/prometheus/client_java, Apache 2.0
+    simpleclient_tracer_common 0.15.0: https://github.com/prometheus/client_java, Apache 2.0
+    simpleclient_tracer_otel_agent 0.15.0: https://github.com/prometheus/client_java, Apache 2.0
+    simpleclient_tracer_otel 0.15.0: https://github.com/prometheus/client_java, Apache 2.0
     simpleclient 0.15.0: https://github.com/prometheus/client_java, Apache 2.0
-    snakeyaml 1.29: http://www.snakeyaml.org, Apache 2.0
-    snappy-java 1.1.8.1: https://github.com/xerial/snappy-java, Apache 2.0
+    snakeyaml 1.30: http://www.snakeyaml.org, Apache 2.0
+    snappy-java 1.1.8.4: https://github.com/xerial/snappy-java, Apache 2.0
     sofa-common-tools 1.0.18: https://github.com/sofastack/sofa-common-tools/sofa-common-tools, Apache 2.0
     sofa-rpc-all 5.7.6: http://github.com/sofastack/sofa-rpc, Apache 2.0
-    spring-aop 5.3.20: https://mvnrepository.com/artifact/org.springframework/spring-aop, Apache 2.0
-    spring-beans 5.3.20: https://mvnrepository.com/artifact/org.springframework/spring-beans, Apache 2.0
-    spring-boot 2.6.8: https://spring.io, Apache 2.0
-    spring-boot-actuator 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-actuator, Apache 2.0
-    spring-boot-actuator-autoconfigure 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-actuator-autoconfigure, Apache 2.0
-    spring-boot-autoconfigure 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/, Apache 2.0
-    spring-boot-configuration-processor 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-configuration-processor, Apache 2.0
-	spring-boot-starter 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter, Apache 2.0
-    spring-boot-starter-actuator 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-actuator, Apache 2.0
-    spring-boot-starter-cache 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-cache, Apache 2.0
-	spring-boot-starter-json 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-json, Apache 2.0
-    spring-boot-starter-logging 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-logging, Apache 2.0
-    spring-boot-starter-reactor-netty 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-reactor-netty, Apache 2.0
-    spring-boot-starter-webflux 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-webflux, Apache 2.0
-    spring-boot-test 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-test, Apache 2.0
+    spring-aop 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-aop, Apache 2.0
+    spring-beans 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-beans, Apache 2.0
+    spring-boot 2.7.13: https://spring.io, Apache 2.0
+    spring-boot-actuator 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-actuator, Apache 2.0
+    spring-boot-actuator-autoconfigure 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-actuator-autoconfigure, Apache 2.0
+    spring-boot-autoconfigure 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/, Apache 2.0
+    spring-boot-configuration-processor 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-configuration-processor, Apache 2.0
+	spring-boot-starter 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter, Apache 2.0
+    spring-boot-starter-actuator 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-actuator, Apache 2.0
+    spring-boot-starter-cache 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-cache, Apache 2.0
+	spring-boot-starter-json 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-json, Apache 2.0
+    spring-boot-starter-logging 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-logging, Apache 2.0
+    spring-boot-starter-reactor-netty 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-reactor-netty, Apache 2.0
+    spring-boot-starter-webflux 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-webflux, Apache 2.0
+    spring-boot-test 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-test, Apache 2.0
     spring-cloud-alibaba-commons 2021.0.1.0: https://mvnrepository.com/artifact/com.alibaba.cloud/spring-cloud-alibaba-commons, Apache 2.0
     spring-cloud-baidu-thirdparty-commons 2022.2.0: https://github.com/baidu/spring-cloud-baidu, Apache 2.0
 	spring-cloud-commons 3.1.2: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-commons, Apache 2.0
@@ -453,26 +460,26 @@ The text of each license is the standard Apache 2.0 license.
 	spring-cloud-starter-netflix-archaius 2.2.10.RELEASE: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-netflix-archaius, Apache 2.0
 	spring-cloud-starter-netflix-eureka-client 3.1.2: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-netflix-eureka-client, Apache 2.0
     spring-cloud-starter-netflix-ribbon 2.2.10.RELEASE: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-netflix-ribbon, Apache 2.0
-	spring-context 5.3.20: https://mvnrepository.com/artifact/org.springframework/spring-context, Apache 2.0
+	spring-context 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-context, Apache 2.0
     spring-context-support 1.0.11: https://spring.io, Apache 2.0
-    spring-context-support 5.3.20: https://spring.io, Apache 2.0
-    spring-core 5.3.20: https://mvnrepository.com/artifact/org.springframework/spring-context-support, Apache 2.0
-    spring-data-commons 2.6.4: https://mvnrepository.com/artifact/org.springframework.data/spring-data-commons, Apache 2.0
-    spring-data-keyvalue 2.6.4: https://mvnrepository.com/artifact/org.springframework.data/spring-data-keyvalue, Apache 2.0
-    spring-data-redis 2.6.4: https://mvnrepository.com/artifact/org.springframework.data/spring-data-redis, Apache 2.0
-    spring-expression 5.3.20: https://mvnrepository.com/artifact/org.springframework/spring-expression, Apache 2.0
-    spring-jcl 5.3.20: https://mvnrepository.com/artifact/org.springframework/spring-jcl, Apache 2.0
-    spring-oxm 5.3.20: https://mvnrepository.com/artifact/org.springframework/spring-oxm, Apache 2.0
+    spring-context-support 5.3.28: https://spring.io, Apache 2.0
+    spring-core 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-context-support, Apache 2.0
+    spring-data-commons 2.7.13: https://mvnrepository.com/artifact/org.springframework.data/spring-data-commons, Apache 2.0
+    spring-data-keyvalue 2.7.13: https://mvnrepository.com/artifact/org.springframework.data/spring-data-keyvalue, Apache 2.0
+    spring-data-redis 2.7.13: https://mvnrepository.com/artifact/org.springframework.data/spring-data-redis, Apache 2.0
+    spring-expression 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-expression, Apache 2.0
+    spring-jcl 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-jcl, Apache 2.0
+    spring-oxm 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-oxm, Apache 2.0
     spring-security-config 5.3.10.RELEASE: https://mvnrepository.com/artifact/org.springframework.security/spring-security-config, Apache 2.0
     spring-security-core 5.6.5: https://mvnrepository.com/artifact/org.springframework.security/spring-security-core, Apache 2.0
-    spring-security-crypto 5.6.5: https://mvnrepository.com/artifact/org.springframework.security/spring-security-crypto, Apache 2.0
+    spring-security-crypto 5.7.9: https://mvnrepository.com/artifact/org.springframework.security/spring-security-crypto, Apache 2.0
     spring-security-oauth2-client 5.3.10.RELEASE: https://mvnrepository.com/artifact/org.springframework.security/spring-security-oauth2-client, Apache 2.0
     spring-security-oauth2-core 5.6.5: https://mvnrepository.com/artifact/org.springframework.security/spring-security-oauth2-core, Apache 2.0
     spring-security-rsa 1.0.10.RELEASE: https://mvnrepository.com/artifact/org.springframework.security/spring-security-rsa, Apache 2.0
     spring-security-web 5.6.5: https://mvnrepository.com/artifact/org.springframework.security/spring-security-web, Apache 2.0
-    spring-tx 5.3.20: https://mvnrepository.com/artifact/org.springframework/spring-tx, Apache 2.0
-    spring-web 5.3.20: https://mvnrepository.com/artifact/org.springframework/spring-web, Apache 2.0
-    spring-webflux 5.3.20: https://mvnrepository.com/artifact/org.springframework/spring-webflux, Apache 2.0
+    spring-tx 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-tx, Apache 2.0
+    spring-web 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-web, Apache 2.0
+    spring-webflux 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-webflux, Apache 2.0
     swagger-annotations 1.5.18: https://github.com/swagger-api/swagger-core/modules/swagger-annotations, Apache 2.0
     swagger-core 1.5.18: https://github.com/swagger-api/swagger-core/modules/swagger-core, Apache 2.0
     swagger-models 1.5.18: https://github.com/swagger-api/swagger-core/modules/swagger-models, Apache 2.0
@@ -487,11 +494,11 @@ The text of each license is the standard Apache 2.0 license.
     zipkin-sender-kafka08 2.7.4: https://mvnrepository.com/artifact/io.zipkin.reporter/zipkin-sender-kafka08, Apache 2.0
     zipkin-sender-kafka11 2.7.4: https://mvnrepository.com/artifact/io.zipkin.reporter2/zipkin-sender-kafka11, Apache 2.0
     zipkin-sender-urlconnection 2.7.4: https://mvnrepository.com/artifact/io.zipkin.reporter2/zipkin-sender-urlconnection, Apache 2.0
-    zkclient 0.3: https://github.com/sgroschupf/zkclient, Apache 2.0
+    zkclient 0.11: https://github.com/sgroschupf/zkclient, Apache 2.0
     zookeeper 3.5.7: https://github.com/apache/zookeeper, Apache 2.0
     zookeeper-jute 3.5.7: https://github.com/apache/zookeeper, Apache 2.0
     byte-buddy 1.12.6: https://github.com/raphw/byte-buddy, Apache 2.0
-    byte-buddy-agent 1.12.6: https://github.com/raphw/byte-buddy, Apache 2.0
+    byte-buddy-agent 1.12.23: https://github.com/raphw/byte-buddy, Apache 2.0
     disruptor 3.4.0 https://github.com/LMAX-Exchange/disruptor, Apache 2.0
     eureka-client 1.10.17 https://github.com/Netflix/eureka, Apache 2.0
     eureka-core 1.10.17 https://github.com/Netflix/eureka, Apache 2.0
@@ -509,7 +516,7 @@ The text of each license is the standard Apache 2.0 license.
     oauth2-oidc-sdk 9.19: https://bitbucket.org/connect2id/oauth-2.0-sdk-with-openid-connect-extensions, Apache 2.0
     org.apache.oltu.oauth2.client 1.0.2: https://mvnrepository.com/artifact/org.apache.oltu.oauth2/org.apache.oltu.oauth2.client, Apache 2.0
 	org.apache.oltu.oauth2.common 1.0.2: https://mvnrepository.com/artifact/org.apache.oltu.oauth2/org.apache.oltu.oauth2.common, Apache 2.0
-	reactor-test 3.4.18: https://github.com/reactor/reactor-core, Apache 2.0
+	reactor-test 3.4.30: https://github.com/reactor/reactor-core, Apache 2.0
 	ribbon 2.3.0: https://github.com/Netflix/ribbon, Apache 2.0
     ribbon-core 2.3.0: https://github.com/Netflix/ribbon, Apache 2.0
     ribbon-eureka 2.3.0: https://github.com/Netflix/ribbon, Apache 2.0
@@ -523,8 +530,8 @@ The text of each license is the standard Apache 2.0 license.
     rocketmq-remoting 4.9.3: https://github.com/apache/rocketmq, Apache 2.0
     rocketmq-srvutil 4.9.3: https://mvnrepository.com/artifact/org.apache.rocketmq/rocketmq-srvutil, Apache 2.0
     rxnetty 0.4.9: https://github.com/ReactiveX/RxNetty, Apache 2.0
-    rxnetty-contexts-0.4.9: https://github.com/ReactiveX/RxNetty, Apache 2.0
-    rxnetty-servo-0.4.9: https://github.com/ReactiveX/RxNetty, Apache 2.0
+    rxnetty-contexts 0.4.9: https://github.com/ReactiveX/RxNetty, Apache 2.0
+    rxnetty-servo 0.4.9: https://github.com/ReactiveX/RxNetty, Apache 2.0
     servo-core 0.12.21: https://github.com/Netflix/servo, Apache 2.0
     stax-api 1.0.1: http://stax.codehaus.org/, Apache 2.0
     woodstox-core 6.2.1: https://github.com/FasterXML/woodstox, Apache 2.0
@@ -532,7 +539,6 @@ The text of each license is the standard Apache 2.0 license.
     tomcat-annotations-api 9.0.29: https://tomcat.apache.org/, Apache 2.0
     tomcat-embed-core 9.0.29: https://tomcat.apache.org/, Apache 2.0
     jackson-jr-objects 2.10.1: http://wiki.fasterxml.com/JacksonHome, Apache 2.0
-    kafka-clients 3.2.0: https://kafka.apache.org/, Apache 2.0
     elasticsearch-java 8.2.3: https://github.com/elastic/elasticsearch-java, Apache 2.0
     elasticsearch-rest-client 8.2.3: https://github.com/elastic/elasticsearch, Apache 2.0
     pulsar-client 2.10.1: https://github.com/apache/pulsar, Apache 2.0
@@ -544,9 +550,16 @@ The text of each license is the standard Apache 2.0 license.
     casdoor-java-sdk 1.9.0: https://github.com/casdoor/casdoor-java-sdk, Apache 2.0
     nimbus-jose-jwt 9.10: https://connect2id.com/products/nimbus-jose-jwt, Apache 2.0
     oltu 1.0.2: https://oltu.apache.org/, Apache 2.0
-    httpclient 4.5.13: https://github.com/apache/httpcomponents-client, Apache 2.0
-    okhttp 3.14.9: https://square.github.io/okhttp, Apache 2.0
+    httpclient 4.5.14: https://github.com/apache/httpcomponents-client, Apache 2.0
+    okhttp 4.9.3: https://square.github.io/okhttp, Apache 2.0
     brpc 2022.2.0: https://github.com/baidu/starlight, Apache 2.0
+    starlight-all 2022.2.0: https://github.com/baidu/starlight, Apache 2.0
+    apollo-client 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
+    apollo-openapi 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
+    apollo-core 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
+    client-java-spring-integration 17.0.2: https://github.com/kubernetes-client/java, Apache 2.0
+    kotlin-stdlib 1.6.21 https://kotlinlang.org, Apache 2.0
+    kotlin-stdlib-common 1.6.21 https://kotlinlang.org, Apache 2.0
 
 ========================================================================
 BSD licenses
@@ -567,13 +580,15 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     tars-client 1.7.2: https://github.com/TarsCloud/Tars/tars-client, BSD 3-Clause
     tars-context 1.7.2: https://github.com/TarsCloud/Tars/tars-context, BSD 3-Clause
     tars-net 1.7.2: https://github.com/TarsCloud/Tars/tars-net, BSD 3-Clause
-    zstd-jni 1.5.0-2: https://github.com/luben/zstd-jni, BSD 2-Clause
+    zstd-jni 1.5.0-4: https://github.com/luben/zstd-jni, BSD 2-Clause
     reflections 0.9.11: https://mvnrepository.com/artifact/org.reflections/reflections/0.9.11, BSD 2-Clause
     stax2-api 4.2.1: http://github.com/FasterXML/stax2-api, BSD 2-Clause
     stringtemplate 3.2.1: http://www.stringtemplate.org, BSD
     xstream 1.4.18: https://mvnrepository.com/artifact/com.thoughtworks.xstream/xstream, BSD
     hamcrest 2.2: https://github.com/hamcrest/JavaHamcrest ,BSD 3-Clause
     hamcrest-core 2.2: https://github.com/hamcrest/JavaHamcrest ,BSD 3-Clause
+    asm 9.2: https://github.com/llbit/ow2-asm, BSD 3-Clause
+    asm-tree 9.2: https://asm.ow2.io/, BSD 3-Clause
 
 ========================================================================
 CC0 licenses
@@ -584,7 +599,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
 
     HdrHistogram 2.1.12: https://github.com/HdrHistogram, CC0 1.0 and BSD-2-Clause
     LatencyUtils 2.0.3: http://latencyutils.github.io/LatencyUtils, CC0 1.0
-    reactive-streams 1.0.3:	https://github.com/reactive-streams/reactive-streams-jvm, CC0 1.0
+    reactive-streams 1.0.4:	https://github.com/reactive-streams/reactive-streams-jvm, CC0 1.0
     xpp3_min 1.1.4c: http://www.extreme.indiana.edu/xgws/xsoap/xpp/mxp1/, CC0 1.0 and Public Domain
 
 ========================================================================
@@ -619,8 +634,8 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
 
     jakarta.annotation-api 1.3.5: https://projects.eclipse.org/projects/ee4j.ca, EPL 2.0
     jakarta.el 3.0.3: https://projects.eclipse.org/projects/ee4j.el, EPL 2.0
-    logback-classic 1.2.11: https://github.com/qos-ch/logback, EPL 1.0
-    logback-core 1.2.11: https://github.com/qos-ch/logback, EPL 1.0
+    logback-classic 1.2.12: https://github.com/qos-ch/logback, EPL 1.0
+    logback-core 1.2.12: https://github.com/qos-ch/logback, EPL 1.0
     aspectjweaver 1.9.5: https://mvnrepository.com/artifact/org.aspectj/aspectjweaver/1.9.5, EPL 1.0
     jakarta.json-api 2.0.1: https://projects.eclipse.org/projects/ee4j.jsonp, EPL 2.0
     junit 4.13.2: https://mvnrepository.com/artifact/junit/junit, EPL 1.0
@@ -662,8 +677,8 @@ Public Domain licenses
 ========================================================================
 
     aopalliance 1.0: https://mvnrepository.com/artifact/aopalliance/aopalliance, Public Domain
-    jcip-annotations: 1.0-1 http://jcip.net/, Public Domain
-    jcip-annotations: 1.0 http://jcip.net/, Public Domain
+    jcip-annotations 1.0-1: http://jcip.net/, Public Domain
+    jcip-annotations 1.0: http://jcip.net/, Public Domain
     xmlpull 1.1.3.1: http://www.xmlpull.org, Public Domain
 
 ========================================================================

@@ -77,7 +77,7 @@ public final class ApiControllerTest {
     @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(apiController)
-                .setControllerAdvice(new ExceptionHandlers())
+                .setControllerAdvice(new ExceptionHandlers(null))
                 .build();
         this.apiVO = ApiVO.builder()
                 .id("123")
@@ -106,11 +106,11 @@ public final class ApiControllerTest {
         final ApiQuery apiQuery = new ApiQuery("string", 0, "", pageParameter);
         given(this.apiService.listByPage(apiQuery)).willReturn(commonPager);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/api")
-                .param("apiPath", "string")
-                .param("state", "0")
-                .param("tagId", "")
-                .param("currentPage", pageParameter.getCurrentPage() + "")
-                .param("pageSize", pageParameter.getPageSize() + ""))
+                        .param("apiPath", "string")
+                        .param("state", "0")
+                        .param("tagId", "")
+                        .param("currentPage", pageParameter.getCurrentPage() + "")
+                        .param("pageSize", pageParameter.getPageSize() + ""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].contextPath", is(apiVO.getContextPath())))
@@ -145,10 +145,58 @@ public final class ApiControllerTest {
         apiDTO.setExt("ext");
         given(this.apiService.createOrUpdate(apiDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/api")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(apiDTO)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(apiDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
+                .andReturn();
+    }
+
+    @Test
+    public void testCreateApiStateMinException() throws Exception {
+        ApiDTO apiDTO = new ApiDTO();
+        apiDTO.setContextPath("string");
+        apiDTO.setApiPath("string");
+        apiDTO.setHttpMethod(0);
+        apiDTO.setConsume("string");
+        apiDTO.setProduce("string");
+        apiDTO.setVersion("string");
+        apiDTO.setRpcType("/dubbo");
+        apiDTO.setState(-1);
+        apiDTO.setApiOwner("string");
+        apiDTO.setApiDesc("string");
+        apiDTO.setApiSource(0);
+        apiDTO.setDocument("document");
+        apiDTO.setExt("ext");
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/api")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(apiDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Request error! invalid argument [state: state min 0]")))
+                .andReturn();
+    }
+
+    @Test
+    public void testCreateApiStateMaxException() throws Exception {
+        ApiDTO apiDTO = new ApiDTO();
+        apiDTO.setContextPath("string");
+        apiDTO.setApiPath("string");
+        apiDTO.setHttpMethod(0);
+        apiDTO.setConsume("string");
+        apiDTO.setProduce("string");
+        apiDTO.setVersion("string");
+        apiDTO.setRpcType("/dubbo");
+        apiDTO.setState(8);
+        apiDTO.setApiOwner("string");
+        apiDTO.setApiDesc("string");
+        apiDTO.setApiSource(0);
+        apiDTO.setDocument("document");
+        apiDTO.setExt("ext");
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/api")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(apiDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Request error! invalid argument [state: state max 2]")))
                 .andReturn();
     }
 
@@ -173,8 +221,8 @@ public final class ApiControllerTest {
         when(apiMapper.existed(apiDTO.getId())).thenReturn(true);
         given(this.apiService.createOrUpdate(apiDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/api/{id}", apiDTO.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(apiDTO)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(apiDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
@@ -185,8 +233,8 @@ public final class ApiControllerTest {
     public void testDeleteApis() throws Exception {
         given(this.apiService.delete(Collections.singletonList("123"))).willReturn(StringUtils.EMPTY);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/batch")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("[\"123\"]"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("[\"123\"]"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();

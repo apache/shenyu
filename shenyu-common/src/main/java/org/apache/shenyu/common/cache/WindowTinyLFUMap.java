@@ -22,17 +22,16 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.Serializable;
-import java.lang.ref.WeakReference;
 import java.util.AbstractMap;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * this cache is provided by caffeine, the cache has two implements including weak-key cache and regular cache.<br>
- * the weak-key cache applies to scenarios where objects can be collected. when memory lock causes full gc, the weakKey will collect by gc.<br>
- * the regular cache applies to immutable cache object data, and the user determines the cache size.<br>
- * about the weak-key cache and regular cache, please refer to:
- * <a href="https://github.com/ben-manes/caffeine/issues/776">caffeine cache ISSUES #776</a>
+ * this cache is provided by caffeine, the cache has two implements including weak-key cache and strong-key cache.<br>
+ * <p>the weak-key cache applies to scenarios where objects can be collected. when memory lock causes full gc, the weakKey will collect by gc.</p>
+ * <p>the strong-key cache applies to immutable cache object data, and the user determines the cache size.</p>
+ * <p>about the weak-key cache and strong-key cache, please refer to:
+ * <a href="https://github.com/ben-manes/caffeine/issues/776">caffeine cache ISSUES #776</a></p>
  */
 @ThreadSafe
 public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Serializable {
@@ -42,9 +41,34 @@ public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Seriali
     private final Cache<K, V> cache;
     
     /**
-     * initial caffeine cache.
-     * when weakKey is true, create weakKeys cache, please refer to: {@linkplain WeakReference},
-     * weak reference make cache be memory-safe. however, the weakKey is false, caffeine eject cache by strategy.
+     * build caffeine cache.
+     *
+     * @param maximumSize maximumSize
+     */
+    public WindowTinyLFUMap(final long maximumSize) {
+        this.cache = Caffeine.newBuilder()
+                .maximumSize(maximumSize)
+                .build();
+    }
+    
+    /**
+     * initial caffeine cache include WeakReference cache and StrongReference cache.
+     *
+     * <p>when the weakKey is true that means using weakKeys cache, gc will collect the weak key, please refer to:
+     * com.github.benmanes.caffeine.cache.References.WeakKeyReference</p>
+     *
+     * <p>when the weakKey is false, use strong reference, jvm maybe throw oom-error.</p>
+     *
+     * <pre>{@code Map<String, Object> strongMap = new WindowTinyLFUMap<>(100, 100, Boolean.FALSE);
+     * strongMap.put(new String("abc"), 1);
+     * strongMap.put(new String("abc"), 1);
+     * assert strongMap.get("abc") != null;
+     *
+     * Map<String, Object> strongMap = new WindowTinyLFUMap<>(100, 100, Boolean.TRUE);
+     * strongMap.put(new String("abc"), 1);
+     * strongMap.put(new String("abc"), 1);
+     * assert strongMap.get("abc") == null;
+     * }</pre>
      *
      * @param initialCapacity initial capacity
      * @param maximumSize maximum size
@@ -101,6 +125,17 @@ public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Seriali
         cache.invalidate(key);
         cache.cleanUp();
         return value;
+    }
+    
+    @Override
+    public void clear() {
+        this.cache.invalidateAll();
+        this.cache.cleanUp();
+    }
+    
+    @Override
+    public int size() {
+        return this.cache.asMap().entrySet().size();
     }
     
     @Override

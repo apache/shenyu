@@ -23,6 +23,8 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -44,12 +46,17 @@ public final class DataRefreshFactory {
      */
     public DataRefreshFactory(final PluginDataSubscriber pluginDataSubscriber,
                               final List<MetaDataSubscriber> metaDataSubscribers,
-                              final List<AuthDataSubscriber> authDataSubscribers) {
+                              final List<AuthDataSubscriber> authDataSubscribers,
+                              final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
+                              final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers
+                              ) {
         ENUM_MAP.put(ConfigGroupEnum.PLUGIN, new PluginDataRefresh(pluginDataSubscriber));
         ENUM_MAP.put(ConfigGroupEnum.SELECTOR, new SelectorDataRefresh(pluginDataSubscriber));
         ENUM_MAP.put(ConfigGroupEnum.RULE, new RuleDataRefresh(pluginDataSubscriber));
         ENUM_MAP.put(ConfigGroupEnum.APP_AUTH, new AppAuthDataRefresh(authDataSubscribers));
         ENUM_MAP.put(ConfigGroupEnum.META_DATA, new MetaDataRefresh(metaDataSubscribers));
+        ENUM_MAP.put(ConfigGroupEnum.PROXY_SELECTOR, new ProxySelectorRefresh(proxySelectorDataSubscribers));
+        ENUM_MAP.put(ConfigGroupEnum.DISCOVER_UPSTREAM, new DiscoveryUpstreamDataRefresh(discoveryUpstreamDataSubscribers));
     }
 
     /**

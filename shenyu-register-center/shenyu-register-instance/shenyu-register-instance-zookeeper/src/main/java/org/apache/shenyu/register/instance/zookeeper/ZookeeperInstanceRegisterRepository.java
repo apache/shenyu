@@ -26,7 +26,6 @@ import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
 import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.shenyu.spi.Join;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.WatchedEvent;
@@ -53,6 +52,8 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     private ZookeeperClient client;
 
     private final Map<String, String> nodeDataMap = new HashMap<>();
+
+    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
 
     @Override
     public void init(final RegisterConfig config) {
@@ -105,27 +106,37 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     }
 
     @Override
-    public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
+    public List<InstanceEntity> selectInstances(final String selectKey) {
         final String watchKey = InstancePathConstants.buildInstanceParentPath(selectKey);
         final Function<List<String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList -> childrenList.stream().map(childPath -> {
             String instanceRegisterJsonStr = client.get(InstancePathConstants.buildRealNode(watchKey, childPath));
             return GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, InstanceEntity.class);
         }).collect(Collectors.toList());
 
+        if (watcherInstanceRegisterMap.containsKey(selectKey)) {
+            return watcherInstanceRegisterMap.get(selectKey);
+        }
+
         List<String> childrenPathList = client.subscribeChildrenChanges(watchKey, new CuratorWatcher() {
             @Override
             public void process(final WatchedEvent event) {
-                if (watcherListener != null) {
-                    String path = Objects.isNull(event.getPath()) ? "" : event.getPath();
+                try {
+                    String path = Objects.isNull(event.getPath()) ? selectKey : event.getPath();
                     List<String> childrenList = StringUtils.isNotBlank(path) ? client.subscribeChildrenChanges(path, this)
                             : Collections.emptyList();
                     if (!childrenList.isEmpty()) {
-                        watcherListener.listener(getInstanceRegisterFun.apply(childrenList));
+                        watcherInstanceRegisterMap.put(selectKey, getInstanceRegisterFun.apply(childrenList));
                     }
+                } catch (Exception e) {
+                    watcherInstanceRegisterMap.remove(selectKey);
+                    LOGGER.error("zookeeper client subscribeChildrenChanges watch interrupt error:", e);
                 }
             }
         });
-        return getInstanceRegisterFun.apply(childrenPathList);
+
+        final List<InstanceEntity> instanceEntities = getInstanceRegisterFun.apply(childrenPathList);
+        watcherInstanceRegisterMap.put(selectKey, instanceEntities);
+        return instanceEntities;
     }
 
     @Override

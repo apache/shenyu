@@ -34,7 +34,7 @@ import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
-import org.apache.shenyu.plugin.logging.mask.api.enums.DataMaskEnums;
+import org.apache.shenyu.plugin.logging.desensitize.api.enums.DataDesensitizeEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -54,9 +54,7 @@ import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLoggingPlugin.class);
-
-    private static String dataMaskAlg;
-
+    
     /**
      * LogCollector.
      *
@@ -85,15 +83,16 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
     public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                 final SelectorData selector, final RuleData rule) {
         CommonLoggingRuleHandle commonLoggingRuleHandle = AbstractLogPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        boolean masked = false;
+        boolean desensitized = Boolean.FALSE;
         Set<String> keywordSets = Sets.newHashSet();
+        String dataDesensitizeAlg = DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg();
         if (Objects.nonNull(commonLoggingRuleHandle)) {
             String keywords = commonLoggingRuleHandle.getKeyword();
-            masked = StringUtils.isNotBlank(keywords) && commonLoggingRuleHandle.getMaskStatus();
-            if (masked) {
+            desensitized = StringUtils.isNotBlank(keywords) && commonLoggingRuleHandle.getMaskStatus();
+            if (desensitized) {
                 Collections.addAll(keywordSets, keywords.split(";"));
-                dataMaskAlg = Optional.ofNullable(commonLoggingRuleHandle.getMaskType()).orElse(DataMaskEnums.MD5_ENCRYPT.getDataMaskAlg());
-                LOG.info("current plugin:{}, keyword:{}, dataMaskAlg:{}", pluginEnum().getName(), keywords, dataMaskAlg);
+                dataDesensitizeAlg = Optional.ofNullable(commonLoggingRuleHandle.getMaskType()).orElse(DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg());
+                LOG.info("current plugin:{}, keyword:{}, dataDesensitizeAlg:{}", pluginEnum().getName(), keywords, dataDesensitizeAlg);
             }
         }
         ServerHttpRequest request = exchange.getRequest();
@@ -112,7 +111,7 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         requestInfo.setPath(request.getURI().getPath());
         LoggingServerHttpRequest<L> loggingServerHttpRequest = new LoggingServerHttpRequest<>(request, requestInfo);
         LoggingServerHttpResponse<L> loggingServerHttpResponse = new LoggingServerHttpResponse<>(exchange.getResponse(),
-                requestInfo, this.logCollector(), masked, keywordSets, dataMaskAlg);
+                requestInfo, this.logCollector(), desensitized, keywordSets, dataDesensitizeAlg);
         ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
                 .response(loggingServerHttpResponse).build();
         loggingServerHttpResponse.setExchange(webExchange);

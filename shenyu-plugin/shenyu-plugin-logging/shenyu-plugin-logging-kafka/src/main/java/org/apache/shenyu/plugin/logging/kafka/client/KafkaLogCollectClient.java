@@ -70,7 +70,7 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
             LOG.error("kafka props is empty. failed init kafka producer");
             return;
         }
-        String topic = "shenyu-access-logging";
+        String topic = config.getTopic();
         String nameserverAddress = config.getNamesrvAddr();
 
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
@@ -93,7 +93,7 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
                                     config.getUserName(), config.getPassWord()));
         }
         producer = new KafkaProducer<>(props);
-        ProducerRecord<String, String> record = new ProducerRecord<>("shenyu-access-logging", StringSerializer.class.getName(), StringSerializer.class.getName());
+        ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, StringSerializer.class.getName(), StringSerializer.class.getName());
         try {
             producer.send(record);
             LOG.info("init kafkaLogCollectClient success");

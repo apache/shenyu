@@ -21,15 +21,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Table view.
+ */
 public class TableView {
-    private List<String[]> table = new ArrayList<>();
+
+    private final List<String[]> table = new ArrayList<>();
     
     private final int sizeOfColumnsInRow;
+
     private final String[] headers;
     
-    private int[] maxContentLengthOfColumns;
+    private final int[] maxContentLengthOfColumns;
     
-    public TableView(String... headers) {
+    public TableView(final String... headers) {
         this.headers = headers;
         this.sizeOfColumnsInRow = headers.length;
         this.maxContentLengthOfColumns = new int[headers.length];
@@ -38,7 +43,12 @@ public class TableView {
         }
     }
     
-    public TableView addRow(Object... row) {
+    /**
+     * add rows to table as columns.
+     * @param row row
+     * @return TableView
+     */
+    public TableView addRow(final Object... row) {
         if (row.length > sizeOfColumnsInRow) {
             throw new IllegalArgumentException(String.format("Expecting the size of row to be %d but was %s", sizeOfColumnsInRow, row.length));
         }
@@ -50,6 +60,10 @@ public class TableView {
         return this;
     }
     
+    /**
+     * print table as string.
+     * @return String
+     */
     public String printAsString() {
         String[] template = new String[maxContentLengthOfColumns.length];
         
@@ -74,7 +88,7 @@ public class TableView {
         return tableBuilder.toString().trim();
     }
     
-    private StringBuilder printHeaders(String[] headers, String[] template, StringBuilder separator) {
+    private StringBuilder printHeaders(final String[] headers, final String[] template, final StringBuilder separator) {
         StringBuilder builder = new StringBuilder(separator);
         for (int i = 0; i < headers.length; i++) {
             builder.append("|").append(String.format(template[i], headers[i]));
@@ -83,7 +97,7 @@ public class TableView {
         return builder;
     }
     
-    private StringBuilder printRow(String[] columns, String[] template, StringBuilder separator) {
+    private StringBuilder printRow(final String[] columns, final String[] template, final StringBuilder separator) {
         StringBuilder rowBuilder = new StringBuilder();
         for (int i = 0; i < columns.length; i++) {
             rowBuilder.append("|").append(String.format(template[i], columns[i]));

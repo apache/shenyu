@@ -37,6 +37,7 @@
         <module>shenyu-client-websocket</module>
         <module>shenyu-client-brpc</module>
         <module>shenyu-client-api-docs-annotations</module>
+        <module>shenyu-client-autoconfig</module>
     </modules>
 
     <dependencies>

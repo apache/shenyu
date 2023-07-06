@@ -24,8 +24,19 @@ import java.util.Objects;
 @ShenYuScenarioParameter
 public interface ScenarioSpec {
     
+    /**
+     * get scenario spec name.
+     * @return String
+     */
     String getName();
-    
+
+    /**
+     * Verify which type the class belongs to.
+     *
+     * @param type type
+     * @param <T> &lt;T&gt;
+     * @return T
+     */
     default <T> T getByType(Class<T> type) {
         if (type.isAssignableFrom(BeforeEachSpec.class)) {
             if (Objects.isNull(getBeforeEachSpec())) {
@@ -45,9 +56,21 @@ public interface ScenarioSpec {
         return null;
     }
     
+    /**
+     * get before each spec.
+     * @return BeforeEachSpec
+     */
     BeforeEachSpec getBeforeEachSpec();
     
+    /**
+     * get case spec.
+     * @return CaseSpec
+     */
     CaseSpec getCaseSpec();
     
+    /**
+     * get after each spec.
+     * @return AfterEachSpec
+     */
     AfterEachSpec getAfterEachSpec();
 }

@@ -18,10 +18,12 @@
 package org.apache.shenyu.examples.http.controller;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Objects;
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.examples.http.dto.BigObject;
 import org.apache.shenyu.examples.http.dto.UserDTO;
 import org.apache.shenyu.examples.http.result.ResultBean;
 import org.slf4j.Logger;
@@ -65,6 +67,8 @@ import java.util.Map;
 @ShenyuSpringMvcClient("/test/**")
 @ApiModule("/test")
 public class HttpTestController {
+
+    private static final Integer SIZE = 20000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpTestController.class);
 
@@ -325,7 +329,7 @@ public class HttpTestController {
         filePart.transferTo(tempFile.toFile());
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(tempFile.toFile()))) {
             String line = bufferedReader.readLine();
-            while (line != null) {
+            while (Objects.nonNull(line)) {
                 LOGGER.info(line);
                 line = bufferedReader.readLine();
             }
@@ -440,5 +444,21 @@ public class HttpTestController {
         resultBean.setCode(200);
         resultBean.setData(params);
         return resultBean;
+    }
+
+    /**
+     * big object.
+     * @return big object
+     */
+    @PostMapping("/bigObject")
+    public BigObject bigObject() {
+        BigObject bigObject = new BigObject();
+        bigObject.setId(1);
+        String[] obj = new String[SIZE];
+        for (int i = 0; i < SIZE; i++) {
+            obj[i] = String.valueOf(i);
+        }
+        bigObject.setObj(obj);
+        return bigObject;
     }
 }
