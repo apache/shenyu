@@ -18,17 +18,25 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.discovery.DiscoveryMode;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
+import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -36,13 +44,24 @@ import java.util.List;
 @Service
 public class DiscoveryServiceImpl implements DiscoveryService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(DiscoveryServiceImpl.class);
+
     private final DiscoveryMapper discoveryMapper;
+
+    private final ProxySelectorMapper proxySelectorMapper;
+
+    private final DiscoveryHandlerMapper discoveryHandlerMapper;
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
-    public DiscoveryServiceImpl(final DiscoveryMapper discoveryMapper, final DiscoveryProcessorHolder discoveryProcessorHolder) {
+    public DiscoveryServiceImpl(final DiscoveryMapper discoveryMapper,
+                                final ProxySelectorMapper proxySelectorMapper,
+                                final DiscoveryHandlerMapper discoveryHandlerMapper,
+                                final DiscoveryProcessorHolder discoveryProcessorHolder) {
         this.discoveryMapper = discoveryMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
+        this.proxySelectorMapper = proxySelectorMapper;
+        this.discoveryHandlerMapper = discoveryHandlerMapper;
     }
 
     @Override
@@ -51,11 +70,13 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public DiscoveryVO discovery(final String pluginName, final String level) {
         return discoveryVO(discoveryMapper.selectByPluginNameAndLevel(pluginName, level));
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public DiscoveryVO createOrUpdate(final DiscoveryDTO discoveryDTO) {
         return StringUtils.isBlank(discoveryDTO.getId()) ? this.create(discoveryDTO) : this.update(discoveryDTO);
     }
@@ -116,4 +137,19 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         return discoveryVO;
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void syncData() {
+        LOG.info("shenyu DiscoveryService sync db ");
+        List<DiscoveryDO> discoveryDOS = discoveryMapper.selectAll();
+        discoveryDOS.stream().filter(d -> !DiscoveryMode.LOCAL.name().equalsIgnoreCase(d.getType())).forEach(d -> {
+            DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(d.getType());
+            discoveryProcessor.createDiscovery(d);
+            proxySelectorMapper.selectByDiscoveryId(d.getId()).stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).forEach(ps -> {
+                DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectByProxySelectorId(ps.getId());
+                discoveryProcessor.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), ps);
+                discoveryProcessor.fetchAll(discoveryHandlerDO.getId());
+            });
+        });
+    }
 }

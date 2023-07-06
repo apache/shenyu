@@ -26,7 +26,7 @@ import java.util.Arrays;
  * Selector query condition.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SelectorQueryCondition implements QueryCondition {
+public final class SelectorQueryCondition implements QueryCondition {
 
     private String excluded;
 
@@ -42,11 +42,11 @@ public class SelectorQueryCondition implements QueryCondition {
      *
      * @param builder builder
      */
-    private SelectorQueryCondition(Builder builder) {
+    private SelectorQueryCondition(final Builder builder) {
         this.excluded = builder.excluded;
         this.keyword = builder.keyword;
         this.plugins = builder.plugins;
-        this.switchStatus  = builder.switchStatus;
+        this.switchStatus = builder.switchStatus;
     }
 
     /**
@@ -73,7 +73,7 @@ public class SelectorQueryCondition implements QueryCondition {
      *
      * @param excluded excluded
      */
-    public void setExcluded(String excluded) {
+    public void setExcluded(final String excluded) {
         this.excluded = excluded;
     }
 
@@ -92,7 +92,7 @@ public class SelectorQueryCondition implements QueryCondition {
      *
      * @param keyword keyword
      */
-    public void setKeyword(String keyword) {
+    public void setKeyword(final String keyword) {
         this.keyword = keyword;
     }
 
@@ -110,7 +110,7 @@ public class SelectorQueryCondition implements QueryCondition {
      *
      * @param plugins plugins
      */
-    public void setPlugins(String[] plugins) {
+    public void setPlugins(final String[] plugins) {
         this.plugins = plugins;
     }
 
@@ -129,7 +129,7 @@ public class SelectorQueryCondition implements QueryCondition {
      *
      * @param switchStatus switchStatus
      */
-    public void setSwitchStatus(boolean switchStatus) {
+    public void setSwitchStatus(final boolean switchStatus) {
         this.switchStatus = switchStatus;
     }
 
@@ -185,7 +185,7 @@ public class SelectorQueryCondition implements QueryCondition {
          * @param excluded excluded
          * @return this
          */
-        public Builder excluded(String excluded) {
+        public Builder excluded(final String excluded) {
             this.excluded = excluded;
             return this;
         }
@@ -196,7 +196,7 @@ public class SelectorQueryCondition implements QueryCondition {
          * @param keyword keyword
          * @return this
          */
-        public Builder keyword(String keyword) {
+        public Builder keyword(final String keyword) {
             this.keyword = keyword;
             return this;
         }
@@ -207,7 +207,7 @@ public class SelectorQueryCondition implements QueryCondition {
          * @param plugins plugins
          * @return this
          */
-        public Builder plugins(String[] plugins) {
+        public Builder plugins(final String[] plugins) {
             this.plugins = plugins;
             return this;
         }
@@ -218,7 +218,7 @@ public class SelectorQueryCondition implements QueryCondition {
          * @param switchStatus switchStatus
          * @return this
          */
-        public Builder switchStatus(boolean switchStatus) {
+        public Builder switchStatus(final boolean switchStatus) {
             this.switchStatus = switchStatus;
             return this;
         }

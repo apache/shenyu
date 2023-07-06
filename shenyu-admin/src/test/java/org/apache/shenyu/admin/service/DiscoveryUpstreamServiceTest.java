@@ -23,6 +23,8 @@ import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
@@ -71,6 +73,12 @@ class DiscoveryUpstreamServiceTest {
     @Mock
     private DiscoveryProcessor discoveryProcessor;
 
+    @Mock
+    private DiscoveryRelMapper discoveryRelMapper;
+
+    @Mock
+    private SelectorMapper selectorMapper;
+
     @BeforeEach
     void setUp() {
         DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
@@ -81,7 +89,8 @@ class DiscoveryUpstreamServiceTest {
         when(discoveryMapper.selectById(anyString())).thenReturn(discoveryDO);
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
         when(proxySelectorMapper.selectByHandlerId(anyString())).thenReturn(new ProxySelectorDO());
-        discoveryUpstreamService = new DiscoveryUpstreamServiceImpl(discoveryUpstreamMapper, discoveryHandlerMapper, proxySelectorMapper, discoveryMapper, discoveryProcessorHolder);
+        discoveryUpstreamService = new DiscoveryUpstreamServiceImpl(discoveryUpstreamMapper, discoveryHandlerMapper, proxySelectorMapper, discoveryMapper,
+                discoveryRelMapper, selectorMapper, discoveryProcessorHolder);
     }
 
     @Test

@@ -33,6 +33,8 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.apache.shenyu.sync.data.http.refresh.DataRefreshFactory;
 import org.slf4j.Logger;
@@ -85,9 +87,11 @@ public class HttpSyncDataService implements SyncDataService {
                                final RestTemplate restTemplate,
                                final List<MetaDataSubscriber> metaDataSubscribers,
                                final List<AuthDataSubscriber> authDataSubscribers,
+                               final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
+                               final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
                                final AccessTokenManager accessTokenManager) {
         this.accessTokenManager = accessTokenManager;
-        this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
+        this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
         this.restTemplate = restTemplate;
         this.start();
@@ -153,7 +157,6 @@ public class HttpSyncDataService implements SyncDataService {
         LOG.info("The config of the server[{}] has not been updated or is out of date. Wait for 30s to listen for changes again.", server);
         ThreadUtils.sleep(TimeUnit.SECONDS, 30);
     }
-
 
 
     /**

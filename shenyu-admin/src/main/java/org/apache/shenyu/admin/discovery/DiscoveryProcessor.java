@@ -62,10 +62,17 @@ public interface DiscoveryProcessor {
     /**
      * only use in local mode to sync upstreamDTOS.
      *
-     * @param discoveryHandlerDTO discoveryHandlerDTO
-     * @param proxySelectorDTO    proxySelectorDTO
-     * @param upstreamDTOS        upstreamDTOS
+     * @param proxySelectorDTO proxySelectorDTO
+     * @param upstreamDTOS     upstreamDTOS
      */
-    void changeUpstream(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO, List<DiscoveryUpstreamDTO> upstreamDTOS);
+    void changeUpstream(ProxySelectorDTO proxySelectorDTO, List<DiscoveryUpstreamDTO> upstreamDTOS);
+
+
+    /**
+     * sync all upstream list to gateway and db.
+     *
+     * @param discoveryHandlerId discoveryHandlerId
+     */
+    void fetchAll(String discoveryHandlerId);
 
 }

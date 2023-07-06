@@ -41,10 +41,10 @@ import org.springframework.core.env.Environment;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnBean(ClientRegisterConfiguration.class)
 public class ShenyuSpringCloudClientInfoRegisterConfiguration {
-
+    
     public ShenyuSpringCloudClientInfoRegisterConfiguration() {
     }
-
+    
     /**
      * ClientInfoRefreshedEventListener Bean.
      *
@@ -57,19 +57,18 @@ public class ShenyuSpringCloudClientInfoRegisterConfiguration {
                                                                     final ShenyuClientRegisterEventPublisher publisher) {
         return new ClientInfoRefreshedEventListener(clientRegisterConfig, publisher);
     }
-
+    
     /**
      * ApiBeansExtractor Bean.
      *
-     * @param clientRegisterConfig clientRegisterConfig
      * @return apiBeansExtractor
      */
     @Bean
     @ConditionalOnMissingBean
-    public ApiBeansExtractor apiBeansExtractor(final ClientRegisterConfig clientRegisterConfig) {
-        return new SpringCloudApiBeansExtractor(clientRegisterConfig.getContextPath());
+    public ApiBeansExtractor apiBeansExtractor() {
+        return new SpringCloudApiBeansExtractor();
     }
-
+    
     /**
      * Builds ApiMetaRegistrar Bean.
      *
@@ -81,10 +80,10 @@ public class ShenyuSpringCloudClientInfoRegisterConfiguration {
     @ConditionalOnProperty(value = "shenyu.register.api.meta.enabled", matchIfMissing = true, havingValue = "true")
     public AbstractApiMetaRegistrar buildApiMetaRegistrar(final ShenyuClientRegisterEventPublisher publisher,
                                                           final ClientRegisterConfig clientRegisterConfig) {
-
+        
         return new SpringCloudApiMetaRegister(publisher, clientRegisterConfig);
     }
-
+    
     /**
      * Builds ApiDocRegistrar  Bean.
      *
@@ -98,7 +97,7 @@ public class ShenyuSpringCloudClientInfoRegisterConfiguration {
                                                         final ClientRegisterConfig clientRegisterConfig) {
         return new HttpApiDocRegistrar(publisher, clientRegisterConfig);
     }
-
+    
     /**
      * ClientRegisterConfig Bean.
      *

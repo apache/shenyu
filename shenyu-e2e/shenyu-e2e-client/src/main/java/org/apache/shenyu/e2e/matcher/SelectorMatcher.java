@@ -37,15 +37,23 @@ import static org.hamcrest.Matchers.notNullValue;
 /**
  * Selector matcher.
  */
-public class SelectorMatcher {
+public final class SelectorMatcher {
+    
     private final ObjectMapper mapper = new ObjectMapper();
+    
     private final SelectorData expected;
     
-    private SelectorMatcher(SelectorData expected) {
+    private SelectorMatcher(final SelectorData expected) {
         this.expected = expected;
     }
-
-    public void matches(SelectorDTO actual) throws JsonProcessingException, JSONException {
+    
+    /**
+     * match selector.
+     * @param actual actual
+     * @throws JsonProcessingException JsonProcessingException
+     * @throws JSONException JSONException
+     */
+    public void matches(final SelectorDTO actual) throws JsonProcessingException, JSONException {
         String handle = actual.getHandle();
         if (Objects.nonNull(expected.getHandle())) {
             String expected = mapper.writer().writeValueAsString(this.expected.getHandle());
@@ -69,7 +77,7 @@ public class SelectorMatcher {
         assertThat(actual, hasProperty("dateUpdated", notNullValue()));
     }
     
-    public static SelectorMatcher verify(SelectorData expected) {
+    public static SelectorMatcher verify(final SelectorData expected) {
         return new SelectorMatcher(expected);
     }
 }

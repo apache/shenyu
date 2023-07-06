@@ -49,19 +49,21 @@ import java.time.Duration;
                         baseUrl = "http://localhost:19095",
                         parameters = {
                                 @Parameter(key = "username", value = "admin"),
-                                @Parameter(key = "password", value = "123456"),
+                                @Parameter(key = "password", value = "123456")
                         }
                 )
         }
 )
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ShenYuEngineTest {
-    private static DockerComposeContainer<?> compose = null;
+    
+    private static final DockerComposeContainer<?> COMPOSE;
+    
     static {
-        URL resource =ShenYuEngineTest.class.getResource("/docker-compose.yml");
-        compose = new DockerComposeContainer<>("test", new File(resource.getPath()));
-        compose.withExposedService("admin", 9095);
-        compose.waitingFor("admin", new HttpWaitStrategy()
+        URL resource = ShenYuEngineTest.class.getResource("/docker-compose.yml");
+        COMPOSE = new DockerComposeContainer<>("test", new File(resource.getPath()));
+        COMPOSE.withExposedService("admin", 9095);
+        COMPOSE.waitingFor("admin", new HttpWaitStrategy()
                 .allowInsecure()
                 .forPort(9095)
                 .withMethod("GET")
@@ -70,22 +72,22 @@ public class ShenYuEngineTest {
                 .forResponsePredicate(body -> body.contains("username or password error"))
                 .withReadTimeout(Duration.ofMinutes(1))
                 .withStartupTimeout(Duration.ofMinutes(3)));
-        compose.start();
+        COMPOSE.start();
     }
     
     @BeforeAll
-    static void setup(AdminClient client) {
+    static void setup(final AdminClient client) {
         client.login();
     }
     
     @Test
     @Order(0)
-    void testCreateSelector(AdminClient client) throws JsonProcessingException {
+    void testCreateSelector(final AdminClient client) throws JsonProcessingException {
     
     }
     
     @Test
-    void testA(AdminClient client) {
+    void testA(final AdminClient client) {
         SelectorQueryCondition condition = SelectorQueryCondition.builder()
                 .keyword("my-plugin-divide-4b519a373ae8-2b9b5c50")
                 .switchStatus(true)
@@ -95,18 +97,17 @@ public class ShenYuEngineTest {
     }
     
     @Test
-    void testDeleteAllSelectors(AdminClient client) {
+    void testDeleteAllSelectors(final AdminClient client) {
         client.deleteAllSelectors();
     }
     
-    
     @Test
-    void testListRules(AdminClient client) {
+    void testListRules(final AdminClient client) {
         client.listAllRules().forEach(e -> client.deleteRules(e.getId()));
     }
     
     @AfterAll
     static void teardown() {
-        compose.close();
+        COMPOSE.close();
     }
 }
