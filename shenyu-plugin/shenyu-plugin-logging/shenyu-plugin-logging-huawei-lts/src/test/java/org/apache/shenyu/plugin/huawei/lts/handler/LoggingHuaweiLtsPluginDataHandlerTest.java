@@ -37,12 +37,12 @@ public class LoggingHuaweiLtsPluginDataHandlerTest {
         this.loggingHuaweiLtsPluginDataHandler = new LoggingHuaweiLtsPluginDataHandler();
         pluginData.setEnabled(true);
         pluginData.setConfig("{\n"
-                + "    \"projectId\": \"3d696d796b9647f982b5ec787b2ca249\",\n"
-                + "    \"logGroupId\": \"8285fbe3-9c73-4deb-a8d0-96ec06c4af3a\",\n"
-                + "    \"logStreamId\": \"8b4fe176-4a7e-4bd5-8bb7-17d0ec6730b2\",\n"
-                + "    \"accessKeyId\": \"FNUGUUNZL5CG6ZJDAFXX\",\n"
-                + "    \"accessKeySecret\": \"g7WwPGAmCoa5Uz62lsxzHDZeSyYVNNePSjkd2jI8\",\n"
-                + "    \"regionName\": \"cn-north-4\"\n"
+                + "    \"projectId\": \"projectId\",\n"
+                + "    \"logGroupId\": \"logGroupId\",\n"
+                + "    \"logStreamId\": \"logStreamId\",\n"
+                + "    \"accessKeyId\": \"accessKeyId\",\n"
+                + "    \"accessKeySecret\": \"accessKeySecret\",\n"
+                + "    \"regionName\": \"regionName\"\n"
                 + "}");
     }
 

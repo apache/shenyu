@@ -32,6 +32,7 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <huawei-log-sdk.version>1.0.1</huawei-log-sdk.version>
     </properties>
 
     <dependencies>
@@ -43,7 +44,7 @@
         <dependency>
             <groupId>io.github.huaweicloud</groupId>
             <artifactId>lts-sdk-java</artifactId>
-            <version>1.0.1</version>
+            <version>${huawei-log-sdk.version}</version>
         </dependency>
     </dependencies>
 </project>

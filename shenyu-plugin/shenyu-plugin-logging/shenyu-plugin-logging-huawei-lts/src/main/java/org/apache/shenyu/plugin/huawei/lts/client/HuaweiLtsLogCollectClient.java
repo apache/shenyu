@@ -24,6 +24,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.huaweicloud.lts.appender.JavaSDKAppender;
 import com.huaweicloud.lts.producer.Producer;
 import com.huaweicloud.lts.producer.Result;
+import com.huaweicloud.lts.producer.exception.LogSizeTooLargeException;
+import com.huaweicloud.lts.producer.exception.MaxBatchCountExceedException;
 import com.huaweicloud.lts.producer.exception.ProducerException;
 import com.huaweicloud.lts.producer.exception.ResultFailedException;
 import com.huaweicloud.lts.producer.model.log.LogContent;
@@ -73,33 +75,19 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
             return;
         }
         JavaSDKAppender appender = JavaSDKAppender.custom()
-                // 华为云帐号的项目ID（project id）
                 .setProjectId(projectId)
-                // 华为云帐号的AK
                 .setAccessKeyId(accessKeyId)
-                // 华为云帐号的SK
                 .setAccessKeySecret(accessKeySecret)
-                // 云日志服务的区域
                 .setRegionName(regionName)
-                // 单个Appender能缓存的日志大小上限
                 .setTotalSizeInBytes(huaweiLtsLogConfig.getTotalSizeInBytes())
-                // producer发送日志时阻塞时间
                 .setMaxBlockMs(huaweiLtsLogConfig.getMaxBlockMs())
-                // producer发送单批日志量上限
                 .setBatchSizeThresholdInBytes(huaweiLtsLogConfig.getBatchSizeThresholdInBytes())
-                // producer发送单批日志条数上限
                 .setBatchCountThreshold(huaweiLtsLogConfig.getBatchCountThreshold())
-                // producer发送单批日志等待时间
                 .setLingerMs(huaweiLtsLogConfig.getLingerMs())
-                // producer发送日志失败后重试次数
                 .setRetries(huaweiLtsLogConfig.getRetries())
-                // 首次重试的退避时间
                 .setBaseRetryBackoffMs(huaweiLtsLogConfig.getBaseRetryBackoffMs())
-                // 重试的最大退避时间
                 .setMaxRetryBackoffMs(huaweiLtsLogConfig.getMaxRetryBackoffMs())
-                // 默认false, true: 可以跨云上报日志, false: 仅能在华为云ecs主机上报日志
                 .setEnableLocalTest(Boolean.parseBoolean(huaweiLtsLogConfig.getEnableLocalTest()))
-                // 超过1M的日志, 拆分后丢弃大于1M的数据
                 .setGiveUpExtraLongSingleLog(Boolean.parseBoolean(huaweiLtsLogConfig.getEnableLocalTest()))
                 .builder();
         this.producer = appender.getProducer();
@@ -141,7 +129,6 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
         logContent.setLogTimeNs(System.currentTimeMillis() * 1000000L + System.nanoTime() % 1000000L);
         logContent.setLog(log.toString());
         contents.add(logContent);
-
         logItem.setContents(contents);
         logItemList.add(logItem);
 
@@ -149,9 +136,15 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
             final ListenableFuture<Result> f = producer.send(logGroupId, logStreamId, logItemList);
             Futures.addCallback(f, new ProducerFutureCallback(logGroupId, logStreamId), threadExecutor);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            LOG.warn("The current thread has been interrupted during send logs.");
         } catch (ProducerException e) {
-            throw new RuntimeException(e);
+            if (e instanceof MaxBatchCountExceedException) {
+                LOG.error("The logs exceeds the maximum batch count, e={}", e.getMessage());
+            } else if (e instanceof LogSizeTooLargeException) {
+                LOG.error("The size of log is larger than the maximum allowable size, e={}", e.getMessage());
+            } else {
+                LOG.error("Failed to send logs, e={}", e.getMessage());
+            }
         }
     }
 
