@@ -158,7 +158,7 @@ public enum PluginEnum {
     LOGGING_TENCENT_CLS(176, 0, "loggingTencentCls"),
 
     /**
-     * Logging Tencent cls enums.
+     * Logging Huawei lts enums.
      */
     LOGGING_HUAWEI_LTS(177, 0, "loggingHuaweiLts"),
 

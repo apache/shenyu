@@ -1,8 +1,25 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.plugin.huawei.lts.config;
 
-import org.apache.shenyu.plugin.huawei.lts.client.HuaweiLtsLogCollectClient;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public class HuaweiLogCollectConfig {
@@ -30,178 +47,436 @@ public class HuaweiLogCollectConfig {
 
     /**
      * global log config.
-     * please seee https://github.com/TencentCloud/tencentcloud-cls-sdk-java/blob/main/README.md#%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3
+     * please see https://support.huaweicloud.com/usermanual-lts/lts_03_1003.html
      */
     public static class HuaweiLtsLogConfig extends GenericGlobalConfig {
 
+        /**
+         * huawei projectId.
+         */
         private String projectId;
 
+        /**
+         * huawei logGroupId.
+         */
         private String logGroupId;
 
+        /**
+         * huawei logStreamId.
+         */
         private String logStreamId;
 
+        /**
+         * huawei accessKeyId.
+         */
         private String accessKeyId;
 
+        /**
+         * huawei accessKeySecret.
+         */
         private String accessKeySecret;
 
+        /**
+         * huawei regionName.
+         */
         private String regionName;
 
-        private Integer totalSizeInBytes=104857600;
+        /**
+         * huawei totalSizeInBytes.
+         */
+        private Integer totalSizeInBytes = 104857600;
 
-        private Long maxBlockMs=0L;
+        /**
+         * huawei maxBlockMs.
+         */
+        private Long maxBlockMs = 0L;
 
-        private Integer ioThreadCount=1;
+        /**
+         * huawei ioThreadCount.
+         */
+        private Integer ioThreadCount = 1;
 
-        private Integer batchSizeThresholdInBytes=524288;
+        /**
+         * huawei batchSizeThresholdInBytes.
+         */
+        private Integer batchSizeThresholdInBytes = 524288;
 
-        private Integer batchCountThreshold=4096;
+        /**
+         * huawei batchCountThreshold.
+         */
+        private Integer batchCountThreshold = 4096;
 
-        private Integer lingerMs=2000;
+        /**
+         * huawei lingerMs.
+         */
+        private Integer lingerMs = 2000;
 
-        private Integer retries=1;
+        /**
+         * huawei retries.
+         */
+        private Integer retries = 1;
 
-        private Long baseRetryBackoffMs=100L;
+        /**
+         * huawei baseRetryBackoffMs.
+         */
+        private Long baseRetryBackoffMs = 100L;
 
-        private Long maxRetryBackoffMs=100L;
+        /**
+         * huawei maxRetryBackoffMs.
+         */
+        private Long maxRetryBackoffMs = 100L;
 
-        private String enableLocalTest="true";
+        /**
+         * huawei enableLocalTest.
+         */
+        private String enableLocalTest = "true";
 
-        private String setGiveUpExtraLongSingleLog="true";
+        /**
+         * huawei setGiveUpExtraLongSingleLog.
+         */
+        private String setGiveUpExtraLongSingleLog = "true";
 
+        /**
+         * getProjectId.
+         *
+         * @return projectId
+         */
         public String getProjectId() {
             return projectId;
         }
 
-        public void setProjectId(String projectId) {
+        /**
+         * set projectId.
+         *
+         * @param projectId projectId
+         */
+        public void setProjectId(final String projectId) {
             this.projectId = projectId;
         }
 
+        /**
+         * getLogGroupId.
+         *
+         * @return logGroupId
+         */
         public String getLogGroupId() {
             return logGroupId;
         }
 
-        public void setLogGroupId(String logGroupId) {
+        /**
+         * set logGroupId.
+         *
+         * @param logGroupId logGroupId
+         */
+        public void setLogGroupId(final String logGroupId) {
             this.logGroupId = logGroupId;
         }
 
+        /**
+         * getLogStreamId.
+         *
+         * @return logStreamId
+         */
         public String getLogStreamId() {
             return logStreamId;
         }
 
-        public void setLogStreamId(String logStreamId) {
+        /**
+         * set logStreamId.
+         *
+         * @param logStreamId logStreamId
+         */
+        public void setLogStreamId(final String logStreamId) {
             this.logStreamId = logStreamId;
         }
 
+        /**
+         * getAccessKeyId.
+         *
+         * @return accessKeyId
+         */
         public String getAccessKeyId() {
             return accessKeyId;
         }
 
-        public void setAccessKeyId(String accessKeyId) {
+        /**
+         * set accessKeyId.
+         *
+         * @param accessKeyId accessKeyId
+         */
+        public void setAccessKeyId(final String accessKeyId) {
             this.accessKeyId = accessKeyId;
         }
 
+        /**
+         * getAccessKeySecret.
+         *
+         * @return accessKeySecret
+         */
         public String getAccessKeySecret() {
             return accessKeySecret;
         }
 
-        public void setAccessKeySecret(String accessKeySecret) {
+        /**
+         * set accessKeySecret.
+         *
+         * @param accessKeySecret accessKeySecret
+         */
+        public void setAccessKeySecret(final String accessKeySecret) {
             this.accessKeySecret = accessKeySecret;
         }
 
+        /**
+         * getRegionName.
+         *
+         * @return regionName
+         */
         public String getRegionName() {
             return regionName;
         }
 
-        public void setRegionName(String regionName) {
+        /**
+         * set regionName.
+         *
+         * @param regionName regionName
+         */
+        public void setRegionName(final String regionName) {
             this.regionName = regionName;
         }
 
+        /**
+         * getTotalSizeInBytes.
+         *
+         * @return totalSizeInBytes
+         */
         public Integer getTotalSizeInBytes() {
             return totalSizeInBytes;
         }
 
-        public void setTotalSizeInBytes(Integer totalSizeInBytes) {
+        /**
+         * set totalSizeInBytes.
+         *
+         * @param totalSizeInBytes totalSizeInBytes
+         */
+        public void setTotalSizeInBytes(final Integer totalSizeInBytes) {
             this.totalSizeInBytes = totalSizeInBytes;
         }
 
+        /**
+         * getMaxBlockMs.
+         *
+         * @return maxBlockMs
+         */
         public Long getMaxBlockMs() {
             return maxBlockMs;
         }
 
-        public void setMaxBlockMs(Long maxBlockMs) {
+        /**
+         * set maxBlockMs.
+         *
+         * @param maxBlockMs maxBlockMs
+         */
+        public void setMaxBlockMs(final Long maxBlockMs) {
             this.maxBlockMs = maxBlockMs;
         }
 
+        /**
+         * getIoThreadCount.
+         *
+         * @return ioThreadCount
+         */
         public Integer getIoThreadCount() {
             return ioThreadCount;
         }
 
-        public void setIoThreadCount(Integer ioThreadCount) {
+        /**
+         * set ioThreadCount.
+         *
+         * @param ioThreadCount ioThreadCount
+         */
+        public void setIoThreadCount(final Integer ioThreadCount) {
             this.ioThreadCount = ioThreadCount;
         }
 
+        /**
+         * getBatchSizeThresholdInBytes.
+         *
+         * @return batchSizeThresholdInBytes
+         */
         public Integer getBatchSizeThresholdInBytes() {
             return batchSizeThresholdInBytes;
         }
 
-        public void setBatchSizeThresholdInBytes(Integer batchSizeThresholdInBytes) {
+        /**
+         * set batchSizeThresholdInBytes.
+         *
+         * @param batchSizeThresholdInBytes batchSizeThresholdInBytes
+         */
+        public void setBatchSizeThresholdInBytes(final Integer batchSizeThresholdInBytes) {
             this.batchSizeThresholdInBytes = batchSizeThresholdInBytes;
         }
 
+        /**
+         * getBatchCountThreshold.
+         *
+         * @return batchCountThreshold
+         */
         public Integer getBatchCountThreshold() {
             return batchCountThreshold;
         }
 
-        public void setBatchCountThreshold(Integer batchCountThreshold) {
+        /**
+         * set batchCountThreshold.
+         *
+         * @param batchCountThreshold batchCountThreshold
+         */
+        public void setBatchCountThreshold(final Integer batchCountThreshold) {
             this.batchCountThreshold = batchCountThreshold;
         }
 
+        /**
+         * getLingerMs.
+         *
+         * @return lingerMs
+         */
         public Integer getLingerMs() {
             return lingerMs;
         }
 
-        public void setLingerMs(Integer lingerMs) {
+        /**
+         * set lingerMs.
+         *
+         * @param lingerMs lingerMs
+         */
+        public void setLingerMs(final Integer lingerMs) {
             this.lingerMs = lingerMs;
         }
 
+        /**
+         * getRetries.
+         *
+         * @return retries
+         */
         public Integer getRetries() {
             return retries;
         }
 
-        public void setRetries(Integer retries) {
+        /**
+         * set retries.
+         *
+         * @param retries retries
+         */
+        public void setRetries(final Integer retries) {
             this.retries = retries;
         }
 
+        /**
+         * getBaseRetryBackoffMs.
+         *
+         * @return baseRetryBackoffMs
+         */
         public Long getBaseRetryBackoffMs() {
             return baseRetryBackoffMs;
         }
 
-        public void setBaseRetryBackoffMs(Long baseRetryBackoffMs) {
+        /**
+         * set baseRetryBackoffMs.
+         *
+         * @param baseRetryBackoffMs baseRetryBackoffMs
+         */
+        public void setBaseRetryBackoffMs(final Long baseRetryBackoffMs) {
             this.baseRetryBackoffMs = baseRetryBackoffMs;
         }
 
+        /**
+         * getMaxRetryBackoffMs.
+         *
+         * @return maxRetryBackoffMs
+         */
         public Long getMaxRetryBackoffMs() {
             return maxRetryBackoffMs;
         }
 
-        public void setMaxRetryBackoffMs(Long maxRetryBackoffMs) {
+        /**
+         * set maxRetryBackoffMs.
+         *
+         * @param maxRetryBackoffMs maxRetryBackoffMs
+         */
+        public void setMaxRetryBackoffMs(final Long maxRetryBackoffMs) {
             this.maxRetryBackoffMs = maxRetryBackoffMs;
         }
 
+        /**
+         * getEnableLocalTest.
+         *
+         * @return enableLocalTest
+         */
         public String getEnableLocalTest() {
             return enableLocalTest;
         }
 
-        public void setEnableLocalTest(String enableLocalTest) {
+        /**
+         * set enableLocalTest.
+         *
+         * @param enableLocalTest enableLocalTest
+         */
+        public void setEnableLocalTest(final String enableLocalTest) {
             this.enableLocalTest = enableLocalTest;
         }
 
+        /**
+         * getSetGiveUpExtraLongSingleLog.
+         *
+         * @return setGiveUpExtraLongSingleLog
+         */
         public String getSetGiveUpExtraLongSingleLog() {
             return setGiveUpExtraLongSingleLog;
         }
 
-        public void setSetGiveUpExtraLongSingleLog(String setGiveUpExtraLongSingleLog) {
+        /**
+         * set setGiveUpExtraLongSingleLog.
+         *
+         * @param setGiveUpExtraLongSingleLog setGiveUpExtraLongSingleLog
+         */
+        public void setSetGiveUpExtraLongSingleLog(final String setGiveUpExtraLongSingleLog) {
             this.setGiveUpExtraLongSingleLog = setGiveUpExtraLongSingleLog;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            HuaweiLtsLogConfig that = (HuaweiLtsLogConfig) o;
+            return Objects.equals(projectId, that.projectId)
+                    && Objects.equals(logGroupId, that.logGroupId)
+                    && Objects.equals(logStreamId, that.logStreamId)
+                    && Objects.equals(accessKeyId, that.accessKeyId)
+                    && Objects.equals(accessKeySecret, that.accessKeySecret)
+                    && Objects.equals(regionName, that.regionName)
+                    && Objects.equals(totalSizeInBytes, that.totalSizeInBytes)
+                    && Objects.equals(maxBlockMs, that.maxBlockMs)
+                    && Objects.equals(ioThreadCount, that.ioThreadCount)
+                    && Objects.equals(batchSizeThresholdInBytes, that.batchSizeThresholdInBytes)
+                    && Objects.equals(batchCountThreshold, that.batchCountThreshold)
+                    && Objects.equals(lingerMs, that.lingerMs)
+                    && Objects.equals(retries, that.retries)
+                    && Objects.equals(baseRetryBackoffMs, that.baseRetryBackoffMs)
+                    && Objects.equals(maxRetryBackoffMs, that.maxRetryBackoffMs)
+                    && Objects.equals(enableLocalTest, that.enableLocalTest)
+                    && Objects.equals(setGiveUpExtraLongSingleLog, that.setGiveUpExtraLongSingleLog);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(projectId, logGroupId, logStreamId, accessKeyId, accessKeySecret,
+                    regionName, totalSizeInBytes, maxBlockMs, ioThreadCount,
+                    batchSizeThresholdInBytes, batchCountThreshold, lingerMs,
+                    retries, baseRetryBackoffMs, maxRetryBackoffMs, enableLocalTest,
+                    setGiveUpExtraLongSingleLog);
         }
     }
 }
