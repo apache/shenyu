@@ -190,6 +190,7 @@ jobs:
     needs:
       - changes
       - e2e
+      - e2e-other
     runs-on: ubuntu-latest
     steps:
       - name: checking job status

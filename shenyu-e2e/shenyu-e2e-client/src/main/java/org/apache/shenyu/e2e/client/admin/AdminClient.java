@@ -459,7 +459,13 @@ public class AdminClient {
         return rst;
     }
 
-    public void changePluginStatus(String id, MultiValueMap<String, String> formData) {
+    /**
+     * change plugin status.
+     *
+     * @param id id
+     * @param formData formData
+     */
+    public void changePluginStatus(final String id, final MultiValueMap<String, String> formData) {
         putResource("/plugin", id, SelectorDTO.class, formData);
     }
     
