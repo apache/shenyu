@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,7 +48,8 @@ public class DividePluginTest extends AbstractPluginDataInit {
     
     @Test
     public void testDomain() throws IOException, InterruptedException {
-        String selectorHandle = "[{\\\"upstreamHost\\\":\\\"localhost\\\",\\\"upstreamUrl\\\":\\\"jsonplaceholder.typicode.com\\\",\\\"protocol\\\":\\\"http://\\\",\\\"timestamp\\\":\\\"0\\\",\\\"weight\\\":50,\\\"warmup\\\":\\\"0\\\",\\\"status\\\":true}]";
+        String selectorHandle = "[{\\\"upstreamHost\\\":\\\"localhost\\\",\\\"upstreamUrl\\\":\\\"jsonplaceholder.typicode.com\\\"," +
+                "\\\"protocol\\\":\\\"http://\\\",\\\"timestamp\\\":\\\"0\\\",\\\"weight\\\":50,\\\"warmup\\\":\\\"0\\\",\\\"status\\\":true}]";
         List<ConditionData> conditionData = Stream.of(1).map(weight -> {
             ConditionData data = new ConditionData();
             data.setParamType(ParamTypeEnum.URI.getName());
@@ -62,7 +62,8 @@ public class DividePluginTest extends AbstractPluginDataInit {
             ruleLocalData.setRuleName("test-domain");
             ruleLocalData.setMatchMode(0);
             ruleLocalData.setConditionDataList(conditionData);
-            ruleLocalData.setRuleHandler("{\\\"loadBalance\\\":\\\"hash\\\",\\\"retryStrategy\\\":\\\"current\\\",\\\"retry\\\":\\\"3\\\",\\\"timeout\\\":3000,\\\"headerMaxSize\\\":10240,\\\"requestMaxSize\\\":102400}");
+            ruleLocalData.setRuleHandler("{\\\"loadBalance\\\":\\\"hash\\\",\\\"retryStrategy\\\":\\\"current\\\"," +
+                    "\\\"retry\\\":\\\"3\\\",\\\"timeout\\\":3000,\\\"headerMaxSize\\\":10240,\\\"requestMaxSize\\\":102400}");
             return ruleLocalData;
         }).collect(Collectors.toList());
         String message = initSelectorAndRules(PluginEnum.DIVIDE.getName(), selectorHandle, conditionData, ruleLocalDataList);
@@ -82,7 +83,7 @@ public class DividePluginTest extends AbstractPluginDataInit {
         public JsonPlaceHolderUser() {
         }
         
-        public JsonPlaceHolderUser(String id, String userId) {
+        public JsonPlaceHolderUser(final String id, final String userId) {
             this.id = id;
             this.userId = userId;
         }
@@ -98,6 +99,7 @@ public class DividePluginTest extends AbstractPluginDataInit {
         
         /**
          * set id.
+         *
          * @param id id
          */
         public void setId(final String id) {
@@ -120,19 +122,6 @@ public class DividePluginTest extends AbstractPluginDataInit {
          */
         public void setUserId(final String userId) {
             this.userId = userId;
-        }
-        
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof JsonPlaceHolderUser)) return false;
-            JsonPlaceHolderUser that = (JsonPlaceHolderUser) o;
-            return Objects.equals(getId(), that.getId()) && Objects.equals(getUserId(), that.getUserId());
-        }
-        
-        @Override
-        public int hashCode() {
-            return Objects.hash(getId(), getUserId());
         }
     }
 }
