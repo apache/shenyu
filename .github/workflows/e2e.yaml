@@ -57,7 +57,7 @@ jobs:
           cache: maven
 
       - name: Build Apache ShenYu with Maven
-        run: ./mvnw -B clean -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package
+        run: ./mvnw -B clean install -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package
 
       - name: Build examples with Maven
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
