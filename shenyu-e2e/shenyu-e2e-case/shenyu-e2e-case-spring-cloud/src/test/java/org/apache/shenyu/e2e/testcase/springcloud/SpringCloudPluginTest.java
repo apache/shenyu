@@ -93,11 +93,11 @@ public class SpringCloudPluginTest {
         Assertions.assertEquals(14, ruleCacheList.size());
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id","8");
-        formData.add("name","springCloud");
-        formData.add("enabled","true");
-        formData.add("role","Proxy");
-        formData.add("sort","200");
+        formData.add("id", "8");
+        formData.add("name", "springCloud");
+        formData.add("enabled", "true");
+        formData.add("role", "Proxy");
+        formData.add("sort", "200");
         adminClient.changePluginStatus("8", formData);
         String id = "";
         for (SelectorDTO selectorDTO : selectorDTOList) {
@@ -144,11 +144,11 @@ public class SpringCloudPluginTest {
     static void teardown(final AdminClient client) {
         client.deleteAllSelectors();
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id","8");
-        formData.add("name","springCloud");
-        formData.add("enabled","false");
-        formData.add("role","Proxy");
-        formData.add("sort","200");
+        formData.add("id", "8");
+        formData.add("name", "springCloud");
+        formData.add("enabled", "false");
+        formData.add("role", "Proxy");
+        formData.add("sort", "200");
         client.changePluginStatus("8", formData);
     }
 }
