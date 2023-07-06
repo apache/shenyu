@@ -48,8 +48,8 @@ public class DividePluginTest extends AbstractPluginDataInit {
     
     @Test
     public void testDomain() throws IOException, InterruptedException {
-        String selectorHandle = "[{\\\"upstreamHost\\\":\\\"localhost\\\",\\\"upstreamUrl\\\":\\\"jsonplaceholder.typicode.com\\\"," +
-                "\\\"protocol\\\":\\\"http://\\\",\\\"timestamp\\\":\\\"0\\\",\\\"weight\\\":50,\\\"warmup\\\":\\\"0\\\",\\\"status\\\":true}]";
+        String selectorHandle = "[{\\\"upstreamHost\\\":\\\"localhost\\\",\\\"upstreamUrl\\\":\\\"jsonplaceholder.typicode.com\\\","
+                + "\\\"protocol\\\":\\\"http://\\\",\\\"timestamp\\\":\\\"0\\\",\\\"weight\\\":50,\\\"warmup\\\":\\\"0\\\",\\\"status\\\":true}]";
         List<ConditionData> conditionData = Stream.of(1).map(weight -> {
             ConditionData data = new ConditionData();
             data.setParamType(ParamTypeEnum.URI.getName());
@@ -62,8 +62,8 @@ public class DividePluginTest extends AbstractPluginDataInit {
             ruleLocalData.setRuleName("test-domain");
             ruleLocalData.setMatchMode(0);
             ruleLocalData.setConditionDataList(conditionData);
-            ruleLocalData.setRuleHandler("{\\\"loadBalance\\\":\\\"hash\\\",\\\"retryStrategy\\\":\\\"current\\\"," +
-                    "\\\"retry\\\":\\\"3\\\",\\\"timeout\\\":3000,\\\"headerMaxSize\\\":10240,\\\"requestMaxSize\\\":102400}");
+            ruleLocalData.setRuleHandler("{\\\"loadBalance\\\":\\\"hash\\\",\\\"retryStrategy\\\":\\\"current\\\","
+                    + "\\\"retry\\\":\\\"3\\\",\\\"timeout\\\":3000,\\\"headerMaxSize\\\":10240,\\\"requestMaxSize\\\":102400}");
             return ruleLocalData;
         }).collect(Collectors.toList());
         String message = initSelectorAndRules(PluginEnum.DIVIDE.getName(), selectorHandle, conditionData, ruleLocalDataList);
