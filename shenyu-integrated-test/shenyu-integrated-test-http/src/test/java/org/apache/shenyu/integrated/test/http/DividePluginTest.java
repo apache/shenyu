@@ -28,6 +28,7 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
@@ -48,10 +49,8 @@ public class DividePluginTest extends AbstractPluginDataInit {
     
     @Test
     public void testDomain() throws IOException, InterruptedException {
-        String pluginResult = initPlugin(PluginEnum.DIVIDE.getName(), "");
-        assertThat(pluginResult, is("success"));
-        String selectorHandle = "[{\\\"upstreamHost\\\":\\\"localhost\\\",\\\"upstreamUrl\\\":\\\"jsonplaceholder.typicode.com\\\","
-                + "\\\"protocol\\\":\\\"http://\\\",\\\"timestamp\\\":\\\"0\\\",\\\"weight\\\":50,\\\"warmup\\\":\\\"0\\\",\\\"status\\\":true}]";
+        String selectorHandle = "[{\"upstreamHost\":\"localhost\",\"upstreamUrl\":\"jsonplaceholder.typicode.com\","
+                + "\"protocol\":\"http://\",\"timestamp\":\"0\",\"weight\":50,\"warmup\":\"0\",\"status\":true}]";
         List<ConditionData> conditionData = Stream.of(1).map(weight -> {
             ConditionData data = new ConditionData();
             data.setParamType(ParamTypeEnum.URI.getName());
@@ -59,15 +58,17 @@ public class DividePluginTest extends AbstractPluginDataInit {
             data.setParamValue("/posts");
             return data;
         }).collect(Collectors.toList());
+        
         List<RuleLocalData> ruleLocalDataList = Stream.of(1).map(rule -> {
             RuleLocalData ruleLocalData = new RuleLocalData();
             ruleLocalData.setRuleName("test-domain");
             ruleLocalData.setMatchMode(0);
             ruleLocalData.setConditionDataList(conditionData);
-            ruleLocalData.setRuleHandler("{\\\"loadBalance\\\":\\\"hash\\\",\\\"retryStrategy\\\":\\\"current\\\","
-                    + "\\\"retry\\\":\\\"3\\\",\\\"timeout\\\":3000,\\\"headerMaxSize\\\":10240,\\\"requestMaxSize\\\":102400}");
+            ruleLocalData.setRuleHandler("{\"loadBalance\":\"hash\",\"retryStrategy\":\"current\","
+                    + "\"retry\":\"3\",\"timeout\":3000,\"headerMaxSize\":10240,\"requestMaxSize\":102400}");
             return ruleLocalData;
         }).collect(Collectors.toList());
+        
         String message = initSelectorAndRules(PluginEnum.DIVIDE.getName(), selectorHandle, conditionData, ruleLocalDataList);
         assertThat(message, is("success"));
         TimeUnit.SECONDS.sleep(10);
@@ -75,6 +76,11 @@ public class DividePluginTest extends AbstractPluginDataInit {
         request.addProperty("userId", 1);
         JsonPlaceHolderUser user = HttpHelper.INSTANCE.postGateway("/posts", request, JsonPlaceHolderUser.class);
         assertEquals("1", user.getUserId());
+    }
+    
+    @AfterAll
+    public static void clean() throws IOException {
+        cleanPluginData(PluginEnum.DIVIDE.getName());
     }
     
     public static class JsonPlaceHolderUser {
