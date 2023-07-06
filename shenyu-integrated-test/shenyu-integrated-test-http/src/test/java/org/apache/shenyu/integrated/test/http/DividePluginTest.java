@@ -78,11 +78,6 @@ public class DividePluginTest extends AbstractPluginDataInit {
         assertEquals("1", user.getUserId());
     }
     
-    @AfterAll
-    public static void clean() throws IOException {
-        cleanPluginData(PluginEnum.DIVIDE.getName());
-    }
-    
     public static class JsonPlaceHolderUser {
         private String id;
         
