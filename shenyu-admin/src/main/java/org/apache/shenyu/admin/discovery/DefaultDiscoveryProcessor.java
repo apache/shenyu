@@ -221,8 +221,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     private String buildProxySelectorKey(final String listenerNode) {
         return StringUtils.isNotBlank(listenerNode) ? listenerNode : DEFAULT_LISTENER_NODE;
     }
-
-
+    
     /**
      * getDiscoveryDataChangedEventListener.
      *
