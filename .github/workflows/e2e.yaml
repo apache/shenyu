@@ -59,9 +59,6 @@ jobs:
       - name: Build Apache ShenYu with Maven
         run: ./mvnw -B clean install -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package
 
-      - name: Build examples with Maven
-        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -165,6 +162,9 @@ jobs:
           docker load --input /tmp/apache-shenyu-admin.tar
           docker load --input /tmp/apache-shenyu-bootstrap.tar
           docker image ls -a
+
+      - name: Build examples with Maven
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
 
       - uses: actions/checkout@v3
         with:
