@@ -48,6 +48,8 @@ public class DividePluginTest extends AbstractPluginDataInit {
     
     @Test
     public void testDomain() throws IOException, InterruptedException {
+        String pluginResult = initPlugin(PluginEnum.DIVIDE.getName(), "");
+        assertThat(pluginResult, is("success"));
         String selectorHandle = "[{\\\"upstreamHost\\\":\\\"localhost\\\",\\\"upstreamUrl\\\":\\\"jsonplaceholder.typicode.com\\\","
                 + "\\\"protocol\\\":\\\"http://\\\",\\\"timestamp\\\":\\\"0\\\",\\\"weight\\\":50,\\\"warmup\\\":\\\"0\\\",\\\"status\\\":true}]";
         List<ConditionData> conditionData = Stream.of(1).map(weight -> {
@@ -71,7 +73,7 @@ public class DividePluginTest extends AbstractPluginDataInit {
         TimeUnit.SECONDS.sleep(10);
         JsonObject request = new JsonObject();
         request.addProperty("userId", 1);
-        JsonPlaceHolderUser user = HttpHelper.INSTANCE.postGateway("/posts/1", request, JsonPlaceHolderUser.class);
+        JsonPlaceHolderUser user = HttpHelper.INSTANCE.postGateway("/posts", request, JsonPlaceHolderUser.class);
         assertEquals("1", user.getUserId());
     }
     
