@@ -25,13 +25,13 @@ import org.apache.shenyu.e2e.engine.scenario.function.Deleter;
  */
 public class ShenYuAfterEachSpec implements AfterEachSpec {
     
+    public static final ShenYuAfterEachSpec DEFAULT = new ShenYuAfterEachSpec(Deleter.DEFAULT, Checker.DEFAULT);
+    
     private final Deleter deleter;
     
     private final Checker postChecker;
     
-    public static final ShenYuAfterEachSpec DEFAULT = new ShenYuAfterEachSpec(Deleter.DEFAULT, Checker.DEFAULT);
-
-    public ShenYuAfterEachSpec(Deleter deleter, Checker postChecker) {
+    public ShenYuAfterEachSpec(final Deleter deleter, final Checker postChecker) {
         this.deleter = deleter;
         this.postChecker = postChecker;
     }

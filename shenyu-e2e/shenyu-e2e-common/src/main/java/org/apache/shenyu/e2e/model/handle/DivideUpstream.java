@@ -51,16 +51,16 @@ public class DivideUpstream {
      * warmup.
      */
     private int warmup;
-
+    
     /**
      * upstreamHost.
      */
     private String upstreamHost;
-
+    
     private DivideUpstream() {
     }
-
-    public DivideUpstream(Builder builder) {
+    
+    public DivideUpstream(final Builder builder) {
         this.protocol = builder.protocol;
         this.upstreamUrl = builder.upstreamUrl;
         this.timestamp = builder.timestamp;
@@ -69,29 +69,31 @@ public class DivideUpstream {
         this.status = builder.status;
         this.upstreamHost = builder.upstreamHost;
     }
-
+    
+    /**
+     * builder.
+     * @return Builder
+     */
     public static Builder builder() {
         return new Builder();
     }
-
+    
     /**
      * get protocol.
-     *
      * @return protocol
      */
     public String getProtocol() {
         return protocol;
     }
-
+    
     /**
      * set protocol.
-     *
      * @param protocol protocol
      */
-    public void setProtocol(String protocol) {
+    public void setProtocol(final String protocol) {
         this.protocol = protocol;
     }
-
+    
     /**
      * get upstreamUrl.
      *
@@ -100,19 +102,17 @@ public class DivideUpstream {
     public String getUpstreamUrl() {
         return upstreamUrl;
     }
-
+    
     /**
      * set upstreamUrl.
-     *
      * @param upstreamUrl upstreamUrl
      */
-    public void setUpstreamUrl(String upstreamUrl) {
+    public void setUpstreamUrl(final String upstreamUrl) {
         this.upstreamUrl = upstreamUrl;
     }
-
+    
     /**
      * get timestamp.
-     *
      * @return timestamp
      */
     public long getTimestamp() {
@@ -120,14 +120,13 @@ public class DivideUpstream {
     }
 
     /**
-     * set timestamp
-     *
+     * set timestamp.
      * @param timestamp timestamp
      */
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(final long timestamp) {
         this.timestamp = timestamp;
     }
-
+    
     /**
      * get weight.
      *
@@ -142,10 +141,10 @@ public class DivideUpstream {
      *
      * @param weight weight
      */
-    public void setWeight(int weight) {
+    public void setWeight(final int weight) {
         this.weight = weight;
     }
-
+    
     /**
      * get warmup.
      *
@@ -160,10 +159,10 @@ public class DivideUpstream {
      *
      * @param warmup warmup
      */
-    public void setWarmup(int warmup) {
+    public void setWarmup(final int warmup) {
         this.warmup = warmup;
     }
-
+    
     /**
      * is status.
      *
@@ -172,29 +171,36 @@ public class DivideUpstream {
     public boolean isStatus() {
         return status;
     }
-
+    
     /**
      * set status.
-     *
      * @param status status
      */
-    public void setStatus(boolean status) {
+    public void setStatus(final boolean status) {
         this.status = status;
     }
-
+    
+    /**
+     * get host of a upstream.
+     * @return String
+     */
     public String getUpstreamHost() {
         return upstreamHost;
     }
-
-    public void setUpstreamHost(String upstreamHost) {
+    
+    /**
+     * set host of a upstream.
+     * @param upstreamHost upstreamHost
+     */
+    public void setUpstreamHost(final String upstreamHost) {
         this.upstreamHost = upstreamHost;
     }
-
+    
     /**
      * class builder.
      */
     public static final class Builder {
-
+        
         /**
          * this is http protocol.
          */
@@ -219,88 +225,95 @@ public class DivideUpstream {
          * warmup.
          */
         private int warmup;
-
+        
         private boolean status;
-
+        
         /**
          * upstreamHost.
          */
         private String upstreamHost;
-
+        
         public Builder() {
         }
-
+        
+        /**
+         * build.
+         * @return DivideUpstream
+         */
         public DivideUpstream build() {
             return new DivideUpstream(this);
         }
-
+        
         /**
          * build protocol.
-         *
          * @param protocol protocol
          * @return this
          */
-        public Builder protocol(String protocol) {
+        public Builder protocol(final String protocol) {
             this.protocol = protocol;
             return this;
         }
-
+        
         /**
          * build upstreamUrl.
          *
          * @param upstreamUrl upstreamUrl
          * @return this
          */
-        public Builder upstreamUrl(String upstreamUrl) {
+        public Builder upstreamUrl(final String upstreamUrl) {
             this.upstreamUrl = upstreamUrl;
             return this;
         }
-
+        
         /**
          * build timestamp.
          *
          * @param timestamp timestamp
          * @return this
          */
-        public Builder timestamp(long timestamp) {
+        public Builder timestamp(final long timestamp) {
             this.timestamp = timestamp;
             return this;
         }
-
+        
         /**
          * build weight.
          *
          * @param weight weight
          * @return this
          */
-        public Builder weight(int weight) {
+        public Builder weight(final int weight) {
             this.weight = weight;
             return this;
         }
-
+        
         /**
          * build warmup.
          *
          * @param warmup warmup
          * @return this
          */
-        public Builder warmup(int warmup) {
+        public Builder warmup(final int warmup) {
             this.warmup = warmup;
             return this;
         }
-
+        
         /**
-         * build status
-         *
+         * build status.
          * @param status status
          * @return this
          */
-        public Builder status(boolean status) {
+        public Builder status(final boolean status) {
             this.status = status;
             return this;
         }
-
-        public Builder upstreamHost(String upstreamHost) {
+        
+        /**
+         * set host of a upstream builder.
+         * @param upstreamHost upstreamHost
+         * @return Builder
+         */
+        public Builder upstreamHost(final String upstreamHost) {
             this.upstreamHost = upstreamHost;
             return this;
         }

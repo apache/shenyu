@@ -115,6 +115,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             if (!Objects.isNull(discoveryRelDO)) {
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryRelDO.getDiscoveryHandlerId());
                 if (!Objects.isNull(discoveryHandlerDO)) {
+                    vo.setDiscoveryHandlerId(discoveryHandlerDO.getId());
                     vo.setListenerNode(discoveryHandlerDO.getListenerNode());
                     vo.setHandler(discoveryHandlerDO.getHandler());
                     DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
@@ -211,7 +212,6 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 discoveryProcessor.createDiscovery(discoveryDO);
             }
             if (fillDiscovery) {
-                discoveryProcessor.createDiscovery(discoveryDO);
                 // insert discovery handler
                 String discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();
                 DiscoveryHandlerDO discoveryHandlerDO = DiscoveryHandlerDO.builder()

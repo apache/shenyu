@@ -25,26 +25,39 @@ import org.apache.shenyu.e2e.engine.scenario.function.Waiting;
 @ShenYuScenarioParameter
 public interface BeforeEachSpec {
     
-    Checker getChecker();
-    
-    ResourcesData getResources();
-    
-    Waiting getWaiting();
-    
     BeforeEachSpec DEFAULT = new BeforeEachSpec() {
         @Override
         public Checker getChecker() {
             return Checker.DEFAULT;
         }
-    
+        
         @Override
         public ResourcesData getResources() {
             return ResourcesData.builder().build();
         }
-    
+        
         @Override
         public Waiting getWaiting() {
             return Waiting.DEFAULT;
         }
     };
+    
+    /**
+     * get before each spec checker.
+     * @return Checker
+     */
+    Checker getChecker();
+    
+    /**
+     * get before each resource data.
+     * @return ResourcesData
+     */
+    ResourcesData getResources();
+    
+    /**
+     * get before each waiting.
+     * @return Waiting
+     */
+    Waiting getWaiting();
+    
 }

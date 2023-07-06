@@ -24,5 +24,9 @@ import java.util.List;
 @FunctionalInterface
 public interface ShenYuScenarioProvider {
     
+    /**
+     * get scenario specifications list.
+     * @return List
+     */
     List<ScenarioSpec> get();
 }

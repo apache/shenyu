@@ -33,9 +33,9 @@ import java.util.Objects;
  */
 public class HostServiceCompose implements ServiceCompose {
     
-    private HostConfigure configure;
+    private final HostConfigure configure;
 
-    public HostServiceCompose(HostConfigure configure) {
+    public HostServiceCompose(final HostConfigure configure) {
         this.configure = configure;
     }
 
@@ -47,7 +47,11 @@ public class HostServiceCompose implements ServiceCompose {
     public HostConfigure getConfigure() {
         return configure;
     }
-
+    
+    /**
+     * start.
+     */
+    @Override
     public void start() {
         List<HostServiceConfigure> configures = Lists.newArrayList(configure.getExternalServices());
         if (Objects.nonNull(configure.getAdmin())) {
@@ -60,19 +64,19 @@ public class HostServiceCompose implements ServiceCompose {
     }
     
     @Override
-    public AdminClient newAdminClient(String scenarioId) {
+    public AdminClient newAdminClient(final String scenarioId) {
         HostServiceConfigure adminConfigure = configure.getAdmin();
         return new AdminClient(scenarioId, adminConfigure.getBaseUrl(), adminConfigure.getProperties());
     }
     
     @Override
-    public GatewayClient newGatewayClient(String scenarioId) {
+    public GatewayClient newGatewayClient(final String scenarioId) {
         HostServiceConfigure gatewayConfigure = configure.getGateway();
         return new GatewayClient(scenarioId, gatewayConfigure.getBaseUrl(), gatewayConfigure.getProperties());
     }
     
     @Override
-    public ExternalServiceClient newExternalServiceClient(String externalServiceName) {
+    public ExternalServiceClient newExternalServiceClient(final String externalServiceName) {
         HostServiceConfigure serviceConfigure = configure.getExternalServices().stream()
                 .filter(e -> externalServiceName.equals(e.getServiceName()))
                 .findFirst()
@@ -80,6 +84,10 @@ public class HostServiceCompose implements ServiceCompose {
         return new ExternalServiceClient(serviceConfigure.getBaseUrl(), serviceConfigure.getProperties());
     }
     
+    /**
+     * stop.
+     */
+    @Override
     public void stop() {
     
     }

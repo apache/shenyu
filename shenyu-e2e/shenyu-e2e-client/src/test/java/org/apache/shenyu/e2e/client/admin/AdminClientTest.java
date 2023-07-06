@@ -62,20 +62,20 @@ public class AdminClientTest {
 
     private static final Logger log = LoggerFactory.getLogger(AdminClientTest.class);
 
-    static AdminClient client;
-
-    static GenericContainer<?> container = new GenericContainer<>("shenyu/admin:latest")
+    private static AdminClient client;
+    
+    private static final GenericContainer<?> CONTAINER = new GenericContainer<>("shenyu/admin:latest")
             .withExposedPorts(9095)
             .withLogConsumer(new Slf4jLogConsumer(log));
     
-    SelectorDTO selector;
-
-    RuleDTO rule;
+    private SelectorDTO selector;
+    
+    private RuleDTO rule;
     
     @BeforeAll
     static void setup() {
-        container.start();
-        container.waitingFor(new HttpWaitStrategy()
+        CONTAINER.start();
+        CONTAINER.waitingFor(new HttpWaitStrategy()
                 .allowInsecure()
                 .forPort(9095)
                 .withMethod("GET")
@@ -88,7 +88,7 @@ public class AdminClientTest {
         properties.put("username", "admin");
         properties.put("password", "123456");
         
-        client = new AdminClient("shenyu-e2e", "http://localhost:" + container.getMappedPort(9095), properties);
+        client = new AdminClient("shenyu-e2e", "http://localhost:" + CONTAINER.getMappedPort(9095), properties);
         client.login();
     }
     
