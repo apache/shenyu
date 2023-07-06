@@ -65,6 +65,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
         String maxSleepTimeMilliseconds = config.getProps().getProperty("maxSleepTimeMilliseconds", "1000");
         String connectionTimeoutMilliseconds = config.getProps().getProperty("connectionTimeoutMilliseconds", "1000");
         String sessionTimeoutMilliseconds = config.getProps().getProperty("sessionTimeoutMilliseconds", "1000");
+        String namespace = config.getProps().getProperty("namespace", "");
         String digest = config.getProps().getProperty("digest", null);
         ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(Integer.parseInt(baseSleepTimeMilliseconds), Integer.parseInt(maxRetries), Integer.parseInt(maxSleepTimeMilliseconds));
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
@@ -72,7 +73,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
                 .retryPolicy(retryPolicy)
                 .connectionTimeoutMs(Integer.parseInt(connectionTimeoutMilliseconds))
                 .sessionTimeoutMs(Integer.parseInt(sessionTimeoutMilliseconds))
-                .namespace(config.getName());
+                .namespace(namespace);
         if (StringUtils.isNoneBlank(digest)) {
             builder.authorization("digest", digest.getBytes(StandardCharsets.UTF_8));
         }
@@ -84,7 +85,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
         this.client.getConnectionStateListenable().addListener((c, newState) -> {
             if (newState == ConnectionState.RECONNECTED) {
                 nodeDataMap.forEach((k, v) -> {
-                    if (!this.isExist(k)) {
+                    if (!this.exits(k)) {
                         this.createOrUpdate(k, v, CreateMode.EPHEMERAL);
                         LOGGER.info("zookeeper client register instance success: key={}|value={}", k, v);
                     }
@@ -101,7 +102,8 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-    private boolean isExist(final String key) {
+    @Override
+    public Boolean exits(final String key) {
         try {
             return null != client.checkExists().forPath(key);
         } catch (Exception e) {
@@ -183,16 +185,6 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
                 datas.add(new String(data, StandardCharsets.UTF_8));
             }
             return datas;
-        } catch (Exception e) {
-            throw new ShenyuException(e);
-        }
-    }
-
-    @Override
-    public Boolean exits(final String key) {
-        try {
-            Stat stat = this.client.checkExists().forPath(key);
-            return stat != null;
         } catch (Exception e) {
             throw new ShenyuException(e);
         }

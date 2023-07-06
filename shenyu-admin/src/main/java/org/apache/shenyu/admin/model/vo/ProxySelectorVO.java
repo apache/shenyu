@@ -62,6 +62,11 @@ public class ProxySelectorVO implements Serializable {
     private String handler;
 
     /**
+     * discoveryHandlerId.
+     */
+    private String discoveryHandlerId;
+
+    /**
      * createTime.
      */
 
@@ -108,7 +113,7 @@ public class ProxySelectorVO implements Serializable {
      * @param props props
      */
     public ProxySelectorVO(final String id, final String name, final Integer forwardPort, final String type, final String listenerNode,
-                           final String handler, final Timestamp createTime, final Timestamp updateTime, final DiscoveryDTO discovery,
+                           final String handler, final String discoveryHandlerId, final Timestamp createTime, final Timestamp updateTime, final DiscoveryDTO discovery,
                            final List<DiscoveryUpstreamDTO> discoveryUpstreams, final String props) {
         this.id = id;
         this.name = name;
@@ -116,6 +121,7 @@ public class ProxySelectorVO implements Serializable {
         this.type = type;
         this.listenerNode = listenerNode;
         this.handler = handler;
+        this.discoveryHandlerId = discoveryHandlerId;
         this.discovery = discovery;
         this.discoveryUpstreams = discoveryUpstreams;
         this.createTime = createTime;
@@ -221,6 +227,24 @@ public class ProxySelectorVO implements Serializable {
      */
     public String getHandler() {
         return handler;
+    }
+
+    /**
+     * getDiscoveryHandlerId.
+     *
+     * @return discoveryHandlerId
+     */
+    public String getDiscoveryHandlerId() {
+        return discoveryHandlerId;
+    }
+
+    /**
+     * setDiscoveryHandlerId.
+     *
+     * @param discoveryHandlerId discoveryHandlerId
+     */
+    public void setDiscoveryHandlerId(final String discoveryHandlerId) {
+        this.discoveryHandlerId = discoveryHandlerId;
     }
 
     /**
