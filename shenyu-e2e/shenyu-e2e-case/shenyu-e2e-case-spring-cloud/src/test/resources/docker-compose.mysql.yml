@@ -59,7 +59,7 @@ services:
       apollo-portal:
         condition: service_healthy
     volumes:
-      - ../../../../../shenyu-admin/target/classes/application.yml:/opt/shenyu-admin/conf/application.yml
+      - ../../../../../shenyu-admin/src/main/resources/application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
 
   eureka:
@@ -97,7 +97,7 @@ services:
       admin:
         condition: service_healthy
     volumes:
-      - ../../../../../shenyu-bootstrap/target/classes/application.yml:/opt/shenyu-bootstrap/conf/application.yml
+      - ../../../../../shenyu-bootstrap/src/main/resources/application.yml:/opt/shenyu-bootstrap/conf/application.yml
 
   mysql:
     image: mysql:8
