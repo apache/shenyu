@@ -31,10 +31,12 @@ public enum PluginEnum {
      * Global plugin enum.
      */
     GLOBAL(-1, 0, "global"),
+    
     /**
      * Tcp plugin enum.
      */
     TCP(0, 0, "tcp"),
+    
     /**
      * Mqtt plugin enum.
      */
@@ -114,8 +116,6 @@ public enum PluginEnum {
      * Request plugin enum.
      */
     REQUEST(120, 0, "request"),
-
-
     
     /**
      * GeneralContext plugin enum.
