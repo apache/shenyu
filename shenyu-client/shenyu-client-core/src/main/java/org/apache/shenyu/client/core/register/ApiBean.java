@@ -73,6 +73,11 @@ public class ApiBean {
      */
     private final Properties beanProperties = new Properties();
     
+    /**
+     * status.
+     */
+    private Status status = Status.INIT;
+    
     public ApiBean(@NonNull final String clientName, @NonNull final String beanName, @NonNull final Object beanInstance, @NonNull final List<ApiDefinition> apiDefinitions) {
         this.clientName = clientName;
         this.beanName = beanName;
@@ -189,6 +194,24 @@ public class ApiBean {
     }
     
     /**
+     * get status.
+     *
+     * @return status
+     */
+    public Status getStatus() {
+        return status;
+    }
+    
+    /**
+     * set status.
+     *
+     * @param status status
+     */
+    public void setStatus(final Status status) {
+        this.status = status;
+    }
+    
+    /**
      * Gets annotation from Bean Class.
      *
      * @param annotationClass annotation class
@@ -258,6 +281,11 @@ public class ApiBean {
          * The properties of each client are different.
          */
         private final Properties apiProperties = new Properties();
+        
+        /**
+         * status.
+         */
+        private Status status;
         
         public ApiDefinition(final Method apiMethod) {
             this.apiMethod = apiMethod;
@@ -358,6 +386,23 @@ public class ApiBean {
             return apiBean;
         }
         
+        /**
+         * get status.
+         *
+         * @return staus
+         */
+        public Status getStatus() {
+            return status;
+        }
+        
+        /**
+         * set status.
+         *
+         * @param status status
+         */
+        public void setStatus(final Status status) {
+            this.status = status;
+        }
         
         /**
          * Get the annotation from Method.
@@ -382,5 +427,44 @@ public class ApiBean {
                             .collect(Collectors.joining(",")))
                     .orElse(null);
         }
+    }
+    
+    public enum Status {
+        
+        /**
+         * init status.
+         */
+        INIT,
+        
+        /**
+         * Cannot be registered.
+         */
+        CAN_NO_BE_REGISTERED,
+        
+        /**
+         * Registrable.
+         */
+        REGISTRABLE,
+        
+        /**
+         * Registrable(only api).
+         * <br>
+         * Only register APIs included in the bean.
+         */
+        REGISTRABLE_API,
+        
+        /**
+         * Registrable(only bean).
+         * <br>
+         * A registrable bean means that the bean needs to be registered, ignoring the APIs in it.
+         */
+        REGISTRABLE_BEAN,
+        
+        /**
+         * Already registered.
+         * <br>
+         * Status that has already been registered should be skipped
+         */
+        REGISTERED
     }
 }
