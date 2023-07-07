@@ -59,13 +59,15 @@ public class TcpBootstrapServer implements BootstrapServer {
 
     @Override
     public void start(final TcpServerConfiguration tcpServerConfiguration) {
-        String loadBalanceAlgorithm = tcpServerConfiguration.getProps().getOrDefault("shenyu.tcpPlugin.tcpServerConfiguration.props.loadBalanceAlgorithm", "random").toString();
+        final String loadBalanceAlgorithm = tcpServerConfiguration.getProps().getOrDefault("loadBalanceAlgorithm", "random").toString();
+        final String bossGroupThreadCount = tcpServerConfiguration.getProps().getOrDefault("bossGroupThreadCount", "1").toString();
+        final String workerGroupThreadCount = tcpServerConfiguration.getProps().getOrDefault("workerGroupThreadCount", "12").toString();
         DefaultConnectionConfigProvider connectionConfigProvider = new DefaultConnectionConfigProvider(loadBalanceAlgorithm, tcpServerConfiguration.getPluginSelectorName());
         this.bridge = new TcpConnectionBridge();
         connectionContext = new ConnectionContext(connectionConfigProvider);
         connectionContext.init(tcpServerConfiguration.getProps());
-        LoopResources loopResources = LoopResources.create("shenyu-tcp-bootstrap-server", tcpServerConfiguration.getBossGroupThreadCount(),
-                tcpServerConfiguration.getWorkerGroupThreadCount(), true);
+        LoopResources loopResources = LoopResources.create("shenyu-tcp-bootstrap-server", Integer.parseInt(bossGroupThreadCount),
+                Integer.parseInt(workerGroupThreadCount), true);
         TcpServer tcpServer = TcpServer.create()
                 .doOnChannelInit((connObserver, channel, remoteAddress) -> channel.pipeline().addFirst(new LoggingHandler(LogLevel.INFO)))
                 .wiretap(true)

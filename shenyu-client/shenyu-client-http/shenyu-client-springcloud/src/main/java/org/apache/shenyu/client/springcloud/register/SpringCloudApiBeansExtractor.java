@@ -66,6 +66,11 @@ public class SpringCloudApiBeansExtractor extends BaseAnnotationApiBeansExtracto
         // rewrite api path
         api.setBeanPath(beanPath);
         
+        if (Objects.nonNull(requestMapping)) {
+            api.addProperties("consumes", String.join(",", requestMapping.consumes()));
+            api.addProperties("produces", String.join(",", requestMapping.produces()));
+        }
+        
         // Get additional values from the annotation.
         super.apiPostProcess(api);
     }
@@ -77,6 +82,9 @@ public class SpringCloudApiBeansExtractor extends BaseAnnotationApiBeansExtracto
         final RequestMapping requestMapping = apiDefinition.getAnnotation(RequestMapping.class);
         // rewrite api path
         apiDefinition.setMethodPath(getPath(requestMapping));
+        
+        apiDefinition.addProperties("consumes", String.join(",", requestMapping.consumes()));
+        apiDefinition.addProperties("produces", String.join(",", requestMapping.produces()));
         
         // Get additional values from the annotation.
         super.definitionPostProcess(apiDefinition);
