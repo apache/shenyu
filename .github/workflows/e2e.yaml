@@ -207,7 +207,7 @@ jobs:
     needs:
       - changes
       - e2e
-      - e2e-other
+      - e2e-case
     runs-on: ubuntu-latest
     steps:
       - name: checking job status
