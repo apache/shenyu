@@ -1,0 +1,109 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: k8s-e2e-test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  k8s-shenyu-e2e:
+    runs-on: ubuntu-latest
+    if: (github.repository == 'apache/shenyu')
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: '.github/filters.yml'
+          list-files: json
+
+      - name: Install k8s
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE=777 sh -
+          cat /etc/rancher/k3s/k3s.yaml
+          mkdir -p ~/.kube
+          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+
+      - name: Cache Maven Repos
+        if: steps.filter.outputs.changed == 'true'
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - uses: actions/setup-java@v1
+        if: steps.filter.outputs.changed == 'true'
+        with:
+          java-version: 8
+
+      - name: Build Apache ShenYu with Maven
+        run: ./mvnw -B clean -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and Export Admin Image
+        uses: docker/build-push-action@v3
+        with:
+          context: ./shenyu-dist/shenyu-admin-dist
+          file: ./shenyu-dist/shenyu-admin-dist/docker/Dockerfile
+          build-args: APP_NAME=apache-shenyu-*-admin-bin
+          tags: shenyu/admin:latest
+          outputs: type=docker,dest=/tmp/apache-shenyu-admin.tar
+
+      - name: Build and Export Bootstrap Image
+        uses: docker/build-push-action@v3
+        with:
+          context: ./shenyu-dist/shenyu-bootstrap-dist
+          file: ./shenyu-dist/shenyu-bootstrap-dist/docker/Dockerfile
+          build-args: APP_NAME=apache-shenyu-*-bootstrap-bin
+          tags: shenyu/bootstrap:latest
+          outputs: type=docker,dest=/tmp/apache-shenyu-bootstrap.tar
+
+      - name: Load ShenYu Docker Images
+        run: |
+          docker load --input /tmp/apache-shenyu-admin.tar
+          docker load --input /tmp/apache-shenyu-bootstrap.tar
+          docker image ls -a
+
+
+#      - name: Build k8s Cluster
+#        if: steps.filter.outputs.changed == 'true'
+#        run: |
+#          docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest shenyu-examples-http:latest | sudo k3s ctr images import -
+#          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-deployment.yml
+#          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-service.yml
+#          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http-deployment.yml
+#          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http-service.yml
+
+#      - name: Wait for k8s Cluster Start up
+#        if: steps.filter.outputs.changed == 'true'
+#        run: |
+#          bash ./shenyu-examples/shenyu-examples-http/k8s/script/healthcheck.sh
+#
+#      - name: Run e2e test
+#        if: steps.filter.outputs.changed == 'true'
+#        run: |
+#          bash ./shenyu-examples/shenyu-examples-http/k8s/script/e2e-test.sh
