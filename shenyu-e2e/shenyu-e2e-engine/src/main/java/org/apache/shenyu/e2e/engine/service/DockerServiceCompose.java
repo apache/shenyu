@@ -55,9 +55,9 @@ public class DockerServiceCompose implements ServiceCompose {
 
     private static final Logger log = LoggerFactory.getLogger(DockerServiceCompose.class);
 
-    private static final String GATEWAY_YML_LOCATION = "../../../shenyu-bootstrap/src/main/resources/application.yml";
+    private static final String GATEWAY_YML_LOCATION = "../../../shenyu-bootstrap/target/classes/application.yml";
 
-    private static final String ADMIN_YML_LOCATION = "../../../shenyu-admin/src/main/resources/application.yml";
+    private static final String ADMIN_YML_LOCATION = "../../../shenyu-admin/target/classes/application.yml";
 
     private final DockerComposeContainer<?> container;
 

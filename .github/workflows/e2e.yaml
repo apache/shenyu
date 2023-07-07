@@ -142,7 +142,7 @@ jobs:
           bash ./shenyu-e2e/script/storage_init.sh
           ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -Dstorage=${{ matrix.storage }} test
 
-  e2e-other:
+  e2e-case:
     runs-on: ubuntu-latest
     needs:
       - changes
@@ -176,6 +176,12 @@ jobs:
 
       - name: Build examples with Maven
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
+
+      - name: Build ShenYu admin
+        run: ./mvnw -B clean -f shenyu-admin/pom.xml
+
+      - name: Build ShenYu bootstrap
+        run: ./mvnw -B clean -f shenyu-bootstrap/pom.xml
 
       - uses: actions/checkout@v3
         with:

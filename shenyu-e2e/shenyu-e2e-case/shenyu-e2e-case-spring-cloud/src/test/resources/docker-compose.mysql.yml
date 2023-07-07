@@ -25,8 +25,8 @@ services:
       - 2181
 
   nacos:
-#    image: nacos/nacos-server:v2.2.3-slim
-    image: nacos/nacos-server:v2.2.3
+    image: nacos/nacos-server:v2.2.3-slim
+#    image: nacos/nacos-server:v2.2.3
     environment:
       - TZ=Asia/Shanghai
       - MODE=standalone
@@ -45,11 +45,11 @@ services:
       - 9095
     ports:
       - "9095:9095"
-    environment:
-      - SPRING_PROFILES_ACTIVE=mysql
-      - spring.datasource.username=shenyue2e
-      - spring.datasource.password=123456
-      - spring.datasource.url=jdbc:mysql://mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=mysql
+#      - spring.datasource.username=shenyue2e
+#      - spring.datasource.password=123456
+#      - spring.datasource.url=jdbc:mysql://mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://admin:9095/actuator/health | grep UP || exit 1" ]
       timeout: 2s
@@ -59,8 +59,8 @@ services:
       apollo-portal:
         condition: service_healthy
     volumes:
-      - ../../../../../shenyu-admin/src/main/resources/application.yml:/opt/shenyu-admin/conf/application.yml
-      - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
+      - ../../../../../shenyu-admin/target/classes/application.yml:/opt/shenyu-admin/conf/application.yml
+#      - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
 
   eureka:
     image: shenyu-examples-eureka:latest
@@ -97,7 +97,7 @@ services:
       admin:
         condition: service_healthy
     volumes:
-      - ../../../../../shenyu-bootstrap/src/main/resources/application.yml:/opt/shenyu-bootstrap/conf/application.yml
+      - ../../../../../shenyu-bootstrap/target/classes/application.yml:/opt/shenyu-bootstrap/conf/application.yml
 
   mysql:
     image: mysql:8
@@ -113,7 +113,7 @@ services:
     volumes:
       - ./apolloconfigdb.sql:/docker-entrypoint-initdb.d/apolloconfigdb.sql
       - ./apolloportaldb.sql:/docker-entrypoint-initdb.d/apolloportaldb.sql
-      - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+#      - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
 
   apollo-configservice:
     image: apolloconfig/apollo-configservice:2.1.0
@@ -126,8 +126,10 @@ services:
       - EUREKA_INSTANCE_IP_ADDRESS=localhost
       - EUREKA_INSTANCE_HOME_PAGE_URL=http://apollo-configservice:8080
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=shenyue2e
-      - SPRING_DATASOURCE_PASSWORD=123456
+#      - SPRING_DATASOURCE_USERNAME=shenyue2e
+#      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123123
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://apollo-configservice:8080/health" ]
       interval: 10s
@@ -149,8 +151,10 @@ services:
       - TZ='Asia/Shanghai'
       - SERVER_PORT=8090
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=shenyue2e
-      - SPRING_DATASOURCE_PASSWORD=123456
+#      - SPRING_DATASOURCE_USERNAME=shenyue2e
+#      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123123
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8090/health" ]
       interval: 10s
@@ -172,8 +176,10 @@ services:
       - APOLLO_PORTAL_ENVS=dev
       - DEV_META=http://apollo-configservice:8080
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloPortalDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=shenyue2e
-      - SPRING_DATASOURCE_PASSWORD=123456
+#      - SPRING_DATASOURCE_USERNAME=shenyue2e
+#      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123123
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8070/health" ]
       interval: 10s
