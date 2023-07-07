@@ -28,14 +28,6 @@ public class TcpServerConfiguration {
 
     private int port = 9500;
 
-    private int bossGroupThreadCount = 1;
-
-    private int maxPayloadSize = 65536;
-
-    private int workerGroupThreadCount = 12;
-
-    private String leakDetectorLevel = "DISABLED";
-
     private Properties props = new Properties();
 
     /**
@@ -72,78 +64,6 @@ public class TcpServerConfiguration {
      */
     public void setPort(final int port) {
         this.port = port;
-    }
-
-    /**
-     * get bossGroupThreadCount.
-     *
-     * @return bossGroupThreadCount
-     */
-    public int getBossGroupThreadCount() {
-        return bossGroupThreadCount;
-    }
-
-    /**
-     * set bossGroupThreadCount.
-     *
-     * @param bossGroupThreadCount bossGroupThreadCount
-     */
-    public void setBossGroupThreadCount(final int bossGroupThreadCount) {
-        this.bossGroupThreadCount = bossGroupThreadCount;
-    }
-
-    /**
-     * get maxPayloadSize.
-     *
-     * @return maxPayloadSize
-     */
-    public int getMaxPayloadSize() {
-        return maxPayloadSize;
-    }
-
-    /**
-     * set maxPayloadSize.
-     *
-     * @param maxPayloadSize maxPayloadSize
-     */
-    public void setMaxPayloadSize(final int maxPayloadSize) {
-        this.maxPayloadSize = maxPayloadSize;
-    }
-
-    /**
-     * get workerGroupThreadCount.
-     *
-     * @return workerGroupThreadCount
-     */
-    public int getWorkerGroupThreadCount() {
-        return workerGroupThreadCount;
-    }
-
-    /**
-     * set workerGroupThreadCount.
-     *
-     * @param workerGroupThreadCount workerGroupThreadCount
-     */
-    public void setWorkerGroupThreadCount(final int workerGroupThreadCount) {
-        this.workerGroupThreadCount = workerGroupThreadCount;
-    }
-
-    /**
-     * get leakDetectorLevel.
-     *
-     * @return leakDetectorLevel
-     */
-    public String getLeakDetectorLevel() {
-        return leakDetectorLevel;
-    }
-
-    /**
-     * set leakDetectorLevel.
-     *
-     * @param leakDetectorLevel leakDetectorLevel
-     */
-    public void setLeakDetectorLevel(final String leakDetectorLevel) {
-        this.leakDetectorLevel = leakDetectorLevel;
     }
 
     /**

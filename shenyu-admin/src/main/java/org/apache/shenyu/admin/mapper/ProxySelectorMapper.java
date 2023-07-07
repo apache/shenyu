@@ -112,4 +112,11 @@ public interface ProxySelectorMapper extends ExistProvider {
      */
     List<ProxySelectorDO> selectByDiscoveryId(@Param("discoveryId") String discoveryId);
 
+    /**
+     * selectAll.
+     *
+     * @return ProxySelectorDOList
+     */
+    List<ProxySelectorDO> selectAll();
+
 }

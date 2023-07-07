@@ -19,34 +19,42 @@ package org.apache.shenyu.client.core.register;
 
 import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
 import org.apache.shenyu.client.core.register.registrar.ApiRegistrar;
-import org.springframework.context.ApplicationContext;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class ClientApiRefreshedEventListener implements ApplicationListener<ContextRefreshedEvent> {
-
+    
     private final List<ApiRegistrar> apiRegistrars;
-
+    
     private final ApiBeansExtractor apiBeanExtractor;
-
+    
     public ClientApiRefreshedEventListener(final List<ApiRegistrar> apiRegistrars, final ApiBeansExtractor apiBeanExtractor) {
-
         this.apiBeanExtractor = apiBeanExtractor;
-
         this.apiRegistrars = apiRegistrars;
     }
-
+    
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
-
-        ApplicationContext applicationContext = event.getApplicationContext();
-
-        List<ApiBean> apiBeans = apiBeanExtractor.extract(applicationContext);
-
-        apiBeans.forEach(apiBean ->
-                apiRegistrars.forEach(registrar -> registrar.register(apiBean))
-        );
+        // Collect all types of RPC client APIs
+        List<ApiBean> apiBeans = apiBeanExtractor.extract(event.getApplicationContext());
+        // Register different metadata
+        for (ApiRegistrar registrar : apiRegistrars) {
+            // Optimization point: parallel registration
+            // Each registrar holds a copy of the full API information,
+            // which is not complete and can be modified during the registration process
+            
+            registrar.register(copy(apiBeans));
+        }
+    }
+    
+    @NotNull
+    private static List<ApiBean> copy(final List<ApiBean> apiBeans) {
+        return apiBeans.stream()
+                .map(ApiBean::copy)
+                .collect(Collectors.toList());
     }
 }

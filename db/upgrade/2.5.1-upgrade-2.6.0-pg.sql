@@ -39,3 +39,86 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1572621976689762309', 'loadBalance',
 /* add column into plugin table */
 ALTER TABLE "public"."plugin" ADD COLUMN plugin_jar bytea NULL;
 COMMENT ON COLUMN "public"."plugin".plugin_jar IS 'plugin jar';
+
+/* create new tables discovery,discovery_handler,discovery_rel,discovery_upstream,proxy_selector for discovery */
+CREATE TABLE "public"."discovery" (
+    "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "level" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+    "plugin_name" varchar(255) COLLATE "pg_catalog"."default",
+    "type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+    "server_list" varchar(255) COLLATE "pg_catalog"."default",
+    "props" text COLLATE "pg_catalog"."default",
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."discovery"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."discovery"."name" IS 'the discovery name';
+COMMENT ON COLUMN "public"."discovery"."level" IS '0 selector,1 plugin  2 global';
+COMMENT ON COLUMN "public"."discovery"."plugin_name" IS 'the plugin name';
+COMMENT ON COLUMN "public"."discovery"."type" IS 'local,zookeeper,etcd,consul,nacos';
+COMMENT ON COLUMN "public"."discovery"."server_list" IS 'register server url (,)';
+COMMENT ON COLUMN "public"."discovery"."props" IS 'the discovery pops (json) ';
+COMMENT ON COLUMN "public"."discovery"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."discovery"."date_updated" IS 'update time';
+
+
+CREATE TABLE "public"."discovery_handler" (
+    "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "handler" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "listener_node" varchar(255) COLLATE "pg_catalog"."default",
+    "props" text COLLATE "pg_catalog"."default",
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."discovery_handler"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."discovery_handler"."discovery_id" IS 'the discovery id';
+COMMENT ON COLUMN "public"."discovery_handler"."handler" IS 'the handler';
+COMMENT ON COLUMN "public"."discovery_handler"."listener_node" IS 'register server listener to node';
+COMMENT ON COLUMN "public"."discovery_handler"."props" IS 'the discovery pops (json) ';
+COMMENT ON COLUMN "public"."discovery_handler"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."discovery_handler"."date_updated" IS 'update time';
+
+CREATE TABLE "public"."discovery_rel" (
+    "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "plugin_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_handler_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "selector_id" varchar(128) COLLATE "pg_catalog"."default",
+    "proxy_selector_id" varchar(128) COLLATE "pg_catalog"."default",
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."discovery_rel"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."discovery_rel"."plugin_name" IS 'the plugin name';
+COMMENT ON COLUMN "public"."discovery_rel"."discovery_handler_id" IS 'the discovery handler id';
+COMMENT ON COLUMN "public"."discovery_rel"."selector_id" IS 'the selector id';
+COMMENT ON COLUMN "public"."discovery_rel"."proxy_selector_id" IS 'the proxy selector id';
+COMMENT ON COLUMN "public"."discovery_rel"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."discovery_rel"."date_updated" IS 'update time';
+
+CREATE TABLE "public"."proxy_selector"
+(
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name"         varchar(128) COLLATE "pg_catalog"."default",
+    "plugin_name"  varchar(128) COLLATE "pg_catalog"."default",
+    "type"         varchar(128) COLLATE "pg_catalog"."default",
+    "forward_port" int4 NOT NULL,
+    "props"        text COLLATE "pg_catalog"."default",
+    "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+;
+COMMENT ON COLUMN "public"."proxy_selector"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."proxy_selector"."name" IS 'the proxy_selector name';
+COMMENT ON COLUMN "public"."proxy_selector"."plugin_name" IS 'the plugin name';
+COMMENT ON COLUMN "public"."proxy_selector"."type" IS 'the type ';
+COMMENT ON COLUMN "public"."proxy_selector"."forward_port" IS 'the forward port';
+COMMENT ON COLUMN "public"."proxy_selector"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."proxy_selector"."date_updated" IS 'update time';
+
+
+INSERT INTO "public"."plugin" VALUES ('42', 'tcp', null, 'Proxy', 320, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);

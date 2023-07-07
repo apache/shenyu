@@ -19,8 +19,21 @@ package org.apache.shenyu.client.core.register.registrar;
 
 import org.apache.shenyu.client.core.register.ApiBean;
 
-public interface ApiRegistrar {
+import java.util.List;
 
+public interface ApiRegistrar {
+    
+    /**
+     * Registers ApiBean.
+     *
+     * @param beans apiBean to register
+     */
+    default void register(List<ApiBean> beans) {
+        for (ApiBean bean : beans) {
+            register(bean);
+        }
+    }
+    
     /**
      * Registers ApiBean.
      *

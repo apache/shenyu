@@ -44,3 +44,163 @@ VALUES ('1545812228228259845', 'loadBalance', 'LOAD_BALANCE', 'shortestResponse'
 /* add column into plugin table */
 ALTER TABLE plugin ADD plugin_jar BLOB NULL;
 COMMENT ON COLUMN plugin.plugin_jar IS 'plugin jar';
+
+
+
+/* create new tables discovery,discovery_handler,discovery_rel,discovery_upstream,proxy_selector for discovery */
+create table discovery
+(
+    id                VARCHAR2(128) not null,
+    name            VARCHAR2(255) not null,
+    level            VARCHAR2(64) not null,
+    plugin_name      VARCHAR2(255),
+    type            VARCHAR2(64) not null,
+    server_list      VARCHAR2(255),
+    props            CLOB,
+    date_created      timestamp(3) default SYSDATE not null,
+    date_updated      timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the columns
+comment on column DISCOVERY.id
+  is 'primary key id';
+comment on column DISCOVERY.name
+  is 'the discovery name';
+comment on column DISCOVERY.level
+  is '0 selector,1 plugin  2 global';
+comment on column DISCOVERY.plugin_name
+  is 'the plugin name';
+comment on column DISCOVERY.type
+  is 'local,zookeeper,etcd,consul,nacos';
+comment on column DISCOVERY.server_list
+  is 'register server url (,)';
+comment on column DISCOVERY.props
+  is 'the discovery pops (json)';
+comment on column DISCOVERY.date_created
+  is 'create time';
+comment on column DISCOVERY.date_updated
+  is 'update time';
+
+
+create table discovery_handler
+(
+    id                VARCHAR2(128) not null,
+    discovery_id            VARCHAR2(128) not null,
+    handler            VARCHAR2(255) not null,
+    listener_node      VARCHAR2(255),
+    props            CLOB,
+    date_created      timestamp(3) default SYSDATE not null,
+    date_updated      timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the columns
+comment on column DISCOVERY_HANDLER.id
+  is 'primary key id';
+comment on column DISCOVERY_HANDLER.discovery_id
+  is 'the discovery id';
+comment on column DISCOVERY_HANDLER.handler
+  is 'the handler';
+comment on column DISCOVERY_HANDLER.listener_node
+  is 'register server listener to node';
+comment on column DISCOVERY_HANDLER.props
+  is 'the discovery pops (json)';
+comment on column DISCOVERY_HANDLER.date_created
+  is 'create time';
+comment on column DISCOVERY_HANDLER.date_updated
+  is 'update time';
+
+
+create table discovery_rel
+(
+    id                VARCHAR2(128) not null,
+    plugin_name      VARCHAR2(255) not null,
+    discovery_handler_id            VARCHAR2(128) not null,
+    selector_id      VARCHAR2(128),
+    proxy_selector_id      VARCHAR2(128),
+    date_created      timestamp(3) default SYSDATE not null,
+    date_updated      timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the columns
+comment on column DISCOVERY_REL.id
+  is 'primary key id';
+comment on column DISCOVERY_REL.plugin_name
+  is 'the plugin name';
+comment on column DISCOVERY_REL.discovery_handler_id
+  is 'the discovery handler id';
+comment on column DISCOVERY_REL.selector_id
+  is 'the selector id';
+comment on column DISCOVERY_REL.proxy_selector_id
+  is 'the proxy selector id';
+comment on column DISCOVERY_REL.date_created
+  is 'create time';
+comment on column DISCOVERY_REL.date_updated
+  is 'update time';
+
+
+create table discovery_upstream
+(
+    id                VARCHAR2(128) not null,
+    discovery_handler_id   VARCHAR2(128) not null,
+    protocol            VARCHAR2(64),
+    url      VARCHAR2(64) not null,
+    status      NUMBER(10) not null,
+    weight      NUMBER(10)  not null,
+    props       CLOB,
+    date_created      timestamp(3) default SYSDATE not null,
+    date_updated      timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the columns
+comment on column DISCOVERY_UPSTREAM.id
+  is 'primary key id';
+comment on column DISCOVERY_UPSTREAM.discovery_handler_id
+  is 'the discovery handler id';
+comment on column DISCOVERY_UPSTREAM.protocol
+  is 'for http, https, tcp, ws';
+comment on column DISCOVERY_UPSTREAM.url
+  is 'ip:port';
+comment on column DISCOVERY_UPSTREAM.status
+  is 'type (0, healthy, 1 unhealthy)';
+comment on column DISCOVERY_UPSTREAM.weight
+  is 'the weight for lists';
+comment on column DISCOVERY_UPSTREAM.props
+  is 'the discovery pops (json)';
+comment on column DISCOVERY_UPSTREAM.date_created
+  is 'create time';
+comment on column DISCOVERY_UPSTREAM.date_updated
+  is 'update time';
+
+
+create table proxy_selector
+(
+    id                VARCHAR2(128) not null,
+    name   VARCHAR2(255) not null,
+    plugin_name            VARCHAR2(255) not null,
+    type      VARCHAR2(64) not null,
+    forward_port      NUMBER(10) not null,
+    props       CLOB,
+    date_created      timestamp(3) default SYSDATE not null,
+    date_updated      timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the columns
+comment on column PROXY_SELECTOR.id
+  is 'primary key id';
+comment on column PROXY_SELECTOR.name
+  is 'the proxy name';
+comment on column PROXY_SELECTOR.plugin_name
+  is 'the plugin name';
+comment on column PROXY_SELECTOR.type
+  is 'proxy type for tcp, upd, ws';
+comment on column PROXY_SELECTOR.forward_port
+  is 'the proxy forward port';
+comment on column PROXY_SELECTOR.props
+  is 'the discovery pops (json)';
+comment on column PROXY_SELECTOR.date_created
+  is 'create time';
+comment on column PROXY_SELECTOR.date_updated
+  is 'update time';
+
+  INSERT INTO `plugin` VALUES ('42', 'tcp', NULL, 'Proxy', 320, 1, '2023-05-30 18:02:53', '2022-05-30 18:02:53',null);
+ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled, plugin_jar) VALUES ('42', 'tcp', 'Proxy', 320, null, '1', null);

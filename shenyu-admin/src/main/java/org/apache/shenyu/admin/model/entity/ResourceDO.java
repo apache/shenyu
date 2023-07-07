@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.CreateResourceDTO;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
@@ -24,8 +25,6 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
-
-import reactor.util.StringUtils;
 
 /**
  * The Resource Entity.

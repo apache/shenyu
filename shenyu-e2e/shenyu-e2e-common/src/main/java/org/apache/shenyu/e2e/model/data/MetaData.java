@@ -21,26 +21,59 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
+/**
+ * meta data.
+ */
 public class MetaData {
-
+    
+    /**
+     * id.
+     */
     private String id;
-
+    
+    /**
+     * app name.
+     */
     private String appName;
-
+    
+    /**
+     * context path.
+     */
     private String contextPath;
-
+    
+    /**
+     * path.
+     */
     private String path;
-
+    
+    /**
+     * rpc type.
+     */
     private String rpcType;
-
+    
+    /**
+     * service name.
+     */
     private String serviceName;
-
+    
+    /**
+     * method name.
+     */
     private String methodName;
-
+    
+    /**
+     * parameter types.
+     */
     private String parameterTypes;
-
+    
+    /**
+     * rpc extends.
+     */
     private String rpcExt;
-
+    
+    /**
+     * enabled or not.
+     */
     private Boolean enabled;
 
     /**

@@ -35,7 +35,7 @@ public interface DiscoveryService {
      * get the discovery by plugin and name.
      *
      * @param pluginName plugin name
-     * @param level level
+     * @param level      level
      * @return the discovery
      */
     DiscoveryVO discovery(String pluginName, String level);
@@ -47,4 +47,9 @@ public interface DiscoveryService {
      * @return the string
      */
     DiscoveryVO createOrUpdate(DiscoveryDTO discoveryDTO);
+
+    /**
+     * syncData.
+     */
+    void syncData();
 }

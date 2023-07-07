@@ -44,6 +44,9 @@ import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import java.util.List;
 
+/**
+ * Testing spring-cloud plugin.
+ */
 @ShenYuTest(
         mode = ShenYuEngineConfigure.Mode.DOCKER,
         services = {
@@ -54,29 +57,19 @@ import java.util.List;
                         parameters = {
                                 @ShenYuTest.Parameter(key = "username", value = "admin"),
                                 @ShenYuTest.Parameter(key = "password", value = "123456"),
+                                @ShenYuTest.Parameter(key = "dataSyn", value = "admin_websocket")
                         }
                 ),
                 @ShenYuTest.ServiceConfigure(
                         serviceName = "gateway",
                         port = 9195,
-                        baseUrl = "http://{hostname:localhost}:9195",
-                        type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
-                        parameters = {
-                                @ShenYuTest.Parameter(key = "application", value = "spring.cloud.discovery.enabled:true,eureka.client.enabled:true"),
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "websocket")
-                        }
-                )
-        },
-        dockerComposeFile = "classpath:./docker-compose.{storage:h2}.yml"
-)
-/**
- * Testing spring-cloud plugin.
- */
+                        baseUrl = "http://{hostname:localhost}:9195", type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY, parameters = {@ShenYuTest.Parameter(key = "application", value = "spring.cloud.discovery.enabled:true,eureka.client.enabled:true"), @ShenYuTest.Parameter(key = "dataSyn", value = "gateway_websocket")})}, dockerComposeFile = "classpath:./docker-compose.mysql.yml")
 public class SpringCloudPluginTest {
-    List<String> selectorIds = Lists.newArrayList();
-
+    
+    private List<String> selectorIds = Lists.newArrayList();
+    
     @BeforeAll
-    static void setup(AdminClient adminClient, GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
+    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
         Thread.sleep(10000);
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
@@ -85,13 +78,13 @@ public class SpringCloudPluginTest {
         Assertions.assertEquals(2, selectorDTOList.size());
         Assertions.assertEquals(13, metaDataDTOList.size());
         Assertions.assertEquals(14, ruleDTOList.size());
-
-        for (SelectorDTO selectorDTO :selectorDTOList) {
-            if (selectorDTO.getHandle() != null && selectorDTO.getHandle() != "") {
+        
+        for (SelectorDTO selectorDTO : selectorDTOList) {
+            if (selectorDTO.getHandle() != null && !"".equals(selectorDTO.getHandle())) {
                 SpringCloudPluginCases.verifierUri(selectorDTO.getHandle());
             }
         }
-
+        
         List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
@@ -100,16 +93,16 @@ public class SpringCloudPluginTest {
         Assertions.assertEquals(14, ruleCacheList.size());
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id","8");
-        formData.add("name","springCloud");
-        formData.add("enabled","true");
-        formData.add("role","Proxy");
-        formData.add("sort","200");
+        formData.add("id", "8");
+        formData.add("name", "springCloud");
+        formData.add("enabled", "true");
+        formData.add("role", "Proxy");
+        formData.add("sort", "200");
         adminClient.startPlugin("8", formData);
         String id = "";
-        for (int i = 0; i < selectorDTOList.size(); i++) {
-            if (selectorDTOList.get(i).getHandle() != "") {
-                id = selectorDTOList.get(i).getId();
+        for (SelectorDTO selectorDTO : selectorDTOList) {
+            if (!"".equals(selectorDTO.getHandle())) {
+                id = selectorDTO.getId();
             }
         }
         adminClient.deleteSelectors(id);
@@ -118,7 +111,7 @@ public class SpringCloudPluginTest {
     }
 
     @BeforeEach
-    void before(AdminClient client, GatewayClient gateway, BeforeEachSpec spec) {
+    void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
         spec.getChecker().check(gateway);
 
         ResourcesData resources = spec.getResources();
@@ -136,26 +129,26 @@ public class SpringCloudPluginTest {
     }
 
     @ShenYuScenario(provider = SpringCloudPluginCases.class)
-    void testSpringCloud(GatewayClient gateway, CaseSpec spec) {
+    void testSpringCloud(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 
     @AfterEach
-    void before(AdminClient client, GatewayClient gateway, AfterEachSpec spec) {
+    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
         spec.getDeleter().delete(client, selectorIds);
         spec.getPostChecker().check(gateway);
         selectorIds = Lists.newArrayList();
     }
 
     @AfterAll
-    static void teardown(AdminClient client) {
+    static void teardown(final AdminClient client) {
         client.deleteAllSelectors();
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id","8");
-        formData.add("name","springCloud");
-        formData.add("enabled","false");
-        formData.add("role","Proxy");
-        formData.add("sort","200");
+        formData.add("id", "8");
+        formData.add("name", "springCloud");
+        formData.add("enabled", "false");
+        formData.add("role", "Proxy");
+        formData.add("sort", "200");
         client.startPlugin("8", formData);
     }
 }

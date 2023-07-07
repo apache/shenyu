@@ -19,81 +19,111 @@ package org.apache.shenyu.client.springcloud.register;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.apache.shenyu.client.core.register.extractor.BaseAnnotationApiBeansExtractor;
+import org.apache.shenyu.client.core.register.extractor.RpcApiBeansExtractor;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.lang.reflect.Method;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
-public class SpringCloudApiBeansExtractor implements ApiBeansExtractor {
-
-    private final String contextPath;
-
-    public SpringCloudApiBeansExtractor(final String contextPath) {
-        this.contextPath = contextPath;
+/**
+ * Support for Spring Cloud. <br>
+ * Should inherit from SpringMvcApiBeansExtractor.
+ */
+public class SpringCloudApiBeansExtractor extends BaseAnnotationApiBeansExtractor implements RpcApiBeansExtractor {
+    
+    private final List<Class<? extends Annotation>> supportedApiAnnotations = new ArrayList<>(1);
+    
+    private final List<Class<? extends Annotation>> supportedApiDefinitionAnnotations = new ArrayList<>(1);
+    
+    public SpringCloudApiBeansExtractor() {
+        // Annotations supported by class
+        supportedApiAnnotations.add(Controller.class);
+        supportedApiAnnotations.add(RequestMapping.class);
+        
+        // Annotations supported by the method
+        supportedApiDefinitionAnnotations.add(RequestMapping.class);
     }
-
+    
     @Override
-    public List<ApiBean> extract(final ApplicationContext applicationContext) {
-        Map<String, Object> beanMap = applicationContext.getBeansWithAnnotation(Controller.class);
-
-        List<ApiBean> apiBeans = new ArrayList<>();
-
-        beanMap.forEach((k, v) -> {
-            bean2ApiBean(k, v).ifPresent(apiBeans::add);
-        });
-        return apiBeans;
+    public String clientName() {
+        return RpcTypeEnum.SPRING_CLOUD.getName();
     }
-
-    private Optional<ApiBean> bean2ApiBean(final String beanName, final Object bean) {
-
-        Class<?> targetClass = getCorrectedClass(bean);
-
-        RequestMapping classRequestMapping = AnnotationUtils.findAnnotation(targetClass, RequestMapping.class);
-
-        String beanPath = Objects.isNull(classRequestMapping) ? "" : getPath(classRequestMapping);
-
-        ApiBean apiBean = new ApiBean(contextPath, beanName, bean, beanPath, targetClass);
-
-        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(targetClass);
-
-        for (Method method : methods) {
-
-            final RequestMapping methodRequestMapping =
-                    AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
-            if (Objects.isNull(methodRequestMapping)) {
-                continue;
-            }
-            apiBean.addApiDefinition(method, getPath(methodRequestMapping));
+    
+    @Override
+    protected void apiPostProcess(final ApiBean api) {
+        // Get from annotations
+        // Currently only RequestMapping is supported
+        final RequestMapping requestMapping = api.getAnnotation(RequestMapping.class);
+        
+        String beanPath = Objects.isNull(requestMapping) ? "" : getPath(requestMapping);
+        // rewrite api path
+        api.setBeanPath(beanPath);
+        
+        if (Objects.nonNull(requestMapping)) {
+            api.addProperties("consumes", String.join(",", requestMapping.consumes()));
+            api.addProperties("produces", String.join(",", requestMapping.produces()));
         }
-
-        return Optional.of(apiBean);
+        
+        // Get additional values from the annotation.
+        super.apiPostProcess(api);
     }
-
-    private Class<?> getCorrectedClass(final Object bean) {
-
-        Class<?> clazz = bean.getClass();
-        if (AopUtils.isAopProxy(bean)) {
-            clazz = AopUtils.getTargetClass(bean);
-        }
-        return clazz;
+    
+    @Override
+    protected void definitionPostProcess(final ApiBean.ApiDefinition apiDefinition) {
+        // Get from annotations
+        // Currently only RequestMapping is supported
+        final RequestMapping requestMapping = apiDefinition.getAnnotation(RequestMapping.class);
+        // rewrite api path
+        apiDefinition.setMethodPath(getPath(requestMapping));
+        
+        apiDefinition.addProperties("consumes", String.join(",", requestMapping.consumes()));
+        apiDefinition.addProperties("produces", String.join(",", requestMapping.produces()));
+        
+        // Get additional values from the annotation.
+        super.definitionPostProcess(apiDefinition);
     }
-
+    
+    /**
+     * Add supported class annotations.
+     *
+     * @param annotation annotation
+     */
+    public void addSupportedApiAnnotations(final Class<? extends Annotation> annotation) {
+        supportedApiAnnotations.add(annotation);
+    }
+    
+    /**
+     * Add supported method annotations.
+     *
+     * @param annotation annotation
+     */
+    public void addSupportedApiDefinitionAnnotations(final Class<? extends Annotation> annotation) {
+        supportedApiDefinitionAnnotations.add(annotation);
+    }
+    
     private String getPath(@NonNull final RequestMapping requestMapping) {
         if (ArrayUtils.isEmpty(requestMapping.path())) {
             return "";
         }
         return requestMapping.path()[0];
+    }
+    
+    @NotNull
+    @Override
+    protected List<Class<? extends Annotation>> supportedApiAnnotations() {
+        return supportedApiAnnotations;
+    }
+    
+    @NotNull
+    @Override
+    protected List<Class<? extends Annotation>> supportedApiDefinitionAnnotations() {
+        return supportedApiDefinitionAnnotations;
     }
 }

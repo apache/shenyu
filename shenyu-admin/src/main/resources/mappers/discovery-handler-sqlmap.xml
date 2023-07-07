@@ -51,11 +51,22 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByDiscoveryId" resultType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+    <select id="selectByProxySelectorId" resultType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        SELECT
+        dh.id,
+        dh.date_created,
+        dh.date_updated,
+        dh.discovery_id,
+        dh.handler,
+        dh.listener_node
+        FROM discovery_handler dh inner join discovery_rel dr on dh.id = dr.discovery_handler_id
+        WHERE dr.proxy_selector_id = #{proxySelectorId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
         SELECT
         <include refid="Base_Column_List"/>
-        FROM discovery_handler
-        WHERE discovery_id = #{discovery_id, jdbcType=VARCHAR}
+        from discovery_handler
     </select>
 
     <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
