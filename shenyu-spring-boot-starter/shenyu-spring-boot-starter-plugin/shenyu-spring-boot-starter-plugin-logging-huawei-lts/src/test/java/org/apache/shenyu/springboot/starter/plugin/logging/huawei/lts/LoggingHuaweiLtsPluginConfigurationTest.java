@@ -30,12 +30,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Configuration
 @EnableConfigurationProperties
-public class LoggingTencentClsPluginConfigurationTest {
+public class LoggingHuaweiLtsPluginConfigurationTest {
     @Test
     public void testLoggingPlugin() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(LoggingHuaweiLtsPluginConfiguration.class))
-                .withBean(LoggingTencentClsPluginConfigurationTest.class)
+                .withBean(LoggingHuaweiLtsPluginConfigurationTest.class)
                 .withPropertyValues("debug=true")
                 .run(context -> {
                     ShenyuPlugin plugin = context.getBean("loggingHuaweiLtsPlugin", ShenyuPlugin.class);
