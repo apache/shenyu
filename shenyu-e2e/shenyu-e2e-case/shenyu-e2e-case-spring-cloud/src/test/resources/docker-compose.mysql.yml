@@ -40,7 +40,7 @@ services:
       - "9849:9849"
 
   admin:
-    image: apache/shenyu-admin:latest
+    image: shenyu/admin:latest
     expose:
       - 9095
     ports:
@@ -86,7 +86,7 @@ services:
       - eureka
 
   gateway:
-    image: apache/shenyu-bootstrap:latest
+    image: shenyu/bootstrap:latest
     environment:
       - eureka.client.serviceUrl.defaultZone=http://eureka:8761/eureka/
     expose:

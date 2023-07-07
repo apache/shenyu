@@ -180,14 +180,14 @@ jobs:
       - name: Build ShenYu admin
         run: ./mvnw -B install -f shenyu-admin/pom.xml
 
-      - name: View admin target directory
-        run: ls -R /home/runner/work/shenyu/shenyu/shenyu-admin/target
+      - name: View admin application authority
+        run: ls -l /home/runner/work/shenyu/shenyu/shenyu-admin/target/classes/application.yml
 
       - name: Build ShenYu bootstrap
         run: ./mvnw -B install -f shenyu-bootstrap/pom.xml
 
-      - name: View bootstrap target directory
-        run: ls -R /home/runner/work/shenyu/shenyu/shenyu-bootstrap/target
+      - name: View bootstrap application authority
+        run: ls -l /home/runner/work/shenyu/shenyu/shenyu-bootstrap/target/classes/application.yml
 
       - uses: actions/checkout@v3
         with:
