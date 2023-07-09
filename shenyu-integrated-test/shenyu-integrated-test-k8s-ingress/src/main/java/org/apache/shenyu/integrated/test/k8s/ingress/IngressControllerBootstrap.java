@@ -26,6 +26,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class IngressControllerBootstrap {
 
+    /**
+     * main method of App.
+     *
+     * @param args args
+     */
     public static void main(final String[] args) {
         SpringApplication.run(IngressControllerBootstrap.class);
     }
