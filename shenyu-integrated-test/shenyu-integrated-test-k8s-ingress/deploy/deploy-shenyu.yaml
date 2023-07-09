@@ -43,7 +43,7 @@ spec:
     spec:
       containers:
       - name: shenyu-ingress-controller
-        image: apache/shenyu-bootstrap:latest
+        image: apache/shenyu-integrated-test-k8s-ingress:latest
         ports:
         - containerPort: 9195
         args:
