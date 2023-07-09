@@ -448,29 +448,29 @@ public class HuaweiLogCollectConfig {
         @Override
         public boolean equals(final Object o) {
             if (this == o) {
-                return true;
+                return Boolean.TRUE;
             }
             if (o == null || getClass() != o.getClass()) {
-                return false;
+                return Boolean.FALSE;
             }
             HuaweiLtsLogConfig that = (HuaweiLtsLogConfig) o;
-            return Objects.equals(projectId, that.projectId)
-                    && Objects.equals(logGroupId, that.logGroupId)
-                    && Objects.equals(logStreamId, that.logStreamId)
-                    && Objects.equals(accessKeyId, that.accessKeyId)
-                    && Objects.equals(accessKeySecret, that.accessKeySecret)
-                    && Objects.equals(regionName, that.regionName)
-                    && Objects.equals(totalSizeInBytes, that.totalSizeInBytes)
-                    && Objects.equals(maxBlockMs, that.maxBlockMs)
-                    && Objects.equals(ioThreadCount, that.ioThreadCount)
-                    && Objects.equals(batchSizeThresholdInBytes, that.batchSizeThresholdInBytes)
-                    && Objects.equals(batchCountThreshold, that.batchCountThreshold)
-                    && Objects.equals(lingerMs, that.lingerMs)
-                    && Objects.equals(retries, that.retries)
-                    && Objects.equals(baseRetryBackoffMs, that.baseRetryBackoffMs)
-                    && Objects.equals(maxRetryBackoffMs, that.maxRetryBackoffMs)
-                    && Objects.equals(enableLocalTest, that.enableLocalTest)
-                    && Objects.equals(setGiveUpExtraLongSingleLog, that.setGiveUpExtraLongSingleLog);
+            return Objects.equals(getProjectId(), that.getProjectId())
+                    && Objects.equals(getLogGroupId(), that.getLogGroupId())
+                    && Objects.equals(getLogStreamId(), that.getLogStreamId())
+                    && Objects.equals(getAccessKeyId(), that.getAccessKeyId())
+                    && Objects.equals(getAccessKeySecret(), that.getAccessKeySecret())
+                    && Objects.equals(getRegionName(), that.getTotalSizeInBytes())
+                    && Objects.equals(getTotalSizeInBytes(), that.getTotalSizeInBytes())
+                    && Objects.equals(getMaxBlockMs(), that.getMaxBlockMs())
+                    && Objects.equals(getIoThreadCount(), that.getIoThreadCount())
+                    && Objects.equals(getBatchSizeThresholdInBytes(), that.getBatchSizeThresholdInBytes())
+                    && Objects.equals(getBatchCountThreshold(), that.getBatchCountThreshold())
+                    && Objects.equals(getLingerMs(), that.getLingerMs())
+                    && Objects.equals(getRetries(), that.getRetries())
+                    && Objects.equals(getBaseRetryBackoffMs(), that.getBaseRetryBackoffMs())
+                    && Objects.equals(getMaxRetryBackoffMs(), that.getMaxRetryBackoffMs())
+                    && Objects.equals(getEnableLocalTest(), that.getEnableLocalTest())
+                    && Objects.equals(getSetGiveUpExtraLongSingleLog(), that.getSetGiveUpExtraLongSingleLog());
         }
 
         @Override
