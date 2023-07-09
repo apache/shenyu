@@ -152,7 +152,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=shenyue2e
       - SPRING_DATASOURCE_PASSWORD=123456
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8090/health" ]
+      test: [ "CMD", "curl", "-f", "http://apollo-adminservice:8090/health" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -175,7 +175,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=shenyue2e
       - SPRING_DATASOURCE_PASSWORD=123456
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8070/health" ]
+      test: [ "CMD", "curl", "-f", "http://apollo-portal:8070/health" ]
       interval: 10s
       timeout: 5s
       retries: 10
