@@ -210,10 +210,10 @@ public class DockerServiceCompose implements ServiceCompose {
         }
         try {
             final File file = Assertions.assertDoesNotThrow(
-                    () -> ResourceUtils.getFile(GATEWAY_YML_LOCATION)
+                () -> ResourceUtils.getFile(GATEWAY_YML_LOCATION)
             );
             final InputStream inputStream = Assertions.assertDoesNotThrow(
-                    () -> new FileInputStream(file)
+                () -> new FileInputStream(file)
             );
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
@@ -232,7 +232,7 @@ public class DockerServiceCompose implements ServiceCompose {
             options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
             yaml = new Yaml(options);
             final OutputStream outputStream = Assertions.assertDoesNotThrow(
-                    () -> new FileOutputStream(file)
+                () -> new FileOutputStream(file)
             );
             yaml.dump(yamlData, new OutputStreamWriter(outputStream));
         } catch (Exception e) {
@@ -265,12 +265,12 @@ public class DockerServiceCompose implements ServiceCompose {
      */
     @SuppressWarnings("unchecked")
     private void chooseDataSyn(final String path, final DockerServiceConfigure dockerServiceConfigure) {
-        try  {
+        try {
             final File file = Assertions.assertDoesNotThrow(
-                    () -> ResourceUtils.getFile(path)
+                () -> ResourceUtils.getFile(path)
             );
             final InputStream inputStream = Assertions.assertDoesNotThrow(
-                    () -> new FileInputStream(file)
+                () -> new FileInputStream(file)
             );
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
@@ -292,7 +292,7 @@ public class DockerServiceCompose implements ServiceCompose {
             options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
             yaml = new Yaml(options);
             final OutputStream outputStream = Assertions.assertDoesNotThrow(
-                    () -> new FileOutputStream(file)
+                () -> new FileOutputStream(file)
             );
             yaml.dump(yamlData, new OutputStreamWriter(outputStream));
         } catch (Exception e) {
