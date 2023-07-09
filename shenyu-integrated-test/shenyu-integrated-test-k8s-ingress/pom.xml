@@ -87,7 +87,7 @@
                 <docker.image.tag.tagName>latest</docker.image.tag.tagName>
             </properties>
             <build>
-                <finalName>shenyu-integrated-test-http</finalName>
+                <finalName>shenyu-integrated-test-k8s-ingress</finalName>
                 <plugins>
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
