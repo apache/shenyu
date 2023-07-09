@@ -48,8 +48,6 @@ spec:
         - containerPort: 9195
         args:
         - --kubeconfig=/etc/kubernetes/config
-        env:
-        - 
         volumeMounts:
         - name: kubeconfig
           mountPath: /etc/kubernetes/config
