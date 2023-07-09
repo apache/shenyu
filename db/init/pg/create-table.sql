@@ -1654,8 +1654,8 @@ INSERT INTO "public"."resource" VALUES ('1529403932881850508', '1529403932781187
 INSERT INTO "public"."resource" VALUES ('1529403932881850509', '1529403932781187099', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:cacheRule:edit', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932881850510', '1529403932781187099', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:cacheRule:delete', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932881850511', '1529403932781187099', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:cache:modify', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1534577121923309568', '', 'Document', '', '/document', '', 0, 3, 'file-text', 0, 0, '', 1, '2022-06-09 00:44:32', '2022-06-09 01:06:45');
-INSERT INTO "public"."resource" VALUES ('1534585430311051264', '1534577121923309568', 'API document', '', '/document/apidoc', '', 1, 0, 'api', 0, 0, '', 1, '2022-06-09 01:17:32', '2022-06-09 01:17:32');
+INSERT INTO "public"."resource" VALUES ('1534577121923309568', '', 'SHENYU.MENU.DOCUMENT', '', '/document', '', 0, 3, 'file-text', 0, 0, '', 1, '2022-06-09 00:44:32', '2022-06-09 01:06:45');
+INSERT INTO "public"."resource" VALUES ('1534585430311051264', '1534577121923309568', 'SHENYU.MENU.DOCUMENT.APIDOC', '', '/document/apidoc', '', 1, 0, 'api', 0, 0, '', 1, '2022-06-09 01:17:32', '2022-06-09 01:17:32');
 INSERT INTO "public"."resource" VALUES ('1534585531108564992', '1534585430311051264', 'send', '', '', '', 2, 0, '', 1, 0, 'document:apirun:send', 1, '2022-06-09 01:17:56', '2022-06-09 01:17:56');
 
 INSERT INTO "public"."resource" VALUES ('1534585531108564993', '1346775491550474240', 'loggingAliyunSls', 'loggingAliyunSls', '/plug/loggingAliyunSls', 'loggingAliyunSls', 1, 0, 'block', 0, 0, '', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
@@ -2273,6 +2273,31 @@ COMMENT ON COLUMN "public"."discovery_rel"."selector_id" IS 'the selector id';
 COMMENT ON COLUMN "public"."discovery_rel"."proxy_selector_id" IS 'the proxy selector id';
 COMMENT ON COLUMN "public"."discovery_rel"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."discovery_rel"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for proxy_selector
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."proxy_selector";
+CREATE TABLE "public"."proxy_selector"
+(
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name"         varchar(128) COLLATE "pg_catalog"."default",
+    "plugin_name"  varchar(128) COLLATE "pg_catalog"."default",
+    "type"         varchar(128) COLLATE "pg_catalog"."default",
+    "forward_port" int4 NOT NULL,
+    "props"        text COLLATE "pg_catalog"."default",
+    "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+;
+COMMENT ON COLUMN "public"."proxy_selector"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."proxy_selector"."name" IS 'the proxy_selector name';
+COMMENT ON COLUMN "public"."proxy_selector"."plugin_name" IS 'the plugin name';
+COMMENT ON COLUMN "public"."proxy_selector"."type" IS 'the type ';
+COMMENT ON COLUMN "public"."proxy_selector"."forward_port" IS 'the forward port';
+COMMENT ON COLUMN "public"."proxy_selector"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."proxy_selector"."date_updated" IS 'update time';
+
 -- ----------------------------
 -- Table structure for alert_template
 -- ----------------------------
@@ -2292,3 +2317,4 @@ COMMENT ON COLUMN "public"."alert_template"."strategy_name" IS 'alert template s
 COMMENT ON COLUMN "public"."alert_template"."content" IS 'alert template content';
 COMMENT ON COLUMN "public"."alert_template"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."alert_template"."date_updated" IS 'update time';
+

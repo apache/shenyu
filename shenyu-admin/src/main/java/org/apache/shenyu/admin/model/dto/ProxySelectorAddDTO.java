@@ -44,6 +44,13 @@ public class ProxySelectorAddDTO implements Serializable {
     @NotBlank
     private String name;
 
+
+    /**
+     * pluginName.
+     */
+    @NotBlank
+    private String pluginName;
+
     /**
      * proxy forward port.
      */
@@ -240,6 +247,24 @@ public class ProxySelectorAddDTO implements Serializable {
      */
     public void setDiscoveryUpstreams(final List<DiscoveryUpstream> discoveryUpstreams) {
         this.discoveryUpstreams = discoveryUpstreams;
+    }
+
+    /**
+     * getPluginName.
+     *
+     * @return pluginName
+     */
+    public String getPluginName() {
+        return pluginName;
+    }
+
+    /**
+     * setPluginName.
+     *
+     * @param pluginName pluginName
+     */
+    public void setPluginName(final String pluginName) {
+        this.pluginName = pluginName;
     }
 
     /**

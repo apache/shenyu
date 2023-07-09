@@ -45,13 +45,13 @@ public class WaitForHelper {
 
     private static final Logger log = LoggerFactory.getLogger(WaitForHelper.class);
 
-    private static final ExecutorService executor = MoreExecutors.getExitingExecutorService((ThreadPoolExecutor) Executors.newFixedThreadPool(1));
+    private static final ExecutorService EXECUTOR = MoreExecutors.getExitingExecutorService((ThreadPoolExecutor) Executors.newFixedThreadPool(1));
     
-    public int retryTimes = 30;
+    private int retryTimes = 30;
     
-    public Duration timeInRetry = Duration.ofSeconds(3);
+    private Duration timeInRetry = Duration.ofSeconds(3);
     
-    public Duration timeout = Duration.ofMinutes(3);
+    private Duration timeout = Duration.ofMinutes(3);
 
     public WaitForHelper() {
     }
@@ -71,9 +71,9 @@ public class WaitForHelper {
      * @param expected expected
      * @throws TimeoutException TimeoutException
      */
-    public void waitFor(Supplier<RequestSpecification> supplier, Method method, String endpoint, ResponseSpecification expected) throws TimeoutException {
+    public void waitFor(final Supplier<RequestSpecification> supplier, final Method method, final String endpoint, final ResponseSpecification expected) throws TimeoutException {
         final Map<String, String> contextMap = MDC.getCopyOfContextMap();
-        Future<?> future = executor.submit(() -> {
+        Future<?> future = EXECUTOR.submit(() -> {
             MDC.setContextMap(contextMap);
             
             for (int i = 0; i < retryTimes; i++) {
@@ -115,9 +115,9 @@ public class WaitForHelper {
      * @param checker checker
      * @throws TimeoutException TimeoutException
      */
-    public void waitFor(Supplier<RequestSpecification> supplier, HttpChecker checker) throws TimeoutException {
+    public void waitFor(final Supplier<RequestSpecification> supplier, final HttpChecker checker) throws TimeoutException {
         final Map<String, String> contextMap = MDC.getCopyOfContextMap();
-        Future<?> future = executor.submit(() -> {
+        Future<?> future = EXECUTOR.submit(() -> {
             MDC.setContextMap(contextMap);
             
             for (int i = 0; i < retryTimes; i++) {
@@ -145,15 +145,33 @@ public class WaitForHelper {
         }
     }
     
-    public static void waitForEffecting(Supplier<RequestSpecification> supplier, Method method, String endpoint, ResponseSpecification expected) {
+    /**
+     * wait for effecting.
+     * @param supplier supplier
+     * @param method method
+     * @param endpoint endpoint
+     * @param expected expected
+     */
+    public static void waitForEffecting(final Supplier<RequestSpecification> supplier, final Method method, final String endpoint, final ResponseSpecification expected) {
         Assertions.assertDoesNotThrow(() -> new WaitForHelper().waitFor(supplier, method, endpoint, expected), "waiting for endpoint to take effect");
     }
     
-    public static void waitForEffecting(Supplier<RequestSpecification> supplier, String endpoint, ResponseSpecification expected) {
+    /**
+     * wait for effecting.
+     * @param supplier supplier
+     * @param endpoint endpoint
+     * @param expected expected
+     */
+    public static void waitForEffecting(final Supplier<RequestSpecification> supplier, final String endpoint, final ResponseSpecification expected) {
         Assertions.assertDoesNotThrow(() -> new WaitForHelper().waitFor(supplier, Method.GET, endpoint, expected), "waiting for endpoint to take effect");
     }
     
-    public static void waitForEffecting(Supplier<RequestSpecification> supplier, HttpChecker checker) {
+    /**
+     * wait for effecting.
+     * @param supplier supplier
+     * @param checker checker
+     */
+    public static void waitForEffecting(final Supplier<RequestSpecification> supplier, final HttpChecker checker) {
         Assertions.assertDoesNotThrow(() -> new WaitForHelper().waitFor(supplier, checker), "waiting for endpoint to take effect");
     }
 }

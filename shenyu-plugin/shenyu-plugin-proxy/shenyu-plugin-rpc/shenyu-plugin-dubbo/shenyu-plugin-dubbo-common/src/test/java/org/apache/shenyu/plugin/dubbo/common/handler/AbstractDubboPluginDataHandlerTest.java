@@ -31,6 +31,8 @@ import org.mockito.quality.Strictness;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * AbstractDubboPluginDataHandler test.
@@ -67,7 +69,22 @@ public class AbstractDubboPluginDataHandlerTest {
         selectorData.setId("1");
         selectorData.setHandle("[{\"appName\": \"name\", \"upstreamUrl\": \"http://192.168.55.113/dubbo\", \"gray\":true}]");
         handler.handlerSelector(selectorData);
+        assertEquals(AbstractDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle("1").size(), 1);
+
+        selectorData.setHandle("[{\"appName\": \"name\", \"upstreamUrl\": \"http://192.168.55.113/dubbo\", \"gray\":false}]");
+        handler.handlerSelector(selectorData);
+        assertNull(AbstractDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle("1"));
+        // when gray update false
+        selectorData.setHandle("[{\"appName\": \"name\", \"upstreamUrl\": \"http://192.168.55.113/dubbo\", \"gray\":true},{\"appName\": \"name\", \"upstreamUrl\": \"http://192.168.55.114/dubbo\", \"gray\":true}]");
+        handler.handlerSelector(selectorData);
+        assertEquals(AbstractDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle("1").size(), 2);
+
+        selectorData.setHandle("[{\"appName\": \"name\", \"upstreamUrl\": \"http://192.168.55.113/dubbo\", \"gray\":true},{\"appName\": \"name\", \"upstreamUrl\": \"http://192.168.55.114/dubbo\", \"gray\":false}]");
+        handler.handlerSelector(selectorData);
+        assertEquals(AbstractDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle("1").size(), 1);
+
         handler.removeSelector(selectorData);
+        assertNull(AbstractDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle("1"));
     }
 
     @Test

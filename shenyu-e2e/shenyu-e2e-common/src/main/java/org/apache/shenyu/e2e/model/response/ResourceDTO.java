@@ -24,12 +24,28 @@ import java.util.Date;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public interface ResourceDTO {
     
+    /**
+     * get id.
+     * @return String
+     */
     String getId();
     
+    /**
+     * get name.
+     * @return String
+     */
     String getName();
     
+    /**
+     * get create date.
+     * @return Date
+     */
     Date getDateCreated();
     
+    /**
+     * get update date.
+     * @return Date
+     */
     Date getDateUpdated();
     
 }

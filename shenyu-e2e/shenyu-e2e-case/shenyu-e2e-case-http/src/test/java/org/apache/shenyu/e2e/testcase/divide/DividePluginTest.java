@@ -48,7 +48,7 @@ import java.util.List;
                         baseUrl = "http://{hostname:localhost}:9095",
                         parameters = {
                                 @Parameter(key = "username", value = "admin"),
-                                @Parameter(key = "password", value = "123456"),
+                                @Parameter(key = "password", value = "123456")
                         }
                 ),
                 @ServiceConfigure(
@@ -61,16 +61,16 @@ import java.util.List;
         dockerComposeFile = "classpath:./docker-compose.{storage:h2}.yml"
 )
 public class DividePluginTest {
-    List<String> selectorIds = Lists.newArrayList();
+    private List<String> selectorIds = Lists.newArrayList();
     
     @BeforeAll
-    static void setup(AdminClient client) {
+    static void setup(final AdminClient client) {
         client.login();
         client.deleteAllSelectors();
     }
     
     @BeforeEach
-    void before(AdminClient client, GatewayClient gateway, BeforeEachSpec spec) {
+    void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
         spec.getChecker().check(gateway);
         
         ResourcesData resources = spec.getResources();
@@ -87,20 +87,21 @@ public class DividePluginTest {
         spec.getWaiting().waitFor(gateway);
     }
     
-    @ShenYuScenario(provider = org.apache.shenyu.e2e.testcase.divide.DividePluginCases.class)
-    void testDivide(GatewayClient gateway, CaseSpec spec) {
-        spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
-    }
-    
     @AfterEach
-    void before(AdminClient client, GatewayClient gateway, AfterEachSpec spec) {
+    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
         spec.getDeleter().delete(client, selectorIds);
         spec.getPostChecker().check(gateway);
         selectorIds = Lists.newArrayList();
     }
     
+    @ShenYuScenario(provider = org.apache.shenyu.e2e.testcase.divide.DividePluginCases.class)
+    void testDivide(final GatewayClient gateway, final CaseSpec spec) {
+        spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
+    }
+    
     @AfterAll
-    static void teardown(AdminClient client) {
+    static void teardown(final AdminClient client) {
         client.deleteAllSelectors();
     }
+    
 }

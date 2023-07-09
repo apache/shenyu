@@ -28,7 +28,6 @@ import java.util.List;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExists;
 
-
 /**
  * ShenYu case specification.
  */
@@ -38,7 +37,7 @@ public class ShenYuCaseSpec implements CaseSpec {
     
     private final List<Verifier> verifiers;
 
-    public ShenYuCaseSpec(String name, List<Verifier> verifiers) {
+    public ShenYuCaseSpec(final String name, final List<Verifier> verifiers) {
         this.name = name;
         this.verifiers = verifiers;
     }
@@ -62,12 +61,21 @@ public class ShenYuCaseSpec implements CaseSpec {
     public List<Verifier> getVerifiers() {
         return verifiers;
     }
-
+    
+    /**
+     * builder.
+     * @return ShenYuTestCaseSpecBuilder
+     */
     public static ShenYuTestCaseSpecBuilder builder() {
         return new ShenYuTestCaseSpecBuilder();
     }
     
-    public static ShenYuTestCaseSpecBuilder builder(String name) {
+    /**
+     * builder.
+     * @param name name
+     * @return ShenYuTestCaseSpecBuilder
+     */
+    public static ShenYuTestCaseSpecBuilder builder(final String name) {
         return new ShenYuTestCaseSpecBuilder(name);
     }
 
@@ -80,44 +88,95 @@ public class ShenYuCaseSpec implements CaseSpec {
         public ShenYuTestCaseSpecBuilder() {
         }
 
-        public ShenYuTestCaseSpecBuilder(String name) {
+        public ShenYuTestCaseSpecBuilder(final String name) {
             this.name = name;
         }
-
-        public ShenYuTestCaseSpecBuilder name(String name) {
+        
+        /**
+         * builder set name.
+         * @param name name
+         * @return ShenYuTestCaseSpecBuilder
+         */
+        public ShenYuTestCaseSpecBuilder name(final String name) {
             this.name = name;
             return this;
         }
         
-        public ShenYuTestCaseSpecBuilder add(Verifier verifier) {
+        /**
+         * builder add verifier.
+         * @param verifier verifier
+         * @return ShenYuTestCaseSpecBuilder
+         */
+        public ShenYuTestCaseSpecBuilder add(final Verifier verifier) {
             builder.add(verifier);
             return this;
         }
-    
-        public ShenYuTestCaseSpecBuilder addVerifier(String endpoint, Matcher<?> matcher, Matcher<?>... matchers) {
+        
+        /**
+         * add verifier case spec.
+         * @param endpoint endpoint
+         * @param matcher matcher
+         * @param matchers matchers
+         * @return ShenYuTestCaseSpecBuilder
+         */
+        public ShenYuTestCaseSpecBuilder addVerifier(final String endpoint, final Matcher<?> matcher, final Matcher<?>... matchers) {
             return addVerifier(Method.GET, endpoint, matcher, matchers);
         }
         
-        public ShenYuTestCaseSpecBuilder addVerifier(Method method, String endpoint, Matcher<?> matcher, Matcher<?>... matchers) {
+        /**
+         * add verifier case spec.
+         * @param method method
+         * @param endpoint endpoint
+         * @param matcher matcher
+         * @param matchers matchers
+         * @return ShenYuTestCaseSpecBuilder
+         */
+        public ShenYuTestCaseSpecBuilder addVerifier(final Method method, final String endpoint, final Matcher<?> matcher, final Matcher<?>... matchers) {
             return add(supplier -> supplier.when().request(method, endpoint).then().assertThat().body(matcher, matchers));
         }
         
-        public ShenYuTestCaseSpecBuilder addExists(String endpoint) {
+        /**
+         * add exist endpoint case spec.
+         * @param endpoint endpoint
+         * @return ShenYuTestCaseSpecBuilder
+         */
+        public ShenYuTestCaseSpecBuilder addExists(final String endpoint) {
             return addExists(Method.GET, endpoint);
         }
         
-        public ShenYuTestCaseSpecBuilder addExists(Method method, String endpoint) {
+        /**
+         * add exist method endpoint case spec.
+         * @param method method
+         * @param endpoint endpoint
+         * @return ShenYuTestCaseSpecBuilder
+         */
+        public ShenYuTestCaseSpecBuilder addExists(final Method method, final String endpoint) {
             return add(exists(method, endpoint));
         }
-    
-        public ShenYuTestCaseSpecBuilder addNotExists(String endpoint) {
+        
+        /**
+         * add not exist endpoint case spec.
+         * @param endpoint endpoint
+         * @return ShenYuTestCaseSpecBuilder
+         */
+        public ShenYuTestCaseSpecBuilder addNotExists(final String endpoint) {
             return addNotExists(Method.GET, endpoint);
         }
         
-        public ShenYuTestCaseSpecBuilder addNotExists(Method method, String endpoint) {
+        /**
+         * add not exists case spec.
+         * @param method method
+         * @param endpoint endpoint
+         * @return ShenYuTestCaseSpecBuilder
+         */
+        public ShenYuTestCaseSpecBuilder addNotExists(final Method method, final String endpoint) {
             return add(notExists(method, endpoint));
         }
         
+        /**
+         * build.
+         * @return ShenYuCaseSpec
+         */
         public ShenYuCaseSpec build() {
             return new ShenYuCaseSpec(name, builder.build());
         }

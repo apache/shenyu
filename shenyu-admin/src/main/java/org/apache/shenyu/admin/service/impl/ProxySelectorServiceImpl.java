@@ -43,6 +43,7 @@ import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,6 +115,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             if (!Objects.isNull(discoveryRelDO)) {
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryRelDO.getDiscoveryHandlerId());
                 if (!Objects.isNull(discoveryHandlerDO)) {
+                    vo.setDiscoveryHandlerId(discoveryHandlerDO.getId());
                     vo.setListenerNode(discoveryHandlerDO.getListenerNode());
                     vo.setHandler(discoveryHandlerDO.getHandler());
                     DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
@@ -158,8 +160,17 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
      * @return the string
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String delete(final List<String> ids) {
-
+        for (String proxySelectorId : ids) {
+            DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectByProxySelectorId(proxySelectorId);
+            if (Objects.nonNull(discoveryHandlerDO)) {
+                ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
+                DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+                discoveryProcessorHolder.chooseProcessor(discoveryDO.getType())
+                        .removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO));
+            }
+        }
         proxySelectorMapper.deleteByIds(ids);
         return ShenyuResultMessage.DELETE_SUCCESS;
     }
@@ -171,6 +182,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
      * @return insert data count
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String create(final ProxySelectorAddDTO proxySelectorAddDTO) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
@@ -200,7 +212,6 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 discoveryProcessor.createDiscovery(discoveryDO);
             }
             if (fillDiscovery) {
-                discoveryProcessor.createDiscovery(discoveryDO);
                 // insert discovery handler
                 String discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();
                 DiscoveryHandlerDO discoveryHandlerDO = DiscoveryHandlerDO.builder()
@@ -215,7 +226,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
                 DiscoveryRelDO discoveryRelDO = DiscoveryRelDO.builder()
                         .id(UUIDUtils.getInstance().generateShortUuid())
-                        .pluginName(proxySelectorAddDTO.getName())
+                        .pluginName(proxySelectorAddDTO.getPluginName())
                         .discoveryHandlerId(discoveryHandlerId)
                         .proxySelectorId(proxySelectorId)
                         .selectorId("")
@@ -245,7 +256,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                     });
                     discoveryUpstreamMapper.saveBatch(upstreamDOList);
                     List<DiscoveryUpstreamDTO> collect = upstreamDOList.stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
-                    discoveryProcessor.changeUpstream(discoveryHandlerDTO, proxySelectorDTO, collect);
+                    discoveryProcessor.changeUpstream(proxySelectorDTO, collect);
                 }
             }
         }
@@ -258,6 +269,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
      * @param proxySelectorAddDTO proxySelectorAddDTO
      * @return the string
      */
+    @Transactional(rollbackFor = Exception.class)
     public String update(final ProxySelectorAddDTO proxySelectorAddDTO) {
         // update proxy selector
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
@@ -300,8 +312,21 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         List<DiscoveryUpstreamDTO> fetchAll = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDO.getId()).stream()
                 .map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
-        discoveryProcessor.changeUpstream(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO), fetchAll);
+        discoveryProcessor.changeUpstream(DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO), fetchAll);
         LOG.info("insert discovery upstreams, count is: {}", proxySelectorAddDTO.getDiscoveryUpstreams().size());
         return ShenyuResultMessage.UPDATE_SUCCESS;
+    }
+
+    @Override
+    public void fetchData(final String discoveryHandlerId) {
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
+        DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+        discoveryProcessorHolder.chooseProcessor(discoveryDO.getType()).fetchAll(discoveryHandlerId);
+    }
+
+    @Override
+    public List<ProxySelectorData> listAll() {
+        return proxySelectorMapper.selectAll().stream()
+                .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
     }
 }

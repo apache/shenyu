@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The request condition.
  */
-public class Condition {
+public final class Condition {
 
     @NotNull
     private ParamType paramType;
@@ -68,7 +68,7 @@ public class Condition {
          *
          * @param alias alias
          */
-        ParamType(String alias) {
+        ParamType(final String alias) {
             this.alias = alias;
         }
 
@@ -112,7 +112,7 @@ public class Condition {
          *
          * @param alias alias
          */
-        Operator(String alias) {
+        Operator(final String alias) {
             this.alias = alias;
         }
 
@@ -153,7 +153,7 @@ public class Condition {
      *
      * @param paramType paramType
      */
-    public void setParamType(ParamType paramType) {
+    public void setParamType(final @NotNull ParamType paramType) {
         this.paramType = paramType;
     }
 
@@ -162,7 +162,7 @@ public class Condition {
      *
      * @return paramType
      */
-    public ParamType getParamType() {
+    public @NotNull ParamType getParamType() {
         return paramType;
     }
 
@@ -171,7 +171,7 @@ public class Condition {
      *
      * @param operator operator
      */
-    public void setOperator(Operator operator) {
+    public void setOperator(final @NotNull Operator operator) {
         this.operator = operator;
     }
 
@@ -180,7 +180,7 @@ public class Condition {
      *
      * @return operator
      */
-    public Operator getOperator() {
+    public @NotNull Operator getOperator() {
         return operator;
     }
 
@@ -189,7 +189,7 @@ public class Condition {
      *
      * @param paramName paramName
      */
-    public void setParamName(String paramName) {
+    public void setParamName(final String paramName) {
         this.paramName = paramName;
     }
 
@@ -207,7 +207,7 @@ public class Condition {
      *
      * @param paramValue paramValue
      */
-    public void setParamValue(String paramValue) {
+    public void setParamValue(final String paramValue) {
         this.paramValue = paramValue;
     }
 
@@ -284,7 +284,7 @@ public class Condition {
         }
 
         /**
-         * build paramValue
+         * build paramValue.
          *
          * @param paramValue paramValue
          * @return paramValue

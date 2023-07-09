@@ -47,6 +47,8 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
     private final String host;
 
     private final Integer port;
+    
+    private final ClientRegisterConfig clientRegisterConfig;
 
     public SpringMvcApiMetaRegister(final ShenyuClientRegisterEventPublisher publisher,
                                     final ClientRegisterConfig clientRegisterConfig) {
@@ -56,6 +58,7 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
         this.appName = clientRegisterConfig.getAppName();
         this.host = clientRegisterConfig.getHost();
         this.port = clientRegisterConfig.getPort();
+        this.clientRegisterConfig = clientRegisterConfig;
     }
 
     @Override
@@ -70,10 +73,10 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
     protected MetaDataRegisterDTO preParse(final ApiBean apiBean) {
 
         ShenyuSpringMvcClient annotation = apiBean.getAnnotation(ShenyuSpringMvcClient.class);
-        String apiPath = PathUtils.pathJoin(apiBean.getContextPath(), annotation.path());
+        String apiPath = PathUtils.pathJoin(clientRegisterConfig.getContextPath(), annotation.path());
 
         return MetaDataRegisterDTO.builder()
-                .contextPath(apiBean.getContextPath())
+                .contextPath(clientRegisterConfig.getContextPath())
                 .addPrefixed(addPrefixed)
                 .appName(appName)
                 .serviceName(apiBean.getBeanClass().getName())
@@ -121,7 +124,7 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
         String beanPath = Objects.isNull(classAnnotation) || StringUtils.isBlank(classAnnotation.path())
                 ? apiDefinition.getBeanPath() : classAnnotation.path();
 
-        String apiPath = PathUtils.pathJoin(apiDefinition.getContextPath(), beanPath, methodPath);
+        String apiPath = PathUtils.pathJoin(clientRegisterConfig.getContextPath(), beanPath, methodPath);
 
         String pathDesc = Objects.isNull(methodAnnotation) ? classAnnotation.desc() : methodAnnotation.desc();
 
@@ -135,7 +138,7 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
                 && (Objects.isNull(methodAnnotation) || methodAnnotation.registerMetaData());
 
         return Lists.newArrayList(MetaDataRegisterDTO.builder()
-                .contextPath(apiDefinition.getContextPath())
+                .contextPath(clientRegisterConfig.getContextPath())
                 .addPrefixed(addPrefixed)
                 .appName(appName)
                 .host(host)
