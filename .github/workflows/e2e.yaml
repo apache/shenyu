@@ -177,18 +177,6 @@ jobs:
       - name: Build examples with Maven
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
 
-      - name: Build ShenYu admin
-        run: ./mvnw -B install -f shenyu-admin/pom.xml
-
-      - name: Change admin application authority
-        run: chmod 777 /home/runner/work/shenyu/shenyu/shenyu-admin/target/classes/application.yml
-
-      - name: Build ShenYu bootstrap
-        run: ./mvnw -B install -f shenyu-bootstrap/pom.xml
-
-      - name: Change bootstrap application authority
-        run: chmod 777 /home/runner/work/shenyu/shenyu/shenyu-bootstrap/target/classes/application.yml
-
       - uses: actions/checkout@v3
         with:
           submodules: true
