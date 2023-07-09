@@ -19,8 +19,10 @@ package org.apache.shenyu.springboot.sync.data.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.consul.ConsulSyncDataService;
 import org.apache.shenyu.sync.data.consul.config.ConsulConfig;
@@ -54,6 +56,8 @@ public class ConsulSyncDataConfiguration {
      * @param pluginSubscriber the plugin subscriber
      * @param metaSubscribers   the meta subscribers
      * @param authSubscribers   the auth subscribers
+     * @param proxySelectorSubscribers   the proxySelectorSubscribers
+     * @param discoveryUpstreamSubscribers   the discoveryUpstreamSubscribers
      * @return the sync data service
      */
     @Bean
@@ -61,10 +65,13 @@ public class ConsulSyncDataConfiguration {
                                            final ObjectProvider<ConsulConfig> consulConfig,
                                            final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
-                                           final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
+                                           final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
+                                           final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers,
+                                           final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamSubscribers) {
         LOGGER.info("you use consul sync shenyu data.......");
         return new ConsulSyncDataService(consulClient.getIfAvailable(), consulConfig.getIfAvailable(), pluginSubscriber.getIfAvailable(),
-                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
+                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
+                proxySelectorSubscribers.getIfAvailable(Collections::emptyList), discoveryUpstreamSubscribers.getIfAvailable(Collections::emptyList));
     }
 
     /**
