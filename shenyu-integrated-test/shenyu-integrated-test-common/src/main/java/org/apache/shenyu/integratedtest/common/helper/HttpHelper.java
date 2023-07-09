@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * The type Http helper.
  */
-public class HttpHelper {
+public final class HttpHelper {
 
     /**
      * The constant INSTANCE.
@@ -45,16 +45,14 @@ public class HttpHelper {
     public static final HttpHelper INSTANCE = new HttpHelper();
 
     /**
-     * The constant GATEWAY_END_POINT.
-     */
-    private static final String DEFAULT_GATEWAY_END_POINT = "http://localhost:9195";
-
-    private String gatewayEndpoint;
-
-    /**
      * The constant JSON.
      */
     public static final MediaType JSON = MediaType.parse("application/json");
+
+    /**
+     * The constant GATEWAY_END_POINT.
+     */
+    private static final String DEFAULT_GATEWAY_END_POINT = "http://localhost:9195";
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpHelper.class);
 
@@ -68,14 +66,26 @@ public class HttpHelper {
 
     private final String localKey = "123456";
 
+    private String gatewayEndpoint;
+
     private HttpHelper() {
         gatewayEndpoint = DEFAULT_GATEWAY_END_POINT;
     }
 
-    public void setGatewayEndpoint(String gatewayEndpoint) {
+    /**
+     * Set gatewayEndpoint.
+     *
+     * @param gatewayEndpoint gatewayEndpoint
+     */
+    public void setGatewayEndpoint(final String gatewayEndpoint) {
         this.gatewayEndpoint = gatewayEndpoint;
     }
 
+    /**
+     * Get gatewayEndpoint.
+     *
+     * @return gatewayEndpoint
+     */
     public String getGatewayEndpoint() {
         return gatewayEndpoint;
     }
