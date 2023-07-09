@@ -80,7 +80,7 @@ jobs:
       - name: Wait for k8s Cluster Start up
         if: steps.filter.outputs.changed == 'true'
         run: |
-          bash ./shenyu-examples/shenyu-examples-http/k8s/script/healthcheck.sh
+          bash ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/script/healthcheck.sh
 
       - name: Run test
         id: test
