@@ -62,11 +62,9 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
 
-      - name: Build shenyu k8s controller
+      - name: Build integrated tests
         if: steps.filter.outputs.changed == 'true'
-        run: |
-          ./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/shenyu-integrated-test-common/pom.xml
-          ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/pom.xml
+        run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
 
       - name: Build examples
         if: steps.filter.outputs.changed == 'true'
