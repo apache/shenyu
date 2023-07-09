@@ -24,13 +24,16 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Test divide plugin in ingress controller
+ */
 public class DividePluginTest {
 
-    private static final HttpHelper httpHelper = HttpHelper.INSTANCE;
+    private static final HttpHelper HTTP_HELPER = HttpHelper.INSTANCE;
 
     @BeforeAll
     public static void setup() {
-        httpHelper.setGatewayEndpoint("http://localhost:30095");
+        HTTP_HELPER.setGatewayEndpoint("http://localhost:30095");
     }
 
     @Test
