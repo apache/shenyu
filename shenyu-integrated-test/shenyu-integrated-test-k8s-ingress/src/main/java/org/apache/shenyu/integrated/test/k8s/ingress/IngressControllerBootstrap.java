@@ -20,6 +20,9 @@ package org.apache.shenyu.integrated.test.k8s.ingress;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * The type ingress controller integrated bootstrap.
+ */
 @SpringBootApplication
 public class IngressControllerBootstrap {
 
