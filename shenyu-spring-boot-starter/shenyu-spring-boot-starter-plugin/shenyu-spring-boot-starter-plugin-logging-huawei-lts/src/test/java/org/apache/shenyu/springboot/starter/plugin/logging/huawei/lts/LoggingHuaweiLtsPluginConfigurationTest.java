@@ -28,6 +28,9 @@ import org.springframework.context.annotation.Configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+/**
+ * Test case for {@link LoggingHuaweiLtsPluginConfigurationTest}.
+ */
 @Configuration
 @EnableConfigurationProperties
 public class LoggingHuaweiLtsPluginConfigurationTest {

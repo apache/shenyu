@@ -35,11 +35,25 @@ public class LoggingHuaweiLtsPlugin extends AbstractLoggingPlugin<ShenyuRequestL
         return HuaweiLtsLogCollector.getInstance();
     }
 
+    /**
+     * pluginEnum.
+     *
+     * @return plugin
+     */
     @Override
     protected PluginEnum pluginEnum() {
         return PluginEnum.LOGGING_HUAWEI_LTS;
     }
 
+    /**
+     * log collect extension.
+     * base on ShenyuRequestLog to extend log
+     *
+     * @param exchange exchange
+     * @param selector selector
+     * @param rule rule
+     * @return base ShenyuRequestLog
+     */
     @Override
     protected ShenyuRequestLog doLogExecute(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
         return new ShenyuRequestLog();

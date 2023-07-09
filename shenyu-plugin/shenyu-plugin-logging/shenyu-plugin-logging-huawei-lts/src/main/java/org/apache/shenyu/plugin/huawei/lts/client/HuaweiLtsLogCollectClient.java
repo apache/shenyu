@@ -64,6 +64,11 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
 
     private ThreadPoolExecutor threadExecutor;
 
+    /**
+     * init Huawei lts client.
+     *
+     * @param huaweiLtsLogConfig shenyu log config
+     */
     @Override
     public void initClient0(@NonNull final HuaweiLogCollectConfig.HuaweiLtsLogConfig huaweiLtsLogConfig) {
         final String accessKeyId = huaweiLtsLogConfig.getAccessKeyId();
@@ -98,6 +103,11 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
         threadExecutor = createThreadPoolExecutor(huaweiLtsLogConfig.getIoThreadCount());
     }
 
+    /**
+     * Huawei lts consume.
+     *
+     * @param logs list of log
+     */
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) throws Exception {
         logs.forEach(this::sendLog);

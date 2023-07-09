@@ -37,11 +37,19 @@ public class LoggingHuaweiLtsPluginDataHandler extends AbstractLogPluginDataHand
         return PluginEnum.LOGGING_HUAWEI_LTS.getName();
     }
 
+    /**
+     * logCollector.
+     */
     @Override
     protected LogCollector logCollector() {
         return HuaweiLtsLogCollector.getInstance();
     }
 
+    /**
+     * doRefreshConfig.
+     *
+     * @param globalLogConfig globalLogConfig
+     */
     @Override
     protected void doRefreshConfig(final HuaweiLogCollectConfig.HuaweiLtsLogConfig globalLogConfig) {
         HuaweiLogCollectConfig.INSTANCE.setHuaweiLtsLogConfig(globalLogConfig);
@@ -49,8 +57,8 @@ public class LoggingHuaweiLtsPluginDataHandler extends AbstractLogPluginDataHand
     }
 
     /**
-     * get Tencent log collect client.
-     * @return Tencent cls log collect client.
+     * get Huawei log collect client.
+     * @return Huawei lts log collect client.
      */
     public static HuaweiLtsLogCollectClient getHuaweiLtsLogCollectClient() {
         return HUAWEI_LTS_LOG_COLLECT_CLIENT;
