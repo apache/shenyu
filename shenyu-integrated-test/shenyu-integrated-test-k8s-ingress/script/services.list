@@ -15,4 +15,3 @@
 # limitations under the License.
 
 http://localhost:31189/test/path/123?name=tom
-http://localhost:30095/actuator/health
