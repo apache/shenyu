@@ -572,9 +572,14 @@
         <!-- shenyu logging-clickhouse plugin end -->
 
         <!-- shenyu logging-huaweilts plugin start -->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.shenyu</groupId>-->
+<!--            <artifactId>shenyu-spring-boot-starter-plugin-logging-huawei-lts</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging-huawei-lts</artifactId>
+            <artifactId>shenyu-plugin-logging-huawei-lts</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!-- shenyu logging-huaweilts plugin end -->
