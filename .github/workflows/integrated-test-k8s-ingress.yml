@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: k8s-examples-http
+name: it-ingress-controller
 
 on:
   pull_request:
@@ -26,26 +26,25 @@ jobs:
     runs-on: ubuntu-latest
     if: (github.repository == 'apache/shenyu')
     steps:
-      -
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
         with:
           submodules: true
-      -
-        uses: dorny/paths-filter@v2
+
+      - uses: dorny/paths-filter@v2
         id: filter
         with:
           filters: '.github/filters.yml'
           list-files: json
-      -
-        name: Install k8s
+
+      - name: Install k8s
         if: steps.filter.outputs.changed == 'true'
         run: |
           curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE=777 sh -
           cat /etc/rancher/k3s/k3s.yaml
           mkdir -p ~/.kube
           cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
-      -
-        name: Cache Maven Repos
+
+      - name: Cache Maven Repos
         if: steps.filter.outputs.changed == 'true'
         uses: actions/cache@v2
         with:
@@ -53,37 +52,52 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      -
-        uses: actions/setup-java@v1
+
+      - uses: actions/setup-java@v1
         if: steps.filter.outputs.changed == 'true'
         with:
           java-version: 8
-      -
-        name: Build with Maven
+
+      - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
-      -
-        name: Build examples
+        run: ./mvnw -B clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+
+      - name: Build shenyu k8s controller
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/pom.xml
+
+      - name: Build examples
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
-      -
-        name: Build k8s Cluster
+
+      - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
         run: |
-          docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest shenyu-examples-http:latest | sudo k3s ctr images import -
-          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-deployment.yml
-          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-service.yml
-          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-zookeeper.yml
+          docker save shenyu-examples-http:latest shenyu-integrated-k8s-ingress:latest | sudo k3s ctr images import -
           kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http.yml
-      -
-        name: Wait for k8s Cluster Start up
+          kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/deploy/deploy-shenyu.yaml
+
+      - name: Wait for k8s Cluster Start up
         if: steps.filter.outputs.changed == 'true'
         run: |
           bash ./shenyu-examples/shenyu-examples-http/k8s/script/healthcheck.sh
-      -
-        name: Cluster Test after Healthcheck
+
+      - name: Run test
+        id: test
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw test -Pit -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/pom.xml
+        continue-on-error: true
+
+      - name: Cluster Test after Healthcheck
         if: steps.filter.outputs.changed == 'true'
         run: |
           kubectl get all
           kubectl get events --all-namespaces
           kubectl logs -l all=shenyu-examples-http
+          if [[ ${{steps.test.outcome}} == "failure" ]]; then
+            echo "Test Failed"
+            exit 1
+          else
+            echo "Test Successful"
+            exit 0
+          fi

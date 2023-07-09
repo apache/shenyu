@@ -148,8 +148,8 @@ shenyu:
 #          - domain: 'example.com'
 #            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
 #            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
-#  httpclient:
-#    strategy: webClient # netty
+  httpclient:
+    strategy: netty
 #    connectTimeout: 45000
 #    responseTimeout: 3000
 #    readerIdleTime: 3000
