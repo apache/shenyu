@@ -55,9 +55,9 @@ services:
       timeout: 2s
       retries: 3
       start_period: 5s
-    depends_on:
-      apollo-portal:
-        condition: service_healthy
+#    depends_on:
+#      apollo-portal:
+#        condition: service_healthy
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
