@@ -24,12 +24,30 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PluginData {
     
+    /**
+     * id.
+     */
     private String id;
+    
+    /**
+     * name.
+     */
     @NotNull
     private String name;
-    private String config;
-    private String role;
-    private boolean enabled;
     
+    /**
+     * config.
+     */
+    private String config;
+    
+    /**
+     * role.
+     */
+    private String role;
+    
+    /**
+     * enabled.
+     */
+    private Boolean enabled;
     
 }

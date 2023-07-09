@@ -44,13 +44,13 @@ public class WaitForHelperTest {
     
     @Test
     void testTimeout() {
-        Assertions.assertThrows(TimeoutException.class, () -> {
+        Assertions.assertThrows(TimeoutException.class, () ->
             new WaitForHelper(10, Duration.ofSeconds(1), Duration.ofMillis(500)).waitFor(
                     () -> given().baseUri("https://postman-echo.com").when(),
                     Method.GET,
                     "/delay/2",
                     new ResponseSpecBuilder().expectBody("delay", equalTo(2)).build()
-            );
-        });
+            )
+        );
     }
 }

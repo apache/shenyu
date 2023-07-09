@@ -33,14 +33,20 @@ import java.util.Collections;
  * Consume request log.
  */
 public class RequestLogConsumer {
+    
     private static final OutputStream FAKE_STREAM = new OutputStream() {
         @Override
-        public void write(int b) throws IOException {
+        public void write(final int b) throws IOException {
         
         }
     };
     
-    public static void print(Logger logger, FilterableRequestSpecification requestSpec) {
+    /**
+     * log request spec details.
+     * @param logger logger
+     * @param requestSpec requestSpec
+     */
+    public static void print(final Logger logger, final FilterableRequestSpecification requestSpec) {
         String uri = UrlDecoder.urlDecode(
                 requestSpec.getURI(),
                 Charset.forName(requestSpec.getConfig().getEncoderConfig().defaultQueryParameterCharset()),

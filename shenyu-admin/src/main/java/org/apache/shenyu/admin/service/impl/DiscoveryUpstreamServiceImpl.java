@@ -23,14 +23,20 @@ import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -44,9 +50,13 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     private final DiscoveryHandlerMapper discoveryHandlerMapper;
 
+    private final DiscoveryRelMapper discoveryRelMapper;
+
     private final ProxySelectorMapper proxySelectorMapper;
 
     private final DiscoveryMapper discoveryMapper;
+
+    private final SelectorMapper selectorMapper;
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
@@ -54,11 +64,15 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                                         final DiscoveryHandlerMapper discoveryHandlerMapper,
                                         final ProxySelectorMapper proxySelectorMapper,
                                         final DiscoveryMapper discoveryMapper,
+                                        final DiscoveryRelMapper discoveryRelMapper,
+                                        final SelectorMapper selectorMapper,
                                         final DiscoveryProcessorHolder discoveryProcessorHolder) {
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.discoveryHandlerMapper = discoveryHandlerMapper;
         this.discoveryMapper = discoveryMapper;
+        this.discoveryRelMapper = discoveryRelMapper;
+        this.selectorMapper = selectorMapper;
         this.proxySelectorMapper = proxySelectorMapper;
 
     }
@@ -87,6 +101,31 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
         discoveryUpstreamMapper.deleteByIds(ids);
         return ShenyuResultMessage.DELETE_SUCCESS;
+    }
+
+    @Override
+    public List<DiscoverySyncData> listAll() {
+        List<DiscoveryHandlerDO> discoveryHandlerDOS = discoveryHandlerMapper.selectAll();
+        return discoveryHandlerDOS.stream().map(d -> {
+            DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByDiscoveryHandlerId(d.getId());
+            DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+            discoverySyncData.setPluginName(discoveryRelDO.getPluginName());
+            if (StringUtils.hasLength(discoveryRelDO.getSelectorId())) {
+                String selectorId = discoveryRelDO.getSelectorId();
+                discoverySyncData.setSelectorId(selectorId);
+                SelectorDO selectorDO = selectorMapper.selectById(selectorId);
+                discoverySyncData.setSelectorName(selectorDO.getName());
+            } else {
+                String proxySelectorId = discoveryRelDO.getProxySelectorId();
+                discoverySyncData.setSelectorId(proxySelectorId);
+                ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
+                discoverySyncData.setSelectorName(proxySelectorDO.getName());
+            }
+            List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(d.getId()).stream()
+                    .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
+            discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
+            return discoverySyncData;
+        }).collect(Collectors.toList());
     }
 
     /**
@@ -122,7 +161,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
         List<DiscoveryUpstreamDTO> collect = discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
-        discoveryProcessor.changeUpstream(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO), collect);
+        discoveryProcessor.changeUpstream(DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO), collect);
     }
 
 }

@@ -36,7 +36,7 @@ public class Upstreams implements PluginHandle {
     
     private List<Upstream> upstreams;
     
-    Upstreams(List<Upstream> upstreams) {
+    Upstreams(final List<Upstream> upstreams) {
         this.upstreams = upstreams;
     }
 
@@ -61,7 +61,7 @@ public class Upstreams implements PluginHandle {
     /**
      * class upstream.
      */
-    public static class Upstream {
+    public static final class Upstream {
 
         private String upstreamUrl;
 
@@ -70,7 +70,7 @@ public class Upstreams implements PluginHandle {
          *
          * @param builder builder
          */
-        private Upstream(Builder builder) {
+        private Upstream(final Builder builder) {
             this.upstreamUrl = builder.upstreamUrl;
         }
 
@@ -97,7 +97,7 @@ public class Upstreams implements PluginHandle {
          *
          * @param upstreamUrl upstreamUrl
          */
-        public void setUpstreamUrl(String upstreamUrl) {
+        public void setUpstreamUrl(final String upstreamUrl) {
             this.upstreamUrl = upstreamUrl;
         }
 
@@ -129,7 +129,7 @@ public class Upstreams implements PluginHandle {
              * @param upstreamUrl upstreamUrl
              * @return this
              */
-            public Builder upstreamUrl(String upstreamUrl) {
+            public Builder upstreamUrl(final String upstreamUrl) {
                 this.upstreamUrl = upstreamUrl;
                 return this;
             }
@@ -141,19 +141,23 @@ public class Upstreams implements PluginHandle {
      */
     public static final class Builder {
 
-        private List<Upstream> upstreams = Lists.newArrayList();
+        private final List<Upstream> upstreams = Lists.newArrayList();
 
         /**
          * add upstream.
          *
-         * @param upstream
+         * @param upstream upstream
          * @return this
          */
-        public Builder add(Upstream upstream) {
+        public Builder add(final Upstream upstream) {
             upstreams.add(upstream);
             return this;
         }
         
+        /**
+         * build.
+         * @return Upstreams
+         */
         public Upstreams build() {
             return new Upstreams(this.upstreams);
         }
@@ -163,7 +167,7 @@ public class Upstreams implements PluginHandle {
         private final ObjectMapper mapper = new ObjectMapper();
         
         @Override
-        public void serialize(Upstreams upstreams, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+        public void serialize(final Upstreams upstreams, final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider) throws IOException {
             jsonGenerator.writeRaw(mapper.writer().writeValueAsString(upstreams.upstreams));
         }
     }

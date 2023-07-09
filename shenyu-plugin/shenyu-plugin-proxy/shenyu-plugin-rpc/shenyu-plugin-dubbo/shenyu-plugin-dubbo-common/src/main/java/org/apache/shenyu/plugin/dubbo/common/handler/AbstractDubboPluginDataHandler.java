@@ -87,6 +87,9 @@ public abstract class AbstractDubboPluginDataHandler implements PluginDataHandle
         if (CollectionUtils.isNotEmpty(graySelectorHandle)) {
             SELECTOR_CACHED_HANDLE.get().cachedHandle(selectorData.getId(), graySelectorHandle);
             UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(graySelectorHandle));
+        } else {
+            // if update gray selector is empty, remove cache
+            removeSelector(selectorData);
         }
     }
 

@@ -30,7 +30,12 @@ import static org.hamcrest.Matchers.nullValue;
  */
 public class HttpCheckers {
     
-    public static HttpChecker notExists(String endpoint) {
+    /**
+     * endpoint is not exist.
+     * @param endpoint endpoint
+     * @return HttpChecker
+     */
+    public static HttpChecker notExists(final String endpoint) {
         return notExists(Method.GET, endpoint);
     }
 
@@ -41,8 +46,8 @@ public class HttpCheckers {
      * @param endpoint endpoint
      * @return HttpChecker
      */
-    public static HttpChecker notExists(Method method, String endpoint) {
-        return (request) -> {
+    public static HttpChecker notExists(final Method method, final String endpoint) {
+        return request -> {
             try {
                 request.request(method, endpoint)
                         .then()
@@ -55,8 +60,13 @@ public class HttpCheckers {
             }
         };
     }
-
-    public static HttpChecker exists(String endpoint) {
+    
+    /**
+     * exist endpoint.
+     * @param endpoint endpoint
+     * @return HttpChecker
+     */
+    public static HttpChecker exists(final String endpoint) {
         return exists(Method.GET, endpoint);
     }
 
@@ -67,8 +77,8 @@ public class HttpCheckers {
      * @param endpoint endpoint
      * @return HttpChecker
      */
-    public static HttpChecker exists(Method method, String endpoint) {
-        return (request) -> {
+    public static HttpChecker exists(final Method method, final String endpoint) {
+        return request -> {
             try {
                 request.request(method, endpoint)
                         .then()

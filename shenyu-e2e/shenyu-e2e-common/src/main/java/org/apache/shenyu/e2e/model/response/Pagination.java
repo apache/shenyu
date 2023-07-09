@@ -47,11 +47,11 @@ public class Pagination {
     }
 
     /**
-     * set currentPage
+     * set currentPage.
      *
      * @param currentPage currentPage
      */
-    public void setCurrentPage(int currentPage) {
+    public void setCurrentPage(final int currentPage) {
         this.currentPage = currentPage;
     }
 
@@ -69,12 +69,12 @@ public class Pagination {
      *
      * @param pageSize pageSize
      */
-    public void setPageSize(int pageSize) {
+    public void setPageSize(final int pageSize) {
         this.pageSize = pageSize;
     }
 
     /**
-     * get totalSize
+     * get totalSizea.
      *
      * @return totalSize.
      */
@@ -87,7 +87,7 @@ public class Pagination {
      *
      * @param totalSize totalSize
      */
-    public void setTotalSize(int totalSize) {
+    public void setTotalSize(final int totalSize) {
         this.totalSize = totalSize;
     }
 
@@ -105,7 +105,7 @@ public class Pagination {
      *
      * @param totalPage totalPage
      */
-    public void setTotalPage(int totalPage) {
+    public void setTotalPage(final int totalPage) {
         this.totalPage = totalPage;
     }
 }

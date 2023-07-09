@@ -43,6 +43,7 @@
         <setting name="defaultExecutorType" value="SIMPLE"/>
         <!-- Sets the number of seconds the driver will wait for a response from the database. -->
         <setting name="defaultStatementTimeout" value="25000"/>
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
     </settings>
 
     <typeAliases>

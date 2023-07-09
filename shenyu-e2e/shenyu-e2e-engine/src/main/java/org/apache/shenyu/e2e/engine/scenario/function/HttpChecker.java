@@ -29,10 +29,18 @@ import java.util.function.Supplier;
 @FunctionalInterface
 public interface HttpChecker extends Checker, HttpVerifier {
     
+    /**
+     * check client.
+     * @param client client client client
+     */
     default void check(GatewayClient client) {
         check(client.getHttpRequesterSupplier());
     }
     
+    /**
+     * check request specification.
+     * @param supplier supplier
+     */
     default void check(Supplier<RequestSpecification> supplier) {
         try {
             verify(supplier.get());

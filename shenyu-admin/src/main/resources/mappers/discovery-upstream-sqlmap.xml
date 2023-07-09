@@ -111,6 +111,17 @@
         WHERE id=#{id, jdbcType=VARCHAR}
     </update>
 
+    <update id="updateDiscoveryHandlerIdAndUrl">
+        UPDATE discovery_upstream
+        SET
+        protocol=#{protocol,jdbcType=VARCHAR},
+        status=#{status,jdbcType=INTEGER},
+        weight=#{weight,jdbcType=INTEGER},
+        props=#{props,jdbcType=VARCHAR},
+        date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
+        WHERE discovery_handler_id=#{id, jdbcType=VARCHAR} and url =#{url}
+    </update>
+
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
@@ -130,20 +141,26 @@
 
     <select id="selectByProxySelectorId" resultMap="BaseResultMap">
         SELECT
-            du.id,
-            du.date_created,
-            du.date_updated,
-            du.discovery_handler_id,
-            du.protocol,
-            du.url,
-            du.status,
-            du.weight,
-            du.props
+        du.id,
+        du.date_created,
+        du.date_updated,
+        du.discovery_handler_id,
+        du.protocol,
+        du.url,
+        du.status,
+        du.weight,
+        du.props
         FROM discovery_upstream du
         INNER JOIN discovery_rel dr ON du.discovery_handler_id = dr.discovery_handler_id
         <where>
             dr.proxy_selector_id = #{proxySelectorId , jdbcType=VARCHAR}
         </where>
+    </select>
+
+    <select id="selectByDiscoveryHandlerIdAndUrl"
+            resultType="org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO">
+        SELECT <include refid="Base_Column_List"/> from discovery_upstream where discovery_handler_id = #{discoveryHandlerId} and url = #{url}
+
     </select>
 
     <delete id="deleteByIds" parameterType="java.util.List">
@@ -184,6 +201,6 @@
     </delete>
 
     <delete id="deleteByUrl">
-        DELETE FROM discovery_upstream WHERE url = #{url}
+        DELETE FROM discovery_upstream WHERE discovery_handler_id = #{discoveryHandlerId} and url = #{url}
     </delete>
 </mapper>

@@ -34,7 +34,7 @@ public class ConsulDataChangedListener extends AbstractListDataChangedListener {
 
     public ConsulDataChangedListener(final ConsulClient consulClient) {
         super(new ChangeData(ConsulConstants.PLUGIN_DATA, ConsulConstants.SELECTOR_DATA,
-                ConsulConstants.RULE_DATA, ConsulConstants.AUTH_DATA, ConsulConstants.META_DATA, ConsulConstants.PROXY_SELECTOR_DATA_ID));
+                ConsulConstants.RULE_DATA, ConsulConstants.AUTH_DATA, ConsulConstants.META_DATA, ConsulConstants.PROXY_SELECTOR_DATA_ID, ConsulConstants.DISCOVERY_UPSTREAM));
         this.consulClient = consulClient;
     }
 

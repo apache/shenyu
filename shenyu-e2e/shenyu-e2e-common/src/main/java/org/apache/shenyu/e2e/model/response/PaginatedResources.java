@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * Paginated resources.
  *
- * @param <T> <T>
+ * @param <T> resourceDTO
  */
 public class PaginatedResources<T extends ResourceDTO> {
     
@@ -44,7 +44,7 @@ public class PaginatedResources<T extends ResourceDTO> {
      *
      * @param page page
      */
-    public void setPage(Pagination page) {
+    public void setPage(final Pagination page) {
         this.page = page;
     }
 
@@ -62,7 +62,7 @@ public class PaginatedResources<T extends ResourceDTO> {
      *
      * @param dataList dataList
      */
-    public void setDataList(List<T> dataList) {
+    public void setDataList(final List<T> dataList) {
         this.dataList = dataList;
     }
 }

@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.util.Properties;
 
@@ -76,7 +77,6 @@ public enum DiscoveryTransfer {
         return discoveryUpstreamData;
     }
 
-
     /**
      * mapToData.
      *
@@ -95,19 +95,53 @@ public enum DiscoveryTransfer {
         return discoveryUpstreamData;
     }
 
-
-    public ProxySelectorData mapToData(ProxySelectorDTO proxySelectorDTO){
+    /**
+     * mapToData.
+     *
+     * @param proxySelectorDTO proxySelectorDTO
+     * @return ProxySelectorData
+     */
+    public ProxySelectorData mapToData(ProxySelectorDTO proxySelectorDTO) {
         ProxySelectorData proxySelectorData = new ProxySelectorData();
         proxySelectorData.setId(proxySelectorDTO.getId());
         proxySelectorData.setName(proxySelectorDTO.getName());
         proxySelectorData.setPluginName(proxySelectorDTO.getPluginName());
         proxySelectorData.setType(proxySelectorDTO.getType());
         proxySelectorData.setForwardPort(proxySelectorDTO.getForwardPort());
+        String props = proxySelectorDTO.getProps();
+        Properties properties = GsonUtils.getInstance().fromJson(props, Properties.class);
+        proxySelectorData.setProps(properties);
         return proxySelectorData;
     }
 
+    /**
+     * mapToData.
+     *
+     * @param proxySelectorDO proxySelectorDO
+     * @return ProxySelectorData
+     */
+    public ProxySelectorData mapToData(ProxySelectorDO proxySelectorDO) {
+        ProxySelectorData proxySelectorData = new ProxySelectorData();
+        proxySelectorData.setId(proxySelectorDO.getId());
+        proxySelectorData.setName(proxySelectorDO.getName());
+        proxySelectorData.setPluginName(proxySelectorDO.getPluginName());
+        proxySelectorData.setType(proxySelectorDO.getType());
+        proxySelectorData.setForwardPort(proxySelectorDO.getForwardPort());
+        String props = proxySelectorDO.getProps();
+        Properties properties = GsonUtils.getInstance().fromJson(props, Properties.class);
+        proxySelectorData.setProps(properties);
+        return proxySelectorData;
+    }
+
+    /**
+     * mapToDTO.
+     *
+     * @param proxySelectorDO proxySelectorDO
+     * @return ProxySelectorDTO
+     */
     public ProxySelectorDTO mapToDTO(ProxySelectorDO proxySelectorDO) {
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+        proxySelectorDTO.setId(proxySelectorDO.getId());
         proxySelectorDTO.setName(proxySelectorDO.getName());
         proxySelectorDTO.setType(proxySelectorDO.getType());
         proxySelectorDTO.setProps(proxySelectorDO.getProps());
@@ -116,6 +150,12 @@ public enum DiscoveryTransfer {
         return proxySelectorDTO;
     }
 
+    /**
+     * mapToDTO.
+     *
+     * @param discoveryHandlerDO discoveryHandlerDO
+     * @return DiscoveryHandlerDTO
+     */
     public DiscoveryHandlerDTO mapToDTO(DiscoveryHandlerDO discoveryHandlerDO) {
         DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
         discoveryHandlerDTO.setDiscoveryId(discoveryHandlerDO.getDiscoveryId());
@@ -126,6 +166,12 @@ public enum DiscoveryTransfer {
         return discoveryHandlerDTO;
     }
 
+    /**
+     * mapToDTO.
+     *
+     * @param discoveryUpstreamDO discoveryUpstreamDO
+     * @return DiscoveryUpstreamDTO
+     */
     public DiscoveryUpstreamDTO mapToDTO(DiscoveryUpstreamDO discoveryUpstreamDO) {
         DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
         discoveryUpstreamDTO.setProps(discoveryUpstreamDO.getProps());
@@ -137,4 +183,5 @@ public enum DiscoveryTransfer {
         discoveryUpstreamDTO.setWeight(discoveryUpstreamDO.getWeight());
         return discoveryUpstreamDTO;
     }
+
 }

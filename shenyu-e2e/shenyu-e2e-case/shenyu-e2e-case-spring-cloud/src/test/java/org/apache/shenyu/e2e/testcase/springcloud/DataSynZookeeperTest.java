@@ -30,8 +30,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+/**
+ * Testing the correctness of Apollo data synchronization method.
+ */
 @ShenYuTest(
-        mode = ShenYuEngineConfigure.Mode.HOST,
+        mode = ShenYuEngineConfigure.Mode.DOCKER,
         services = {
                 @ShenYuTest.ServiceConfigure(
                         serviceName = "admin",
@@ -54,17 +57,14 @@ import java.util.List;
                         }
                 )
         },
-        dockerComposeFile = "classpath:./docker-compose.{storage:h2}.yml"
+        dockerComposeFile = "classpath:./docker-compose.mysql.yml"
 )
-/**
- * Testing the correctness of Apollo data synchronization method.
- */
 public class DataSynZookeeperTest {
 
     @Test
-    void setup(AdminClient adminClient, GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
+    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
-        Thread.sleep(3000);
+        Thread.sleep(10000);
         List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();

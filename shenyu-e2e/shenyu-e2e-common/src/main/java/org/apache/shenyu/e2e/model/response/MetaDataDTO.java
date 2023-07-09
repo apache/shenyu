@@ -22,9 +22,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
 
 /**
- * MetaDataDTO
+ * MetaDataDTO.
  */
-public class MetaDataDTO implements ResourceDTO {
+public final class MetaDataDTO implements ResourceDTO {
 
     /**
      * appName.
@@ -79,7 +79,7 @@ public class MetaDataDTO implements ResourceDTO {
     private MetaDataDTO() {
     }
 
-    private MetaDataDTO(Builder builder) {
+    private MetaDataDTO(final Builder builder) {
         this.appName = builder.appName;
         this.path = builder.path;
         this.pathDesc = builder.pathDesc;
@@ -93,72 +93,140 @@ public class MetaDataDTO implements ResourceDTO {
         this.dateUpdated = builder.dateUpdated;
         this.enabled = builder.enabled;
     }
-
+    
+    /**
+     * builder.
+     * @return Builder
+     */
     public static Builder builder() {
         return new Builder();
     }
-
+    
+    /**
+     * get app name.
+     * @return String
+     */
     public String getAppName() {
-        return appName;
+        return this.appName;
     }
-
-    public void setAppName(String appName) {
+    
+    /**
+     * app name.
+     * @param appName appName
+     */
+    public void setAppName(final String appName) {
         this.appName = appName;
     }
-
+    
+    /**
+     * path.
+     * @return String
+     */
     public String getPath() {
         return path;
     }
-
-    public void setPath(String path) {
+    
+    /**
+     * set path.
+     * @param path path
+     */
+    public void setPath(final String path) {
         this.path = path;
     }
-
+    
+    /**
+     * path describe.
+     * @return String
+     */
     public String getPathDesc() {
         return pathDesc;
     }
-
-    public void setPathDesc(String pathDesc) {
+    
+    /**
+     * path describe.
+     * @param pathDesc pathDesc
+     */
+    public void setPathDesc(final String pathDesc) {
         this.pathDesc = pathDesc;
     }
-
+    
+    /**
+     * rpc type.
+     * @return String
+     */
     public String getRpcType() {
         return rpcType;
     }
-
-    public void setRpcType(String rpcType) {
+    
+    /**
+     * rpc type.
+     * @param rpcType rpcType
+     */
+    public void setRpcType(final String rpcType) {
         this.rpcType = rpcType;
     }
-
+    
+    /**
+     * service name.
+     * @return String
+     */
     public String getServiceName() {
         return serviceName;
     }
-
-    public void setServiceName(String serviceName) {
+    
+    /**
+     * service name.
+     * @param serviceName serviceName
+     */
+    public void setServiceName(final String serviceName) {
         this.serviceName = serviceName;
     }
-
+    
+    /**
+     * method name.
+     * @return String
+     */
     public String getMethodName() {
         return methodName;
     }
-
-    public void setMethodName(String methodName) {
+    
+    /**
+     * method name.
+     * @param methodName methodName
+     */
+    public void setMethodName(final String methodName) {
         this.methodName = methodName;
     }
-
+    
+    /**
+     * parameter types.
+     * @return String
+     */
     public String getParameterTypes() {
         return parameterTypes;
     }
-
-    public void setParameterTypes(String parameterTypes) {
+    
+    /**
+     * parameter types.
+     * @param parameterTypes parameterTypes
+     */
+    public void setParameterTypes(final String parameterTypes) {
         this.parameterTypes = parameterTypes;
     }
-
+    
+    /**
+     * rpc extends.
+     * @return String
+     */
     public String getRpcExt() {
         return rpcExt;
     }
-
-    public void setRpcExt(String rpcExt) {
+    
+    /**
+     * rpc extends.
+     * @param rpcExt rpcExt
+     */
+    public void setRpcExt(final String rpcExt) {
         this.rpcExt = rpcExt;
     }
 
@@ -171,8 +239,12 @@ public class MetaDataDTO implements ResourceDTO {
     public String getName() {
         return null;
     }
-
-    public void setId(String id) {
+    
+    /**
+     * id.
+     * @param id id
+     */
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -180,8 +252,12 @@ public class MetaDataDTO implements ResourceDTO {
     public Date getDateCreated() {
         return dateCreated;
     }
-
-    public void setDateCreated(Date dateCreated) {
+    
+    /**
+     * create date.
+     * @param dateCreated dateCreated
+     */
+    public void setDateCreated(final Date dateCreated) {
         this.dateCreated = dateCreated;
     }
 
@@ -189,16 +265,28 @@ public class MetaDataDTO implements ResourceDTO {
     public Date getDateUpdated() {
         return dateUpdated;
     }
-
-    public void setDateUpdated(Date dateUpdated) {
+    
+    /**
+     * update date.
+     * @param dateUpdated dateUpdated
+     */
+    public void setDateUpdated(final Date dateUpdated) {
         this.dateUpdated = dateUpdated;
     }
-
+    
+    /**
+     * enabled.
+     * @return boolean
+     */
     public boolean isEnabled() {
         return enabled;
     }
-
-    public void setEnabled(boolean enabled) {
+    
+    /**
+     * enabled.
+     * @param enabled enabled
+     */
+    public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -256,67 +344,131 @@ public class MetaDataDTO implements ResourceDTO {
         private Builder() {
 
         }
-
+        
+        /**
+         * build.
+         * @return MetaDataDTO
+         */
         public MetaDataDTO build() {
             return new MetaDataDTO(this);
         }
-
-        public Builder appName(String appName) {
+        
+        /**
+         * app name.
+         * @param appName appName
+         * @return Builder
+         */
+        public Builder appName(final String appName) {
             this.appName = appName;
             return this;
         }
-
-        public Builder path(String path) {
+        
+        /**
+         * path.
+         * @param path path
+         * @return Builder
+         */
+        public Builder path(final String path) {
             this.path = path;
             return this;
         }
-
-        public Builder pathDesc(String pathDesc) {
+        
+        /**
+         * path describe.
+         * @param pathDesc pathDesc
+         * @return Builder
+         */
+        public Builder pathDesc(final String pathDesc) {
             this.pathDesc = pathDesc;
             return this;
         }
-
-        public Builder rpcType(String rpcType) {
+        
+        /**
+         * rpc type.
+         * @param rpcType rpcType
+         * @return Builder
+         */
+        public Builder rpcType(final String rpcType) {
             this.rpcType = rpcType;
             return this;
         }
-
-        public Builder serviceName(String serviceName) {
+        
+        /**
+         * service name.
+         * @param serviceName serviceName
+         * @return Builder
+         */
+        public Builder serviceName(final String serviceName) {
             this.serviceName = serviceName;
             return this;
         }
-
-        public Builder methodName(String methodName) {
+        
+        /**
+         * method name.
+         * @param methodName methodName
+         * @return Builder
+         */
+        public Builder methodName(final String methodName) {
             this.methodName = methodName;
             return this;
         }
-
-        public Builder parameterTypes(String parameterTypes) {
+        
+        /**
+         * parameter types.
+         * @param parameterTypes parameterTypes
+         * @return Builder
+         */
+        public Builder parameterTypes(final String parameterTypes) {
             this.parameterTypes = parameterTypes;
             return this;
         }
-
-        public Builder rpcExt(String rpcExt) {
+        
+        /**
+         * rpc extends.
+         * @param rpcExt rpcExt
+         * @return Builder
+         */
+        public Builder rpcExt(final String rpcExt) {
             this.rpcExt = rpcExt;
             return this;
         }
-
-        public Builder id(String id) {
+        
+        /**
+         * id.
+         * @param id id
+         * @return Builder
+         */
+        public Builder id(final String id) {
             this.id = id;
             return this;
         }
-
-        public Builder dateCreated(Date dateCreated) {
+        
+        /**
+         * create date.
+         * @param dateCreated dateCreated
+         * @return Builder
+         */
+        public Builder dateCreated(final Date dateCreated) {
             this.dateCreated = dateCreated;
             return this;
         }
-
-        public Builder dateUpdated(Date dateUpdated) {
+        
+        /**
+         * update date.
+         * @param dateUpdated dateUpdated
+         * @return Builder
+         */
+        public Builder dateUpdated(final Date dateUpdated) {
             this.dateUpdated = dateUpdated;
             return this;
         }
-
-        public Builder enabled(boolean enabled) {
+        
+        /**
+         * enabled.
+         * @param enabled enabled
+         * @return Builder
+         */
+        public Builder enabled(final boolean enabled) {
             this.enabled = enabled;
             return this;
         }
