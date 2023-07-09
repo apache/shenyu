@@ -24,6 +24,9 @@ import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 
+/**
+ * Huawei lts log collector，depend a LogConsumeClient for consume logs.
+ */
 public class HuaweiLtsLogCollector extends AbstractLogCollector<HuaweiLtsLogCollectClient, ShenyuRequestLog> {
 
     private static final LogCollector<ShenyuRequestLog> INSTANCE = new HuaweiLtsLogCollector();

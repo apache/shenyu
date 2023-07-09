@@ -25,6 +25,9 @@ import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 
+/**
+ * LoggingHuaweiLtsPluginDataHandler Huawei lts plugin data handler.
+ */
 public class LoggingHuaweiLtsPluginDataHandler extends AbstractLogPluginDataHandler<HuaweiLogCollectConfig.HuaweiLtsLogConfig, GenericApiConfig> {
 
     private static final HuaweiLtsLogCollectClient HUAWEI_LTS_LOG_COLLECT_CLIENT = new HuaweiLtsLogCollectClient();

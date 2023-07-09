@@ -22,6 +22,9 @@ import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * LogCollectConfig.
+ */
 public class HuaweiLogCollectConfig {
     public static final HuaweiLogCollectConfig INSTANCE = new HuaweiLogCollectConfig();
 

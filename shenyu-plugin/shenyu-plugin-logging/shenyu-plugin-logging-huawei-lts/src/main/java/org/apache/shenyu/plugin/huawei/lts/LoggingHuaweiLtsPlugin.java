@@ -26,6 +26,9 @@ import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.springframework.web.server.ServerWebExchange;
 
+/**
+ * LoggingHuaweiLtsPlugin send log to Huawei lts service.
+ */
 public class LoggingHuaweiLtsPlugin extends AbstractLoggingPlugin<ShenyuRequestLog> {
     @Override
     protected LogCollector<ShenyuRequestLog> logCollector() {

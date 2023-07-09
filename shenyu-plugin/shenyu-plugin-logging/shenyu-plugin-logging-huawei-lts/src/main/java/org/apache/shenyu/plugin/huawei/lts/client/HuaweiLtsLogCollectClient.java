@@ -49,6 +49,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Huawei lts log Collect client.
+ */
 public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLogCollectConfig.HuaweiLtsLogConfig, ShenyuRequestLog> {
 
     private Producer producer;
@@ -113,7 +116,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
     }
 
     /**
-     * send log to Tencent cls.
+     * send log to Huawei lts.
      *
      * @param log log
      */
