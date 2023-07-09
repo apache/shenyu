@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: it-ingress-controller
+name: it-k8s
 
 on:
   pull_request:
@@ -22,7 +22,7 @@ on:
       - master
 
 jobs:
-  k8s-examples-http:
+  ingress-controller:
     runs-on: ubuntu-latest
     if: (github.repository == 'apache/shenyu')
     steps:
