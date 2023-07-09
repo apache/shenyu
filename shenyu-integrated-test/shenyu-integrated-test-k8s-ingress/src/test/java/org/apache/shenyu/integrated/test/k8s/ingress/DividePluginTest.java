@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Test divide plugin in ingress controller
+ * Test divide plugin in ingress controller.
  */
 public class DividePluginTest {
 
