@@ -91,7 +91,7 @@
     </dependencies>
 
     <build>
-        <finalName>shenyu-examples-http</finalName>
+        <finalName>shenyu-examples-http-swagger2</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
