@@ -38,13 +38,13 @@
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
         <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
         <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
-        <hutool.version>5.8.16</hutool.version>
         <swagger.version>2.9.2</swagger.version>
     </properties>
 
     <modules>
         <module>shenyu-examples-common</module>
         <module>shenyu-examples-http</module>
+        <module>shenyu-examples-http-swagger2</module>
         <module>shenyu-examples-https</module>
         <module>shenyu-examples-dubbo</module>
         <module>shenyu-examples-springcloud</module>
