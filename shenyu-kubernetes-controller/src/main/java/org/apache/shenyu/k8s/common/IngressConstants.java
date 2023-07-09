@@ -37,4 +37,8 @@ public class IngressConstants {
 
     // The maximum length of the request header, in bytes
     public static final String REQUEST_MAX_SIZE_ANNOTATION_KEY = "shenyu.apache.org/request-max-size";
+
+    //The Load balance type name of the dubbo plugin, refer to LoadBalanceEnum
+    public static final String PLUGIN_DUBBO_LOADBALANCE_ANNOTATION_KEY = "shenyu.apache.org/plugin-dubbo-loadbalace";
+
 }
