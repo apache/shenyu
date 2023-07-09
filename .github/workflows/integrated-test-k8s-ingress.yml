@@ -73,7 +73,7 @@ jobs:
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
         run: |
-          docker save shenyu-examples-http:latest shenyu-integrated-k8s-ingress:latest | sudo k3s ctr images import -
+          docker save shenyu-examples-http:latest sshenyu-integrated-test-k8s-ingress:latest | sudo k3s ctr images import -
           kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http.yml
           kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/deploy/deploy-shenyu.yaml
 
@@ -93,7 +93,7 @@ jobs:
         run: |
           kubectl get all
           kubectl get events --all-namespaces
-          kubectl logs -l all=shenyu-examples-http
+          kubectl logs -l all=shenyu-ingress-controller
           if [[ ${{steps.test.outcome}} == "failure" ]]; then
             echo "Test Failed"
             exit 1
