@@ -50,16 +50,14 @@ impl Module {
         serialized_module: Vec<u8>,
     ) -> Result<Self, Error> {
         let module = match unsafe { Artifact::deserialize(serialized_module.as_slice()) } {
-            Ok(artifact) => {
-                match load_cache_with(artifact) {
-                    Ok(module) => module,
-                    Err(_) => {
-                        return Err(runtime_error(format!(
-                            "Failed to compile the serialized module."
-                        )))
-                    }
+            Ok(artifact) => match load_cache_with(artifact) {
+                Ok(module) => module,
+                Err(_) => {
+                    return Err(runtime_error(format!(
+                        "Failed to compile the serialized module."
+                    )))
                 }
-            }
+            },
             Err(_) => return Err(runtime_error(format!("Failed to deserialize the module."))),
         };
 
@@ -71,7 +69,7 @@ impl Module {
 }
 
 #[no_mangle]
-pub extern "system" fn Java_org_apache_shenyu_wasmer_Module_nativeModuleInstantiate(
+pub extern "system" fn Java_org_apache_shenyu_wasm_Module_nativeModuleInstantiate(
     env: JNIEnv,
     _class: JClass,
     this: JObject,
@@ -90,7 +88,7 @@ pub extern "system" fn Java_org_apache_shenyu_wasmer_Module_nativeModuleInstanti
 }
 
 #[no_mangle]
-pub extern "system" fn Java_org_apache_shenyu_wasmer_Module_nativeDrop(
+pub extern "system" fn Java_org_apache_shenyu_wasm_Module_nativeDrop(
     _env: JNIEnv,
     _class: JClass,
     module_pointer: jptr,
@@ -99,7 +97,7 @@ pub extern "system" fn Java_org_apache_shenyu_wasmer_Module_nativeDrop(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_org_apache_shenyu_wasmer_Module_nativeInstantiate(
+pub extern "system" fn Java_org_apache_shenyu_wasm_Module_nativeInstantiate(
     env: JNIEnv,
     _class: JClass,
     module_pointer: jptr,
@@ -117,7 +115,10 @@ pub extern "system" fn Java_org_apache_shenyu_wasmer_Module_nativeInstantiate(
         let memories: HashMap<String, Memory> = instance
             .exports()
             .filter_map(|(export_name, export)| match export {
-                Export::Memory(memory) => Some((export_name.to_string(), Memory::new(Rc::new(memory.clone())))),
+                Export::Memory(memory) => Some((
+                    export_name.to_string(),
+                    Memory::new(Rc::new(memory.clone())),
+                )),
                 _ => None,
             })
             .collect();
@@ -134,7 +135,7 @@ pub extern "system" fn Java_org_apache_shenyu_wasmer_Module_nativeInstantiate(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_org_apache_shenyu_wasmer_Module_nativeValidate(
+pub extern "system" fn Java_org_apache_shenyu_wasm_Module_nativeValidate(
     env: JNIEnv,
     _class: JClass,
     module_bytes: jbyteArray,
@@ -151,7 +152,7 @@ pub extern "system" fn Java_org_apache_shenyu_wasmer_Module_nativeValidate(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_org_apache_shenyu_wasmer_Module_nativeSerialize(
+pub extern "system" fn Java_org_apache_shenyu_wasm_Module_nativeSerialize(
     env: JNIEnv,
     _class: JClass,
     module_pointer: jptr,
@@ -167,7 +168,7 @@ pub extern "system" fn Java_org_apache_shenyu_wasmer_Module_nativeSerialize(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_org_apache_shenyu_wasmer_Module_nativeDeserialize(
+pub extern "system" fn Java_org_apache_shenyu_wasm_Module_nativeDeserialize(
     env: JNIEnv,
     _class: JClass,
     java_module: JObject,

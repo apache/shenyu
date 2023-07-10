@@ -11,8 +11,8 @@ use jni::{
     JNIEnv,
 };
 use std::{collections::HashMap, convert::TryFrom, panic, rc::Rc};
-use wasmer_runtime::{imports, instantiate, DynFunc, Export, Value as WasmValue};
 use wasmer_runtime as core;
+use wasmer_runtime::{imports, instantiate, DynFunc, Export, Value as WasmValue};
 
 pub struct Instance {
     pub java_instance_object: GlobalRef,
@@ -37,7 +37,10 @@ impl Instance {
         let memories: HashMap<String, Memory> = instance
             .exports()
             .filter_map(|(export_name, export)| match export {
-                Export::Memory(memory) => Some((export_name.to_string(), Memory::new(Rc::new(memory.clone())))),
+                Export::Memory(memory) => Some((
+                    export_name.to_string(),
+                    Memory::new(Rc::new(memory.clone())),
+                )),
                 _ => None,
             })
             .collect();
@@ -68,7 +71,7 @@ impl Instance {
 }
 
 #[no_mangle]
-pub extern "system" fn Java_org_apache_shenyu_wasmer_Instance_nativeInstantiate(
+pub extern "system" fn Java_org_apache_shenyu_wasm_Instance_nativeInstantiate(
     env: JNIEnv,
     _class: JClass,
     this: JObject,
@@ -87,7 +90,7 @@ pub extern "system" fn Java_org_apache_shenyu_wasmer_Instance_nativeInstantiate(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_org_apache_shenyu_wasmer_Instance_nativeDrop(
+pub extern "system" fn Java_org_apache_shenyu_wasm_Instance_nativeDrop(
     _env: JNIEnv,
     _class: JClass,
     instance_pointer: jptr,
@@ -96,7 +99,7 @@ pub extern "system" fn Java_org_apache_shenyu_wasmer_Instance_nativeDrop(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_org_apache_shenyu_wasmer_Instance_nativeCallExportedFunction<'a>(
+pub extern "system" fn Java_org_apache_shenyu_wasm_Instance_nativeCallExportedFunction<'a>(
     env: JNIEnv<'a>,
     _class: JClass,
     instance_pointer: jptr,
@@ -168,7 +171,7 @@ pub extern "system" fn Java_org_apache_shenyu_wasmer_Instance_nativeCallExported
 }
 
 #[no_mangle]
-pub extern "system" fn Java_org_apache_shenyu_wasmer_Instance_nativeInitializeExportedFunctions(
+pub extern "system" fn Java_org_apache_shenyu_wasm_Instance_nativeInitializeExportedFunctions(
     env: JNIEnv,
     _class: JClass,
     instance_pointer: jptr,
@@ -180,7 +183,7 @@ pub extern "system" fn Java_org_apache_shenyu_wasmer_Instance_nativeInitializeEx
             .get_field(
                 instance.java_instance_object.as_obj(),
                 "exports",
-                "Lorg/wasmer/Exports;",
+                "Lorg/apache/shenyu/wasm/Exports;",
             )?
             .l()?;
 
@@ -203,7 +206,7 @@ pub extern "system" fn Java_org_apache_shenyu_wasmer_Instance_nativeInitializeEx
 }
 
 #[no_mangle]
-pub extern "system" fn Java_org_apache_shenyu_wasmer_Instance_nativeInitializeExportedMemories(
+pub extern "system" fn Java_org_apache_shenyu_wasm_Instance_nativeInitializeExportedMemories(
     env: JNIEnv,
     _class: JClass,
     instance_pointer: jptr,

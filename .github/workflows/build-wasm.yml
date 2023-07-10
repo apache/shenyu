@@ -49,27 +49,24 @@ jobs:
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
+        continue-on-error: true
       - name: Set up rust
-        if: always()
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
       - name: Build with rust
-        if: always()
         run: |
           cd ${{ github.workspace }}/shenyu-wasm/shenyu-wasm-build
           C://Users//runneradmin//.cargo//bin//cargo.exe clean
           C://Users//runneradmin//.cargo//bin//cargo.exe build --release
       - uses: actions/upload-artifact@v2
-        if: always()
         with:
           name: lib
           path: shenyu-wasm/shenyu-wasm-build/target/release/*.dll
           if-no-files-found: error
       - uses: actions/upload-artifact@v2
-        if: always()
         with:
           name: lib
           path: shenyu-wasm/shenyu-wasm-build/target/release/*.lib
