@@ -55,7 +55,7 @@ spec:
       volumes:
       - name: kubeconfig
         hostPath:
-          path: ~/.kube/config
+          path: /etc/rancher/k3s/k3s.yaml
           type: File
 ---
 apiVersion: v1
