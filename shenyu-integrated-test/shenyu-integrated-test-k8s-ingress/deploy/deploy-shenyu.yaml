@@ -53,6 +53,7 @@ spec:
           - name: KUBECONFIG
             value: '/root/.kube/config'
         imagePullPolicy: IfNotPresent
+      serviceAccountName: shenyu-ingress-controller
 ---
 apiVersion: v1
 kind: Service
