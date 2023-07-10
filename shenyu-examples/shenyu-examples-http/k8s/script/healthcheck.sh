@@ -25,6 +25,9 @@ do
         echo -e "curl $service response $status"
 
         if [ $status -eq 200  ]; then
+
+            kubectl logs -l app=shenyu-bootstrap
+            kubectl logs -l all=shenyu-examples-http
             break
         fi
 
@@ -33,11 +36,16 @@ do
 done
 
 sleep 5
-kubectl logs --tail=100 shenyu-bootstrap
+
+kubectl logs -l app=shenyu-bootstrap
+kubectl logs -l all=shenyu-examples-http
+
 status=`curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type:application/json" http://localhost:31195/http/order/save --data '{"name":"test", "id": 123}'`
 
 sleep 3
 
+kubectl logs -l app=shenyu-bootstrap
+kubectl logs -l all=shenyu-examples-http
 if [ $status -eq 200 ]; then
     echo -e "Success to send request: $status"
     echo -e "\n-------------------"
