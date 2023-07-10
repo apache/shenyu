@@ -48,6 +48,7 @@ jobs:
   windows:
     runs-on: windows-2019
     steps:
+      - run: git config core.longpaths true
       - uses: actions/checkout@v2
       - name: Set up rust
         uses: actions-rs/toolchain@v1
