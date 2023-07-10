@@ -19,7 +19,7 @@
 PRGDIR=`dirname "$0"`
 for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
 do
-    for loop in `seq 1 60`
+    for loop in `seq 1 30`
     do
         status=`curl -o /dev/null -s -w %{http_code} $service`
         echo -e "curl $service response $status"
