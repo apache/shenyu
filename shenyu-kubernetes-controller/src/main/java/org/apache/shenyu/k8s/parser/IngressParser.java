@@ -90,7 +90,7 @@ public class IngressParser implements K8sResourceParser<V1Ingress> {
      */
     @Override
     public ShenyuMemoryConfig parse(final V1Ingress ingress, final CoreV1Api coreV1Api) {
-        if (ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_LOADBALANCE_ANNOTATION_KEY ) != null) {
+        if (Objects.equals(ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
             DubboIngressParser dubboIngressParser  = new DubboIngressParser(serviceLister, endpointsLister);
             return dubboIngressParser.parse(ingress, coreV1Api);
         } else {
