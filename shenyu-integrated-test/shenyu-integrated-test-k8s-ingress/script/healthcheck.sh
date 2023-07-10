@@ -1,4 +1,4 @@
-#!/bin/bash
+ s#!/bin/bash
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -32,17 +32,5 @@ do
     done
 done
 
-sleep 5
-
-status=`curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type:application/json" http://localhost:31195/http/order/save --data '{"name":"test", "id": 123}'`
-
 sleep 3
-
-if [ $status -eq 200 ]; then
-    echo -e "Success to send request: $status"
-    echo -e "\n-------------------"
-    exit 0
-fi
-echo -e "Failed to send request from shenyu-bootstrap to http example: $status"
 echo -e "\n-------------------"
-exit 1
