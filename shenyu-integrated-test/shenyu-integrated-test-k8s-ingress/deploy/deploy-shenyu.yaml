@@ -49,6 +49,7 @@ spec:
         env:
           - name: KUBECONFIG
             value: '/root/.kube/config'
+        imagePullPolicy: IfNotPresent
 ---
 apiVersion: v1
 kind: Service
