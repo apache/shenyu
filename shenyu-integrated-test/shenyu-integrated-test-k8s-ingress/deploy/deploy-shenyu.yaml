@@ -46,18 +46,9 @@ spec:
         image: apache/shenyu-integrated-test-k8s-ingress:latest
         ports:
         - containerPort: 9195
-        args:
-        - --kubeconfig=/etc/kubernetes/config
-        volumeMounts:
-        - name: kubeconfig
-          mountPath: /etc/kubernetes/config
-          readOnly: true
-        imagePullPolicy: IfNotPresent
-      volumes:
-      - name: kubeconfig
-        hostPath:
-          path: /etc/rancher/k3s/k3s.yaml
-          type: File
+        env:
+          - name: KUBECONFIG
+            value: '/root/.kube/config'
 ---
 apiVersion: v1
 kind: Service
