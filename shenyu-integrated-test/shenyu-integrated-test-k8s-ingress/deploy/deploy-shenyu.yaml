@@ -52,6 +52,7 @@ spec:
         - name: kubeconfig
           mountPath: /etc/kubernetes/config
           readOnly: true
+        imagePullPolicy: IfNotPresent
       volumes:
       - name: kubeconfig
         hostPath:
