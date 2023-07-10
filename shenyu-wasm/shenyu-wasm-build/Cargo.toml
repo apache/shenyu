@@ -1,0 +1,15 @@
+[package]
+publish = false
+name = "shenyu-wasm-build"
+version = "0.1.0"
+authors = ["zhangzicheng@apache.org"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasmer = { git = "https://github.com/wasmerio/wasmer", rev = "1.0.0" }
+wasmer-runtime = { git = "https://github.com/wasmerio/wasmer", rev = "1.0.0" }
+wasmer-runtime-core = { git = "https://github.com/wasmerio/wasmer", rev = "1.0.0" }
+jni = "0.16"

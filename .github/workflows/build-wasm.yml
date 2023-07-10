@@ -1,0 +1,72 @@
+name: build wasm
+
+on: [push]
+
+jobs:
+  linux:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Build with rust
+        run: |
+          cd ${{ github.workspace }}/shenyu-wasm/shenyu-wasm-build
+          /home/runner/.cargo/bin/cargo clean
+          /home/runner/.cargo/bin/cargo build --release
+      - uses: actions/upload-artifact@v2
+        with:
+          name: lib
+          path: shenyu-wasm/shenyu-wasm-build/target/release/lib*
+          if-no-files-found: error
+
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Build with rust
+        run: |
+          cd ${{ github.workspace }}/shenyu-wasm/shenyu-wasm-build
+          /Users/runner/.cargo/bin/cargo clean
+          /Users/runner/.cargo/bin/cargo build --release
+      - uses: actions/upload-artifact@v2
+        with:
+          name: lib
+          path: shenyu-wasm/shenyu-wasm-build/target/release/lib*
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Build with rust
+        run: |
+          cd ${{ github.workspace }}/shenyu-wasm/shenyu-wasm-build
+          C://Users//runneradmin//.cargo//bin//cargo.exe clean
+          C://Users//runneradmin//.cargo//bin//cargo.exe build --release
+      - uses: actions/upload-artifact@v2
+        with:
+          name: lib
+          path: shenyu-wasm/shenyu-wasm-build/target/release/*.dll
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v2
+        with:
+          name: lib
+          path: shenyu-wasm/shenyu-wasm-build/target/release/*.lib
+          if-no-files-found: error
