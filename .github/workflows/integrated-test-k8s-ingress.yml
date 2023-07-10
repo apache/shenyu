@@ -92,6 +92,7 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
         run: |
           kubectl get all
+          kubectl get all -n shenyu-ingress
           kubectl get events --all-namespaces
           kubectl logs -l app=shenyu-ingress-controller -n shenyu-ingress --tail=-1
           if [[ ${{steps.test.outcome}} == "failure" ]]; then
