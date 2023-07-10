@@ -93,7 +93,7 @@ jobs:
         run: |
           kubectl get all
           kubectl get events --all-namespaces
-          kubectl logs -l all=shenyu-ingress-controller
+          kubectl logs -l app=shenyu-ingress-controller -n shenyu-ingress --tail=-1
           if [[ ${{steps.test.outcome}} == "failure" ]]; then
             echo "Test Failed"
             exit 1
