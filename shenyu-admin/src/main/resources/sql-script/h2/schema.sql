@@ -546,7 +546,7 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) 
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`) VALUES ('40', 'keyAuth', 'Authentication', 150, '0');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('41', 'brpc', 'Proxy', 310,'{"address":"127.0.0.1","port":"8005","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}','0');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`) VALUES ('42','tcp','Proxy', 320, '1');
-INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('43', 'loggingHuaweiLts', 'Logging', 177, '{ "totalSizeInBytes ": "104857600 ", "maxBlockMs ": "0 ", "ioThreadCount ": "1 ", "batchSizeThresholdInBytes ": "524288 ", "batchCountThreshold ": "4096 ", "lingerMs ": "2000 ", "retries ": "100 ", "baseRetryBackoffMs ": "100 ", "maxRetryBackoffMs ": "100 ", "enableLocalTest ": "true ", "setGiveUpExtraLongSingleLog ": "false"}', '0');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('43', 'loggingHuaweiLts', 'Logging', 177, '{ "totalSizeInBytes":"104857600","maxBlockMs":"0","ioThreadCount":"1","batchSizeThresholdInBytes":"524288","batchCountThreshold":"4096","lingerMs":"2000","retries":"100","baseRetryBackoffMs":"100","maxRetryBackoffMs":"100","enableLocalTest":"true","setGiveUpExtraLongSingleLog":"false"}', '0');
 
 /*insert plugin_handle data for sentinel*/
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613195784246', '10', 'flowRuleGrade', 'flowRuleGrade', 3, 2, 8, '{"required":"1","defaultValue":"1","rule":""}');
