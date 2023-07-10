@@ -33,7 +33,7 @@ do
 done
 
 sleep 5
-kubectl logs --tail=100 app=shenyu-bootstrap
+kubectl logs --tail=100 shenyu-bootstrap
 status=`curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type:application/json" http://localhost:31195/http/order/save --data '{"name":"test", "id": 123}'`
 
 sleep 3
