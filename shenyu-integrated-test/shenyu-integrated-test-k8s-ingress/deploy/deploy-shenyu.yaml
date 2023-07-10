@@ -31,6 +31,9 @@ kind: Deployment
 metadata:
   name: shenyu-ingress-controller
   namespace: shenyu-ingress
+  labels:
+    app: shenyu-ingress-controller
+    all: shenyu-ingress-controller
 spec:
   replicas: 1
   selector:
