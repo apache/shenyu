@@ -147,6 +147,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     public void removeDiscovery(final DiscoveryDO discoveryDO) {
         ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryDO.getId());
         shenyuDiscoveryService.shutdown();
+        LOG.info("shenyu discovery shutdown [{}] discovery", discoveryDO.getName());
     }
 
     /**

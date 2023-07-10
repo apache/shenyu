@@ -121,4 +121,35 @@ COMMENT ON COLUMN "public"."proxy_selector"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."proxy_selector"."date_updated" IS 'update time';
 
 
+CREATE TABLE "public"."discovery_upstream"
+(
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_handler_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "protocol" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "url"         varchar(128) COLLATE "pg_catalog"."default",
+    "status"      int2 COLLATE "pg_catalog"."default" NOT NULL,
+    "weight"      int2 COLLATE "pg_catalog"."default" NOT NULL,
+    "props"        text COLLATE "pg_catalog"."default",
+    "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+;
+COMMENT ON COLUMN "public"."discovery_upstream"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."discovery_upstream"."discovery_handler_id" IS 'the discovery handler id';
+COMMENT ON COLUMN "public"."discovery_upstream"."protocol" IS 'for http, https, tcp, ws';
+COMMENT ON COLUMN "public"."discovery_upstream"."url" IS 'ip:port';
+COMMENT ON COLUMN "public"."discovery_upstream"."status" IS 'type (0, healthy, 1 unhealthy)';
+COMMENT ON COLUMN "public"."discovery_upstream"."weight" IS 'the weight for lists';
+COMMENT ON COLUMN "public"."discovery_upstream"."props" IS 'the other field (json)';
+COMMENT ON COLUMN "public"."discovery_upstream"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."discovery_upstream"."date_updated" IS 'update time';
+
+
 INSERT INTO "public"."plugin" VALUES ('42', 'tcp', null, 'Proxy', 320, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
+
+INSERT INTO "public"."plugin_handle"
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678293333363167232', '42', 'reactorNettyConfig', 'tcp plugin reactorNettyConfig', 2, 1, 0, '{"required":"0","defaultValue":"{\"loadBalanceAlgorithm\":\"random\",\"bossGroupThreadCount\":\"1\",\"workerGroupThreadCount\":\"12\",\"clientMaxConnections\":\"20\",\"clientMaxIdleTimeMs\":\"30000\",\"clientMaxLifeTimeMs\":\"60000\",\"clientPendingAcquireTimeout\":\"5\",\"clientPendingAcquireMaxCount\":\"5\"}","rule":""}', '2023-07-10 14:41:27.000', '2023-07-10 14:41:26.514');
+INSERT INTO "public"."plugin_handle"
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678293231840038912', '42', 'discoveryZookeeper', 'discovery zk init props', 2, 3, 0, '{"required":"0","defaultValue":"{\"baseSleepTimeMilliseconds\":\"1000\",\"maxRetries\":\"3\",\"maxSleepTimeMilliseconds\":\"1000\",\"connectionTimeoutMilliseconds\":\"1000\",\"sessionTimeoutMilliseconds\":\"1000\",\"namespace\":\"\",\"digest\":null}","rule":""}', '2023-07-10 14:41:02.000', '2023-07-10 14:41:40.643');

@@ -204,3 +204,10 @@ comment on column PROXY_SELECTOR.date_updated
 
   INSERT INTO `plugin` VALUES ('42', 'tcp', NULL, 'Proxy', 320, 1, '2023-05-30 18:02:53', '2022-05-30 18:02:53',null);
  INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled, plugin_jar) VALUES ('42', 'tcp', 'Proxy', 320, null, '1', null);
+
+INSERT INTO `plugin_handle`
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678293333363167232', '42', 'reactorNettyConfig', 'tcp plugin reactorNettyConfig', 2, 1, 0, '{"required":"0","defaultValue":"{\"loadBalanceAlgorithm\":\"random\",\"bossGroupThreadCount\":\"1\",\"workerGroupThreadCount\":\"12\",\"clientMaxConnections\":\"20\",\"clientMaxIdleTimeMs\":\"30000\",\"clientMaxLifeTimeMs\":\"60000\",\"clientPendingAcquireTimeout\":\"5\",\"clientPendingAcquireMaxCount\":\"5\"}","rule":""}', '2023-07-10 14:41:27.000', '2023-07-10 14:41:26.514');
+INSERT INTO `plugin_handle`
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678293231840038912', '42', 'discoveryZookeeper', 'discovery zk init props', 2, 3, 0, '{"required":"0","defaultValue":"{\"baseSleepTimeMilliseconds\":\"1000\",\"maxRetries\":\"3\",\"maxSleepTimeMilliseconds\":\"1000\",\"connectionTimeoutMilliseconds\":\"1000\",\"sessionTimeoutMilliseconds\":\"1000\",\"namespace\":\"\",\"digest\":null}","rule":""}', '2023-07-10 14:41:02.000', '2023-07-10 14:41:40.643');

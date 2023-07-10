@@ -164,4 +164,10 @@
         FROM discovery_rel
         WHERE id = #{id, jdbcType=VARCHAR}
     </delete>
+
+    <delete id="deleteByDiscoveryHandlerId">
+        DELETE
+        FROM discovery_rel
+        WHERE  discovery_handler_id = #{discoveryHandlerId, jdbcType=VARCHAR}
+    </delete>
 </mapper>

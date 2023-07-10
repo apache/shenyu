@@ -954,6 +954,7 @@ INSERT INTO "public"."plugin" VALUES ('38', 'loggingClickHouse', '{"host":"127.0
 INSERT INTO "public"."plugin" VALUES ('39', 'casdoor', '{"endpoint":"http://localhost:8000"}', 'Authentication', 40, 0, '2022-09-11 12:00:00', '2022-09-11 12:00:00', null);
 INSERT INTO "public"."plugin" VALUES ('40', 'keyAuth', NULL, 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00', null);
 INSERT INTO "public"."plugin" VALUES ('41', 'brpc', '{"address":"127.0.0.1","port":"8005","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}', 'Proxy', 310, 0, '2023-01-10 10:08:01', '2023-01-10 10:08:01', null);
+INSERT INTO "public"."plugin" VALUES ('42', 'tcp', null, 'Proxy', 320, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 
 -- ----------------------------
 -- Table structure for plugin_handle
@@ -1267,6 +1268,9 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172959', '41', 'coret
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172960', '41', 'threads', 'threads', 1, 3, 0, '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172961', '41', 'queues', 'queues', 1, 3, 0, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172962', '41', 'threadpool', 'threadpool', 3, 3, 0, '{"required":"0","defaultValue":"shared","placeholder":"threadpool","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1678293333363167232', '42', 'reactorNettyConfig', 'tcp plugin reactorNettyConfig', 2, 1, 0, '{"required":"0","defaultValue":"{\"loadBalanceAlgorithm\":\"random\",\"bossGroupThreadCount\":\"1\",\"workerGroupThreadCount\":\"12\",\"clientMaxConnections\":\"20\",\"clientMaxIdleTimeMs\":\"30000\",\"clientMaxLifeTimeMs\":\"60000\",\"clientPendingAcquireTimeout\":\"5\",\"clientPendingAcquireMaxCount\":\"5\"}","rule":""}', '2023-07-10 14:41:27.000', '2023-07-10 14:41:26.514');
+INSERT INTO "public"."plugin_handle" VALUES ('1678293231840038912', '42', 'discoveryZookeeper', 'discovery zk init props', 2, 3, 0, '{"required":"0","defaultValue":"{\"baseSleepTimeMilliseconds\":\"1000\",\"maxRetries\":\"3\",\"maxSleepTimeMilliseconds\":\"1000\",\"connectionTimeoutMilliseconds\":\"1000\",\"sessionTimeoutMilliseconds\":\"1000\",\"namespace\":\"\",\"digest\":null}","rule":""}', '2023-07-10 14:41:02.000', '2023-07-10 14:41:40.643');
+
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
@@ -2297,6 +2301,33 @@ COMMENT ON COLUMN "public"."proxy_selector"."type" IS 'the type ';
 COMMENT ON COLUMN "public"."proxy_selector"."forward_port" IS 'the forward port';
 COMMENT ON COLUMN "public"."proxy_selector"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."proxy_selector"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for discovery_upstream
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."discovery_upstream";
+CREATE TABLE "public"."discovery_upstream"
+(
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_handler_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "protocol"    varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "url"         varchar(128) COLLATE "pg_catalog"."default",
+    "status"      int4  NOT NULL,
+    "weight"      int4  NOT NULL,
+    "props"        text COLLATE "pg_catalog"."default",
+    "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+;
+COMMENT ON COLUMN "public"."discovery_upstream"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."discovery_upstream"."discovery_handler_id" IS 'the discovery handler id';
+COMMENT ON COLUMN "public"."discovery_upstream"."protocol" IS 'for http, https, tcp, ws';
+COMMENT ON COLUMN "public"."discovery_upstream"."url" IS 'ip:port';
+COMMENT ON COLUMN "public"."discovery_upstream"."status" IS 'type (0, healthy, 1 unhealthy)';
+COMMENT ON COLUMN "public"."discovery_upstream"."weight" IS 'the weight for lists';
+COMMENT ON COLUMN "public"."discovery_upstream"."props" IS 'the other field (json)';
+COMMENT ON COLUMN "public"."discovery_upstream"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."discovery_upstream"."date_updated" IS 'update time';
 
 -- ----------------------------
 -- Table structure for alert_template
