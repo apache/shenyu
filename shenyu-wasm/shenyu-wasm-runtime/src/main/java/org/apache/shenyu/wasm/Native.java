@@ -5,93 +5,39 @@
 
 package org.apache.shenyu.wasm;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.scijava.nativelib.JniExtractor;
+import org.scijava.nativelib.NativeLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Native {
-    public static final boolean LOADED_EMBEDDED_LIBRARY;
-
-    static {
-        LOADED_EMBEDDED_LIBRARY = loadEmbeddedLibrary();
-    }
-
-    private Native() {}
-
-    public static String getCurrentPlatformIdentifier() {
-        String osName = System.getProperty("os.name").toLowerCase();
-
-        if (osName.contains("windows")) {
-            osName = "windows";
-        } else if (osName.contains("mac os x")) {
-            osName = "darwin";
-        } else {
-            osName = osName.replaceAll("\\s+", "_");
-        }
-
-        return osName + "-" + System.getProperty("os.arch");
-    }
-
-    private static boolean loadEmbeddedLibrary() {
-        boolean usingEmbedded = false;
-
-        // attempt to locate embedded native library within JAR at following location:
-        // /NATIVE/${os.arch}/${os.name}/[libwasmer.so|libwasmer.dylib|wasmer.dll]
-        String[] libs;
-        final String libsFromProps = System.getProperty("wasmer-native");
-
-        if (libsFromProps == null) {
-            libs = new String[]{"libwasmer_jni.so", "libwasmer_jni.dylib", "wasmer_jni.dll"};
-        } else {
-            libs = libsFromProps.split(",");
-        }
-
-        StringBuilder url = new StringBuilder();
-        url.append("/org/wasmer/native/");
-        url.append(getCurrentPlatformIdentifier()).append("/");
-
-        URL nativeLibraryUrl = null;
-
-        // loop through extensions, stopping after finding first one
-        for (String lib: libs) {
-            nativeLibraryUrl = Module.class.getResource(url.toString() + lib);
-
-            if (nativeLibraryUrl != null) {
-                break;
-            }
-        }
-
-        if (nativeLibraryUrl != null) {
-            // native library found within JAR, extract and load
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(Native.class);
+    
+    private static final AtomicBoolean INITED = new AtomicBoolean();
+    
+    private static final AtomicBoolean SUCCESS = new AtomicBoolean();
+    
+    public static boolean init() {
+        if (!SUCCESS.get() && INITED.compareAndSet(false, true)) {
             try {
-                final File libfile = File.createTempFile("wasmer_jni", ".lib");
-                libfile.deleteOnExit(); // just in case
-
-                final InputStream in = nativeLibraryUrl.openStream();
-                final OutputStream out = new BufferedOutputStream(new FileOutputStream(libfile));
-
-                int len = 0;
-                byte[] buffer = new byte[8192];
-
-                while ((len = in.read(buffer)) > -1) {
-                    out.write(buffer, 0, len);
+                final JniExtractor extractor = NativeLoader.getJniExtractor();
+                final String path = extractor.extractJni("", "shenyu_wasm_build").getAbsolutePath();
+                System.load(path);
+                SUCCESS.set(true);
+            } catch (Throwable ignored) {
+                try {
+                    File path = new File(Native.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+                    String libPath = new File(path, NativeUtils.detectLibName()).getAbsolutePath();
+                    System.load(libPath);
+                    SUCCESS.set(true);
+                } catch (Throwable t) {
+                    LOGGER.error("JVMTI init failed !", t);
                 }
-
-                out.close();
-                in.close();
-                System.load(libfile.getAbsolutePath());
-
-                usingEmbedded = true;
-            } catch (IOException x) {
-                // mission failed, do nothing
             }
-
         }
-
-        return usingEmbedded;
+        return SUCCESS.get();
     }
 }

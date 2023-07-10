@@ -13,9 +13,7 @@ public class Instance {
      * Native bindings.
      */
     static {
-        if (!Native.LOADED_EMBEDDED_LIBRARY) {
-            System.loadLibrary("wasmer_jni");
-        }
+        Native.init();
     }
     private native long nativeInstantiate(Instance self, byte[] moduleBytes) throws RuntimeException;
     private native void nativeDrop(long instancePointer);
