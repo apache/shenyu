@@ -965,6 +965,7 @@ INSERT INTO "public"."plugin" VALUES ('38', 'loggingClickHouse', '{"host":"127.0
 INSERT INTO "public"."plugin" VALUES ('39', 'casdoor', '{"endpoint":"http://localhost:8000"}', 'Authentication', 40, 0, '2022-09-11 12:00:00', '2022-09-11 12:00:00', null);
 INSERT INTO "public"."plugin" VALUES ('40', 'keyAuth', NULL, 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00', null);
 INSERT INTO "public"."plugin" VALUES ('41', 'brpc', '{"address":"127.0.0.1","port":"8005","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}', 'Proxy', 310, 0, '2023-01-10 10:08:01', '2023-01-10 10:08:01', null);
+INSERT INTO "public"."plugin" VALUES ('42', 'tcp', null, 'Proxy', 320, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('43', 'loggingHuaweiLts', '{ "totalSizeInBytes": "104857600","maxBlockMs":"0","ioThreadCount":"1","batchSizeThresholdInBytes":"524288","batchCountThreshold":"4096","lingerMs":"2000","retries":"100","baseRetryBackoffMs":"100","maxRetryBackoffMs":"100","enableLocalTest":"true","setGiveUpExtraLongSingleLog":"false"}', 'Logging', 177, 0, '2023-07-05 14:03:53', '2023-07-06 12:42:07', null);
 -- ----------------------------
 -- Table structure for plugin_handle
