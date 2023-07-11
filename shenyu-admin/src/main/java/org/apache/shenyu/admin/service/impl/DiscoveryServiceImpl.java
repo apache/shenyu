@@ -33,6 +33,7 @@ import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +90,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         List<DiscoveryHandlerDO> discoveryHandlerDOS = discoveryHandlerMapper.selectByDiscoveryId(discoveryId);
         if (CollectionUtils.isNotEmpty(discoveryHandlerDOS)) {
             LOG.warn("shenyu this discovery has discoveryHandler can't be delete");
-            return ShenyuResultMessage.DELETE_FAIL;
+            throw new ShenyuException("shenyu this discovery has discoveryHandler can't be delete");
         }
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryId);
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
