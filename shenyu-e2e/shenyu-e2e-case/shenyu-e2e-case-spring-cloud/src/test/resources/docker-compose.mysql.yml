@@ -141,6 +141,7 @@ services:
       - EUREKA_INSTANCE_HOME_PAGE_URL=http://apollo-configservice:8080
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
       - SPRING_DATASOURCE_USERNAME=shenyue2e
+      - SPRING_DATASOURCE_PASSWORD=123456
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://apollo-configservice:8080/health" ]
       interval: 10s
