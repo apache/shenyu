@@ -46,12 +46,9 @@ spec:
     spec:
       containers:
       - name: shenyu-ingress-controller
-        image: apache/shenyu-integrated-test-k8s-ingress:latest
+        image: registry.cn-shanghai.aliyuncs.com/jooks/shenyu-ingress-controller:2.6.0
         ports:
         - containerPort: 9195
-        env:
-          - name: KUBECONFIG
-            value: '/root/.kube/config'
         imagePullPolicy: IfNotPresent
       serviceAccountName: shenyu-ingress-controller
 ---
