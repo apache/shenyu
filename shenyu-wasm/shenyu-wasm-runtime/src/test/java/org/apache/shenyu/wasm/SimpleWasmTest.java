@@ -1,5 +1,6 @@
 package org.apache.shenyu.wasm;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.file.Files;
@@ -21,7 +22,7 @@ public class SimpleWasmTest {
         // Calls an exported function, and returns an object array.
         Object[] results = instance.exports.getFunction("sum").apply(5, 37);
         
-        System.out.println(results[0]); // 42
+        Assert.assertEquals(42, results[0]);
         
         // Drops an instance object pointer which is stored in Rust.
         instance.close();

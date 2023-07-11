@@ -7,7 +7,7 @@ import org.apache.shenyu.wasm.exports.Function;
 
 /**
  * `Exports` is a Java class that represents the set of WebAssembly exports.
- *
+ * <p>
  * Example:
  * <pre>{@code
  * Instance instance = new Instance(wasmBytes);
@@ -20,20 +20,22 @@ import org.apache.shenyu.wasm.exports.Function;
  * Object[] result = ((Function) sum).apply(1, 2);
  * }</pre>
  */
+@SuppressWarnings("unused")
 public class Exports {
-    private Map<String, Export> inner;
+    
+    private final Map<String, Export> inner;
     private Instance instance;
-
+    
     /**
      * The constructor instantiates new exported functions.
      *
      * @param instance Instance object which holds the exports object.
      */
     protected Exports(Instance instance) {
-        this.inner = new HashMap<String, Export>();
+        this.inner = new HashMap<>();
         this.instance = instance;
     }
-
+    
     /**
      * Return the export with the name `name`.
      *
@@ -42,7 +44,7 @@ public class Exports {
     public Export get(String name) {
         return this.inner.get(name);
     }
-
+    
     /**
      * Return the export with the name `name` as an exported function.
      *
@@ -51,7 +53,7 @@ public class Exports {
     public Function getFunction(String name) throws ClassCastException {
         return (Function) this.inner.get(name);
     }
-
+    
     /**
      * Return the export with the name `name` as an exported memory.
      *
@@ -60,28 +62,29 @@ public class Exports {
     public Memory getMemory(String name) throws ClassCastException {
         return (Memory) this.inner.get(name);
     }
-
+    
     /**
      * Called by Rust to add a new exported function.
      */
     private void addFunction(String name) {
         this.inner.put(name, this.generateFunctionWrapper(name));
     }
-
+    
     /**
      * Called by Rust to add a new exported memory.
      */
     private void addMemory(String name, Memory memory) {
         this.inner.put(name, memory);
     }
-
+    
     /**
-     * Lambda expression for currying.
-     * This takes a function name and returns the function to call WebAssembly function.
+     * Lambda expression for currying. This takes a function name and returns the function to call WebAssembly
+     * function.
      */
-    private java.util.function.Function<String, Function> functionWrapperGenerator =
-        functionName -> arguments -> this.instance.nativeCallExportedFunction(this.instance.instancePointer, functionName, arguments);
-
+    private final java.util.function.Function<String, Function> functionWrapperGenerator =
+            functionName -> arguments -> this.instance.nativeCallExportedFunction(this.instance.instancePointer,
+                    functionName, arguments);
+    
     /**
      * Generate the exported function wrapper.
      */
