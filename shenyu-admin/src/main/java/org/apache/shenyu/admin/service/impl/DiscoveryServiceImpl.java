@@ -159,7 +159,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     public void syncData() {
         LOG.info("shenyu DiscoveryService sync db ");
         List<DiscoveryDO> discoveryDOS = discoveryMapper.selectAll();
-        discoveryDOS.stream().filter(d -> !DiscoveryMode.LOCAL.name().equalsIgnoreCase(d.getType())).forEach(d -> {
+        discoveryDOS.forEach(d -> {
             DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(d.getType());
             discoveryProcessor.createDiscovery(d);
             proxySelectorMapper.selectByDiscoveryId(d.getId()).stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).forEach(ps -> {
