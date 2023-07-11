@@ -39,7 +39,7 @@ jobs:
       - name: Install k8s
         if: steps.filter.outputs.changed == 'true'
         run: |
-          curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE=777 sh -
+          curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable=traefik" K3S_KUBECONFIG_MODE=777 sh -
           cat /etc/rancher/k3s/k3s.yaml
           mkdir -p ~/.kube
           cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
