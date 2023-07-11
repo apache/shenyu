@@ -142,11 +142,11 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
       - SPRING_DATASOURCE_USERNAME=shenyue2e
       - SPRING_DATASOURCE_PASSWORD=123456
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://apollo-configservice:8080/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+#    healthcheck:
+#      test: [ "CMD", "curl", "-f", "http://apollo-configservice:8080/health" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 10
     depends_on:
       mysql:
         condition: service_healthy
@@ -157,8 +157,7 @@ services:
     ports:
       - "8090:8090"
     depends_on:
-      apollo-configservice:
-        condition: service_healthy
+      - apollo-configservice
     environment:
       - TZ='Asia/Shanghai'
       - SERVER_PORT=8090
@@ -177,8 +176,7 @@ services:
     ports:
       - "8070:8070"
     depends_on:
-      apollo-configservice:
-        condition: service_healthy
+      - apollo-configservice
     environment:
       - TZ='Asia/Shanghai'
       - SERVER_PORT=8070
