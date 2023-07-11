@@ -36,13 +36,35 @@ jobs:
           filters: '.github/filters.yml'
           list-files: json
 
+      - name: Install Go
+          uses: actions/setup-go@v3
+          with:
+            go-version: 1.17.x
+
       - name: Install k8s
         if: steps.filter.outputs.changed == 'true'
         run: |
-          curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable=traefik" K3S_KUBECONFIG_MODE=777 sh -
-          cat /etc/rancher/k3s/k3s.yaml
-          mkdir -p ~/.kube
-          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+          go install sigs.k8s.io/kind@v0.14.0
+          curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.24.14/bin/linux/amd64/kubectl && sudo install kubectl /usr/local/bin/kubectl
+          cat <<EOF | kind create cluster --image=kindest/node:v1.21.1 --config=-
+            kind: Cluster
+            apiVersion: kind.x-k8s.io/v1alpha4
+            nodes:
+            - role: control-plane
+              kubeadmConfigPatches:
+              - |
+                kind: InitConfiguration
+                nodeRegistration:
+                  kubeletExtraArgs:
+                    node-labels: "ingress-ready=true"
+              extraPortMappings:
+              - containerPort: 80
+                hostPort: 80
+                protocol: TCP
+              - containerPort: 443
+                hostPort: 443
+                protocol: TCP
+            EOF
 
       - name: Cache Maven Repos
         if: steps.filter.outputs.changed == 'true'
@@ -73,7 +95,8 @@ jobs:
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
         run: |
-          docker save shenyu-examples-http:latest apache/shenyu-integrated-test-k8s-ingress:latest | sudo k3s ctr images import -
+          kind load docker-image "shenyu-examples-http:latest"
+          kind load docker-image "apache/shenyu-integrated-test-k8s-ingress:latest"
           kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http.yml
           kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/deploy/deploy-shenyu.yaml
 
