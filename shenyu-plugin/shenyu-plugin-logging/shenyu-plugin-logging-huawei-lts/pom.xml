@@ -38,6 +38,12 @@
             <groupId>io.github.huaweicloud</groupId>
             <artifactId>lts-sdk-java</artifactId>
             <version>${huawei-log-sdk.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>
