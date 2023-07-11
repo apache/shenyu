@@ -46,9 +46,12 @@ spec:
     spec:
       containers:
       - name: shenyu-ingress-controller
-        image: registry.cn-shanghai.aliyuncs.com/jooks/shenyu-ingress-controller:2.6.0
+        image: apache/shenyu-integrated-test-k8s-ingress:latest
         ports:
         - containerPort: 9195
+        env:
+          - name: KUBECONFIG
+            value: '/root/.kube/config'
         imagePullPolicy: IfNotPresent
       serviceAccountName: shenyu-ingress-controller
 ---
@@ -66,10 +69,9 @@ spec:
       nodePort: 30095
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: shenyu-ingress-controller
-  namespace: shenyu-ingress
 rules:
 - apiGroups:
   - ""
@@ -99,7 +101,7 @@ metadata:
   namespace: shenyu-ingress
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
+  kind: ClusterRole
   name: shenyu-ingress-controller
 subjects:
 - kind: ServiceAccount
