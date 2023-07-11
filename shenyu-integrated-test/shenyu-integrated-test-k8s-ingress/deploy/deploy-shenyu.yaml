@@ -95,7 +95,7 @@ rules:
   - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: shenyu-ingress-controller
   namespace: shenyu-ingress
