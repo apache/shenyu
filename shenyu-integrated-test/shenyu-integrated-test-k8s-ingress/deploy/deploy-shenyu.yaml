@@ -59,6 +59,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: shenyu-ingress-controller
+  namespace: shenyu-ingress
 spec:
   selector:
     app: shenyu-ingress-controller
