@@ -46,25 +46,7 @@ jobs:
         run: |
           go install sigs.k8s.io/kind@v0.14.0
           curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.24.14/bin/linux/amd64/kubectl && sudo install kubectl /usr/local/bin/kubectl
-          cat <<EOF | kind create cluster --image=kindest/node:v1.21.1 --config=-
-          kind: Cluster
-          apiVersion: kind.x-k8s.io/v1alpha4
-          nodes:
-          - role: control-plane
-            kubeadmConfigPatches:
-            - |
-              kind: InitConfiguration
-              nodeRegistration:
-                kubeletExtraArgs:
-                  node-labels: "ingress-ready=true"
-            extraPortMappings:
-            - containerPort: 80
-              hostPort: 80
-              protocol: TCP
-            - containerPort: 443
-              hostPort: 443
-              protocol: TCP
-          EOF
+          kind create cluster --image=kindest/node:v1.21.1 --config=./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/deploy/kind-config.yaml
 
       - name: Cache Maven Repos
         if: steps.filter.outputs.changed == 'true'
