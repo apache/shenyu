@@ -31,6 +31,7 @@ import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1IngressTLS;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyStream;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -88,7 +89,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
     public ShenyuMemoryConfig parse(final V1Ingress ingress, final CoreV1Api coreV1Api) {
         ShenyuMemoryConfig res = new ShenyuMemoryConfig();
 
-        if (ingress.getSpec() != null) {
+        if (Objects.nonNull(ingress.getSpec())) {
             // Parse the dubbo backend
             V1IngressBackend dubboBackend = ingress.getSpec().getDefaultBackend();
             List<V1IngressRule> rules = ingress.getSpec().getRules();
@@ -106,10 +107,10 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
             res.setRouteConfigList(routeList);
 
             // Parse tls
-            if (tlsList != null && !tlsList.isEmpty()) {
+            if (Objects.nonNull(tlsList) && CollectionUtils.isNotEmpty(tlsList)) {
                 List<SslCrtAndKeyStream> sslList = new ArrayList<>();
                 for (V1IngressTLS tls : tlsList) {
-                    if (tls.getSecretName() != null && tls.getHosts() != null && !tls.getHosts().isEmpty()) {
+                    if (Objects.nonNull(tls.getSecretName()) && Objects.nonNull(tls.getHosts()) && CollectionUtils.isNotEmpty(tls.getHosts())) {
                         try {
                             V1Secret secret = coreV1Api.readNamespacedSecret(tls.getSecretName(), namespace, "ture");
                             if (secret.getData() != null) {
@@ -132,23 +133,23 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
 
     private List<DubboUpstream> parseDubboService(final V1IngressBackend dubboBackend, final String namespace) {
         List<DubboUpstream> dubboUpstreamList = new ArrayList<>();
-        if (dubboBackend != null && dubboBackend.getService() != null) {
+        if (Objects.nonNull(dubboBackend) && Objects.nonNull(dubboBackend.getService())) {
             String serviceName = dubboBackend.getService().getName();
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            if (subsets == null || subsets.isEmpty()) {
+            if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
             } else {
                 for (V1EndpointSubset subset : subsets) {
                     List<V1EndpointAddress> addresses = subset.getAddresses();
-                    if (addresses == null || addresses.isEmpty()) {
+                    if (Objects.isNull(addresses) || CollectionUtils.isEmpty(addresses)) {
                         continue;
                     }
                     for (V1EndpointAddress address : addresses) {
                         String upstreamIp = address.getIp();
                         String defaultPort = parsePort(dubboBackend.getService());
-                        if (defaultPort != null) {
+                        if (Objects.nonNull(defaultPort)) {
                             DubboUpstream upstream = DubboUpstream.builder().protocol("http://").upstreamHost("").upstreamUrl(upstreamIp + ":" + defaultPort)
                                     .status(true).warmup(50).timestamp(0).weight(100).build();
                             dubboUpstreamList.add(upstream);
@@ -167,13 +168,13 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
         List<Pair<SelectorData, RuleData>> res = new ArrayList<>();
 
         ConditionData hostCondition = null;
-        if (ingressRule.getHost() != null) {
+        if (Objects.nonNull(ingressRule.getHost())) {
             hostCondition = new ConditionData();
             hostCondition.setParamType(ParamTypeEnum.DOMAIN.getName());
             hostCondition.setOperator(OperatorEnum.EQ.getAlias());
             hostCondition.setParamValue(ingressRule.getHost());
         }
-        if (ingressRule.getHttp() != null) {
+        if (Objects.nonNull(ingressRule.getHttp())) {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
             if (paths != null) {
                 for (V1HTTPIngressPath path : paths) {
@@ -198,7 +199,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                     pathCondition.setParamType(ParamTypeEnum.URI.getName());
                     pathCondition.setParamValue(path.getPath());
                     List<ConditionData> conditionList = new ArrayList<>(2);
-                    if (hostCondition != null) {
+                    if (Objects.nonNull(hostCondition)) {
                         conditionList.add(hostCondition);
                     }
                     conditionList.add(pathCondition);
@@ -220,7 +221,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                     selectorData.setHandle(GsonUtils.getInstance().toJson(upstreamList));
 
                     DubboRuleHandle dubboRuleHandle = new DubboRuleHandle();
-                    if (annotations != null) {
+                    if (Objects.nonNull(annotations)) {
                         dubboRuleHandle.setLoadbalance(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_LOADBALANCE_ANNOTATION_KEY, LoadBalanceEnum.HASH.getName()));
                     }
                     RuleData ruleData = RuleData.builder()
@@ -240,10 +241,10 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
     }
 
     private String parsePort(final V1IngressServiceBackend service) {
-        if (service.getPort() != null) {
-            if (service.getPort().getNumber() != null && service.getPort().getNumber() > 0) {
+        if (Objects.nonNull(service.getPort())) {
+            if (Objects.nonNull(service.getPort().getNumber()) && service.getPort().getNumber() > 0) {
                 return String.valueOf(service.getPort().getNumber());
-            } else if (service.getPort().getName() != null && !"".equals(service.getPort().getName().trim())) {
+            } else if (Objects.nonNull(service.getPort().getName()) && !"".equals(service.getPort().getName().trim())) {
                 return service.getPort().getName().trim();
             }
         }
@@ -252,12 +253,12 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
 
     private List<DubboUpstream> parseUpstream(final V1IngressBackend backend, final String namespace) {
         List<DubboUpstream> upstreamList = new ArrayList<>();
-        if (backend != null && backend.getService() != null && backend.getService().getName() != null) {
+        if (Objects.nonNull(backend) && Objects.nonNull(backend.getService()) && Objects.nonNull(backend.getService().getName())) {
             String serviceName = backend.getService().getName();
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            if (subsets == null || subsets.isEmpty()) {
+            if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
             } else {
                 for (V1EndpointSubset subset : subsets) {
@@ -268,7 +269,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                     for (V1EndpointAddress address : addresses) {
                         String upstreamIp = address.getIp();
                         String defaultPort = parsePort(backend.getService());
-                        if (defaultPort != null) {
+                        if (Objects.nonNull(defaultPort)) {
                             DubboUpstream upstream = DubboUpstream.builder().protocol("http://").upstreamHost("").upstreamUrl(upstreamIp + ":" + defaultPort)
                                     .status(true).warmup(50).timestamp(0).weight(100).build();
                             upstreamList.add(upstream);
@@ -302,8 +303,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                 .type(SelectorTypeEnum.FULL_FLOW.getCode()).build();
 
         DubboRuleHandle dubboRuleHandle = new DubboRuleHandle();
-        // TODO need an annotation parsing common way
-        if (annotations != null) {
+        if (Objects.nonNull(annotations)) {
             dubboRuleHandle.setLoadbalance(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_LOADBALANCE_ANNOTATION_KEY, LoadBalanceEnum.HASH.getName()));
         }
         final RuleData ruleData = RuleData.builder()

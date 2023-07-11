@@ -41,5 +41,6 @@ public class IngressConstants {
     //The Load balance type name of the dubbo plugin, refer to LoadBalanceEnum
     public static final String PLUGIN_DUBBO_LOADBALANCE_ANNOTATION_KEY = "shenyu.apache.org/plugin-dubbo-loadbalace";
 
+    //Determine if the dubbo plugin is enabled, in bool
     public static final String PLUGIN_DUBBO_ENABLED = "shenyu.apache.org/plugin-dubbo-enabled";
 }
