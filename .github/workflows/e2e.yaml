@@ -19,7 +19,8 @@ on:
   pull_request:
   push:
     branches:
-      - master
+#      - master
+      - test-e2e
 
 env:
   TAG: ${{ github.sha }}
@@ -31,6 +32,8 @@ jobs:
       e2e: ${{ steps.filter.outputs.e2e }}
     steps:
       - uses: actions/checkout@v3
+      - name: Setup Debug Session
+        uses: csexton/debugger-action@master
         with:
           submodules: true
 
