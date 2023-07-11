@@ -741,6 +741,13 @@
                         <exclude>**/node_modules/**</exclude>
                         <exclude>**/test/coverage/**</exclude>
                         <exclude>**/resources/static/</exclude>
+                        <!-- WASM files -->
+                        <exclude>**/*.rs</exclude>
+                        <exclude>**/*.toml</exclude>
+                        <exclude>**/*.wasm</exclude>
+                        <exclude>**/*.dll</exclude>
+                        <exclude>**/*.dylib</exclude>
+                        <exclude>**/*.so</exclude>
                     </excludes>
                 </configuration>
                 <executions>
