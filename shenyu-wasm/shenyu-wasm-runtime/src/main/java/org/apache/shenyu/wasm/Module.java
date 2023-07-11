@@ -1,9 +1,26 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.wasm;
 
 /**
  * `Module` is a Java class that represents a WebAssembly module.
- * <p>
- * Example:
+ *
+ * <p>Example:
  * <pre>{@code
  * boolean isValid = Module.validate(wasmBytes);
  *
@@ -19,29 +36,9 @@ public class Module {
         Native.init();
     }
     
-    private native long nativeModuleInstantiate(Module self, byte[] moduleBytes) throws RuntimeException;
-    
-    private native void nativeDrop(long modulePointer);
-    
-    private native long nativeInstantiate(long modulePointer, Instance instance);
-    
-    private static native boolean nativeValidate(byte[] moduleBytes);
-    
-    private native byte[] nativeSerialize(long modulePointer);
-    
-    private static native long nativeDeserialize(Module module, byte[] serializedBytes);
-    
     private long modulePointer;
     
-    
-    /**
-     * Check that given bytes represent a valid WebAssembly module.
-     *
-     * @param moduleBytes WebAssembly bytes.
-     * @return true if, and only if, given bytes are valid as a WebAssembly module.
-     */
-    public static boolean validate(byte[] moduleBytes) {
-        return Module.nativeValidate(moduleBytes);
+    private Module() {
     }
     
     /**
@@ -49,11 +46,31 @@ public class Module {
      *
      * @param moduleBytes webassembly bytes.
      */
-    public Module(byte[] moduleBytes) throws RuntimeException {
+    public Module(final byte[] moduleBytes) {
         this.modulePointer = this.nativeModuleInstantiate(this, moduleBytes);
     }
     
-    private Module() {
+    /**
+     * Create an original Module object from a byte array.
+     *
+     * @param serializedBytes serialized bytes
+     *
+     * @return Module object.
+     */
+    public static Module deserialize(final byte[] serializedBytes) {
+        Module module = new Module();
+        module.modulePointer = Module.nativeDeserialize(module, serializedBytes);
+        return module;
+    }
+    
+    /**
+     * Check that given bytes represent a valid WebAssembly module.
+     *
+     * @param moduleBytes WebAssembly bytes.
+     * @return true if, and only if, given bytes are valid as a WebAssembly module.
+     */
+    public static boolean validate(final byte[] moduleBytes) {
+        return Module.nativeValidate(moduleBytes);
     }
     
     /**
@@ -71,8 +88,9 @@ public class Module {
      * memory.
      */
     @Override
-    public void finalize() {
+    public void finalize() throws Throwable {
         this.close();
+        super.finalize();
     }
     
     /**
@@ -83,7 +101,7 @@ public class Module {
     public Instance instantiate() {
         Instance instance = new Instance();
         long instancePointer = this.nativeInstantiate(this.modulePointer, instance);
-        instance.instancePointer = instancePointer;
+        instance.setInstancePointer(instancePointer);
         
         Instance.nativeInitializeExportedFunctions(instancePointer);
         Instance.nativeInitializeExportedMemories(instancePointer);
@@ -99,14 +117,16 @@ public class Module {
         return this.nativeSerialize(this.modulePointer);
     }
     
-    /**
-     * Create an original Module object from a byte array.
-     *
-     * @return Module object.
-     */
-    public static Module deserialize(byte[] serializedBytes) {
-        Module module = new Module();
-        module.modulePointer = Module.nativeDeserialize(module, serializedBytes);
-        return module;
-    }
+    private native long nativeModuleInstantiate(Module self, byte[] moduleBytes);
+    
+    private native void nativeDrop(long modulePointer);
+    
+    private native long nativeInstantiate(long modulePointer, Instance instance);
+    
+    private static native boolean nativeValidate(byte[] moduleBytes);
+    
+    private native byte[] nativeSerialize(long modulePointer);
+    
+    private static native long nativeDeserialize(Module module, byte[] serializedBytes);
+    
 }
