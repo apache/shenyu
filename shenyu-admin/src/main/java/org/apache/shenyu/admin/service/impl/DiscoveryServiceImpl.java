@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.discovery.DiscoveryMode;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
@@ -86,7 +85,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String delete(String discoveryId) {
+    public String delete(final String discoveryId) {
         List<DiscoveryHandlerDO> discoveryHandlerDOS = discoveryHandlerMapper.selectByDiscoveryId(discoveryId);
         if (CollectionUtils.isNotEmpty(discoveryHandlerDOS)) {
             LOG.warn("shenyu this discovery has discoveryHandler can't be delete");
