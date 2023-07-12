@@ -19,8 +19,7 @@ on:
   pull_request:
   push:
     branches:
-#      - master
-      - test-e2e
+      - master
 
 env:
   TAG: ${{ github.sha }}
@@ -32,10 +31,8 @@ jobs:
       e2e: ${{ steps.filter.outputs.e2e }}
     steps:
       - uses: actions/checkout@v3
-      - name: Setup Debug Session
-        uses: csexton/debugger-action@master
-#        with:
-#          submodules: true
+        with:
+          submodules: true
 
       - uses: dorny/paths-filter@v2
         id: filter
@@ -181,10 +178,8 @@ jobs:
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
 
       - uses: actions/checkout@v3
-      - name: Setup Debug Session
-        uses: csexton/debugger-action@master
-#        with:
-#          submodules: true
+        with:
+          submodules: true
 
       - name: Set up JDK 11
         uses: actions/setup-java@v3

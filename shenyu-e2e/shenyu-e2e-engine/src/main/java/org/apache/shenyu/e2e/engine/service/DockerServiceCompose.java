@@ -265,6 +265,10 @@ public class DockerServiceCompose implements ServiceCompose {
      */
     @SuppressWarnings("unchecked")
     private void chooseDataSyn(final String path, final DockerServiceConfigure dockerServiceConfigure) {
+        String value = dockerServiceConfigure.getProperties().getProperty("dataSyn");
+        if (Objects.isNull(value)) {
+            return;
+        }
         try {
             final File file = Assertions.assertDoesNotThrow(
                 () -> ResourceUtils.getFile(path)

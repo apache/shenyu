@@ -23,12 +23,8 @@ services:
     restart: always
     expose:
       - 2181
-    depends_on:
-      apollo-portal:
-        condition: service_healthy
 
   nacos:
-#    image: nacos/nacos-server:v2.2.3-slim
     image: nacos/nacos-server:v2.2.3
     environment:
       - TZ=Asia/Shanghai
@@ -72,8 +68,6 @@ services:
       - 8761
     ports:
       - "8761:8761"
-    depends_on:
-      - zookeeper
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://eureka:8761/actuator/health | grep UP || exit 1" ]
       timeout: 2s
@@ -125,70 +119,4 @@ services:
       timeout: 20s
       retries: 10
     volumes:
-      - ./apolloconfigdb.sql:/docker-entrypoint-initdb.d/apolloconfigdb.sql
-      - ./apolloportaldb.sql:/docker-entrypoint-initdb.d/apolloportaldb.sql
       - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-
-  apollo-configservice:
-    image: apolloconfig/apollo-configservice:latest
-    restart: always
-    ports:
-      - "8080:8080"
-    environment:
-      - TZ='Asia/Shanghai'
-      - SERVER_PORT=8080
-      - EUREKA_INSTANCE_IP_ADDRESS=apollo-configservice
-      - EUREKA_INSTANCE_HOME_PAGE_URL=http://apollo-configservice:8080
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=shenyue2e
-      - SPRING_DATASOURCE_PASSWORD=123456
-#    healthcheck:
-#      test: [ "CMD", "curl", "-f", "http://apollo-configservice:8080/health" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 10
-    depends_on:
-      mysql:
-        condition: service_healthy
-
-  apollo-adminservice:
-    image: apolloconfig/apollo-adminservice:latest
-    restart: always
-    ports:
-      - "8090:8090"
-    depends_on:
-      - apollo-configservice
-    environment:
-      - TZ='Asia/Shanghai'
-      - SERVER_PORT=8090
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=shenyue2e
-      - SPRING_DATASOURCE_PASSWORD=123456
-#    healthcheck:
-#      test: [ "CMD", "curl", "-f", "http://apollo-adminservice:8090/health" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 10
-
-  apollo-portal:
-    image: apolloconfig/apollo-portal:latest
-    restart: always
-    ports:
-      - "8070:8070"
-    depends_on:
-      - apollo-configservice
-    environment:
-      - TZ='Asia/Shanghai'
-      - SERVER_PORT=8070
-      - EUREKA_INSTANCE_IP_ADDRESS=apollo-configservice
-      - APOLLO_PORTAL_ENVS=dev
-      - DEV_META=http://apollo-configservice:8080
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloPortalDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=shenyue2e
-      - SPRING_DATASOURCE_PASSWORD=123456
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://apollo-portal:8070/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 90s
