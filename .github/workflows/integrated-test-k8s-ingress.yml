@@ -81,6 +81,7 @@ jobs:
           kind load docker-image "apache/shenyu-integrated-test-k8s-ingress:latest"
           kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http.yml
           kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/deploy/deploy-shenyu.yaml
+          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/ingress.yml
 
       - name: Wait for k8s Cluster Start up
         if: steps.filter.outputs.changed == 'true'
