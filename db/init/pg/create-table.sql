@@ -1268,8 +1268,16 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172959', '41', 'coret
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172960', '41', 'threads', 'threads', 1, 3, 0, '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172961', '41', 'queues', 'queues', 1, 3, 0, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172962', '41', 'threadpool', 'threadpool', 3, 3, 0, '{"required":"0","defaultValue":"shared","placeholder":"threadpool","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1678293333363167232', '42', 'reactorNettyConfig', 'tcp plugin reactorNettyConfig', 2, 1, 0, '{"required":"0","defaultValue":"{\"loadBalanceAlgorithm\":\"random\",\"bossGroupThreadCount\":\"1\",\"workerGroupThreadCount\":\"12\",\"clientMaxConnections\":\"20\",\"clientMaxIdleTimeMs\":\"30000\",\"clientMaxLifeTimeMs\":\"60000\",\"clientPendingAcquireTimeout\":\"5\",\"clientPendingAcquireMaxCount\":\"5\"}","rule":""}', '2023-07-10 14:41:27.000', '2023-07-10 14:41:26.514');
-INSERT INTO "public"."plugin_handle" VALUES ('1678293231840038912', '42', 'discoveryZookeeper', 'discovery zk init props', 2, 3, 0, '{"required":"0","defaultValue":"{\"baseSleepTimeMilliseconds\":\"1000\",\"maxRetries\":\"3\",\"maxSleepTimeMilliseconds\":\"1000\",\"connectionTimeoutMilliseconds\":\"1000\",\"sessionTimeoutMilliseconds\":\"1000\",\"namespace\":\"\",\"digest\":null}","rule":""}', '2023-07-10 14:41:02.000', '2023-07-10 14:41:40.643');
+
+INSERT INTO "public"."plugin_handle" VALUES ('1678293333363167232', '42', 'discoveryHandler', 'discoveryHandler', 2, 1, 0, '{"required":"0","defaultValue":"url,protocol,status,weight","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997037438107648', '42', 'bossGroupThreadCount', 'bossGroupThreadCount', 2, 1, 1, '{"required":"0","defaultValue":"1","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997142656417792', '42', 'workerGroupThreadCount', 'workerGroupThreadCount', 2, 1, 2, '{"required":"0","defaultValue":"12","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997399104552960', '42', 'clientMaxIdleTimeMs', 'clientMaxIdleTimeMs', 2, 1, 7, '{"required":"0","defaultValue":"30000","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997479614218240', '42', 'clientPendingAcquireMaxCount', 'clientPendingAcquireMaxCount', 2, 1, 4, '{"required":"0","defaultValue":"5","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678996921914392576', '42', 'loadBalance', 'loadBalance', 3, 1, 3, '{"required":"0","defaultValue":"random","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997769998467072', '42', 'clientMaxLifeTimeMs', 'clientMaxLifeTimeMs', 2, 1, 8, '{"required":"0","defaultValue":"60000","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997277012557824', '42', 'clientMaxConnections', 'clientMaxConnections', 2, 1, 6, '{"required":"0","defaultValue":"20","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{"required":"0","defaultValue":"5","rule":""}');
 
 -- ----------------------------
 -- Table structure for resource
@@ -1891,7 +1899,7 @@ CREATE TABLE "public"."shenyu_dict" (
   "type" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
   "dict_code" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
   "dict_name" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
-  "dict_value" varchar(100) COLLATE "pg_catalog"."default",
+  "dict_value" varchar(2048) COLLATE "pg_catalog"."default",
   "desc" varchar(255) COLLATE "pg_catalog"."default",
   "sort" int4 NOT NULL,
   "enabled" int2,
@@ -2013,6 +2021,7 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1630761573833920512', 'mapType', 'ma
 INSERT INTO "public"."shenyu_dict" VALUES ('1630761984393367552', 'mapType', 'mapType', 'field', 'field', '', 1, 1, '2023-03-01 10:48:49', '2023-03-01 10:48:49');
 INSERT INTO "public"."shenyu_dict" VALUES ('1572621976689762308', 'loadBalance', 'LOAD_BALANCE', 'p2c', 'p2c', 'p2c', 4, 1, '2023-03-07 22:15:16.846', '2023-03-07 22:15:16.846');
 INSERT INTO "public"."shenyu_dict" VALUES ('1572621976689762309', 'loadBalance', 'LOAD_BALANCE', 'shortestResponse', 'shortestResponse', 'shortestResponse', 5, 1, '2023-03-17 10:15:16.846', '2023-03-07 10:15:16.846');
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737472', 'discoveryMode', 'DISCOVERY_MODE', 'zookeeper', '{"baseSleepTimeMilliseconds":"1000","maxRetries":"3","maxSleepTimeMilliseconds":"1000","connectionTimeoutMilliseconds":"1000","sessionTimeoutMilliseconds":"1000","namespace":"","digest":null}', 'discoery mode to link zookeeper', 0, 1,'2023-03-17 10:15:16.846', '2023-03-07 10:15:16.846');
 
 -- ----------------------------
 -- Table structure for user_role
