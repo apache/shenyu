@@ -77,7 +77,9 @@
                 <include refid="Base_Column_List"/>
           FROM meta_data
          WHERE service_name = #{serviceName,jdbcType=VARCHAR}
-           AND method_name = #{methodName,jdbcType=VARCHAR}
+           <if test="methodName != null">
+             AND method_name = #{methodName,jdbcType=VARCHAR}
+           </if>
     </select>
 
 

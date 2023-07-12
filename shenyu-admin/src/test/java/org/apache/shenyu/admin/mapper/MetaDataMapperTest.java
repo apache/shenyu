@@ -109,7 +109,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
 
-        MetaDataDO result = metaDataMapper.findByServiceNameAndMethod(metaDataDO.getServiceName(), metaDataDO.getMethodName());
+        MetaDataDO result = metaDataMapper.findByServiceNameAndMethod(metaDataDO.getServiceName(), metaDataDO.getMethodName()).get(0);
         assertThat(result.getId(), comparesEqualTo(metaDataDO.getId()));
     }
 
