@@ -21,7 +21,6 @@ metadata:
     kubernetes.io/ingress.class: shenyu
     shenyu.apache.org/loadbalancer: p2c
   name: demo-ingress
-  namespace: app
 spec:
   rules:
     - http:
