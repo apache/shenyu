@@ -45,6 +45,7 @@
         <module>shenyu-alert</module>
         <module>shenyu-sdk</module>
         <module>shenyu-discovery</module>
+        <module>shenyu-registry</module>
         <module>shenyu-kubernetes-controller</module>
         <module>shenyu-wasm</module>
     </modules>
