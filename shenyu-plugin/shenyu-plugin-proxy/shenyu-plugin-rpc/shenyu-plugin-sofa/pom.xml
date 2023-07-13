@@ -26,7 +26,7 @@
     <artifactId>shenyu-plugin-sofa</artifactId>
 
     <properties>
-        <grpc-core.version>1.28.1</grpc-core.version>
+        <grpc-core.version>1.48.0</grpc-core.version>
     </properties>
 
     <dependencies>
