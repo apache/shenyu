@@ -70,31 +70,47 @@ public enum Plugin {
     LOGGING_ALIYUN_SLS("loggingAliyunSls", 34),
     LOGGING_TENCENT_CLS("loggingTencentCls", 36),
     LOGGING_PULSAR("loggingPulsar", 35),
-    LOGGING_CLICK_HOUSE("loggingClickHouse", 38),
-    ;
+    LOGGING_CLICK_HOUSE("loggingClickHouse", 38);
+    
     private static final Logger log = LoggerFactory.getLogger(Plugin.class);
     private final String id;
     private final String alias;
     
-    Plugin(String alias, int id) {
+    Plugin(final String alias, final int id) {
         this.alias = alias;
         this.id = String.valueOf(id);
     }
     
+    /**
+     * id.
+     * @return String
+     */
     @JsonValue
     public String getId() {
         return id;
     }
     
+    /**
+     * get alias.
+     * @return String
+     */
     public String getAlias() {
         return alias;
     }
     
+    /**
+     * alias 2 id map.
+     * @return Map&lt;String, String&gt; map.
+     */
     public static Map<String, String> toMap() {
         return Arrays.stream(Plugin.values()).collect(Collectors.toMap(Plugin::getAlias, Plugin::getId));
     }
     
-    public static void check(List<PluginDTO> plugins) {
+    /**
+     * check.
+     * @param plugins plugins
+     */
+    public static void check(final List<PluginDTO> plugins) {
         StringBuilder builder = new StringBuilder();
         Map<String, String> pluginMap = toMap();
         AssertionError error = null;
@@ -115,7 +131,7 @@ public enum Plugin {
         }
         if (Objects.nonNull(error)) {
             log.warn("please paste follow lines to org.apache.shenyu.e2e.client.admin.model.Plugin:{}", builder);
-//            throw error; // TODO Don't throw it temporarily
+            // throw error; // TODO Don't throw it temporarily
         }
     }
 }

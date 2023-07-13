@@ -45,14 +45,14 @@ import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExi
 
 public class SpringCloudPluginCases implements ShenYuScenarioProvider {
 
-    private static final String TEST = "/springboot/test";
+    private static final String TEST = "/springcloud/test";
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    static List<DivideUpstream> divideUpstreams = Lists.newArrayList();
+    private static final List<DivideUpstream> DIVIDE_UPSTREAMS = Lists.newArrayList();
 
     static {
-        divideUpstreams.add(DivideUpstream.builder().protocol("http://")
+        DIVIDE_UPSTREAMS.add(DivideUpstream.builder().protocol("http://")
                 .upstreamUrl("springcloud:8884").status(true).timestamp(System.currentTimeMillis()).weight(50).warmup(10).build());
 
     }
@@ -80,7 +80,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.SPRING_CLOUD)
                                                 .handle(SpringCloudSelectorHandle.builder().serviceId("springCloud-test")
                                                         .gray(true)
-                                                        .divideUpstreams(divideUpstreams)
+                                                        .divideUpstreams(DIVIDE_UPSTREAMS)
                                                         .build())
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, TEST))
                                                 .build(),
@@ -97,7 +97,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                         ShenYuCaseSpec.builder()
                                 .addExists(TEST)
                                 .addNotExists("/springcloud/te")
-                                .addNotExists( "/put")
+                                .addNotExists("/put")
                                 .addNotExists("/get")
                                 .build()
                 )
@@ -114,7 +114,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.SPRING_CLOUD)
                                                 .handle(SpringCloudSelectorHandle.builder().serviceId("springCloud-test")
                                                         .gray(true)
-                                                        .divideUpstreams(divideUpstreams)
+                                                        .divideUpstreams(DIVIDE_UPSTREAMS)
                                                         .build())
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.PATH_PATTERN, TEST + "/**"))
                                                 .build(),
@@ -151,7 +151,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.SPRING_CLOUD)
                                                 .handle(SpringCloudSelectorHandle.builder().serviceId("springCloud-test")
                                                         .gray(true)
-                                                        .divideUpstreams(divideUpstreams)
+                                                        .divideUpstreams(DIVIDE_UPSTREAMS)
                                                         .build())
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, TEST))
                                                 .build(),
@@ -187,7 +187,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.SPRING_CLOUD)
                                                 .handle(SpringCloudSelectorHandle.builder().serviceId("springCloud-test")
                                                         .gray(true)
-                                                        .divideUpstreams(divideUpstreams)
+                                                        .divideUpstreams(DIVIDE_UPSTREAMS)
                                                         .build())
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/test"))
                                                 .build(),
@@ -220,7 +220,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.SPRING_CLOUD)
                                                 .handle(SpringCloudSelectorHandle.builder().serviceId("springCloud-test")
                                                         .gray(true)
-                                                        .divideUpstreams(divideUpstreams)
+                                                        .divideUpstreams(DIVIDE_UPSTREAMS)
                                                         .build())
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "GET"),
@@ -263,7 +263,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.SPRING_CLOUD)
                                                 .handle(SpringCloudSelectorHandle.builder().serviceId("springCloud-test")
                                                         .gray(true)
-                                                        .divideUpstreams(divideUpstreams)
+                                                        .divideUpstreams(DIVIDE_UPSTREAMS)
                                                         .build())
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "POST"),
@@ -306,7 +306,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.SPRING_CLOUD)
                                                 .handle(SpringCloudSelectorHandle.builder().serviceId("springCloud-test")
                                                         .gray(true)
-                                                        .divideUpstreams(divideUpstreams)
+                                                        .divideUpstreams(DIVIDE_UPSTREAMS)
                                                         .build())
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "PUT"),
@@ -349,7 +349,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.SPRING_CLOUD)
                                                 .handle(SpringCloudSelectorHandle.builder().serviceId("springCloud-test")
                                                         .gray(true)
-                                                        .divideUpstreams(divideUpstreams)
+                                                        .divideUpstreams(DIVIDE_UPSTREAMS)
                                                         .build())
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "DELETE"),
@@ -382,9 +382,14 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                 .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
                 .build();
     }
-
-    public static void verifierUri(String handle) throws JsonProcessingException {
-        SpringCloudSelectorHandle springCloudSelectorHandle = mapper.readValue(handle, SpringCloudSelectorHandle.class);
+    
+    /**
+     * verifier uri.
+     * @param handle handle
+     * @throws JsonProcessingException JsonProcessingException
+     */
+    public static void verifierUri(final String handle) throws JsonProcessingException {
+        SpringCloudSelectorHandle springCloudSelectorHandle = MAPPER.readValue(handle, SpringCloudSelectorHandle.class);
         Assertions.assertEquals("springCloud-test", springCloudSelectorHandle.getServiceId());
         Assertions.assertEquals(false, springCloudSelectorHandle.getGray());
         DivideUpstream divideUpstream = springCloudSelectorHandle.getDivideUpstreams().get(0);

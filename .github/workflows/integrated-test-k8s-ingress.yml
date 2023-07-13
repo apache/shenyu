@@ -1,0 +1,110 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: it-k8s
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  ingress-controller:
+    runs-on: ubuntu-latest
+    if: (github.repository == 'apache/shenyu')
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: '.github/filters.yml'
+          list-files: json
+
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.17.x
+
+      - name: Install k8s
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          go install sigs.k8s.io/kind@v0.14.0
+          curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.24.14/bin/linux/amd64/kubectl && sudo install kubectl /usr/local/bin/kubectl
+          kind create cluster --image=kindest/node:v1.21.1 --config=./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/deploy/kind-config.yaml
+
+      - name: Cache Maven Repos
+        if: steps.filter.outputs.changed == 'true'
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - uses: actions/setup-java@v1
+        if: steps.filter.outputs.changed == 'true'
+        with:
+          java-version: 8
+
+      - name: Build with Maven
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+
+      - name: Build integrated tests
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+
+      - name: Build examples
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
+
+      - name: Build k8s Cluster
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          kind load docker-image "shenyu-examples-http:latest"
+          kind load docker-image "apache/shenyu-integrated-test-k8s-ingress:latest"
+          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http.yml
+          kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/deploy/deploy-shenyu.yaml
+          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/ingress.yml
+
+      - name: Wait for k8s Cluster Start up
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          bash ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/script/healthcheck.sh
+
+      - name: Run test
+        id: test
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw test -Pit -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/pom.xml
+        continue-on-error: true
+
+      - name: Cluster Test after Healthcheck
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          kubectl get all
+          kubectl get all -n shenyu-ingress
+          kubectl get events --all-namespaces
+          kubectl logs -l app=shenyu-ingress-controller -n shenyu-ingress --tail=-1
+          if [[ ${{steps.test.outcome}} == "failure" ]]; then
+            echo "Test Failed"
+            exit 1
+          else
+            echo "Test Successful"
+            exit 0
+          fi

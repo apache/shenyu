@@ -27,18 +27,18 @@ import java.util.List;
 /**
  * ResourcesData.
  */
-public class ResourcesData {
+public final class ResourcesData {
     
     private final List<Resource> resources;
 
-    private ResourcesData(List<Resource> resources) {
+    private ResourcesData(final List<Resource> resources) {
         this.resources = resources;
     }
 
     /**
      * get resources.
      *
-     * @return
+     * @return List
      */
     public List<Resource> getResources() {
         return resources;
@@ -46,11 +46,15 @@ public class ResourcesData {
 
     @Override
     public String toString() {
-        return "ResourcesData{" +
-                "resources=" + resources +
-                '}';
+        return "ResourcesData{"
+                + "resources=" + resources
+                + '}';
     }
-
+    
+    /**
+     * builder.
+     * @return ResourcesDataBuilder
+     */
     public static ResourcesDataBuilder builder() {
         return new ResourcesDataBuilder();
     }
@@ -58,24 +62,33 @@ public class ResourcesData {
     public static class ResourcesDataBuilder {
         private final Builder<Resource> resources = ImmutableList.builder();
         
-        public ResourcesDataBuilder add(SelectorData selector, RuleData... rules) {
+        /**
+         * add resource data.
+         * @param selector selector
+         * @param rules rules
+         * @return ResourcesDataBuilder
+         */
+        public ResourcesDataBuilder add(final SelectorData selector, final RuleData... rules) {
             resources.add(new Resource(selector, ImmutableList.<RuleData>builder().add(rules).build()));
             return this;
         }
         
+        /**
+         * build.
+         * @return ResourcesData
+         */
         public ResourcesData build() {
             return new ResourcesData(resources.build());
         }
     }
-    
 
-    public static class Resource {
+    public static final class Resource {
         
         private final SelectorData selector;
         
         private final List<RuleData> rules;
 
-        private Resource(SelectorData selector, List<RuleData> rules) {
+        private Resource(final SelectorData selector, final List<RuleData> rules) {
             this.selector = selector;
             this.rules = rules;
         }

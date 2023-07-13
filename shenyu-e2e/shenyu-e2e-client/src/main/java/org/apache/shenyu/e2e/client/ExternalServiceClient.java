@@ -28,7 +28,7 @@ public class ExternalServiceClient {
 
     private final Properties properties;
 
-    public ExternalServiceClient(String url, Properties properties) {
+    public ExternalServiceClient(final String url, final Properties properties) {
         this.url = url;
         this.properties = properties;
     }

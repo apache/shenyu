@@ -43,18 +43,17 @@ public class RuleMatcher {
 
     private final RuleData expected;
     
-    public RuleMatcher(RuleData expected) {
+    public RuleMatcher(final RuleData expected) {
         this.expected = expected;
     }
 
     /**
-     *
-     *
+     * match rule.
      * @param actual actual
      * @throws JsonProcessingException JsonProcessingException
      * @throws JSONException JSONException
      */
-    public void matches(RuleDTO actual) throws JsonProcessingException, JSONException {
+    public void matches(final RuleDTO actual) throws JsonProcessingException, JSONException {
         String handle = actual.getHandle();
         if (Objects.nonNull(expected.getHandle())) {
             String expected = mapper.writer().writeValueAsString(this.expected.getHandle());
@@ -76,7 +75,7 @@ public class RuleMatcher {
         assertThat(actual, hasProperty("dateUpdated", notNullValue()));
     }
     
-    public static RuleMatcher verify(RuleData expected) {
+    public static RuleMatcher verify(final RuleData expected) {
         return new RuleMatcher(expected);
     }
     

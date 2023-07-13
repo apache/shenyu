@@ -26,19 +26,21 @@ import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.common.TableView;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.DockerConfigure;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.DockerConfigure.DockerServiceConfigure;
-import org.apache.shenyu.e2e.engine.handler.DataSynHandler;
+import org.apache.shenyu.e2e.engine.handler.DataSyncHandler;
 import org.apache.shenyu.e2e.engine.service.docker.DockerComposeFile;
 import org.apache.shenyu.e2e.engine.service.docker.ShenYuLogConsumer;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ResourceUtils;
 import org.testcontainers.containers.ContainerState;
 import org.testcontainers.containers.DockerComposeContainer;
 import org.testcontainers.shaded.org.yaml.snakeyaml.DumperOptions;
 import org.testcontainers.shaded.org.yaml.snakeyaml.Yaml;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -55,9 +57,9 @@ public class DockerServiceCompose implements ServiceCompose {
 
     private static final Logger log = LoggerFactory.getLogger(DockerServiceCompose.class);
 
-    private static final String GATEWAY_YML_LOCATION = "../../../shenyu-bootstrap/target/classes/application.yml";
+    private static final String GATEWAY_YML_LOCATION = "classpath:./bootstrap-application.yml";
 
-    private static final String ADMIN_YML_LOCATION = "../../../shenyu-admin/target/classes/application.yml";
+    private static final String ADMIN_YML_LOCATION = "classpath:./admin-application.yml";
 
     private final DockerComposeContainer<?> container;
 
@@ -69,12 +71,12 @@ public class DockerServiceCompose implements ServiceCompose {
 
     private List<DockerServiceConfigure> externalServiceConfigurations;
 
-    public DockerServiceCompose(DockerConfigure configure) {
+    public DockerServiceCompose(final DockerConfigure configure) {
         this.configure = configure;
         this.adminConfigure = configure.getAdmin();
         this.gatewayConfigure = configure.getGateway();
         modifyGatewayConfiguration(this.gatewayConfigure);
-        DataSynHandler.init();
+        DataSyncHandler.init();
         chooseDataSyn(GATEWAY_YML_LOCATION, this.gatewayConfigure);
         chooseDataSyn(ADMIN_YML_LOCATION, this.adminConfigure);
         DockerComposeFile parsedDockerComposeFile = DockerComposeFile.parse(configure.getDockerComposeFile());
@@ -83,6 +85,10 @@ public class DockerServiceCompose implements ServiceCompose {
         services.forEach(name -> container.withLogConsumer(name, new ShenYuLogConsumer(name)));
     }
     
+    /**
+     * start.
+     */
+    @Override
     public void start() {
         exposedServices();
         waitingForAvailable();
@@ -132,7 +138,7 @@ public class DockerServiceCompose implements ServiceCompose {
             if (stateOpt.isPresent()) {
                 ContainerState state = stateOpt.get();
                 List<String> bindings = state.getPortBindings();
-                for (String binding : bindings) {
+                for (final String binding : bindings) {
                     tableView.addRow(serviceConfigure.getServiceName(), binding.split(":"));
                 }
             }
@@ -157,7 +163,7 @@ public class DockerServiceCompose implements ServiceCompose {
         return getBaseUrlByService(gatewayConfigure);
     }
     
-    private String getBaseUrlByService(DockerServiceConfigure configure) {
+    private String getBaseUrlByService(final DockerServiceConfigure configure) {
         return configure.getSchema() + "://"
                 + container.getServiceHost(configure.getServiceName(), configure.getPort())
                 + ":"
@@ -165,17 +171,17 @@ public class DockerServiceCompose implements ServiceCompose {
     }
     
     @Override
-    public GatewayClient newGatewayClient(String scenarioId) {
+    public GatewayClient newGatewayClient(final String scenarioId) {
         return new GatewayClient(scenarioId, getGatewayBaseUrl(), gatewayConfigure.getProperties());
     }
     
     @Override
-    public AdminClient newAdminClient(String scenarioId) {
+    public AdminClient newAdminClient(final String scenarioId) {
         return new AdminClient(scenarioId, getAdminBaseUrl(), adminConfigure.getProperties());
     }
     
     @Override
-    public ExternalServiceClient newExternalServiceClient(String externalServiceName) {
+    public ExternalServiceClient newExternalServiceClient(final String externalServiceName) {
         DockerServiceConfigure dockerServiceConfigure = configure.getExternalServices().stream()
                 .filter(e -> externalServiceName.equals(e.getServiceName()))
                 .findFirst()
@@ -184,6 +190,10 @@ public class DockerServiceCompose implements ServiceCompose {
         return new ExternalServiceClient(url, dockerServiceConfigure.getProperties());
     }
     
+    /**
+     * stop.
+     */
+    @Override
     public void stop() {
         container.stop();
     }
@@ -193,17 +203,23 @@ public class DockerServiceCompose implements ServiceCompose {
      *
      * @param gatewayConfigure gatewayConfigure
      */
-    private void modifyGatewayConfiguration(DockerServiceConfigure gatewayConfigure) {
+    private void modifyGatewayConfiguration(final DockerServiceConfigure gatewayConfigure) {
         String value = gatewayConfigure.getProperties().getProperty("application");
         if (Objects.isNull(value)) {
             return;
         }
-        try (InputStream inputStream = new FileInputStream(GATEWAY_YML_LOCATION)) {
+        try {
+            final File file = Assertions.assertDoesNotThrow(
+                () -> ResourceUtils.getFile(GATEWAY_YML_LOCATION)
+            );
+            final InputStream inputStream = Assertions.assertDoesNotThrow(
+                () -> new FileInputStream(file)
+            );
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
             String[] sonValues = value.split(",");
-            for (String sonValue : sonValues) {
-                String[] subModule = sonValue.split("\\:");
+            for (final String sonValue : sonValues) {
+                String[] subModule = sonValue.split(":");
 
                 String[] subModulePath = subModule[0].split("\\.");
 
@@ -215,15 +231,17 @@ public class DockerServiceCompose implements ServiceCompose {
             options.setExplicitStart(true);
             options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
             yaml = new Yaml(options);
-            try (OutputStream outputStream = new FileOutputStream(GATEWAY_YML_LOCATION)) {
-                yaml.dump(yamlData, new OutputStreamWriter(outputStream));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+            final OutputStream outputStream = Assertions.assertDoesNotThrow(
+                () -> new FileOutputStream(file)
+            );
+            yaml.dump(yamlData, new OutputStreamWriter(outputStream));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
     }
 
-    private void modifyYamlValue(Map<String, Object> yamlData, String[] subModulePath, String newValue) {
+    @SuppressWarnings("unchecked")
+    private void modifyYamlValue(final Map<String, Object> yamlData, final String[] subModulePath, final String newValue) {
         if (subModulePath.length == 0) {
             return;
         }
@@ -245,14 +263,24 @@ public class DockerServiceCompose implements ServiceCompose {
      * @param path path
      * @param dockerServiceConfigure dockerServiceConfigure
      */
-    private void chooseDataSyn(String path, DockerServiceConfigure dockerServiceConfigure) {
-        String yamlFilePath = path;
-        try (InputStream inputStream = new FileInputStream(yamlFilePath)) {
+    @SuppressWarnings("unchecked")
+    private void chooseDataSyn(final String path, final DockerServiceConfigure dockerServiceConfigure) {
+        String value = dockerServiceConfigure.getProperties().getProperty("dataSyn");
+        if (Objects.isNull(value)) {
+            return;
+        }
+        try {
+            final File file = Assertions.assertDoesNotThrow(
+                () -> ResourceUtils.getFile(path)
+            );
+            final InputStream inputStream = Assertions.assertDoesNotThrow(
+                () -> new FileInputStream(file)
+            );
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
             Map<String, Object> shenyuParameter = (Map<String, Object>) yamlData.get("shenyu");
             Map<String, Object> parameter = (Map<String, Object>) shenyuParameter.get("sync");
-            Map<String, Object> subParameters = DataSynHandler.getDataSynMap(dockerServiceConfigure.getProperties().getProperty("dataSyn"));
+            Map<String, Object> subParameters = DataSyncHandler.getDataSynMap(dockerServiceConfigure.getProperties().getProperty("dataSyn"));
             String synMethod = "";
             if (dockerServiceConfigure.getProperties().getProperty("dataSyn").contains("_")) {
                 synMethod = dockerServiceConfigure.getProperties().getProperty("dataSyn").split("_")[1];
@@ -267,12 +295,12 @@ public class DockerServiceCompose implements ServiceCompose {
             options.setExplicitStart(true);
             options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
             yaml = new Yaml(options);
-            try (OutputStream outputStream = new FileOutputStream(yamlFilePath)) {
-                yaml.dump(yamlData, new OutputStreamWriter(outputStream));
-                log.info("YAML file modified successfully.");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+            final OutputStream outputStream = Assertions.assertDoesNotThrow(
+                () -> new FileOutputStream(file)
+            );
+            yaml.dump(yamlData, new OutputStreamWriter(outputStream));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
     }
 }

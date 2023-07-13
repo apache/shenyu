@@ -45,6 +45,7 @@
         <module>shenyu-alert</module>
         <module>shenyu-sdk</module>
         <module>shenyu-discovery</module>
+        <module>shenyu-registry</module>
         <module>shenyu-kubernetes-controller</module>
     </modules>
 
@@ -173,11 +174,11 @@
         <resilience.version>1.7.1</resilience.version>
         <sentinel.version>1.8.3</sentinel.version>
         <lettuce.version>6.1.2.RELEASE</lettuce.version>
-        <aliyun-log.version>0.6.70</aliyun-log.version>
         <protobuf-java.version>3.19.6</protobuf-java.version>
         <aliyun-log-producer.version>0.3.10</aliyun-log-producer.version>
         <tencent-log-sdk.version>1.0.9</tencent-log-sdk.version>
         <jsonpath.version>2.4.0</jsonpath.version>
+        <casdoor-java-sdk.version>1.9.0</casdoor-java-sdk.version>
     </properties>
 
     <dependencyManagement>

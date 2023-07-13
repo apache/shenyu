@@ -26,7 +26,7 @@ import java.util.Date;
 /**
  * RuleDTO.
  */
-public class RuleDTO implements ResourceDTO {
+public final class RuleDTO implements ResourceDTO {
     
     private String id;
     
@@ -59,7 +59,7 @@ public class RuleDTO implements ResourceDTO {
 
     }
 
-    private RuleDTO(Builder builder) {
+    private RuleDTO(final Builder builder) {
         this.id = builder.id;
         this.name = builder.name;
         this.selectorId = builder.selectorId;
@@ -73,7 +73,11 @@ public class RuleDTO implements ResourceDTO {
         this.dateCreated = builder.dateCreated;
         this.dateUpdated = builder.dateUpdated;
     }
-
+    
+    /**
+     * builder.
+     * @return Builder
+     */
     public static Builder builder() {
         return new Builder();
     }
@@ -93,7 +97,7 @@ public class RuleDTO implements ResourceDTO {
      *
      * @param id id
      */
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -112,7 +116,7 @@ public class RuleDTO implements ResourceDTO {
      *
      * @param name name
      */
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -130,7 +134,7 @@ public class RuleDTO implements ResourceDTO {
      *
      * @param selectorId selectorId
      */
-    public void setSelectorId(String selectorId) {
+    public void setSelectorId(final String selectorId) {
         this.selectorId = selectorId;
     }
 
@@ -148,7 +152,7 @@ public class RuleDTO implements ResourceDTO {
      *
      * @param matchMode matchMode
      */
-    public void setMatchMode(int matchMode) {
+    public void setMatchMode(final int matchMode) {
         this.matchMode = matchMode;
     }
 
@@ -166,7 +170,7 @@ public class RuleDTO implements ResourceDTO {
      *
      * @param matchModeName matchModeName
      */
-    public void setMatchModeName(String matchModeName) {
+    public void setMatchModeName(final String matchModeName) {
         this.matchModeName = matchModeName;
     }
 
@@ -184,14 +188,14 @@ public class RuleDTO implements ResourceDTO {
      *
      * @param sort sort
      */
-    public void setSort(int sort) {
+    public void setSort(final int sort) {
         this.sort = sort;
     }
 
     /**
      * is logged.
      *
-     * @return
+     * @return boolean
      */
     public boolean isLogged() {
         return logged;
@@ -202,7 +206,7 @@ public class RuleDTO implements ResourceDTO {
      *
      * @param logged logged
      */
-    public void setLogged(boolean logged) {
+    public void setLogged(final boolean logged) {
         this.logged = logged;
     }
 
@@ -220,7 +224,7 @@ public class RuleDTO implements ResourceDTO {
      *
      * @param enabled enabled
      */
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -238,7 +242,7 @@ public class RuleDTO implements ResourceDTO {
      *
      * @param handle handle
      */
-    public void setHandle(String handle) {
+    public void setHandle(final String handle) {
         this.handle = handle;
     }
 
@@ -256,7 +260,7 @@ public class RuleDTO implements ResourceDTO {
      *
      * @param ruleConditions ruleConditions
      */
-    public void setRuleConditions(JsonNode ruleConditions) {
+    public void setRuleConditions(final JsonNode ruleConditions) {
         this.ruleConditions = ruleConditions;
     }
 
@@ -275,7 +279,7 @@ public class RuleDTO implements ResourceDTO {
      *
      * @param dateCreated dateCreated
      */
-    public void setDateCreated(Date dateCreated) {
+    public void setDateCreated(final Date dateCreated) {
         this.dateCreated = dateCreated;
     }
 
@@ -294,7 +298,7 @@ public class RuleDTO implements ResourceDTO {
      *
      * @param dateUpdated dateUpdated
      */
-    public void setDateUpdated(Date dateUpdated) {
+    public void setDateUpdated(final Date dateUpdated) {
         this.dateUpdated = dateUpdated;
     }
 
@@ -330,67 +334,131 @@ public class RuleDTO implements ResourceDTO {
         private Builder() {
 
         }
-
+        
+        /**
+         * build.
+         * @return RuleDTO
+         */
         public RuleDTO build() {
             return new RuleDTO(this);
         }
-
-        public Builder id(String id) {
+        
+        /**
+         * id.
+         * @param id id
+         * @return Builder
+         */
+        public Builder id(final String id) {
             this.id = id;
             return this;
         }
-
-        public Builder name(String name) {
+        
+        /**
+         * name.
+         * @param name name
+         * @return Builder
+         */
+        public Builder name(final String name) {
             this.name = name;
             return this;
         }
-
-        public Builder selectorId(String selectorId) {
+        
+        /**
+         * selector id.
+         * @param selectorId selectorId
+         * @return Builder
+         */
+        public Builder selectorId(final String selectorId) {
             this.selectorId = selectorId;
             return this;
         }
-
-        public Builder matchMode(int matchMode) {
+        
+        /**
+         * match mode.
+         * @param matchMode matchMode
+         * @return Builder
+         */
+        public Builder matchMode(final int matchMode) {
             this.matchMode = matchMode;
             return this;
         }
-
-        public Builder matchModeName(String matchModeName) {
+        
+        /**
+         * match mode name.
+         * @param matchModeName matchModeName
+         * @return Builder
+         */
+        public Builder matchModeName(final String matchModeName) {
             this.matchModeName = matchModeName;
             return this;
         }
-
-        public Builder sort(int sort) {
+        
+        /**
+         * sort.
+         * @param sort sort
+         * @return Builder
+         */
+        public Builder sort(final int sort) {
             this.sort = sort;
             return this;
         }
-
-        public Builder logged(boolean logged) {
+        
+        /**
+         * logged.
+         * @param logged logged
+         * @return Builder
+         */
+        public Builder logged(final boolean logged) {
             this.logged = logged;
             return this;
         }
-
-        public Builder enabled(boolean enabled) {
+        
+        /**
+         * enabled.
+         * @param enabled enabled
+         * @return Builder
+         */
+        public Builder enabled(final boolean enabled) {
             this.enabled = enabled;
             return this;
         }
-
-        public Builder handle(String handle) {
+        
+        /**
+         * handle.
+         * @param handle handle
+         * @return Builder
+         */
+        public Builder handle(final String handle) {
             this.handle = handle;
             return this;
         }
-
-        public Builder ruleConditions(JsonNode ruleConditions) {
+        
+        /**
+         * rule conditions.
+         * @param ruleConditions ruleConditions
+         * @return Builder
+         */
+        public Builder ruleConditions(final JsonNode ruleConditions) {
             this.ruleConditions = ruleConditions;
             return this;
         }
-
-        public Builder dateCreated(Date dateCreated) {
+        
+        /**
+         * create date.
+         * @param dateCreated dateCreated
+         * @return Builder
+         */
+        public Builder dateCreated(final Date dateCreated) {
             this.dateCreated = dateCreated;
             return this;
         }
-
-        public Builder dateUpdated(Date dateUpdated) {
+        
+        /**
+         * update date.
+         * @param dateUpdated dateUpdated
+         * @return Builder
+         */
+        public Builder dateUpdated(final Date dateUpdated) {
             this.dateUpdated = dateUpdated;
             return this;
         }
