@@ -20,10 +20,10 @@ package org.apache.shenyu.springboot.starter.registry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
-import org.apache.shenyu.register.instance.api.config.RegisterConfig;
-import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
-import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
+import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
+import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
 

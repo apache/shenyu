@@ -38,22 +38,22 @@
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-instance-etcd</artifactId>
+            <artifactId>shenyu-registry-etcd</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-instance-consul</artifactId>
+            <artifactId>shenyu-registry-consul</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-instance-nacos</artifactId>
+            <artifactId>shenyu-registry-nacos</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-instance-apollo</artifactId>
+            <artifactId>shenyu-registry-apollo</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

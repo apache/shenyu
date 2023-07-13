@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.registry;
 
-import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
