@@ -69,7 +69,7 @@
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-instance-eureka</artifactId>
+            <artifactId>shenyu-registry-eureka</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>
