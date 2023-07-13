@@ -1,4 +1,4 @@
- s#!/bin/bash
+#!/bin/bash
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -32,5 +32,5 @@ do
     done
 done
 
-sleep 3
+sleep 20
 echo -e "\n-------------------"
