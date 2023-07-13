@@ -37,6 +37,7 @@
         <module>shenyu-plugin-logging-tencent-cls</module>
         <module>shenyu-plugin-logging-clickhouse</module>
         <module>shenyu-plugin-logging-desensitize-api</module>
+        <module>shenyu-plugin-logging-huawei-lts</module>
     </modules>
 
     <dependencies>
