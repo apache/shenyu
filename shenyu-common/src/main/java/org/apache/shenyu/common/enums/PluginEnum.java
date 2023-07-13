@@ -158,6 +158,11 @@ public enum PluginEnum {
     LOGGING_TENCENT_CLS(176, 0, "loggingTencentCls"),
 
     /**
+     * Logging Huawei lts enums.
+     */
+    LOGGING_HUAWEI_LTS(177, 0, "loggingHuaweiLts"),
+
+    /**
      * Logging Kafka plugin enum.
      */
     LOGGING_KAFKA(180, 0, "loggingKafka"),
