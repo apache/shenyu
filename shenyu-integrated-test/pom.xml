@@ -45,6 +45,7 @@
         <module>shenyu-integrated-test-sdk-alibaba-dubbo</module>
         <module>shenyu-integrated-test-sdk-http</module>
         <module>shenyu-integrated-test-upload-plugin</module>
+        <module>shenyu-integrated-test-k8s-ingress</module>
     </modules>
 
     <properties>

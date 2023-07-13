@@ -54,38 +54,22 @@ spec:
 status: {}
 
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
+  name: shenyu-examples-http-service
   labels:
-    app: shenyu-zk
+    app: shenyu-examples-http
     all: shenyu-examples-http
-  name: shenyu-zk
 spec:
-  replicas: 1
   selector:
-    matchLabels:
-      app: shenyu-zk
-      all: shenyu-examples-http
-  strategy: {}
-  template:
-    metadata:
-      labels:
-        app: shenyu-zk
-        all: shenyu-examples-http
-    spec:
-      containers:
-        - image: zookeeper:3.5
-          name: shenyu-zk
-          resources: {}
-          ports:
-            - containerPort: 2181
-              name: client
-            - containerPort: 2888
-              name: server
-            - containerPort: 3888
-              name: leader-election
-            - containerPort: 8080
-              name: website
-      restartPolicy: Always
-status: {}
+    app: shenyu-examples-http
+    all: shenyu-examples-http
+  type: NodePort
+  ports:
+    - name: "8189"
+      port: 8189
+      targetPort: 8189
+      nodePort: 31189
+status:
+  loadBalancer: {}
