@@ -38,8 +38,6 @@
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
         <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
         <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
-        <hutool.version>5.8.16</hutool.version>
-        <swagger.version>2.9.2</swagger.version>
     </properties>
 
     <modules>
@@ -60,22 +58,6 @@
         <module>shenyu-examples-sdk</module>
         <module>shenyu-examples-brpc</module>
     </modules>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger2</artifactId>
-                <version>${swagger.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger-ui</artifactId>
-                <version>${swagger.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <build>
         <plugins>
