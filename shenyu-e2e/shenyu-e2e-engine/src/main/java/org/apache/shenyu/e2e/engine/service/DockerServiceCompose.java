@@ -29,19 +29,21 @@ import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.DockerConfigure
 import org.apache.shenyu.e2e.engine.handler.DataSyncHandler;
 import org.apache.shenyu.e2e.engine.service.docker.DockerComposeFile;
 import org.apache.shenyu.e2e.engine.service.docker.ShenYuLogConsumer;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ResourceUtils;
 import org.testcontainers.containers.ContainerState;
 import org.testcontainers.containers.DockerComposeContainer;
 import org.testcontainers.shaded.org.yaml.snakeyaml.DumperOptions;
 import org.testcontainers.shaded.org.yaml.snakeyaml.Yaml;
 
-import java.io.IOException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,9 +57,9 @@ public class DockerServiceCompose implements ServiceCompose {
 
     private static final Logger log = LoggerFactory.getLogger(DockerServiceCompose.class);
 
-    private static final String GATEWAY_YML_LOCATION = "../../../shenyu-bootstrap/target/classes/application.yml";
+    private static final String GATEWAY_YML_LOCATION = "classpath:./bootstrap-application.yml";
 
-    private static final String ADMIN_YML_LOCATION = "../../../shenyu-admin/target/classes/application.yml";
+    private static final String ADMIN_YML_LOCATION = "classpath:./admin-application.yml";
 
     private final DockerComposeContainer<?> container;
 
@@ -206,7 +208,13 @@ public class DockerServiceCompose implements ServiceCompose {
         if (Objects.isNull(value)) {
             return;
         }
-        try (InputStream inputStream = Files.newInputStream(Paths.get(GATEWAY_YML_LOCATION))) {
+        try {
+            final File file = Assertions.assertDoesNotThrow(
+                () -> ResourceUtils.getFile(GATEWAY_YML_LOCATION)
+            );
+            final InputStream inputStream = Assertions.assertDoesNotThrow(
+                () -> new FileInputStream(file)
+            );
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
             String[] sonValues = value.split(",");
@@ -223,10 +231,11 @@ public class DockerServiceCompose implements ServiceCompose {
             options.setExplicitStart(true);
             options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
             yaml = new Yaml(options);
-            try (OutputStream outputStream = Files.newOutputStream(Paths.get(GATEWAY_YML_LOCATION))) {
-                yaml.dump(yamlData, new OutputStreamWriter(outputStream));
-            }
-        } catch (IOException e) {
+            final OutputStream outputStream = Assertions.assertDoesNotThrow(
+                () -> new FileOutputStream(file)
+            );
+            yaml.dump(yamlData, new OutputStreamWriter(outputStream));
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
     }
@@ -256,7 +265,17 @@ public class DockerServiceCompose implements ServiceCompose {
      */
     @SuppressWarnings("unchecked")
     private void chooseDataSyn(final String path, final DockerServiceConfigure dockerServiceConfigure) {
-        try (InputStream inputStream = Files.newInputStream(Paths.get(path))) {
+        String value = dockerServiceConfigure.getProperties().getProperty("dataSyn");
+        if (Objects.isNull(value)) {
+            return;
+        }
+        try {
+            final File file = Assertions.assertDoesNotThrow(
+                () -> ResourceUtils.getFile(path)
+            );
+            final InputStream inputStream = Assertions.assertDoesNotThrow(
+                () -> new FileInputStream(file)
+            );
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
             Map<String, Object> shenyuParameter = (Map<String, Object>) yamlData.get("shenyu");
@@ -276,11 +295,11 @@ public class DockerServiceCompose implements ServiceCompose {
             options.setExplicitStart(true);
             options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
             yaml = new Yaml(options);
-            try (OutputStream outputStream = Files.newOutputStream(Paths.get(path))) {
-                yaml.dump(yamlData, new OutputStreamWriter(outputStream));
-                log.info("YAML file modified successfully.");
-            }
-        } catch (IOException e) {
+            final OutputStream outputStream = Assertions.assertDoesNotThrow(
+                () -> new FileOutputStream(file)
+            );
+            yaml.dump(yamlData, new OutputStreamWriter(outputStream));
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
     }
