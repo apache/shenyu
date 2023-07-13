@@ -30,7 +30,6 @@
         <module>shenyu-register-common</module>
         <module>shenyu-register-client</module>
         <module>shenyu-register-client-server</module>
-        <module>shenyu-register-instance</module>
     </modules>
 
 </project>

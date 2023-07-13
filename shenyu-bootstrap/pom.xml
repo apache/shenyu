@@ -507,13 +507,13 @@
             <artifactId>shenyu-spring-boot-starter-sync-data-consul</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--shenyu instance start-->
+        <!--shenyu registry start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-instance</artifactId>
+            <artifactId>shenyu-spring-boot-starter-registry</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--shenyu instance end-->
+        <!--shenyu registry end-->
 
         <!--shenyu logging-rocketmq plugin start-->
         <dependency>
