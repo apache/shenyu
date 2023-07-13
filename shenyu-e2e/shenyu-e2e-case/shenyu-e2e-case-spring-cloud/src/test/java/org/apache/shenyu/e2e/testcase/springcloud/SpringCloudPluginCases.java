@@ -45,7 +45,7 @@ import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExi
 
 public class SpringCloudPluginCases implements ShenYuScenarioProvider {
 
-    private static final String TEST = "/springboot/test";
+    private static final String TEST = "/springcloud/test";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
