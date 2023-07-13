@@ -16,35 +16,24 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
+        <artifactId>shenyu-spring-boot-starter-plugin</artifactId>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-plugin</artifactId>
         <version>2.6.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-plugin-logging</artifactId>
-    <packaging>pom</packaging>
 
-    <modules>
-        <module>shenyu-plugin-logging-common</module>
-        <module>shenyu-plugin-logging-console</module>
-        <module>shenyu-plugin-logging-rocketmq</module>
-        <module>shenyu-plugin-logging-kafka</module>
-        <module>shenyu-plugin-logging-elasticsearch</module>
-        <module>shenyu-plugin-logging-aliyun-sls</module>
-        <module>shenyu-plugin-logging-pulsar</module>
-        <module>shenyu-plugin-logging-tencent-cls</module>
-        <module>shenyu-plugin-logging-clickhouse</module>
-        <module>shenyu-plugin-logging-desensitize-api</module>
-        <module>shenyu-plugin-logging-huawei-lts</module>
-    </modules>
+    <artifactId>shenyu-spring-boot-starter-plugin-logging-huawei-lts</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-base</artifactId>
+            <artifactId>shenyu-plugin-logging-huawei-lts</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
+
 </project>
