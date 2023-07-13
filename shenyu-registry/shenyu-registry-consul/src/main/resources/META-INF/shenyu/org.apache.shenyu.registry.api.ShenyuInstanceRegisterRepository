@@ -14,4 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-consul=org.apache.shenyu.register.instance.consul.ConsulInstanceRegisterRepository
+consul=org.apache.shenyu.registry.consul.ConsulInstanceRegisterRepository

@@ -14,4 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-etcd=org.apache.shenyu.register.instance.etcd.EtcdInstanceRegisterRepository
+etcd=org.apache.shenyu.registry.etcd.EtcdInstanceRegisterRepository

@@ -14,4 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-eureka=org.apache.shenyu.register.instance.eureka.EurekaInstanceRegisterRepository
+eureka=org.apache.shenyu.registry.eureka.EurekaInstanceRegisterRepository
