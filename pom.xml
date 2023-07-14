@@ -282,8 +282,29 @@
                         <groupId>net.jcip</groupId>
                         <artifactId>jcip-annotations</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-api</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-protobuf</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-stub</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-netty-shaded</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
                 </exclusions>
             </dependency>
+
 
             <dependency>
                 <groupId>com.alibaba</groupId>
@@ -495,6 +516,46 @@
                 <groupId>io.etcd</groupId>
                 <artifactId>jetcd-core</artifactId>
                 <version>${jetcd-core.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>grpc-protobuf</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-stub</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-netty</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-core</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>grpc-protobuf</artifactId>
+                <groupId>io.grpc</groupId>
+                <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>grpc-stub</artifactId>
+                <groupId>io.grpc</groupId>
+                <version>${grpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>grpc-netty</artifactId>
+                <groupId>io.grpc</groupId>
+                <version>${grpc.version}</version>
             </dependency>
 
             <dependency>
