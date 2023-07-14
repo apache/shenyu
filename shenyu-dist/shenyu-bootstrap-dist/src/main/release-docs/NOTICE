@@ -790,3 +790,27 @@ The original XML Schemas for Java EE Deployment Descriptors:
 
 may be obtained from:
 http://www.oracle.com/webfolder/technetwork/jsc/xml/ns/javaee/index.html
+
+========================================================================
+
+native-lib-loader NOTICE
+
+========================================================================
+
+Parts of this code are derived from Richard van der Hoff's mx-native-loader project.
+
+http://opensource.mxtelecom.com/maven/repo/com/wapmx/native/mx-native-loader/1.7/
+
+Copyright (c) 2008 MX Telecom
+
+========================================================================
+
+shenyu-wasm NOTICE
+
+========================================================================
+
+Parts of this code are derived from wasmerio's wasmer-java project.
+
+https://github.com/wasmerio/wasmer-java
+
+Copyright (c) 2019-present Wasmer, Inc. and its affiliates.

@@ -662,6 +662,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     slf4j-api 1.7.36: https://www.slf4j.org, MIT
     content-type 2.1: http://webjars.org, MIT
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
+    wasmer-java 0.3.0 https://github.com/wasmerio/wasmer-java, MIT
 
 ========================================================================
 MPL licenses
@@ -689,3 +690,12 @@ The following components are provided under the XPP License. See project link fo
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
     mxparser 1.2.2: https://github.com/x-stream/mxparser, XPP
+
+========================================================================
+native-lib-loader License
+========================================================================
+
+The following components are provided under the custom License. See project link for details.
+The text of each license is also included at licenses/LICENSE-[project].txt.
+
+    native-lib-loader 2.0.2: https://github.com/scijava/native-lib-loader
