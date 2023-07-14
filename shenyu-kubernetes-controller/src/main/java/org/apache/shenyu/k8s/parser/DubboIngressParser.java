@@ -46,6 +46,7 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.k8s.common.IngressConstants;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.slf4j.Logger;
@@ -59,6 +60,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Parser of Ingress Dubbo Annotations
+ */
 public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
 
     private static final Logger LOG = LoggerFactory.getLogger(DubboIngressParser.class);
@@ -97,14 +101,24 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
 
             String namespace = Objects.requireNonNull(ingress.getMetadata()).getNamespace();
             List<DubboUpstream> dubboUpstreamList = parseDubboService(dubboBackend, namespace);
-            // if rules is not null, dubboBackend is default in this ingress
-            List<Pair<SelectorData, RuleData>> routeList = new ArrayList<>(rules.size());
-            for (V1IngressRule ingressRule : rules) {
-                List<Pair<SelectorData, RuleData>> routes = parseIngressRule(ingressRule, dubboUpstreamList,
-                        Objects.requireNonNull(ingress.getMetadata()).getNamespace(), ingress.getMetadata().getAnnotations());
-                routeList.addAll(routes);
+
+            if (Objects.isNull(rules) || CollectionUtils.isEmpty(rules)) {
+                // if rules is null, dubboBackend become global default
+                if (Objects.nonNull(dubboBackend) && Objects.nonNull(dubboBackend.getService())) {
+                    Pair<SelectorData, RuleData> defaultRouteConfig = getDubboRouteConfig(dubboUpstreamList, ingress.getMetadata().getAnnotations());
+                    res.setGlobalDefaultBackend(Pair.of(Pair.of(namespace + "/" + ingress.getMetadata().getName(), dubboBackend.getService().getName()),
+                            defaultRouteConfig));
+                }
+            } else {
+                // if rules is not null, dubboBackend is default in this ingress
+                List<Pair<SelectorData, RuleData>> routeList = new ArrayList<>(rules.size());
+                for (V1IngressRule ingressRule : rules) {
+                    List<Pair<SelectorData, RuleData>> routes = parseIngressRule(ingressRule, dubboUpstreamList,
+                            Objects.requireNonNull(ingress.getMetadata()).getNamespace(), ingress.getMetadata().getAnnotations());
+                    routeList.addAll(routes);
+                }
+                res.setRouteConfigList(routeList);
             }
-            res.setRouteConfigList(routeList);
 
             // Parse tls
             if (Objects.nonNull(tlsList) && CollectionUtils.isNotEmpty(tlsList)) {
@@ -282,6 +296,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
     }
 
     private Pair<SelectorData, RuleData> getDubboRouteConfig(final List<DubboUpstream> duobboUpstream, final Map<String, String> annotations) {
+        String id = UUIDUtils.getInstance().generateShortUuid();
         final ConditionData conditionData = new ConditionData();
         conditionData.setParamName("dubbo");
         conditionData.setParamType(ParamTypeEnum.URI.getName());
@@ -294,7 +309,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                 .conditionList(Collections.singletonList(conditionData))
                 .handle(GsonUtils.getInstance().toJson(duobboUpstream))
                 .enabled(true)
-                .id("1")
+                .id(id)
                 .pluginName(PluginEnum.DUBBO.getName())
                 .pluginId(String.valueOf(PluginEnum.DUBBO.getCode()))
                 .logged(false)
@@ -307,7 +322,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
             dubboRuleHandle.setLoadbalance(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_LOADBALANCE_ANNOTATION_KEY, LoadBalanceEnum.HASH.getName()));
         }
         final RuleData ruleData = RuleData.builder()
-                .selectorId("1")
+                .selectorId(id)
                 .pluginName(PluginEnum.DIVIDE.getName())
                 .name("dubbo-rule")
                 .matchMode(MatchModeEnum.AND.getCode())

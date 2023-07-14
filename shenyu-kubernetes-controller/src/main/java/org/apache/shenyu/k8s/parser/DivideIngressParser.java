@@ -46,6 +46,7 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.k8s.common.IngressConstants;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.slf4j.Logger;
@@ -59,7 +60,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Parser of Ingress Divide Annotations
+ */
 public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
+
     private static final Logger LOG = LoggerFactory.getLogger(IngressParser.class);
 
     private final Lister<V1Service> serviceLister;
@@ -307,6 +312,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
     }
 
     private Pair<SelectorData, RuleData> getDefaultRouteConfig(final List<DivideUpstream> divideUpstream, final Map<String, String> annotations) {
+        String id = UUIDUtils.getInstance().generateShortUuid();
         final ConditionData conditionData = new ConditionData();
         conditionData.setParamName("default");
         conditionData.setParamType(ParamTypeEnum.URI.getName());
@@ -319,7 +325,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                 .conditionList(Collections.singletonList(conditionData))
                 .handle(GsonUtils.getInstance().toJson(divideUpstream))
                 .enabled(true)
-                .id("1")
+                .id(id)
                 .pluginName(PluginEnum.DIVIDE.getName())
                 .pluginId(String.valueOf(PluginEnum.DIVIDE.getCode()))
                 .logged(false)
@@ -336,7 +342,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
             divideRuleHandle.setRequestMaxSize(Long.parseLong(annotations.getOrDefault(IngressConstants.REQUEST_MAX_SIZE_ANNOTATION_KEY, "102400")));
         }
         final RuleData ruleData = RuleData.builder()
-                .selectorId("1")
+                .selectorId(id)
                 .pluginName(PluginEnum.DIVIDE.getName())
                 .name("default-rule")
                 .matchMode(MatchModeEnum.AND.getCode())
