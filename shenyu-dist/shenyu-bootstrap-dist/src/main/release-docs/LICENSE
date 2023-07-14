@@ -560,7 +560,7 @@ The text of each license is the standard Apache 2.0 license.
     client-java-spring-integration 17.0.2: https://github.com/kubernetes-client/java, Apache 2.0
     kotlin-stdlib 1.6.21 https://kotlinlang.org, Apache 2.0
     kotlin-stdlib-common 1.6.21 https://kotlinlang.org, Apache 2.0
-
+    lts-sdk-java 1.0.1: https://github.com/huaweicloud/huaweicloud-lts-sdk-java, Apache 2.0
 ========================================================================
 BSD licenses
 ========================================================================
