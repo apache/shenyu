@@ -33,8 +33,13 @@
         </dependency>
 
         <dependency>
-            <artifactId>grpc-protobuf</artifactId>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.grpc</groupId>
+            <artifactId>grpc-core</artifactId>
         </dependency>
 
         <dependency>

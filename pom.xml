@@ -174,7 +174,7 @@
         <resilience.version>1.7.1</resilience.version>
         <sentinel.version>1.8.3</sentinel.version>
         <lettuce.version>6.1.2.RELEASE</lettuce.version>
-        <protobuf-java.version>3.19.6</protobuf-java.version>
+        <protobuf-java.version>3.21.1</protobuf-java.version>
         <aliyun-log-producer.version>0.3.10</aliyun-log-producer.version>
         <tencent-log-sdk.version>1.0.14</tencent-log-sdk.version>
         <jsonpath.version>2.4.0</jsonpath.version>
@@ -556,6 +556,12 @@
                 <artifactId>grpc-netty</artifactId>
                 <groupId>io.grpc</groupId>
                 <version>${grpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf-java.version}</version>
             </dependency>
 
             <dependency>
