@@ -144,12 +144,16 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         existList.removeAll(needToRemove);
         final String handler = GsonUtils.getInstance().toJson(existList);
         selectorDO.setHandle(handler);
-        SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
-        selectorData.setHandle(handler);
         // update db
         selectorService.updateSelective(selectorDO);
-        // publish change event.
-        getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
+
+        SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
+        selectorData.setHandle(handler);
+        if (CollectionUtils.isEmpty(existList)) {
+            getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(selectorData)));
+        } else {
+            getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
+        }
         return Constants.SUCCESS;
     }
 }
