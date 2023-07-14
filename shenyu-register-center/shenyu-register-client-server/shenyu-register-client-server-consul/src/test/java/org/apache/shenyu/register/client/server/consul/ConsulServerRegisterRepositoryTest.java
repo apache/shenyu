@@ -107,7 +107,7 @@ public class ConsulServerRegisterRepositoryTest {
         new ApplicationContextRunner().withUserConfiguration(ConsulServerRegisterRepositoryTest.class)
                 .run(context -> {
                     MetaDataRegisterDTO mockServer = MetaDataRegisterDTO.builder().appName("mockServer").contextPath("/mock")
-                            .host("127.0.0.1").rpcType(RpcTypeEnum.DUBBO.getName()).build();
+                            .host("127.0.0.1:8500").rpcType(RpcTypeEnum.DUBBO.getName()).build();
                     Map<String, GetValue> mateData = new HashMap<>();
                     GetValue getValue = new GetValue();
                     getValue.setValue(Base64.getEncoder().encodeToString(GsonUtils.getInstance().toJson(mockServer).getBytes(StandardCharsets.UTF_8)));
@@ -125,7 +125,8 @@ public class ConsulServerRegisterRepositoryTest {
         final MockedConstruction<ConsulClient> consulClientMockedConstruction = mockConstruction(ConsulClient.class);
         ConsulClientServerRegisterRepository consulServerRegisterRepository = new ConsulClientServerRegisterRepository();
         final ShenyuClientServerRegisterPublisher shenyuClientServerRegisterPublisher = mock(ShenyuClientServerRegisterPublisher.class);
-        final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = mock(ShenyuRegisterCenterConfig.class);
+        ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = new ShenyuRegisterCenterConfig();
+        shenyuRegisterCenterConfig.setServerLists("127.0.0.1:8500");
         consulServerRegisterRepository.init(shenyuClientServerRegisterPublisher, shenyuRegisterCenterConfig);
         consulClientMockedConstruction.close();
     }
