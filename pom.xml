@@ -124,7 +124,7 @@
         <commons-io.version>2.11.0</commons-io.version>
         <nacos-client.version>2.0.4</nacos-client.version>
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
-        <grpc.version>1.33.1</grpc.version>
+        <grpc.version>1.48.0</grpc.version>
         <brpc.version>2022.2.0</brpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>
         <pulsar-client.version>2.10.1</pulsar-client.version>
