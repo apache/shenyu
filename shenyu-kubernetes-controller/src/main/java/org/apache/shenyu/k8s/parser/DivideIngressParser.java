@@ -61,7 +61,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Parser of Ingress Divide Annotations
+ * Parser of Ingress Divide Annotations.
  */
 public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
 

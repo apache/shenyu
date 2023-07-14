@@ -61,7 +61,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Parser of Ingress Dubbo Annotations
+ * Parser of Ingress Dubbo Annotations.
  */
 public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
 
