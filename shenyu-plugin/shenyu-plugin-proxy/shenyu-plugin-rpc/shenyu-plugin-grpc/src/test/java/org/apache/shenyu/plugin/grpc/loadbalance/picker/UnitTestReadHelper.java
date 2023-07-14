@@ -23,7 +23,6 @@ import io.grpc.ConnectivityStateInfo;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
 import io.grpc.ManagedChannel;
-import io.grpc.NameResolver;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannels;
 import javax.annotation.Nonnull;
 import java.net.SocketAddress;
