@@ -42,11 +42,6 @@ public class UnitTestReadHelper extends LoadBalancer.Helper {
     }
 
     @Override
-    public NameResolver.Factory getNameResolverFactory() {
-        return null;
-    }
-
-    @Override
     public String getAuthority() {
         return null;
     }
