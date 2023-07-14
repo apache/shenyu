@@ -72,7 +72,7 @@ public class ServiceDocManagerImpl implements ServiceDocManager {
             docManager.addDocInfo(
                 clusterName,
                 body,
-                callback -> LOG.info("load api document successful，clusterName={}, iPandPort={}",
+                callback -> LOG.info("load api document successful，clusterName={}, ipPort={}",
                     clusterName, instance.getIp() + ":" + instance.getPort())
             );
             CLUSTER_LASTSTARTUPTIME_MAP.put(clusterName, instance.getStartupTime());

@@ -47,6 +47,8 @@ public class DocItem {
      */
     private Collection<String> httpMethodList;
 
+    private Collection<String> consumes;
+
     private Collection<String> produces;
 
     /**
@@ -205,6 +207,24 @@ public class DocItem {
      */
     public void setHttpMethodList(final Collection<String> httpMethodList) {
         this.httpMethodList = httpMethodList;
+    }
+
+    /**
+     * get consumes.
+     *
+     * @return consumes
+     */
+    public Collection<String> getConsumes() {
+        return consumes;
+    }
+
+    /**
+     * set consumes.
+     *
+     * @param consumes consumes
+     */
+    public void setConsumes(final Collection<String> consumes) {
+        this.consumes = consumes;
     }
 
     /**

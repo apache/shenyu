@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.shenyu.admin.model.bean.CustomCode;
 import org.apache.shenyu.admin.model.bean.DocInfo;
@@ -43,7 +44,6 @@ import org.apache.shenyu.admin.model.bean.DocParameter;
 import org.apache.shenyu.admin.service.manager.DocParser;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.util.CollectionUtils;
 
 /**
  * Parse the JSON content of swagger.
@@ -144,6 +144,8 @@ public class SwaggerDocParser implements DocParser {
         if (Objects.nonNull(docInfo.get("description"))) {
             docItem.setDescription(docInfo.get("description").getAsString());
         }
+        docItem.setConsumes(GsonUtils.getGson().fromJson(docInfo.getAsJsonArray("consumes"), new TypeToken<List<String>>() {
+        }.getType()));
         docItem.setProduces(GsonUtils.getGson().fromJson(docInfo.getAsJsonArray("produces"), new TypeToken<List<String>>() {
         }.getType()));
 
