@@ -37,5 +37,10 @@
             <groupId>io.grpc</groupId>
         </dependency>
 
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-okhttp</artifactId>
+        </dependency>
+
     </dependencies>
 </project>
