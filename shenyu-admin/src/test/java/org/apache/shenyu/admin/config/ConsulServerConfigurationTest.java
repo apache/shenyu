@@ -57,6 +57,7 @@ public final class ConsulServerConfigurationTest {
             Properties properties = mock(Properties.class);
             when(config.getProps()).thenReturn(properties);
             when(config.getProps().getProperty(any(), any())).thenReturn("1", "30", "mocked valued");
+            when(config.getServerLists()).thenReturn("127.0.0.1:8500");
             ConsulClient consulClient = configuration.consulClient(config);
             assertNotNull(consulClient);
         }
