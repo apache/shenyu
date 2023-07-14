@@ -260,7 +260,6 @@
                 <version>${prometheus-java-client.version}</version>
             </dependency>
 
-            <!-- https://mvnrepository.com/artifact/io.prometheus.jmx/collector -->
             <dependency>
                 <groupId>io.prometheus.jmx</groupId>
                 <artifactId>collector</artifactId>
