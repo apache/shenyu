@@ -110,7 +110,6 @@ public class DocManagerImpl implements DocManager {
         List<DocModule> docModules = docInfo.getDocModuleList();
         DOC_DEFINITION_MAP.put(docInfo.getTitle(), docInfo);
         docModules.forEach(docModule -> docModule.getDocItems().forEach(docItem -> {
-
             ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                 .consume(this.getProduceConsume(docItem.getConsumes()))
                 .produce(this.getProduceConsume(docItem.getProduces()))
@@ -135,7 +134,7 @@ public class DocManagerImpl implements DocManager {
         callback.accept(docInfo);
     }
 
-    private String getProduceConsume(Collection<String> list) {
+    private String getProduceConsume(final Collection<String> list) {
         String res = StringUtils.EMPTY;
         if (Objects.nonNull(list)) {
             Optional<String> first = list.stream().findFirst();
