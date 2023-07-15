@@ -112,8 +112,8 @@ public class DocManagerImpl implements DocManager {
         docModules.forEach(docModule -> docModule.getDocItems().forEach(docItem -> {
 
             ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
-                .consume(CollectionUtils.isNotEmpty(docItem.getConsumes()) ? ((List) docItem.getConsumes()).get(0).toString() : "")
-                .produce(((List) docItem.getProduces()).get(0).toString())
+                .consume(this.getProduceConsume(docItem.getConsumes()))
+                .produce(this.getProduceConsume(docItem.getProduces()))
                 .httpMethod(this.getHttpMethod(docItem))
                 .contextPath(docInfo.getContextPath())
                 .ext(this.buildExtJson(docInfo, docItem))
@@ -133,6 +133,17 @@ public class DocManagerImpl implements DocManager {
         }));
 
         callback.accept(docInfo);
+    }
+
+    private String getProduceConsume(Collection<String> list) {
+        String res = StringUtils.EMPTY;
+        if (Objects.nonNull(list)) {
+            Optional<String> first = list.stream().findFirst();
+            if (first.isPresent()) {
+                res = first.get();
+            }
+        }
+        return StringUtils.isNotEmpty(res) ? res : "*/*";
     }
 
     private Integer getHttpMethod(final DocItem docItem) {
