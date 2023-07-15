@@ -21,9 +21,9 @@ import java.util.Set;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 
 /**
- * Service document Manager.
+ * pull service api document Manager.
  */
-public interface ServiceDocManager {
+public interface PullSwaggerDocService {
 
     /**
      * pull API document.

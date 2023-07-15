@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.google.gson.JsonArray;
@@ -69,7 +68,6 @@ public class SwaggerDocParser implements DocParser {
         Set<String> pathNameSet = paths.keySet();
         for (String apiPath : pathNameSet) {
             JsonObject pathInfo = paths.getAsJsonObject(apiPath);
-            // key: get,post,head...
             Collection<String> httpMethodList = getHttpMethods(pathInfo);
             Optional<String> first = httpMethodList.stream().findFirst();
             if (first.isPresent()) {
@@ -123,7 +121,6 @@ public class SwaggerDocParser implements DocParser {
     }
 
     protected Collection<String> getHttpMethods(final JsonObject pathInfo) {
-        // key: get,post,head...
         Set<String> httpMethodList = pathInfo.keySet();
         List<String> retList = new ArrayList<>(httpMethodList);
         Collections.sort(retList);
@@ -136,7 +133,6 @@ public class SwaggerDocParser implements DocParser {
         apiName = basePath + apiName;
 
         DocItem docItem = new DocItem();
-        docItem.setId(UUID.randomUUID().toString());
         docItem.setName(apiName);
         if (Objects.nonNull(docInfo.get("summary"))) {
             docItem.setSummary(docInfo.get("summary").getAsString());

@@ -27,8 +27,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class DocItem {
 
-    private String id;
-
     private String module;
 
     private String name;
@@ -81,24 +79,6 @@ public class DocItem {
             upload = requestParameters.stream().map(DocParameter::getType).anyMatch("file"::equalsIgnoreCase);
         }
         return multiple || upload;
-    }
-
-    /**
-     * getId.
-     *
-     * @return String
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * setId.
-     *
-     * @param id id
-     */
-    public void setId(final String id) {
-        this.id = id;
     }
 
     /**

@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -37,6 +38,7 @@ import org.apache.shenyu.admin.model.bean.DocModule;
 import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.admin.service.manager.DocParser;
 import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.ApiSourceEnum;
 import org.apache.shenyu.common.enums.ApiStateEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -100,7 +102,7 @@ public class DocManagerImpl implements DocManager {
         if (Objects.equals(newMd5, oldMd5)) {
             return;
         }
-//        CLUSTER_MD5_MAP.put(clusterName, newMd5); todo
+        CLUSTER_MD5_MAP.put(clusterName, newMd5);
         DocInfo docInfo = getDocInfo(clusterName, docInfoJson);
         if (Objects.isNull(docInfo) || CollectionUtils.isEmpty(docInfo.getDocModuleList())) {
             return;
@@ -108,13 +110,13 @@ public class DocManagerImpl implements DocManager {
         List<DocModule> docModules = docInfo.getDocModuleList();
         DOC_DEFINITION_MAP.put(docInfo.getTitle(), docInfo);
         docModules.forEach(docModule -> docModule.getDocItems().forEach(docItem -> {
-//            ITEM_DOC_MAP.put(docItem.getId(), docItem);
+
             ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                 .consume(CollectionUtils.isNotEmpty(docItem.getConsumes()) ? ((List) docItem.getConsumes()).get(0).toString() : "")
                 .produce(((List) docItem.getProduces()).get(0).toString())
-                .httpMethod(0)
+                .httpMethod(this.getHttpMethod(docItem))
                 .contextPath(docInfo.getContextPath())
-                .ext(buildExtJson(docInfo, docItem))
+                .ext(this.buildExtJson(docInfo, docItem))
                 .document(JsonUtils.toJson(docItem))
                 .rpcType(RpcTypeEnum.HTTP.getName())
                 .version(API_DOC_VERSION)
@@ -131,6 +133,15 @@ public class DocManagerImpl implements DocManager {
         }));
 
         callback.accept(docInfo);
+    }
+
+    private Integer getHttpMethod(final DocItem docItem) {
+        Integer httpMethod = null;
+        Optional<String> first = docItem.getHttpMethodList().stream().findFirst();
+        if (first.isPresent()) {
+            httpMethod = ApiHttpMethodEnum.getValueByName(first.get());
+        }
+        return httpMethod;
     }
 
     private DocInfo getDocInfo(final String clusterName, final String docInfoJson) {
@@ -159,17 +170,6 @@ public class DocManagerImpl implements DocManager {
         ext.setAddPrefixed(false);
         ext.setProtocol(HTTP);
         return GsonUtils.getInstance().toJson(ext);
-    }
-
-    /**
-     * get doc By Title.
-     *
-     * @param title title
-     * @return DocInfo
-     */
-    @Override
-    public DocInfo getByTitle(final String title) {
-        return DOC_DEFINITION_MAP.get(title);
     }
 
     /**
