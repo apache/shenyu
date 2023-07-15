@@ -102,7 +102,7 @@ public class DocManagerImpl implements DocManager {
         if (Objects.equals(newMd5, oldMd5)) {
             return;
         }
-        CLUSTER_MD5_MAP.put(clusterName, newMd5);
+//        CLUSTER_MD5_MAP.put(clusterName, newMd5);
         DocInfo docInfo = getDocInfo(clusterName, docInfoJson);
         if (Objects.isNull(docInfo) || CollectionUtils.isEmpty(docInfo.getDocModuleList())) {
             return;
@@ -139,7 +139,8 @@ public class DocManagerImpl implements DocManager {
         Integer httpMethod = null;
         Optional<String> first = docItem.getHttpMethodList().stream().findFirst();
         if (first.isPresent()) {
-            httpMethod = ApiHttpMethodEnum.getValueByName(first.get());
+            String method = docItem.getHttpMethodList().size() == 1 ? StringUtils.upperCase(first.get()) : ApiHttpMethodEnum.GET.getName();
+            httpMethod = ApiHttpMethodEnum.getValueByName(method);
         }
         return httpMethod;
     }
