@@ -85,7 +85,7 @@ public class ApiDocControllerTest {
         given(this.docManager.getDocItem("123")).willReturn(docItem);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/apidoc/getDocItem")
                         .param("id", "123"))
-//                .andExpect(status().isOk())
+                .andExpect(status().isOk())
                 .andReturn();
     }
 
