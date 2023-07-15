@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.admin.service.TagService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
@@ -83,6 +84,9 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
 
     @Mock
     private UpstreamCheckService upstreamCheckService;
+
+    @Mock
+    private RegisterApiDocService registerApiDocService;
 
     @Test
     public void testRegister() {
