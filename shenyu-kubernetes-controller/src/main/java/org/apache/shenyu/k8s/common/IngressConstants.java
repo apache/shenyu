@@ -23,6 +23,8 @@ public class IngressConstants {
 
     public static final String SHENYU_INGRESS_CLASS = "shenyu";
 
+    public static final String ID = "1";
+
     // Load balance type name, refer to LoadBalanceEnum
     public static final String LOADBALANCER_ANNOTATION_KEY = "shenyu.apache.org/loadbalancer";
 
@@ -38,9 +40,22 @@ public class IngressConstants {
     // The maximum length of the request header, in bytes
     public static final String REQUEST_MAX_SIZE_ANNOTATION_KEY = "shenyu.apache.org/request-max-size";
 
-    //The Load balance type name of the dubbo plugin, refer to LoadBalanceEnum
-    public static final String PLUGIN_DUBBO_LOADBALANCE_ANNOTATION_KEY = "shenyu.apache.org/plugin-dubbo-loadbalace";
-
     //Determine if the dubbo plugin is enabled, in bool
     public static final String PLUGIN_DUBBO_ENABLED = "shenyu.apache.org/plugin-dubbo-enabled";
+
+    public static final String PLUGIN_DUBBO_APP_NAME = "shenyu.apache.org/plugin-dubbo-app-name";
+
+    public static final String PLUGIN_DUBBO_METHOD_NAME = "shenyu.apache.org/plugin-dubbo-method-name";
+
+    public static final String PLUGIN_DUBBO_PATH = "shenyu.apache.org/plugin-dubbo-PATH";
+
+    public static final String PLUGIN_DUBBO_RPC_TYPE = "shenyu.apache.org/plugin-dubbo-rpc-type";
+
+    public static final String PLUGIN_DUBBO_SERVICE_NAME = "shenyu.apache.org/plugin-dubbo-service-name";
+
+    public static final String PLUGIN_DUBBO_CONTEXT_PATH = "shenyu.apache.org/plugin-dubbo-context-path";
+
+    public static final String PLUGIN_DUBBO_RPC_EXT = "shenyu.apache.org/plugin-dubbo-rpc-ext";
+
+    public static final String PLUGIN_DUBBO_PARAMENT_TYPE = "shenyu.apache.org/plugin-dubbo-parament-type";
 }

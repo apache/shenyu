@@ -46,7 +46,6 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.k8s.common.IngressConstants;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.slf4j.Logger;
@@ -312,7 +311,6 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
     }
 
     private Pair<SelectorData, RuleData> getDefaultRouteConfig(final List<DivideUpstream> divideUpstream, final Map<String, String> annotations) {
-        String id = UUIDUtils.getInstance().generateShortUuid();
         final ConditionData conditionData = new ConditionData();
         conditionData.setParamName("default");
         conditionData.setParamType(ParamTypeEnum.URI.getName());
@@ -325,7 +323,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                 .conditionList(Collections.singletonList(conditionData))
                 .handle(GsonUtils.getInstance().toJson(divideUpstream))
                 .enabled(true)
-                .id(id)
+                .id(IngressConstants.ID)
                 .pluginName(PluginEnum.DIVIDE.getName())
                 .pluginId(String.valueOf(PluginEnum.DIVIDE.getCode()))
                 .logged(false)
@@ -342,7 +340,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
             divideRuleHandle.setRequestMaxSize(Long.parseLong(annotations.getOrDefault(IngressConstants.REQUEST_MAX_SIZE_ANNOTATION_KEY, "102400")));
         }
         final RuleData ruleData = RuleData.builder()
-                .selectorId(id)
+                .selectorId(IngressConstants.ID)
                 .pluginName(PluginEnum.DIVIDE.getName())
                 .name("default-rule")
                 .matchMode(MatchModeEnum.AND.getCode())
