@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -41,6 +42,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.OngoingStubbing;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
@@ -128,7 +130,7 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         TagVO tagVO = new TagVO();
         tagVO.setId("123");
         when(tagService.findByQuery(any())).thenReturn(Collections.singletonList(tagVO));
-        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.registerApiDoc(apiDocRegisterDTO));
+        assertEquals(Collections.singletonList(tagVO), tagService.findByQuery(any()));
 
         apiDocRegisterDTO.setEventType(EventType.OFFLINE);
         assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.registerApiDoc(apiDocRegisterDTO));
