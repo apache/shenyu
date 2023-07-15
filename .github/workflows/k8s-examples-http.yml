@@ -73,8 +73,8 @@ jobs:
           docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest shenyu-examples-http:latest | sudo k3s ctr images import -
           kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-deployment.yml
           kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-service.yml
-          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http-deployment.yml
-          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http-service.yml
+          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-zookeeper.yml
+          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http.yml
       -
         name: Wait for k8s Cluster Start up
         if: steps.filter.outputs.changed == 'true'
