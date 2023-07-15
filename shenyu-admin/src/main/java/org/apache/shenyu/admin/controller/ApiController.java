@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.admin.controller;
 
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.ApiMapper;
+import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -28,6 +30,8 @@ import org.apache.shenyu.admin.model.vo.ApiVO;
 import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.apache.shenyu.common.enums.ApiSourceEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -89,6 +93,16 @@ public class ApiController {
                                        @Existed(message = "api is not existed",
                                                provider = ApiMapper.class) final String id) {
         ApiVO apiVO = apiService.findById(id);
+        if (Objects.nonNull(apiVO)) {
+            if (apiVO.getApiSource().equals(ApiSourceEnum.SWAGGER.getValue())) {
+                DocItem item = JsonUtils.jsonToObject(apiVO.getDocument(), DocItem.class);
+                apiVO.setRequestHeaders(item.getRequestHeaders());
+                apiVO.setRequestParameters(item.getRequestParameters());
+                apiVO.setResponseParameters(item.getResponseParameters());
+                apiVO.setBizCustomCodeList(item.getBizCodeList());
+                apiVO.setDocument(null);
+            }
+        }
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, apiVO);
     }
 
