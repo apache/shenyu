@@ -52,6 +52,11 @@ public class ApolloConfig {
     private String token;
 
     /**
+     * operator.
+     */
+    private String operator;
+
+    /**
      * get appId.
      * @return appId
      */
@@ -145,5 +150,21 @@ public class ApolloConfig {
      */
     public void setToken(final String token) {
         this.token = token;
+    }
+
+    /**
+     * get operator.
+     * @return operator
+     */
+    public String getOperator() {
+        return operator;
+    }
+
+    /**
+     * set operator.
+     * @param operator operator
+     */
+    public void setOperator(final String operator) {
+        this.operator = operator;
     }
 }
