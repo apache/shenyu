@@ -247,8 +247,9 @@ jobs:
     if: ${{ needs.changes.outputs.e2e == 'true' }}
     needs:
       - changes
-      - e2e
+      - e2e-http
       - e2e-case
+      - e2e-alibaba-dubbo
     runs-on: ubuntu-latest
     steps:
       - name: checking job status
