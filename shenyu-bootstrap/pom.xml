@@ -317,15 +317,15 @@
         <!--shenyu mock plugin end-->
 
         <!--shenyu  apache dubbo plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-apache-dubbo</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.shenyu</groupId>-->
+<!--            <artifactId>shenyu-spring-boot-starter-plugin-apache-dubbo</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.dubbo</groupId>-->
+<!--            <artifactId>dubbo</artifactId>-->
+<!--        </dependency>-->
         <!-- Dubbo Nacos registry dependency -->
         <!--  <dependency>
               <groupId>org.apache.dubbo</groupId>
@@ -338,53 +338,53 @@
               <version>2.0.4</version>
           </dependency>-->
         <!-- Dubbo zookeeper registry dependency start -->
-        <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo-dependencies-zookeeper</artifactId>
-            <version>${apache.dubbo.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-log4j12</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
-            <type>pom</type>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.dubbo</groupId>-->
+<!--            <artifactId>dubbo-dependencies-zookeeper</artifactId>-->
+<!--            <version>${apache.dubbo.version}</version>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <artifactId>slf4j-log4j12</artifactId>-->
+<!--                    <groupId>org.slf4j</groupId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--            <type>pom</type>-->
+<!--        </dependency>-->
         <!-- Dubbo zookeeper registry dependency end -->
         <!-- shenyu  apache dubbo plugin end-->
 
         <!--shenyu alibaba dubbo plugin start-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.shenyu</groupId>-->
-        <!--            <artifactId>shenyu-spring-boot-starter-plugin-alibaba-dubbo</artifactId>-->
-        <!--            <version>${project.version}</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.alibaba</groupId>-->
-        <!--            <artifactId>dubbo</artifactId>-->
-        <!--            <version>${alibaba.dubbo.version}</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.curator</groupId>-->
-        <!--            <artifactId>curator-client</artifactId>-->
-        <!--            <version>${curator.version}</version>-->
-        <!--            <exclusions>-->
-        <!--                <exclusion>-->
-        <!--                    <artifactId>log4j</artifactId>-->
-        <!--                    <groupId>log4j</groupId>-->
-        <!--                </exclusion>-->
-        <!--            </exclusions>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.curator</groupId>-->
-        <!--            <artifactId>curator-framework</artifactId>-->
-        <!--            <version>${curator.version}</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.curator</groupId>-->
-        <!--            <artifactId>curator-recipes</artifactId>-->
-        <!--            <version>${curator.version}</version>-->
-        <!--        </dependency>-->
+                <dependency>
+                    <groupId>org.apache.shenyu</groupId>
+                    <artifactId>shenyu-spring-boot-starter-plugin-alibaba-dubbo</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.alibaba</groupId>
+                    <artifactId>dubbo</artifactId>
+                    <version>${alibaba.dubbo.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-client</artifactId>
+                    <version>${curator.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <artifactId>log4j</artifactId>
+                            <groupId>log4j</groupId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-framework</artifactId>
+                    <version>${curator.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-recipes</artifactId>
+                    <version>${curator.version}</version>
+                </dependency>
         <!--shenyu alibaba dubbo plugin end-->
 
         <!--shenyu spring cloud alibaba dubbo plugin start-->
