@@ -20,9 +20,9 @@ shenyu:
 
 spring:
   datasource:
-    url: jdbc:opengauss://120.46.80.11:5432/shenyu
-    username: shenyu_user
-    password: Shenyu2023
+    url: jdbc:opengauss://localhost:5432/shenyu
+    username: root
+    password: Shenyu123456
     driver-class-name: org.opengauss.Driver
 
 mybatis:
