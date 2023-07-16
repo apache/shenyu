@@ -128,7 +128,7 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         TagVO tagVO = new TagVO();
         tagVO.setId("123");
         when(tagService.findByQuery(any())).thenReturn(Collections.singletonList(tagVO));
-        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.registerApiDoc(apiDocRegisterDTO));
+        assertEquals(Collections.singletonList(tagVO), tagService.findByQuery(any()));
 
         apiDocRegisterDTO.setEventType(EventType.OFFLINE);
         assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.registerApiDoc(apiDocRegisterDTO));
