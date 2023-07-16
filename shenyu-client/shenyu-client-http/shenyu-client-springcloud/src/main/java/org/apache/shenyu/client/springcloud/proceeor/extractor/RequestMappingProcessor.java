@@ -53,7 +53,6 @@ public class RequestMappingProcessor implements ApiAnnotationProcessor<RequestMa
         definition.addProperties("consumes", String.join(",", annotation.consumes()));
         definition.addProperties("produces", String.join(",", annotation.produces()));
         
-        
         // Get additional values from the annotation.
         // TO_DO : Provides support annotation extensions
     }
