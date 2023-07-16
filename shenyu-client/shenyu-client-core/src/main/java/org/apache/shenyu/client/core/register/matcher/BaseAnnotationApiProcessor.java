@@ -42,7 +42,6 @@ public abstract class BaseAnnotationApiProcessor<T extends Annotation> implement
         }
     }
     
-    
     @Override
     public boolean match(final ApiBean element) {
         return false;
