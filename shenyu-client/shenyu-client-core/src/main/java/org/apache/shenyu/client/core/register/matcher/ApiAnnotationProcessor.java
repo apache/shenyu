@@ -41,16 +41,6 @@ public interface ApiAnnotationProcessor<T extends Annotation> extends ExtractorP
     }
     
     /**
-     * getAnnotation.
-     *
-     * @param apiBean apiBean
-     * @return t
-     */
-    default T getAnnotation(ApiBean apiBean) {
-        return apiBean.getAnnotation(matchAnnotation());
-    }
-    
-    /**
      * process API Bean.
      *
      * @param apiBean    apiBean
@@ -77,6 +67,16 @@ public interface ApiAnnotationProcessor<T extends Annotation> extends ExtractorP
         if (Objects.nonNull(annotation)) {
             process(definition, annotation);
         }
+    }
+    
+    /**
+     * getAnnotation.
+     *
+     * @param apiBean apiBean
+     * @return t
+     */
+    default T getAnnotation(ApiBean apiBean) {
+        return apiBean.getAnnotation(matchAnnotation());
     }
     
     /**
