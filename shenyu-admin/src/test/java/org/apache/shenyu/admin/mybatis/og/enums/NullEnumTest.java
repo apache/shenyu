@@ -17,38 +17,19 @@
 
 package org.apache.shenyu.admin.mybatis.og.enums;
 
-public enum NullEnum {
-    NULL("", "NULL");
+import org.junit.jupiter.api.Test;
 
-    private String value;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    private String label;
+public class NullEnumTest {
 
-    NullEnum(final String value, final String label) {
-        this.value = value;
-        this.label = label;
+    @Test
+    public void testGetLabel() {
+        assertEquals("NULL", NullEnum.NULL.getLabel());
     }
 
-    /**
-     * getValue.
-     *
-     * @return value
-     */
-    public String getValue() {
-        return value;
-    }
-
-    /**
-     * getLabel.
-     *
-     * @return label
-     */
-    public String getLabel() {
-        return label;
-    }
-
-    @Override
-    public String toString() {
-        return label;
+    @Test
+    public void testGetValue() {
+        assertEquals("", NullEnum.NULL.getValue());
     }
 }

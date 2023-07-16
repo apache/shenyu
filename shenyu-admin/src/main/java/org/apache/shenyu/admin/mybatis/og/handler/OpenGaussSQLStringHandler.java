@@ -31,35 +31,37 @@ import java.sql.SQLException;
  * OpenGaussSQL's custom type handler for Boolean types.
  */
 @MappedTypes(value = String.class)
-public class OpenGaussSQLNullHandler extends BaseTypeHandler<String> {
+public class OpenGaussSQLStringHandler extends BaseTypeHandler<String> {
 
     @Override
-    public void setNonNullParameter(PreparedStatement preparedStatement,  final int columnIndex, String s, JdbcType jdbcType) throws SQLException {
-        preparedStatement.setString(columnIndex,convertEnum(s));
+    public void setNonNullParameter(final PreparedStatement preparedStatement, final int columnIndex, final String s, final JdbcType jdbcType) throws SQLException {
+        preparedStatement.setString(columnIndex, convertEnum(s));
     }
 
     @Override
-    public String getNullableResult(ResultSet resultSet, String s) throws SQLException {
+    public String getNullableResult(final ResultSet resultSet, final String s) throws SQLException {
         return convert(resultSet.getString(s));
     }
 
     @Override
-    public String getNullableResult(ResultSet resultSet, int i) throws SQLException {
+    public String getNullableResult(final ResultSet resultSet, final int i) throws SQLException {
         return convert(resultSet.getString(i));
     }
 
     @Override
-    public String getNullableResult(CallableStatement callableStatement, int i) throws SQLException {
+    public String getNullableResult(final CallableStatement callableStatement, final int i) throws SQLException {
         return convert(callableStatement.getString(i));
     }
-    private String convert(String s) {
-        if (NullEnum.NULL.getLabel().equals(s)){
+
+    private String convert(final String s) {
+        if (NullEnum.NULL.getLabel().equals(s)) {
             return NullEnum.NULL.getValue();
         }
         return s;
     }
-    private String convertEnum(String s) {
-        if (NullEnum.NULL.getValue().equals(s)){
+
+    private String convertEnum(final String s) {
+        if (NullEnum.NULL.getValue().equals(s)) {
             return NullEnum.NULL.getLabel();
         }
         return s;

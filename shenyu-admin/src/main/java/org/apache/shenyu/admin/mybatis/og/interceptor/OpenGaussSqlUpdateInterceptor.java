@@ -67,6 +67,7 @@ public class OpenGaussSqlUpdateInterceptor implements Interceptor {
     private boolean matchParam(final Object parameter, final Field f) {
         return AUTOMATIC_DATES.contains(f.getName()) && Objects.isNull(ReflectUtils.getFieldValue(parameter, f));
     }
+
     private boolean matchNull(final Object parameter, final Field f) {
         return NullEnum.NULL.getValue().equals(ReflectUtils.getFieldValue(parameter, f));
     }

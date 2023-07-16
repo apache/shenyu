@@ -24,7 +24,6 @@ import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
 import org.apache.ibatis.plugin.Signature;
-import org.apache.shenyu.admin.mybatis.og.enums.NullEnum;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
