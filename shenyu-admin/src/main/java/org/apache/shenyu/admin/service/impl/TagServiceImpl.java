@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,6 +36,7 @@ import org.apache.shenyu.admin.service.TagService;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -73,6 +75,17 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    public int updateTagExt(final String tagId, final TagDO.TagExt tagExt) {
+        Assert.notNull(tagId, "tagId is not null");
+        Assert.notNull(tagExt, "tagDO is not null");
+        TagDO tagDO = new TagDO();
+        tagDO.setId(tagId);
+        tagDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+        tagDO.setExt(JsonUtils.toJson(tagDO));
+        return tagMapper.updateByPrimaryKeySelective(tagDO);
+    }
+
+    @Override
     public int delete(final List<String> ids) {
         return tagMapper.deleteByIds(ids);
     }
@@ -85,8 +98,14 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public List<TagVO> findByQuery(final String tagName) {
+        return this.findByQuery(tagName, null);
+    }
+
+    @Override
+    public List<TagVO> findByQuery(final String tagName, final String parentTagId) {
         TagQuery tagQuery = new TagQuery();
         tagQuery.setName(tagName);
+        tagQuery.setParentTagId(parentTagId);
         List<TagDO> tagDOS = Optional.ofNullable(tagMapper.selectByQuery(tagQuery)).orElse(Lists.newArrayList());
         return tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
     }
@@ -114,6 +133,7 @@ public class TagServiceImpl implements TagService {
 
     /**
      * update sub tags.
+     *
      * @param tagDTO tagDTO
      */
     private void updateSubTags(final TagDTO tagDTO) {
@@ -137,9 +157,10 @@ public class TagServiceImpl implements TagService {
 
     /**
      * recurseUpdateTag.
-     * @param allData allData
+     *
+     * @param allData     allData
      * @param relationMap relationMap
-     * @param id id
+     * @param id          id
      */
     private void recurseUpdateTag(final Map<String, TagDO> allData, final Map<String, List<String>> relationMap, final String id) {
         if (CollectionUtils.isEmpty(relationMap.get(id))) {
@@ -156,6 +177,7 @@ public class TagServiceImpl implements TagService {
 
     /**
      * buildExtParam.
+     *
      * @param parentTagDO parentTagDO
      * @return ext
      */
@@ -167,6 +189,8 @@ public class TagServiceImpl implements TagService {
             tagExt.setDesc(parentTagDO.getTagDesc());
             tagExt.setName(parentTagDO.getName());
             tagExt.setId(parentTagDO.getId());
+            tagExt.setRefreshTime(parent.getRefreshTime());
+            tagExt.setRefreshTime(parent.getRefreshTime());
             parent.setParent(tagExt);
             ext = GsonUtils.getInstance().toJson(parent);
         } else {

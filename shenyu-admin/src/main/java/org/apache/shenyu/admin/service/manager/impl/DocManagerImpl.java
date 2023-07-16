@@ -93,20 +93,20 @@ public class DocManagerImpl implements DocManager {
      * @param callback    callback
      */
     @Override
-    public void addDocInfo(final String clusterName, final String docInfoJson, final Consumer<DocInfo> callback) {
+    public void addDocInfo(final String clusterName, final String docInfoJson, final String oldMd5, final Consumer<DocInfo> callback) {
         if (StringUtils.isEmpty(docInfoJson)) {
             return;
         }
         String newMd5 = DigestUtils.md5DigestAsHex(docInfoJson.getBytes(StandardCharsets.UTF_8));
-        String oldMd5 = CLUSTER_MD5_MAP.get(clusterName);
         if (Objects.equals(newMd5, oldMd5)) {
             return;
         }
-//        CLUSTER_MD5_MAP.put(clusterName, newMd5);
         DocInfo docInfo = getDocInfo(clusterName, docInfoJson);
         if (Objects.isNull(docInfo) || CollectionUtils.isEmpty(docInfo.getDocModuleList())) {
             return;
         }
+        docInfo.setDocMd5(newMd5);
+
         List<DocModule> docModules = docInfo.getDocModuleList();
         DOC_DEFINITION_MAP.put(docInfo.getTitle(), docInfo);
         docModules.forEach(docModule -> docModule.getDocItems().forEach(docItem -> {

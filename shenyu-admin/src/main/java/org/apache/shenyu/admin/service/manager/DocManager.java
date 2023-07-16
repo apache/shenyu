@@ -31,10 +31,11 @@ public interface DocManager {
      * addDocInfo.
      *
      * @param serviceId serviceId
-     * @param docJson docJson
-     * @param callback callback
+     * @param docJson   docJson
+     * @param oldMd5    oldMd5
+     * @param callback  callback
      */
-    void addDocInfo(String serviceId, String docJson, Consumer<DocInfo> callback);
+    void addDocInfo(String serviceId, String docJson, String oldMd5, Consumer<DocInfo> callback);
 
     /**
      * getDocItem.
