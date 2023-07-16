@@ -40,7 +40,7 @@ public class UriApiRegistrarImplImpl extends BaseApiRegistrarImpl {
     }
     
     @Override
-    protected void doRegisterApi(ApiBean.ApiDefinition api) {
+    protected void doRegisterApi(final ApiBean.ApiDefinition api) {
         final URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
                 .contextPath(clientRegisterConfig.getContextPath())
                 .appName(clientRegisterConfig.getAppName())

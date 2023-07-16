@@ -18,7 +18,7 @@
 package org.apache.shenyu.register.common.path;
 
 /**
- * zookeeper register center.
+ *  register center path constants.
  */
 public class RegisterPathConstants {
 
@@ -35,9 +35,19 @@ public class RegisterPathConstants {
     public static final String REGISTER_METADATA_INSTANCE_PATH = "/shenyu/register/metadata/*/*/*";
 
     /**
-     * root path of zookeeper register center.
+     * root path of  register center.
      */
     public static final String ROOT_PATH = "/shenyu/register";
+
+    /**
+     * root path of uri register.
+     */
+    public static final String REGISTER_URI_INSTANCE_ROOT_PATH = ROOT_PATH + "/uri";
+
+    /**
+     * root path of metadata register.
+     */
+    public static final String REGISTER_METADATA_INSTANCE_ROOT_PATH = ROOT_PATH + "/metadata";
 
     /**
      * constants of separator.
@@ -56,7 +66,7 @@ public class RegisterPathConstants {
      * @return path string
      */
     public static String buildMetaDataContextPathParent(final String rpcType) {
-        return String.join(SEPARATOR, ROOT_PATH, "metadata", rpcType);
+        return String.join(SEPARATOR, REGISTER_METADATA_INSTANCE_ROOT_PATH, rpcType);
     }
     
     /**
@@ -67,7 +77,7 @@ public class RegisterPathConstants {
      * @return path string
      */
     public static String buildMetaDataParentPath(final String rpcType, final String contextPath) {
-        return String.join(SEPARATOR, ROOT_PATH, "metadata", rpcType, contextPath);
+        return String.join(SEPARATOR, REGISTER_METADATA_INSTANCE_ROOT_PATH, rpcType, contextPath);
     }
     
     /**
@@ -78,7 +88,7 @@ public class RegisterPathConstants {
      * @return the string
      */
     public static String buildURIContextPathParent(final String rpcType) {
-        return String.join(SEPARATOR, ROOT_PATH, "uri", rpcType);
+        return String.join(SEPARATOR, REGISTER_URI_INSTANCE_ROOT_PATH, rpcType);
     }
     
     /**
@@ -90,7 +100,7 @@ public class RegisterPathConstants {
      * @return the string
      */
     public static String buildURIParentPath(final String rpcType, final String contextPath) {
-        return String.join(SEPARATOR, ROOT_PATH, "uri", rpcType, contextPath);
+        return String.join(SEPARATOR, REGISTER_URI_INSTANCE_ROOT_PATH, rpcType, contextPath);
     }
     
     /**
@@ -166,28 +176,4 @@ public class RegisterPathConstants {
         return String.join(DOT_SEPARATOR, serviceName, methodName);
     }
 
-    /**
-     * Build apollo config uri parent path string.
-     * build child path of "shenyu.register.uri.{rpcType}.{contextPath}".
-     *
-     * @param rpcType the rpc type
-     * @param contextPath the context path
-     * @return the string
-     */
-    public static String buildURIParentKey(final String rpcType, final String contextPath) {
-        return String.join(DOT_SEPARATOR, "shenyu.register", "uri", rpcType, contextPath);
-    }
-
-
-    /**
-     * Build apollo config metadata parent path string.
-     * build child path of "shenyu.register.metadata.{rpcType}.{contextPath}".
-     *
-     * @param rpcType the rpc type
-     * @param contextPath the context path
-     * @return the string
-     */
-    public static String buildMetadataParentKey(final String rpcType, final String contextPath) {
-        return String.join(DOT_SEPARATOR, "shenyu.register", "metadata", rpcType, contextPath);
-    }
 }

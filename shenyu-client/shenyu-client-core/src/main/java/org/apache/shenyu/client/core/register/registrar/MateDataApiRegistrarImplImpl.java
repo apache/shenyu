@@ -83,7 +83,7 @@ public class MateDataApiRegistrarImplImpl extends BaseApiRegistrarImpl {
         register(metaDataRegisterDTO);
     }
     
-    private String buildParameterTypes(final ApiBean.ApiDefinition api) {
+    private String buildParameterTypes(final ApiBean api) {
         final String parameterTypes = api.getPropertiesValue("parameterTypes");
         if (StringUtils.isNotBlank(parameterTypes)) {
             return parameterTypes;
@@ -91,39 +91,7 @@ public class MateDataApiRegistrarImplImpl extends BaseApiRegistrarImpl {
         return null;
     }
     
-    private String buildRule(@NotNull final ApiBean.ApiDefinition api) {
-        final String rule = api.getPropertiesValue("rule");
-        if (StringUtils.isNotBlank(rule)) {
-            return rule;
-        }
-        return StringUtils.defaultIfBlank("", buildPath(api));
-    }
-    
-    private boolean getEnable(final ApiBean.ApiDefinition api) {
-        final String enable = api.getPropertiesValue("enable");
-        if (StringUtils.isNotBlank(enable)) {
-            return Boolean.parseBoolean(enable);
-        }
-        return true;
-    }
-    
-    private String buildDesc(final ApiBean.ApiDefinition api) {
-        final String desc = api.getPropertiesValue("desc");
-        if (StringUtils.isNotBlank(desc)) {
-            return desc;
-        }
-        return api.getApiBean().getClientName()
-                + ":"
-                + api.getApiBean().getBeanClass().getName()
-                + "#"
-                + api.getApiMethod().getName();
-    }
-    
-    private String buildPath(final ApiBean.ApiDefinition api) {
-        return PathUtils.pathJoin(clientRegisterConfig.getContextPath(), api.getApiBean().getBeanPath(), api.getMethodPath());
-    }
-    
-    private String buildParameterTypes(final ApiBean api) {
+    private String buildParameterTypes(final ApiBean.ApiDefinition api) {
         final String parameterTypes = api.getPropertiesValue("parameterTypes");
         if (StringUtils.isNotBlank(parameterTypes)) {
             return parameterTypes;
@@ -139,7 +107,23 @@ public class MateDataApiRegistrarImplImpl extends BaseApiRegistrarImpl {
         return StringUtils.defaultIfBlank("", buildPath(api));
     }
     
+    private String buildRule(@NotNull final ApiBean.ApiDefinition api) {
+        final String rule = api.getPropertiesValue("rule");
+        if (StringUtils.isNotBlank(rule)) {
+            return rule;
+        }
+        return StringUtils.defaultIfBlank("", buildPath(api));
+    }
+    
     private boolean getEnable(final ApiBean api) {
+        final String enable = api.getPropertiesValue("enable");
+        if (StringUtils.isNotBlank(enable)) {
+            return Boolean.parseBoolean(enable);
+        }
+        return true;
+    }
+    
+    private boolean getEnable(final ApiBean.ApiDefinition api) {
         final String enable = api.getPropertiesValue("enable");
         if (StringUtils.isNotBlank(enable)) {
             return Boolean.parseBoolean(enable);
@@ -158,8 +142,24 @@ public class MateDataApiRegistrarImplImpl extends BaseApiRegistrarImpl {
                 + "#*";
     }
     
+    private String buildDesc(final ApiBean.ApiDefinition api) {
+        final String desc = api.getPropertiesValue("desc");
+        if (StringUtils.isNotBlank(desc)) {
+            return desc;
+        }
+        return api.getApiBean().getClientName()
+                + ":"
+                + api.getApiBean().getBeanClass().getName()
+                + "#"
+                + api.getApiMethod().getName();
+    }
+    
     private String buildPath(final ApiBean api) {
         return PathUtils.pathJoin(clientRegisterConfig.getContextPath(), api.getBeanPath());
+    }
+    
+    private String buildPath(final ApiBean.ApiDefinition api) {
+        return PathUtils.pathJoin(clientRegisterConfig.getContextPath(), api.getApiBean().getBeanPath(), api.getMethodPath());
     }
     
     private void register(final MetaDataRegisterDTO metaDataRegisterDTO) {
