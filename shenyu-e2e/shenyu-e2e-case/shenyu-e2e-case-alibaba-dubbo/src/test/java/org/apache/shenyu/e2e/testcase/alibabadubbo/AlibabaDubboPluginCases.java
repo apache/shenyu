@@ -29,7 +29,7 @@ import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuCaseSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
 import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.data.Condition;
-import org.apache.shenyu.e2e.model.handle.AlibabaDubboRuleHandle;
+import org.apache.shenyu.e2e.model.handle.DubboRuleHandle;
 import org.apache.shenyu.e2e.model.handle.DubboHandler;
 import org.junit.jupiter.api.Assertions;
 
@@ -79,7 +79,7 @@ public class AlibabaDubboPluginCases implements ShenYuScenarioProvider {
                                                         .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/dubbo/findAll"))
                                                         .build(),
                                                 newRuleBuilder("rule")
-                                                        .handle(AlibabaDubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
+                                                        .handle(DubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
                                                         .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/dubbo/findAll"))
                                                         .build()
                                         )
@@ -116,7 +116,7 @@ public class AlibabaDubboPluginCases implements ShenYuScenarioProvider {
                                                         .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.PATH_PATTERN, "/dubbo/demo/**"))
                                                         .build(),
                                                 newRuleBuilder("rule")
-                                                        .handle(AlibabaDubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
+                                                        .handle(DubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
                                                         .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.PATH_PATTERN, "/dubbo/demo/**"))
                                                         .build()
                                         )
@@ -154,7 +154,7 @@ public class AlibabaDubboPluginCases implements ShenYuScenarioProvider {
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/dubbo/"))
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .handle(AlibabaDubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
+                                                .handle(DubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/dubbo/"))
                                                 .build()
                                 )
@@ -192,7 +192,7 @@ public class AlibabaDubboPluginCases implements ShenYuScenarioProvider {
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/findAll"))
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .handle(AlibabaDubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
+                                                .handle(DubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/findAll"))
                                                 .build()
                                 )
@@ -233,7 +233,7 @@ public class AlibabaDubboPluginCases implements ShenYuScenarioProvider {
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .handle(AlibabaDubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
+                                                .handle(DubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "GET"),
                                                         newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/dubbo/findAll")
@@ -277,7 +277,7 @@ public class AlibabaDubboPluginCases implements ShenYuScenarioProvider {
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .handle(AlibabaDubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
+                                                .handle(DubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "POST"),
                                                         newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/dubbo/findAll")
@@ -321,7 +321,7 @@ public class AlibabaDubboPluginCases implements ShenYuScenarioProvider {
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .handle(AlibabaDubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
+                                                .handle(DubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "PUT"),
                                                         newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/dubbo/findAll")
@@ -365,7 +365,7 @@ public class AlibabaDubboPluginCases implements ShenYuScenarioProvider {
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .handle(AlibabaDubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
+                                                .handle(DubboRuleHandle.builder().loadBalance("random").timeout(3000).retries(0).build())
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "DELETE"),
                                                         newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/dubbo/findAll")

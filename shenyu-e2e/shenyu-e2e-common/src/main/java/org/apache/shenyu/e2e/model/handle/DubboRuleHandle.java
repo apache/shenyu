@@ -20,7 +20,7 @@ package org.apache.shenyu.e2e.model.handle;
 /**
  * Alibaba Dubbo rule handle.
  */
-public class AlibabaDubboRuleHandle implements RuleHandle {
+public class DubboRuleHandle implements RuleHandle {
 
     private String loadBalance;
 
@@ -31,10 +31,10 @@ public class AlibabaDubboRuleHandle implements RuleHandle {
     /**
      * no args constructor.
      */
-    public AlibabaDubboRuleHandle() {
+    public DubboRuleHandle() {
     }
 
-    public AlibabaDubboRuleHandle(final Builder builder) {
+    public DubboRuleHandle(final Builder builder) {
         this.loadBalance = builder.loadBalance;
         this.retries = builder.retries;
         this.timeout = builder.timeout;
@@ -123,8 +123,8 @@ public class AlibabaDubboRuleHandle implements RuleHandle {
          * build.
          * @return SpringCloudRuleHandle
          */
-        public AlibabaDubboRuleHandle build() {
-            return new AlibabaDubboRuleHandle(this);
+        public DubboRuleHandle build() {
+            return new DubboRuleHandle(this);
         }
 
         /**
