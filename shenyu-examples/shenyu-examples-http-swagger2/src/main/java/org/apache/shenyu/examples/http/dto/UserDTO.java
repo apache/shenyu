@@ -35,10 +35,10 @@ public class UserDTO {
     @ApiModelProperty(value = "main order", example = "")
     private OrderDTO mainOrder;
 
-    @ApiModelProperty(value = "order list", required = true, dataType = "List", example = "[]")
+    @ApiModelProperty(value = "order list", required = true, dataType = "List", example = "")
     private List<OrderDTO> orderDetailList;
 
-    @ApiModelProperty(value = "order map", example = "{}")
+    @ApiModelProperty(value = "order map", example = "")
     private Map<String, OrderDTO> orderDetailMap;
 
     /**
