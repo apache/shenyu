@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * The type Http helper.
  */
-public class HttpHelper {
+public final class HttpHelper {
 
     /**
      * The constant INSTANCE.
@@ -45,14 +45,14 @@ public class HttpHelper {
     public static final HttpHelper INSTANCE = new HttpHelper();
 
     /**
-     * The constant GATEWAY_END_POINT.
-     */
-    public static final String GATEWAY_END_POINT = "http://localhost:9195";
-
-    /**
      * The constant JSON.
      */
     public static final MediaType JSON = MediaType.parse("application/json");
+
+    /**
+     * The constant GATEWAY_END_POINT.
+     */
+    private static final String DEFAULT_GATEWAY_END_POINT = "http://localhost:9195";
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpHelper.class);
 
@@ -65,6 +65,30 @@ public class HttpHelper {
             .build();
 
     private final String localKey = "123456";
+
+    private String gatewayEndpoint;
+
+    private HttpHelper() {
+        gatewayEndpoint = DEFAULT_GATEWAY_END_POINT;
+    }
+
+    /**
+     * Set gatewayEndpoint.
+     *
+     * @param gatewayEndpoint gatewayEndpoint
+     */
+    public void setGatewayEndpoint(final String gatewayEndpoint) {
+        this.gatewayEndpoint = gatewayEndpoint;
+    }
+
+    /**
+     * Get gatewayEndpoint.
+     *
+     * @return gatewayEndpoint
+     */
+    public String getGatewayEndpoint() {
+        return gatewayEndpoint;
+    }
 
     /**
      * Send a post http request to shenyu gateway.
@@ -165,7 +189,7 @@ public class HttpHelper {
      * @throws IOException IO exception
      */
     public <S> S postGateway(final String path, final RequestBody requestBody, final Class<S> respType) throws IOException {
-        Request.Builder requestBuilder = new Request.Builder().post(requestBody).url(GATEWAY_END_POINT + path).addHeader(Constants.LOCAL_KEY, localKey);
+        Request.Builder requestBuilder = new Request.Builder().post(requestBody).url(gatewayEndpoint + path).addHeader(Constants.LOCAL_KEY, localKey);
         Response response = client.newCall(requestBuilder.build()).execute();
         String respBody = Objects.requireNonNull(response.body()).string();
         try {
@@ -176,7 +200,7 @@ public class HttpHelper {
     }
 
     private <Q> String post(final String path, final Map<String, Object> headers, final Q req) throws IOException {
-        Request.Builder requestBuilder = new Request.Builder().post(RequestBody.create(GSON.toJson(req), JSON)).url(GATEWAY_END_POINT + path).addHeader(Constants.LOCAL_KEY, localKey);
+        Request.Builder requestBuilder = new Request.Builder().post(RequestBody.create(GSON.toJson(req), JSON)).url(gatewayEndpoint + path).addHeader(Constants.LOCAL_KEY, localKey);
         if (!CollectionUtils.isEmpty(headers)) {
             headers.forEach((key, value) -> requestBuilder.addHeader(key, String.valueOf(value)));
         }
@@ -196,7 +220,7 @@ public class HttpHelper {
      * @throws IOException IO exception
      */
     public <S, Q> S putGateway(final String path, final Q req, final Class<S> respType) throws IOException {
-        Request request = new Request.Builder().put(RequestBody.create(GSON.toJson(req), JSON)).url(GATEWAY_END_POINT + path).addHeader(Constants.LOCAL_KEY, localKey).build();
+        Request request = new Request.Builder().put(RequestBody.create(GSON.toJson(req), JSON)).url(gatewayEndpoint + path).addHeader(Constants.LOCAL_KEY, localKey).build();
         Response response = client.newCall(request).execute();
         String respBody = Objects.requireNonNull(response.body()).string();
         LOG.info("postGateway({}) resp({})", path, respBody);
@@ -231,7 +255,7 @@ public class HttpHelper {
      * @throws IOException IO exception
      */
     public <S> S getFromGateway(final String path, final Map<String, Object> headers, final Type type) throws IOException {
-        Response response = getHttpService(GATEWAY_END_POINT + path, headers);
+        Response response = getHttpService(gatewayEndpoint + path, headers);
         String respBody = Objects.requireNonNull(response.body()).string();
         LOG.info("getFromGateway({}) resp({})", path, respBody);
         try {
@@ -250,7 +274,7 @@ public class HttpHelper {
      * @throws IOException IO exception
      */
     public Response getResponseFromGateway(final String path, final Map<String, Object> headers) throws IOException {
-        return getHttpService(GATEWAY_END_POINT + path, headers);
+        return getHttpService(gatewayEndpoint + path, headers);
     }
 
     /**

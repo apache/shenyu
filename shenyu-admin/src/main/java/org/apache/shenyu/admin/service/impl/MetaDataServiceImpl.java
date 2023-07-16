@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import java.util.LinkedList;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
@@ -40,6 +41,7 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -169,7 +171,8 @@ public class MetaDataServiceImpl implements MetaDataService {
     
     @Override
     public MetaDataDO findByServiceNameAndMethodName(final String serviceName, final String methodName) {
-        return metaDataMapper.findByServiceNameAndMethod(serviceName, methodName);
+        final List<MetaDataDO> metadataList = metaDataMapper.findByServiceNameAndMethod(serviceName, methodName);
+        return CollectionUtils.isEmpty(metadataList) ? null : metadataList.get(0);
     }
     
     @Override
@@ -200,10 +203,21 @@ public class MetaDataServiceImpl implements MetaDataService {
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
         Optional.ofNullable(metaDataMapper.selectById(metaDataDTO.getId()))
                 .ifPresent(e -> metaDataDTO.setEnabled(e.getEnabled()));
-        metaDataDO.setPathDesc(Objects.isNull(metaDataDO.getPathDesc()) ? "" : metaDataDO.getPathDesc());
+        metaDataDO.setPathDesc(Optional.ofNullable(metaDataDO.getPathDesc()).orElse(""));
         final MetaDataDO before = metaDataMapper.selectById(metaDataDO.getId());
         if (metaDataMapper.update(metaDataDO) > 0) {
             publisher.onUpdated(metaDataDO, before);
+            // update other rpc_ext for the same service
+            final List<MetaDataDO> befores = Optional.ofNullable(metaDataMapper.findByServiceNameAndMethod(
+                    metaDataDO.getServiceName(), null)).orElseGet(LinkedList::new);
+            for (MetaDataDO b : befores) {
+                MetaDataDO update = new MetaDataDO();
+                BeanUtils.copyProperties(b, update);
+                update.setRpcExt(metaDataDTO.getRpcExt());
+                if (metaDataMapper.update(update) > 0) {
+                    publisher.onUpdated(update, b);
+                }
+            }
         }
         
         // publish AppAuthData's update event
