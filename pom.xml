@@ -47,7 +47,6 @@
         <module>shenyu-discovery</module>
         <module>shenyu-registry</module>
         <module>shenyu-kubernetes-controller</module>
-        <module>shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-alibaba-dubbo</module>
     </modules>
 
     <licenses>
