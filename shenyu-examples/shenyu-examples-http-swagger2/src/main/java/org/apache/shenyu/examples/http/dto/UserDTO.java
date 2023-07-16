@@ -18,7 +18,8 @@
 package org.apache.shenyu.examples.http.dto;
 
 import io.swagger.annotations.ApiModelProperty;
-import java.util.StringJoiner;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The type User dto.
@@ -30,6 +31,15 @@ public class UserDTO {
 
     @ApiModelProperty(value = "user name", example = "shenyu")
     private String userName;
+
+    @ApiModelProperty(value = "main order", example = "")
+    private OrderDTO mainOrder;
+
+    @ApiModelProperty(value = "order list", required = true, dataType = "List", example = "[]")
+    private List<OrderDTO> orderDetailList;
+
+    @ApiModelProperty(value = "order map", example = "{}")
+    private Map<String, OrderDTO> orderDetailMap;
 
     /**
      * Get userId.
@@ -67,12 +77,75 @@ public class UserDTO {
         this.userName = userName;
     }
 
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", UserDTO.class.getSimpleName() + "[", "]")
-            .add("userId='" + userId + "'")
-            .add("userName='" + userName + "'")
-            .toString();
+    /**
+     * getMainOrder.
+     *
+     * @return OrderDTO
+     */
+    public OrderDTO getMainOrder() {
+        return mainOrder;
     }
 
+    /**
+     * setMainOrder.
+     *
+     * @param mainOrder mainOrder
+     */
+    public void setMainOrder(final OrderDTO mainOrder) {
+        this.mainOrder = mainOrder;
+    }
+
+    /**
+     * getOrderDetailList.
+     *
+     * @return List
+     */
+    public List<OrderDTO> getOrderDetailList() {
+        return orderDetailList;
+    }
+
+    /**
+     * setOrderDetailList.
+     *
+     * @param orderDetailList orderDetailList
+     */
+    public void setOrderDetailList(final List<OrderDTO> orderDetailList) {
+        this.orderDetailList = orderDetailList;
+    }
+
+    /**
+     * getOrderDetailMap.
+     *
+     * @return Map
+     */
+    public Map<String, OrderDTO> getOrderDetailMap() {
+        return orderDetailMap;
+    }
+
+    /**
+     * setOrderDetailMap.
+     *
+     * @param orderDetailMap orderDetailMap
+     */
+    public void setOrderDetailMap(final Map<String, OrderDTO> orderDetailMap) {
+        this.orderDetailMap = orderDetailMap;
+    }
+
+    @Override
+    public String toString() {
+        return "UserDTO{"
+            + "userId='"
+            + userId
+            + '\''
+            + ", userName='"
+            + userName
+            + '\''
+            + ", mainOrder="
+            + mainOrder
+            + ", orderDetailList="
+            + orderDetailList
+            + ", orderDetailMap="
+            + orderDetailMap
+            + '}';
+    }
 }

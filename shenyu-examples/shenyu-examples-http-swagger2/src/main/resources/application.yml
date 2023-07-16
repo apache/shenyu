@@ -22,7 +22,7 @@ server:
 shenyu:
   register:
     registerType: http #zookeeper #etcd #nacos #consul
-    serverLists: http://139.199.37.58:9096 #localhost:2181 #http://localhost:2379 #localhost:8848
+    serverLists: http://127.0.0.1:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
       username: admin
       password: 123456
