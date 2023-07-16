@@ -24,7 +24,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * ShenyuTestHttpApplication.
  */
 @SpringBootApplication
-public class ShenyuTestHttpApplication {
+public class ShenyuTestSwaggerApplication {
 
     /**
      * main.
@@ -32,6 +32,6 @@ public class ShenyuTestHttpApplication {
      * @param args args
      */
     public static void main(final String[] args) {
-        SpringApplication.run(ShenyuTestHttpApplication.class, args);
+        SpringApplication.run(ShenyuTestSwaggerApplication.class, args);
     }
 }
