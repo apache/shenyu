@@ -256,16 +256,18 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
                 .sort(1)
                 .handle(ruleHandler)
                 .build();
+
+        String conditionPath = this.rewritePath(path);
         RuleConditionDTO ruleConditionDTO = RuleConditionDTO.builder()
                 .paramType(ParamTypeEnum.URI.getName())
                 .paramName("/")
-                .paramValue(this.rewritePath(path))
+                .paramValue(conditionPath)
                 .build();
-        if (path.endsWith(AdminConstants.URI_SLASH_SUFFIX)) {
+        if (conditionPath.endsWith(AdminConstants.URI_SLASH_SUFFIX)) {
             ruleConditionDTO.setOperator(OperatorEnum.STARTS_WITH.getAlias());
-        } else if (path.endsWith(AdminConstants.URI_SUFFIX)) {
+        } else if (conditionPath.endsWith(AdminConstants.URI_SUFFIX)) {
             ruleConditionDTO.setOperator(OperatorEnum.PATH_PATTERN.getAlias());
-        } else if (path.indexOf("*") > 1) {
+        } else if (conditionPath.indexOf("*") > 1) {
             ruleConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
         } else {
             ruleConditionDTO.setOperator(OperatorEnum.EQ.getAlias());
@@ -277,6 +279,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     /**
      * adjustment such as '/aa/${xxx}/cc' replace to `/aa/`**`/cc` for client simpler annotation.
      * link: https://github.com/apache/shenyu/pull/3819
+     *
      * @param path the path
      * @return the replaced path
      */
