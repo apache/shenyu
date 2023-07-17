@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.discovery;
 
 public enum DiscoveryLevel {
 
-    GLOBAL("0"), PLUGIN("1"), SELECTOR("2");
+    GLOBAL("2"), PLUGIN("1"), SELECTOR("0");
 
     private final String code;
 
