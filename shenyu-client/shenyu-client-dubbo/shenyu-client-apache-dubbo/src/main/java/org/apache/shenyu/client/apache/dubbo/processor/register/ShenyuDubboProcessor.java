@@ -15,35 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.matcher;
+package org.apache.shenyu.client.apache.dubbo.processor.register;
 
-import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.core.register.matcher.ApiProcessor;
+import org.apache.shenyu.client.core.register.matcher.BaseAnnotationApiProcessor;
+import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 
 /**
- * ApiDocProcessorImpl.<br>
- * About support for {@link ApiDoc} annotations
- *
- * @see ApiDoc
+ * ShenyuDubboProcessor.
  */
-public class ApiDocProcessorImpl extends BaseAnnotationApiProcessor<ApiDoc> {
+public class ShenyuDubboProcessor extends BaseAnnotationApiProcessor<ShenyuDubboClient> implements ApiProcessor {
     
     @Override
-    public void process(final ApiBean apiBean, final ApiDoc annotation) {
-        apiBean.addProperties("desc", annotation.desc());
-        apiBean.addProperties("tags", String.join(",", annotation.tags()));
-        apiBean.setStatus(ApiBean.Status.REGISTRABLE_API);
+    public void process(final ApiBean apiBean, final ShenyuDubboClient annotation) {
+        apiBean.setBeanPath(annotation.path().replace("*", ""));
+        
     }
     
     @Override
-    public void process(final ApiBean.ApiDefinition definition, final ApiDoc annotation) {
-        definition.addProperties("desc", annotation.desc());
-        definition.addProperties("tags", String.join(",", annotation.tags()));
-        definition.setStatus(ApiBean.Status.REGISTRABLE);
+    public void process(final ApiBean.ApiDefinition definition, final ShenyuDubboClient annotation) {
+        definition.setMethodPath(annotation.path());
+        
     }
     
     @Override
-    public Class<ApiDoc> matchAnnotation() {
-        return ApiDoc.class;
+    public Class<ShenyuDubboClient> matchAnnotation() {
+        return ShenyuDubboClient.class;
     }
 }
