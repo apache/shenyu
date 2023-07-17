@@ -51,7 +51,6 @@ public class DefaultConnectionConfigProvider implements ClientConnectionConfigPr
     @Override
     public URI getProxiedService(final String ip) {
         List<Upstream> upstreamList = UpstreamProvider.getSingleton().provide(this.pluginSelectorName).stream().map(dp -> {
-            // false close, true open.
             return Upstream.builder().url(dp.getUrl()).status(open(dp.getStatus())).weight(dp.getWeight()).protocol(dp.getProtocol()).build();
         }).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(upstreamList)) {
@@ -70,6 +69,11 @@ public class DefaultConnectionConfigProvider implements ClientConnectionConfigPr
         }
     }
 
+    /**
+     * false close, true open.
+     * @param status status  (0, healthy, 1 unhealthy)
+     * @return openStatus false close, true open.
+     */
     private boolean open(int status) {
         return Objects.equals(status, 0);
     }
