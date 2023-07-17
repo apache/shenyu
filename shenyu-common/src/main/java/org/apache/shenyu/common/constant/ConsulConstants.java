@@ -68,4 +68,10 @@ public final class ConsulConstants {
      * default value of config version index.
      */
     public static final Long INIT_CONFIG_VERSION_INDEX = -1L;
+
+    /**
+     * consul metadata key prefix.
+     */
+    public static final String CONSUL_METADATA_KEY_PREFIX = "shenyu/register/metadata";
+
 }

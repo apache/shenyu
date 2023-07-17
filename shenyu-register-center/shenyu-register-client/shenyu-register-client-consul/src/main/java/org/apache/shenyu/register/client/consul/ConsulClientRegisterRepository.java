@@ -18,12 +18,15 @@
 package org.apache.shenyu.register.client.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
+import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.agent.model.NewService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 
 import com.ecwid.consul.v1.kv.model.GetValue;
@@ -33,6 +36,7 @@ import org.apache.shenyu.common.constant.Constants;
 import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
 import static org.apache.shenyu.common.constant.DefaultPathConstants.SELECTOR_JOIN_RULE;
 
+import org.apache.shenyu.common.constant.ConsulConstants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ContextPathUtils;
@@ -147,6 +151,21 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
     public void persistURI(final URIRegisterDTO registerDTO) {
         registerURI(registerDTO);
         LogUtils.info(LOGGER, "{} Consul client register success: {}", registerDTO.getRpcType(), registerDTO);
+    }
+
+    /**
+     * client offline.
+     * @param offlineDTO the offline dto
+     */
+    @Override
+    public void offline(final URIRegisterDTO offlineDTO) {
+        try {
+            String deletePrefix = String.join(PATH_SEPARATOR, ConsulConstants.CONSUL_METADATA_KEY_PREFIX, offlineDTO.getAppName());
+            Response<List<String>> kvKeysOnly = consulClient.getKVKeysOnly(deletePrefix);
+            Optional.ofNullable(kvKeysOnly).ifPresent(data -> data.getValue().forEach(item -> consulClient.deleteKVValue(item)));
+        } catch (Exception e) {
+            LOGGER.error("offline consul client :{} is fail. cause:{}", offlineDTO, e.getMessage());
+        }
     }
 
     @Override
