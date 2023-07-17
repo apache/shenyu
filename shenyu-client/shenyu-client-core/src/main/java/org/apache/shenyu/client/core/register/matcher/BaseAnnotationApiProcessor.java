@@ -26,7 +26,7 @@ import java.util.Objects;
  * BaseAnnotationApiProcessor.<br>
  * API processor that supports annotations.
  */
-public abstract class BaseAnnotationApiProcessor<T extends Annotation> implements ApiProcessor {
+public abstract class BaseAnnotationApiProcessor<T extends Annotation> implements ApiAnnotationProcessor<T>, ApiProcessor {
     
     @Override
     public void process(final ApiBean apiBean) {
@@ -41,29 +41,6 @@ public abstract class BaseAnnotationApiProcessor<T extends Annotation> implement
             }
         }
     }
-    
-    /**
-     * process API Bean.
-     *
-     * @param apiBean    apiBean
-     * @param annotation annotation
-     */
-    protected abstract void process(ApiBean apiBean, T annotation);
-    
-    /**
-     * process API.
-     *
-     * @param definition definition
-     * @param annotation annotation
-     */
-    protected abstract void process(ApiBean.ApiDefinition definition, T annotation);
-    
-    /**
-     * support annotation.
-     *
-     * @return annotation
-     */
-    protected abstract Class<T> matchAnnotation();
     
     @Override
     public boolean match(final ApiBean element) {
