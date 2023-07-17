@@ -72,5 +72,6 @@
         <module>shenyu-spring-boot-starter-plugin-brpc</module>
         <module>shenyu-spring-boot-starter-plugin-tcp</module>
         <module>shenyu-spring-boot-starter-plugin-transform</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-huawei-lts</module>
     </modules>
 </project>

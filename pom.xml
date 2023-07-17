@@ -176,9 +176,10 @@
         <lettuce.version>6.1.2.RELEASE</lettuce.version>
         <protobuf-java.version>3.19.6</protobuf-java.version>
         <aliyun-log-producer.version>0.3.10</aliyun-log-producer.version>
-        <tencent-log-sdk.version>1.0.9</tencent-log-sdk.version>
+        <tencent-log-sdk.version>1.0.14</tencent-log-sdk.version>
         <jsonpath.version>2.4.0</jsonpath.version>
         <casdoor-java-sdk.version>1.9.0</casdoor-java-sdk.version>
+        <huawei-log-sdk.version>1.0.1</huawei-log-sdk.version>
     </properties>
 
     <dependencyManagement>
