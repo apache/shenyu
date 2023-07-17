@@ -54,6 +54,7 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
         String clusterName = properties.getProperty("clusterName", ConfigConsts.CLUSTER_NAME_DEFAULT);
         String namespace = properties.getProperty("namespace", ConfigConsts.NAMESPACE_APPLICATION);
         String portalUrl = properties.getProperty("portalUrl");
+        String operator = properties.getProperty("operator", "apollo");
 
         ApolloConfig apolloConfig = new ApolloConfig();
         apolloConfig.setAppId(appId);
@@ -62,6 +63,7 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
         apolloConfig.setEnv(env);
         apolloConfig.setClusterName(clusterName);
         apolloConfig.setNamespace(namespace);
+        apolloConfig.setOperator(operator);
 
         this.apolloClient = new ApolloClient(apolloConfig);
     }
@@ -80,6 +82,14 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
         LogUtils.info(LOGGER, "{} apollo client register uri success: {}", rpcType, registerDTO);
     }
 
+    @Override
+    public void offline(final URIRegisterDTO offlineDTO) {
+        String rpcType = offlineDTO.getRpcType();
+        String contextPath = ContextPathUtils.buildRealNode(offlineDTO.getContextPath(), offlineDTO.getAppName());
+        unRegister(rpcType, contextPath, offlineDTO);
+        LogUtils.info(LOGGER, "{} apollo client unRegister uri success: {}", rpcType, offlineDTO);
+    }
+
     private void registerURI(final String rpcType,
                              final String contextPath,
                              final URIRegisterDTO registerDTO) {
@@ -89,6 +99,17 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
         apolloClient.createOrUpdateItem(realNode, GsonUtils.getInstance().toJson(registerDTO), "register uri");
         apolloClient.publishNamespace("publish config", "");
         LOGGER.info("register uri data success: {}", realNode);
+    }
+
+    private void unRegister(final String rpcType,
+                            final String contextPath,
+                            final URIRegisterDTO offlineDTO) {
+        String uriNodeName = buildURINodeName(offlineDTO);
+        String uriPath = RegisterPathConstants.buildURIParentPath(rpcType, contextPath);
+        String realNode = RegisterPathConstants.buildRealNode(uriPath, uriNodeName);
+        apolloClient.createOrUpdateItem(realNode, GsonUtils.getInstance().toJson(offlineDTO), "offline uri");
+        apolloClient.publishNamespace("publish config", "");
+        LOGGER.info("unRegister uri data success: {}", realNode);
     }
 
     private String buildURINodeName(final URIRegisterDTO registerDTO) {
