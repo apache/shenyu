@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.register;
+package org.apache.shenyu.client.springmvc.proceeor.register;
 
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.BaseAnnotationApiProcessor;
@@ -32,7 +32,7 @@ import java.util.Objects;
 public class ShenyuSpringMvcClientProcessorImpl extends BaseAnnotationApiProcessor<ShenyuSpringMvcClient> {
     
     @Override
-    protected void process(final ApiBean apiBean, final ShenyuSpringMvcClient annotation) {
+    public void process(final ApiBean apiBean, final ShenyuSpringMvcClient annotation) {
         apiBean.setBeanPath(annotation.path());
         apiBean.addProperties("desc", annotation.desc());
         apiBean.addProperties("rule", annotation.ruleName());
@@ -47,7 +47,7 @@ public class ShenyuSpringMvcClientProcessorImpl extends BaseAnnotationApiProcess
     }
     
     @Override
-    protected void process(final ApiBean.ApiDefinition definition, final ShenyuSpringMvcClient annotation) {
+    public void process(final ApiBean.ApiDefinition definition, final ShenyuSpringMvcClient annotation) {
         definition.setMethodPath(annotation.path());
         definition.addProperties("desc", annotation.desc());
         definition.addProperties("rule", annotation.ruleName());
@@ -62,7 +62,7 @@ public class ShenyuSpringMvcClientProcessorImpl extends BaseAnnotationApiProcess
     }
     
     @Override
-    protected Class<ShenyuSpringMvcClient> matchAnnotation() {
+    public Class<ShenyuSpringMvcClient> matchAnnotation() {
         return ShenyuSpringMvcClient.class;
     }
 }
