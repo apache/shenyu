@@ -38,9 +38,8 @@
         </dependency>
 
         <dependency>
+            <artifactId>grpc-netty</artifactId>
             <groupId>io.grpc</groupId>
-            <artifactId>grpc-okhttp</artifactId>
         </dependency>
-
     </dependencies>
 </project>

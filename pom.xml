@@ -558,11 +558,10 @@
             </dependency>
 
             <dependency>
-                <groupId>io.grpc</groupId>
                 <artifactId>grpc-okhttp</artifactId>
+                <groupId>io.grpc</groupId>
                 <version>${grpc.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
