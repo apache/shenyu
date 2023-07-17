@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.springframework.web.util.pattern.PathPatternParser;
 
@@ -36,7 +37,7 @@ import java.util.List;
  * this is rule service.
  */
 public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
-    
+
     /**
      * Register string.
      *
@@ -44,7 +45,7 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return the string
      */
     String registerDefault(RuleDTO ruleDTO);
-    
+
     /**
      * create or update rule.
      *
@@ -52,19 +53,23 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return rows int
      */
     default int createOrUpdate(final RuleDTO ruleDTO) {
-        // check rule uri condition
+
+        // now, only check rule uri condition in pathPattern mode
+        // todo check uri in other modes
+
         try {
             final List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
             ruleConditions.stream()
                     .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                    .filter(conditionData -> OperatorEnum.PATH_PATTERN.getAlias().equals(conditionData.getOperator()))
                     .map(RuleConditionDTO::getParamValue)
                     .forEach(PathPatternParser.defaultInstance::parse);
         } catch (Exception e) {
-            throw new ShenyuAdminException("uri validation of Condition failed, please check.");
+            throw new ShenyuAdminException("uri validation of Condition failed, please check.", e);
         }
         return StringUtils.isBlank(ruleDTO.getId()) ? create(ruleDTO) : update(ruleDTO);
     }
-    
+
     /**
      * create rule.
      *
@@ -72,7 +77,7 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return rows int
      */
     int create(RuleDTO ruleDTO);
-    
+
     /**
      * update rule.
      *
@@ -80,7 +85,7 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return rows int
      */
     int update(RuleDTO ruleDTO);
-    
+
     /**
      * delete rules.
      *
@@ -88,7 +93,7 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return rows int
      */
     int delete(List<String> ids);
-    
+
     /**
      * find rule by id.
      *
@@ -96,7 +101,7 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return {@linkplain RuleVO}
      */
     RuleVO findById(String id);
-    
+
     /**
      * find page of rule by query.
      *
@@ -104,14 +109,14 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return {@linkplain CommonPager}
      */
     CommonPager<RuleVO> listByPage(RuleQuery ruleQuery);
-    
+
     /**
      * List all list.
      *
      * @return the list
      */
     List<RuleData> listAll();
-    
+
     /**
      * Find by selector id list.
      *
@@ -119,7 +124,7 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return the list
      */
     List<RuleData> findBySelectorId(String selectorId);
-    
+
     /**
      * Find by a list of selector ids.
      *
@@ -127,7 +132,7 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return the list of RuleDatas
      */
     List<RuleData> findBySelectorIdList(List<String> selectorIdList);
-    
+
     /**
      * Find rule by name.
      *

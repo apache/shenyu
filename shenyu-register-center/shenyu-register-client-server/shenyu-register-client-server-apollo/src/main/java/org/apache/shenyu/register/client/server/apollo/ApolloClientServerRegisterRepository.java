@@ -28,6 +28,7 @@ import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterRe
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
 
@@ -35,6 +36,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+
 
 /**
  * apollo register center.
@@ -84,18 +86,43 @@ public class ApolloClientServerRegisterRepository implements ShenyuClientServerR
         }
 
         // monitor metadata changes
+        subscribeMetadata();
+        // monitor uri changes
+        subscribeUri();
+    }
+
+    private void subscribeMetadata() {
         this.config.addChangeListener(changeEvent -> {
             for (String changedKey : changeEvent.changedKeys()) {
+                // apollo has a bug and may push events that are not monitored, so there is this judgment.
+                if (!changedKey.startsWith(RegisterPathConstants.REGISTER_METADATA_INSTANCE_ROOT_PATH)) {
+                    continue;
+                }
                 ConfigChange configChange = changeEvent.getChange(changedKey);
                 this.publishMetadata(configChange.getNewValue());
             }
         }, null, Collections.singleton(RegisterPathConstants.REGISTER_METADATA_INSTANCE_ROOT_PATH));
+    }
 
-        // monitor uri changes
+    private void subscribeUri() {
         this.config.addChangeListener(changeEvent -> {
             for (String changedKey : changeEvent.changedKeys()) {
+                // apollo has a bug and may push events that are not monitored, so there is this judgment.
+                if (!changedKey.startsWith(RegisterPathConstants.REGISTER_URI_INSTANCE_ROOT_PATH)) {
+                    continue;
+                }
                 ConfigChange configChange = changeEvent.getChange(changedKey);
-                this.publishRegisterURI(configChange.getNewValue());
+                switch (configChange.getChangeType()) {
+                    case ADDED:
+                    case MODIFIED:
+                        this.publishRegisterURI(configChange.getNewValue());
+                        break;
+                    case DELETED:
+                        this.publishUnRegisterURI(configChange.getOldValue());
+                        break;
+                    default:
+                        break;
+                }
             }
         }, null, Collections.singleton(RegisterPathConstants.REGISTER_URI_INSTANCE_ROOT_PATH));
     }
@@ -105,8 +132,13 @@ public class ApolloClientServerRegisterRepository implements ShenyuClientServerR
     }
 
     private void publishRegisterURI(final String uriMetadata) {
-        URIRegisterDTO uriRegisterDTO = GsonUtils.getInstance().fromJson(uriMetadata, URIRegisterDTO.class);
-        publisher.publish(Lists.newArrayList(uriRegisterDTO));
+        publisher.publish(Lists.newArrayList(GsonUtils.getInstance().fromJson(uriMetadata, URIRegisterDTO.class)));
+    }
+
+    private void publishUnRegisterURI(final String uriMetadata) {
+        URIRegisterDTO uriOffline = GsonUtils.getInstance().fromJson(uriMetadata, URIRegisterDTO.class);
+        uriOffline.setEventType(EventType.OFFLINE);
+        publisher.publish(Lists.newArrayList(uriOffline));
     }
 
     @Override

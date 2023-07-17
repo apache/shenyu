@@ -108,6 +108,21 @@ public class ApolloClient {
     }
 
     /**
+     * remove item from namespace.
+     * @param key item key
+     */
+    public void removeItem(final String key) {
+        this.apolloOpenApiClient.removeItem(
+                apolloConfig.getAppId(),
+                apolloConfig.getEnv(),
+                apolloConfig.getClusterName(),
+                apolloConfig.getNamespace(),
+                key,
+                apolloConfig.getOperator()
+        );
+    }
+
+    /**
      * publish item list in namespace.
      * @param releaseTitle publish release title
      * @param releaseComment publish release comment
