@@ -82,8 +82,12 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
                                     offline.add(d);
                                 }
                             }
-                            service.registerURI(selectorName, register);
-                            service.offline(selectorName, offline);
+                            if (CollectionUtils.isNotEmpty(register)) {
+                                service.registerURI(selectorName, register);
+                            }
+                            if (CollectionUtils.isNotEmpty(offline)) {
+                                service.offline(selectorName, offline);
+                            }
                         });
                     });
         }
