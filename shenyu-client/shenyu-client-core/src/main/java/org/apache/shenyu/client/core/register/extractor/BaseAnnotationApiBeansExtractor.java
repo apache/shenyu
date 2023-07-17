@@ -17,12 +17,15 @@
 
 package org.apache.shenyu.client.core.register.extractor;
 
+import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -33,6 +36,12 @@ import java.util.stream.Collectors;
  * API extraction converter that supports annotation.
  */
 public abstract class BaseAnnotationApiBeansExtractor extends BaseApiBeansExtractor implements RpcApiBeansExtractor {
+    
+    private final List<Class<? extends Annotation>> supportedApiAnnotations = new ArrayList<>(1);
+    
+    private final List<Class<? extends Annotation>> supportedApiDefinitionAnnotations = new ArrayList<>(1);
+    
+    private final List<ExtractorProcessor> extractorProcessors = new ArrayList<>(1);
     
     @Override
     protected Map<String, Object> extractSupportBeans(final ApplicationContext applicationContext) {
@@ -53,13 +62,21 @@ public abstract class BaseAnnotationApiBeansExtractor extends BaseApiBeansExtrac
                 .collect(Collectors.toList());
     }
     
-    /**
-     * Supported annotations.
-     *
-     * @return class
-     */
-    @NonNull
-    protected abstract List<Class<? extends Annotation>> supportedApiAnnotations();
+    @Override
+    protected void apiPostProcess(final ApiBean api) {
+        for (ExtractorProcessor apiAnnotationProcessor : extractorProcessors) {
+            apiAnnotationProcessor.process(api);
+        }
+        super.apiPostProcess(api);
+    }
+    
+    @Override
+    protected void definitionPostProcess(final ApiBean.ApiDefinition apiDefinition) {
+        for (ExtractorProcessor apiAnnotationProcessor : extractorProcessors) {
+            apiAnnotationProcessor.process(apiDefinition);
+        }
+        super.definitionPostProcess(apiDefinition);
+    }
     
     /**
      * Supported annotations.
@@ -67,6 +84,45 @@ public abstract class BaseAnnotationApiBeansExtractor extends BaseApiBeansExtrac
      * @return class
      */
     @NonNull
-    protected abstract List<Class<? extends Annotation>> supportedApiDefinitionAnnotations();
+    protected List<Class<? extends Annotation>> supportedApiAnnotations() {
+        return supportedApiAnnotations;
+    }
+    
+    /**
+     * Supported annotations.
+     *
+     * @return class
+     */
+    @NonNull
+    protected List<Class<? extends Annotation>> supportedApiDefinitionAnnotations() {
+        return supportedApiDefinitionAnnotations;
+    }
+    
+    /**
+     * addExtractorProcessor.
+     *
+     * @param processor processor.
+     */
+    public void addExtractorProcessor(final ExtractorProcessor processor) {
+        extractorProcessors.add(processor);
+    }
+    
+    /**
+     * addSupportedApiDefinitionAnnotations.
+     *
+     * @param annotation annotation
+     */
+    public void addSupportedApiDefinitionAnnotations(final Class<? extends Annotation> annotation) {
+        supportedApiDefinitionAnnotations.add(annotation);
+    }
+    
+    /**
+     * addSupportedApiAnnotations.
+     *
+     * @param annotation annotation
+     */
+    public void addSupportedApiAnnotations(final Class<? extends Annotation> annotation) {
+        supportedApiAnnotations.add(annotation);
+    }
     
 }

@@ -15,35 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.matcher;
+package org.apache.shenyu.client.apache.dubbo.processor.extractor;
 
-import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.core.register.matcher.ApiAnnotationProcessor;
+import org.springframework.stereotype.Service;
 
 /**
- * ApiDocProcessorImpl.<br>
- * About support for {@link ApiDoc} annotations
- *
- * @see ApiDoc
+ * ServiceProcessor.
  */
-public class ApiDocProcessorImpl extends BaseAnnotationApiProcessor<ApiDoc> {
+public class ServiceProcessor implements ApiAnnotationProcessor<Service> {
     
     @Override
-    public void process(final ApiBean apiBean, final ApiDoc annotation) {
-        apiBean.addProperties("desc", annotation.desc());
-        apiBean.addProperties("tags", String.join(",", annotation.tags()));
-        apiBean.setStatus(ApiBean.Status.REGISTRABLE_API);
+    public void process(final ApiBean apiBean, final Service annotation) {
+        apiBean.setBeanPath(annotation.value());
     }
     
     @Override
-    public void process(final ApiBean.ApiDefinition definition, final ApiDoc annotation) {
-        definition.addProperties("desc", annotation.desc());
-        definition.addProperties("tags", String.join(",", annotation.tags()));
-        definition.setStatus(ApiBean.Status.REGISTRABLE);
+    public void process(final ApiBean.ApiDefinition definition, final Service annotation) {
+        // nothing
     }
     
     @Override
-    public Class<ApiDoc> matchAnnotation() {
-        return ApiDoc.class;
+    public Class<Service> matchAnnotation() {
+        return Service.class;
     }
 }
