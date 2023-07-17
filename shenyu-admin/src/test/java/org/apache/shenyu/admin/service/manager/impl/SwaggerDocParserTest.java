@@ -200,6 +200,6 @@ public class SwaggerDocParserTest {
         JsonObject docRoot = GsonUtils.getInstance().fromJson(DOC_INFO_JSON, JsonObject.class);
         docRoot.addProperty("basePath", "/" + "testClusterName");
         DocInfo docInfo = swaggerDocParser.parseJson(docRoot);
-        assert docInfo.getDocModuleList().get(0).getModule().equals("shenyu-examples-http-swagger2 API");
+        assert docInfo.getDocModuleList().get(0).getModule().equals("Order API");
     }
 }
