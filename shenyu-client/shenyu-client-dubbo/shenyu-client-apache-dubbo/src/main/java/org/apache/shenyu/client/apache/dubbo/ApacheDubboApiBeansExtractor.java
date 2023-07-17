@@ -15,31 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.register;
+package org.apache.shenyu.client.apache.dubbo;
 
+import org.apache.dubbo.config.annotation.DubboService;
+import org.apache.dubbo.config.annotation.Service;
+import org.apache.shenyu.client.apache.dubbo.processor.extractor.DubboServiceProcessor;
+import org.apache.shenyu.client.apache.dubbo.processor.extractor.ServiceProcessor;
+import org.apache.shenyu.client.apache.dubbo.processor.register.ShenyuDubboProcessor;
 import org.apache.shenyu.client.core.register.extractor.BaseAnnotationApiBeansExtractor;
 import org.apache.shenyu.client.core.register.extractor.RpcApiBeansExtractor;
-import org.apache.shenyu.client.springmvc.proceeor.extractor.RequestMappingProcessor;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
 
-public class SpringMvcApiBeansExtractor extends BaseAnnotationApiBeansExtractor implements RpcApiBeansExtractor {
+public class ApacheDubboApiBeansExtractor extends BaseAnnotationApiBeansExtractor implements RpcApiBeansExtractor {
     
-    public SpringMvcApiBeansExtractor() {
+    public ApacheDubboApiBeansExtractor() {
         // Annotations supported by class
-        addSupportedApiAnnotations(Controller.class);
-        addSupportedApiAnnotations(RequestMapping.class);
+        addSupportedApiAnnotations(DubboService.class);
+        addSupportedApiAnnotations(Service.class);
         
         // Annotations supported by the method
-        addSupportedApiDefinitionAnnotations(RequestMapping.class);
         
-        addExtractorProcessor(new RequestMappingProcessor());
+        addExtractorProcessor(new DubboServiceProcessor());
+        addExtractorProcessor(new ServiceProcessor());
+        addExtractorProcessor(new ShenyuDubboProcessor());
     }
     
     @Override
     public String clientName() {
-        return RpcTypeEnum.HTTP.getName();
+        return RpcTypeEnum.DUBBO.getName();
     }
     
 }
