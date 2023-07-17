@@ -2217,7 +2217,7 @@ CREATE TABLE "public"."tag" (
     "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "tag_desc" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "parent_tag_id" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    "ext" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+    "ext" varchar(1024) COLLATE "pg_catalog"."default",
     "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
     "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )

@@ -25,7 +25,6 @@ import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
 import org.apache.ibatis.plugin.Signature;
-import org.apache.shenyu.admin.mybatis.og.enums.NullEnum;
 import org.apache.shenyu.common.utils.ReflectUtils;
 
 import java.lang.reflect.Field;
@@ -57,19 +56,13 @@ public class OpenGaussSqlUpdateInterceptor implements Interceptor {
             Arrays.stream(superClass.getDeclaredFields())
                     .filter(f -> matchParam(parameter, f))
                     .forEach(f -> ReflectUtils.setFieldValue(parameter, f.getName(), new Timestamp(System.currentTimeMillis())));
-            Arrays.stream(superClass.getDeclaredFields())
-                    .filter(f -> matchNull(parameter, f))
-                    .forEach(f -> ReflectUtils.setFieldValue(parameter, f.getName(), NullEnum.NULL.getLabel()));
         }
+
         return executor.update(ms, parameter);
     }
 
     private boolean matchParam(final Object parameter, final Field f) {
         return AUTOMATIC_DATES.contains(f.getName()) && Objects.isNull(ReflectUtils.getFieldValue(parameter, f));
-    }
-
-    private boolean matchNull(final Object parameter, final Field f) {
-        return NullEnum.NULL.getValue().equals(ReflectUtils.getFieldValue(parameter, f));
     }
 
     @Override
