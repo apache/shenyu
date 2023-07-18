@@ -54,8 +54,8 @@ public class ApiDocControllerTest {
     @InjectMocks
     private ApiDocController apiDocController;
 
-    @Mock
-    private DocManager docManager;
+//    @Mock
+//    private DocManager docManager;
 
     @Mock
     private ShenyuDictService shenyuDictService;
@@ -68,41 +68,10 @@ public class ApiDocControllerTest {
 
     @Test
     public void testGetAllDoc() throws Exception {
-        Collection<DocInfo> docInfos = buildDocInfos();
         List<ShenyuDictVO> shenyuDictVOS = new ArrayList<>();
-        given(this.docManager.listAll()).willReturn(docInfos);
         given(this.shenyuDictService.list(any())).willReturn(shenyuDictVOS);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/apidoc/getDocMenus"))
                 .andExpect(status().isOk())
                 .andReturn();
-    }
-
-    @Test
-    public void testGetDocItem() throws Exception {
-        DocItem docItem = new DocItem();
-        docItem.setApiOrder(1);
-        docItem.setDescription("this is a test");
-        given(this.docManager.getDocItem("123")).willReturn(docItem);
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/apidoc/getDocItem")
-                        .param("id", "123"))
-                .andExpect(status().isOk())
-                .andReturn();
-    }
-
-    private Collection<DocInfo> buildDocInfos() {
-        final List<DocInfo> infos = new ArrayList<>();
-        DocInfo docInfo = new DocInfo();
-        docInfo.setTitle("test");
-        docInfo.setClusterName("cluster1");
-        final List<DocModule> docModuleList = new ArrayList<>();
-        DocModule docModule = new DocModule();
-        docModule.setModule("test");
-        docModule.setOrder(1);
-        List<DocItem> docItems = new ArrayList<>();
-        docModule.setDocItems(docItems);
-        docModuleList.add(docModule);
-        docInfo.setDocModuleList(docModuleList);
-        infos.add(docInfo);
-        return infos;
     }
 }

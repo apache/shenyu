@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service.manager;
 import java.util.Collection;
 import java.util.function.Consumer;
 import org.apache.shenyu.admin.model.bean.DocInfo;
-import org.apache.shenyu.admin.model.bean.DocItem;
 
 /**
  * Doc Manager.
@@ -38,32 +37,9 @@ public interface DocManager {
     void addDocInfo(String serviceId, String docJson, String oldMd5, Consumer<DocInfo> callback);
 
     /**
-     * getDocItem.
-     *
-     * @param id id
-     * @return DocItem
-     */
-    DocItem getDocItem(String id);
-
-    /**
      * listAll.
      *
      * @return Collection
      */
     Collection<DocInfo> listAll();
-
-    /**
-     * getDocMd5.
-     *
-     * @param serviceId serviceId
-     * @return String
-     */
-    String getDocMd5(String serviceId);
-
-    /**
-     * remove.
-     *
-     * @param serviceId serviceId
-     */
-    void remove(String serviceId);
 }
