@@ -19,9 +19,11 @@ package org.apache.shenyu.admin.service.manager.impl;
 
 import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.bean.DocItem;
+import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -46,68 +48,20 @@ public class DocManagerImplTest {
     @InjectMocks
     private DocManagerImpl docManager;
 
+    @Mock
+    private RegisterApiDocService registerApiDocService;
+
     @Test
     public void testAddDocInfo() {
         String clusterName = "testClusterName";
         AtomicBoolean atomicBoolean = new AtomicBoolean(false);
-        String docInfoJson = "{\n"
-                + "    \"info\":\n"
-                + "    {\n"
-                + "        \"title\":\"testTitle\"\n"
-                + "    },\n"
-                + "    \"paths\":\n"
-                + "    {\n"
-                + "        \"testPath1\":\n"
-                + "        {\n"
-                + "            \"post\":\n"
-                + "            {\n"
-                + "                \"summary\":\"testSummary\",\n"
-                + "                \"description\":\"testDescription\",\n"
-                + "                \"produces\": [\"application/json\", \"application/xml\"],\n"
-                + "                \"multiple\":\"true\",\n"
-                + "                \"module_order\":1,\n"
-                + "                \"api_order\":1\n"
-                + "            }\n"
-                + "        }\n"
-                + "    }\n"
-                + "}";
-
-        docManager.addDocInfo(clusterName, docInfoJson, docInfo -> atomicBoolean.set(true));
+        docManager.addDocInfo(clusterName, SwaggerDocParserTest.DOC_INFO_JSON, docInfo -> {
+            assertEquals(docInfo.getTitle(), "shenyu-examples-http-swagger2 API");
+            assertEquals(docInfo.getClusterName(), "testClusterName");
+            atomicBoolean.set(true);
+        });
 
         assertTrue(atomicBoolean.get());
-
-        Class<DocManagerImpl> docManageClass = DocManagerImpl.class;
-        Map<String, DocInfo> docDefinitionMap;
-        try {
-            Field field = docManageClass.getDeclaredField("DOC_DEFINITION_MAP");
-            field.setAccessible(true);
-            docDefinitionMap = (Map<String, DocInfo>) field.get(null);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        DocInfo docInfo = docDefinitionMap.get("testTitle");
-        assertEquals(docInfo.getClusterName(), "testClusterName");
-        assertEquals(docInfo.getTitle(), "testTitle");
-        assertEquals(docManager.getByTitle("testTitle").getClusterName(), "testClusterName");
-    }
-
-    @Test
-    public void testGetByTitle() {
-        Class<DocManagerImpl> docManageClass = DocManagerImpl.class;
-        Map<String, DocInfo> docDefinitionMap;
-        try {
-            Field field = docManageClass.getDeclaredField("DOC_DEFINITION_MAP");
-            field.setAccessible(true);
-            docDefinitionMap = (Map<String, DocInfo>) field.get(null);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        DocManagerImpl docManager = new DocManagerImpl();
-        String title = "testTitle";
-        DocInfo expectedDocInfo = new DocInfo();
-        expectedDocInfo.setTitle("testTitle");
-        docDefinitionMap.put("testTitle", expectedDocInfo);
-        assertEquals(expectedDocInfo, docManager.getByTitle(title));
     }
 
     @Test
@@ -123,7 +77,6 @@ public class DocManagerImplTest {
         }
         String id = "1";
         DocItem expectedDocItem = new DocItem();
-        expectedDocItem.setId(id);
         itemDocMap.put(id, expectedDocItem);
         assertEquals(expectedDocItem, docManager.getDocItem(id));
     }

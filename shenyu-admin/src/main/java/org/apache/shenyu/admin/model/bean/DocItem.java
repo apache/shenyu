@@ -27,8 +27,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class DocItem {
 
-    private String id;
-
     private String module;
 
     private String name;
@@ -46,6 +44,8 @@ public class DocItem {
      * http method list.
      */
     private Collection<String> httpMethodList;
+
+    private Collection<String> consumes;
 
     private Collection<String> produces;
 
@@ -79,24 +79,6 @@ public class DocItem {
             upload = requestParameters.stream().map(DocParameter::getType).anyMatch("file"::equalsIgnoreCase);
         }
         return multiple || upload;
-    }
-
-    /**
-     * getId.
-     *
-     * @return String
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * setId.
-     *
-     * @param id id
-     */
-    public void setId(final String id) {
-        this.id = id;
     }
 
     /**
@@ -205,6 +187,24 @@ public class DocItem {
      */
     public void setHttpMethodList(final Collection<String> httpMethodList) {
         this.httpMethodList = httpMethodList;
+    }
+
+    /**
+     * get consumes.
+     *
+     * @return consumes
+     */
+    public Collection<String> getConsumes() {
+        return consumes;
+    }
+
+    /**
+     * set consumes.
+     *
+     * @param consumes consumes
+     */
+    public void setConsumes(final Collection<String> consumes) {
+        this.consumes = consumes;
     }
 
     /**
