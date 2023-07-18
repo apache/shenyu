@@ -33,10 +33,10 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class ServiceDocManagerImplTest {
+public class SwaggerDocManagerImplTest {
 
     @InjectMocks
-    private ServiceDocManagerImpl serviceDocManager;
+    private PullSwaggerDocServiceImpl serviceDocManager;
 
     @Mock
     private Set<UpstreamInstance> currentServices;
