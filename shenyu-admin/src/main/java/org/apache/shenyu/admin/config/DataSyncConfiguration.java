@@ -318,7 +318,7 @@ public class DataSyncConfiguration {
             }
             try {
                 URL consulUrl = new URL(url);
-                return consulUrl.getPort() < 0 ? new ConsulClient(consulUrl.getHost()) : new ConsulClient(consulUrl.getHost(),consulUrl.getPort());
+                return consulUrl.getPort() < 0 ? new ConsulClient(consulUrl.getHost()) : new ConsulClient(consulUrl.getHost(), consulUrl.getPort());
             } catch (MalformedURLException e) {
                 throw new ShenyuException("sync.consul.url formatter is not incorrect.");
             }
