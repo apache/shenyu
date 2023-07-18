@@ -90,7 +90,7 @@ public final class ApiControllerTest {
                 .rpcType("/dubbo")
                 .state(0)
                 .apiSource(0)
-                .document("document")
+                .document("{}")
                 .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
     }
