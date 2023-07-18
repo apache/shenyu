@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 import com.google.gson.JsonObject;
@@ -69,11 +68,6 @@ public class DocManagerImpl implements DocManager {
      * key:title, value:docInfo.
      */
     private static final Map<String, DocInfo> DOC_DEFINITION_MAP = new HashMap<>();
-
-    /**
-     * KEY:clusterName, value: md5.
-     */
-    private static final Map<String, String> CLUSTER_MD5_MAP = new HashMap<>();
 
     private static final DocParser SWAGGER_DOC_PARSER = new SwaggerDocParser();
 
@@ -159,7 +153,7 @@ public class DocManagerImpl implements DocManager {
             docInfo.setContextPath(contexPath);
             return docInfo;
         } catch (Exception e) {
-            LOG.error("getDocInfo clusterName={} error={} ",clusterName, e);
+            LOG.error("getDocInfo clusterName={} error={} ", clusterName, e);
             return null;
         }
     }

@@ -18,14 +18,9 @@
 package org.apache.shenyu.admin.controller;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import org.apache.shenyu.admin.model.bean.DocInfo;
-import org.apache.shenyu.admin.model.bean.DocItem;
-import org.apache.shenyu.admin.model.bean.DocModule;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.ShenyuDictService;
-import org.apache.shenyu.admin.service.manager.DocManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,9 +48,6 @@ public class ApiDocControllerTest {
 
     @InjectMocks
     private ApiDocController apiDocController;
-
-//    @Mock
-//    private DocManager docManager;
 
     @Mock
     private ShenyuDictService shenyuDictService;
