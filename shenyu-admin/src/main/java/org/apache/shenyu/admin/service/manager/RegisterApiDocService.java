@@ -17,23 +17,16 @@
 
 package org.apache.shenyu.admin.service.manager;
 
-import java.util.Set;
-import org.apache.shenyu.admin.model.bean.UpstreamInstance;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 
 /**
- * Service document Manager.
+ * register api document manager.
  */
-public interface ServiceDocManager {
+public interface RegisterApiDocService {
 
     /**
-     * pull API document.
-     * @param currentServices currentServices
+     * register api document.
+     * @param apiDocRegisterDTO apiDocRegisterDTO
      */
-    void pullApiDocument(Set<UpstreamInstance> currentServices);
-
-    /**
-     * pull API document.
-     * @param instance instance
-     */
-    void pullApiDocument(UpstreamInstance instance);
+    void registerApiDocument(ApiDocRegisterDTO apiDocRegisterDTO);
 }

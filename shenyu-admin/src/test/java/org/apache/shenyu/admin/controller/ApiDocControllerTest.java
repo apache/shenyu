@@ -80,7 +80,6 @@ public class ApiDocControllerTest {
     @Test
     public void testGetDocItem() throws Exception {
         DocItem docItem = new DocItem();
-        docItem.setId("123");
         docItem.setApiOrder(1);
         docItem.setDescription("this is a test");
         given(this.docManager.getDocItem("123")).willReturn(docItem);
