@@ -121,7 +121,7 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
     }
 
     @Override
-    public void close() {
+    public void closeRepository() {
         this.client.close();
     }
 

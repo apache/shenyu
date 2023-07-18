@@ -112,8 +112,8 @@ public class NacosClientRegisterRepositoryTest {
     }
 
     @Test
-    public void testClose() throws NacosException {
-        repository.close();
+    public void testCloseRepository() throws NacosException {
+        repository.closeRepository();
         verify(configService, times(1)).shutDown();
         verify(namingService, times(1)).shutDown();
     }
@@ -178,11 +178,11 @@ public class NacosClientRegisterRepositoryTest {
         namingFactoryMockedStatic.when(() -> NamingFactory.createNamingService(any(Properties.class))).thenReturn(mock(NamingService.class));
         this.repository = new NacosClientRegisterRepository(config);
         Assertions.assertDoesNotThrow(() -> this.repository.init(config));
-        Assertions.assertDoesNotThrow(() -> this.repository.close());
+        Assertions.assertDoesNotThrow(() -> this.repository.closeRepository());
         doThrow(NacosException.class).when(configService).shutDown();
         configFactoryMockedStatic.when(() -> ConfigFactory.createConfigService(any(Properties.class))).thenThrow(NacosException.class);
         // hit error
-        Assertions.assertDoesNotThrow(() -> this.repository.close());
+        Assertions.assertDoesNotThrow(() -> this.repository.closeRepository());
         Assertions.assertThrows(ShenyuException.class, () -> this.repository.init(config));
         configFactoryMockedStatic.close();
         namingFactoryMockedStatic.close();
