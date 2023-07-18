@@ -108,7 +108,6 @@ public class ApiDocController {
                     List<MenuDocItem> docItems = docModule.getDocItems().stream()
                         .map(docItem -> {
                             MenuDocItem menuDocItem = new MenuDocItem();
-                            menuDocItem.setId(docItem.getId());
                             menuDocItem.setLabel(docItem.getSummary());
                             menuDocItem.setName(docItem.getName());
                             return menuDocItem;

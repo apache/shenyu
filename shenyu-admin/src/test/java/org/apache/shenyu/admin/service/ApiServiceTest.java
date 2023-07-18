@@ -150,7 +150,7 @@ public final class ApiServiceTest {
         apiDTO.setApiOwner("string");
         apiDTO.setApiDesc("string");
         apiDTO.setApiSource(0);
-        apiDTO.setDocument("document");
+        apiDTO.setDocument("{}");
         return apiDTO;
     }
 
@@ -158,7 +158,9 @@ public final class ApiServiceTest {
         ApiDTO apiDTO = new ApiDTO();
         apiDTO.setId(id);
         apiDTO.setApiPath("test");
-        apiDTO.setDocument("testDocument");
+        apiDTO.setDocument("{\n"
+            + "    \"module\":\"http-test-controller\"\n"
+            + "}");
         assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, this.apiService.createOrUpdate(apiDTO));
     }
 }
