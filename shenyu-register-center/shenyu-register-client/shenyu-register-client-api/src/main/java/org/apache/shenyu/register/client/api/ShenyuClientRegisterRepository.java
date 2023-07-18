@@ -68,7 +68,7 @@ public interface ShenyuClientRegisterRepository {
     }
     
     /**
-     * Close.
+     * closeRepository.
      */
     default void closeRepository() {
     }
