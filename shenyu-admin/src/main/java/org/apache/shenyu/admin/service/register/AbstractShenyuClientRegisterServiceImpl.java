@@ -20,18 +20,14 @@ package org.apache.shenyu.admin.service.register;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
-import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.model.vo.TagVO;
-import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.TagService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
@@ -45,15 +41,12 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
-import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.context.ApplicationEventPublisher;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -89,10 +82,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     private UpstreamCheckService upstreamCheckService;
 
     @Resource
-    private ApiService apiService;
-
-    @Resource
-    private TagService tagService;
+    private RegisterApiDocService registerApiDocService;
 
     /**
      * Selector handler string.
@@ -152,54 +142,8 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
 
     @Override
     public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
-        if (apiDocRegisterDTO.getEventType().equals(EventType.REGISTER)) {
-            ApiDTO apiDTO = buildApiDTO(apiDocRegisterDTO);
-            apiService.deleteByApiPathHttpMethodRpcType(apiDTO.getApiPath(), apiDTO.getHttpMethod(), apiDTO.getRpcType());
-            List<String> tagsIds = new ArrayList<>();
-            List<String> tags = Collections.singletonList(apiDocRegisterDTO.getContextPath());
-            if (CollectionUtils.isNotEmpty(apiDocRegisterDTO.getTags())) {
-                tags = apiDocRegisterDTO.getTags();
-            }
-            for (String tag : tags) {
-                List<TagVO> byQuery = tagService.findByQuery(tag);
-                if (CollectionUtils.isNotEmpty(byQuery)) {
-                    tagsIds.addAll(byQuery.stream().map(TagVO::getId).collect(Collectors.toList()));
-                } else {
-                    TagDTO tagDTO = new TagDTO();
-                    String id = UUIDUtils.getInstance().generateShortUuid();
-                    tagDTO.setTagDesc(tag);
-                    tagDTO.setName(tag);
-                    tagDTO.setParentTagId(AdminConstants.TAG_ROOT_PARENT_ID);
-                    tagDTO.setId(id);
-                    tagService.create(tagDTO);
-                    tagsIds.add(id);
-                }
-            }
-            apiDTO.setTagIds(tagsIds);
-            apiService.createOrUpdate(apiDTO);
-        } else if (apiDocRegisterDTO.getEventType().equals(EventType.OFFLINE)) {
-            String contextPath = apiDocRegisterDTO.getContextPath();
-            apiService.offlineByContextPath(contextPath);
-        }
+        registerApiDocService.registerApiDocument(apiDocRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
-    }
-
-    private ApiDTO buildApiDTO(final ApiDocRegisterDTO apiDocRegisterDTO) {
-        ApiDTO apiDTO = new ApiDTO();
-        apiDTO.setApiPath(apiDocRegisterDTO.getApiPath());
-        apiDTO.setApiSource(apiDocRegisterDTO.getApiSource());
-        apiDTO.setApiOwner(apiDocRegisterDTO.getApiOwner());
-        apiDTO.setDocument(apiDocRegisterDTO.getDocument());
-        apiDTO.setExt(apiDocRegisterDTO.getExt());
-        apiDTO.setVersion(apiDocRegisterDTO.getVersion());
-        apiDTO.setRpcType(apiDocRegisterDTO.getRpcType());
-        apiDTO.setConsume(apiDocRegisterDTO.getConsume());
-        apiDTO.setProduce(apiDocRegisterDTO.getProduce());
-        apiDTO.setContextPath(apiDocRegisterDTO.getContextPath());
-        apiDTO.setHttpMethod(apiDocRegisterDTO.getHttpMethod());
-        apiDTO.setState(apiDocRegisterDTO.getState());
-        apiDTO.setApiDesc(apiDocRegisterDTO.getApiDesc());
-        return apiDTO;
     }
 
     /**

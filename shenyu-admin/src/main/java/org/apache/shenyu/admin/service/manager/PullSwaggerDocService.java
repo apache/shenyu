@@ -17,52 +17,23 @@
 
 package org.apache.shenyu.admin.service.manager;
 
-import java.util.Collection;
-import java.util.function.Consumer;
-import org.apache.shenyu.admin.model.bean.DocInfo;
-import org.apache.shenyu.admin.model.bean.DocItem;
+import java.util.Set;
+import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 
 /**
- * Doc Manager.
+ * pull service api document Manager.
  */
-public interface DocManager {
+public interface PullSwaggerDocService {
 
     /**
-     * addDocInfo.
-     *
-     * @param serviceId serviceId
-     * @param docJson docJson
-     * @param callback callback
+     * pull API document.
+     * @param currentServices currentServices
      */
-    void addDocInfo(String serviceId, String docJson, Consumer<DocInfo> callback);
+    void pullApiDocument(Set<UpstreamInstance> currentServices);
 
     /**
-     * getDocItem.
-     *
-     * @param id id
-     * @return DocItem
+     * pull API document.
+     * @param instance instance
      */
-    DocItem getDocItem(String id);
-
-    /**
-     * listAll.
-     *
-     * @return Collection
-     */
-    Collection<DocInfo> listAll();
-
-    /**
-     * getDocMd5.
-     *
-     * @param serviceId serviceId
-     * @return String
-     */
-    String getDocMd5(String serviceId);
-
-    /**
-     * remove.
-     *
-     * @param serviceId serviceId
-     */
-    void remove(String serviceId);
+    void pullApiDocument(UpstreamInstance instance);
 }

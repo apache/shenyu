@@ -41,7 +41,7 @@ import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
-import org.apache.shenyu.admin.service.manager.ServiceDocManager;
+import org.apache.shenyu.admin.service.manager.PullSwaggerDocService;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
@@ -69,19 +69,19 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
 
     private final PluginMapper pluginMapper;
 
-    private final ServiceDocManager serviceDocManager;
+    private final PullSwaggerDocService pullSwaggerDocService;
 
     private final ShenyuDictService shenyuDictService;
 
     public LoadServiceDocEntryImpl(final SelectorService selectorService,
                                    final SelectorHandleConverterFactor converterFactor,
                                    final PluginMapper pluginMapper,
-                                   final ServiceDocManager serviceDocManager,
+                                   final PullSwaggerDocService pullSwaggerDocService,
                                    final ShenyuDictService shenyuDictService) {
         this.selectorService = selectorService;
         this.converterFactor = converterFactor;
         this.pluginMapper = pluginMapper;
-        this.serviceDocManager = serviceDocManager;
+        this.pullSwaggerDocService = pullSwaggerDocService;
         this.shenyuDictService = shenyuDictService;
     }
 
@@ -97,7 +97,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         }
         final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
         LOG.info("load api document  serviceList={}", JsonUtils.toJson(currentServices));
-        serviceDocManager.pullApiDocument(currentServices);
+        pullSwaggerDocService.pullApiDocument(currentServices);
     }
 
     @Override
@@ -113,7 +113,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             }
             final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
             LOG.info("loadDocOnSelectorChanged serviceList={}", JsonUtils.toJson(currentServices));
-            serviceDocManager.pullApiDocument(currentServices);
+            pullSwaggerDocService.pullApiDocument(currentServices);
         }
     }
 
