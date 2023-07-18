@@ -55,7 +55,7 @@ public class DocManagerImplTest {
     public void testAddDocInfo() {
         String clusterName = "testClusterName";
         AtomicBoolean atomicBoolean = new AtomicBoolean(false);
-        docManager.addDocInfo(clusterName, SwaggerDocParserTest.DOC_INFO_JSON, "", docInfo -> {
+        docManager.addDocInfo(clusterName, SwaggerDocParserTest.DOC_INFO_JSON, docInfo -> {
             assertEquals(docInfo.getTitle(), "shenyu-examples-http-swagger2 API");
             assertEquals(docInfo.getClusterName(), "testClusterName");
             atomicBoolean.set(true);
