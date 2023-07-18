@@ -17,33 +17,25 @@
 
 package org.apache.shenyu.client.core.register.matcher;
 
-import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.register.ApiBean;
 
 /**
- * ApiDocProcessorImpl.<br>
- * About support for {@link ApiDoc} annotations
- *
- * @see ApiDoc
+ * ApiAnnotationProcessor.
  */
-public class ApiDocProcessorImpl extends BaseAnnotationApiProcessor<ApiDoc> {
+public interface ExtractorProcessor {
     
-    @Override
-    public void process(final ApiBean apiBean, final ApiDoc annotation) {
-        apiBean.addProperties("desc", annotation.desc());
-        apiBean.addProperties("tags", String.join(",", annotation.tags()));
-        apiBean.setStatus(ApiBean.Status.REGISTRABLE_API);
-    }
+    /**
+     * process.
+     *
+     * @param apiBean apiBean
+     */
+    void process(ApiBean apiBean);
     
-    @Override
-    public void process(final ApiBean.ApiDefinition definition, final ApiDoc annotation) {
-        definition.addProperties("desc", annotation.desc());
-        definition.addProperties("tags", String.join(",", annotation.tags()));
-        definition.setStatus(ApiBean.Status.REGISTRABLE);
-    }
+    /**
+     * process.
+     *
+     * @param definition definition
+     */
+    void process(ApiBean.ApiDefinition definition);
     
-    @Override
-    public Class<ApiDoc> matchAnnotation() {
-        return ApiDoc.class;
-    }
 }
