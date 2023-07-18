@@ -25,7 +25,6 @@ services:
       - 2181
 
   nacos:
-#    image: nacos/nacos-server:v2.2.3-slim
     image: nacos/nacos-server:v2.2.3
     environment:
       - TZ=Asia/Shanghai
@@ -40,7 +39,7 @@ services:
       - "9849:9849"
 
   admin:
-    image: apache/shenyu-admin:latest
+    image: shenyu/admin:latest
     expose:
       - 9095
     ports:
@@ -56,10 +55,10 @@ services:
       retries: 3
       start_period: 5s
     depends_on:
-      apollo-portal:
+      springcloud:
         condition: service_healthy
     volumes:
-      - ../../../../../shenyu-admin/target/classes/application.yml:/opt/shenyu-admin/conf/application.yml
+      - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
 
   eureka:
@@ -69,8 +68,11 @@ services:
       - 8761
     ports:
       - "8761:8761"
-    depends_on:
-      - admin
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://eureka:8761/actuator/health | grep UP || exit 1" ]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
   springcloud:
     image: shenyu-examples-springcloud:latest
@@ -83,10 +85,16 @@ services:
     ports:
       - "8884:8884"
     depends_on:
-      - eureka
+      eureka:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://springcloud:8884/actuator/health | grep UP || exit 1" ]
+      timeout: 2s
+      retries: 5
+      start_period: 8s
 
   gateway:
-    image: apache/shenyu-bootstrap:latest
+    image: shenyu/bootstrap:latest
     environment:
       - eureka.client.serviceUrl.defaultZone=http://eureka:8761/eureka/
     expose:
@@ -97,7 +105,7 @@ services:
       admin:
         condition: service_healthy
     volumes:
-      - ../../../../../shenyu-bootstrap/target/classes/application.yml:/opt/shenyu-bootstrap/conf/application.yml
+      - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
 
   mysql:
     image: mysql:8
@@ -111,72 +119,4 @@ services:
       timeout: 20s
       retries: 10
     volumes:
-      - ./apolloconfigdb.sql:/docker-entrypoint-initdb.d/apolloconfigdb.sql
-      - ./apolloportaldb.sql:/docker-entrypoint-initdb.d/apolloportaldb.sql
       - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-
-  apollo-configservice:
-    image: apolloconfig/apollo-configservice:2.1.0
-    restart: always
-    ports:
-      - "8080:8080"
-    environment:
-      - TZ='Asia/Shanghai'
-      - SERVER_PORT=8080
-      - EUREKA_INSTANCE_IP_ADDRESS=localhost
-      - EUREKA_INSTANCE_HOME_PAGE_URL=http://apollo-configservice:8080
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=shenyue2e
-      - SPRING_DATASOURCE_PASSWORD=123456
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://apollo-configservice:8080/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    depends_on:
-      mysql:
-        condition: service_healthy
-
-  apollo-adminservice:
-    image: apolloconfig/apollo-adminservice:2.1.0
-    restart: always
-    ports:
-      - "8090:8090"
-    depends_on:
-      apollo-configservice:
-        condition: service_healthy
-    environment:
-      - TZ='Asia/Shanghai'
-      - SERVER_PORT=8090
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=shenyue2e
-      - SPRING_DATASOURCE_PASSWORD=123456
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8090/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-  apollo-portal:
-    image: apolloconfig/apollo-portal:2.1.0
-    restart: always
-    ports:
-      - "8070:8070"
-    depends_on:
-      apollo-adminservice:
-        condition: service_healthy
-    environment:
-      - TZ='Asia/Shanghai'
-      - SERVER_PORT=8070
-      - EUREKA_INSTANCE_IP_ADDRESS=apollo-configservice
-      - APOLLO_PORTAL_ENVS=dev
-      - DEV_META=http://apollo-configservice:8080
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloPortalDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=shenyue2e
-      - SPRING_DATASOURCE_PASSWORD=123456
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8070/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 90s

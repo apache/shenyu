@@ -31,7 +31,7 @@
         <module>shenyu-spring-boot-starter-plugin</module>
         <module>shenyu-spring-boot-starter-sync-data-center</module>
         <module>shenyu-spring-boot-starter-client</module>
-        <module>shenyu-spring-boot-starter-instance</module>
+        <module>shenyu-spring-boot-starter-registry</module>
         <module>shenyu-spring-boot-starter-sdk</module>
         <module>shenyu-spring-boot-starter-k8s</module>
     </modules>

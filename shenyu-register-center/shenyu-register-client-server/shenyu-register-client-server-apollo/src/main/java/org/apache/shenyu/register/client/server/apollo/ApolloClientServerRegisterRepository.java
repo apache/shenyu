@@ -22,19 +22,21 @@ import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.core.ConfigConsts;
 import com.ctrip.framework.apollo.model.ConfigChange;
 import com.google.common.collect.Lists;
-import org.apache.shenyu.common.constant.ApolloPathConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
+import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
 
-import java.util.List;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.stream.Collectors;
+import java.util.Set;
+
 
 /**
  * apollo register center.
@@ -72,30 +74,71 @@ public class ApolloClientServerRegisterRepository implements ShenyuClientServerR
     }
 
     private void initSubscribe() {
+        // on startup, read data
+        Set<String> propertyNames = this.config.getPropertyNames();
+        for (String propertyName : propertyNames) {
+            String property = this.config.getProperty(propertyName, "{}");
+            if (propertyName.startsWith(RegisterPathConstants.REGISTER_METADATA_INSTANCE_ROOT_PATH)) {
+                this.publishMetadata(property);
+            } else if (propertyName.startsWith(RegisterPathConstants.REGISTER_URI_INSTANCE_ROOT_PATH)) {
+                this.publishRegisterURI(property);
+            }
+        }
+
+        // monitor metadata changes
+        subscribeMetadata();
+        // monitor uri changes
+        subscribeUri();
+    }
+
+    private void subscribeMetadata() {
         this.config.addChangeListener(changeEvent -> {
             for (String changedKey : changeEvent.changedKeys()) {
+                // apollo has a bug and may push events that are not monitored, so there is this judgment.
+                if (!changedKey.startsWith(RegisterPathConstants.REGISTER_METADATA_INSTANCE_ROOT_PATH)) {
+                    continue;
+                }
                 ConfigChange configChange = changeEvent.getChange(changedKey);
-                if (changedKey.startsWith(ApolloPathConstants.REGISTER_METADATA_ID)) {
-                    this.publishMetadata(configChange.getNewValue());
+                this.publishMetadata(configChange.getNewValue());
+            }
+        }, null, Collections.singleton(RegisterPathConstants.REGISTER_METADATA_INSTANCE_ROOT_PATH));
+    }
 
-                } else if (changedKey.startsWith(ApolloPathConstants.REGISTER_URI_ID)) {
-                    this.publishRegisterURI(configChange.getNewValue());
+    private void subscribeUri() {
+        this.config.addChangeListener(changeEvent -> {
+            for (String changedKey : changeEvent.changedKeys()) {
+                // apollo has a bug and may push events that are not monitored, so there is this judgment.
+                if (!changedKey.startsWith(RegisterPathConstants.REGISTER_URI_INSTANCE_ROOT_PATH)) {
+                    continue;
+                }
+                ConfigChange configChange = changeEvent.getChange(changedKey);
+                switch (configChange.getChangeType()) {
+                    case ADDED:
+                    case MODIFIED:
+                        this.publishRegisterURI(configChange.getNewValue());
+                        break;
+                    case DELETED:
+                        this.publishUnRegisterURI(configChange.getOldValue());
+                        break;
+                    default:
+                        break;
                 }
             }
-        });
+        }, null, Collections.singleton(RegisterPathConstants.REGISTER_URI_INSTANCE_ROOT_PATH));
     }
 
     private void publishMetadata(final String metadata) {
         publisher.publish(Lists.newArrayList(GsonUtils.getInstance().fromJson(metadata, MetaDataRegisterDTO.class)));
     }
 
-    @SuppressWarnings("unchecked")
     private void publishRegisterURI(final String uriMetadata) {
-        List<String> metadataList = GsonUtils.getInstance().fromJson(uriMetadata, List.class);
-        List<URIRegisterDTO> registerDTOList = metadataList.stream()
-                .map(metadata -> GsonUtils.getInstance().fromJson(metadata, URIRegisterDTO.class))
-                .collect(Collectors.toList());
-        publisher.publish(registerDTOList);
+        publisher.publish(Lists.newArrayList(GsonUtils.getInstance().fromJson(uriMetadata, URIRegisterDTO.class)));
+    }
+
+    private void publishUnRegisterURI(final String uriMetadata) {
+        URIRegisterDTO uriOffline = GsonUtils.getInstance().fromJson(uriMetadata, URIRegisterDTO.class);
+        uriOffline.setEventType(EventType.OFFLINE);
+        publisher.publish(Lists.newArrayList(uriOffline));
     }
 
     @Override
