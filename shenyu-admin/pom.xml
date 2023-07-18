@@ -28,22 +28,8 @@
     <properties>
         <commons-io.version>2.11.0</commons-io.version>
         <orai18n.version>19.7.0.0</orai18n.version>
-        <polaris-all.version>1.13.0-SNAPSHOT</polaris-all.version>
+        <polaris-all.version>1.13.0</polaris-all.version>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>nexus-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>
