@@ -74,7 +74,7 @@ public class DefaultConnectionConfigProvider implements ClientConnectionConfigPr
      * @param status status  (0, healthy, 1 unhealthy)
      * @return openStatus false close, true open.
      */
-    private boolean open(int status) {
+    private boolean open(final int status) {
         return Objects.equals(status, 0);
     }
 
