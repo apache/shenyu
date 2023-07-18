@@ -37,7 +37,6 @@ import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
@@ -121,16 +120,14 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
         String key = buildProxySelectorKey(discoveryHandlerDTO.getListenerNode());
         if (Objects.isNull(shenyuDiscoveryService)) {
-            LOG.warn("before start ProxySelector you need init DiscoveryId={}", discoveryHandlerDTO.getDiscoveryId());
-            return;
+            throw new ShenyuAdminException(String.format("before start ProxySelector you need init DiscoveryId=%s", discoveryHandlerDTO.getDiscoveryId()));
         }
         if (!shenyuDiscoveryService.exits(key)) {
-            LOG.warn("shenyu discovery start watcher need you has this key {} in Discovery", key);
-            return;
+            throw new ShenyuAdminException(String.format("shenyu discovery start watcher need you has this key %s in Discovery", key));
         }
         Set<String> cacheKey = dataChangedEventListenerCache.get(discoveryHandlerDTO.getDiscoveryId());
         if (Objects.nonNull(cacheKey) && cacheKey.contains(key)) {
-            throw new ShenyuAdminException("shenyu discovery has watcher key " + key);
+            throw new ShenyuAdminException(String.format("shenyu discovery has watcher key = %s", key));
         }
         shenyuDiscoveryService.watcher(key, getDiscoveryDataChangedEventListener(discoveryHandlerDTO, proxySelectorDTO));
         cacheKey.add(key);
