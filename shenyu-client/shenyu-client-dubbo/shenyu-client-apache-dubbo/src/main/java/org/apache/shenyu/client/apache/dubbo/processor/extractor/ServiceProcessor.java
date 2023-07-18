@@ -15,25 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.manager;
+package org.apache.shenyu.client.apache.dubbo.processor.extractor;
 
-import java.util.Set;
-import org.apache.shenyu.admin.model.bean.UpstreamInstance;
+import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.core.register.matcher.ApiAnnotationProcessor;
+import org.springframework.stereotype.Service;
 
 /**
- * Service document Manager.
+ * ServiceProcessor.
  */
-public interface ServiceDocManager {
-
-    /**
-     * pull API document.
-     * @param currentServices currentServices
-     */
-    void pullApiDocument(Set<UpstreamInstance> currentServices);
-
-    /**
-     * pull API document.
-     * @param instance instance
-     */
-    void pullApiDocument(UpstreamInstance instance);
+public class ServiceProcessor implements ApiAnnotationProcessor<Service> {
+    
+    @Override
+    public void process(final ApiBean apiBean, final Service annotation) {
+        apiBean.setBeanPath(annotation.value());
+    }
+    
+    @Override
+    public void process(final ApiBean.ApiDefinition definition, final Service annotation) {
+        // nothing
+    }
+    
+    @Override
+    public Class<Service> matchAnnotation() {
+        return Service.class;
+    }
 }
