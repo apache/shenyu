@@ -75,11 +75,6 @@ public class DocManagerImpl implements DocManager {
      */
     private static final Map<String, String> CLUSTER_MD5_MAP = new HashMap<>();
 
-    /**
-     * key: DocItem.id, value: docInfo.
-     */
-    private static final Map<String, DocItem> ITEM_DOC_MAP = new ConcurrentHashMap<>(256);
-
     private static final DocParser SWAGGER_DOC_PARSER = new SwaggerDocParser();
 
     @Resource
@@ -102,13 +97,11 @@ public class DocManagerImpl implements DocManager {
         if (Objects.equals(newMd5, oldMd5)) {
             return;
         }
-//        CLUSTER_MD5_MAP.put(clusterName, newMd5);
         DocInfo docInfo = getDocInfo(clusterName, docInfoJson);
         if (Objects.isNull(docInfo) || CollectionUtils.isEmpty(docInfo.getDocModuleList())) {
             return;
         }
         List<DocModule> docModules = docInfo.getDocModuleList();
-        DOC_DEFINITION_MAP.put(docInfo.getTitle(), docInfo);
         docModules.forEach(docModule -> docModule.getDocItems().forEach(docItem -> {
             ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                 .consume(this.getProduceConsume(docItem.getConsumes()))
@@ -165,7 +158,7 @@ public class DocManagerImpl implements DocManager {
             docInfo.setContextPath(contexPath);
             return docInfo;
         } catch (Exception e) {
-            LOG.error("getDocInfo error= ", e);
+            LOG.error("getDocInfo clusterName={} error={} ",clusterName, e);
             return null;
         }
     }
@@ -184,17 +177,6 @@ public class DocManagerImpl implements DocManager {
     }
 
     /**
-     * getDocItem.
-     *
-     * @param id id
-     * @return DocItem
-     */
-    @Override
-    public DocItem getDocItem(final String id) {
-        return ITEM_DOC_MAP.get(id);
-    }
-
-    /**
      * get DocInfo.
      *
      * @return Collection
@@ -202,27 +184,5 @@ public class DocManagerImpl implements DocManager {
     @Override
     public Collection<DocInfo> listAll() {
         return DOC_DEFINITION_MAP.values();
-    }
-
-    /**
-     * getDocMd5.
-     *
-     * @param clusterName clusterName
-     * @return String
-     */
-    @Override
-    public String getDocMd5(final String clusterName) {
-        return CLUSTER_MD5_MAP.get(clusterName);
-    }
-
-    /**
-     * remove doc.
-     *
-     * @param clusterName clusterName
-     */
-    @Override
-    public void remove(final String clusterName) {
-        CLUSTER_MD5_MAP.remove(clusterName);
-        DOC_DEFINITION_MAP.entrySet().removeIf(entry -> clusterName.equalsIgnoreCase(entry.getValue().getClusterName()));
     }
 }
