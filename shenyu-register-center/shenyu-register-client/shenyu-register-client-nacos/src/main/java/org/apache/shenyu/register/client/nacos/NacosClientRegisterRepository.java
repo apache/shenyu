@@ -92,7 +92,7 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
     }
 
     @Override
-    public void close() {
+    public void closeRepository() {
         try {
             configService.shutDown();
             namingService.shutDown();

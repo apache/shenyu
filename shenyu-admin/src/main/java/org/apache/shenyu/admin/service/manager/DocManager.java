@@ -37,14 +37,6 @@ public interface DocManager {
     void addDocInfo(String serviceId, String docJson, Consumer<DocInfo> callback);
 
     /**
-     * get docInfo by title.
-     *
-     * @param title title
-     * @return DocInfo
-     */
-    DocInfo getByTitle(String title);
-
-    /**
      * getDocItem.
      *
      * @param id id

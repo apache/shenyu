@@ -28,6 +28,8 @@ public class DocInfo {
 
     private String clusterName;
 
+    private String contextPath;
+
     private List<DocModule> docModuleList;
 
     /**
@@ -64,6 +66,24 @@ public class DocInfo {
      */
     public void setClusterName(final String clusterName) {
         this.clusterName = clusterName;
+    }
+
+    /**
+     * get contextPath.
+     *
+     * @return contextPath
+     */
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    /**
+     * set contextPath.
+     *
+     * @param contextPath contextPath
+     */
+    public void setContextPath(final String contextPath) {
+        this.contextPath = contextPath;
     }
 
     /**
