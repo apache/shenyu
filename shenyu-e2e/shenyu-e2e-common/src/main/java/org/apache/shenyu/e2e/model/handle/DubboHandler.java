@@ -47,11 +47,16 @@ public class DubboHandler implements PluginHandle {
     public DubboHandler() {
     }
 
+    /**
+     * builder.
+     *
+     * @return Builder
+     */
     public static Builder builder() {
         return new Builder();
     }
 
-    public DubboHandler(Builder builder) {
+    public DubboHandler(final Builder builder) {
         this.upstreamHost = builder.upstreamHost;
         this.protocol = builder.protocol;
         this.upstreamUrl = builder.upstreamUrl;
@@ -62,67 +67,145 @@ public class DubboHandler implements PluginHandle {
         this.weight = builder.weight;
     }
 
+    /**
+     * get upstreamHost.
+     *
+     * @return upstreamHost
+     */
     public String getUpstreamHost() {
         return upstreamHost;
     }
 
-    public void setUpstreamHost(String upstreamHost) {
+    /**
+     * set upstreamHost.
+     *
+     * @param upstreamHost upstreamHost
+     */
+    public void setUpstreamHost(final String upstreamHost) {
         this.upstreamHost = upstreamHost;
     }
 
+    /**
+     * get protocol.
+     * @return protocol
+     */
     public String getProtocol() {
         return protocol;
     }
 
-    public void setProtocol(String protocol) {
+    /**
+     * set protocol.
+     *
+     * @param protocol protocol
+     */
+    public void setProtocol(final String protocol) {
         this.protocol = protocol;
     }
 
+    /**
+     * get upstreamUrl.
+     *
+     * @return upstreamUrl
+     */
     public String getUpstreamUrl() {
         return upstreamUrl;
     }
 
-    public void setUpstreamUrl(String upstreamUrl) {
+    /**
+     * set upstreamUrl.
+     *
+     * @param upstreamUrl upstreamUrl
+     */
+    public void setUpstreamUrl(final String upstreamUrl) {
         this.upstreamUrl = upstreamUrl;
     }
 
+    /**
+     * get gray.
+     *
+     * @return gray
+     */
     public String getGray() {
         return gray;
     }
 
-    public void setGray(String gray) {
+    /**
+     * set gray.
+     *
+     * @param gray gray
+     */
+    public void setGray(final String gray) {
         this.gray = gray;
     }
 
+    /**
+     * is status.
+     *
+     * @return status
+     */
     public boolean isStatus() {
         return status;
     }
 
-    public void setStatus(boolean status) {
+    /**
+     * set status.
+     * @param status status
+     */
+    public void setStatus(final boolean status) {
         this.status = status;
     }
 
+    /**
+     * get timestamp.
+     *
+     * @return timestamp
+     */
     public long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    /**
+     * set timestamp.
+     *
+     * @param timestamp timestamp
+     */
+    public void setTimestamp(final long timestamp) {
         this.timestamp = timestamp;
     }
 
+    /**
+     * get warmup.
+     *
+     * @return warmup
+     */
     public long getWarmup() {
         return warmup;
     }
 
-    public void setWarmup(long warmup) {
+    /**
+     * set warmup.
+     *
+     * @param warmup warmup
+     */
+    public void setWarmup(final long warmup) {
         this.warmup = warmup;
     }
 
+    /**
+     * get weight.
+     *
+     * @return weight
+     */
     public int getWeight() {
         return weight;
     }
 
-    public void setWeight(int weight) {
+    /**
+     * set weight.
+     *
+     * @param weight weight
+     */
+    public void setWeight(final int weight) {
         this.weight = weight;
     }
 
@@ -155,46 +238,99 @@ public class DubboHandler implements PluginHandle {
         private Builder() {
         }
 
+        /**
+         * build new Object.
+         *
+         * @return DubboHandler
+         */
         public DubboHandler build() {
             return new DubboHandler(this);
         }
 
-        public Builder upstreamHost(String upstreamHost) {
+        /**
+         * build upstreamHost.
+         *
+         * @param upstreamHost upstreamHost
+         * @return upstreamHost
+         */
+        public Builder upstreamHost(final String upstreamHost) {
             this.upstreamHost = upstreamHost;
             return this;
         }
 
-        public Builder protocol(String protocol) {
+        /**
+         * build protocol.
+         *
+         * @param protocol protocol
+         * @return protocol
+         */
+        public Builder protocol(final String protocol) {
             this.protocol = protocol;
             return this;
         }
 
-        public Builder upstreamUrl(String upstreamUrl) {
+        /**
+         * build upstreamUrl.
+         *
+         * @param upstreamUrl upstreamUrl
+         * @return upstreamUrl
+         */
+        public Builder upstreamUrl(final String upstreamUrl) {
             this.upstreamUrl = upstreamUrl;
             return this;
         }
 
-        public Builder gray(String gray) {
+        /**
+         * build gray.
+         *
+         * @param gray gray
+         * @return gray
+         */
+        public Builder gray(final String gray) {
             this.gray = gray;
             return this;
         }
 
-        public Builder status(boolean status) {
+        /**
+         * build status.
+         *
+         * @param status status
+         * @return status
+         */
+        public Builder status(final boolean status) {
             this.status = status;
             return this;
         }
 
-        public Builder timestamp(long timestamp) {
+        /**
+         * build timestamp.
+         *
+         * @param timestamp timestamp
+         * @return timestamp
+         */
+        public Builder timestamp(final long timestamp) {
             this.timestamp = timestamp;
             return this;
         }
 
-        public Builder warmup(long warmup) {
+        /**
+         * build warmup.
+         *
+         * @param warmup warmup
+         * @return warmup
+         */
+        public Builder warmup(final long warmup) {
             this.warmup = warmup;
             return this;
         }
 
-        public Builder weight(int weight) {
+        /**
+         * build weight.
+         *
+         * @param weight weight
+         * @return weight
+         */
+        public Builder weight(final int weight) {
             this.weight = weight;
             return this;
         }

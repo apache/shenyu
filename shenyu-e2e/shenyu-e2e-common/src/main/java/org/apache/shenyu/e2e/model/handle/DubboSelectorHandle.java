@@ -26,19 +26,34 @@ public class DubboSelectorHandle implements PluginHandle {
     public DubboSelectorHandle() {
     }
 
-    public DubboSelectorHandle(Builder builder) {
+    public DubboSelectorHandle(final Builder builder) {
         this.handle = builder.handle;
     }
 
+    /**
+     * builder.
+     *
+     * @return Builder
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * get handle.
+     *
+     * @return handle.
+     */
     public List<DubboHandler> getHandle() {
         return handle;
     }
 
-    public void setHandle(List<DubboHandler> handle) {
+    /**
+     * set handle.
+     *
+     * @param handle handle
+     */
+    public void setHandle(final List<DubboHandler> handle) {
         this.handle = handle;
     }
 
@@ -53,7 +68,13 @@ public class DubboSelectorHandle implements PluginHandle {
             return new DubboSelectorHandle(this);
         }
 
-        public Builder handle(List<DubboHandler> handle) {
+        /**
+         * build handle.
+         *
+         * @param handle handle
+         * @return Builder
+         */
+        public Builder handle(final List<DubboHandler> handle) {
             this.handle = handle;
             return this;
         }
