@@ -14,7 +14,7 @@
 # limitations under the License.
 server:
   port: 8899
-  address: 0.0.0.0
+  #address: 0.0.0.0
   tomcat:
     max-http-form-post-size: 100MB
 
@@ -33,8 +33,8 @@ shenyu:
   #          port: 8189
   sdk:
     enabled: true
-    register-type: eureka #local #etcd #nacos #consul
-    server-lists: http://localhost:8761/eureka/ #http://localhost:9095 #http://localhost:2379 #localhost:8848
+    register-type: local #etcd #nacos #consul #eureka
+    server-lists: http://localhost:9095 #http://localhost:2379 #localhost:8848 #http://localhost:8761/eureka/
 
 spring:
   servlet:

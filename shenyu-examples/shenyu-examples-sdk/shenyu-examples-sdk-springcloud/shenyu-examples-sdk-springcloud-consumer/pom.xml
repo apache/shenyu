@@ -35,7 +35,6 @@
     </properties>
 
     <dependencies>
-
         <!--spring bootstrap-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -79,7 +78,7 @@
         <!--shenyu sdk-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-sdk</artifactId>
+            <artifactId>shenyu-spring-boot-starter-sdk-springcloud</artifactId>
         </dependency>
 
         <dependency>
@@ -98,13 +97,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-sdk-httpclient</artifactId>
-        </dependency>
-
-
     </dependencies>
 
     <build>

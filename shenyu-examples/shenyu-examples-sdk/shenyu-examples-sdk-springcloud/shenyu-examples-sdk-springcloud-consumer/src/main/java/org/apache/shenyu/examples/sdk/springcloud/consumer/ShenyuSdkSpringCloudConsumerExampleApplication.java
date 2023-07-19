@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.examples.sdk.springcloud.consumer;
 
-import org.apache.shenyu.sdk.spring.EnableShenyuClients;
+import org.apache.shenyu.sdk.springcloud.EnableShenyuClients;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

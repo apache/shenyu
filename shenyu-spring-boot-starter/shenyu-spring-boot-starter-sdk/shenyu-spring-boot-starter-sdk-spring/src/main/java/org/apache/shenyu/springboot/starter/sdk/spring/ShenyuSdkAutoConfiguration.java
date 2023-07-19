@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.springboot.starter.sdk;
+package org.apache.shenyu.springboot.starter.sdk.spring;
 
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;

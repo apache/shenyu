@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.examples.sdk.springcloud.consumer.controller;
 
+import org.apache.shenyu.examples.sdk.springcloud.consumer.api.FeignSpringCloudClientApi;
 import org.apache.shenyu.examples.sdk.springcloud.consumer.api.ShenyuSpringCloudClientApi;
 import org.apache.shenyu.examples.sdk.springcloud.consumer.dto.OrderDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,8 @@ public class ShenyuSdkSpringCloudConsumerController {
 
     @Autowired
     private ShenyuSpringCloudClientApi clientApi;
+    @Autowired
+    private FeignSpringCloudClientApi feignClientApi;
 
     /**
      * save.
