@@ -213,7 +213,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     public void testConsulClient() {
         DataSyncConfiguration.ConsulListener consulListener = new DataSyncConfiguration.ConsulListener();
         ConsulProperties consulProperties = mock(ConsulProperties.class);
-        when(consulProperties.getUrl()).thenReturn("127.0.0.1");
+        when(consulProperties.getUrl()).thenReturn("http://127.0.0.1:8500");
         assertNotNull(consulListener.consulClient(consulProperties));
     }
 
