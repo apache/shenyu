@@ -17,20 +17,21 @@
 
 package org.apache.shenyu.common.timer;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
  * TimerTask.
  */
 public abstract class TimerTask {
-    
+
     /**
      * The time the current task delays execution ms.
      */
     private final long delayMs;
-    
+
     private TimerTaskList.TimerTaskEntry timerTaskEntry;
-    
+
     /**
      * Instantiates a new Timer task.
      *
@@ -39,7 +40,7 @@ public abstract class TimerTask {
     public TimerTask(final long delayMs) {
         this(delayMs, TimeUnit.MILLISECONDS);
     }
-    
+
     /**
      * Instantiates a new Timer task.
      *
@@ -49,19 +50,19 @@ public abstract class TimerTask {
     public TimerTask(final long delay, final TimeUnit unit) {
         delayMs = unit.toMillis(delay);
     }
-    
+
     /**
      * Sets timer task entry.
      *
      * @param entry the entry
      */
     synchronized void setTimerTaskEntry(final TimerTaskList.TimerTaskEntry entry) {
-        if (timerTaskEntry != null && timerTaskEntry != entry) {
+        if (Objects.nonNull(timerTaskEntry) && timerTaskEntry != entry) {
             this.timerTaskEntry.remove();
         }
         timerTaskEntry = entry;
     }
-    
+
     /**
      * Gets delay ms.
      *
@@ -70,7 +71,7 @@ public abstract class TimerTask {
     long getDelayMs() {
         return delayMs;
     }
-    
+
     /**
      * Gets timer task entry.
      *
@@ -79,17 +80,17 @@ public abstract class TimerTask {
     TimerTaskList.TimerTaskEntry getTimerTaskEntry() {
         return timerTaskEntry;
     }
-    
+
     /**
      * Cancel task.
      */
     public synchronized void cancel() {
-        if (timerTaskEntry != null) {
+        if (Objects.nonNull(timerTaskEntry)) {
             timerTaskEntry.remove();
         }
         timerTaskEntry = null;
     }
-    
+
     /**
      * Run.
      *

@@ -134,7 +134,7 @@ public class HttpServiceDiscovery implements InitializingBean {
         SelectorDO selector = selectorService.findByName(contextPath);
         if (Objects.nonNull(selector)) {
             SelectorData selectorData = selectorService.buildByName(contextPath);
-            if (uriList == null) {
+            if (Objects.isNull(uriList)) {
                 selector.setHandle("");
                 selectorData.setHandle("");
             } else {

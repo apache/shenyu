@@ -150,7 +150,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
     }
 
     @Override
-    public void close() {
+    public void closeRepository() {
         consulClient.agentServiceDeregister(this.service.getId());
     }
 
