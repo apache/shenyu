@@ -48,6 +48,7 @@ import org.apache.shenyu.admin.listener.websocket.WebsocketCollector;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedInit;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
 import org.apache.shenyu.register.client.server.zookeeper.ZookeeperConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -57,6 +58,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -309,7 +312,16 @@ public class DataSyncConfiguration {
          */
         @Bean
         public ConsulClient consulClient(final ConsulProperties consulProperties) {
-            return new ConsulClient(consulProperties.getUrl());
+            String url = consulProperties.getUrl();
+            if (StringUtils.isBlank(url)) {
+                throw new ShenyuException("sync.consul.url can not be null.");
+            }
+            try {
+                URL consulUrl = new URL(url);
+                return consulUrl.getPort() < 0 ? new ConsulClient(consulUrl.getHost()) : new ConsulClient(consulUrl.getHost(), consulUrl.getPort());
+            } catch (MalformedURLException e) {
+                throw new ShenyuException("sync.consul.url formatter is not incorrect.");
+            }
         }
 
         /**
