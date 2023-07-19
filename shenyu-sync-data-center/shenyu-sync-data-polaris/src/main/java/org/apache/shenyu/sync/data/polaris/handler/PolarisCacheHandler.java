@@ -153,7 +153,6 @@ public class PolarisCacheHandler {
             List<ProxySelectorData> proxySelectorDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configInfo, ProxySelectorData.class).values());
             proxySelectorDataList.forEach(proxySelectorData -> proxySelectorDataSubscribers.forEach(subscriber -> {
                 subscriber.unSubscribe(proxySelectorData);
-                subscriber.onSubscribe(proxySelectorData, proxySelectorData.getDiscoveryUpstreamList());
             }));
         } catch (JsonParseException e) {
             LOG.error("sync proxy selector data have error", e);
