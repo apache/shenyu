@@ -47,15 +47,6 @@ public class DubboHandler implements PluginHandle {
     public DubboHandler() {
     }
 
-    /**
-     * builder.
-     *
-     * @return Builder
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
-
     public DubboHandler(final Builder builder) {
         this.upstreamHost = builder.upstreamHost;
         this.protocol = builder.protocol;
@@ -65,6 +56,15 @@ public class DubboHandler implements PluginHandle {
         this.timestamp = builder.timestamp;
         this.warmup = builder.warmup;
         this.weight = builder.weight;
+    }
+
+    /**
+     * builder.
+     *
+     * @return Builder
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**

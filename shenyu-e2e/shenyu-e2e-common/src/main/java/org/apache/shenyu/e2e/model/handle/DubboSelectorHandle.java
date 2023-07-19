@@ -64,6 +64,11 @@ public class DubboSelectorHandle implements PluginHandle {
         public Builder() {
         }
 
+        /**
+         * build DubboSelectorHandle.
+         *
+         * @return DubboSelectorHandle
+         */
         public DubboSelectorHandle build() {
             return new DubboSelectorHandle(this);
         }
