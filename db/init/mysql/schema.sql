@@ -795,8 +795,8 @@ INSERT INTO `plugin` VALUES ('19', 'jwt', '{\"secretKey\":\"key\"}', 'Authentica
 INSERT INTO `plugin` VALUES ('2', 'waf', '{\"model\":\"black\"}', 'Authentication', 50, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('20', 'request', NULL, 'HttpProcess', 120, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('21', 'oauth2', NULL, 'Authentication', 40, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
-INSERT INTO `plugin` VALUES ('22', 'paramMapping', '{\"ruleHandlePageType\":\"custom\"}', 'HttpProcess', 70, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
-INSERT INTO `plugin` VALUES ('23', 'modifyResponse', '{\"ruleHandlePageType\":\"custom\"}', 'HttpProcess', 220, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
+INSERT INTO `plugin` VALUES ('22', 'paramMapping', NULL, 'HttpProcess', 70, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
+INSERT INTO `plugin` VALUES ('23', 'modifyResponse', NULL, 'HttpProcess', 220, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('24', 'cryptorRequest', NULL, 'Cryptor', 100, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('25', 'cryptorResponse', NULL, 'Cryptor', 410, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('26', 'websocket', '{\"multiSelectorHandle\":\"1\"}', 'Proxy', 200, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
@@ -922,7 +922,6 @@ INSERT INTO `plugin_handle` VALUES ('1529402613199978571', '15', 'multiRuleHandl
 INSERT INTO `plugin_handle` VALUES ('1529402613199978572', '15', 'threadpool', 'threadpool', 3, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"cached\",\"placeholder\":\"threadpool\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978573', '14', 'contextPath', 'contextPath', 2, 2, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978574', '14', 'addPrefix', 'addPrefix', 2, 2, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin_handle` VALUES ('1529402613199978575', '20', 'ruleHandlePageType', 'ruleHandlePageType', 3, 3, 0, '{\"required\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978576', '19', 'secretKey', 'secretKey', 2, 3, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978577', '24', 'strategyName', 'strategyName', 3, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978578', '24', 'fieldNames', 'fieldNames', 2, 2, 3, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
