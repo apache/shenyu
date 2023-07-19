@@ -1114,7 +1114,7 @@ CREATE TABLE IF NOT EXISTS `proxy_selector`
 );
 
 -- ----------------------------
--- Table structure for discovery_rel
+-- Table structure for  discovery_rel
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `discovery_rel`
 (
