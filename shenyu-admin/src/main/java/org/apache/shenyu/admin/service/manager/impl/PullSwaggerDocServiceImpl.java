@@ -25,7 +25,7 @@ import java.util.Set;
 import javax.annotation.Resource;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.service.manager.DocManager;
-import org.apache.shenyu.admin.service.manager.ServiceDocManager;
+import org.apache.shenyu.admin.service.manager.PullSwaggerDocService;
 import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
@@ -36,8 +36,8 @@ import org.springframework.stereotype.Service;
  * ServiceDocManagerImpl.
  */
 @Service
-public class ServiceDocManagerImpl implements ServiceDocManager {
-    private static final Logger LOG = LoggerFactory.getLogger(ServiceDocManagerImpl.class);
+public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
+    private static final Logger LOG = LoggerFactory.getLogger(PullSwaggerDocServiceImpl.class);
 
     private static final HttpUtils HTTP_UTILS = new HttpUtils();
 
@@ -72,7 +72,7 @@ public class ServiceDocManagerImpl implements ServiceDocManager {
             docManager.addDocInfo(
                 clusterName,
                 body,
-                callback -> LOG.info("load api document successful，clusterName={}, iPandPort={}",
+                callback -> LOG.info("load api document successful，clusterName={}, ipPort={}",
                     clusterName, instance.getIp() + ":" + instance.getPort())
             );
             CLUSTER_LASTSTARTUPTIME_MAP.put(clusterName, instance.getStartupTime());
