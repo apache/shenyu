@@ -71,6 +71,7 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
         if (MapUtils.isEmpty(handlerMap)) {
             return;
         }
+        LOG.info("start refresh metadata");
         handlerMap.forEach((k, v) -> v.refresh());
     }
 }
