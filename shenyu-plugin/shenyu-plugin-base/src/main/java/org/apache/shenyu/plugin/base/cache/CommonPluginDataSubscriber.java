@@ -112,11 +112,13 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onSubscribe(final PluginData pluginData) {
+        LOG.info("subscribe pluginData for plugin: [id: {}, name: {}]", pluginData.getId(), pluginData.getName());
         subscribeDataHandler(pluginData, DataEventTypeEnum.UPDATE);
     }
     
     @Override
     public void unSubscribe(final PluginData pluginData) {
+        LOG.info("unSubscribe pluginData for plugin: [id: {}, name: {}]", pluginData.getId(), pluginData.getName());
         subscribeDataHandler(pluginData, DataEventTypeEnum.DELETE);
     }
     
@@ -135,11 +137,13 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onSelectorSubscribe(final SelectorData selectorData) {
+        LOG.info("subscribe selectData for selector: [id: {}, name: {}]", selectorData.getId(), selectorData.getName());
         subscribeDataHandler(selectorData, DataEventTypeEnum.UPDATE);
     }
     
     @Override
     public void unSelectorSubscribe(final SelectorData selectorData) {
+        LOG.info("unSubscribe selectData for selector: [id: {}, name: {}]", selectorData.getId(), selectorData.getName());
         subscribeDataHandler(selectorData, DataEventTypeEnum.DELETE);
     }
     
@@ -161,11 +165,13 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onRuleSubscribe(final RuleData ruleData) {
+        LOG.info("subscribe ruleData for rule[id: {}, name: {}]", ruleData.getId(), ruleData.getName());
         subscribeDataHandler(ruleData, DataEventTypeEnum.UPDATE);
     }
     
     @Override
     public void unRuleSubscribe(final RuleData ruleData) {
+        LOG.info("unSubscribe ruleData for rule[id: {}, name: {}]", ruleData.getId(), ruleData.getName());
         subscribeDataHandler(ruleData, DataEventTypeEnum.DELETE);
     }
     
