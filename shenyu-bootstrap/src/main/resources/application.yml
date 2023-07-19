@@ -16,6 +16,9 @@
 server:
   port: 9195
   address: 0.0.0.0
+  compression:
+    enabled: true
+    minResponseSize: 1048576 # If the response data is greater than 1M, enable compression.
 
 spring:
   main:
