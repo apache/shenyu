@@ -18,6 +18,8 @@
 package org.apache.shenyu.springboot.sync.data.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -35,6 +37,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 
@@ -93,6 +97,15 @@ public class ConsulSyncDataConfiguration {
      */
     @Bean
     public ConsulClient consulClient(final ConsulConfig consulConfig) {
-        return new ConsulClient(consulConfig.getUrl());
+        String url = consulConfig.getUrl();
+        if (StringUtils.isBlank(url)) {
+            throw new ShenyuException("sync.consul.url can not be null.");
+        }
+        try {
+            URL consulUrl = new URL(url);
+            return consulUrl.getPort() < 0 ? new ConsulClient(consulUrl.getHost()) : new ConsulClient(consulUrl.getHost(), consulUrl.getPort());
+        } catch (MalformedURLException e) {
+            throw new ShenyuException("sync.consul.url formatter is not incorrect.");
+        }
     }
 }

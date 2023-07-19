@@ -23,6 +23,8 @@ import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.ResponseUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
@@ -51,6 +53,7 @@ import java.util.function.Function;
  * The type File size filter.
  */
 public class FileSizeFilter implements WebFilter {
+    private static final Logger LOG = LoggerFactory.getLogger(FileSizeFilter.class);
 
     private static final int BYTES_PER_MB = 1024 * 1024;
 
@@ -77,6 +80,7 @@ public class FileSizeFilter implements WebFilter {
                             ServerHttpResponse response = exchange.getResponse();
                             response.setStatusCode(HttpStatus.BAD_REQUEST);
                             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.PAYLOAD_TOO_LARGE);
+                            LOG.info("The file size exceeds the limit. The actual size is {}M , response:{}", dataBuffer.capacity() / BYTES_PER_MB, error);
                             return WebFluxResultUtils.result(exchange, error);
                         }
                         BodyInserter<Mono<DataBuffer>, ReactiveHttpOutputMessage> bodyInsert = BodyInserters.fromPublisher(Mono.just(dataBuffer), DataBuffer.class);
