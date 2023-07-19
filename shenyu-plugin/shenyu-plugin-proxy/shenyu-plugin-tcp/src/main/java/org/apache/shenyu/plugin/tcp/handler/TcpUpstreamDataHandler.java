@@ -47,7 +47,7 @@ public class TcpUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
         BootstrapServer bootstrapServer = TcpBootstrapFactory.getSingleton().getCache(discoverySyncData.getSelectorName());
         if (Objects.nonNull(bootstrapServer)) {
             bootstrapServer.removeCommonUpstream(removed);
-            LOG.info("shenyu update TcpBootstrapServer success upstream is {}", discoverySyncData.getUpstreamDataList());
+            LOG.info("shenyu update TcpBootstrapServer [{}] success upstream is {}", discoverySyncData.getSelectorName(), discoverySyncData.getUpstreamDataList());
         } else {
             LOG.warn("shenyu update TcpBootstrapServer don't find name is {}", discoverySyncData.getSelectorName());
         }
