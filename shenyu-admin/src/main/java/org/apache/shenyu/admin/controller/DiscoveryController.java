@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import javax.validation.Valid;
 
@@ -58,7 +60,7 @@ public class DiscoveryController {
      * query Discovery by plugin name and level.
      *
      * @param pluginName plugin name
-     * @param level level
+     * @param level      level
      * @return {@link org.apache.shenyu.admin.model.vo.DiscoveryVO}
      */
     @GetMapping("")
@@ -76,4 +78,16 @@ public class DiscoveryController {
     public ShenyuAdminResult createOrUpdate(@Valid @RequestBody final DiscoveryDTO discoveryDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.createOrUpdate(discoveryDTO));
     }
+
+    /**
+     * delete by id.
+     *
+     * @param discoveryId discoveryId
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @DeleteMapping("/{discoveryId}")
+    public ShenyuAdminResult delete(@PathVariable("discoveryId") final String discoveryId) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.delete(discoveryId));
+    }
+
 }
