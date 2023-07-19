@@ -68,8 +68,10 @@ public interface ShenyuClientRegisterRepository {
     }
     
     /**
-     * Close.
+     * closeRepository.
+     * If the close method is used, Spring will call it by default when the bean is destroyed,
+     * So its method name is closeRepository to avoid being called by default when the bean is destroyed.
      */
-    default void close() {
+    default void closeRepository() {
     }
 }

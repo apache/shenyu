@@ -412,6 +412,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     postgresql 42.3.8: https://github.com/pgjdbc/pgjdbc, BSD 2-Clause
     protobuf-java 3.12.0: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
     protobuf-java-util 3.21.1: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
+    openGauss-connector-jdbc 5.0.0-og https://github.com/opengauss-mirror/openGauss-connector-jdbc
 
 ========================================================================
 CC0 licenses
@@ -448,7 +449,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     java-jwt 3.12.0: https://mvnrepository.com/artifact/com.auth0/java-jwt, MIT
     jcl-over-slf4j 1.7.36: https://www.slf4j.org, MIT
     jul-to-slf4j 1.7.36: http://www.slf4j.org, MIT
-    pagehelper 5.3.1: https://github.com/pagehelper/Mybatis-PageHelper, MIT
+    pagehelper 5.3.3: https://github.com/pagehelper/Mybatis-PageHelper, MIT
     slf4j-api 1.7.36: https://www.slf4j.org, MIT
     reactive-streams 1.0.4 https://github.com/reactive-streams/reactive-streams-jvm/blob/master/LICENSE, MIT
 
