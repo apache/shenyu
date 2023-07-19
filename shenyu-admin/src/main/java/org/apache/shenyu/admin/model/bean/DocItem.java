@@ -19,14 +19,13 @@ package org.apache.shenyu.admin.model.bean;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * DocItem.
  */
 public class DocItem {
-
-    private String id;
 
     private String module;
 
@@ -45,6 +44,8 @@ public class DocItem {
      * http method list.
      */
     private Collection<String> httpMethodList;
+
+    private Collection<String> consumes;
 
     private Collection<String> produces;
 
@@ -74,28 +75,10 @@ public class DocItem {
      */
     public boolean isUploadRequest() {
         boolean upload = false;
-        if (requestParameters != null) {
+        if (Objects.nonNull(requestParameters)) {
             upload = requestParameters.stream().map(DocParameter::getType).anyMatch("file"::equalsIgnoreCase);
         }
         return multiple || upload;
-    }
-
-    /**
-     * getId.
-     *
-     * @return String
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * setId.
-     *
-     * @param id id
-     */
-    public void setId(final String id) {
-        this.id = id;
     }
 
     /**
@@ -207,6 +190,24 @@ public class DocItem {
     }
 
     /**
+     * get consumes.
+     *
+     * @return consumes
+     */
+    public Collection<String> getConsumes() {
+        return consumes;
+    }
+
+    /**
+     * set consumes.
+     *
+     * @param consumes consumes
+     */
+    public void setConsumes(final Collection<String> consumes) {
+        this.consumes = consumes;
+    }
+
+    /**
      * getProduces.
      *
      * @return String
@@ -262,6 +263,7 @@ public class DocItem {
 
     /**
      * getRequestHeaders.
+     *
      * @return request headers
      */
     public List<DocParameter> getRequestHeaders() {

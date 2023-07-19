@@ -22,9 +22,14 @@ import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 @FunctionalInterface
 public interface Checker {
     
-    void check(GatewayClient client);
-    
     Checker DEFAULT = supplier -> {
+    
     };
+    
+    /**
+     * check client.
+     * @param client client
+     */
+    void check(GatewayClient client);
     
 }

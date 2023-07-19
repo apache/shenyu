@@ -18,18 +18,25 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Lists;
-import org.apache.shenyu.common.config.ShenyuConfig.ShenyuTrieConfig;
+import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
+import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.enums.TrieMatchModeEnum;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -38,12 +45,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Test cases for CommonPluginDataSubscriber.
@@ -75,7 +76,7 @@ public final class CommonPluginDataSubscriberTest {
     public void setup() {
         this.mockShenyuTrieConfig();
         ArrayList<PluginDataHandler> pluginDataHandlerList = Lists.newArrayList();
-        commonPluginDataSubscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher, new ShenyuTrieConfig());
+        commonPluginDataSubscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher, new SelectorMatchCache(), new RuleMatchCache());
         baseDataCache = BaseDataCache.getInstance();
     }
 
@@ -134,7 +135,7 @@ public final class CommonPluginDataSubscriberTest {
     public void testOnSelectorSubscribe() {
         baseDataCache.cleanSelectorData();
 
-        SelectorData selectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
+        SelectorData selectorData = SelectorData.builder().id("1").enabled(true).pluginName(mockPluginName1).sort(1).build();
         commonPluginDataSubscriber.onSelectorSubscribe(selectorData);
         List<SelectorData> obtainSelectorData = baseDataCache.obtainSelectorData(selectorData.getPluginName());
         assertEquals(Lists.newArrayList(selectorData), obtainSelectorData);
@@ -143,7 +144,7 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testUnSelectorSubscribe() {
         baseDataCache.cleanSelectorData();
-        SelectorData selectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
+        SelectorData selectorData = SelectorData.builder().id("1").enabled(true).pluginName(mockPluginName1).build();
         baseDataCache.cacheSelectData(selectorData);
         assertNotNull(baseDataCache.obtainSelectorData(selectorData.getPluginName()));
 
@@ -154,8 +155,8 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testRefreshSelectorDataAll() {
         baseDataCache.cleanSelectorData();
-        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
-        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
+        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").enabled(true).pluginName(mockPluginName1).build();
+        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").enabled(true).pluginName(mockPluginName2).build();
         baseDataCache.cacheSelectData(firstCachedSelectorData);
         baseDataCache.cacheSelectData(secondCachedSelectorData);
         assertNotNull(baseDataCache.obtainSelectorData(firstCachedSelectorData.getPluginName()));
@@ -234,7 +235,8 @@ public final class CommonPluginDataSubscriberTest {
 
     private void mockShenyuTrieConfig() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        when(context.getBean(ShenyuTrie.class)).thenReturn(new ShenyuTrie(100L, 100L, 100L, TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
+        when(context.getBean(TrieCacheTypeEnum.RULE.getTrieType())).thenReturn(new ShenyuTrie(100L, TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
+        when(context.getBean(TrieCacheTypeEnum.SELECTOR.getTrieType())).thenReturn(new ShenyuTrie(100L, TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
         SpringBeanUtils.getInstance().setApplicationContext(context);
     }
 }

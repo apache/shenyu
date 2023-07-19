@@ -16,6 +16,9 @@
 server:
   port: 9195
   address: 0.0.0.0
+  compression:
+    enabled: true
+    minResponseSize: 1048576 # If the response data is greater than 1M, enable compression.
 
 spring:
   main:
@@ -62,24 +65,43 @@ eureka:
 
 management:
   health:
-    defaults:
+    redis:
       enabled: false
+    elasticsearch:
+      enabled: false
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*" # or health,info
+        
 
 shenyu:
-  matchCache:
-    selector:
-      selectorEnabled: false
+  selectorMatchCache:
+    ## selector L1 cache
+    cache:
+      enabled: false
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 10000 # max size in cache
-    rule:
+    ## selector L2 cache, use trie as L2 cache
+    trie:
+      enabled: false
+      cacheSize: 128 # the number of plug-ins
+      matchMode: antPathMatch
+  ruleMatchCache:
+    ## rule L1 cache
+    cache:
+      enabled: true
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 65536 # max size in cache
-  trie:
-    enabled: true
-    childrenSize: 10000
-    pathVariableSize: 1000
-    pathRuleCacheSize: 1000
-    matchMode: antPathMatch
+    ## rule L2 cache, use trie as L2 cache
+    trie:
+      enabled: false
+      cacheSize: 1024 # the number of selectors
+      matchMode: antPathMatch
   netty:
     http:
       # set to false, user can custom the netty tcp server config.
@@ -116,8 +138,21 @@ shenyu:
         allocType: "pooled"
         messageSizeEstimator: 8
         singleEventExecutorPerGroup: true
+      sni:
+        enabled: false
+        mod: k8s #manul
+        defaultK8sSecretNamespace: shenyu-ingress
+        defaultK8sSecretName: default-cert
+#        mod: manual
+#        certificates:
+#          - domain: 'localhost'
+#            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
+#            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
+#          - domain: 'example.com'
+#            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
+#            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
 #  httpclient:
-#    strategy: webClient
+#    strategy: webClient # netty
 #    connectTimeout: 45000
 #    responseTimeout: 3000
 #    readerIdleTime: 3000
@@ -234,12 +269,11 @@ shenyu:
     paths:
       - /fallback/hystrix
       - /fallback/resilience4j
+      - /fallback/sentinel
   health:
-    enabled: false
+    enabled: true
     paths:
-      - /actuator/health
-      - /actuator/health/readiness
-      - /actuator/health/liveness
+      - /actuator
       - /health_check
   extPlugin:
     path:
@@ -260,6 +294,8 @@ shenyu:
     interval: 5000
     printEnabled: true
     printInterval: 60000
+  springCloudCache:
+    enabled: false
   ribbon:
     serverListRefreshInterval: 10000
   metrics:

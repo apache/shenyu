@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  */
 public class RuleUpdatedEvent extends RuleChangedEvent {
     
+    private static final long serialVersionUID = 7530493252121753856L;
     
     /**
      * Create a new {@code RuleChangedEvent}.operator is unknown.

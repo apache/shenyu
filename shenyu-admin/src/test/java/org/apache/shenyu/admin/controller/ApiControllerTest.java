@@ -77,7 +77,7 @@ public final class ApiControllerTest {
     @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(apiController)
-                .setControllerAdvice(new ExceptionHandlers())
+                .setControllerAdvice(new ExceptionHandlers(null))
                 .build();
         this.apiVO = ApiVO.builder()
                 .id("123")
@@ -90,7 +90,7 @@ public final class ApiControllerTest {
                 .rpcType("/dubbo")
                 .state(0)
                 .apiSource(0)
-                .document("document")
+                .document("{}")
                 .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
     }

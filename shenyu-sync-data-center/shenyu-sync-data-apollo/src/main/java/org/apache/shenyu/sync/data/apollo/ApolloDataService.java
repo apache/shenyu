@@ -20,23 +20,28 @@ package org.apache.shenyu.sync.data.apollo;
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigChangeListener;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
-import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -56,6 +61,10 @@ public class ApolloDataService implements SyncDataService {
 
     private final List<AuthDataSubscriber> authDataSubscribers;
 
+    private final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers;
+
+    private final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers;
+
     private final Map<String, ConfigChangeListener> cache = new ConcurrentHashMap<>();
 
     /**
@@ -68,11 +77,15 @@ public class ApolloDataService implements SyncDataService {
      */
     public ApolloDataService(final Config configService, final PluginDataSubscriber pluginDataSubscriber,
                              final List<MetaDataSubscriber> metaDataSubscribers,
-                             final List<AuthDataSubscriber> authDataSubscribers) {
+                             final List<AuthDataSubscriber> authDataSubscribers,
+                             final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
+                             final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
         this.configService = configService;
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
+        this.proxySelectorDataSubscribers = proxySelectorDataSubscribers;
+        this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
         subAllData();
         watchData();
 
@@ -87,6 +100,7 @@ public class ApolloDataService implements SyncDataService {
         subscriberPluginData();
         subscriberRuleData();
         subscriberSelectorData();
+        subscriberProxySelectorData();
     }
 
     /**
@@ -159,6 +173,32 @@ public class ApolloDataService implements SyncDataService {
     }
 
     /**
+     * subscriber proxy selector data.
+     * @return proxy selector data list
+     */
+    public List<ProxySelectorData> subscriberProxySelectorData() {
+        List<ProxySelectorData> proxySelectorDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.PROXY_SELECTOR_DATA_ID, "{}"),
+                ProxySelectorData.class).values());
+        proxySelectorDataList.forEach(discoverySyncData -> proxySelectorDataSubscribers.forEach(subscriber -> {
+            subscriber.unSubscribe(discoverySyncData);
+        }));
+        return proxySelectorDataList;
+    }
+
+    /**
+     * subscriber discovery sync data.
+     * @return discovery sync data list
+     */
+    public List<DiscoverySyncData> subscriberDiscoverySyncData() {
+        List<DiscoverySyncData> discoverySyncDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.DISCOVERY_DATA_ID, "{}"),
+                DiscoverySyncData.class).values());
+        discoverySyncDataList.forEach(discoverySyncData -> discoveryUpstreamDataSubscribers.forEach(subscriber -> {
+            subscriber.unSubscribe(discoverySyncData);
+        }));
+        return discoverySyncDataList;
+    }
+
+    /**
      * watch plugin data.
      */
     private void watchData() {
@@ -183,6 +223,14 @@ public class ApolloDataService implements SyncDataService {
                 case ApolloPathConstants.AUTH_DATA_ID:
                     List<AppAuthData> appAuthDataList = subscriberAuthData();
                     LOG.info("apollo listener authData: {}", appAuthDataList);
+                    break;
+                case ApolloPathConstants.PROXY_SELECTOR_DATA_ID:
+                    List<ProxySelectorData> proxySelectorData = subscriberProxySelectorData();
+                    LOG.info("apollo listener ProxySelectorData: {}", proxySelectorData);
+                    break;
+                case ApolloPathConstants.DISCOVERY_DATA_ID:
+                    List<DiscoverySyncData> discoverySyncData = subscriberDiscoverySyncData();
+                    LOG.info("apollo listener discoverySyncData: {}", discoverySyncData);
                     break;
                 default:
                     break;

@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.e2e.engine.service.docker;
 
-import lombok.Getter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.springframework.util.ResourceUtils;
@@ -33,25 +32,48 @@ import java.util.Map;
 import java.util.Objects;
 
 public class DockerComposeFile {
-    @Getter
+
     private final List<String> services;
     
-    @Getter
     private final File file;
     
-    DockerComposeFile(List<String> services, File file) {
+    DockerComposeFile(final List<String> services, final File file) {
         this.services = services;
         this.file = file;
     }
+
+    /**
+     * get services.
+     *
+     * @return services
+     */
+    public List<String> getServices() {
+        return services;
+    }
+
+    /**
+     * get file.
+     *
+     * @return file
+     */
+    public File getFile() {
+        return file;
+    }
     
-    public static DockerComposeFile parse(String fileName) {
+    /**
+     * parse file to a docker compose file.
+     * @param fileName fileName
+     * @return DockerComposeFile
+     */
+    @SuppressWarnings("unchecked")
+    public static DockerComposeFile parse(final String fileName) {
         final File file = Assertions.assertDoesNotThrow(
-                () -> ResourceUtils.getFile(fileName),
-                "docker-compose file '" + fileName + "' is not found"
+            () -> ResourceUtils.getFile(fileName),
+            "docker-compose file '" + fileName + "' is not found"
         );
         final InputStream compose = Assertions.assertDoesNotThrow(
-                () -> new FileInputStream(file),
-                "docker-compose file '" + fileName + "' is not found"
+            () -> new FileInputStream(file),
+            "docker-compose file '" + fileName + "' is not found"
         );
         final Yaml yaml = new Yaml(new LoaderOptions());
         Map<String, Object> content = yaml.load(compose);

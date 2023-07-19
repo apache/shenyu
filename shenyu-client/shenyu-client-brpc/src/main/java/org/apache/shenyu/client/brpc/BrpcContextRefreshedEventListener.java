@@ -27,15 +27,17 @@ import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublishe
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.javatuples.Sextet;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -92,7 +94,8 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
                 .contextPath(this.getContextPath())
                 .appName(this.getAppName())
                 .rpcType(RpcTypeEnum.BRPC.getName())
-                .host(this.getHost())
+                .eventType(EventType.REGISTER)
+                .host(super.getHost())
                 .port(Integer.parseInt(this.getPort()))
                 .build();
     }
@@ -111,29 +114,39 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
     }
 
     @Override
-    protected String buildApiPath(final Method method, final String superPath, final ShenyuBrpcClient shenyuBrpcClient) {
+    protected String buildApiPath(final Method method,
+                                  final String superPath,
+                                  @Nullable final ShenyuBrpcClient shenyuBrpcClient) {
         return superPath.contains("*")
                 ? pathJoin(this.getContextPath(), superPath.replace("*", ""), method.getName())
-                : pathJoin(this.getContextPath(), superPath, shenyuBrpcClient.path());
+                : pathJoin(this.getContextPath(), superPath, Objects.requireNonNull(shenyuBrpcClient).path());
     }
 
     @Override
-    protected void handleClass(final Class<?> clazz, final Object bean, final ShenyuBrpcClient shenyuBrpcClient, final String superPath) {
+    protected void handleClass(final Class<?> clazz, final Object bean,
+                               @NonNull final ShenyuBrpcClient shenyuBrpcClient,
+                               final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
         for (Method method : methods) {
-            publisher.publishEvent(buildMetaDataDTO(bean, shenyuBrpcClient, superPath, clazz, method));
+            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, shenyuBrpcClient,
+                    buildApiPath(method, superPath, null), clazz, method);
+            publisher.publishEvent(metaData);
+            getMetaDataMap().put(method, metaData);
         }
     }
 
     @Override
-    protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean, final ShenyuBrpcClient shenyuBrpcClient, final String superPath, final Class<?> clazz, final Method method) {
+    protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean,
+                                                   final ShenyuBrpcClient shenyuBrpcClient,
+                                                   final String path,
+                                                   final Class<?> clazz,
+                                                   final Method method) {
         String serviceName = clazz.getInterfaces().length > 0 ? clazz.getInterfaces()[0].getName() : clazz.getName();
-        String path = superPath;
         String desc = shenyuBrpcClient.desc();
-        String host = IpUtils.isCompleteHost(this.getHost()) ? this.getHost() : IpUtils.getHost(this.getHost());
+        String host = super.getHost();
         String configRuleName = shenyuBrpcClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
-        int port = StringUtils.isBlank(this.getPort()) ? -1 : Integer.parseInt(this.getPort());
+        int port = Integer.parseInt(super.getPort());
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
@@ -165,7 +178,7 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
     private BrpcRpcExt.RpcExt build(final Method method) {
         String[] paramNames = localVariableTableParameterNameDiscoverer.getParameterNames(method);
         List<Pair<String, String>> params = new ArrayList<>();
-        if (paramNames != null && paramNames.length > 0) {
+        if (Objects.nonNull(paramNames) && paramNames.length > 0) {
             Class<?>[] paramTypes = method.getParameterTypes();
             for (int i = 0; i < paramNames.length; i++) {
                 params.add(Pair.of(paramTypes[i].getName(), paramNames[i]));

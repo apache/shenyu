@@ -120,7 +120,7 @@ services:
       - "9200:9200"
       - "9300:9300"
     environment:
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
       - discovery.type=single-node
       - xpack.security.enabled=false
     healthcheck:

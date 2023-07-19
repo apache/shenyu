@@ -31,6 +31,12 @@ public enum PluginEnum {
      * Global plugin enum.
      */
     GLOBAL(-1, 0, "global"),
+    
+    /**
+     * Tcp plugin enum.
+     */
+    TCP(0, 0, "tcp"),
+    
     /**
      * Mqtt plugin enum.
      */
@@ -110,8 +116,6 @@ public enum PluginEnum {
      * Request plugin enum.
      */
     REQUEST(120, 0, "request"),
-
-
     
     /**
      * GeneralContext plugin enum.
@@ -152,6 +156,11 @@ public enum PluginEnum {
      * Logging Tencent cls enums.
      */
     LOGGING_TENCENT_CLS(176, 0, "loggingTencentCls"),
+
+    /**
+     * Logging Huawei lts enums.
+     */
+    LOGGING_HUAWEI_LTS(177, 0, "loggingHuaweiLts"),
 
     /**
      * Logging Kafka plugin enum.

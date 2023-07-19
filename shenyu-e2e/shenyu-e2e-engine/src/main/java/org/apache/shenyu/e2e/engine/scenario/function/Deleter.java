@@ -24,7 +24,13 @@ import java.util.List;
 @FunctionalInterface
 public interface Deleter {
     
+    Deleter DEFAULT = AdminClient::deleteSelectors;
+    
+    /**
+     * delete client.
+     * @param client client
+     * @param selectorIds selectorIds
+     */
     void delete(AdminClient client, List<String> selectorIds);
     
-    Deleter DEFAULT = AdminClient::deleteSelectors;
 }

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.e2e.engine;
 
+import com.github.dockerjava.api.DockerClient;
 import junit.framework.AssertionFailedError;
 import org.apache.shenyu.e2e.annotation.ExternalService;
 import org.apache.shenyu.e2e.annotation.ShenYuAdminClient;
@@ -40,13 +41,19 @@ import org.testcontainers.DockerClientFactory;
 
 import java.util.Objects;
 
+/**
+ * ShenYu extension.
+ */
 public class ShenYuExtension implements BeforeAllCallback, ExecutionCondition, AfterAllCallback, ParameterResolver {
+
     private static final Namespace NAMESPACE = Namespace.create(ShenYuExtension.class);
+
     private static final String KEY_EXTENSION_CONTEXT = "_shenyu_service_compose_";
+
     private static final String KEY_ENGINE_CONFIGURE = "_shenyu_engine_configure_";
     
     @Override
-    public void beforeAll(ExtensionContext extensionContext) throws Exception {
+    public void beforeAll(final ExtensionContext extensionContext) throws Exception {
         Store store = extensionContext.getStore(NAMESPACE);
         
         ShenYuEngineConfigure configure = store.get(KEY_ENGINE_CONFIGURE, ShenYuEngineConfigure.class);
@@ -57,7 +64,7 @@ public class ShenYuExtension implements BeforeAllCallback, ExecutionCondition, A
     }
     
     @Override
-    public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
+    public ConditionEvaluationResult evaluateExecutionCondition(final ExtensionContext context) {
         Store store = context.getStore(NAMESPACE);
         ShenYuEngineConfigure configure = store.get(KEY_ENGINE_CONFIGURE, ShenYuEngineConfigure.class);
         if (Objects.isNull(configure)) {
@@ -75,10 +82,10 @@ public class ShenYuExtension implements BeforeAllCallback, ExecutionCondition, A
         
         return ConditionEvaluationResult.enabled("ShenYu test engine is available");
     }
-    
+
     private boolean isDockerAvailable() {
         try {
-            DockerClientFactory.instance().client();
+            final DockerClient client = DockerClientFactory.instance().client();
             return true;
         } catch (Throwable ex) {
             return false;
@@ -86,12 +93,12 @@ public class ShenYuExtension implements BeforeAllCallback, ExecutionCondition, A
     }
     
     @Override
-    public boolean supportsParameter(ParameterContext parameter, ExtensionContext extensionContext) throws ParameterResolutionException {
+    public boolean supportsParameter(final ParameterContext parameter, final ExtensionContext extensionContext) throws ParameterResolutionException {
         return AnnotationUtils.isAnnotated(parameter.getParameter().getType(), ShenYuInjectable.class);
     }
     
     @Override
-    public Object resolveParameter(ParameterContext parameter, ExtensionContext extensionContext) throws ParameterResolutionException {
+    public Object resolveParameter(final ParameterContext parameter, final ExtensionContext extensionContext) throws ParameterResolutionException {
         Store store = extensionContext.getStore(NAMESPACE);
         ShenYuExtensionContext context = store.get(KEY_EXTENSION_CONTEXT, ShenYuExtensionContext.class);
         
@@ -102,20 +109,21 @@ public class ShenYuExtension implements BeforeAllCallback, ExecutionCondition, A
         if (parameterType.isAnnotationPresent(ShenYuGatewayClient.class)) {
             return context.getGatewayClient();
         }
+        // TODO fixme.
         ExternalService service = AnnotationUtils.findAnnotation(parameterType, ExternalService.class)
-                .orElseThrow(() -> new AssertionFailedError("")); // fixme
+                .orElseThrow(() -> new AssertionFailedError(""));
         return context.getExternalServiceClient(service.serviceName());
     }
     
     @Override
-    public void afterAll(ExtensionContext extensionContext) throws Exception {
+    public void afterAll(final ExtensionContext extensionContext) throws Exception {
         Store store = extensionContext.getStore(NAMESPACE);
         ShenYuExtensionContext context = store.get(KEY_EXTENSION_CONTEXT, ShenYuExtensionContext.class);
         Assertions.assertTrue(Objects.nonNull(context), "ShenYuExtensionContext is non-nullable");
         context.cleanup();
     }
     
-    static ShenYuExtensionContext createExtensionContext(ShenYuEngineConfigure config) {
+    static ShenYuExtensionContext createExtensionContext(final ShenYuEngineConfigure config) {
         return new ShenYuExtensionContext(config);
     }
 }

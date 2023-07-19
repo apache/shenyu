@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.ApiMapper;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
@@ -31,7 +32,6 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.platform.commons.util.StringUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -62,6 +62,15 @@ public final class ApiServiceTest {
     private ApiServiceImpl apiService;
 
     @Mock
+    private SelectorService selectorService;
+    
+    @Mock
+    private RuleService ruleService;
+    
+    @Mock
+    private MetaDataService metaDataService;
+    
+    @Mock
     private ApiMapper apiMapper;
 
     @Mock
@@ -72,7 +81,8 @@ public final class ApiServiceTest {
 
     @BeforeEach
     public void setUp() {
-        apiService = new ApiServiceImpl(apiMapper, tagRelationMapper, tagMapper);
+        apiService = new ApiServiceImpl(selectorService, ruleService,
+                metaDataService, apiMapper, tagRelationMapper, tagMapper);
     }
 
     @Test
@@ -86,7 +96,7 @@ public final class ApiServiceTest {
         List<ApiDO> apis = Collections.singletonList(buildApiDO("123"));
         when(apiMapper.selectByIds(Collections.singletonList("123"))).thenReturn(apis);
         when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
-        assertEquals(org.apache.commons.lang3.StringUtils.EMPTY, apiService.delete(Collections.singletonList("123")));
+        assertEquals(StringUtils.EMPTY, apiService.delete(Collections.singletonList("123")));
     }
 
     @Test
@@ -105,7 +115,7 @@ public final class ApiServiceTest {
         pageParameter.setTotalCount(10);
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
         ApiQuery apiQuery = new ApiQuery(null, 0, "", pageParameter);
-        List<ApiDO> apiDOList = IntStream.range(0, 10).mapToObj(i -> buildApiDO("" + i)).collect(Collectors.toList());
+        List<ApiDO> apiDOList = IntStream.range(0, 10).mapToObj(i -> buildApiDO(String.valueOf(i))).collect(Collectors.toList());
         given(this.apiMapper.selectByQuery(apiQuery)).willReturn(apiDOList);
         final CommonPager<ApiVO> apiDOCommonPager = this.apiService.listByPage(apiQuery);
         assertEquals(apiDOCommonPager.getDataList().size(), apiDOList.size());
@@ -140,7 +150,7 @@ public final class ApiServiceTest {
         apiDTO.setApiOwner("string");
         apiDTO.setApiDesc("string");
         apiDTO.setApiSource(0);
-        apiDTO.setDocument("document");
+        apiDTO.setDocument("{}");
         return apiDTO;
     }
 
@@ -148,7 +158,9 @@ public final class ApiServiceTest {
         ApiDTO apiDTO = new ApiDTO();
         apiDTO.setId(id);
         apiDTO.setApiPath("test");
-        apiDTO.setDocument("testDocument");
+        apiDTO.setDocument("{\n"
+            + "    \"module\":\"http-test-controller\"\n"
+            + "}");
         assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, this.apiService.createOrUpdate(apiDTO));
     }
 }

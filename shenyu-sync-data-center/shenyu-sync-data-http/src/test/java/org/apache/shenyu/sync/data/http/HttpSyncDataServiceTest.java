@@ -28,6 +28,8 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,6 +77,10 @@ public final class HttpSyncDataServiceTest {
 
     private AuthDataSubscriber authDataSubscriber;
 
+    private ProxySelectorDataSubscriber proxySelectorDataSubscriber;
+
+    private DiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber;
+
     private HttpSyncDataService httpSyncDataService;
 
     @BeforeEach
@@ -114,6 +120,8 @@ public final class HttpSyncDataServiceTest {
         this.pluginDataSubscriber = mock(PluginDataSubscriber.class);
         this.metaDataSubscriber = mock(MetaDataSubscriber.class);
         this.authDataSubscriber = mock(AuthDataSubscriber.class);
+        this.proxySelectorDataSubscriber = mock(ProxySelectorDataSubscriber.class);
+        this.discoveryUpstreamDataSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
 
         OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
         factory.setConnectTimeout(Objects.isNull(httpConfig.getConnectionTimeout()) ? (int) HttpConstants.CLIENT_POLLING_CONNECT_TIMEOUT : httpConfig.getConnectionTimeout());
@@ -123,7 +131,8 @@ public final class HttpSyncDataServiceTest {
 
         AccessTokenManager accessTokenManager = new AccessTokenManager(restTemplate, httpConfig);
         this.httpSyncDataService = new HttpSyncDataService(httpConfig, pluginDataSubscriber, restTemplate,
-                Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber), accessTokenManager);
+                Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber), Collections.singletonList(proxySelectorDataSubscriber),
+                Collections.singletonList(discoveryUpstreamDataSubscriber), accessTokenManager);
     }
 
     @AfterEach

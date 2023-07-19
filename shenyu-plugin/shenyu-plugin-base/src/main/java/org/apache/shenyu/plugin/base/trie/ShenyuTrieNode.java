@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.plugin.base.trie;
 
-import org.apache.shenyu.common.cache.WindowTinyLFUMap;
-import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ShenyuTrieNode.
@@ -50,7 +50,7 @@ public class ShenyuTrieNode implements Serializable {
     /**
      * path variables.
      */
-    private Map<String, ShenyuTrieNode> pathVariablesSet;
+    private Map<String, ShenyuTrieNode> pathVariables;
 
     /**
      * path variable node.
@@ -70,26 +70,35 @@ public class ShenyuTrieNode implements Serializable {
     /**
      * selectorId mapping to RuleData.
      */
-    private Map<String, List<RuleData>> pathRuleCache;
-    
-    private String selectorId;
+    private Map<String, List<?>> pathCache;
 
     /**
-     * biz info, route info and any other info store here, e.g. ruleId, selectorId and so on.
+     * biz info, if the trie is selector trie, the bizInfo is pluginName, if the trie is rule trie, the bizInfo is selectorId.
      */
-    private Object bizInfo;
+    private String bizInfo;
+    
+    /**
+     * parent node.
+     */
+    private ShenyuTrieNode parentNode;
+    
+    /**
+     * fail to node.
+     */
+    private ShenyuTrieNode failToNode;
 
     public ShenyuTrieNode() {
     }
 
-    public ShenyuTrieNode(final String matchStr, final String fullPath, final boolean endOfPath,
-                          final Long childrenSize, final Long pathRuleCacheSize, final Long pathVariableSize) {
+    public ShenyuTrieNode(final String matchStr, final String fullPath, final boolean endOfPath) {
         this.matchStr = matchStr;
         this.fullPath = fullPath;
         this.endOfPath = endOfPath;
-        this.children = new WindowTinyLFUMap<>(childrenSize);
-        this.pathRuleCache = new WindowTinyLFUMap<>(pathRuleCacheSize);
-        this.pathVariablesSet = new WindowTinyLFUMap<>(pathVariableSize);
+        this.children = new ConcurrentHashMap<>(Constants.TRIE_CHILDREN_SIZE);
+        this.pathCache = new ConcurrentHashMap<>(Constants.TRIE_PATH_CACHE_SIZE);
+        this.pathVariables = new ConcurrentHashMap<>(Constants.TRIE_PATH_VARIABLES_SIZE);
+        this.parentNode = null;
+        this.failToNode = null;
     }
 
     /**
@@ -142,8 +151,8 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @return path variable
      */
-    public Map<String, ShenyuTrieNode> getPathVariablesSet() {
-        return pathVariablesSet;
+    public Map<String, ShenyuTrieNode> getPathVariables() {
+        return pathVariables;
     }
 
     /**
@@ -151,8 +160,8 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param pathVariablesSet pathVariablesSet
      */
-    public void setPathVariablesSet(final Map<String, ShenyuTrieNode> pathVariablesSet) {
-        this.pathVariablesSet = pathVariablesSet;
+    public void setPathVariables(final Map<String, ShenyuTrieNode> pathVariablesSet) {
+        this.pathVariables = pathVariablesSet;
     }
 
     /**
@@ -218,11 +227,11 @@ public class ShenyuTrieNode implements Serializable {
     }
 
     /**
-     * get current path biz info.
+     * get current path biz info, the biz info maybe pluginName or selectorId.
      *
      * @return biz info
      */
-    public Object getBizInfo() {
+    public String getBizInfo() {
         return bizInfo;
     }
 
@@ -231,44 +240,62 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param bizInfo bizInfo
      */
-    public void setBizInfo(final Object bizInfo) {
+    public void setBizInfo(final String bizInfo) {
         this.bizInfo = bizInfo;
     }
 
     /**
-     * get path rule cache.
+     * get path cache.
      *
-     * @return rule cache
+     * @return path cache, maybe selector or rule
      */
-    public Map<String, List<RuleData>> getPathRuleCache() {
-        return pathRuleCache;
+    public Map<String, List<?>> getPathCache() {
+        return pathCache;
     }
 
     /**
      * set path rule cache.
      *
-     * @param pathRuleCache path rule cache
+     * @param pathCache path cache
      */
-    public void setPathRuleCache(final Map<String, List<RuleData>> pathRuleCache) {
-        this.pathRuleCache = pathRuleCache;
+    public void setPathRuleCache(final Map<String, List<?>> pathCache) {
+        this.pathCache = pathCache;
     }
     
     /**
-     * get current node selector id.
+     * get parent node.
      *
-     * @return selectorId
+     * @return parent node
      */
-    public String getSelectorId() {
-        return selectorId;
+    public ShenyuTrieNode getParentNode() {
+        return parentNode;
     }
     
     /**
-     * set current node selector id.
+     * set parent node.
      *
-     * @param selectorId selectorId
+     * @param parentNode parent node
      */
-    public void setSelectorId(final String selectorId) {
-        this.selectorId = selectorId;
+    public void setParentNode(final ShenyuTrieNode parentNode) {
+        this.parentNode = parentNode;
+    }
+    
+    /**
+     * get fail to node.
+     *
+     * @return fail to node
+     */
+    public ShenyuTrieNode getFailToNode() {
+        return failToNode;
+    }
+    
+    /**
+     * set fail to node.
+     *
+     * @param failToNode fail to node
+     */
+    public void setFailToNode(final ShenyuTrieNode failToNode) {
+        this.failToNode = failToNode;
     }
     
     @Override
@@ -276,36 +303,35 @@ public class ShenyuTrieNode implements Serializable {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof ShenyuTrieNode)) {
             return false;
         }
         ShenyuTrieNode that = (ShenyuTrieNode) o;
-        return isWildcard == that.isWildcard && endOfPath == that.endOfPath && matchStr.equals(that.matchStr)
-                && fullPath.equals(that.fullPath) && children.equals(that.children)
-                && pathVariablesSet.equals(that.pathVariablesSet) && pathVariableNode.equals(that.pathVariableNode)
-                && pathRuleCache.equals(that.pathRuleCache) && bizInfo.equals(that.bizInfo)
-                && selectorId.equals(that.selectorId);
+        return getWildcard() == that.getWildcard() && getEndOfPath() == that.getEndOfPath() && Objects.equals(getMatchStr(), that.getMatchStr())
+                && Objects.equals(getFullPath(), that.getFullPath()) && Objects.equals(getChildren(), that.getChildren())
+                && Objects.equals(getPathVariables(), that.getPathVariables()) && Objects.equals(getPathVariableNode(), that.getPathVariableNode())
+                && Objects.equals(getPathCache(), that.getPathCache()) && Objects.equals(getBizInfo(), that.getBizInfo())
+                && Objects.equals(getParentNode(), that.getParentNode()) && Objects.equals(getFailToNode(), that.getFailToNode());
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(matchStr, fullPath, children, pathVariablesSet, pathVariableNode, isWildcard, endOfPath,
-                pathRuleCache, bizInfo, selectorId);
+        return Objects.hash(getMatchStr(), getFullPath(), getChildren(), getPathVariables(), getPathVariableNode(),
+                getWildcard(), getEndOfPath(), getPathCache(), getBizInfo(), getParentNode(), getFailToNode());
     }
     
     @Override
     public String toString() {
         return "ShenyuTrieNode{"
-                + "matchStr='" + matchStr + '\''
-                + ", fullPath='" + fullPath + '\''
+                + "matchStr='" + matchStr
+                + ", fullPath='" + fullPath
                 + ", children=" + children
-                + ", pathVariablesSet=" + pathVariablesSet
+                + ", pathVariables=" + pathVariables
                 + ", pathVariableNode=" + pathVariableNode
                 + ", isWildcard=" + isWildcard
                 + ", endOfPath=" + endOfPath
-                + ", pathRuleCache=" + pathRuleCache
-                + ", bizInfo=" + bizInfo
-                + ", selectorId=" + selectorId
+                + ", pathCache=" + pathCache
+                + ", bizInfo='" + bizInfo
                 + '}';
     }
 }

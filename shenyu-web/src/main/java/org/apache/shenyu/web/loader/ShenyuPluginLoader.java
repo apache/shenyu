@@ -129,7 +129,11 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
                 String entryName = jarEntry.getName();
                 if (entryName.endsWith(".class") && !entryName.contains("$")) {
                     String className = entryName.substring(0, entryName.length() - 6).replaceAll("/", ".");
-                    names.add(className);
+                    if (checkExistence(className)) {
+                        LOG.warn("The same plugin {} already exists", className);
+                    } else {
+                        names.add(className);
+                    }
                 }
             }
         }
@@ -153,6 +157,20 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
             }
         });
         return results;
+    }
+
+    /**
+     * checkExistence.
+     *
+     * @param className className.
+     * @return existence
+     */
+    private boolean checkExistence(final String className) {
+        try {
+            return Objects.nonNull(this.getParent().loadClass(className));
+        } catch (ClassNotFoundException cfe) {
+            return false;
+        }
     }
 
     /**
@@ -201,8 +219,12 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
                         }
                         buffer.flush();
                         byte[] classByteArray = buffer.toByteArray();
-                        names.add(className);
-                        uploadedJarClassByteArrayCache.put(className, classByteArray);
+                        if (checkExistence(className)) {
+                            LOG.warn("The same plugin {} already exists", className);
+                        } else {
+                            names.add(className);
+                            uploadedJarClassByteArrayCache.put(className, classByteArray);
+                        }
                     }
                 }
             }
@@ -217,12 +239,12 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
             return this.getParent().loadClass(name);
         }
         Class<?> clazz = classCache.get(name);
-        if (clazz != null) {
+        if (Objects.nonNull(clazz)) {
             return clazz;
         }
         synchronized (this) {
             clazz = classCache.get(name);
-            if (clazz == null) {
+            if (Objects.isNull(clazz)) {
                 // support base64Jar
                 if (uploadedJarClassByteArrayCache.containsKey(name)) {
                     byte[] currClazzByteArray = uploadedJarClassByteArrayCache.remove(name);
@@ -301,7 +323,8 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
         }
     }
 
-    private <T> T getOrCreateSpringBean(final String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    private <T> T getOrCreateSpringBean(
+        final String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         if (SpringBeanUtils.getInstance().existBean(className)) {
             return SpringBeanUtils.getInstance().getBeanByClassName(className);
         }
@@ -310,14 +333,14 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
             T inst = SpringBeanUtils.getInstance().getBeanByClassName(className);
             if (Objects.isNull(inst)) {
                 Class<?> clazz = Class.forName(className, false, this);
-                //Exclude  ShenyuPlugin subclass and PluginDataHandler subclass
+                //Exclude ShenyuPlugin subclass and PluginDataHandler subclass
                 // without adding @Component @Service annotation
                 boolean next = ShenyuPlugin.class.isAssignableFrom(clazz)
-                        || PluginDataHandler.class.isAssignableFrom(clazz);
+                    || PluginDataHandler.class.isAssignableFrom(clazz);
                 if (!next) {
                     Annotation[] annotations = clazz.getAnnotations();
                     next = Arrays.stream(annotations).anyMatch(e -> e.annotationType().equals(Component.class)
-                            || e.annotationType().equals(Service.class));
+                        || e.annotationType().equals(Service.class));
                 }
                 if (next) {
                     GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
@@ -343,11 +366,11 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
         }
         return result;
     }
-    
+
     private String classNameToPath(final String className) {
         return String.join("", className.replace(".", "/"), ".class");
     }
-    
+
     private void definePackageInternal(final String packageName, final Manifest manifest) {
         if (null != getPackage(packageName)) {
             return;
@@ -361,17 +384,17 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
         String implVendor = attributes.getValue(Attributes.Name.IMPLEMENTATION_VENDOR);
         definePackage(packageName, specTitle, specVersion, specVendor, implTitle, implVersion, implVendor, null);
     }
-    
+
     private boolean ability(final String name) {
         return !names.contains(name);
     }
-    
+
     private static class PluginJar {
-        
+
         private final JarFile jarFile;
-        
+
         private final File sourcePath;
-        
+
         /**
          * Instantiates a new Plugin jar.
          *

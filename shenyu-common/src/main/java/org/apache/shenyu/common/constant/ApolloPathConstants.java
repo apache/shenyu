@@ -57,6 +57,16 @@ public class ApolloPathConstants {
     public static final String META_DATA_ID = "shenyu.meta.json";
 
     /**
+     * proxy selector data id.
+     */
+    public static final String PROXY_SELECTOR_DATA_ID = "shenyu.proxy.selector.json";
+
+    /**
+     * proxy selector data id.
+     */
+    public static final String DISCOVERY_DATA_ID = "shenyu.discovery.data.json";
+
+    /**
      * register metadata id.
      */
     public static final String REGISTER_METADATA_ID = "shenyu.register.metadata";

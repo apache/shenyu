@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.publish;
 
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
@@ -48,8 +47,8 @@ import java.util.Optional;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.admin.utils.ListUtil.groupBy;
-import static org.apache.shenyu.admin.utils.ListUtil.map;
+import static org.apache.shenyu.common.utils.ListUtil.groupBy;
+import static org.apache.shenyu.common.utils.ListUtil.map;
 
 /**
  * RuleEventPublisher.
@@ -65,7 +64,6 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
     
     public RuleEventPublisher(final ApplicationEventPublisher publisher,
                               final RuleConditionMapper ruleConditionMapper,
-                              final PluginMapper pluginMapper,
                               final RuleMapper ruleMapper) {
         this.publisher = publisher;
         this.ruleConditionMapper = ruleConditionMapper;
@@ -90,7 +88,7 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
      */
     public void onCreated(final RuleDO rule, final List<RuleConditionDTO> condition) {
         publish(new RuleCreatedEvent(rule, SessionUtil.visitorName()));
-        publishEvent(rule, condition);
+        publishEvent(rule, condition, Collections.emptyList());
     }
     
     /**
@@ -176,7 +174,7 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
      * @param condition condition
      */
     public void onRegister(final RuleDO rule, final List<RuleConditionDTO> condition) {
-        publishEvent(rule, condition);
+        publishEvent(rule, condition, Collections.emptyList());
     }
     
     /**
@@ -187,14 +185,6 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
     @Override
     public void publish(final AdminDataModelChangedEvent event) {
         publisher.publishEvent(event);
-    }
-
-    private void publishEvent(final RuleDO ruleDO, final List<RuleConditionDTO> condition) {
-        // publish change event.
-        final RuleData rule = RuleDO.transFrom(ruleDO,
-                ruleMapper.getPluginNameBySelectorId(ruleDO.getSelectorId()),
-                map(condition, ConditionTransfer.INSTANCE::mapToRuleDTO));
-        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE, Collections.singletonList(rule)));
     }
 
     private void publishEvent(final RuleDO ruleDO, final List<RuleConditionDTO> condition, final List<RuleConditionDO> beforeCondition) {

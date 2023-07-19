@@ -20,6 +20,7 @@ package org.apache.shenyu.register.client.apollo;
 import com.ctrip.framework.apollo.openapi.client.ApolloOpenApiClient;
 import com.ctrip.framework.apollo.openapi.dto.NamespaceReleaseDTO;
 import com.ctrip.framework.apollo.openapi.dto.OpenItemDTO;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +65,7 @@ public class ApolloClient {
         if (openItemDTO == null) {
             return null;
         }
-        if (openItemDTO.getKey().equals("timeout")) {
+        if (StringUtils.equals("timeout", openItemDTO.getKey())) {
             LOG.error("apollo client getItemValue time out");
         }
         return openItemDTO.getValue();
@@ -103,6 +104,21 @@ public class ApolloClient {
                 apolloConfig.getClusterName(),
                 apolloConfig.getNamespace(),
                 openItemDTO
+        );
+    }
+
+    /**
+     * remove item from namespace.
+     * @param key item key
+     */
+    public void removeItem(final String key) {
+        this.apolloOpenApiClient.removeItem(
+                apolloConfig.getAppId(),
+                apolloConfig.getEnv(),
+                apolloConfig.getClusterName(),
+                apolloConfig.getNamespace(),
+                key,
+                apolloConfig.getOperator()
         );
     }
 

@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.web.controller;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -28,6 +30,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
+import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -46,8 +49,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -94,25 +99,51 @@ public class LocalPluginController {
     public Mono<String> cleanPlugin(@RequestParam("name") final String name) {
         LOG.info("clean apache shenyu local plugin for {}", name);
         BaseDataCache.getInstance().removePluginDataByPluginName(name);
-        List<SelectorData> selectorData = BaseDataCache.getInstance().obtainSelectorData(name);
-        final List<String> selectorIds = selectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
+        List<SelectorData> selectorData = Optional.ofNullable(BaseDataCache.getInstance().obtainSelectorData(name)).orElse(Collections.emptyList());
+        final List<SelectorData> newSelectorData = CollectionUtils.isNotEmpty(selectorData) ? Lists.newArrayList(selectorData) : Collections.emptyList();
+        final List<String> selectorIds = newSelectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
         BaseDataCache.getInstance().removeSelectDataByPluginName(name);
+        // remove selector and rule l1 cache
         MatchDataCache.getInstance().removeSelectorData(name);
         MatchDataCache.getInstance().removeRuleData(name);
-        for (String selectorId : selectorIds) {
-            BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
-            List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(selectorId);
-            if (CollectionUtils.isNotEmpty(ruleDataList)) {
-                ruleDataList.forEach(rule -> {
-                    List<ConditionData> conditionDataList = rule.getConditionDataList();
+        ShenyuTrie selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
+        ShenyuTrie ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
+        ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
+        // remove selector trie cache
+        if (Boolean.TRUE.equals(shenyuConfig.getSelectorMatchCache().getTrie().getEnabled())) {
+            newSelectorData.forEach(selector -> {
+                List<ConditionData> conditionDataList = selector.getConditionList();
+                if (CollectionUtils.isNotEmpty(conditionDataList)) {
                     List<ConditionData> filterConditions = conditionDataList.stream()
                             .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
                             .collect(Collectors.toList());
                     if (CollectionUtils.isNotEmpty(filterConditions)) {
                         List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
-                        uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(path, rule));
+                        selectorTrie.remove(uriPaths, selector, TrieCacheTypeEnum.SELECTOR);
                     }
-                });
+                }
+            });
+        }
+        // remove rule trie cache
+        for (String selectorId : selectorIds) {
+            List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(selectorId);
+            List<RuleData> newRuleDataList = CollectionUtils.isNotEmpty(ruleDataList) ? Lists.newArrayList(ruleDataList) : Collections.emptyList();
+            BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
+            if (Boolean.TRUE.equals(shenyuConfig.getRuleMatchCache().getTrie().getEnabled())) {
+                if (CollectionUtils.isNotEmpty(newRuleDataList)) {
+                    newRuleDataList.forEach(rule -> {
+                        List<ConditionData> conditionDataList = rule.getConditionDataList();
+                        if (CollectionUtils.isNotEmpty(conditionDataList)) {
+                            List<ConditionData> filterConditions = conditionDataList.stream()
+                                    .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                                    .collect(Collectors.toList());
+                            if (CollectionUtils.isNotEmpty(filterConditions)) {
+                                List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
+                                ruleTrie.remove(uriPaths, rule, TrieCacheTypeEnum.RULE);
+                            }
+                        }
+                    });
+                }
             }
         }
         return Mono.just(Constants.SUCCESS);
@@ -323,7 +354,7 @@ public class LocalPluginController {
      */
     @GetMapping("/plugin/rule/findList")
     public Mono<String> findListRule(@RequestParam("selectorId") final String selectorId,
-                                         @RequestParam(value = "id", required = false) final String id) {
+                                     @RequestParam(value = "id", required = false) final String id) {
         List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(selectorId);
         if (CollectionUtils.isEmpty(ruleDataList)) {
             return Mono.just("Error: can not find rule data by selector id :" + selectorId);

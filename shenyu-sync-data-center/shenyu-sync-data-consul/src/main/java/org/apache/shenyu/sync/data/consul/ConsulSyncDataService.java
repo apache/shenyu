@@ -24,8 +24,10 @@ import com.ecwid.consul.v1.kv.model.GetValue;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.ConsulConstants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.consul.config.ConsulConfig;
 import org.apache.shenyu.sync.data.consul.handler.ConsulCacheHandler;
@@ -77,8 +79,10 @@ public class ConsulSyncDataService extends ConsulCacheHandler implements SyncDat
                                  final ConsulConfig consulConfig,
                                  final PluginDataSubscriber pluginDataSubscriber,
                                  final List<MetaDataSubscriber> metaDataSubscribers,
-                                 final List<AuthDataSubscriber> authDataSubscribers) {
-        super(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
+                                 final List<AuthDataSubscriber> authDataSubscribers,
+                                 final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
+                                 final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
+        super(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.consulClient = consulClient;
         this.consulConfig = consulConfig;
         this.executor = new ScheduledThreadPoolExecutor(1,
@@ -97,6 +101,8 @@ public class ConsulSyncDataService extends ConsulCacheHandler implements SyncDat
         groupMap.put(ConsulConstants.RULE_DATA, this::updateRuleMap);
         groupMap.put(ConsulConstants.META_DATA, this::updateMetaDataMap);
         groupMap.put(ConsulConstants.AUTH_DATA, this::updateAuthMap);
+        groupMap.put(ConsulConstants.PROXY_SELECTOR_DATA_ID, this::updateSelectorDataMap);
+        groupMap.put(ConsulConstants.DISCOVERY_UPSTREAM, this::updateDiscoveryUpstreamMap);
     }
 
     private void watchConfigKeyValues() {

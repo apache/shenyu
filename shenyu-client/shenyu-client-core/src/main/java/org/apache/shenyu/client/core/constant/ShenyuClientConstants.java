@@ -81,4 +81,5 @@ public final class ShenyuClientConstants {
      * media type all value.
      */
     public static final String MEDIA_TYPE_ALL_VALUE = "*/*";
+
 }

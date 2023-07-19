@@ -327,7 +327,10 @@ public class MockRequestRecordVO implements Serializable {
                 .dateUpdated("")
                 .build();
     }
-
+    
+    /**
+     * MockRequestRecordVOBuilder.
+     */
     public static final class MockRequestRecordVOBuilder {
         /**
          * primary key id.

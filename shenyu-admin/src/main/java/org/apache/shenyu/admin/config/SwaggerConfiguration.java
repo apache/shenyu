@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.config;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.shenyu.common.constant.Constants;
@@ -120,7 +121,7 @@ public class SwaggerConfiguration {
 
             private <T extends RequestMappingInfoHandlerMapping> void customizeSpringfoxHandlerMappings(final List<T> mappings) {
                 List<T> copy = mappings.stream()
-                        .filter(mapping -> mapping.getPatternParser() == null)
+                        .filter(mapping -> Objects.isNull(mapping.getPatternParser()))
                         .collect(Collectors.toList());
                 mappings.clear();
                 mappings.addAll(copy);

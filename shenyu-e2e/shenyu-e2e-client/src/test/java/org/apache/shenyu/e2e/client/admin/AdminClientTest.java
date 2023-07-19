@@ -17,25 +17,26 @@
 
 package org.apache.shenyu.e2e.client.admin;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.e2e.client.admin.model.MatchMode;
-import org.apache.shenyu.e2e.client.admin.model.Plugin;
-import org.apache.shenyu.e2e.client.admin.model.SelectorType;
-import org.apache.shenyu.e2e.client.admin.model.data.Condition;
-import org.apache.shenyu.e2e.client.admin.model.data.Condition.Operator;
-import org.apache.shenyu.e2e.client.admin.model.data.Condition.ParamType;
-import org.apache.shenyu.e2e.client.admin.model.data.RuleData;
-import org.apache.shenyu.e2e.client.admin.model.data.SelectorData;
-import org.apache.shenyu.e2e.client.admin.model.handle.DivideRuleHandle;
-import org.apache.shenyu.e2e.client.admin.model.handle.Upstreams;
-import org.apache.shenyu.e2e.client.admin.model.handle.Upstreams.Upstream;
-import org.apache.shenyu.e2e.client.admin.model.response.RuleDTO;
-import org.apache.shenyu.e2e.client.admin.model.response.SearchedResources;
-import org.apache.shenyu.e2e.client.admin.model.response.SelectorDTO;
+import org.apache.shenyu.e2e.model.MatchMode;
+import org.apache.shenyu.e2e.model.Plugin;
+import org.apache.shenyu.e2e.model.SelectorType;
+import org.apache.shenyu.e2e.model.data.Condition;
+import org.apache.shenyu.e2e.model.data.Condition.Operator;
+import org.apache.shenyu.e2e.model.data.Condition.ParamType;
+import org.apache.shenyu.e2e.model.data.RuleData;
+import org.apache.shenyu.e2e.model.data.SelectorData;
+import org.apache.shenyu.e2e.model.handle.DivideRuleHandle;
+import org.apache.shenyu.e2e.model.handle.Upstreams;
+import org.apache.shenyu.e2e.model.handle.Upstreams.Upstream;
+import org.apache.shenyu.e2e.model.response.RuleDTO;
+import org.apache.shenyu.e2e.model.response.SearchedResources;
+import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.apache.shenyu.e2e.matcher.RuleMatcher;
 import org.apache.shenyu.e2e.matcher.SelectorMatcher;
 import org.assertj.core.api.Assertions;
+import org.json.JSONException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,6 +45,8 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
@@ -53,23 +56,26 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 
-@Slf4j
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AdminClientTest {
-    static AdminClient client;
 
-    static GenericContainer<?> container = new GenericContainer<>("shenyu/admin:latest")
+    private static final Logger log = LoggerFactory.getLogger(AdminClientTest.class);
+
+    private static AdminClient client;
+    
+    private static final GenericContainer<?> CONTAINER = new GenericContainer<>("shenyu/admin:latest")
             .withExposedPorts(9095)
             .withLogConsumer(new Slf4jLogConsumer(log));
     
-    SelectorDTO selector;
-    RuleDTO rule;
+    private SelectorDTO selector;
+    
+    private RuleDTO rule;
     
     @BeforeAll
     static void setup() {
-        container.start();
-        container.waitingFor(new HttpWaitStrategy()
+        CONTAINER.start();
+        CONTAINER.waitingFor(new HttpWaitStrategy()
                 .allowInsecure()
                 .forPort(9095)
                 .withMethod("GET")
@@ -82,7 +88,7 @@ public class AdminClientTest {
         properties.put("username", "admin");
         properties.put("password", "123456");
         
-        client = new AdminClient("shenyu-e2e", "http://localhost:" + container.getMappedPort(9095), properties);
+        client = new AdminClient("shenyu-e2e", "http://localhost:" + CONTAINER.getMappedPort(9095), properties);
         client.login();
     }
     
@@ -132,7 +138,7 @@ public class AdminClientTest {
     }
     
     @Test
-    void testCreateSelector() {
+    void testCreateSelector() throws JSONException, JsonProcessingException {
         SelectorData selectorData = SelectorData.builder()
                 .name("test-create-selector")
                 .plugin(Plugin.DIVIDE)
@@ -158,7 +164,7 @@ public class AdminClientTest {
     }
     
     @Test
-    void testCreateRule() {
+    void testCreateRule() throws JSONException, JsonProcessingException {
         RuleData ruleData = RuleData.builder()
                 .name("test-create-rule")
                 .enabled(true)

@@ -17,15 +17,26 @@
 
 package org.apache.shenyu.e2e.client.gateway;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.e2e.annotation.ShenYuGatewayClient;
 import org.apache.shenyu.e2e.common.RequestLogConsumer;
+import org.apache.shenyu.e2e.model.data.MetaData;
+import org.apache.shenyu.e2e.model.data.RuleCacheData;
+import org.apache.shenyu.e2e.model.data.SelectorCacheData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.function.Supplier;
 
@@ -35,17 +46,39 @@ import static io.restassured.RestAssured.given;
  * A client to connect to ShenYu bootstrap(Gateway) server over HTTP.
  */
 @ShenYuGatewayClient
-@AllArgsConstructor
-@Slf4j
 public class GatewayClient {
+
+    private static final Logger log = LoggerFactory.getLogger(GatewayClient.class);
+    
+    private static final RestTemplate TEMPLATE = new RestTemplateBuilder().build();
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     
     private final String scenarioId;
-    
-    @Getter
+
     private final String baseUrl;
     
     private final Properties properties;
+
+    public GatewayClient(final String scenarioId, final String baseUrl, final Properties properties) {
+        this.scenarioId = scenarioId;
+        this.baseUrl = baseUrl;
+        this.properties = properties;
+    }
+
+    /**
+     * get baseUrl.
+     *
+     * @return baseUrl
+     */
+    public String getBaseUrl() {
+        return baseUrl;
+    }
     
+    /**
+     * get http request specification.
+     * @return Supplier
+     */
     public Supplier<RequestSpecification> getHttpRequesterSupplier() {
         return () -> given().baseUri(getBaseUrl())
                 .filter((req, resp, ctx) -> {
@@ -68,4 +101,61 @@ public class GatewayClient {
                 .when();
     }
     
+    /**
+     * get meta data cache.
+     * @return List List
+     * @throws JsonProcessingException JsonProcessingException
+     */
+    public List<MetaData> getMetaDataCache() throws JsonProcessingException {
+        ResponseEntity<List> response = TEMPLATE.exchange(baseUrl + "/actuator/metadata", HttpMethod.GET, null, List.class);
+        List body = response.getBody();
+        Map<String, MetaData> s = (Map<String, MetaData>) body.get(0);
+        List<MetaData> metaDataList = new ArrayList<>();
+        for (Map.Entry entry : s.entrySet()) {
+            String json = MAPPER.writeValueAsString(entry.getValue());
+            MetaData metaData = MAPPER.readValue(json, MetaData.class);
+            metaDataList.add(metaData);
+        }
+        return metaDataList;
+    }
+    
+    /**
+     * get selector cache.
+     * @return List List
+     * @throws JsonProcessingException JsonProcessingException
+     */
+    public List<SelectorCacheData> getSelectorCache() throws JsonProcessingException {
+        ResponseEntity<List> response = TEMPLATE.exchange(baseUrl + "/actuator/selectorData", HttpMethod.GET, null, List.class);
+        List body = response.getBody();
+        Map<String, SelectorCacheData> s = (Map<String, SelectorCacheData>) body.get(0);
+        List<SelectorCacheData> selectorDataList = new ArrayList<>();
+        for (Map.Entry entry : s.entrySet()) {
+            List list = (List) entry.getValue();
+            String json = MAPPER.writeValueAsString(list.get(0));
+            SelectorCacheData selectorData = MAPPER.readValue(json, SelectorCacheData.class);
+            selectorDataList.add(selectorData);
+        }
+        return selectorDataList;
+    }
+    
+    /**
+     * get rule cache.
+     * @return List list
+     * @throws JsonProcessingException JsonProcessingException
+     */
+    public List<RuleCacheData> getRuleCache() throws JsonProcessingException {
+        ResponseEntity<List> response = TEMPLATE.exchange(baseUrl + "/actuator/ruleData", HttpMethod.GET, null, List.class);
+        List body = response.getBody();
+        Map<String, RuleCacheData> s = (Map<String, RuleCacheData>) body.get(0);
+        List<RuleCacheData> ruleDataList = new ArrayList<>();
+        for (Map.Entry entry : s.entrySet()) {
+            List list = (List) entry.getValue();
+            for (int i = 0; i < list.size(); i++) {
+                String json = MAPPER.writeValueAsString(list.get(i));
+                RuleCacheData ruleData = MAPPER.readValue(json, RuleCacheData.class);
+                ruleDataList.add(ruleData);
+            }
+        }
+        return ruleDataList;
+    }
 }

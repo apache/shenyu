@@ -22,25 +22,42 @@ import org.testcontainers.containers.wait.strategy.WaitStrategy;
 
 import java.time.Duration;
 
+/**
+ * Perform health checks on Admin and Gateway.
+ */
 public class WaitingForStrategies {
+
+    private static final String GET = "GET";
+
+    private static final String ACTUATOR_HEALTH = "/actuator/health";
     
-    public static WaitStrategy newAdminStrategy(int port) {
+    /**
+     * new a admin http wait strategy.
+     * @param port port
+     * @return WaitStrategy
+     */
+    public static WaitStrategy newAdminStrategy(final int port) {
         return new HttpWaitStrategy()
                 .allowInsecure()
                 .forPort(port)
-                .withMethod("GET")
-                .forPath("/actuator/health")
+                .withMethod(GET)
+                .forPath(ACTUATOR_HEALTH)
                 .forStatusCode(200)
                 .withReadTimeout(Duration.ofSeconds(3))
                 .withStartupTimeout(Duration.ofMinutes(3));
     }
     
-    public static WaitStrategy newGatewayStrategy(int port) {
+    /**
+     * new a gateway http wait strategy.
+     * @param port port
+     * @return WaitStrategy
+     */
+    public static WaitStrategy newGatewayStrategy(final int port) {
         return new HttpWaitStrategy()
                 .allowInsecure()
                 .forPort(port)
-                .withMethod("GET")
-                .forPath("/actuator/health")
+                .withMethod(GET)
+                .forPath(ACTUATOR_HEALTH)
                 .forStatusCode(200)
                 .withReadTimeout(Duration.ofSeconds(3))
                 .withStartupTimeout(Duration.ofMinutes(3));

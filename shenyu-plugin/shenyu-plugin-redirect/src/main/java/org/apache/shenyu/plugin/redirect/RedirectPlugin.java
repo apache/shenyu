@@ -22,15 +22,14 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RedirectHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.plugin.redirect.handler.RedirectPluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -67,9 +66,8 @@ public class RedirectPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
-        final String handle = rule.getHandle();
-        final RedirectHandle redirectHandle = RedirectPluginDataHandler.CACHED_HANDLE.get()
-                .obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        String handle = rule.getHandle();
+        RedirectHandle redirectHandle = RedirectPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(redirectHandle) || StringUtils.isBlank(redirectHandle.getRedirectURI())) {
             LOG.error("uri redirect rule can not configuration: {}", handle);
             return chain.execute(exchange);
@@ -81,7 +79,7 @@ public class RedirectPlugin extends AbstractShenyuPlugin {
             return dispatcherHandler.handle(mutated);
         } else {
             ServerHttpResponse response = exchange.getResponse();
-            response.setStatusCode(HttpStatus.PERMANENT_REDIRECT);
+            response.setRawStatusCode(redirectHandle.getHttpStatusCode());
             response.getHeaders().add(HttpHeaders.LOCATION, redirectHandle.getRedirectURI());
             return response.setComplete();
         }
