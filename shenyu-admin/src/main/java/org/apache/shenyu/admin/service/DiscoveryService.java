@@ -49,6 +49,14 @@ public interface DiscoveryService {
     DiscoveryVO createOrUpdate(DiscoveryDTO discoveryDTO);
 
     /**
+     * delete by id.
+     *
+     * @param discoveryId discoveryId
+     * @return msg
+     */
+    String delete(String discoveryId);
+
+    /**
      * syncData.
      */
     void syncData();
