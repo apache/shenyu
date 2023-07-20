@@ -177,6 +177,22 @@ GET http://localhost:9195/http/test/request/parameter/pass?requestParameter=test
 Accept: application/json
 Content-Type: application/json
 
+### shengyu getway proxy request
+GET http://localhost:9195/http/request/header
+header_key1: shenyu_request_plugin
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy request
+POST http://localhost:9195/http/request/parameter?parameter_key1=shenyu_request_plugin
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy request
+GET http://localhost:9195/http/request/cookie
+Cookie: userId=1
+Accept: application/json
+Content-Type: application/json
 
 
 ### shengyu getway proxy bigObject
