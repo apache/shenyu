@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.bean.DocModule;
+import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.admin.service.manager.DocParser;
 import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
@@ -77,12 +78,12 @@ public class DocManagerImpl implements DocManager {
     /**
      * add docInfo.
      *
-     * @param clusterName clusterName
+     * @param instance    instance
      * @param docInfoJson docInfoJson
      * @param callback    callback
      */
     @Override
-    public void addDocInfo(final String clusterName, final String docInfoJson, final String oldMd5, final Consumer<DocInfo> callback) {
+    public void addDocInfo(final UpstreamInstance instance, final String docInfoJson, final String oldMd5, final Consumer<DocInfo> callback) {
         if (StringUtils.isEmpty(docInfoJson)) {
             return;
         }
@@ -90,7 +91,7 @@ public class DocManagerImpl implements DocManager {
         if (Objects.equals(newMd5, oldMd5)) {
             return;
         }
-        DocInfo docInfo = getDocInfo(clusterName, docInfoJson);
+        DocInfo docInfo = getDocInfo(instance.getClusterName(), docInfoJson);
         if (Objects.isNull(docInfo) || CollectionUtils.isEmpty(docInfo.getDocModuleList())) {
             return;
         }
@@ -103,7 +104,7 @@ public class DocManagerImpl implements DocManager {
                 .produce(this.getProduceConsume(docItem.getProduces()))
                 .httpMethod(this.getHttpMethod(docItem))
                 .contextPath(docInfo.getContextPath())
-                .ext(this.buildExtJson(docInfo, docItem))
+                .ext(this.buildExtJson(instance, docItem))
                 .document(JsonUtils.toJson(docItem))
                 .rpcType(RpcTypeEnum.HTTP.getName())
                 .version(API_DOC_VERSION)
@@ -158,11 +159,11 @@ public class DocManagerImpl implements DocManager {
         }
     }
 
-    private String buildExtJson(final DocInfo docInfo, final DocItem docItem) {
+    private String buildExtJson(final UpstreamInstance instance, final DocItem docItem) {
         ApiDocRegisterDTO.ApiExt ext = new ApiDocRegisterDTO.ApiExt();
-        ext.setHost("host");
-        ext.setPort(null);
-        ext.setServiceName(docInfo.getClusterName());
+        ext.setHost(instance.getIp());
+        ext.setPort(instance.getPort());
+        ext.setServiceName(instance.getClusterName());
         ext.setMethodName(docItem.getName());
         ext.setParameterTypes("");
         ext.setRpcExt(null);

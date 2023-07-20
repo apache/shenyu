@@ -36,7 +36,6 @@ import org.apache.shenyu.admin.service.TagService;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -81,7 +80,7 @@ public class TagServiceImpl implements TagService {
         TagDO tagDO = new TagDO();
         tagDO.setId(tagId);
         tagDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
-        tagDO.setExt(JsonUtils.toJson(tagDO));
+        tagDO.setExt(GsonUtils.getInstance().toJson(tagExt));
         return tagMapper.updateByPrimaryKeySelective(tagDO);
     }
 
@@ -190,7 +189,7 @@ public class TagServiceImpl implements TagService {
             tagExt.setName(parentTagDO.getName());
             tagExt.setId(parentTagDO.getId());
             tagExt.setRefreshTime(parent.getRefreshTime());
-            tagExt.setRefreshTime(parent.getRefreshTime());
+            tagExt.setApiDocMd5(parent.getApiDocMd5());
             parent.setParent(tagExt);
             ext = GsonUtils.getInstance().toJson(parent);
         } else {

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.manager.impl;
 
+import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,9 +45,10 @@ public class DocManagerImplTest {
 
     @Test
     public void testAddDocInfo() {
-        String clusterName = "testClusterName";
+        UpstreamInstance instance = new UpstreamInstance();
+        instance.setContextPath("/testClusterName");
         AtomicBoolean atomicBoolean = new AtomicBoolean(false);
-        docManager.addDocInfo(clusterName, SwaggerDocParserTest.DOC_INFO_JSON, "", docInfo -> {
+        docManager.addDocInfo(instance, SwaggerDocParserTest.DOC_INFO_JSON, "", docInfo -> {
             assertEquals(docInfo.getTitle(), "shenyu-examples-http-swagger2 API");
             assertEquals(docInfo.getClusterName(), "testClusterName");
             atomicBoolean.set(true);

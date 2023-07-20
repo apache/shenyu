@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service.manager.impl;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
@@ -49,6 +48,8 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
 
     private static final String SWAGGER_V2_PATH = "/v2/api-docs";
 
+    private static final int PULL_MIN_INTERVAL_TIME = 30 * 1000;
+
     @Resource
     private DocManager docManager;
 
@@ -68,10 +69,10 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
     @Override
     @SuppressWarnings("unchecked")
     public void pullApiDocument(final UpstreamInstance instance) {
-        String clusterName = instance.getClusterName();
-        TagDO.TagExt tagExt = getTagExt(instance);
+        TagVO tagVO = getTagVO(instance);
+        TagDO.TagExt tagExt = convertTagExt(tagVO.getExt());
         if (!canPull(instance, tagExt.getRefreshTime())) {
-            LOG.info("api document has been pulled and cannot be pulled again，instance: {}", JsonUtils.toJson(instance));
+            LOG.info("api document has been pulled and cannot be pulled again，instance: {}", instance.getClusterName());
             return;
         }
         long newRefreshTime = System.currentTimeMillis();
@@ -79,38 +80,37 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
         try {
             String body = HTTP_UTILS.get(url, Collections.EMPTY_MAP);
             docManager.addDocInfo(
-                clusterName,
+                instance,
                 body,
                 tagExt.getApiDocMd5(),
                 callback -> {
-                    LOG.info("save api document successful，clusterName={}, ipPort={}", clusterName, instance.getIp() + ":" + instance.getPort());
-                    tagExt.setRefreshTime(newRefreshTime);
+                    LOG.info("save api document successful，clusterName={}, ipPort={}", instance.getClusterName(), instance.getIp() + ":" + instance.getPort());
                     tagExt.setApiDocMd5(callback.getDocMd5());
                 }
             );
+            tagExt.setRefreshTime(newRefreshTime);
             //Save the time of the last updated document and the newMd5 of apidoc.
-            tagService.updateTagExt(tagExt.getId(), tagExt);
+            tagService.updateTagExt(tagVO.getId(), tagExt);
         } catch (Exception e) {
-            LOG.error("add api document fail. url={} error={}", url, e);
+            LOG.error("add api document fail. clusterName={} url={} error={}", instance.getClusterName(), url, e);
         }
     }
 
     private boolean canPull(final UpstreamInstance instance, final Long cacheLastStartUpTime) {
         boolean canPull = false;
-        if (Objects.isNull(cacheLastStartUpTime) || instance.getStartupTime() > cacheLastStartUpTime) {
+        if (Objects.isNull(cacheLastStartUpTime) || instance.getStartupTime() > cacheLastStartUpTime + PULL_MIN_INTERVAL_TIME) {
             canPull = true;
         }
         return canPull;
     }
 
-    private TagDO.TagExt getTagExt(final UpstreamInstance instance) {
-        TagDO.TagExt tagExt = null;
+    private TagVO getTagVO(final UpstreamInstance instance) {
         List<TagVO> tagVOList = tagService.findByQuery(instance.getContextPath(), AdminConstants.TAG_ROOT_PARENT_ID);
-        if (CollectionUtils.isNotEmpty(tagVOList)) {
-            String ext = tagVOList.get(0).getExt();
-            tagExt = StringUtils.isNotEmpty(ext) ? JsonUtils.jsonToObject(ext, TagDO.TagExt.class) : null;
-        }
-        return Optional.ofNullable(tagExt).orElse(new TagDO.TagExt());
+        return CollectionUtils.isNotEmpty(tagVOList) ? tagVOList.get(0) : null;
+    }
+
+    private TagDO.TagExt convertTagExt(final String ext) {
+        return StringUtils.isNotEmpty(ext) ? JsonUtils.jsonToObject(ext, TagDO.TagExt.class) : new TagDO.TagExt();
     }
 
     private String getSwaggerRequestUrl(final UpstreamInstance instance) {
