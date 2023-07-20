@@ -69,6 +69,13 @@
         from discovery_handler
     </select>
 
+    <select id="selectByDiscoveryId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        from discovery_handler
+        where discovery_id = #{discoveryId , jdbcType=LONGVARCHAR}
+    </select>
+
     <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
             parameterType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
         INSERT INTO discovery_handler
