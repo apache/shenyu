@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.ShenyuDictService;
+import org.apache.shenyu.admin.service.manager.DocManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,6 +52,9 @@ public class ApiDocControllerTest {
 
     @Mock
     private ShenyuDictService shenyuDictService;
+
+    @Mock
+    private DocManager docManager;
 
     @BeforeEach
     public void setUp() {
