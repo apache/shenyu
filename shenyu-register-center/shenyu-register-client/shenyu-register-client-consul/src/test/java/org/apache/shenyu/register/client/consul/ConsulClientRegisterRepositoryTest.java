@@ -77,11 +77,11 @@ public class ConsulClientRegisterRepositoryTest {
         ConsulClient client = mock(ConsulClient.class);
 
         GetValue getValue = new GetValue();
-        getValue.setValue("eyJhcHBOYW1lIjoiWEpHYXRld2F5LVJQQy1DbGllbnQiLCJjb250ZXh0UGF0aCI6Ii9ycGMiLCJwYXRoIjoiL3JwYy9vcmRlci9wYXRoL3tpZH0ve25hbWV9IiwicGF0aERlc" +
-                "2MiOiIiLCJycGNUeXBlIjoic3ByaW5nQ2xvdWQiLCJzZXJ2aWNlTmFtZSI6ImNvbS54amdjLmdhdGV3YXkuY2xpZW50LnJwYy5jb250cm9sbGVyLk9yZGVyQ29udHJvbGxlciIsIm1ldGhv" +
-                "ZE5hbWUiOiJnZXRQYXRoVmFyaWFibGUiLCJydWxlTmFtZSI6Ii9ycGMvb3JkZXIvcGF0aC97aWR9L3tuYW1lfSIsInBhcmFtZXRlclR5cGVzIjoiamF2YS5sYW5nLlN0cmluZyxqYXZhLmx" +
-                "hbmcuU3RyaW5nIiwiZW5hYmxlZCI6dHJ1ZSwicGx1Z2luTmFtZXMiOltdLCJyZWdpc3Rlck1ldGFEYXRhIjpmYWxzZSwidGltZU1pbGxpcyI6MTY4OTg0NTkyMjE2MywiYWRkUHJlZml4ZW" +
-                "QiOmZhbHNlfQ==");
+        getValue.setValue("eyJhcHBOYW1lIjoiWEpHYXRld2F5LVJQQy1DbGllbnQiLCJjb250ZXh0UGF0aCI6Ii9ycGMiLCJwYXRoIjoiL3JwYy9vcmRlci9wYXRoL3tpZH0ve25hbWV9IiwicGF0aERlc"
+                + "2MiOiIiLCJycGNUeXBlIjoic3ByaW5nQ2xvdWQiLCJzZXJ2aWNlTmFtZSI6ImNvbS54amdjLmdhdGV3YXkuY2xpZW50LnJwYy5jb250cm9sbGVyLk9yZGVyQ29udHJvbGxlciIsIm1ldGhv"
+                + "ZE5hbWUiOiJnZXRQYXRoVmFyaWFibGUiLCJydWxlTmFtZSI6Ii9ycGMvb3JkZXIvcGF0aC97aWR9L3tuYW1lfSIsInBhcmFtZXRlclR5cGVzIjoiamF2YS5sYW5nLlN0cmluZyxqYXZhLmx"
+                + "hbmcuU3RyaW5nIiwiZW5hYmxlZCI6dHJ1ZSwicGx1Z2luTmFtZXMiOltdLCJyZWdpc3Rlck1ldGFEYXRhIjpmYWxzZSwidGltZU1pbGxpcyI6MTY4OTg0NTkyMjE2MywiYWRkUHJlZml4ZW"
+                + "QiOmZhbHNlfQ==");
         Response<GetValue> getValueResponse = new Response<>(getValue, 1L, true, 1L);
         Mockito.when(client.getKVValue("XJGateway/register/metadata/springCloud/rpc/rpc--rpc-order-path-%7Bid%7D-%7Bname%7D")).thenReturn(getValueResponse);
 
