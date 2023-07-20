@@ -112,11 +112,13 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onSubscribe(final PluginData pluginData) {
+        LOG.info("subscribe plugin data for plugin: [id: {}, name: {}]", pluginData.getId(), pluginData.getName());
         subscribeDataHandler(pluginData, DataEventTypeEnum.UPDATE);
     }
     
     @Override
     public void unSubscribe(final PluginData pluginData) {
+        LOG.info("unSubscribe plugin data for plugin: [id: {}, name: {}]", pluginData.getId(), pluginData.getName());
         subscribeDataHandler(pluginData, DataEventTypeEnum.DELETE);
     }
     
@@ -127,6 +129,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void refreshPluginDataSelf(final List<PluginData> pluginDataList) {
+        LOG.info("start refresh plugin data self");
         if (CollectionUtils.isEmpty(pluginDataList)) {
             return;
         }
@@ -135,16 +138,19 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onSelectorSubscribe(final SelectorData selectorData) {
+        LOG.info("subscribe select data for selector: [id: {}, name: {}]", selectorData.getId(), selectorData.getName());
         subscribeDataHandler(selectorData, DataEventTypeEnum.UPDATE);
     }
     
     @Override
     public void unSelectorSubscribe(final SelectorData selectorData) {
+        LOG.info("unSubscribe select data for selector: [id: {}, name: {}]", selectorData.getId(), selectorData.getName());
         subscribeDataHandler(selectorData, DataEventTypeEnum.DELETE);
     }
     
     @Override
     public void refreshSelectorDataAll() {
+        LOG.info("start refresh all selector data");
         BaseDataCache.getInstance().cleanSelectorData();
         MatchDataCache.getInstance().cleanSelectorData();
         ShenyuTrie selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
@@ -161,16 +167,19 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onRuleSubscribe(final RuleData ruleData) {
+        LOG.info("subscribe rule data for rule[id: {}, name: {}]", ruleData.getId(), ruleData.getName());
         subscribeDataHandler(ruleData, DataEventTypeEnum.UPDATE);
     }
     
     @Override
     public void unRuleSubscribe(final RuleData ruleData) {
+        LOG.info("unSubscribe rule data for rule[id: {}, name: {}]", ruleData.getId(), ruleData.getName());
         subscribeDataHandler(ruleData, DataEventTypeEnum.DELETE);
     }
     
     @Override
     public void refreshRuleDataAll() {
+        LOG.info("start refresh all rule data");
         BaseDataCache.getInstance().cleanRuleData();
         MatchDataCache.getInstance().cleanRuleDataData();
         ShenyuTrie ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());

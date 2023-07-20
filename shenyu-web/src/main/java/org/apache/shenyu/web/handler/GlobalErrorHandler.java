@@ -35,9 +35,6 @@ import reactor.core.publisher.Mono;
  */
 public class GlobalErrorHandler implements ErrorWebExceptionHandler {
 
-    /**
-     * logger.
-     */
     private static final Logger LOG = LoggerFactory.getLogger(GlobalErrorHandler.class);
 
     /**
@@ -50,7 +47,7 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
     @Override
     @NonNull
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange, @NonNull final Throwable throwable) {
-        LOG.error("handle error: {}{}", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
+        LOG.error("handle error: {} formatError:{} throwable:{}", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
         HttpStatus httpStatus;
         Object errorResult;
         if (throwable instanceof IllegalArgumentException) {
