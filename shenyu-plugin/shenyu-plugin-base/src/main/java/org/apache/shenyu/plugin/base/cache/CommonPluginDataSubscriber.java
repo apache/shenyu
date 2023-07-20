@@ -72,6 +72,9 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         this.handlerMap = pluginDataHandlerList.stream().collect(Collectors.toConcurrentMap(PluginDataHandler::pluginNamed, e -> e));
         this.selectorMatchConfig = selectorMatchConfig;
         this.ruleMatchCacheConfig = ruleMatchCacheConfig;
+
+        // Add Start log
+        LOG.info("CommonPluginDataSubscriber initialized.");
     }
     
     /**
@@ -90,6 +93,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         this.eventPublisher = eventPublisher;
         this.selectorMatchConfig = selectorMatchConfig;
         this.ruleMatchCacheConfig = ruleMatchCacheConfig;
+
+        
     }
     
     /**
@@ -204,6 +209,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     private <T> void updateCacheData(@NonNull final T data) {
         if (data instanceof PluginData) {
             PluginData pluginData = (PluginData) data;
+            // Added Start log
+            LOG.info("Updating cache data for plugin: {}", pluginData.getName());
             final PluginData oldPluginData = BaseDataCache.getInstance().obtainPluginData(pluginData.getName());
             BaseDataCache.getInstance().cachePluginData(pluginData);
             Optional.ofNullable(handlerMap.get(pluginData.getName()))
@@ -224,8 +231,13 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             if (ruleMatchCacheConfig.getCache().getEnabled()) {
                 MatchDataCache.getInstance().removeRuleData(pluginName);
             }
+            
         } else if (data instanceof SelectorData) {
             SelectorData selectorData = (SelectorData) data;
+
+             // Add start log
+            LOG.info("Updating cache data for selector: {}", selectorData.getId());
+            
             BaseDataCache.getInstance().cacheSelectData(selectorData);
             Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
                     .ifPresent(handler -> handler.handlerSelector(selectorData));
@@ -241,6 +253,10 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             updateSelectorTrieCache(selectorData);
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
+            
+             // Add start log
+            LOG.info("Updating cache data for rule: {}", ruleData.getId());
+            
             BaseDataCache.getInstance().cacheRuleData(ruleData);
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.handlerRule(ruleData));
@@ -277,12 +293,20 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     private <T> void removeCacheData(@NonNull final T data) {
         if (data instanceof PluginData) {
             PluginData pluginData = (PluginData) data;
+            
+            // Add start log
+            LOG.info("Removing cache data for plugin: {}", pluginData.getName());
+            
             BaseDataCache.getInstance().removePluginData(pluginData);
             Optional.ofNullable(handlerMap.get(pluginData.getName()))
                     .ifPresent(handler -> handler.removePlugin(pluginData));
             eventPublisher.publishEvent(new PluginHandlerEvent(PluginHandlerEventEnum.DELETE, pluginData));
         } else if (data instanceof SelectorData) {
             SelectorData selectorData = (SelectorData) data;
+            
+            // Add start log
+            LOG.info("Removing cache data for selector: {}", selectorData.getId());
+            
             BaseDataCache.getInstance().removeSelectData(selectorData);
             Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
                     .ifPresent(handler -> handler.removeSelector(selectorData));
@@ -297,6 +321,10 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             }
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
+            
+            // Add start log
+            LOG.info("Removing cache data for rule: {}", ruleData.getId());
+            
             BaseDataCache.getInstance().removeRuleData(ruleData);
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.removeRule(ruleData));
