@@ -28,6 +28,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
@@ -97,8 +98,16 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         this.waitTime = props.getProperty("waitTime", "30");
         this.watchDelay = props.getProperty("watchDelay", "5");
         this.tags = props.getProperty("tags");
-        final String port = props.getProperty("port", "8500");
-        consulClient = new ConsulClient(config.getServerLists(), Integer.parseInt(port));
+
+        final String serverList = config.getServerLists();
+        if (StringUtils.isBlank(serverList)) {
+            throw new ShenyuException("shenyu.register.serverLists can not be null.");
+        }
+        final String[] addresses = serverList.split(":");
+        if (addresses.length != 2) {
+            throw new ShenyuException("shenyu.register.serverLists formatter is not incorrect.");
+        }
+        consulClient = new ConsulClient(addresses[0], Integer.parseInt(addresses[1]));
         this.ttlScheduler = new TtlScheduler(Integer.parseInt(checkTtl), consulClient);
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
