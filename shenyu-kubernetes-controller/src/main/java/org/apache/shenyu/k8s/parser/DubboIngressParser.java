@@ -29,8 +29,11 @@ import io.kubernetes.client.openapi.models.V1IngressBackend;
 import io.kubernetes.client.openapi.models.V1IngressRule;
 import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1IngressTLS;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServicePort;
+import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyStream;
@@ -38,8 +41,6 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
-import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
@@ -145,37 +146,29 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
         return res;
     }
 
+    //TODO:配置labls，确定是否下发到endpoints
     private List<MetaData> parseDubboService(final V1IngressBackend dubboBackend, final String namespace) {
         List<MetaData> dubboMetaData = new ArrayList<>();
         if (Objects.nonNull(dubboBackend) && Objects.nonNull(dubboBackend.getService())) {
             String serviceName = dubboBackend.getService().getName();
             // shenyu routes directly to the container
-            V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
-            List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
-                LOG.info("Endpoints {} do not have subsets", serviceName);
+            V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
+            List<V1ServicePort> ports = v1Service.getSpec().getPorts();
+            if (Objects.isNull(ports) || CollectionUtils.isEmpty(ports)) {
+                LOG.info("Service {} do not have ports", serviceName);
             } else {
-                for (V1EndpointSubset subset : subsets) {
-                    List<V1EndpointAddress> addresses = subset.getAddresses();
-                    if (Objects.isNull(addresses) || CollectionUtils.isEmpty(addresses)) {
-                        continue;
-                    }
-                    for (V1EndpointAddress address : addresses) {
-                        String upstreamIp = address.getIp();
-                        String defaultPort = parsePort(dubboBackend.getService());
-                        if (Objects.nonNull(defaultPort)) {
-                            MetaData metaData = new MetaData();
-                            metaData.setAppName("dubbo");
-                            metaData.setMethodName("findAll");
-                            metaData.setPath("/dubbo/findAll");
-                            metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
-                            metaData.setServiceName("dubboService");
-                            metaData.setContextPath("contextPath");
-                            metaData.setRpcExt("rpcExt");
-                            metaData.setParameterTypes("parameterTypes");
-                            metaData.setEnabled(true);
-                        }
-                    }
+                for (V1ServicePort port : ports) {
+                    MetaData metaData = new MetaData();
+                    metaData.setAppName("dubbo");
+                    metaData.setMethodName("findAll");
+                    metaData.setPath("/dubbo/findAll");
+                    metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
+                    metaData.setServiceName("dubboService");
+                    metaData.setContextPath("contextPath");
+                    metaData.setRpcExt("rpcExt");
+                    metaData.setParameterTypes("parameterTypes");
+                    metaData.setEnabled(true);
+                    dubboMetaData.add(metaData);
                 }
             }
         }
@@ -281,37 +274,29 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
         return null;
     }
 
+    //TODO:使用service进行监听
     private List<MetaData> parseMetaData(final V1IngressBackend backend, final String namespace) {
         List<MetaData> dubboMetaData = new ArrayList<>();
         if (Objects.nonNull(backend) && Objects.nonNull(backend.getService()) && Objects.nonNull(backend.getService().getName())) {
             String serviceName = backend.getService().getName();
             // shenyu routes directly to the container
-            V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
-            List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
-                LOG.info("Endpoints {} do not have subsets", serviceName);
+            V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
+            List<V1ServicePort> ports = v1Service.getSpec().getPorts();
+            if (Objects.isNull(ports) || CollectionUtils.isEmpty(ports)) {
+                LOG.info("Service {} do not have ports", serviceName);
             } else {
-                for (V1EndpointSubset subset : subsets) {
-                    List<V1EndpointAddress> addresses = subset.getAddresses();
-                    if (addresses == null || addresses.isEmpty()) {
-                        continue;
-                    }
-                    for (V1EndpointAddress address : addresses) {
-                        String upstreamIp = address.getIp();
-                        String defaultPort = parsePort(backend.getService());
-                        if (Objects.nonNull(defaultPort)) {
-                            MetaData metaData = new MetaData();
-                            metaData.setAppName("dubbo");
-                            metaData.setMethodName("findAll");
-                            metaData.setPath("/dubbo/findAll");
-                            metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
-                            metaData.setServiceName("dubboService");
-                            metaData.setContextPath("contextPath");
-                            metaData.setRpcExt("rpcExt");
-                            metaData.setParameterTypes("parameterTypes");
-                            metaData.setEnabled(true);
-                        }
-                    }
+                for (V1ServicePort port : ports) {
+                    MetaData metaData = new MetaData();
+                    metaData.setAppName("dubbo");
+                    metaData.setMethodName("findAll");
+                    metaData.setPath("/dubbo/findAll");
+                    metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
+                    metaData.setServiceName("dubboService");
+                    metaData.setContextPath("contextPath");
+                    metaData.setRpcExt("rpcExt");
+                    metaData.setParameterTypes("parameterTypes");
+                    metaData.setEnabled(true);
+                    dubboMetaData.add(metaData);
                 }
             }
         }
