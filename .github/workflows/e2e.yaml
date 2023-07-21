@@ -254,4 +254,6 @@ jobs:
     steps:
       - name: checking job status
         run: |
-          [[ "${{ needs.e2e.result }}" == "success" ]] || exit -1
+          [[ "${{ needs.e2e-http.result }}" == "success" ]] || exit -1
+          [[ "${{ needs.e2e-case.result }}" == "success" ]] || exit -1
+          [[ "${{ needs.e2e-alibaba-dubbo.result }}" == "success" ]] || exit -1
