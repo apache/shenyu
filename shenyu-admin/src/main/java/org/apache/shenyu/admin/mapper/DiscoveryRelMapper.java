@@ -91,4 +91,11 @@ public interface DiscoveryRelMapper {
      */
     DiscoveryRelDO selectByDiscoveryHandlerId(@Param("discoveryHandlerId") String discoveryHandlerId);
 
+    /**
+     * deleteByDiscoveryHandlerId.
+     *
+     * @param discoveryHandlerId discoveryHandlerId
+     * @return rows
+     */
+    int deleteByDiscoveryHandlerId(@Param("discoveryHandlerId") String discoveryHandlerId);
 }

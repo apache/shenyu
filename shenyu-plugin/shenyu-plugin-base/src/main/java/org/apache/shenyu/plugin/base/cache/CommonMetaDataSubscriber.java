@@ -19,8 +19,11 @@ package org.apache.shenyu.plugin.base.cache;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -31,6 +34,8 @@ import java.util.stream.Collectors;
  * The type common meta data subscriber.
  */
 public class CommonMetaDataSubscriber implements MetaDataSubscriber {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CommonMetaDataSubscriber.class);
 
     private final Map<String, MetaDataHandler> handlerMap;
 
@@ -46,13 +51,19 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
     @Override
     public void onSubscribe(final MetaData metaData) {
         Optional.ofNullable(handlerMap.get(metaData.getRpcType()))
-                .ifPresent(handler -> handler.handle(metaData));
+                .ifPresent(handler -> {
+                    LOG.info("subscribe metaData: {}", JsonUtils.toJson(metaData));
+                    handler.handle(metaData);
+                });
     }
 
     @Override
     public void unSubscribe(final MetaData metaData) {
         Optional.ofNullable(handlerMap.get(metaData.getRpcType()))
-                .ifPresent(handler -> handler.remove(metaData));
+                .ifPresent(handler -> {
+                    LOG.info("unSubscribe metaData: {}", JsonUtils.toJson(metaData));
+                    handler.remove(metaData);
+                });
     }
 
     @Override
@@ -60,6 +71,7 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
         if (MapUtils.isEmpty(handlerMap)) {
             return;
         }
+        LOG.info("start refresh metadata");
         handlerMap.forEach((k, v) -> v.refresh());
     }
 }
