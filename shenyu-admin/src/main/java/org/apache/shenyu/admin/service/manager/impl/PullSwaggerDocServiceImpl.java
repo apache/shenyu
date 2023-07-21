@@ -70,7 +70,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
     @SuppressWarnings("unchecked")
     public void pullApiDocument(final UpstreamInstance instance) {
         TagVO tagVO = getTagVO(instance);
-        TagDO.TagExt tagExt = convertTagExt(tagVO.getExt());
+        TagDO.TagExt tagExt = Objects.nonNull(tagVO) ? convertTagExt(tagVO.getExt()) : new TagDO.TagExt();
         if (!canPull(instance, tagExt.getRefreshTime())) {
             LOG.info("api document has been pulled and cannot be pulled again，instance: {}", instance.getClusterName());
             return;
@@ -90,7 +90,10 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
             );
             tagExt.setRefreshTime(newRefreshTime);
             //Save the time of the last updated document and the newMd5 of apidoc.
-            tagService.updateTagExt(tagVO.getId(), tagExt);
+            tagVO = Objects.nonNull(tagVO) ? tagVO : getTagVO(instance);
+            if (Objects.nonNull(tagVO)) {
+                tagService.updateTagExt(tagVO.getId(), tagExt);
+            }
         } catch (Exception e) {
             LOG.error("add api document fail. clusterName={} url={} error={}", instance.getClusterName(), url, e);
         }
