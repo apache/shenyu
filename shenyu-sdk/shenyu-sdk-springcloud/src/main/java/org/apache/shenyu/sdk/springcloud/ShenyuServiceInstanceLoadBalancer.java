@@ -27,7 +27,7 @@ import reactor.core.publisher.Mono;
 
 public class ShenyuServiceInstanceLoadBalancer implements ReactorServiceInstanceLoadBalancer {
 
-    private static String shenyuServiceId = "shenyu-gateway";
+    public static final String SHENYU_SERVICE_ID = "shenyu-gateway";
 
     private final DiscoveryClient discoveryClient;
 
@@ -35,25 +35,9 @@ public class ShenyuServiceInstanceLoadBalancer implements ReactorServiceInstance
         this.discoveryClient = discoveryClient;
     }
 
-    /**
-     * get shenyu-gateway serviceId.
-     * @return String
-     */
-    public static String getShenyuServiceId() {
-        return shenyuServiceId;
-    }
-
-    /**
-     * set shenyu-gateway serviceId.
-     * @param shenyuServiceId shenyuServiceId
-     */
-    public static void setShenyuServiceId(final String shenyuServiceId) {
-        ShenyuServiceInstanceLoadBalancer.shenyuServiceId = shenyuServiceId;
-    }
-
     @Override
     public Mono<Response<ServiceInstance>> choose(final Request request) {
-        return Mono.just(new DefaultResponse(discoveryClient.getInstances(shenyuServiceId).get(0)));
+        return Mono.just(new DefaultResponse(discoveryClient.getInstances(SHENYU_SERVICE_ID).get(0)));
     }
 
     @Override

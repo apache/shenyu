@@ -18,6 +18,7 @@
 package org.apache.shenyu.sdk.springcloud;
 
 import java.util.Collections;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -27,7 +28,9 @@ import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
-import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
+import static org.apache.shenyu.sdk.springcloud.ShenyuServiceInstanceLoadBalancer.SHENYU_SERVICE_ID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -41,6 +44,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ShenyuDiscoveryClient implements DiscoveryClient {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuDiscoveryClient.class);
 
     private ShenyuInstanceRegisterRepository registerRepository;
 
@@ -97,7 +102,14 @@ public class ShenyuDiscoveryClient implements DiscoveryClient {
             }).collect(Collectors.toList());
         }
         // loadBalancer upstreams
-        final Upstream upstream = LoadBalancerFactory.selector(upstreams, algorithm, "");
+        if (CollectionUtils.isEmpty(upstreams)) {
+            LOG.error("The serviceId that named " + SHENYU_SERVICE_ID + " could not load balanced to at least one upsteam.");
+        }
+        Upstream upstream = upstreams.get(0);
+        if (CollectionUtils.isNotEmpty(upstreams) && upstreams.size() > 1) {
+            upstream = LoadBalancerFactory.selector(upstreams, algorithm, "");
+        }
+
         return Stream.of(upstream).map(stream -> {
             final URI uri = UriUtils.createUri(stream.getUrl());
             return new DefaultServiceInstance(stream.buildDomain(), serviceId, uri.getHost(), uri.getPort(), "https".equals(scheme));
@@ -110,7 +122,7 @@ public class ShenyuDiscoveryClient implements DiscoveryClient {
      */
     @Override
     public List<String> getServices() {
-        return Collections.singletonList(ShenyuServiceInstanceLoadBalancer.getShenyuServiceId());
+        return Collections.singletonList(SHENYU_SERVICE_ID);
     }
 
 }

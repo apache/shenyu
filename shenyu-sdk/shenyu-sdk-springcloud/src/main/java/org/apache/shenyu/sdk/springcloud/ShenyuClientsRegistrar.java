@@ -134,7 +134,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
         // init to loadBalance serviceId.
         // String name = getName(attributes);
-        String name = ShenyuServiceInstanceLoadBalancer.getShenyuServiceId();
+        String name = ShenyuServiceInstanceLoadBalancer.SHENYU_SERVICE_ID;
 
         FeignClientFactoryBean factoryBean = new FeignClientFactoryBean();
         factoryBean.setBeanFactory(beanFactory);
@@ -142,7 +142,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         factoryBean.setContextId(contextId);
         factoryBean.setType(clazz);
         BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(clazz, () -> {
-            factoryBean.setUrl(getUrl(beanFactory, attributes));
+            // factoryBean.setUrl(getUrl(beanFactory, attributes));
             factoryBean.setPath(getPath(beanFactory, attributes));
             Object fallback = attributes.get("fallback");
             if (fallback != null) {
@@ -152,7 +152,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
             if (fallbackFactory != null) {
                 factoryBean.setFallbackFactory(fallbackFactory instanceof Class ? (Class<?>) fallbackFactory : ClassUtils.resolveClassName(fallbackFactory.toString(), null));
             }
-            return factoryBean;
+            return factoryBean.getObject();
         });
         definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
         definition.setLazyInit(true);
