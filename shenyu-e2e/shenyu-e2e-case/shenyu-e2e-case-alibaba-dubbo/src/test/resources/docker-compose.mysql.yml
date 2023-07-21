@@ -24,20 +24,6 @@ services:
     expose:
       - 2181
 
-  nacos:
-    image: nacos/nacos-server:v2.2.3
-    environment:
-      - TZ=Asia/Shanghai
-      - MODE=standalone
-    expose:
-      - 8848
-      - 9848
-      - 9849
-    ports:
-      - "8848:8848"
-      - "9848:9848"
-      - "9849:9849"
-
   admin:
     image: apache/shenyu-admin:latest
     expose:
