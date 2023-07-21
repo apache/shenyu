@@ -26,22 +26,38 @@ import org.springframework.cloud.loadbalancer.core.ReactorServiceInstanceLoadBal
 import reactor.core.publisher.Mono;
 
 public class ShenyuServiceInstanceLoadBalancer implements ReactorServiceInstanceLoadBalancer {
-	
-	public static String SHENYU_SERVICE_ID = "shenyu-gateway";
-	
-	private final DiscoveryClient discoveryClient;
-	
-	public ShenyuServiceInstanceLoadBalancer(DiscoveryClient discoveryClient) {
-		this.discoveryClient = discoveryClient;
-	}
-	
-	@Override
-	public Mono<Response<ServiceInstance>> choose(Request request) {
-		return Mono.just(new DefaultResponse(discoveryClient.getInstances(SHENYU_SERVICE_ID).get(0)));
-	}
-	
-	@Override
-	public Mono<Response<ServiceInstance>> choose() {
-		return ReactorServiceInstanceLoadBalancer.super.choose();
-	}
+
+    private static String shenyuServiceId = "shenyu-gateway";
+
+    private final DiscoveryClient discoveryClient;
+
+    public ShenyuServiceInstanceLoadBalancer(final DiscoveryClient discoveryClient) {
+        this.discoveryClient = discoveryClient;
+    }
+
+    /**
+     * get shenyu-gateway serviceId.
+     * @return String
+     */
+    public static String getShenyuServiceId() {
+        return shenyuServiceId;
+    }
+
+    /**
+     * set shenyu-gateway serviceId.
+     * @param shenyuServiceId shenyuServiceId
+     */
+    public static void setShenyuServiceId(final String shenyuServiceId) {
+        ShenyuServiceInstanceLoadBalancer.shenyuServiceId = shenyuServiceId;
+    }
+
+    @Override
+    public Mono<Response<ServiceInstance>> choose(final Request request) {
+        return Mono.just(new DefaultResponse(discoveryClient.getInstances(shenyuServiceId).get(0)));
+    }
+
+    @Override
+    public Mono<Response<ServiceInstance>> choose() {
+        return ReactorServiceInstanceLoadBalancer.super.choose();
+    }
 }
