@@ -32,7 +32,6 @@ import org.springframework.cloud.loadbalancer.core.ReactorServiceInstanceLoadBal
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-
 /**
  * The type Shenyu sdk autoConfiguration.
  */
@@ -51,7 +50,7 @@ public class ShenyuSdkAutoConfiguration {
      * @return ShenYu Instance Register Repository
      */
     @Bean
-    @ConditionalOnExpression("!\"local\".equals(\"${shenyu.sdk.registerType\")")
+    @ConditionalOnExpression("!\"local\".equals(\"${shenyu.sdk.registerType}\")")
     public ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository(final RegisterConfig config) {
         return ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config);
     }
@@ -69,19 +68,19 @@ public class ShenyuSdkAutoConfiguration {
 
     @Bean
     @ConditionalOnBean(RegisterConfig.class)
-    public DiscoveryClient shenyuDiscoveryClient(RegisterConfig registerConfig) {
+    public ShenyuDiscoveryClient shenyuDiscoveryClient(final RegisterConfig registerConfig) {
         return new ShenyuDiscoveryClient(registerConfig);
     }
 
     @Bean
     @ConditionalOnBean(ShenyuInstanceRegisterRepository.class)
-    public DiscoveryClient shenyuDiscoveryClient(ShenyuInstanceRegisterRepository registerRepository) {
+    public ShenyuDiscoveryClient shenyuDiscoveryClient(final ShenyuInstanceRegisterRepository registerRepository) {
         return new ShenyuDiscoveryClient(registerRepository);
     }
 
     @Bean
     @ConditionalOnBean(ShenyuDiscoveryClient.class)
-    public ReactorServiceInstanceLoadBalancer loadBalancer(DiscoveryClient shenyuDiscoveryClient) {
+    public ReactorServiceInstanceLoadBalancer loadBalancer(final DiscoveryClient shenyuDiscoveryClient) {
         return new ShenyuServiceInstanceLoadBalancer(shenyuDiscoveryClient);
     }
 }

@@ -57,7 +57,6 @@ public class ShenyuDiscoveryClient implements DiscoveryClient {
     }
 
     public ShenyuDiscoveryClient(final RegisterConfig registerConfig) {
-        this.registerRepository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
         this.registerConfig = registerConfig;
         Properties props = registerConfig.getProps();
         this.algorithm = props.getProperty("algorithm", "roundRobin");
