@@ -46,9 +46,9 @@ public class ShenyuDiscoveryClient implements DiscoveryClient {
 
     private RegisterConfig registerConfig;
 
-    private String algorithm;
+    private final String algorithm;
 
-    private String scheme;
+    private final String scheme;
 
     public ShenyuDiscoveryClient(final ShenyuInstanceRegisterRepository registerRepository) {
         this.registerRepository = registerRepository;

@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package main.java.org.apache.shenyu.springboot.starter.sdk.springcloud;
+package org.apache.shenyu.springboot.starter.sdk.springcloud;
 
 import org.apache.shenyu.common.utils.VersionUtils;
-import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
-import org.apache.shenyu.register.instance.api.config.RegisterConfig;
-import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
-import org.apache.shenyu.sdk.spring.ShenyuServiceInstanceLoadBalancer;
+import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.apache.shenyu.sdk.springcloud.ShenyuDiscoveryClient;
+import org.apache.shenyu.sdk.springcloud.ShenyuServiceInstanceLoadBalancer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -43,7 +43,7 @@ public class ShenyuSdkAutoConfiguration {
     static {
         VersionUtils.checkDuplicate(ShenyuSdkAutoConfiguration.class);
     }
-    
+
     /**
      * ShenYu Instance Register Repository.
      *
@@ -55,7 +55,7 @@ public class ShenyuSdkAutoConfiguration {
     public ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository(final RegisterConfig config) {
         return ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config);
     }
-    
+
     /**
      * shenyu config.
      *
@@ -66,19 +66,19 @@ public class ShenyuSdkAutoConfiguration {
     public RegisterConfig shenyuConfig() {
         return new RegisterConfig();
     }
-    
+
     @Bean
     @ConditionalOnBean(RegisterConfig.class)
     public DiscoveryClient shenyuDiscoveryClient(RegisterConfig registerConfig) {
         return new ShenyuDiscoveryClient(registerConfig);
     }
-    
+
     @Bean
     @ConditionalOnBean(ShenyuInstanceRegisterRepository.class)
     public DiscoveryClient shenyuDiscoveryClient(ShenyuInstanceRegisterRepository registerRepository) {
         return new ShenyuDiscoveryClient(registerRepository);
     }
-    
+
     @Bean
     @ConditionalOnBean(ShenyuDiscoveryClient.class)
     public ReactorServiceInstanceLoadBalancer loadBalancer(DiscoveryClient shenyuDiscoveryClient) {
