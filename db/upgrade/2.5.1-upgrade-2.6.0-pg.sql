@@ -121,6 +121,29 @@ COMMENT ON COLUMN "public"."proxy_selector"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."proxy_selector"."date_updated" IS 'update time';
 
 
+CREATE TABLE "public"."discovery_upstream"
+(
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_handler_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "protocol" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "url"         varchar(128) COLLATE "pg_catalog"."default",
+    "status"      int2 COLLATE "pg_catalog"."default" NOT NULL,
+    "weight"      int2 COLLATE "pg_catalog"."default" NOT NULL,
+    "props"        text COLLATE "pg_catalog"."default",
+    "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+;
+COMMENT ON COLUMN "public"."discovery_upstream"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."discovery_upstream"."discovery_handler_id" IS 'the discovery handler id';
+COMMENT ON COLUMN "public"."discovery_upstream"."protocol" IS 'for http, https, tcp, ws';
+COMMENT ON COLUMN "public"."discovery_upstream"."url" IS 'ip:port';
+COMMENT ON COLUMN "public"."discovery_upstream"."status" IS 'type (0, healthy, 1 unhealthy)';
+COMMENT ON COLUMN "public"."discovery_upstream"."weight" IS 'the weight for lists';
+COMMENT ON COLUMN "public"."discovery_upstream"."props" IS 'the other field (json)';
+COMMENT ON COLUMN "public"."discovery_upstream"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."discovery_upstream"."date_updated" IS 'update time';
+
 INSERT INTO "public"."plugin" VALUES ('42', 'tcp', null, 'Proxy', 320, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('43', 'loggingHuaweiLts', '{ "totalSizeInBytes": "104857600","maxBlockMs":"0","ioThreadCount":"1","batchSizeThresholdInBytes":"524288","batchCountThreshold":"4096","lingerMs":"2000","retries":"100","baseRetryBackoffMs":"100","maxRetryBackoffMs":"100","enableLocalTest":"true","setGiveUpExtraLongSingleLog":"false"}', 'Logging', 177, 0, '2023-07-05 14:03:53', '2023-07-06 12:42:07', null);
 
@@ -167,3 +190,39 @@ INSERT INTO "public"."resource" VALUES ('1572525965625266183', '1572525965625266
 INSERT INTO "public"."resource" VALUES ('1572525965625266184', '1572525965625266177', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLtsRule:edit', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
 INSERT INTO "public"."resource" VALUES ('1572525965625266185', '1572525965625266177', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLtsRule:query', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
 INSERT INTO "public"."resource" VALUES ('1572525965625266186', '1572525965625266177', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLts:modify', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
+
+
+ALTER TABLE shenyu_dict ALTER COLUMN dict_value TYPE  varchar(2048) COLLATE "pg_catalog"."default";
+
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737472', 'discoveryMode', 'DISCOVERY_MODE', 'zookeeper', '{"baseSleepTimeMilliseconds":"1000","maxRetries":"3","maxSleepTimeMilliseconds":"1000","connectionTimeoutMilliseconds":"1000","sessionTimeoutMilliseconds":"1000","namespace":"","digest":null}', 'discoery mode to link zookeeper', 0, 1,'2023-03-17 10:15:16.846', '2023-03-07 10:15:16.846');
+
+INSERT INTO "public"."plugin_handle"
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678293231840038912', '42', 'discoveryZookeeper', 'discovery zk init props', 2, 3, 0, '{"required":"0","defaultValue":"{\"baseSleepTimeMilliseconds\":\"1000\",\"maxRetries\":\"3\",\"maxSleepTimeMilliseconds\":\"1000\",\"connectionTimeoutMilliseconds\":\"1000\",\"sessionTimeoutMilliseconds\":\"1000\",\"namespace\":\"\",\"digest\":null}","rule":""}', '2023-07-10 14:41:02.000', '2023-07-10 14:41:40.643');
+INSERT INTO "public"."plugin_handle"
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678293333363167232', '42', 'discoveryhandler', 'discoveryhandler', 2, 1, 0, '{"required":"0","defaultValue":"url,protocol,status,weight","rule":""}', '2023-07-10 14:41:27.000', '2023-07-12 13:16:55.067');
+INSERT INTO "public"."plugin_handle"
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678997037438107648', '42', 'bossGroupThreadCount', 'bossGroupThreadCount', 2, 1, 1, '{"required":"0","defaultValue":"1","rule":""}', '2023-07-12 13:17:43.000', '2023-07-12 13:22:24.662');
+INSERT INTO"public"."plugin_handle"
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678997142656417792', '42', 'workerGroupThreadCount', 'workerGroupThreadCount', 2, 1, 2, '{"required":"0","defaultValue":"12","rule":""}', '2023-07-12 13:18:08.000', '2023-07-12 13:22:54.357');
+INSERT INTO "public"."plugin_handle"
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678997399104552960', '42', 'clientMaxIdleTimeMs', 'clientMaxIdleTimeMs', 2, 1, 7, '{"required":"0","defaultValue":"30000","rule":""}', '2023-07-12 13:19:09.000', '2023-07-12 13:23:54.147');
+INSERT INTO "public"."plugin_handle"
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678997479614218240', '42', 'clientPendingAcquireMaxCount', 'clientPendingAcquireMaxCount', 2, 1, 4, '{"required":"0","defaultValue":"5","rule":""}', '2023-07-12 13:19:28.000', '2023-07-12 13:23:20.131');
+INSERT INTO "public"."plugin_handle"
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678996921914392576', '42', 'loadBalance', 'loadBalance', 3, 1, 3, '{"required":"0","defaultValue":"random","rule":""}', '2023-07-12 13:17:15.000', '2023-07-12 13:23:10.235');
+INSERT INTO "public"."plugin_handle"
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678997769998467072', '42', 'clientMaxLifeTimeMs', 'clientMaxLifeTimeMs', 2, 1, 8, '{"required":"0","defaultValue":"60000","rule":""}', '2023-07-12 13:20:37.000', '2023-07-12 13:24:07.104');
+INSERT INTO "public"."plugin_handle"
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678997277012557824', '42', 'clientMaxConnections', 'clientMaxConnections', 2, 1, 6, '{"required":"0","defaultValue":"20","rule":""}', '2023-07-12 13:18:40.000', '2023-07-12 13:23:44.428');
+INSERT INTO "public"."plugin_handle"
+(id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
+VALUES('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{"required":"0","defaultValue":"5","rule":""}', '2023-07-12 13:19:47.000', '2023-07-12 13:23:33.253');
