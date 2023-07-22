@@ -213,6 +213,17 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - uses: actions/download-artifact@v3
+          with:
+            name: shenyu-images
+            path: /tmp/
+
+      - name: Load ShenYu Docker Images
+        run: |
+          docker load --input /tmp/apache-shenyu-admin.tar
+          docker load --input /tmp/apache-shenyu-bootstrap.tar
+          docker image ls -a
+
       - name: remove apache dubbo and add alibaba dubbo dependency with bootstrap
         run: |
           sed -i '319,354d' ./shenyu-bootstrap/pom.xml
