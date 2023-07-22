@@ -31,6 +31,7 @@
     <modules>
         <module>shenyu-examples-dubbo-api</module>
         <module>shenyu-examples-apache-dubbo-service</module>
+        <module>shenyu-examples-apache-dubbo-270-service</module>
         <module>shenyu-examples-alibaba-dubbo-service</module>
         <module>shenyu-examples-alibaba-dubbo-service-annotation</module>
         <module>shenyu-examples-apache-dubbo-service-annotation</module>

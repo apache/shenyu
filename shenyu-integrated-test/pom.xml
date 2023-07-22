@@ -35,6 +35,7 @@
         <module>shenyu-integrated-test-common</module>
         <module>shenyu-integrated-test-alibaba-dubbo</module>
         <module>shenyu-integrated-test-apache-dubbo</module>
+        <module>shenyu-integrated-test-apache-dubbo-270</module>
         <module>shenyu-integrated-test-grpc</module>
         <module>shenyu-integrated-test-motan</module>
         <module>shenyu-integrated-test-sofa</module>

@@ -259,7 +259,7 @@ The text of each license is the standard Apache 2.0 license.
     curator-framework 4.3.0:  https://github.com/apache/curator, Apache 2.0
     curator-recipes 4.3.0:  https://github.com/apache/curator, Apache 2.0
     curator-x-discovery 4.2.0:  https://mvnrepository.com/artifact/org.apache.curator/curator-x-discovery, Apache 2.0
-	dubbo 3.1.1: https://github.com/apache/dubbo, Apache 2.0
+	dubbo 3.2.4: https://github.com/apache/dubbo, Apache 2.0
     error_prone_annotations 2.11.0: https://github.com/google/error-prone, Apache 2.0
     failsafe 2.4.4: https://github.com/jhalterman/failsafe, Apache 2.0
     failureaccess 1.0.1: https://github.com/google/guava, Apache 2.0
