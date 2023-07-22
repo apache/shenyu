@@ -25,7 +25,7 @@ services:
       - 2181
 
   admin:
-    image: apache/shenyu-admin:latest
+    image: shenyu/admin:latest
     expose:
       - 9095
     ports:
@@ -63,7 +63,7 @@ services:
         condition: service_healthy
 
   gateway:
-    image: apache/shenyu-bootstrap:latest
+    image: shenyu/bootstrap:latest
     expose:
       - 9195
     ports:
