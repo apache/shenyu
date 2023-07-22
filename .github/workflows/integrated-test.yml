@@ -28,6 +28,7 @@ jobs:
         case:
           - shenyu-integrated-test-alibaba-dubbo
           - shenyu-integrated-test-apache-dubbo
+          - shenyu-integrated-test-apache-dubbo-270
           - shenyu-integrated-test-grpc
           - shenyu-integrated-test-http
           - shenyu-integrated-test-https
