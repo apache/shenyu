@@ -57,6 +57,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -138,20 +139,25 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
 
     private void handleApiDoc(final Object bean, final Map<String, T> beans) {
         Class<?> apiModuleClass = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
-        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(apiModuleClass);
-        for (Method method : methods) {
-            if (method.isAnnotationPresent(ApiDoc.class)) {
-                List<ApiDocRegisterDTO> apis = buildApiDocDTO(bean, method, beans);
-                for (ApiDocRegisterDTO apiDocRegisterDTO : apis) {
-                    publisher.publishEvent(apiDocRegisterDTO);
+        ApiModule apiModule = apiModuleClass.getDeclaredAnnotation(ApiModule.class);
+        if (Objects.nonNull(apiModule) && apiModule.generated()) {
+            final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(apiModuleClass);
+            for (Method method : methods) {
+                if (method.isAnnotationPresent(ApiDoc.class)) {
+                    List<ApiDocRegisterDTO> apis = buildApiDocDTO(bean, method, beans);
+                    for (ApiDocRegisterDTO apiDocRegisterDTO : apis) {
+                        publisher.publishEvent(apiDocRegisterDTO);
+                    }
                 }
             }
         }
     }
 
     private List<ApiDocRegisterDTO> buildApiDocDTO(final Object bean, final Method method, final Map<String, T> beans) {
+        AtomicBoolean generated = new AtomicBoolean(false);
         Pair<String, List<String>> pairs = Stream.of(method.getDeclaredAnnotations()).filter(ApiDoc.class::isInstance).findAny().map(item -> {
             ApiDoc apiDoc = (ApiDoc) item;
+            generated.set(apiDoc.generated());
             String[] tags = apiDoc.tags();
             List<String> tagsList = new ArrayList<>();
             if (tags.length > 0 && StringUtils.isNotBlank(tags[0])) {
@@ -159,6 +165,9 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
             }
             return Pair.of(apiDoc.desc(), tagsList);
         }).orElse(Pair.of("", new ArrayList<>()));
+        if (!generated.get()) {
+            return Collections.emptyList();
+        }
         Class<?> clazz = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
         String superPath = buildApiSuperPath(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
         if (superPath.contains("*")) {
