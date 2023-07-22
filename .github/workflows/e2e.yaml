@@ -214,9 +214,9 @@ jobs:
           cache: maven
 
       - uses: actions/download-artifact@v3
-          with:
-            name: shenyu-images
-            path: /tmp/
+        with:
+          name: shenyu-images
+          path: /tmp/
 
       - name: Load ShenYu Docker Images
         run: |
