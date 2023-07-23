@@ -19,7 +19,7 @@ package org.apache.shenyu.alert.strategy;
 
 import org.apache.shenyu.alert.AlertNotifyHandler;
 import org.apache.shenyu.alert.exception.AlertNoticeException;
-import org.apache.shenyu.alert.model.AlertContentDTO;
+import org.apache.shenyu.common.dto.AlarmContent;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -51,7 +51,7 @@ final class EmailAlertNotifyStrategy implements AlertNotifyHandler {
     }
     
     @Override
-    public void send(final AlertReceiverDTO receiver, final AlertContentDTO alert) throws AlertNoticeException {
+    public void send(final AlertReceiverDTO receiver, final AlarmContent alert) throws AlertNoticeException {
         try {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -71,7 +71,7 @@ final class EmailAlertNotifyStrategy implements AlertNotifyHandler {
         }
     }
     
-    private String buildAlertHtmlTemplate(final AlertContentDTO alert) {
+    private String buildAlertHtmlTemplate(final AlarmContent alert) {
         // Introduce thymeleaf context parameters to render pages
         Context context = new Context();
         context.setVariable("nameTitle", "ShenYu Alarm");

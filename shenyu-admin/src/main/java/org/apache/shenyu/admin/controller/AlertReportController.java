@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.alert.model.AlertContentDTO;
+import org.apache.shenyu.common.dto.AlarmContent;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.AlertDispatchService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -44,12 +44,12 @@ public class AlertReportController {
     /**
      * report new alert content.
      *
-     * @param alertContentDTO AlertContentDTO
+     * @param alarmContent AlertContentDTO
      * @return row int
      */
     @PostMapping
-    public ShenyuAdminResult reportAlert(@Valid @RequestBody final AlertContentDTO alertContentDTO) {
-        alertDispatchService.dispatchAlert(alertContentDTO);
+    public ShenyuAdminResult reportAlert(@Valid @RequestBody final AlarmContent alarmContent) {
+        alertDispatchService.dispatchAlert(alarmContent);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS);
     }
     

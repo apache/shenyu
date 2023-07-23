@@ -17,8 +17,12 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.AlertReceiverMapper;
 import org.apache.shenyu.admin.model.entity.AlertReceiverDO;
+import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.page.PageResultUtils;
+import org.apache.shenyu.admin.model.query.AlertReceiverQuery;
 import org.apache.shenyu.admin.service.AlertDispatchService;
 import org.apache.shenyu.admin.service.AlertReceiverService;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
@@ -29,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link AlertReceiverService}.
@@ -43,7 +48,7 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     private AlertDispatchService alertDispatchService;
     
     @Override
-    public int addReceiver(final AlertReceiverDTO alertReceiverDTO) {
+    public void addReceiver(final AlertReceiverDTO alertReceiverDTO) {
         AlertReceiverDO receiverDO = new AlertReceiverDO();
         BeanUtils.copyProperties(alertReceiverDTO, receiverDO);
         receiverDO.setId(UUIDUtils.getInstance().generateShortUuid());
@@ -51,26 +56,40 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
         receiverDO.setDateCreated(currentTime);
         receiverDO.setDateUpdated(currentTime);
         alertDispatchService.clearCache();
-        return alertReceiverMapper.insert(receiverDO);
+        alertReceiverMapper.insert(receiverDO);
     }
     
     @Override
-    public int deleteReceiver(final List<String> ids) {
+    public void deleteReceiver(final List<String> ids) {
         alertDispatchService.clearCache();
-        return alertReceiverMapper.deleteByIds(ids);
+        alertReceiverMapper.deleteByIds(ids);
     }
     
     @Override
-    public int updateReceiver(final AlertReceiverDTO alertReceiverDTO) {
+    public void updateReceiver(final AlertReceiverDTO alertReceiverDTO) {
         AlertReceiverDO receiverDO = new AlertReceiverDO();
         BeanUtils.copyProperties(alertReceiverDTO, receiverDO);
         alertDispatchService.clearCache();
-        return alertReceiverMapper.updateByPrimaryKey(receiverDO);
+        alertReceiverMapper.updateByPrimaryKey(receiverDO);
     }
     
     @Override
     public List<AlertReceiverDTO> getAll() {
         return alertReceiverMapper.selectAll();
+    }
+    
+    @Override
+    @Pageable
+    public CommonPager<AlertReceiverDTO> listByPage(AlertReceiverQuery receiverQuery) {
+        return PageResultUtils.result(receiverQuery.getPageParameter(), 
+                () -> alertReceiverMapper.selectByQuery(receiverQuery)
+                              .stream()
+                              .map(item -> {
+                                  AlertReceiverDTO receiverDTO = new AlertReceiverDTO();
+                                  BeanUtils.copyProperties(item, receiverDTO);
+                                  return receiverDTO;
+                              })
+                              .collect(Collectors.toList()));
     }
     
     @Override

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.alert.model.AlertContentDTO;
+import org.apache.shenyu.common.dto.AlarmContent;
 
 /**
  * Alert template service.
@@ -27,9 +27,9 @@ public interface AlertDispatchService {
     /**
      * Add alert content.
      *
-     * @param alertContentDTO alertContentDTO
+     * @param alarmContent alertContentDTO
      */
-    void dispatchAlert(AlertContentDTO alertContentDTO);
+    void dispatchAlert(AlarmContent alarmContent);
     
     
     /**

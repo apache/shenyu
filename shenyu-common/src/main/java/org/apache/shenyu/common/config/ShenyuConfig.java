@@ -68,6 +68,8 @@ public class ShenyuConfig {
     
     private SpringCloudCacheConfig springCloudCache = new SpringCloudCacheConfig();
     
+    private AlertConfig alert = new AlertConfig();
+    
     /**
      * Gets health.
      *
@@ -372,6 +374,22 @@ public class ShenyuConfig {
      */
     public void setSpringCloudCache(final SpringCloudCacheConfig springCloudCache) {
         this.springCloudCache = springCloudCache;
+    }
+    
+    /**
+     * get shenyu alert report config
+     * @return alert config
+     */
+    public AlertConfig getAlert() {
+        return alert;
+    }
+    
+    /**
+     * set shenyu alert report config
+     * @param alert alert config
+     */
+    public void setAlert(AlertConfig alert) {
+        this.alert = alert;
     }
     
     /**
@@ -1951,6 +1969,46 @@ public class ShenyuConfig {
          */
         public void setEnabled(final Boolean enabled) {
             this.enabled = enabled;
+        }
+    }
+    
+    public static class AlertConfig {
+        private Boolean enabled = Boolean.TRUE;
+        
+        private String reportUrl = "http://localhost:9095/alert/report";
+        
+        /**
+         * get shenyu spring cloud cache status.
+         *
+         * @return the enabled status
+         */
+        public Boolean getEnabled() {
+            return enabled;
+        }
+        
+        /**
+         * set shenyu spring cloud cache status.
+         *
+         * @param enabled the status
+         */
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
+        }
+        
+        /**
+         * get shenyu admin alert report url
+         * @return url
+         */
+        public String getReportUrl() {
+            return reportUrl;
+        }
+        
+        /**
+         * set shenyu admin alert report url
+         * @param reportUrl admin url
+         */
+        public void setReportUrl(String reportUrl) {
+            this.reportUrl = reportUrl;
         }
     }
 }

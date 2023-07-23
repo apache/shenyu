@@ -18,7 +18,7 @@
 package org.apache.shenyu.alert.strategy;
 
 import org.apache.shenyu.alert.AlertNotifyHandler;
-import org.apache.shenyu.alert.model.AlertContentDTO;
+import org.apache.shenyu.common.dto.AlarmContent;
 import org.springframework.web.client.RestTemplate;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -38,7 +38,7 @@ abstract class AbstractAlertNotifyHandler implements AlertNotifyHandler {
     @Resource
     private RestTemplate restTemplate;
     
-    protected String renderContent(final AlertContentDTO alert) {
+    protected String renderContent(final AlarmContent alert) {
         Context context = new Context();
         context.setVariable("title", "[ShenYu Alarm]");
         

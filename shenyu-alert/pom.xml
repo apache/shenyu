@@ -43,6 +43,11 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- email -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -57,11 +62,6 @@
             <groupId>net.sourceforge.nekohtml</groupId>
             <artifactId>nekohtml</artifactId>
             <version>${nekohtml.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-common</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
     </dependencies>

@@ -22,7 +22,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.shenyu.admin.mapper.AlertReceiverMapper;
 import org.apache.shenyu.alert.AlertNotifyHandler;
 import org.apache.shenyu.alert.exception.AlertNoticeException;
-import org.apache.shenyu.alert.model.AlertContentDTO;
+import org.apache.shenyu.common.dto.AlarmContent;
 import org.apache.shenyu.admin.service.AlertDispatchService;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.slf4j.Logger;
@@ -51,7 +51,7 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Initializ
     
     private static final int DISPATCH_THREADS = 3;
     
-    private final LinkedBlockingQueue<AlertContentDTO> alertDataQueue;
+    private final LinkedBlockingQueue<AlarmContent> alertDataQueue;
     
     private final Map<Byte, AlertNotifyHandler> alertNotifyHandlerMap;
     
@@ -91,8 +91,8 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Initializ
     }
     
     @Override
-    public void dispatchAlert(final AlertContentDTO alertContentDTO) {
-        alertDataQueue.offer(alertContentDTO);
+    public void dispatchAlert(final AlarmContent alarmContent) {
+        alertDataQueue.offer(alarmContent);
     }
     
     @Override
@@ -105,7 +105,7 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Initializ
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    AlertContentDTO alert = alertDataQueue.poll();
+                    AlarmContent alert = alertDataQueue.poll();
                     if (alert != null) {
                         sendNotify(alert);
                     }
@@ -115,7 +115,7 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Initializ
             }
         }
         
-        private void sendNotify(final AlertContentDTO alert) {
+        private void sendNotify(final AlarmContent alert) {
             // Forward configured email WeChat webhook
             List<AlertReceiverDTO> receivers = matchReceiverByRules(alert);
             for (AlertReceiverDTO receiver : receivers) {
@@ -127,7 +127,7 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Initializ
             }
         }
         
-        private List<AlertReceiverDTO> matchReceiverByRules(final AlertContentDTO alert) {
+        private List<AlertReceiverDTO> matchReceiverByRules(final AlarmContent alert) {
             List<AlertReceiverDTO> dtoList = alertReceiverReference.get();
             if (dtoList == null) {
                 dtoList = alertReceiverMapper.selectAll();
@@ -160,7 +160,7 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Initializ
             }).collect(Collectors.toList());
         }
         
-        private void sendNoticeMsg(final AlertReceiverDTO receiver, final AlertContentDTO alert) {
+        private void sendNoticeMsg(final AlertReceiverDTO receiver, final AlarmContent alert) {
             if (receiver == null || receiver.getType() == null) {
                 log.warn("DispatcherAlarm-sendNoticeMsg params is empty alert:[{}], receiver:[{}]", alert, receiver);
                 return;

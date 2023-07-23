@@ -17,20 +17,28 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.page.PageParameter;
+import org.apache.shenyu.admin.model.query.AlertReceiverQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.AlertReceiverService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.List;
+import javax.validation.constraints.NotNull;
+import java.util.Collections;
 
 /**
  * Alert Receiver Controller.
@@ -47,7 +55,7 @@ public class AlertReceiverController {
      * add new alert receiver.
      *
      * @param alertReceiverDTO alertReceiverDTO
-     * @return row int
+     * @return result
      */
     @PostMapping
     public ShenyuAdminResult addReceiver(@Valid @RequestBody final AlertReceiverDTO alertReceiverDTO) {
@@ -56,13 +64,50 @@ public class AlertReceiverController {
     }
     
     /**
-     * get all receiver.
+     * update alert receiver.
+     *
+     * @param alertReceiverDTO alertReceiverDTO
+     * @return result
+     */
+    @PutMapping
+    public ShenyuAdminResult editReceiver(@Valid @RequestBody final AlertReceiverDTO alertReceiverDTO) {
+        alertReceiverService.updateReceiver(alertReceiverDTO);
+        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS);
+    }
+    
+    /**
+     * delete alert receiver.
+     *
+     * @param id alertReceiver ID
+     * @return result
+     */
+    @DeleteMapping("/{id}")
+    public ShenyuAdminResult deleteReceiver(@PathVariable("id") final String id) {
+        alertReceiverService.deleteReceiver(Collections.singletonList(id));
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS);
+    }
+    
+    /**
+     * delete alert receiver.
+     *
+     * @param id alertReceiver ID
+     * @return result
+     */
+    @GetMapping("/{id}")
+    public ShenyuAdminResult getReceiverDetail(@PathVariable("id") final String id) {
+        AlertReceiverDTO receiverDTO = alertReceiverService.detail(id);
+        return ShenyuAdminResult.success(receiverDTO);
+    }
+    
+    /**
+     * query receiver.
      * @return receiver
      */
-    @GetMapping("/getAll")
-    public ShenyuAdminResult getAllReceiver() {
-        List<AlertReceiverDTO> receiverDTOS = alertReceiverService.getAll();
-        return ShenyuAdminResult.success(receiverDTOS);
+    @GetMapping
+    public ShenyuAdminResult getReceivers(@RequestParam @NotNull final Integer currentPage,
+                                            @RequestParam @NotNull final Integer pageSize) {
+        CommonPager<AlertReceiverDTO> commonPager = alertReceiverService.listByPage(new AlertReceiverQuery(new PageParameter(currentPage, pageSize)));
+        return ShenyuAdminResult.success(commonPager);
     }
     
 }

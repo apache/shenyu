@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.query.AlertReceiverQuery;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 
 import java.util.List;
@@ -28,30 +30,38 @@ public interface AlertReceiverService {
 
     /**
      * Add alert receiver.
+     *
      * @param alertReceiverDTO alertReceiverDTO
-     * @return row int
      */
-    int addReceiver(AlertReceiverDTO alertReceiverDTO);
+    void addReceiver(AlertReceiverDTO alertReceiverDTO);
 
     /**
      * Delete alert receiver.
+     *
      * @param ids ids
-     * @return row int
      */
-    int deleteReceiver(List<String> ids);
+    void deleteReceiver(List<String> ids);
 
     /**
      * Update alert receiver.
+     *
      * @param alertReceiverDTO alertReceiverDTO
-     * @return row int
      */
-    int updateReceiver(AlertReceiverDTO alertReceiverDTO);
+    void updateReceiver(AlertReceiverDTO alertReceiverDTO);
 
     /**
      * Get all receiver.
      * @return all {@link AlertReceiverDTO}
      */
     List<AlertReceiverDTO> getAll();
+    
+    /**
+     * find page of AlertReceiverDTO by query.
+     *
+     * @param receiverQuery {@linkplain AlertReceiverQuery}
+     * @return {@linkplain CommonPager}
+     */
+    CommonPager<AlertReceiverDTO> listByPage(AlertReceiverQuery receiverQuery);
 
     /**
      * receiver detail.

@@ -20,6 +20,9 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.AlertReceiverDO;
+import org.apache.shenyu.admin.model.entity.ResourceDO;
+import org.apache.shenyu.admin.model.query.AlertReceiverQuery;
+import org.apache.shenyu.admin.model.query.ResourceQuery;
 import org.apache.shenyu.admin.validation.ExistProvider;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 
@@ -81,4 +84,11 @@ public interface AlertReceiverMapper extends ExistProvider {
      */
     int deleteByIds(List<String> ids);
     
+    /**
+     * select receivers by query.
+     *
+     * @param receiverQuery {@linkplain AlertReceiverQuery}
+     * @return {@linkplain List}
+     */
+    List<AlertReceiverDO> selectByQuery(AlertReceiverQuery receiverQuery);
 }

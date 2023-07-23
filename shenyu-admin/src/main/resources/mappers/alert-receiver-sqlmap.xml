@@ -74,4 +74,57 @@
         #{smnTopicUrn,jdbcType=VARCHAR}, #{matchAll,jdbcType=TINYINT}, #{labels,jdbcType=VARCHAR},
         #{levels,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
     </insert>
+    <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
+        update alert_receiver
+        set
+            name = #{name,jdbcType=VARCHAR},
+            enable = #{enable,jdbcType=TINYINT},
+            type = #{type,jdbcType=TINYINT},
+            phone = #{phone,jdbcType=VARCHAR},
+            email = #{email,jdbcType=VARCHAR},
+            hook_url = #{hookUrl,jdbcType=VARCHAR},
+            wechat_id = #{wechatId,jdbcType=VARCHAR},
+            access_token = #{accessToken,jdbcType=TINYINT},
+            tg_bot_token = #{tgBotToken,jdbcType=VARCHAR},
+            tg_user_id = #{tgUserId,jdbcType=VARCHAR},
+            slack_web_hook_url = #{slackWebHookUrl,jdbcType=VARCHAR},
+            corp_id = #{corpId,jdbcType=VARCHAR},
+            agent_id = #{agentId,jdbcType=VARCHAR},
+            app_secret = #{appSecret,jdbcType=VARCHAR},
+            discord_channel_id = #{discordChannelId,jdbcType=VARCHAR},
+            discord_bot_token = #{discordBotToken,jdbcType=VARCHAR},
+            smn_ak = #{smnAk,jdbcType=VARCHAR},
+            smn_sk = #{smnSk,jdbcType=VARCHAR},
+            smn_project_id = #{smnProjectId,jdbcType=VARCHAR},
+            smn_region = #{smnRegion,jdbcType=VARCHAR},
+            smn_topic_urn = #{smnTopicUrn,jdbcType=VARCHAR},
+            match_all = #{matchAll,jdbcType=TINYINT},
+            labels = #{labels,jdbcType=VARCHAR},
+            levels = #{levels,jdbcType=VARCHAR},
+            date_created = #{dateCreated,jdbcType=TIMESTAMP},
+            date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=VARCHAR}
+
+    </update>
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.AlertReceiverQuery"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM alert_receiver
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM alert_receiver
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from alert_receiver where id = #{id} limit 1
+    </select>
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM alert_receiver WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
 </mapper>

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.alert.model;
+package org.apache.shenyu.common.dto;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * AlertContent.
  */
-public class AlertContentDTO implements Serializable {
+public class AlarmContent implements Serializable {
     
     /**
      * primary key id.
@@ -63,6 +63,15 @@ public class AlertContentDTO implements Serializable {
      * update time.
      */
     private Date dateUpdated;
+    
+    private AlarmContent(Builder builder) {
+        setTitle(builder.title);
+        setLevel(builder.level);
+        setLabels(builder.labels);
+        setContent(builder.content);
+        setDateCreated(builder.dateCreated);
+        setDateUpdated(builder.dateUpdated);
+    }
     
     /**
      * get id.
@@ -184,4 +193,50 @@ public class AlertContentDTO implements Serializable {
         this.dateUpdated = dateUpdated;
     }
     
+    
+    public static final class Builder {
+        private String title;
+        private byte level;
+        private Map<String, String> labels;
+        private String content;
+        private Date dateCreated;
+        private Date dateUpdated;
+        
+        public Builder() {
+        }
+        
+        public Builder title(String val) {
+            title = val;
+            return this;
+        }
+        
+        public Builder level(byte val) {
+            level = val;
+            return this;
+        }
+        
+        public Builder labels(Map<String, String> val) {
+            labels = val;
+            return this;
+        }
+        
+        public Builder content(String val) {
+            content = val;
+            return this;
+        }
+        
+        public Builder dateCreated(Date val) {
+            dateCreated = val;
+            return this;
+        }
+        
+        public Builder dateUpdated(Date val) {
+            dateUpdated = val;
+            return this;
+        }
+        
+        public AlarmContent build() {
+            return new AlarmContent(this);
+        }
+    }
 }

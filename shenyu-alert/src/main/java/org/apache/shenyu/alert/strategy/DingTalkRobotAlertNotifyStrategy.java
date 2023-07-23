@@ -18,7 +18,7 @@
 package org.apache.shenyu.alert.strategy;
 
 import org.apache.shenyu.alert.exception.AlertNoticeException;
-import org.apache.shenyu.alert.model.AlertContentDTO;
+import org.apache.shenyu.common.dto.AlarmContent;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ final class DingTalkRobotAlertNotifyStrategy extends AbstractAlertNotifyHandler 
     private static final Logger log = LoggerFactory.getLogger(DingTalkRobotAlertNotifyStrategy.class);
     
     @Override
-    public void send(final AlertReceiverDTO receiver, final AlertContentDTO alert) {
+    public void send(final AlertReceiverDTO receiver, final AlarmContent alert) {
         try {
             DingTalkWebHookDto dingTalkWebHookDto = new DingTalkWebHookDto();
             MarkdownDTO markdownDTO = new MarkdownDTO();

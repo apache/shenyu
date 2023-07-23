@@ -18,7 +18,7 @@
 package org.apache.shenyu.alert;
 
 import org.apache.shenyu.alert.exception.AlertNoticeException;
-import org.apache.shenyu.alert.model.AlertContentDTO;
+import org.apache.shenyu.common.dto.AlarmContent;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 
 /**
@@ -33,7 +33,7 @@ public interface AlertNotifyHandler {
      * @param alert    Alarm information
      * @throws AlertNoticeException when send receiver error
      */
-    void send(AlertReceiverDTO receiver, AlertContentDTO alert) throws AlertNoticeException;
+    void send(AlertReceiverDTO receiver, AlarmContent alert) throws AlertNoticeException;
     
     /**
      * alert type.
