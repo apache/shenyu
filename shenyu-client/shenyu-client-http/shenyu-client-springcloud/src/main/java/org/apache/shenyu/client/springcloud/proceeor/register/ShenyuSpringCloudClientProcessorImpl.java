@@ -30,7 +30,7 @@ import java.util.Objects;
  *
  * @see ShenyuSpringCloudClient
  */
-public class ShenyuSpringClouldClientProcessorImpl extends BaseAnnotationApiProcessor<ShenyuSpringCloudClient> {
+public class ShenyuSpringCloudClientProcessorImpl extends BaseAnnotationApiProcessor<ShenyuSpringCloudClient> {
     
     @Override
     public void process(final ApiBean apiBean, final ShenyuSpringCloudClient annotation) {

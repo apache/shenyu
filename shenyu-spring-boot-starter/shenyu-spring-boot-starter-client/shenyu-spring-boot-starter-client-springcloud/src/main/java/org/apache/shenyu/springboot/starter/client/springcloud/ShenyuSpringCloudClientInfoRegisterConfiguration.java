@@ -26,7 +26,7 @@ import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
 import org.apache.shenyu.client.core.register.registrar.AbstractApiDocRegistrar;
 import org.apache.shenyu.client.core.register.registrar.AbstractApiMetaRegistrar;
 import org.apache.shenyu.client.core.register.registrar.HttpApiDocRegistrar;
-import org.apache.shenyu.client.springcloud.proceeor.register.ShenyuSpringClouldClientProcessorImpl;
+import org.apache.shenyu.client.springcloud.proceeor.register.ShenyuSpringCloudClientProcessorImpl;
 import org.apache.shenyu.client.springcloud.register.SpringCloudApiBeansExtractor;
 import org.apache.shenyu.client.springcloud.register.SpringCloudApiMetaRegister;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -64,6 +64,7 @@ public class ShenyuSpringCloudClientInfoRegisterConfiguration {
     /**
      * ApiBeansExtractor Bean.
      *
+     * @param extractorProcessorList extractorProcessorList.
      * @return apiBeansExtractor
      */
     @Bean
@@ -77,13 +78,13 @@ public class ShenyuSpringCloudClientInfoRegisterConfiguration {
     }
     
     /**
-     * ShenyuSpringClouldClientProcessorImpl.
+     * ShenyuSpringCloudClientProcessorImpl.
      *
-     * @return ShenyuSpringClouldClientProcessorImpl
+     * @return ShenyuSpringCloudClientProcessorImpl
      */
     @Bean
-    public ShenyuSpringClouldClientProcessorImpl shenyuSpringClouldClientProcessor() {
-        return new ShenyuSpringClouldClientProcessorImpl();
+    public ShenyuSpringCloudClientProcessorImpl shenyuSpringCloudClientProcessor() {
+        return new ShenyuSpringCloudClientProcessorImpl();
     }
     
     /**
