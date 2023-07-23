@@ -30,6 +30,8 @@ public class DocInfo {
 
     private String contextPath;
 
+    private String docMd5;
+
     private List<DocModule> docModuleList;
 
     /**
@@ -84,6 +86,22 @@ public class DocInfo {
      */
     public void setContextPath(final String contextPath) {
         this.contextPath = contextPath;
+    }
+
+    /**
+     * getDocMd5.
+     * @return docMd5
+     */
+    public String getDocMd5() {
+        return docMd5;
+    }
+
+    /**
+     * setDocMd5.
+     * @param docMd5 docMd5
+     */
+    public void setDocMd5(final String docMd5) {
+        this.docMd5 = docMd5;
     }
 
     /**
