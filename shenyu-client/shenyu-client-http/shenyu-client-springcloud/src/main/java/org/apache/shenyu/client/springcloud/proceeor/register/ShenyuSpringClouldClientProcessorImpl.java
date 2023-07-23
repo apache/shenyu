@@ -15,25 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.proceeor.register;
+package org.apache.shenyu.client.springcloud.proceeor.register;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.BaseAnnotationApiProcessor;
-import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 
 import java.util.Objects;
 
 /**
  * RequestMappingProcessorImpl.<br>
- * About support for {@link ShenyuSpringMvcClient} annotations
+ * About support for {@link ShenyuSpringCloudClient} annotations
  *
- * @see ShenyuSpringMvcClient
+ * @see ShenyuSpringCloudClient
  */
-public class ShenyuSpringMvcClientProcessorImpl extends BaseAnnotationApiProcessor<ShenyuSpringMvcClient> {
+public class ShenyuSpringClouldClientProcessorImpl extends BaseAnnotationApiProcessor<ShenyuSpringCloudClient> {
     
     @Override
-    public void process(final ApiBean apiBean, final ShenyuSpringMvcClient annotation) {
+    public void process(final ApiBean apiBean, final ShenyuSpringCloudClient annotation) {
         apiBean.setBeanPath(annotation.path());
         apiBean.addProperties("desc", annotation.desc());
         if (StringUtils.isNotBlank(apiBean.getPropertiesValue("rule"))) {
@@ -54,7 +54,7 @@ public class ShenyuSpringMvcClientProcessorImpl extends BaseAnnotationApiProcess
     }
     
     @Override
-    public void process(final ApiBean.ApiDefinition definition, final ShenyuSpringMvcClient annotation) {
+    public void process(final ApiBean.ApiDefinition definition, final ShenyuSpringCloudClient annotation) {
         definition.setMethodPath(annotation.path());
         definition.addProperties("desc", annotation.desc());
         definition.addProperties("rule", annotation.ruleName());
@@ -69,7 +69,7 @@ public class ShenyuSpringMvcClientProcessorImpl extends BaseAnnotationApiProcess
     }
     
     @Override
-    public Class<ShenyuSpringMvcClient> matchAnnotation() {
-        return ShenyuSpringMvcClient.class;
+    public Class<ShenyuSpringCloudClient> matchAnnotation() {
+        return ShenyuSpringCloudClient.class;
     }
 }
