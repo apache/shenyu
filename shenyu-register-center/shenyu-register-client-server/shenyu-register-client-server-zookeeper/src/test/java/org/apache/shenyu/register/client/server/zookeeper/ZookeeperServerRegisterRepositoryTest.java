@@ -69,10 +69,23 @@ public class ZookeeperServerRegisterRepositoryTest {
 
             List<TreeCacheEvent> treeCacheEvent = new ArrayList<>();
             // register uri
-            treeCacheEvent.add(treeCacheEvent("/shenyu/register/uri/test/test/test"));
-            // register metadata
-            treeCacheEvent.add(treeCacheEvent("/shenyu/register/metadata/test/test/test"));
+            treeCacheEvent.add(
+                    treeCacheEvent(TreeCacheEvent.Type.NODE_ADDED, "/shenyu/register/uri/test/test/test", "{}")
+            );
+            treeCacheEvent.add(
+                    treeCacheEvent(TreeCacheEvent.Type.NODE_ADDED, "/shenyu/register/uri/test/test/test", "")
+            );
+            treeCacheEvent.add(
+                    treeCacheEvent(TreeCacheEvent.Type.NODE_REMOVED, "/shenyu/register/uri/test/test/test", "{}")
+            );
+            treeCacheEvent.add(
+                    treeCacheEvent(TreeCacheEvent.Type.NODE_REMOVED, "/shenyu/register/uri/test/test/test", "")
+            );
 
+            // register metadata
+            treeCacheEvent.add(
+                    treeCacheEvent(TreeCacheEvent.Type.NODE_ADDED, "/shenyu/register/metadata/test/test/test", "{}")
+            );
             for (TreeCacheListener treeCacheListener : treeCacheListeners) {
                 for (TreeCacheEvent event : treeCacheEvent) {
                     treeCacheListener.childEvent(curatorFramework, event);
@@ -96,12 +109,13 @@ public class ZookeeperServerRegisterRepositoryTest {
         }
     }
 
-    private static TreeCacheEvent treeCacheEvent(final String path) {
+    private static TreeCacheEvent treeCacheEvent(final TreeCacheEvent.Type type, final String path, final String data) {
         TreeCacheEvent treeCacheEvent = mock(TreeCacheEvent.class);
         ChildData childData = mock(ChildData.class);
+        when(treeCacheEvent.getType()).thenReturn(type);
         when(treeCacheEvent.getData()).thenReturn(childData);
         when(childData.getPath()).thenReturn(path);
-        when(childData.getData()).thenReturn("{}".getBytes());
+        when(childData.getData()).thenReturn(data.getBytes());
         return treeCacheEvent;
     }
 }

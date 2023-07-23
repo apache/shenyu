@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.Properties;
 
+import com.ecwid.consul.v1.kv.model.GetValue;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 
@@ -149,7 +150,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
     }
 
     @Override
-    public void close() {
+    public void closeRepository() {
         consulClient.agentServiceDeregister(this.service.getId());
     }
 
@@ -159,6 +160,16 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         String metadataNodeName = buildMetadataNodeName(metadata);
         String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
         String realNode = RegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
+
+        GetValue oldValue = consulClient.getKVValue(realNode).getValue();
+        // no change in metadata, no need to update
+        if (oldValue != null) {
+            MetaDataRegisterDTO oldMetaData = GsonUtils.getInstance().fromJson(oldValue.getDecodedValue(), MetaDataRegisterDTO.class);
+            if (Objects.equals(oldMetaData, metadata)) {
+                return;
+            }
+        }
+        // update metadata
         String metadataJson = GsonUtils.getInstance().toJson(metadata);
         consulClient.setKVValue(realNode, metadataJson);
     }

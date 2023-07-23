@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.util.Converter;
 /**
  * Divide rule handle.
  */
-public class DivideRuleHandle implements RuleHandle {
+public final class DivideRuleHandle implements RuleHandle {
     
     private String loadBalance;
     
@@ -42,32 +42,11 @@ public class DivideRuleHandle implements RuleHandle {
     
     private long requestMaxSize;
     
-    static class IntConverter implements Converter<Integer, String> {
-        private static final JavaType _IN = SimpleType.constructUnsafe(int.class);
-        private static final JavaType _OUT = ReferenceType.constructUnsafe(String.class);
-        
-        @Override
-        public String convert(Integer integer) {
-            return String.valueOf(integer);
-        }
-
-        @Override
-        public JavaType getInputType(TypeFactory typeFactory) {
-            return _IN;
-        }
-        
-        @Override
-        public JavaType getOutputType(TypeFactory typeFactory) {
-            return _OUT;
-        }
-    }
-
     /**
      * builder constructor.
-     *
      * @param builder builder
      */
-    private DivideRuleHandle(Builder builder) {
+    private DivideRuleHandle(final Builder builder) {
         this.loadBalance = builder.loadBalance;
         this.retryStrategy = builder.retryStrategy;
         this.retry = builder.retry;
@@ -75,124 +54,133 @@ public class DivideRuleHandle implements RuleHandle {
         this.headerMaxSize = builder.headerMaxSize;
         this.requestMaxSize = builder.requestMaxSize;
     }
-
+    
     /**
      * class builder.
-     *
      * @return Builder
      */
     public static Builder builder() {
         return new Builder();
     }
-
+    
     /**
      * get loadBalance.
-     *
      * @return loadBalance
      */
     public String getLoadBalance() {
         return loadBalance;
     }
-
+    
     /**
      * set loadBalance.
-     *
      * @param loadBalance loadBalance
      */
-    public void setLoadBalance(String loadBalance) {
+    public void setLoadBalance(final String loadBalance) {
         this.loadBalance = loadBalance;
     }
-
+    
     /**
      * get retryStrategy.
-     *
      * @return retryStrategy
      */
     public String getRetryStrategy() {
         return retryStrategy;
     }
-
+    
     /**
      * set retryStrategy.
-     *
      * @param retryStrategy retryStrategy
      */
-    public void setRetryStrategy(String retryStrategy) {
+    public void setRetryStrategy(final String retryStrategy) {
         this.retryStrategy = retryStrategy;
     }
-
+    
     /**
      * get retry.
-     *
      * @return retry
      */
     public int getRetry() {
         return retry;
     }
-
+    
     /**
      * set retry.
-     *
      * @param retry retry
      */
-    public void setRetry(int retry) {
+    public void setRetry(final int retry) {
         this.retry = retry;
     }
-
+    
     /**
      * get timeout.
-     *
      * @return timeout
      */
     public long getTimeout() {
         return timeout;
     }
-
+    
     /**
      * set timeout.
-     *
      * @param timeout timeout
      */
-    public void setTimeout(long timeout) {
+    public void setTimeout(final long timeout) {
         this.timeout = timeout;
     }
-
+    
     /**
      * get headerMaxSize.
-     *
      * @return headerMaxSize
      */
     public long getHeaderMaxSize() {
         return headerMaxSize;
     }
-
+    
     /**
      * set headerMaxSize.
-     *
-     * @param headerMaxSize
+     * @param headerMaxSize headerMaxSize
      */
-    public void setHeaderMaxSize(long headerMaxSize) {
+    public void setHeaderMaxSize(final long headerMaxSize) {
         this.headerMaxSize = headerMaxSize;
     }
-
+    
     /**
      * get requestMaxSize.
-     *
      * @return requestMaxSize
      */
     public long getRequestMaxSize() {
         return requestMaxSize;
     }
-
+    
     /**
      * set requestMaxSize.
-     *
      * @param requestMaxSize requestMaxSize
      */
-    public void setRequestMaxSize(long requestMaxSize) {
+    public void setRequestMaxSize(final long requestMaxSize) {
         this.requestMaxSize = requestMaxSize;
     }
-
+    
+    static class IntConverter implements Converter<Integer, String> {
+        
+        private static final JavaType IN = SimpleType.constructUnsafe(int.class);
+        
+        private static final JavaType OUT = ReferenceType.constructUnsafe(String.class);
+        
+        @Override
+        public String convert(final Integer integer) {
+            return String.valueOf(integer);
+        }
+        
+        @Override
+        public JavaType getInputType(final TypeFactory typeFactory) {
+            return IN;
+        }
+        
+        @Override
+        public JavaType getOutputType(final TypeFactory typeFactory) {
+            return OUT;
+        }
+    }
+    
     /**
      * class builder.
      */
@@ -233,7 +221,7 @@ public class DivideRuleHandle implements RuleHandle {
          * @param loadBalance loadBalance
          * @return this
          */
-        public Builder loadBalance(String loadBalance) {
+        public Builder loadBalance(final String loadBalance) {
             this.loadBalance = loadBalance;
             return this;
         }
@@ -244,7 +232,7 @@ public class DivideRuleHandle implements RuleHandle {
          * @param retryStrategy retryStrategy
          * @return this
          */
-        public Builder retryStrategy(String retryStrategy) {
+        public Builder retryStrategy(final String retryStrategy) {
             this.retryStrategy = retryStrategy;
             return this;
         }
@@ -255,7 +243,7 @@ public class DivideRuleHandle implements RuleHandle {
          * @param retry retry
          * @return this
          */
-        public Builder retry(int retry) {
+        public Builder retry(final int retry) {
             this.retry = retry;
             return this;
         }
@@ -266,7 +254,7 @@ public class DivideRuleHandle implements RuleHandle {
          * @param timeout timeout
          * @return this
          */
-        public Builder timeout(long timeout) {
+        public Builder timeout(final long timeout) {
             this.timeout = timeout;
             return this;
         }
@@ -277,7 +265,7 @@ public class DivideRuleHandle implements RuleHandle {
          * @param headerMaxSize headerMaxSize
          * @return this
          */
-        public Builder headerMaxSize(long headerMaxSize) {
+        public Builder headerMaxSize(final long headerMaxSize) {
             this.headerMaxSize = headerMaxSize;
             return this;
         }
@@ -288,7 +276,7 @@ public class DivideRuleHandle implements RuleHandle {
          * @param requestMaxSize requestMaxSize
          * @return this
          */
-        public Builder requestMaxSize(long requestMaxSize) {
+        public Builder requestMaxSize(final long requestMaxSize) {
             this.requestMaxSize = requestMaxSize;
             return this;
         }

@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.UserRoleDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import reactor.util.StringUtils;
 
 import java.sql.Timestamp;
 import java.util.Objects;

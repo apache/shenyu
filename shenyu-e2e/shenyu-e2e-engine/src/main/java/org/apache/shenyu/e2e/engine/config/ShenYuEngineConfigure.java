@@ -43,7 +43,7 @@ public class ShenYuEngineConfigure {
     
     private static final Pattern EXTRACTOR_PATTERN = Pattern.compile("\\{(.*?)\\}");
     
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     
     private Mode mode;
     
@@ -51,10 +51,18 @@ public class ShenYuEngineConfigure {
     
     private DockerConfigure dockerConfigure;
     
+    /**
+     * is run on host mode.
+     * @return boolean
+     */
     public boolean isRunOnHost() {
         return Mode.HOST == mode;
     }
     
+    /**
+     * is run on docker mode.
+     * @return boolean
+     */
     public boolean isRunOnDocker() {
         return Mode.DOCKER == mode;
     }
@@ -85,226 +93,18 @@ public class ShenYuEngineConfigure {
     public DockerConfigure getDockerConfigure() {
         return dockerConfigure;
     }
-
-    public enum Mode {
-
-        HOST, DOCKER;
-        
-        @JsonValue
-        public String value() {
-            return name();
-        }
-    }
     
-    public enum ServiceType {
-
-        SHENYU_ADMIN,
-
-        SHENYU_GATEWAY,
-
-        EXTERNAL_SERVICE,
-    }
-    
-
-    public static class HostConfigure {
-
-        private final HostServiceConfigure admin;
-
-        private final HostServiceConfigure gateway;
-
-        private final List<HostServiceConfigure> externalServices;
-
-
-        public HostConfigure(HostServiceConfigure admin, HostServiceConfigure gateway, List<HostServiceConfigure> externalServices) {
-            this.admin = admin;
-            this.gateway = gateway;
-            this.externalServices = externalServices;
-        }
-
-        /**
-         * get admin.
-         *
-         * @return admin
-         */
-        public HostServiceConfigure getAdmin() {
-            return admin;
-        }
-
-        /**
-         * get gateway.
-         *
-         * @return gateway
-         */
-        public HostServiceConfigure getGateway() {
-            return gateway;
-        }
-
-        /**
-         * get externalServices.
-         *
-         * @return externalServices
-         */
-        public List<HostServiceConfigure> getExternalServices() {
-            return externalServices;
-        }
-
-        public static class HostServiceConfigure {
-
-            private final String serviceName;
-
-            private final String baseUrl;
-
-            private final Properties properties;
-
-            public HostServiceConfigure(String serviceName, String baseUrl, Properties properties) {
-                this.serviceName = serviceName;
-                this.baseUrl = baseUrl;
-                this.properties = properties;
-            }
-
-            /**
-             * get serviceName.
-             *
-             * @return serviceName
-             */
-            public String getServiceName() {
-                return serviceName;
-            }
-
-            /**
-             * get baseUrl.
-             *
-             * @return baseUrl
-             */
-            public String getBaseUrl() {
-                return baseUrl;
-            }
-
-            /**
-             * get properties.
-             *
-             * @return properties
-             */
-            public Properties getProperties() {
-                return properties;
-            }
-        }
-    }
-
-    public static class DockerConfigure {
-
-        private final String dockerComposeFile;
-
-        private final DockerServiceConfigure admin;
-
-        private final DockerServiceConfigure gateway;
-
-        private final List<DockerServiceConfigure> externalServices;
-
-        public DockerConfigure(String dockerComposeFile, DockerServiceConfigure admin, DockerServiceConfigure gateway, List<DockerServiceConfigure> externalServices) {
-            this.dockerComposeFile = dockerComposeFile;
-            this.admin = admin;
-            this.gateway = gateway;
-            this.externalServices = externalServices;
-        }
-
-        /**
-         * get dockerComposeFile.
-         *
-         * @return dockerComposeFile
-         */
-        public String getDockerComposeFile() {
-            return dockerComposeFile;
-        }
-
-        /**
-         * get admin.
-         *
-         * @return admin
-         */
-        public DockerServiceConfigure getAdmin() {
-            return admin;
-        }
-
-        /**
-         * get gateway.
-         *
-         * @return gateway
-         */
-        public DockerServiceConfigure getGateway() {
-            return gateway;
-        }
-
-        /**
-         * get externalServices.
-         *
-         * @return
-         */
-        public List<DockerServiceConfigure> getExternalServices() {
-            return externalServices;
-        }
-
-        public static class DockerServiceConfigure {
-
-            private final String schema;
-
-            private final String serviceName;
-
-            private final int port;
-
-            private final Properties properties;
-
-            public DockerServiceConfigure(String schema, String serviceName, int port, Properties properties) {
-                this.schema = schema;
-                this.serviceName = serviceName;
-                this.port = port;
-                this.properties = properties;
-            }
-
-            /**
-             * get schema.
-             *
-             * @return schema
-             */
-            public String getSchema() {
-                return schema;
-            }
-
-            /**
-             * get serviceName.
-             *
-             * @return serviceName
-             */
-            public String getServiceName() {
-                return serviceName;
-            }
-
-            /**
-             * get port.
-             *
-             * @return port
-             */
-            public int getPort() {
-                return port;
-            }
-
-            /**
-             * get properties.
-             *
-             * @return properties
-             */
-            public Properties getProperties() {
-                return properties;
-            }
-        }
-    }
-    
-    public static ShenYuEngineConfigure fromAnnotation(ShenYuTest annotation) {
+    /**
+     * get engine configure from annotation.
+     * @param annotation annotation
+     * @return ShenYuEngineConfigure
+     */
+    public static ShenYuEngineConfigure fromAnnotation(final ShenYuTest annotation) {
         final ShenYuTest annotationProxy = newShenYuTestProxy(annotation);
     
         ServiceConfigure[] services = annotationProxy.services();
         ServiceConfigure[] serviceProxies = new ServiceConfigure[services.length];
-        for (int i = 0; i< services.length; i++) {
+        for (int i = 0; i < services.length; i++) {
             serviceProxies[i] = newServiceConfigureProxy(i, services[i]);
         }
     
@@ -321,7 +121,7 @@ public class ShenYuEngineConfigure {
         return configure;
     }
     
-    private static HostConfigure parseHostServiceConfigures(ServiceConfigure[] serviceConfigures) {
+    private static HostConfigure parseHostServiceConfigures(final ServiceConfigure[] serviceConfigures) {
         HostServiceConfigure admin = null;
         HostServiceConfigure gateway = null;
         List<HostServiceConfigure> services = new ArrayList<>();
@@ -340,15 +140,14 @@ public class ShenYuEngineConfigure {
         return new HostConfigure(admin, gateway, services);
     }
     
-    
-    private static HostServiceConfigure parseHostServiceConfigure(ServiceConfigure configure) {
+    private static HostServiceConfigure parseHostServiceConfigure(final ServiceConfigure configure) {
         Preconditions.checkNotNull(configure.serviceName(), "serviceName is non-nullable");
         Preconditions.checkNotNull(configure.baseUrl(), "baseUrl is non-nullable in docker-compose mode");
         
         return new HostServiceConfigure(configure.serviceName(), configure.baseUrl(), toProperties(configure.parameters()));
     }
     
-    private static DockerConfigure parseDockerServiceConfigures(String dockerComposeFile, ServiceConfigure[] serviceConfigures) {
+    private static DockerConfigure parseDockerServiceConfigures(final String dockerComposeFile, final ServiceConfigure[] serviceConfigures) {
         Preconditions.checkNotNull(Strings.emptyToNull(dockerComposeFile), "dockerComposeFile is required in docker-compose mode");
         
         DockerServiceConfigure admin = null;
@@ -369,59 +168,59 @@ public class ShenYuEngineConfigure {
         return new DockerConfigure(dockerComposeFile, admin, gateway, services);
     }
     
-    private static DockerServiceConfigure parseDockerServiceConfigure(ServiceConfigure configure) {
+    private static DockerServiceConfigure parseDockerServiceConfigure(final ServiceConfigure configure) {
         Preconditions.checkNotNull(configure.serviceName(), "serviceName is non-nullable");
         
         return new DockerServiceConfigure(configure.schema(), configure.serviceName(), configure.port(), toProperties(configure.parameters()));
     }
     
-    private static Properties toProperties(Parameter[] parameters) {
+    private static Properties toProperties(final Parameter[] parameters) {
         Properties properties = new Properties();
         Arrays.stream(parameters).forEach(p -> properties.put(p.key(), p.value()));
         return properties;
     }
     
-    private static ShenYuTest newShenYuTestProxy(ShenYuTest shenYuTest) {
+    private static ShenYuTest newShenYuTestProxy(final ShenYuTest shenYuTest) {
         return (ShenYuTest) Proxy.newProxyInstance(
-                ShenYuTest.class.getClassLoader(),
-                new Class[]{ShenYuTest.class},
-                (proxy, method, args) -> {
-                    if (method.isAnnotationPresent(ShenYuValue.class)) {
-                        ShenYuValue annotation = method.getAnnotation(ShenYuValue.class);
-                        
-                        String propertyKey = annotation.value();
-                        propertyKey = propertyKey.substring(1, propertyKey.length() - 1);
-                        String property = System.getProperty(propertyKey);
-                        if (!Strings.isNullOrEmpty(property)) {
-                            return mapper.readValue("\"" + property + "\"", method.getReturnType());
-                        }
+            ShenYuTest.class.getClassLoader(),
+            new Class[]{ShenYuTest.class},
+            (proxy, method, args) -> {
+                if (method.isAnnotationPresent(ShenYuValue.class)) {
+                    ShenYuValue annotation = method.getAnnotation(ShenYuValue.class);
+                    
+                    String propertyKey = annotation.value();
+                    propertyKey = propertyKey.substring(1, propertyKey.length() - 1);
+                    String property = System.getProperty(propertyKey);
+                    if (!Strings.isNullOrEmpty(property)) {
+                        return MAPPER.readValue("\"" + property + "\"", method.getReturnType());
                     }
-                    return normal(method.invoke(shenYuTest), method.getReturnType());
-                });
+                }
+                return normal(method.invoke(shenYuTest), method.getReturnType());
+            });
     }
     
-    private static ServiceConfigure newServiceConfigureProxy(final int index, ServiceConfigure serviceConfigure) {
+    private static ServiceConfigure newServiceConfigureProxy(final int index, final ServiceConfigure serviceConfigure) {
         return (ServiceConfigure) Proxy.newProxyInstance(
-                ServiceConfigure.class.getClassLoader(),
-                new Class[]{ServiceConfigure.class},
-                (proxy, method, args) -> {
-                    if (method.isAnnotationPresent(ShenYuValue.class)) {
-                        ShenYuValue annotation = method.getAnnotation(ShenYuValue.class);
-                        
-                        String rawKey = annotation.value();
-                        String propertyKey = rawKey.replace("[]", "[" + index + "]")
-                                .substring(1, rawKey.length() - 1);
-                        
-                        String property = System.getProperty(propertyKey);
-                        if (!Strings.isNullOrEmpty(property)) {
-                            return mapper.readValue("\"" + property + "\"", method.getReturnType());
-                        }
+            ServiceConfigure.class.getClassLoader(),
+            new Class[]{ServiceConfigure.class},
+            (proxy, method, args) -> {
+                if (method.isAnnotationPresent(ShenYuValue.class)) {
+                    ShenYuValue annotation = method.getAnnotation(ShenYuValue.class);
+                    
+                    String rawKey = annotation.value();
+                    String propertyKey = rawKey.replace("[]", "[" + index + "]")
+                            .substring(1, rawKey.length() - 1);
+                    
+                    String property = System.getProperty(propertyKey);
+                    if (!Strings.isNullOrEmpty(property)) {
+                        return MAPPER.readValue("\"" + property + "\"", method.getReturnType());
                     }
-                    return normal(method.invoke(serviceConfigure), method.getReturnType());
-                });
+                }
+                return normal(method.invoke(serviceConfigure), method.getReturnType());
+            });
     }
     
-    private static Object normal(Object obj, Class<?> returnType) {
+    private static Object normal(final Object obj, final Class<?> returnType) {
         if (String.class == returnType) {
             String result = obj.toString();
             
@@ -442,5 +241,220 @@ public class ShenYuEngineConfigure {
             return result;
         }
         return obj;
+    }
+    
+    public enum Mode {
+        
+        HOST, DOCKER;
+        
+        /**
+         * value.
+         * @return String
+         */
+        @JsonValue
+        public String value() {
+            return name();
+        }
+    }
+    
+    public enum ServiceType {
+        
+        SHENYU_ADMIN,
+        
+        SHENYU_GATEWAY,
+        
+        EXTERNAL_SERVICE,
+    }
+    
+    public static class HostConfigure {
+        
+        private final HostServiceConfigure admin;
+        
+        private final HostServiceConfigure gateway;
+        
+        private final List<HostServiceConfigure> externalServices;
+        
+        public HostConfigure(final HostServiceConfigure admin, final HostServiceConfigure gateway, final List<HostServiceConfigure> externalServices) {
+            this.admin = admin;
+            this.gateway = gateway;
+            this.externalServices = externalServices;
+        }
+        
+        /**
+         * get admin.
+         *
+         * @return admin
+         */
+        public HostServiceConfigure getAdmin() {
+            return admin;
+        }
+        
+        /**
+         * get gateway.
+         *
+         * @return gateway
+         */
+        public HostServiceConfigure getGateway() {
+            return gateway;
+        }
+        
+        /**
+         * get externalServices.
+         *
+         * @return externalServices
+         */
+        public List<HostServiceConfigure> getExternalServices() {
+            return externalServices;
+        }
+        
+        public static class HostServiceConfigure {
+            
+            private final String serviceName;
+            
+            private final String baseUrl;
+            
+            private final Properties properties;
+            
+            public HostServiceConfigure(final String serviceName, final String baseUrl, final Properties properties) {
+                this.serviceName = serviceName;
+                this.baseUrl = baseUrl;
+                this.properties = properties;
+            }
+            
+            /**
+             * get serviceName.
+             *
+             * @return serviceName
+             */
+            public String getServiceName() {
+                return serviceName;
+            }
+            
+            /**
+             * get baseUrl.
+             *
+             * @return baseUrl
+             */
+            public String getBaseUrl() {
+                return baseUrl;
+            }
+            
+            /**
+             * get properties.
+             *
+             * @return properties
+             */
+            public Properties getProperties() {
+                return properties;
+            }
+        }
+    }
+    
+    public static class DockerConfigure {
+        
+        private final String dockerComposeFile;
+        
+        private final DockerServiceConfigure admin;
+        
+        private final DockerServiceConfigure gateway;
+        
+        private final List<DockerServiceConfigure> externalServices;
+        
+        public DockerConfigure(final String dockerComposeFile, final DockerServiceConfigure admin, final DockerServiceConfigure gateway, final List<DockerServiceConfigure> externalServices) {
+            this.dockerComposeFile = dockerComposeFile;
+            this.admin = admin;
+            this.gateway = gateway;
+            this.externalServices = externalServices;
+        }
+        
+        /**
+         * get dockerComposeFile.
+         *
+         * @return dockerComposeFile
+         */
+        public String getDockerComposeFile() {
+            return dockerComposeFile;
+        }
+        
+        /**
+         * get admin.
+         *
+         * @return admin
+         */
+        public DockerServiceConfigure getAdmin() {
+            return admin;
+        }
+        
+        /**
+         * get gateway.
+         *
+         * @return gateway
+         */
+        public DockerServiceConfigure getGateway() {
+            return gateway;
+        }
+        
+        /**
+         * get externalServices.
+         *
+         * @return List
+         */
+        public List<DockerServiceConfigure> getExternalServices() {
+            return externalServices;
+        }
+        
+        public static class DockerServiceConfigure {
+            
+            private final String schema;
+            
+            private final String serviceName;
+            
+            private final int port;
+            
+            private final Properties properties;
+            
+            public DockerServiceConfigure(final String schema, final String serviceName, final int port, final Properties properties) {
+                this.schema = schema;
+                this.serviceName = serviceName;
+                this.port = port;
+                this.properties = properties;
+            }
+            
+            /**
+             * get schema.
+             *
+             * @return schema
+             */
+            public String getSchema() {
+                return schema;
+            }
+            
+            /**
+             * get serviceName.
+             *
+             * @return serviceName
+             */
+            public String getServiceName() {
+                return serviceName;
+            }
+            
+            /**
+             * get port.
+             *
+             * @return port
+             */
+            public int getPort() {
+                return port;
+            }
+            
+            /**
+             * get properties.
+             *
+             * @return properties
+             */
+            public Properties getProperties() {
+                return properties;
+            }
+        }
     }
 }

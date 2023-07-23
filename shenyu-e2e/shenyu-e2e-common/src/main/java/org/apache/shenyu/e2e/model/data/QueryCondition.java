@@ -21,10 +21,22 @@ package org.apache.shenyu.e2e.model.data;
  * the condition of query.
  */
 public interface QueryCondition {
-
+    
+    /**
+     * get excluded.
+     * @return String
+     */
     String getExcluded();
-
+    
+    /**
+     * get keyword.
+     * @return String
+     */
     String getKeyword();
-
+    
+    /**
+     * switch status.
+     * @return boolean
+     */
     boolean isSwitchStatus();
 }

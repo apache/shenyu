@@ -59,7 +59,7 @@ public class PluginDTO implements ResourceDTO {
      *
      * @param id id
      */
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -78,7 +78,7 @@ public class PluginDTO implements ResourceDTO {
      *
      * @param name name
      */
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -96,7 +96,7 @@ public class PluginDTO implements ResourceDTO {
      *
      * @param role role
      */
-    public void setRole(String role) {
+    public void setRole(final String role) {
         this.role = role;
     }
 
@@ -114,7 +114,7 @@ public class PluginDTO implements ResourceDTO {
      *
      * @param sort sort
      */
-    public void setSort(int sort) {
+    public void setSort(final int sort) {
         this.sort = sort;
     }
 
@@ -132,7 +132,7 @@ public class PluginDTO implements ResourceDTO {
      *
      * @param enabled enabled
      */
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -150,7 +150,7 @@ public class PluginDTO implements ResourceDTO {
      *
      * @param config config
      */
-    public void setConfig(String config) {
+    public void setConfig(final String config) {
         this.config = config;
     }
 
@@ -169,7 +169,7 @@ public class PluginDTO implements ResourceDTO {
      *
      * @param dateCreated dateCreated
      */
-    public void setDateCreated(Date dateCreated) {
+    public void setDateCreated(final Date dateCreated) {
         this.dateCreated = dateCreated;
     }
 
@@ -188,7 +188,7 @@ public class PluginDTO implements ResourceDTO {
      *
      * @param dateUpdated dateUpdated
      */
-    public void setDateUpdated(Date dateUpdated) {
+    public void setDateUpdated(final Date dateUpdated) {
         this.dateUpdated = dateUpdated;
     }
 }

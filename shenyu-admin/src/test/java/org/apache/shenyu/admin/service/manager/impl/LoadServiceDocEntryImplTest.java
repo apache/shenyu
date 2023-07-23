@@ -28,7 +28,7 @@ import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
-import org.apache.shenyu.admin.service.manager.ServiceDocManager;
+import org.apache.shenyu.admin.service.manager.PullSwaggerDocService;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -69,7 +69,7 @@ public class LoadServiceDocEntryImplTest {
     private PluginMapper pluginMapper;
 
     @Mock
-    private ServiceDocManager serviceDocManager;
+    private PullSwaggerDocService pullSwaggerDocService;
 
     @Mock
     private ShenyuDictService shenyuDictService;
@@ -126,7 +126,7 @@ public class LoadServiceDocEntryImplTest {
         when(selectorService.listByPage(any())).thenReturn(commonPager);
         when(pluginMapper.selectByNames(any())).thenReturn(pluginDOList);
         loadServiceDocEntry.loadApiDocument();
-        verify(serviceDocManager).pullApiDocument((Set<UpstreamInstance>) any());
+        verify(pullSwaggerDocService).pullApiDocument((Set<UpstreamInstance>) any());
     }
 
     @Test
@@ -144,6 +144,6 @@ public class LoadServiceDocEntryImplTest {
         this.testLoadApiDocument();
         when(shenyuDictService.findByDictCodeName(any(), any())).thenReturn(null);
         loadServiceDocEntry.loadDocOnSelectorChanged(changedList, eventType);
-        verify(serviceDocManager).pullApiDocument((Set<UpstreamInstance>) any());
+        verify(pullSwaggerDocService).pullApiDocument((Set<UpstreamInstance>) any());
     }
 }

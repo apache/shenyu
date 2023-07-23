@@ -18,7 +18,9 @@
 package org.apache.shenyu.admin.listener.http;
 
 import com.google.common.collect.Lists;
+
 import java.util.Objects;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -34,6 +36,8 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -88,6 +92,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     /**
      * Instantiates a new Http long polling data changed listener.
+     *
      * @param httpSyncProperties the HttpSyncProperties
      */
     public HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
@@ -163,6 +168,16 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         scheduler.execute(new DataChangeTask(ConfigGroupEnum.SELECTOR));
     }
 
+    @Override
+    protected void afterProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PROXY_SELECTOR));
+    }
+
+    @Override
+    protected void afterDiscoveryUpstreamDataChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.DISCOVER_UPSTREAM));
+    }
+
     private List<ConfigGroupEnum> compareChangedGroup(final HttpServletRequest request) {
         List<ConfigGroupEnum> changedGroup = new ArrayList<>(ConfigGroupEnum.values().length);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
@@ -184,8 +199,9 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     /**
      * check whether the client needs to update the cache.
-     * @param serverCache the admin local cache
-     * @param clientMd5 the client md5 value
+     *
+     * @param serverCache      the admin local cache
+     * @param clientMd5        the client md5 value
      * @param clientModifyTime the client last modify time
      * @return true: the client needs to be updated, false: not need.
      */

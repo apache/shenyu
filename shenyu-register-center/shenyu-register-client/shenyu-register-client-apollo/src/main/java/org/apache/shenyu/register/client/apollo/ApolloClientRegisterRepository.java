@@ -19,7 +19,6 @@ package org.apache.shenyu.register.client.apollo;
 
 import com.ctrip.framework.apollo.core.ConfigConsts;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.LogUtils;
@@ -32,8 +31,9 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentLinkedQueue;
+
 
 /**
  * apollo register center client.
@@ -42,8 +42,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApolloClientRegisterRepository.class);
-
-    private final ConcurrentLinkedQueue<String> metadataCache = new ConcurrentLinkedQueue<>();
 
     private ApolloClient apolloClient;
 
@@ -56,6 +54,7 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
         String clusterName = properties.getProperty("clusterName", ConfigConsts.CLUSTER_NAME_DEFAULT);
         String namespace = properties.getProperty("namespace", ConfigConsts.NAMESPACE_APPLICATION);
         String portalUrl = properties.getProperty("portalUrl");
+        String operator = properties.getProperty("operator", "apollo");
 
         ApolloConfig apolloConfig = new ApolloConfig();
         apolloConfig.setAppId(appId);
@@ -64,15 +63,15 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
         apolloConfig.setEnv(env);
         apolloConfig.setClusterName(clusterName);
         apolloConfig.setNamespace(namespace);
+        apolloConfig.setOperator(operator);
 
         this.apolloClient = new ApolloClient(apolloConfig);
     }
 
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
-        String rpcType = metadata.getRpcType();
-        String contextPath = ContextPathUtils.buildRealNode(metadata.getContextPath(), metadata.getAppName());
-        registerConfig(rpcType, contextPath, metadata);
+        registerMetadata(metadata);
+        LogUtils.info(LOGGER, "{} apollo client register metadata success: {}", metadata.getRpcType(), metadata);
     }
 
     @Override
@@ -83,15 +82,34 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
         LogUtils.info(LOGGER, "{} apollo client register uri success: {}", rpcType, registerDTO);
     }
 
+    @Override
+    public void offline(final URIRegisterDTO offlineDTO) {
+        String rpcType = offlineDTO.getRpcType();
+        String contextPath = ContextPathUtils.buildRealNode(offlineDTO.getContextPath(), offlineDTO.getAppName());
+        unRegister(rpcType, contextPath, offlineDTO);
+        LogUtils.info(LOGGER, "{} apollo client unRegister uri success: {}", rpcType, offlineDTO);
+    }
+
     private void registerURI(final String rpcType,
                              final String contextPath,
                              final URIRegisterDTO registerDTO) {
         String uriNodeName = buildURINodeName(registerDTO);
-        String uriPath = RegisterPathConstants.buildURIParentKey(rpcType, contextPath);
-        String realNode = RegisterPathConstants.buildNodeName(uriPath, uriNodeName);
+        String uriPath = RegisterPathConstants.buildURIParentPath(rpcType, contextPath);
+        String realNode = RegisterPathConstants.buildRealNode(uriPath, uriNodeName);
         apolloClient.createOrUpdateItem(realNode, GsonUtils.getInstance().toJson(registerDTO), "register uri");
         apolloClient.publishNamespace("publish config", "");
         LOGGER.info("register uri data success: {}", realNode);
+    }
+
+    private void unRegister(final String rpcType,
+                            final String contextPath,
+                            final URIRegisterDTO offlineDTO) {
+        String uriNodeName = buildURINodeName(offlineDTO);
+        String uriPath = RegisterPathConstants.buildURIParentPath(rpcType, contextPath);
+        String realNode = RegisterPathConstants.buildRealNode(uriPath, uriNodeName);
+        apolloClient.createOrUpdateItem(realNode, GsonUtils.getInstance().toJson(offlineDTO), "offline uri");
+        apolloClient.publishNamespace("publish config", "");
+        LOGGER.info("unRegister uri data success: {}", realNode);
     }
 
     private String buildURINodeName(final URIRegisterDTO registerDTO) {
@@ -100,16 +118,25 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
         return String.join(Constants.COLONS, host, Integer.toString(port));
     }
 
-    private synchronized void registerConfig(final String rpcType,
-                                             final String contextPath,
-                                             final MetaDataRegisterDTO metadata) {
-        metadataCache.add(GsonUtils.getInstance().toJson(metadata));
-        String configName = RegisterPathConstants.buildServiceConfigPath(rpcType, contextPath);
-        try {
-            this.apolloClient.createOrUpdateItem(configName, GsonUtils.getInstance().toJson(metadataCache), "register config");
-            this.apolloClient.publishNamespace("publish config", "");
-        } catch (Exception e) {
-            throw new ShenyuException(e);
+    private void registerMetadata(final MetaDataRegisterDTO metadata) {
+        String rpcType = metadata.getRpcType();
+        String contextPath = ContextPathUtils.buildRealNode(metadata.getContextPath(), metadata.getAppName());
+        String metadataNodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
+        String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
+        String realNode = RegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
+
+        String oldValue = apolloClient.getItemValue(realNode);
+        // no change in metadata, no need to update
+        if (oldValue != null) {
+            MetaDataRegisterDTO oldMetaData = GsonUtils.getInstance().fromJson(oldValue, MetaDataRegisterDTO.class);
+            if (Objects.equals(oldMetaData, metadata)) {
+                return;
+            }
         }
+        // update metadata
+        String metadataJson = GsonUtils.getInstance().toJson(metadata);
+        this.apolloClient.createOrUpdateItem(realNode, metadataJson, "register config");
+        this.apolloClient.publishNamespace("publish config", "");
     }
+
 }

@@ -31,6 +31,9 @@ import org.apache.shenyu.e2e.engine.service.ServiceCompose;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.Mode.DOCKER;
+import static org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.Mode.HOST;
+
 /**
  * Start the project using the corresponding method based on the selected configuration.
  */
@@ -46,26 +49,28 @@ public class ShenYuExtensionContext {
     
     private Map<String, ExternalServiceClient> externalServiceClientMap;
     
-    ShenYuExtensionContext(ShenYuEngineConfigure config) {
-        switch (config.getMode()) {
-            case HOST: {
-                serviceCompose = new HostServiceCompose(config.getHostConfigure());
-                break;
-            }
-            case DOCKER: {
-                serviceCompose = new DockerServiceCompose(config.getDockerConfigure());
-                break;
-            }
-            default:
-                throw new AssertionFailedError("Mode [" + config.getMode() + "] is not supported yet");
+    ShenYuExtensionContext(final ShenYuEngineConfigure config) {
+        if (config.getMode() == HOST) {
+            serviceCompose = new HostServiceCompose(config.getHostConfigure());
+        } else if (config.getMode() == DOCKER) {
+            serviceCompose = new DockerServiceCompose(config.getDockerConfigure());
+        } else {
+            throw new AssertionFailedError("Mode [" + config.getMode() + "] is not supported yet");
         }
         this.scenarioId = IdGenerator.generateScenarioId();
     }
     
+    /**
+     * start.
+     */
     public void setup() {
         serviceCompose.start();
     }
     
+    /**
+     * get admin client.
+     * @return AdminClient
+     */
     public AdminClient getAdminClient() {
         if (Objects.isNull(adminClient)) {
             adminClient = serviceCompose.newAdminClient(scenarioId);
@@ -73,6 +78,10 @@ public class ShenYuExtensionContext {
         return adminClient;
     }
     
+    /**
+     * get gateway client.
+     * @return GatewayClient
+     */
     public GatewayClient getGatewayClient() {
         if (Objects.isNull(gatewayClient)) {
             gatewayClient = serviceCompose.newGatewayClient(scenarioId);
@@ -80,7 +89,12 @@ public class ShenYuExtensionContext {
         return gatewayClient;
     }
     
-    public ExternalServiceClient getExternalServiceClient(String externalServiceName) {
+    /**
+     * get external service client.
+     * @param externalServiceName externalServiceName
+     * @return ExternalServiceClient
+     */
+    public ExternalServiceClient getExternalServiceClient(final String externalServiceName) {
         if (Objects.isNull(externalServiceClientMap)) {
             externalServiceClientMap = Maps.newHashMap();
         }
@@ -92,6 +106,9 @@ public class ShenYuExtensionContext {
         return client;
     }
     
+    /**
+     * clean up.
+     */
     public void cleanup() {
         serviceCompose.stop();
     }

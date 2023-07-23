@@ -30,7 +30,7 @@ public interface RuleHandle {
         private final ObjectMapper mapper = new ObjectMapper();
         
         @Override
-        public void serialize(RuleHandle ruleHandle, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+        public void serialize(final RuleHandle ruleHandle, final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider) throws IOException {
             jsonGenerator.writeString(mapper.writeValueAsString(ruleHandle));
         }
     }
