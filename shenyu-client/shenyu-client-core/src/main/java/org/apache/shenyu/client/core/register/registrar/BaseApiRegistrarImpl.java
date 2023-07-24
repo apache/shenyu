@@ -43,8 +43,10 @@ public abstract class BaseApiRegistrarImpl implements ApiRegistrar, Initializing
      * @param processor processor
      */
     public void addApiProcessor(final ApiProcessor processor) {
-        processors.add(processor);
-        processors.sort(Comparator.comparingInt(ApiProcessor::order));
+        if (supportedType(processor)) {
+            processors.add(processor);
+            processors.sort(Comparator.comparingInt(ApiProcessor::order));
+        }
     }
     
     @Override
@@ -77,6 +79,15 @@ public abstract class BaseApiRegistrarImpl implements ApiRegistrar, Initializing
             doRegisterBean(apiBean);
             doRegisterApi(apiBean);
         }
+    }
+    
+    private boolean supportedType(final ApiProcessor processor) {
+        for (Class<?> type : processor.supportedRegisterDataType()) {
+            if (type.isAssignableFrom(registerDataType())) {
+                return true;
+            }
+        }
+        return false;
     }
     
     private void doRegisterApi(final ApiBean apiBean) {
