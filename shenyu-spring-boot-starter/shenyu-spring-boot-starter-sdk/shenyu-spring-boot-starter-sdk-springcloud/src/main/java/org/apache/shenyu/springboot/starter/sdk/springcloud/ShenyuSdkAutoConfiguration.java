@@ -21,19 +21,13 @@ import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
-import org.apache.shenyu.sdk.springcloud.EnableShenyuClients;
 import org.apache.shenyu.sdk.springcloud.ShenyuDiscoveryClient;
 import org.apache.shenyu.sdk.springcloud.ShenyuServiceInstanceLoadBalancer;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
-import org.springframework.cloud.loadbalancer.config.LoadBalancerAutoConfiguration;
 import org.springframework.cloud.loadbalancer.core.ReactorServiceInstanceLoadBalancer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -72,18 +66,33 @@ public class ShenyuSdkAutoConfiguration {
         return new RegisterConfig();
     }
 
+    /**
+     * shenyu custom discovery client with local type.
+     * @param registerConfig registerConfig
+     * @return ShenyuDiscoveryClient
+     */
     @Bean
     @ConditionalOnProperty(value = "shenyu.sdk.enabled", havingValue = "true", matchIfMissing = true)
     public ShenyuDiscoveryClient shenyuDiscoveryClient(final RegisterConfig registerConfig) {
         return new ShenyuDiscoveryClient(registerConfig);
     }
 
+    /**
+     * shenyu custom discovery client with register center type.
+     * @param registerRepository registerRepository
+     * @return ShenyuDiscoveryClient
+     */
     @Bean
     @ConditionalOnBean(ShenyuInstanceRegisterRepository.class)
     public ShenyuDiscoveryClient shenyuDiscoveryClient(final ShenyuInstanceRegisterRepository registerRepository) {
         return new ShenyuDiscoveryClient(registerRepository);
     }
 
+    /**
+     * shenyu custom loadbalancer.
+     * @param shenyuDiscoveryClient shenyuDiscoveryClient
+     * @return ReactorServiceInstanceLoadBalancer
+     */
     @Bean
     @ConditionalOnBean(ShenyuDiscoveryClient.class)
     public ReactorServiceInstanceLoadBalancer loadBalancer(@Qualifier("shenyuDiscoveryClient") final ShenyuDiscoveryClient shenyuDiscoveryClient) {
