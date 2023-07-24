@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.entity.BaseDO;
@@ -52,12 +53,26 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public int create(final TagDTO tagDTO) {
+        tagDTO.setParentTagId(StringUtils.isNotEmpty(tagDTO.getParentTagId()) ? tagDTO.getParentTagId() : AdminConstants.TAG_ROOT_PARENT_ID);
+        return createInner(tagDTO, null);
+    }
+
+    @Override
+    public int createRootTag(final TagDTO tagDTO, final TagDO.TagExt tagExt) {
+        Assert.notNull(tagDTO, "tagDTO is not allowed null");
+        tagDTO.setParentTagId(StringUtils.isNotEmpty(tagDTO.getParentTagId()) ? tagDTO.getParentTagId() : AdminConstants.TAG_ROOT_PARENT_ID);
+        return createInner(tagDTO, tagExt);
+    }
+
+    private int createInner(final TagDTO tagDTO, final TagDO.TagExt tagExt) {
         Assert.notNull(tagDTO, "tagDTO is not allowed null");
         Assert.notNull(tagDTO.getParentTagId(), "parent tag id is not allowed null");
         String ext = "";
         if (!tagDTO.getParentTagId().equals(AdminConstants.TAG_ROOT_PARENT_ID)) {
             TagDO tagDO = tagMapper.selectByPrimaryKey(tagDTO.getParentTagId());
             ext = buildExtParamByParentTag(tagDO);
+        } else {
+            ext = GsonUtils.getInstance().toJson(tagExt);
         }
         TagDO tagDO = TagDO.buildTagDO(tagDTO);
         tagDO.setExt(ext);
