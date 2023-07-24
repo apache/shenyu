@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.core.register.registrar;
 
 import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.util.List;
 
@@ -40,4 +41,13 @@ public interface ApiRegistrar {
      * @param apiBean apiBean to register
      */
     void register(ApiBean apiBean);
+    
+    /**
+     * registerDataType.
+     *
+     * @return class type
+     */
+    default Class<?> registerDataType() {
+        return DataTypeParent.class;
+    }
 }
