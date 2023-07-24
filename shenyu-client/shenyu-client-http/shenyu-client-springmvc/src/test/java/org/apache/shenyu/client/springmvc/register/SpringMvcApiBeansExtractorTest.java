@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.is;
 
 public class SpringMvcApiBeansExtractorTest {
 
-    private final ApiBeansExtractor extractor = new SpringMvcApiBeansExtractor();
+    private final ApiBeansExtractor extractor = SpringMvcApiBeansExtractor.buildDefaultSpringMvcApiBeansExtractor();
 
     @Test
     public void testExtractBeans() throws NoSuchMethodException {
