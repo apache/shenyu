@@ -19,14 +19,18 @@ package org.apache.shenyu.sync.data.consul.handler;
 
 import com.google.gson.JsonParseException;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,12 +55,21 @@ public class ConsulCacheHandler {
 
     private final List<AuthDataSubscriber> authDataSubscribers;
 
+    private final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers;
+
+    private final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers;
+
     public ConsulCacheHandler(final PluginDataSubscriber pluginDataSubscriber,
                               final List<MetaDataSubscriber> metaDataSubscribers,
-                              final List<AuthDataSubscriber> authDataSubscribers) {
+                              final List<AuthDataSubscriber> authDataSubscribers,
+                              final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
+                              final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers
+    ) {
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
+        this.proxySelectorDataSubscribers = proxySelectorDataSubscribers;
+        this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
     }
 
     protected void updatePluginData(final String configInfo) {
@@ -118,6 +131,30 @@ public class ConsulCacheHandler {
             }));
         } catch (JsonParseException e) {
             LOG.error("sync auth data have error:", e);
+        }
+    }
+
+    protected void updateSelectorDataMap(final String configInfo) {
+        try {
+            List<ProxySelectorData> proxySelectorDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configInfo, ProxySelectorData.class).values());
+            proxySelectorDataList.forEach(proxySelectorData -> proxySelectorDataSubscribers.forEach(subscriber -> {
+                subscriber.onSubscribe(proxySelectorData);
+                subscriber.unSubscribe(proxySelectorData);
+            }));
+        } catch (JsonParseException e) {
+            LOG.error("sync proxy selector data have error:", e);
+        }
+    }
+
+    protected void updateDiscoveryUpstreamMap(final String configInfo) {
+        try {
+            List<DiscoverySyncData> discoverySyncDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configInfo, DiscoverySyncData.class).values());
+            discoverySyncDataList.forEach(discoverySyncData -> discoveryUpstreamDataSubscribers.forEach(subscriber -> {
+                subscriber.onSubscribe(discoverySyncData);
+                subscriber.unSubscribe(discoverySyncData);
+            }));
+        } catch (JsonParseException e) {
+            LOG.error("sync discovery data have error:", e);
         }
     }
 

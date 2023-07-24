@@ -43,7 +43,7 @@ public class SpringMvcApiMetaRegisterTest {
     
     private SpringMvcApiMetaRegister springMvcApiMetaRegister;
     
-    private final SpringMvcApiBeansExtractor beansExtractor = new SpringMvcApiBeansExtractor();
+    private final SpringMvcApiBeansExtractor beansExtractor = SpringMvcApiBeansExtractor.buildDefaultSpringMvcApiBeansExtractor();
     
     @BeforeEach
     public void init() {

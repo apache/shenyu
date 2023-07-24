@@ -17,20 +17,12 @@
 
 package org.apache.shenyu.client.springcloud.register;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.extractor.BaseAnnotationApiBeansExtractor;
 import org.apache.shenyu.client.core.register.extractor.RpcApiBeansExtractor;
+import org.apache.shenyu.client.springcloud.proceeor.extractor.RequestMappingProcessor;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Support for Spring Cloud. <br>
@@ -38,17 +30,8 @@ import java.util.Objects;
  */
 public class SpringCloudApiBeansExtractor extends BaseAnnotationApiBeansExtractor implements RpcApiBeansExtractor {
     
-    private final List<Class<? extends Annotation>> supportedApiAnnotations = new ArrayList<>(1);
-    
-    private final List<Class<? extends Annotation>> supportedApiDefinitionAnnotations = new ArrayList<>(1);
-    
     public SpringCloudApiBeansExtractor() {
-        // Annotations supported by class
-        supportedApiAnnotations.add(Controller.class);
-        supportedApiAnnotations.add(RequestMapping.class);
-        
-        // Annotations supported by the method
-        supportedApiDefinitionAnnotations.add(RequestMapping.class);
+    
     }
     
     @Override
@@ -56,66 +39,22 @@ public class SpringCloudApiBeansExtractor extends BaseAnnotationApiBeansExtracto
         return RpcTypeEnum.SPRING_CLOUD.getName();
     }
     
-    @Override
-    protected void apiPostProcess(final ApiBean api) {
-        // Get from annotations
-        // Currently only RequestMapping is supported
-        final RequestMapping requestMapping = api.getAnnotation(RequestMapping.class);
-        
-        String beanPath = Objects.isNull(requestMapping) ? "" : getPath(requestMapping);
-        // rewrite api path
-        api.setBeanPath(beanPath);
-        
-        // Get additional values from the annotation.
-        super.apiPostProcess(api);
-    }
-    
-    @Override
-    protected void definitionPostProcess(final ApiBean.ApiDefinition apiDefinition) {
-        // Get from annotations
-        // Currently only RequestMapping is supported
-        final RequestMapping requestMapping = apiDefinition.getAnnotation(RequestMapping.class);
-        // rewrite api path
-        apiDefinition.setMethodPath(getPath(requestMapping));
-        
-        // Get additional values from the annotation.
-        super.definitionPostProcess(apiDefinition);
-    }
-    
     /**
-     * Add supported class annotations.
+     * default.
      *
-     * @param annotation annotation
+     * @return default
      */
-    public void addSupportedApiAnnotations(final Class<? extends Annotation> annotation) {
-        supportedApiAnnotations.add(annotation);
-    }
-    
-    /**
-     * Add supported method annotations.
-     *
-     * @param annotation annotation
-     */
-    public void addSupportedApiDefinitionAnnotations(final Class<? extends Annotation> annotation) {
-        supportedApiDefinitionAnnotations.add(annotation);
-    }
-    
-    private String getPath(@NonNull final RequestMapping requestMapping) {
-        if (ArrayUtils.isEmpty(requestMapping.path())) {
-            return "";
-        }
-        return requestMapping.path()[0];
-    }
-    
-    @NotNull
-    @Override
-    protected List<Class<? extends Annotation>> supportedApiAnnotations() {
-        return supportedApiAnnotations;
-    }
-    
-    @NotNull
-    @Override
-    protected List<Class<? extends Annotation>> supportedApiDefinitionAnnotations() {
-        return supportedApiDefinitionAnnotations;
+    public static SpringCloudApiBeansExtractor buildDefaultSpringCloudApiBeansExtractor() {
+        final SpringCloudApiBeansExtractor extractor = new SpringCloudApiBeansExtractor();
+        
+        // Annotations supported by class
+        extractor.addSupportedApiAnnotations(Controller.class);
+        extractor.addSupportedApiAnnotations(RequestMapping.class);
+        
+        // Annotations supported by the method
+        extractor.addSupportedApiDefinitionAnnotations(RequestMapping.class);
+        
+        extractor.addExtractorProcessor(new RequestMappingProcessor());
+        return extractor;
     }
 }

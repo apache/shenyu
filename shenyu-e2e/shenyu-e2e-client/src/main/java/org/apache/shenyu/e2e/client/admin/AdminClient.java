@@ -458,13 +458,14 @@ public class AdminClient {
         
         return rst;
     }
-    
+
     /**
-     * start plugin.
+     * change plugin status.
+     *
      * @param id id
      * @param formData formData
      */
-    public void startPlugin(final String id, final MultiValueMap<String, String> formData) {
+    public void changePluginStatus(final String id, final MultiValueMap<String, String> formData) {
         putResource("/plugin", id, SelectorDTO.class, formData);
     }
     

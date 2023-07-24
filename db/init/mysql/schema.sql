@@ -759,6 +759,17 @@ INSERT INTO `permission` VALUES ('1534585531389583418', '1346358560427216896', '
 INSERT INTO `permission` VALUES ('1534585531389583419', '1346358560427216896', '1534585531108565051', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `permission` VALUES ('1534585531389583420', '1346358560427216896', '1534585531108565052', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 
+INSERT INTO `permission` VALUES ('1572525965658820609', '1346358560427216896', '1676471945048780800', '2023-07-07 23:20:04.962', '2023-07-07 23:20:14.170');
+INSERT INTO `permission` VALUES ('1572525965658820610', '1346358560427216896', '1676471945124278272', '2023-07-07 23:21:23.648', '2023-07-07 23:21:23.648');
+INSERT INTO `permission` VALUES ('1572525965658820611', '1346358560427216896', '1676471945124278273', '2023-07-07 23:23:40.409', '2023-07-07 23:23:40.409');
+INSERT INTO `permission` VALUES ('1572525965658820612', '1346358560427216896', '1676471945124278274', '2023-07-07 23:24:03.398', '2023-07-07 23:24:03.398');
+INSERT INTO `permission` VALUES ('1572525965658820613', '1346358560427216896', '1676471945124278275', '2023-07-07 23:24:19.165', '2023-07-07 23:24:19.165');
+INSERT INTO `permission` VALUES ('1572525965658820614', '1346358560427216896', '1676471945124278276', '2023-07-07 23:24:52.339', '2023-07-07 23:24:52.339');
+INSERT INTO `permission` VALUES ('1572525965658820615', '1346358560427216896', '1676471945124278277', '2023-07-07 23:25:30.528', '2023-07-07 23:25:30.528');
+INSERT INTO `permission` VALUES ('1572525965658820616', '1346358560427216896', '1676471945124278278', '2023-07-07 23:25:50.772', '2023-07-07 23:25:50.772');
+INSERT INTO `permission` VALUES ('1572525965658820617', '1346358560427216896', '1676471945124278279', '2023-07-07 23:26:11.518', '2023-07-07 23:26:11.518');
+INSERT INTO `permission` VALUES ('1572525965658820618', '1346358560427216896', '1676471945124278280', '2023-07-07 23:26:37.388', '2023-07-07 23:26:37.388');
+
 INSERT INTO `permission` VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176', '2022-09-28 11:50:58', '2022-09-28 11:50:58');
 -- ----------------------------
 -- Table structure for plugin
@@ -795,8 +806,8 @@ INSERT INTO `plugin` VALUES ('19', 'jwt', '{\"secretKey\":\"key\"}', 'Authentica
 INSERT INTO `plugin` VALUES ('2', 'waf', '{\"model\":\"black\"}', 'Authentication', 50, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('20', 'request', NULL, 'HttpProcess', 120, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('21', 'oauth2', NULL, 'Authentication', 40, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
-INSERT INTO `plugin` VALUES ('22', 'paramMapping', '{\"ruleHandlePageType\":\"custom\"}', 'HttpProcess', 70, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
-INSERT INTO `plugin` VALUES ('23', 'modifyResponse', '{\"ruleHandlePageType\":\"custom\"}', 'HttpProcess', 220, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
+INSERT INTO `plugin` VALUES ('22', 'paramMapping', NULL, 'HttpProcess', 70, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
+INSERT INTO `plugin` VALUES ('23', 'modifyResponse', NULL, 'HttpProcess', 220, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('24', 'cryptorRequest', NULL, 'Cryptor', 100, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('25', 'cryptorResponse', NULL, 'Cryptor', 410, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('26', 'websocket', '{\"multiSelectorHandle\":\"1\"}', 'Proxy', 200, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
@@ -820,7 +831,7 @@ INSERT INTO `plugin` VALUES ('39', 'casdoor', '{\"endpoint\":\"http://localhost:
 INSERT INTO `plugin` VALUES ('40', 'keyAuth', NULL, 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00',null);
 INSERT INTO `plugin` VALUES ('41', 'brpc', '{\"address\":\"127.0.0.1\", \"port\":\"8005\", \"corethreads\":0, \"threads\":2147483647, \"queues\":0, \"threadpool\":\"shared\"}', 'Proxy', 310, 0, '2023-01-10 10:08:01', '2023-01-10 10:08:01',null);
 INSERT INTO `plugin` VALUES ('42', 'tcp', NULL, 'Proxy', 320, 1, '2023-05-30 18:02:53', '2022-05-30 18:02:53',null);
-
+INSERT INTO `plugin` VALUES ('43', 'loggingHuaweiLts', '{\"totalSizeInBytes\":\"104857600\",\"maxBlockMs\":\"0\",\"ioThreadCount\":\"1\",\"batchSizeThresholdInBytes\":\"524288\",\"batchCountThreshold\":\"4096\",\"lingerMs\":\"2000\",\"retries\":\"100\",\"baseRetryBackoffMs\":\"100\",\"maxRetryBackoffMs\":\"100\",\"enableLocalTest\":\"true\",\"setGiveUpExtraLongSingleLog\":\"false\"}', 'Logging', 177, 0, '2023-07-05 14:03:53.686', '2023-07-06 12:42:07.234', NULL);
 -- ----------------------------
 -- Table structure for plugin_handle
 -- ----------------------------
@@ -923,7 +934,6 @@ INSERT INTO `plugin_handle` VALUES ('1529402613199978571', '15', 'multiRuleHandl
 INSERT INTO `plugin_handle` VALUES ('1529402613199978572', '15', 'threadpool', 'threadpool', 3, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"cached\",\"placeholder\":\"threadpool\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978573', '14', 'contextPath', 'contextPath', 2, 2, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978574', '14', 'addPrefix', 'addPrefix', 2, 2, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin_handle` VALUES ('1529402613199978575', '20', 'ruleHandlePageType', 'ruleHandlePageType', 3, 3, 0, '{\"required\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978576', '19', 'secretKey', 'secretKey', 2, 3, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978577', '24', 'strategyName', 'strategyName', 3, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978578', '24', 'fieldNames', 'fieldNames', 2, 2, 3, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -1117,6 +1127,38 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172959', '41', 'corethreads', 
 INSERT INTO `plugin_handle` VALUES ('1529402613204172960', '41', 'threads', 'threads', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"2147483647\",\"placeholder\":\"threads\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172961', '41', 'queues', 'queues', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"0\",\"placeholder\":\"queues\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172962', '41', 'threadpool', 'threadpool', 3, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"shared\",\"placeholder\":\"threadpool\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
+
+INSERT INTO `plugin_handle` VALUES ('1676472478492946432', '43', 'projectId', 'projectId', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2023-07-05 14:06:00.893', '2023-07-07 22:50:00.597');
+INSERT INTO `plugin_handle` VALUES ('1676473313352380416', '43', 'logGroupId', 'logGroupId', 2, 3, 1, '{\"required\":\"1\",\"rule\":\"\"}', '2023-07-05 14:09:19.928', '2023-07-07 22:50:00.606');
+INSERT INTO `plugin_handle` VALUES ('1676473453001732096', '43', 'logStreamId', 'logStreamId', 2, 3, 2, '{\"required\":\"1\",\"rule\":\"\"}', '2023-07-05 14:09:53.224', '2023-07-07 22:50:00.607');
+INSERT INTO `plugin_handle` VALUES ('1676473657121730560', '43', 'accessKeyId', 'AccessKey', 2, 3, 4, '{\"required\":\"1\",\"rule\":\"\"}', '2023-07-05 14:10:41.897', '2023-07-07 22:50:00.608');
+INSERT INTO `plugin_handle` VALUES ('1676474055324758016', '43', 'accessKeySecret', 'accessKey', 2, 3, 5, '{\"required\":\"1\",\"rule\":\"\"}', '2023-07-05 14:12:16.828', '2023-07-07 22:50:00.609');
+INSERT INTO `plugin_handle` VALUES ('1676474340008947712', '43', 'regionName', 'regionName', 2, 3, 6, '{\"required\":\"1\",\"rule\":\"\"}', '2023-07-05 14:13:24.703', '2023-07-07 22:50:00.610');
+INSERT INTO `plugin_handle` VALUES ('1676474810655993856', '43', 'totalSizeInBytes', 'totalSizeInBytes', 1, 3, 8, '{\"required\":\"0\",\"defaultValue\":\"104857600\",\"rule\":\"\"}', '2023-07-05 14:15:16.913', '2023-07-07 22:50:00.611');
+INSERT INTO `plugin_handle` VALUES ('1676475051081887744', '43', 'maxBlockMs', 'maxBlockMs', 1, 3, 9, '{\"required\":\"0\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2023-07-05 14:16:14.236', '2023-07-07 22:50:00.612');
+INSERT INTO `plugin_handle` VALUES ('1676475293634293760', '43', 'ioThreadCount', 'ioThreadCount', 1, 3, 10, '{\"required\":\"0\",\"defaultValue\":\"1\",\"rule\":\"\"}', '2023-07-05 14:17:12.065', '2023-07-07 22:50:00.612');
+INSERT INTO `plugin_handle` VALUES ('1676475611772252160', '43', 'batchSizeThresholdInBytes', 'batchSizeThresholdInBytes', 1, 3, 11, '{\"required\":\"0\",\"defaultValue\":\"524288\",\"rule\":\"\"}', '2023-07-05 14:18:27.915', '2023-07-07 22:50:00.614');
+INSERT INTO `plugin_handle` VALUES ('1676475862545494016', '43', 'batchCountThreshold', 'batchCountThreshold', 1, 3, 12, '{\"required\":\"0\",\"defaultValue\":\"4096\",\"rule\":\"\"}', '2023-07-05 14:19:27.704', '2023-07-07 22:50:00.615');
+INSERT INTO `plugin_handle` VALUES ('1676476047950508032', '43', 'lingerMs', 'lingerMs', 1, 3, 12, '{\"required\":\"0\",\"defaultValue\":\"2000\",\"rule\":\"\"}', '2023-07-05 14:20:11.908', '2023-07-07 22:50:00.616');
+INSERT INTO `plugin_handle` VALUES ('1676476207938039808', '43', 'retries', 'retries', 1, 3, 13, '{\"required\":\"0\",\"defaultValue\":\"100\",\"rule\":\"\"}', '2023-07-05 14:20:50.052', '2023-07-07 22:50:00.617');
+INSERT INTO `plugin_handle` VALUES ('1676476515359551488', '43', 'baseRetryBackoffMs', 'baseRetryBackoffMs', 1, 3, 14, '{\"required\":\"0\",\"defaultValue\":\"100\",\"rule\":\"\"}', '2023-07-05 14:22:03.347', '2023-07-07 22:50:00.618');
+INSERT INTO `plugin_handle` VALUES ('1676476639779385344', '43', 'maxRetryBackoffMs', 'maxRetryBackoffMs', 1, 3, 15, '{\"required\":\"0\",\"defaultValue\":\"100\",\"rule\":\"\"}', '2023-07-05 14:22:33.010', '2023-07-07 22:50:00.619');
+INSERT INTO `plugin_handle` VALUES ('1676477312923234304', '43', 'enableLocalTest', 'enableLocalTest', 2, 3, 15, '{\"required\":\"0\",\"defaultValue\":\"false\",\"rule\":\"\"}', '2023-07-05 14:25:13.500', '2023-07-07 22:50:00.619');
+INSERT INTO `plugin_handle` VALUES ('1676477594361032704', '43', 'setGiveUpExtraLongSingleLog', 'setGiveUpExtraLongSingleLog', 2, 3, 16, '{\"required\":\"0\",\"defaultValue\":\"false\",\"rule\":\"\"}', '2023-07-05 14:26:20.600', '2023-07-07 22:50:00.620');
+INSERT INTO `plugin_handle` VALUES ('1676477594361032705', '43', 'keyword', 'keyword', 2, 2, 0, '{\"required\":\"0\",\"placeholder\":\"please use ‘;’ to split keyword\",\"rule\":\"\"}', '2023-07-05 14:26:20.600', '2023-07-07 22:50:00.620');
+INSERT INTO `plugin_handle` VALUES ('1676477594361032706', '43', 'maskType', 'maskType', 3, 2, 1, '{\"required\":\"0\",\"defaultValue\":\"dataMaskByMD5\",\"rule\":\"\"}', '2023-07-05 14:26:20.600', '2023-07-07 22:50:00.620');
+INSERT INTO `plugin_handle` VALUES ('1676477594361032707', '43', 'maskStatus', 'maskStatus', 3, 2, 2, '{\"required\":\"0\",\"defaultValue\":\"false\",\"rule\":\"\"}','2023-07-05 14:26:20.600', '2023-07-07 22:50:00.620');
+
+
+INSERT INTO `plugin_handle` VALUES ('1678997037438107648', '42', 'bossGroupThreadCount', 'bossGroupThreadCount', 2, 1, 1, '{\"required\":\"0\",\"defaultValue\":\"1\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
+INSERT INTO `plugin_handle` VALUES ('1678997142656417792', '42', 'workerGroupThreadCount', 'workerGroupThreadCount', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"12\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
+INSERT INTO `plugin_handle` VALUES ('1678997399104552960', '42', 'clientMaxIdleTimeMs', 'clientMaxIdleTimeMs', 2, 1, 7, '{\"required\":\"0\",\"defaultValue\":\"30000\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
+INSERT INTO `plugin_handle` VALUES ('1678997479614218240', '42', 'clientPendingAcquireMaxCount', 'clientPendingAcquireMaxCount', 2, 1, 4, '{\"required\":\"0\",\"defaultValue\":\"5\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
+INSERT INTO `plugin_handle` VALUES ('1678996921914392576', '42', 'loadBalance', 'loadBalance', 3, 1, 3, '{\"required\":\"0\",\"defaultValue\":\"random\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
+INSERT INTO `plugin_handle` VALUES ('1678997769998467072', '42', 'clientMaxLifeTimeMs', 'clientMaxLifeTimeMs', 2, 1, 8, '{\"required\":\"0\",\"defaultValue\":\"60000\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
+INSERT INTO `plugin_handle` VALUES ('1678997277012557824', '42', 'clientMaxConnections', 'clientMaxConnections', 2, 1, 6, '{\"required\":\"0\",\"defaultValue\":\"20\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
+INSERT INTO `plugin_handle` VALUES ('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{\"required\":\"0\",\"defaultValue\":\"5\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
+
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
@@ -1558,6 +1600,17 @@ INSERT INTO `resource` VALUES ('1534585531108565050', '1534585531108565043', 'SH
 INSERT INTO `resource` VALUES ('1534585531108565051', '1534585531108565043', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingClickHouseRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1534585531108565052', '1534585531108565043', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingClickHouse:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 
+INSERT INTO `resource` VALUES ('1676471945048780800', '1346775491550474240', 'loggingHuaweiLts', 'loggingHuaweiLts', '/plug/loggingHuaweiLts', 'loggingHuaweiLts', 1, 0, 'block', 0, 0, '', 1, '2023-07-05 14:03:53.699', '2023-07-05 14:03:53.709');
+INSERT INTO `resource` VALUES ('1676471945124278272', '1676471945048780800', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLtsSelector:add', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
+INSERT INTO `resource` VALUES ('1676471945124278273', '1676471945048780800', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLtsSelector:delete', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
+INSERT INTO `resource` VALUES ('1676471945124278274', '1676471945048780800', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLtsSelector:edit', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
+INSERT INTO `resource` VALUES ('1676471945124278275', '1676471945048780800', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLtsSelector:query', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
+INSERT INTO `resource` VALUES ('1676471945124278276', '1676471945048780800', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLtsRule:add', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
+INSERT INTO `resource` VALUES ('1676471945124278277', '1676471945048780800', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLtsRule:delete', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
+INSERT INTO `resource` VALUES ('1676471945124278278', '1676471945048780800', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLtsRule:edit', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
+INSERT INTO `resource` VALUES ('1676471945124278279', '1676471945048780800', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLtsRule:query', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
+INSERT INTO `resource` VALUES ('1676471945124278280', '1676471945048780800', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLts:modify', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
+
 INSERT INTO `resource` VALUES ('1572525965625266176', '1346777449787125760', 'SHENYU.BUTTON.SYSTEM.RESOURCE', '', '', '',2, 6, '', 1, 0, 'system:plugin:resource', 1, '2022-09-28 11:50:58', '2022-09-28 11:50:58');
 -- ----------------------------
 -- Table structure for role
@@ -1675,7 +1728,7 @@ CREATE TABLE `shenyu_dict`  (
   `type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'type',
   `dict_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'dictionary encoding',
   `dict_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'dictionary name',
-  `dict_value` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'dictionary value',
+  `dict_value` varchar(2048) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'dictionary value',
   `desc` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'dictionary description or remarks',
   `sort` int(0) NOT NULL COMMENT 'sort',
   `enabled` tinyint(0) NULL DEFAULT NULL COMMENT 'whether it is enabled (0 close, 1 open) ',
@@ -1788,6 +1841,7 @@ INSERT INTO `shenyu_dict` VALUES ('1572621976689762305', 'engine', 'engine', 'Re
 INSERT INTO `shenyu_dict` VALUES ('1572621976689762306', 'engine', 'engine', 'MergeTree', 'MergeTree', '', 1, 1, '2022-09-22 00:21:11.924', '2022-09-22 00:21:11.924');
 INSERT INTO `shenyu_dict` VALUES ('1630761573833920512', 'mapType', 'mapType', 'all', 'all', '', 1, 1, '2023-03-01 10:47:11', '2023-03-01 10:47:11');
 INSERT INTO `shenyu_dict` VALUES ('1630761984393367552', 'mapType', 'mapType', 'field', 'field', '', 1, 1, '2023-03-01 10:48:49', '2023-03-01 10:48:49');
+INSERT INTO `shenyu_dict` VALUES ('1679002911061737472', 'discoveryMode', 'DISCOVERY_MODE', 'zookeeper', '{"baseSleepTimeMilliseconds":"1000","maxRetries":"3","maxSleepTimeMilliseconds":"1000","connectionTimeoutMilliseconds":"1000","sessionTimeoutMilliseconds":"1000","namespace":"","digest":null}', 'discoery mode to link zookeeper', 0, 1,'2023-03-01 10:48:49', '2023-03-01 10:48:49');
 
 -- ----------------------------
 -- Table structure for user_role

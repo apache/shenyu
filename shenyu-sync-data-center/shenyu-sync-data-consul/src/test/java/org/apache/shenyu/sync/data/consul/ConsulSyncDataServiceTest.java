@@ -89,7 +89,7 @@ public final class ConsulSyncDataServiceTest {
         when(response.getValue()).thenReturn(list);
         when(response.getConsulIndex()).thenReturn(INDEX);
         consulSyncDataService = new ConsulSyncDataService(consulClient, consulConfig, null,
-                Collections.emptyList(), Collections.emptyList());
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
     }
 
     @Test

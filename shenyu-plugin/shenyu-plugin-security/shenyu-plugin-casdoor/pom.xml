@@ -29,7 +29,7 @@
         <dependency>
             <groupId>org.casbin</groupId>
             <artifactId>casdoor-java-sdk</artifactId>
-            <version>1.9.0</version>
+            <version>${casdoor-java-sdk.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.json</groupId>
