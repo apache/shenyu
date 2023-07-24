@@ -17,17 +17,26 @@
 
 package org.apache.shenyu.admin.service.manager.impl;
 
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Resource;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
+import org.apache.shenyu.admin.model.dto.TagDTO;
+import org.apache.shenyu.admin.model.entity.TagDO;
+import org.apache.shenyu.admin.model.vo.TagVO;
+import org.apache.shenyu.admin.service.TagService;
 import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.admin.service.manager.PullSwaggerDocService;
 import org.apache.shenyu.admin.utils.HttpUtils;
-import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -41,12 +50,19 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
 
     private static final HttpUtils HTTP_UTILS = new HttpUtils();
 
-    private static final Map<String, Long> CLUSTER_LASTSTARTUPTIME_MAP = new HashMap<>();
-
     private static final String SWAGGER_V2_PATH = "/v2/api-docs";
+
+    private static final long PULL_MIN_INTERVAL_TIME = 30 * 1000;
+
+    private static final long DOC_LOCK_EXPIRED_TIME = 60 * 1000;
+
+    private final Interner<Object> interner = Interners.newWeakInterner();
 
     @Resource
     private DocManager docManager;
+
+    @Resource
+    private TagService tagService;
 
     @Override
     public void pullApiDocument(final Set<UpstreamInstance> currentServices) {
@@ -61,33 +77,89 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
     @Override
     @SuppressWarnings("unchecked")
     public void pullApiDocument(final UpstreamInstance instance) {
-        String clusterName = instance.getClusterName();
-        if (!canPull(instance)) {
-            LOG.info("api document has been pulled and cannot be pulled againl，instance={}", JsonUtils.toJson(instance));
-            return;
+        TagVO tagVO = null;
+        synchronized (interner.intern(instance.getClusterName())) {
+            tagVO = saveTagVOAndAcquireLock(instance);
+            if (!canPull(instance, tagVO)) {
+                LOG.info("api document has been pulled and cannot be pulled again，instance: {}", instance.getClusterName());
+                return;
+            }
         }
+        TagDO.TagExt tagExt = tagVO.getTagExt();
+        long newRefreshTime = System.currentTimeMillis();
         String url = getSwaggerRequestUrl(instance);
         try {
             String body = HTTP_UTILS.get(url, Collections.EMPTY_MAP);
             docManager.addDocInfo(
-                clusterName,
+                instance,
                 body,
-                callback -> LOG.info("load api document successful，clusterName={}, ipPort={}",
-                    clusterName, instance.getIp() + ":" + instance.getPort())
+                tagExt.getApiDocMd5(),
+                callback -> {
+                    LOG.info("save api document successful，clusterName={}, ipPort={}", instance.getClusterName(), instance.getIp() + ":" + instance.getPort());
+                    tagExt.setApiDocMd5(callback.getDocMd5());
+                }
             );
-            CLUSTER_LASTSTARTUPTIME_MAP.put(clusterName, instance.getStartupTime());
+            tagExt.setRefreshTime(newRefreshTime);
         } catch (Exception e) {
-            LOG.error("add api document fail. url={} error={}", url, e);
+            LOG.error("add api document fail. clusterName={} url={} error={}", instance.getClusterName(), url, e);
+        } finally {
+            tagExt.setDocLock(null);
+            //Save the time of the last updated document and the newMd5 of apidoc.
+            tagService.updateTagExt(tagVO.getId(), tagExt);
         }
     }
 
-    private boolean canPull(final UpstreamInstance instance) {
+    private boolean canPull(final UpstreamInstance instance, final TagVO tagVO) {
         boolean canPull = false;
-        Long cacheLastStartUpTime = CLUSTER_LASTSTARTUPTIME_MAP.get(instance.getClusterName());
-        if (Objects.isNull(cacheLastStartUpTime) || instance.getStartupTime() > cacheLastStartUpTime) {
+        if (Objects.isNull(tagVO) || Objects.isNull(tagVO.getTagExt()) || StringUtils.isEmpty(tagVO.getTagExt().getDocLock())) {
+            LOG.info("Unable to obtain lock for {}, retry after {} seconds.", instance.getClusterName(), DOC_LOCK_EXPIRED_TIME / 1000);
+            return false;
+        }
+        Long cacheLastStartUpTime = tagVO.getTagExt().getRefreshTime();
+        if (Objects.isNull(cacheLastStartUpTime) || instance.getStartupTime() > cacheLastStartUpTime + PULL_MIN_INTERVAL_TIME) {
             canPull = true;
         }
         return canPull;
+    }
+
+    private TagVO saveTagVOAndAcquireLock(final UpstreamInstance instance) {
+        List<TagVO> tagVOList = tagService.findByQuery(instance.getContextPath(), AdminConstants.TAG_ROOT_PARENT_ID);
+        if (CollectionUtils.isNotEmpty(tagVOList)) {
+            TagVO tagVO = tagVOList.get(0);
+            TagDO.TagExt tagExt = convertTagExt(tagVO.getExt());
+            tagVO.setTagExt(tagExt);
+            if (StringUtils.isNotEmpty(tagExt.getDocLock()) && NumberUtils.toLong(tagExt.getDocLock(), 0) > System.currentTimeMillis()) {
+                tagExt.setDocLock(null);
+                return tagVO;
+            }
+            tagExt.setDocLock(this.generateDocLock());
+            tagService.updateTagExt(tagVO.getId(), tagExt);
+            return tagVO;
+        }
+        return createRootTagAndAcquireLock(instance);
+    }
+
+    private TagVO createRootTagAndAcquireLock(final UpstreamInstance instance) {
+        TagDTO tagDTO = new TagDTO();
+        tagDTO.setTagDesc(instance.getClusterName());
+        tagDTO.setName(instance.getContextPath());
+        tagDTO.setParentTagId(AdminConstants.TAG_ROOT_PARENT_ID);
+        TagDO.TagExt tagExt = new TagDO.TagExt();
+        tagExt.setDocLock(this.generateDocLock());
+        tagService.createRootTag(tagDTO, tagExt);
+
+        TagVO tagVO = new TagVO();
+        tagVO.setId(tagDTO.getId());
+        tagVO.setTagExt(tagExt);
+        return tagVO;
+    }
+
+    private String generateDocLock() {
+        return String.valueOf(System.currentTimeMillis() + DOC_LOCK_EXPIRED_TIME);
+    }
+
+    private TagDO.TagExt convertTagExt(final String ext) {
+        return StringUtils.isNotEmpty(ext) ? GsonUtils.getInstance().fromJson(ext, TagDO.TagExt.class) : new TagDO.TagExt();
     }
 
     private String getSwaggerRequestUrl(final UpstreamInstance instance) {

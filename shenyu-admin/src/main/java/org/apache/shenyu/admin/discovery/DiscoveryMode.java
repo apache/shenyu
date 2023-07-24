@@ -17,9 +17,24 @@
 
 package org.apache.shenyu.admin.discovery;
 
+/**
+ * The enum Discovery mode.
+ */
 public enum DiscoveryMode {
+    /**
+     * Local discovery mode.
+     */
     LOCAL,
+    /**
+     * Zookeeper discovery mode.
+     */
     ZOOKEEPER,
+    /**
+     * Nacos discovery mode.
+     */
     NACOS,
+    /**
+     * Eureka discovery mode.
+     */
     EUREKA
 }
