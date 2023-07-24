@@ -33,8 +33,8 @@ shenyu:
   #          port: 8189
   sdk:
     enabled: true
-    registerType: local #etcd #nacos #consul #eureka
-    serverLists: http://localhost:9095 #http://localhost:2379 #localhost:8848 #http://localhost:8761/eureka/
+    registerType: zookeeper #local #etcd #nacos #consul
+    serverLists: localhost:2181 #http://localhost:9095 #http://localhost:2379 #localhost:8848
 
 spring:
   main:
