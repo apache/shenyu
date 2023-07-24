@@ -36,7 +36,6 @@ import org.apache.shenyu.plugin.grpc.resolver.ShenyuNameResolverProvider;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
