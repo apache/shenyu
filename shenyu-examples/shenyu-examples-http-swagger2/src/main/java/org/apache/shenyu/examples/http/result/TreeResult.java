@@ -15,47 +15,44 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http.dto;
+package org.apache.shenyu.examples.http.result;
 
 import io.swagger.annotations.ApiModelProperty;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.StringJoiner;
+import java.util.List;
 
-/**
- * The type Order dto.
- */
-public class OrderDTO implements Serializable {
+public class TreeResult {
+    @ApiModelProperty(value = "id", required = true, example = "123")
+    private Integer id;
 
-    @ApiModelProperty(value = "id", required = true, example = "100000")
-    private String id;
-
-    @ApiModelProperty(value = "name", required = true, example = "jack")
+    @ApiModelProperty(value = "name", required = true, example = "shenyu")
     private String name;
 
-    @ApiModelProperty(value = "createTime", example = "2023-08-01 10:10:01")
-    private Date createTime;
+    @ApiModelProperty(value = "parent id")
+    private Integer parentId;
+
+    @ApiModelProperty(value = "children node list", example = "list")
+    private List<TreeResult> children;
 
     /**
-     * Get id.
+     * get id.
      *
-     * @return id
+     * @return Integer
      */
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
     /**
-     * Set id.
+     * setId.
      *
      * @param id id
      */
-    public void setId(final String id) {
+    public void setId(final Integer id) {
         this.id = id;
     }
 
     /**
-     * Get name.
+     * get name.
      *
      * @return name
      */
@@ -64,7 +61,7 @@ public class OrderDTO implements Serializable {
     }
 
     /**
-     * Set name.
+     * setName.
      *
      * @param name name
      */
@@ -73,28 +70,38 @@ public class OrderDTO implements Serializable {
     }
 
     /**
-     * get createTime.
-     * @return createTime
+     * getParentId.
+     *
+     * @return parentId
      */
-    public Date getCreateTime() {
-        return createTime;
+    public Integer getParentId() {
+        return parentId;
     }
 
     /**
-     * setCreateTime.
-     * @param createTime createTime
+     * setParentId.
+     *
+     * @param parentId parentId
      */
-    public void setCreateTime(final Date createTime) {
-        this.createTime = createTime;
+    public void setParentId(final Integer parentId) {
+        this.parentId = parentId;
     }
 
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", OrderDTO.class.getSimpleName() + "[", "]")
-            .add("id='" + id + "'")
-            .add("name='" + name + "'")
-            .add("createTime='" + createTime + "'")
-            .toString();
+    /**
+     * getChildren.
+     *
+     * @return list
+     */
+    public List<TreeResult> getChildren() {
+        return children;
     }
 
+    /**
+     * setChildren.
+     *
+     * @param children children
+     */
+    public void setChildren(final List<TreeResult> children) {
+        this.children = children;
+    }
 }
