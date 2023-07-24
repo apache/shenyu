@@ -142,7 +142,6 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         factoryBean.setContextId(contextId);
         factoryBean.setType(clazz);
         BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(clazz, () -> {
-            // factoryBean.setUrl(getUrl(beanFactory, attributes));
             factoryBean.setPath(getPath(beanFactory, attributes));
             Object fallback = attributes.get("fallback");
             if (fallback != null) {
@@ -359,14 +358,6 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
             }
         }
         return resultUrl;
-    }
-
-    private String getUrl(final ConfigurableBeanFactory beanFactory, final Map<String, Object> attributes) {
-        String url = resolve(beanFactory, (String) attributes.get("url"));
-        if (!StringUtils.hasText(url)) {
-            return getUrl(getName(beanFactory, attributes));
-        }
-        return getUrl(url);
     }
 
     private String getPath(final ConfigurableBeanFactory beanFactory, final Map<String, Object> attributes) {
