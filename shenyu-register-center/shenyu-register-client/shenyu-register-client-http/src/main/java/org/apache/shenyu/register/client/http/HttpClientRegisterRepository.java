@@ -140,7 +140,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     }
 
     @Override
-    public void close() {
+    public void closeRepository() {
         if (Objects.nonNull(uriRegisterDTO)) {
             uriRegisterDTO.setEventType(EventType.DELETED);
             doRegister(uriRegisterDTO, Constants.URI_PATH, Constants.URI);

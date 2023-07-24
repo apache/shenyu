@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.model.vo;
 
+import org.apache.shenyu.admin.model.bean.CustomCode;
+import org.apache.shenyu.admin.model.bean.DocParameter;
 import org.apache.shenyu.admin.model.entity.ApiDO;
 
 import java.io.Serializable;
@@ -104,6 +106,14 @@ public class ApiVO implements Serializable {
      * document_md5.
      */
     private String documentMd5;
+
+    private List<DocParameter> requestHeaders;
+
+    private List<DocParameter> requestParameters;
+
+    private List<DocParameter> responseParameters;
+
+    private List<CustomCode> bizCustomCodeList;
 
     /**
      * create time.
@@ -388,6 +398,76 @@ public class ApiVO implements Serializable {
      */
     public void setDocumentMd5(final String documentMd5) {
         this.documentMd5 = documentMd5;
+    }
+
+    /**
+     * get requestHeaders.
+     *
+     * @return request headers
+     */
+    public List<DocParameter> getRequestHeaders() {
+        return requestHeaders;
+    }
+
+    /**
+     * set requestHeaders.
+     *
+     * @param requestHeaders requestHeaders
+     */
+    public void setRequestHeaders(final List<DocParameter> requestHeaders) {
+        this.requestHeaders = requestHeaders;
+    }
+
+    /**
+     * get requestParameters.
+     *
+     * @return List
+     */
+    public List<DocParameter> getRequestParameters() {
+        return requestParameters;
+    }
+
+    /**
+     * set requestParameters.
+     *
+     * @param requestParameters requestParameters
+     */
+    public void setRequestParameters(final List<DocParameter> requestParameters) {
+        this.requestParameters = requestParameters;
+    }
+
+    /**
+     * get responseParameters.
+     *
+     * @return List
+     */
+    public List<DocParameter> getResponseParameters() {
+        return responseParameters;
+    }
+
+    /**
+     * set responseParameters.
+     *
+     * @param responseParameters responseParameters
+     */
+    public void setResponseParameters(final List<DocParameter> responseParameters) {
+        this.responseParameters = responseParameters;
+    }
+
+    /**
+     * get bizCustomCodeList.
+     * @return List
+     */
+    public List<CustomCode> getBizCustomCodeList() {
+        return bizCustomCodeList;
+    }
+
+    /**
+     * set bizCustomCodeList.
+     * @param bizCustomCodeList bizCustomCodeList
+     */
+    public void setBizCustomCodeList(final List<CustomCode> bizCustomCodeList) {
+        this.bizCustomCodeList = bizCustomCodeList;
     }
 
     /**

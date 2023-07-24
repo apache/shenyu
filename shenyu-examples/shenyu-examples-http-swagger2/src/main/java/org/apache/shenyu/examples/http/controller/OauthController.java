@@ -15,25 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.manager;
+package org.apache.shenyu.examples.http.controller;
 
-import java.util.Set;
-import org.apache.shenyu.admin.model.bean.UpstreamInstance;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Service document Manager.
+ * OauthController.
  */
-public interface ServiceDocManager {
+@RestController
+@RequestMapping("/oauth")
+@ShenyuSpringMvcClient("/oauth")
+@ApiModule(value = "oauth")
+public class OauthController {
 
     /**
-     * pull API document.
-     * @param currentServices currentServices
+     * Test oauth2 code request.
+     *
+     * @return String
      */
-    void pullApiDocument(Set<UpstreamInstance> currentServices);
+    @GetMapping("/authorize")
+    @ApiDoc(desc = "authorize")
+    public String testCode() {
+        return "authorize";
+    }
 
-    /**
-     * pull API document.
-     * @param instance instance
-     */
-    void pullApiDocument(UpstreamInstance instance);
 }
