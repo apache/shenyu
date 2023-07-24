@@ -20,9 +20,11 @@ package org.apache.shenyu.examples.sdk.springcloud.consumer;
 import org.apache.shenyu.sdk.springcloud.EnableShenyuClients;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableShenyuClients(basePackages = "org.apache.shenyu.examples.sdk.springcloud.consumer.api")
+@EnableFeignClients(basePackages = "org.apache.shenyu.examples.sdk.springcloud.consumer.api")
 public class ShenyuSdkSpringCloudConsumerExampleApplication {
 
     /**
