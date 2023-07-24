@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import java.util.List;
 import org.apache.shenyu.admin.model.dto.TagDTO;
+import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.model.vo.TagVO;
 
@@ -42,6 +43,15 @@ public interface TagService {
      * @return rows int
      */
     int update(TagDTO tagDTO);
+
+    /**
+     * update TagExt.
+     *
+     * @param tagId  primary key
+     * @param tagExt {@linkplain TagDO.TagExt}
+     * @return rows int
+     */
+    int updateTagExt(String tagId, TagDO.TagExt tagExt);
 
     /**
      * delete roles.
@@ -68,7 +78,17 @@ public interface TagService {
     List<TagVO> findByQuery(String tagName);
 
     /**
+     * find tag by tagName and parentTagId.
+     *
+     * @param tagName     tagName
+     * @param parentTagId parentTagId
+     * @return {@linkplain RoleVO}
+     */
+    List<TagVO> findByQuery(String tagName, String parentTagId);
+
+    /**
      * find tag by parentTagId.
+     *
      * @param parentTagId ta
      * @return {@linkplain TagVO}
      */
