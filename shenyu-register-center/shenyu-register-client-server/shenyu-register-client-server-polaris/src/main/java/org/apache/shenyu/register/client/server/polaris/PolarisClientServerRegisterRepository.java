@@ -23,10 +23,14 @@ import com.tencent.polaris.api.pojo.Instance;
 import com.tencent.polaris.api.rpc.WatchServiceRequest;
 import com.tencent.polaris.client.api.SDKContext;
 import com.tencent.polaris.configuration.api.core.ConfigFile;
+import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.factory.ConfigFileServiceFactory;
+import com.tencent.polaris.configuration.factory.ConfigFileServicePublishFactory;
 import com.tencent.polaris.factory.ConfigAPIFactory;
 import com.tencent.polaris.factory.api.DiscoveryAPIFactory;
+import org.apache.shenyu.common.constant.PolarisPathConstants;
+import static org.apache.shenyu.common.constant.PolarisPathConstants.FILE_GROUP;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
@@ -83,11 +87,11 @@ public class PolarisClientServerRegisterRepository implements ShenyuClientServer
     private void subscribe() {
         RpcTypeEnum.acquireSupportMetadatas().forEach(this::subscribe);
     }
-    
+
     private void subscribe(final RpcTypeEnum rpcTypeEnum) {
-        final String namespace = props.getProperty(NAMESPACE, "shenyuNameSpace");
+        final String namespace = props.getProperty(NAMESPACE, PolarisPathConstants.NAMESPACE);
         final String serviceName = RegisterPathConstants.buildServiceInstancePath(rpcTypeEnum.getName());
-        final String group = props.getProperty("group", "shenyuGroup");
+        final String group = props.getProperty("fileGroup", PolarisPathConstants.FILE_GROUP);
         WatchServiceRequest watchServiceRequest = WatchServiceRequest.builder()
                 .namespace(namespace)
                 .service(serviceName)

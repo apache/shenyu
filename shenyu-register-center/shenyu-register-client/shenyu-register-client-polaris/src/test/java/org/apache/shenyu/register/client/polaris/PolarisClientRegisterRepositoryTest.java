@@ -27,15 +27,16 @@ import com.tencent.polaris.api.pojo.DefaultInstance;
 import com.tencent.polaris.api.pojo.Instance;
 import com.tencent.polaris.api.rpc.InstanceRegisterRequest;
 import com.tencent.polaris.client.api.SDKContext;
+import com.tencent.polaris.configuration.api.core.ConfigFileMetadata;
+import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
+import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.factory.api.DiscoveryAPIFactory;
+import java.util.HashMap;
 import org.apache.commons.collections4.CollectionUtils;
+import static org.apache.shenyu.common.constant.PolarisPathConstants.FILE_GROUP;
+import static org.apache.shenyu.common.constant.PolarisPathConstants.META_DATA_FILE_NAME;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.client.polaris.common.PolarisConfigClient;
-import org.apache.shenyu.register.client.polaris.constant.OpenAPIStatusCode;
-import org.apache.shenyu.register.client.polaris.model.ConfigFileRelease;
-import org.apache.shenyu.register.client.polaris.model.ConfigFileTemp;
-import org.apache.shenyu.register.client.polaris.model.ConfigFilesResponse;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -69,13 +70,13 @@ public class PolarisClientRegisterRepositoryTest {
 
     private PolarisClientRegisterRepository repository;
 
-    /**
-     * key:    namespace:group:fileName.
-     * value:  ConfigFiles.
-     */
-    private final Map<String, List<ConfigFile>> configStorage = Maps.newHashMap();
-
     private final Map<String, List<Instance>> storage = Maps.newHashMap();
+
+    private ConfigFileService configFileService;
+
+    private ConfigFileMetadata metaConfig;
+
+    private ConfigFilePublishService configFilePublishService;
 
     private ProviderAPI providerAPI;
 
@@ -84,57 +85,14 @@ public class PolarisClientRegisterRepositoryTest {
         this.repository = new PolarisClientRegisterRepository();
         Class<? extends PolarisClientRegisterRepository> clazz = this.repository.getClass();
         this.providerAPI = mockProviderAPI();
+        this.configFileService = new PolarisMockConfigService(new HashMap<>());
+        this.configFilePublishService = new PolarisMockConfigService(new HashMap<>());
+        this.metaConfig = new PolarisMockConfigFile("shenyu", FILE_GROUP, META_DATA_FILE_NAME);
 
-        setField(clazz, "providerAPI", providerAPI);
-        setField(clazz, "polarisConfigClient", mockConfigClient());
+        setField(clazz, "providerAPI", this.providerAPI);
+        setField(clazz, "configFileService", this.configFileService);
+        setField(clazz, "configFilePublishService", this.configFilePublishService);
         setField(clazz, "props", new Properties());
-
-        configStorage.clear();
-    }
-
-    private PolarisConfigClient mockConfigClient() throws PolarisException, IOException {
-        PolarisConfigClient configClient = mock(PolarisConfigClient.class);
-
-        doAnswer(invocationOnMock -> {
-            ConfigFileRelease release = invocationOnMock.getArgument(0);
-            final List<ConfigFile> files = configStorage.getOrDefault(String.join(COLONS, release.getNamespace(), release.getFileName()), Lists.newArrayList());
-
-            return ConfigFilesResponse.builder()
-                    .code(CollectionUtils.isEmpty(files) ? OpenAPIStatusCode.NOT_FOUND_RESOURCE : OpenAPIStatusCode.OK)
-                    .files(files)
-                    .build();
-        }).when(configClient).getConfigFile(any());
-
-        doAnswer(invocationOnMock -> {
-            ConfigFileTemp temp = invocationOnMock.getArgument(0);
-            final List<MetaDataRegisterDTO> list = GsonUtils.getInstance().fromList(temp.getContent(), MetaDataRegisterDTO.class);
-            final String key = "default:shenyu:" + RegisterPathConstants.buildMetaDataParentPath(list.get(0).getRpcType(), list.get(0).getContextPath());
-            final List<ConfigFile> files = configStorage.getOrDefault(key, Lists.newArrayList());
-            files.addAll(list.stream().map(meta -> { 
-                final ConfigFile configFile = new ConfigFile(temp.getNamespace(), temp.getGroup(), temp.getFileName());
-                configFile.setContent(GsonUtils.getInstance().toJson(meta));
-                return configFile;
-            })
-                    .collect(Collectors.toList()));
-            configStorage.put(key, files);
-
-            return ConfigFilesResponse.builder()
-                    .code(OpenAPIStatusCode.OK)
-                    .files(files)
-                    .build();
-        }).when(configClient).createConfigFile(any());
-
-        doAnswer(invocationOnMock -> {
-            ConfigFileRelease release = invocationOnMock.getArgument(0);
-            final List<ConfigFile> files = configStorage.getOrDefault(String.join(COLONS, release.getNamespace(), release.getFileName()), Lists.newArrayList());
-
-            return ConfigFilesResponse.builder()
-                    .code(OpenAPIStatusCode.OK)
-                    .files(files)
-                    .build();
-        }).when(configClient).releaseConfigFile(any());
-
-        return configClient;
     }
 
     private <T> void setField(final Class<T> clazz, final String fieldName, final Object value) throws NoSuchFieldException, IllegalAccessException {
@@ -164,7 +122,7 @@ public class PolarisClientRegisterRepositoryTest {
         }).when(providerAPI).registerInstance(any());
 
         doAnswer(invocationOnMock -> {
-            configStorage.clear();
+            storage.clear();
             return null;
         }).when(providerAPI).close();
         return providerAPI;
@@ -181,10 +139,12 @@ public class PolarisClientRegisterRepositoryTest {
                 .build();
         repository.persistInterface(metadata);
         String configPath = "default:shenyu:" + RegisterPathConstants.buildMetaDataParentPath(metadata.getRpcType(), metadata.getContextPath());
-        assertTrue(configStorage.containsKey(configPath));
+        PolarisMockConfigFile configFileMetadata = new PolarisMockConfigFile(metaConfig);
+        configFileMetadata.setFileName(configPath);
+        assertTrue(configFileService.getConfigFile(configFileMetadata).hasContent());
 
         String dataStr = GsonUtils.getInstance().toJson(metadata);
-        assertTrue(configStorage.get(configPath).stream().map(ConfigFile::getContent).collect(Collectors.toList()).contains(dataStr));
+        assertTrue(configFileService.getConfigFile(configFileMetadata).getContent().equals(dataStr));
     }
 
     @Test
@@ -220,14 +180,13 @@ public class PolarisClientRegisterRepositoryTest {
         apiFactoryMockedStatic.when(() -> DiscoveryAPIFactory.createProviderAPIByContext(any(SDKContext.class))).thenReturn(providerMock);
         this.repository = new PolarisClientRegisterRepository();
         Assertions.assertDoesNotThrow(() -> this.repository.init(config));
-        Assertions.assertDoesNotThrow(() -> this.repository.close());
+        Assertions.assertDoesNotThrow(() -> this.repository.closeRepository());
         apiFactoryMockedStatic.close();
         sdkContextMockedStatic.close();
     }
 
     @AfterEach
     public void close() {
-        repository.close();
-        configStorage.clear();
+        repository.closeRepository();
     }
 }

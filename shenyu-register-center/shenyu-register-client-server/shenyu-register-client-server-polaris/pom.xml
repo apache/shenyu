@@ -46,16 +46,4 @@
 
     </dependencies>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.tencent.polaris</groupId>
-                <artifactId>polaris-dependencies</artifactId>
-                <version>${polaris-dependencies.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
 </project>

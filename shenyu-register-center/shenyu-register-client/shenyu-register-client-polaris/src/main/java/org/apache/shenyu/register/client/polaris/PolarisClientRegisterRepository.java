@@ -22,16 +22,23 @@ import com.tencent.polaris.api.config.Configuration;
 import com.tencent.polaris.api.core.ProviderAPI;
 import com.tencent.polaris.api.rpc.InstanceRegisterRequest;
 import com.tencent.polaris.client.api.SDKContext;
+import com.tencent.polaris.configuration.api.core.ConfigFile;
+import com.tencent.polaris.configuration.api.core.ConfigFileMetadata;
+import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
+import com.tencent.polaris.configuration.api.core.ConfigFileService;
+import com.tencent.polaris.configuration.client.internal.DefaultConfigFileMetadata;
+import com.tencent.polaris.configuration.factory.ConfigFileServiceFactory;
+import com.tencent.polaris.configuration.factory.ConfigFileServicePublishFactory;
 import com.tencent.polaris.factory.ConfigAPIFactory;
 import com.tencent.polaris.factory.api.DiscoveryAPIFactory;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import static org.apache.shenyu.common.constant.Constants.NAMESPACE;
+import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.client.polaris.common.PolarisConfigClient;
-import org.apache.shenyu.register.client.polaris.constant.OpenAPIStatusCode;
-import org.apache.shenyu.register.client.polaris.model.ConfigFileRelease;
-import org.apache.shenyu.register.client.polaris.model.ConfigFileTemp;
-import org.apache.shenyu.register.client.polaris.model.ConfigFilesResponse;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -40,13 +47,6 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentLinkedDeque;
-
-import static org.apache.shenyu.common.constant.Constants.NAMESPACE;
-
 /**
  * Polaris register center client.
  */
@@ -54,15 +54,15 @@ import static org.apache.shenyu.common.constant.Constants.NAMESPACE;
 public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PolarisClientRegisterRepository.class);
-    
-    private static final String SHENYU_NAME_SPACE = "shenyuNameSpace";
 
     private final ConcurrentLinkedDeque<MetaDataRegisterDTO> metaDataRegisterDTOList = new ConcurrentLinkedDeque<>();
 
-    private PolarisConfigClient polarisConfigClient;
+    private ConfigFileService configFileService;
+
+    private ConfigFilePublishService configFilePublishService;
 
     private ProviderAPI providerAPI;
-    
+
     private Properties props;
 
     @Override
@@ -70,7 +70,8 @@ public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepo
         Configuration configuration = buildConfiguration(config);
         SDKContext sdkContext = SDKContext.initContextByConfig(configuration);
         this.providerAPI = DiscoveryAPIFactory.createProviderAPIByContext(sdkContext);
-        this.polarisConfigClient = new PolarisConfigClient(config);
+        this.configFileService = ConfigFileServiceFactory.createConfigFileService(sdkContext);
+        this.configFilePublishService = ConfigFileServicePublishFactory.createConfigFilePublishService(sdkContext);
         this.props = config.getProps();
     }
 
@@ -96,7 +97,7 @@ public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepo
     }
 
     private void registerUri(final URIRegisterDTO registerDTO) {
-        final String namespace = props.getProperty(NAMESPACE, SHENYU_NAME_SPACE);
+        final String namespace = props.getProperty(NAMESPACE, PolarisPathConstants.NAMESPACE);
         // build register info
         InstanceRegisterRequest registerRequest = new InstanceRegisterRequest();
         registerRequest.setNamespace(namespace);
@@ -114,6 +115,7 @@ public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepo
         try {
             providerAPI.registerInstance(registerRequest);
         } catch (Exception e) {
+            LOGGER.error("polaris client register uri failed: ", e);
             throw new ShenyuException(e);
         }
         LOGGER.info("polaris client register uri success: {}", registerDTO);
@@ -121,34 +123,22 @@ public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepo
 
     private void registerMetaData(final MetaDataRegisterDTO metadata) {
         String name = RegisterPathConstants.buildMetaDataParentPath(metadata.getRpcType(), metadata.getContextPath());
-        final String namespace = props.getProperty(NAMESPACE, SHENYU_NAME_SPACE);
-        final String group = props.getProperty("group", "shenyuGroup");
+        final String namespace = props.getProperty(NAMESPACE, PolarisPathConstants.NAMESPACE);
+        final String group = props.getProperty("fileGroup", PolarisPathConstants.FILE_GROUP);
 
-        ConfigFileRelease configFileRelease = ConfigFileRelease.builder()
-                .fileName(name)
-                .name(name)
-                .namespace(namespace)
-                .group(group).build();
-
+        ConfigFileMetadata configFileMetadata = new DefaultConfigFileMetadata(namespace, group, name);
         metaDataRegisterDTOList.add(metadata);
-        ConfigFileTemp configFileTemp = ConfigFileTemp.builder().fileName(name)
-                .namespace(namespace)
-                .group(group)
-                .content(GsonUtils.getInstance().toJson(metaDataRegisterDTOList)).build();
-
-        ConfigFilesResponse configFilesResponse;
         try {
-            ConfigFilesResponse configFile = polarisConfigClient.getConfigFile(configFileRelease);
-            if (OpenAPIStatusCode.NOT_FOUND_RESOURCE == configFile.getCode()) {
-                configFilesResponse = polarisConfigClient.createConfigFile(configFileTemp);
+            final String content = GsonUtils.getInstance().toJson(metaDataRegisterDTOList);
+            final ConfigFile configFile = configFileService.getConfigFile(configFileMetadata);
+            if (configFile.hasContent()) {
+                configFilePublishService.updateConfigFile(configFileMetadata, content);
             } else {
-                configFilesResponse = polarisConfigClient.updateConfigFile(configFileTemp);
+                configFilePublishService.createConfigFile(configFileMetadata, content);
             }
-            if (OpenAPIStatusCode.OK == configFilesResponse.getCode()) {
-                configFilesResponse = polarisConfigClient.releaseConfigFile(configFileRelease);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            LOGGER.error("polaris client register meta-data failed: ", e);
+            throw new ShenyuException(e);
         }
     }
 
@@ -156,7 +146,7 @@ public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepo
      * close  providerAPI.
      */
     @Override
-    public void close() {
+    public void closeRepository() {
         providerAPI.close();
     }
 }
