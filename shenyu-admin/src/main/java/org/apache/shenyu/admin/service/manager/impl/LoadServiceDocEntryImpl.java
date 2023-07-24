@@ -96,7 +96,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             return;
         }
         final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
-        LOG.info("load api document  serviceList={}", JsonUtils.toJson(currentServices));
+        LOG.info("load api document, serviceList={}", JsonUtils.toJson(currentServices));
         pullSwaggerDocService.pullApiDocument(currentServices);
     }
 
@@ -112,7 +112,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                 return;
             }
             final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
-            LOG.info("loadDocOnSelectorChanged serviceList={}", JsonUtils.toJson(currentServices));
+            LOG.info("loadDocOnSelectorChanged, serviceList={}", JsonUtils.toJson(currentServices));
             pullSwaggerDocService.pullApiDocument(currentServices);
         }
     }
@@ -155,7 +155,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(Lists.newArrayList(supportSwaggerPluginMap.keySet()), null, new PageParameter(1, Integer.MAX_VALUE)));
         List<SelectorVO> clusterList = commonPager.getDataList();
         if (CollectionUtils.isEmpty(clusterList)) {
-            LOG.info("getAllClusterLastUpdateInstanceList, Not loaded into available backend services.");
+            LOG.info("getAllClusterLastUpdateInstanceList. Not loaded into available backend services.");
             return Collections.emptyList();
         }
         return clusterList.parallelStream()
@@ -174,7 +174,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
 
     private UpstreamInstance getClusterLastUpdateInstance(final SelectorData selectorData) {
         if (!supportSwaggerPluginMap.containsKey(selectorData.getPluginId())) {
-            LOG.info("getClusterLastUpdateInstance. pluginNae={} does not support pulling API documents.", selectorData.getPluginName());
+            LOG.info("getClusterLastUpdateInstance. pluginName={} does not support pulling API documents.", selectorData.getPluginName());
             return null;
         }
         List<UpstreamInstance> allInstances = getInstances(selectorData.getPluginId(), selectorData.getHandle(), selectorData.getName(), selectorData.getEnabled());
@@ -195,8 +195,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                 .orElse(null);
     }
 
-    private List<UpstreamInstance> getInstances(final String pluginId, final String handle, final String contextPath,
-        final boolean enabled) {
+    private List<UpstreamInstance> getInstances(final String pluginId, final String handle, final String contextPath, final boolean enabled) {
         List<UpstreamInstance> allInstances = null;
         // Get service instance.
         if (StringUtils.isNotEmpty(handle)) {

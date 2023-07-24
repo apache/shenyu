@@ -324,6 +324,8 @@ public final class TagDO extends BaseDO {
          */
         private String apiDocMd5;
 
+        private String docLock;
+
         /**
          * get id.
          * @return id
@@ -421,6 +423,22 @@ public final class TagDO extends BaseDO {
          */
         public void setApiDocMd5(final String apiDocMd5) {
             this.apiDocMd5 = apiDocMd5;
+        }
+
+        /**
+         * get docLock.
+         * @return docLock
+         */
+        public String getDocLock() {
+            return docLock;
+        }
+
+        /**
+         * set docLock.
+         * @param docLock docLock
+         */
+        public void setDocLock(final String docLock) {
+            this.docLock = docLock;
         }
     }
 
