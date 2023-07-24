@@ -19,6 +19,10 @@ package org.apache.shenyu.client.core.register.matcher;
 
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.common.utils.ListUtil;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
+
+import java.util.List;
 
 /**
  * ApiDocProcessorImpl.<br>
@@ -45,5 +49,10 @@ public class ApiDocProcessorImpl extends BaseAnnotationApiProcessor<ApiDoc> {
     @Override
     public Class<ApiDoc> matchAnnotation() {
         return ApiDoc.class;
+    }
+    
+    @Override
+    public List<Class<?>> supportedRegisterDataType() {
+        return ListUtil.of(ApiDocRegisterDTO.class);
     }
 }
