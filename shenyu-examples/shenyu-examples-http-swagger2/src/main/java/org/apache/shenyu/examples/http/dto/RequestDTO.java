@@ -28,13 +28,13 @@ public class RequestDTO {
     @ApiModelProperty(value = "module", required = true, example = "usercenter")
     private String module;
 
-    @ApiModelProperty(value = "method", required = true, example = "findByUserId")
+    @ApiModelProperty(value = "method", required = true, example = "findByUserId", position = 1)
     private String method;
 
     @ApiModelProperty(value = "content", example = "hello,shenyu")
     private String content;
 
-    @ApiModelProperty(value = "extInfo", example = "extended information")
+    @ApiModelProperty(value = "extInfo", example = "extended information", position = 2)
     private String extInfo;
 
     public RequestDTO() {
