@@ -29,12 +29,21 @@ import org.apache.shenyu.admin.model.vo.TagVO;
 public interface TagService {
 
     /**
-     * create or update tag.
+     * create tag.
      *
      * @param tagDTO {@linkplain TagDTO}
      * @return rows int
      */
     int create(TagDTO tagDTO);
+
+    /**
+     * create root tag.
+     *
+     * @param tagDTO tagDTO {@linkplain TagDTO}
+     * @param tagExt tagDTO {@linkplain TagDO.TagExt}
+     * @return rows int
+     */
+    int createRootTag(TagDTO tagDTO, TagDO.TagExt tagExt);
 
     /**
      * create or update tag.
