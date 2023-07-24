@@ -76,6 +76,7 @@ public class TagServiceImpl implements TagService {
         }
         TagDO tagDO = TagDO.buildTagDO(tagDTO);
         tagDO.setExt(ext);
+        tagDTO.setId(tagDO.getId());
         return tagMapper.insert(tagDO);
     }
 
@@ -135,7 +136,7 @@ public class TagServiceImpl implements TagService {
         List<String> rootIds = tagDOS.stream().map(TagDO::getId).collect(Collectors.toList());
         List<TagDO> tagDOList = tagMapper.selectByParentTagIds(rootIds);
         Map<String, Boolean> map = tagDOList.stream().collect(
-            Collectors.toMap(TagDO::getParentTagId, tagDO -> true, (a, b) -> b, ConcurrentHashMap::new));
+                Collectors.toMap(TagDO::getParentTagId, tagDO -> true, (a, b) -> b, ConcurrentHashMap::new));
         return tagDOS.stream().map(tag -> {
             TagVO tagVO = TagVO.buildTagVO(tag);
             if (map.get(tag.getId()) != null) {
@@ -153,7 +154,7 @@ public class TagServiceImpl implements TagService {
     private void updateSubTags(final TagDTO tagDTO) {
         List<TagDO> allData = tagMapper.selectByQuery(new TagQuery());
         Map<String, TagDO> allDataMap = allData.stream().collect(
-            Collectors.toMap(BaseDO::getId, Function.identity(), (a, b) -> b, ConcurrentHashMap::new));
+                Collectors.toMap(BaseDO::getId, Function.identity(), (a, b) -> b, ConcurrentHashMap::new));
         TagDO update = TagDO.buildTagDO(tagDTO);
         allDataMap.put(update.getId(), update);
         Map<String, List<String>> relationMap = new ConcurrentHashMap<>();

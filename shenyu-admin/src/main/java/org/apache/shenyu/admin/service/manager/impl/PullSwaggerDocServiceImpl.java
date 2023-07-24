@@ -37,7 +37,6 @@ import org.apache.shenyu.admin.service.manager.PullSwaggerDocService;
 import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -142,7 +141,6 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
 
     private TagVO createRootTagAndAcquireLock(final UpstreamInstance instance) {
         TagDTO tagDTO = new TagDTO();
-        tagDTO.setId(UUIDUtils.getInstance().generateShortUuid());
         tagDTO.setTagDesc(instance.getClusterName());
         tagDTO.setName(instance.getContextPath());
         tagDTO.setParentTagId(AdminConstants.TAG_ROOT_PARENT_ID);
