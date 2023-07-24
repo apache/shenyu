@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.core.disruptor.subcriber;
 
 import com.google.common.base.Stopwatch;
+import org.apache.shenyu.client.core.shutdown.ShutdownHookManager;
 import org.apache.shenyu.client.core.shutdown.ShenyuClientShutdownHook;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -83,13 +84,12 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
             }
             ShenyuClientShutdownHook.delayOtherHooks();
             shenyuClientRegisterRepository.persistURI(uriRegisterDTO);
-            //active offline when shutdown, not now
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            ShutdownHookManager.get().addShutdownHook(new Thread(() -> {
                 final URIRegisterDTO offlineDTO = new URIRegisterDTO();
                 BeanUtils.copyProperties(uriRegisterDTO, offlineDTO);
                 offlineDTO.setEventType(EventType.OFFLINE);
                 shenyuClientRegisterRepository.offline(offlineDTO);
-            }));
+            }), 2);
         }
     }
 }
