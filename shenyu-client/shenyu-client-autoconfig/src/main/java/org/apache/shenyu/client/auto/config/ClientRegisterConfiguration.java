@@ -19,9 +19,15 @@ package org.apache.shenyu.client.auto.config;
 
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ClientApiRefreshedEventListener;
-import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
+import org.apache.shenyu.client.core.register.extractor.MultiClientApiBeansExtractorImpl;
+import org.apache.shenyu.client.core.register.extractor.RpcApiBeansExtractor;
+import org.apache.shenyu.client.core.register.matcher.ApiDocProcessorImpl;
+import org.apache.shenyu.client.core.register.matcher.ApiProcessor;
 import org.apache.shenyu.client.core.register.registrar.ApiRegistrar;
+import org.apache.shenyu.client.core.register.registrar.MateDataApiRegistrarImplImpl;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,20 +35,47 @@ import java.util.List;
 
 @Configuration(proxyBeanMethods = false)
 public class ClientRegisterConfiguration {
-
+    
     /**
      * Gets ContextApiRefreshedEventListener Bean.
      *
-     * @param apiBeanExtractor      apiBeanExtractor
-     * @param apiRegistrars apiRegistrars
+     * @param rpcApiBeansExtractors rpcApiBeansExtractors
+     * @param apiRegistrars         apiRegistrars
      * @return contextApiRefreshedEventListener
      */
     @Bean
-    public ClientApiRefreshedEventListener apiListener(final ApiBeansExtractor apiBeanExtractor,
+    public ClientApiRefreshedEventListener apiListener(final List<RpcApiBeansExtractor> rpcApiBeansExtractors,
                                                        final List<ApiRegistrar> apiRegistrars) {
-        return new ClientApiRefreshedEventListener(apiRegistrars, apiBeanExtractor);
+        return new ClientApiRefreshedEventListener(apiRegistrars, new MultiClientApiBeansExtractorImpl(rpcApiBeansExtractors));
     }
-
+    
+    /**
+     * register.
+     *
+     * @param clientRegisterConfig clientRegisterConfig
+     * @param processor            processor
+     * @return register
+     */
+    @Bean
+    public MateDataApiRegistrarImplImpl mateDataApiRegistrarImpl(final ClientRegisterConfig clientRegisterConfig, final List<ApiProcessor> processor) {
+        final MateDataApiRegistrarImplImpl apiRegistrarImpl = new MateDataApiRegistrarImplImpl(clientRegisterConfig);
+        for (ApiProcessor apiProcessor : processor) {
+            apiRegistrarImpl.addApiProcessor(apiProcessor);
+        }
+        return apiRegistrarImpl;
+    }
+    
+    /**
+     * apiDocProcessor.
+     *
+     * @return apiDocProcessor
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public ApiDocProcessorImpl apiDocProcessor() {
+        return new ApiDocProcessorImpl();
+    }
+    
     /**
      * Gets ShenyuClientRegisterEventPublisher Bean that is initialized .
      *

@@ -22,10 +22,11 @@ import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublishe
 import org.apache.shenyu.client.core.register.ClientInfoRefreshedEventListener;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
-import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
+import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
 import org.apache.shenyu.client.core.register.registrar.AbstractApiDocRegistrar;
 import org.apache.shenyu.client.core.register.registrar.AbstractApiMetaRegistrar;
 import org.apache.shenyu.client.core.register.registrar.HttpApiDocRegistrar;
+import org.apache.shenyu.client.springcloud.proceeor.register.ShenyuSpringCloudClientProcessorImpl;
 import org.apache.shenyu.client.springcloud.register.SpringCloudApiBeansExtractor;
 import org.apache.shenyu.client.springcloud.register.SpringCloudApiMetaRegister;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -37,6 +38,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+
+import java.util.List;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnBean(ClientRegisterConfiguration.class)
@@ -61,12 +64,27 @@ public class ShenyuSpringCloudClientInfoRegisterConfiguration {
     /**
      * ApiBeansExtractor Bean.
      *
+     * @param extractorProcessorList extractorProcessorList.
      * @return apiBeansExtractor
      */
     @Bean
     @ConditionalOnMissingBean
-    public ApiBeansExtractor apiBeansExtractor() {
-        return new SpringCloudApiBeansExtractor();
+    public SpringCloudApiBeansExtractor springCloudApiBeansExtractor(final List<ExtractorProcessor> extractorProcessorList) {
+        final SpringCloudApiBeansExtractor extractor = SpringCloudApiBeansExtractor.buildDefaultSpringCloudApiBeansExtractor();
+        for (ExtractorProcessor processor : extractorProcessorList) {
+            extractor.addExtractorProcessor(processor);
+        }
+        return extractor;
+    }
+    
+    /**
+     * ShenyuSpringCloudClientProcessorImpl.
+     *
+     * @return ShenyuSpringCloudClientProcessorImpl
+     */
+    @Bean
+    public ShenyuSpringCloudClientProcessorImpl shenyuSpringCloudClientProcessor() {
+        return new ShenyuSpringCloudClientProcessorImpl();
     }
     
     /**
