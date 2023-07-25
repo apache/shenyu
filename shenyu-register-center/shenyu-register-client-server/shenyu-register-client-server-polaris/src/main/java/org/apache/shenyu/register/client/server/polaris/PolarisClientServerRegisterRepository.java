@@ -23,14 +23,16 @@ import com.tencent.polaris.api.pojo.Instance;
 import com.tencent.polaris.api.rpc.WatchServiceRequest;
 import com.tencent.polaris.client.api.SDKContext;
 import com.tencent.polaris.configuration.api.core.ConfigFile;
-import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.factory.ConfigFileServiceFactory;
-import com.tencent.polaris.configuration.factory.ConfigFileServicePublishFactory;
 import com.tencent.polaris.factory.ConfigAPIFactory;
 import com.tencent.polaris.factory.api.DiscoveryAPIFactory;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import static org.apache.shenyu.common.constant.Constants.NAMESPACE;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
-import static org.apache.shenyu.common.constant.PolarisPathConstants.FILE_GROUP;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
@@ -41,23 +43,12 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import static org.apache.shenyu.common.constant.Constants.NAMESPACE;
 
 /**
  * Polaris register server.
  */
 @Join
 public class PolarisClientServerRegisterRepository implements ShenyuClientServerRegisterRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PolarisClientServerRegisterRepository.class);
 
     private ConsumerAPI consumerAPI;
 

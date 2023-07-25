@@ -31,7 +31,6 @@ import com.tencent.polaris.factory.api.DiscoveryAPIFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -62,7 +61,7 @@ public class PolarisInstanceRegisterRepository implements ShenyuInstanceRegister
      * @param config the config
      */
     @Override
-    public void init(RegisterConfig config) {
+    public void init(final RegisterConfig config) {
         Configuration configuration = buildConfiguration(config);
         SDKContext sdkContext = SDKContext.initContextByConfig(configuration);
 
@@ -81,7 +80,7 @@ public class PolarisInstanceRegisterRepository implements ShenyuInstanceRegister
      * @param instance instance
      */
     @Override
-    public void persistInstance(InstanceEntity instance) {
+    public void persistInstance(final InstanceEntity instance) {
         final InstanceRegisterRequest req = new InstanceRegisterRequest();
         req.setInstanceId(buildInstanceNodeName(instance));
         req.setWeight(1);
@@ -108,7 +107,7 @@ public class PolarisInstanceRegisterRepository implements ShenyuInstanceRegister
      * @return {@link List}
      */
     @Override
-    public List<InstanceEntity> selectInstances(String selectKey) {
+    public List<InstanceEntity> selectInstances(final String selectKey) {
         List<InstanceEntity> result = new ArrayList<>();
         final GetHealthyInstancesRequest req = new GetHealthyInstancesRequest();
         req.setService(selectKey);
@@ -122,7 +121,7 @@ public class PolarisInstanceRegisterRepository implements ShenyuInstanceRegister
         return result;
     }
 
-    private InstanceEntity convertFromInstance(Instance instance) {
+    private InstanceEntity convertFromInstance(final Instance instance) {
         InstanceEntity instanceEntity = new InstanceEntity();
         instanceEntity.setPort(instance.getPort());
         instanceEntity.setHost(instance.getHost());

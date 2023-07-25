@@ -19,23 +19,25 @@ package org.apache.shenyu.register.client.polaris;
 
 import com.tencent.polaris.configuration.api.core.ConfigFile;
 import com.tencent.polaris.configuration.api.core.ConfigFileChangeListener;
-
 import com.tencent.polaris.configuration.api.core.ConfigFileMetadata;
 import java.lang.reflect.Type;
 import java.util.Objects;
 
 public class PolarisMockConfigFile implements ConfigFile {
 
-    private String namespace;
-    private String fileGroup;
+    private final String namespace;
+
+    private final String fileGroup;
+
     private String fileName;
+
     private String content;
 
-    public PolarisMockConfigFile(ConfigFileMetadata configFileMetadata) {
+    public PolarisMockConfigFile(final ConfigFileMetadata configFileMetadata) {
         this(configFileMetadata.getNamespace(), configFileMetadata.getFileGroup(), configFileMetadata.getFileName());
     }
 
-    public PolarisMockConfigFile(ConfigFileMetadata configFileMetadata, final String content) {
+    public PolarisMockConfigFile(final ConfigFileMetadata configFileMetadata, final String content) {
         this(configFileMetadata.getNamespace(), configFileMetadata.getFileGroup(), configFileMetadata.getFileName(), content);
     }
 
@@ -92,7 +94,11 @@ public class PolarisMockConfigFile implements ConfigFile {
         return fileGroup;
     }
 
-    public void setFileName(String fileName) {
+    /**
+     * set file name.
+     * @param fileName fileName
+     */
+    public void setFileName(final String fileName) {
         this.fileName = fileName;
     }
 
@@ -102,16 +108,16 @@ public class PolarisMockConfigFile implements ConfigFile {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof PolarisMockConfigFile)) {
+        if (!(o instanceof ConfigFileMetadata)) {
             return false;
         }
-        final PolarisMockConfigFile that = (PolarisMockConfigFile) o;
-        return com.google.common.base.Objects.equal(getNamespace(), that.getNamespace()) && com.google.common.base.Objects.equal(getFileGroup(), that.getFileGroup()) &&
-                   com.google.common.base.Objects.equal(getFileName(), that.getFileName());
+        final ConfigFileMetadata that = (ConfigFileMetadata) o;
+        return Objects.equals(getNamespace(), that.getNamespace()) && Objects.equals(getFileGroup(), that.getFileGroup())
+                   && Objects.equals(getFileName(), that.getFileName());
     }
 
     @Override

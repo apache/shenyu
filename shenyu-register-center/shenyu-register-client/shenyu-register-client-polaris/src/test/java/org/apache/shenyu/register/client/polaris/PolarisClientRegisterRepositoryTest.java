@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import com.tencent.polaris.api.config.Configuration;
 import com.tencent.polaris.api.core.ProviderAPI;
 import com.tencent.polaris.api.exception.PolarisException;
-import com.tencent.polaris.api.plugin.configuration.ConfigFile;
 import com.tencent.polaris.api.pojo.DefaultInstance;
 import com.tencent.polaris.api.pojo.Instance;
 import com.tencent.polaris.api.rpc.InstanceRegisterRequest;
@@ -30,9 +29,15 @@ import com.tencent.polaris.client.api.SDKContext;
 import com.tencent.polaris.configuration.api.core.ConfigFileMetadata;
 import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
+import com.tencent.polaris.configuration.factory.ConfigFileServiceFactory;
+import com.tencent.polaris.configuration.factory.ConfigFileServicePublishFactory;
 import com.tencent.polaris.factory.api.DiscoveryAPIFactory;
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.HashMap;
-import org.apache.commons.collections4.CollectionUtils;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import static org.apache.shenyu.common.constant.PolarisPathConstants.FILE_GROUP;
 import static org.apache.shenyu.common.constant.PolarisPathConstants.META_DATA_FILE_NAME;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -43,21 +48,12 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
-import static org.apache.shenyu.common.constant.Constants.COLONS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
+import org.mockito.MockedStatic;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -83,11 +79,12 @@ public class PolarisClientRegisterRepositoryTest {
     @BeforeEach
     public void setUp() throws IllegalAccessException, NoSuchFieldException, PolarisException, IOException {
         this.repository = new PolarisClientRegisterRepository();
-        Class<? extends PolarisClientRegisterRepository> clazz = this.repository.getClass();
+        final Class<? extends PolarisClientRegisterRepository> clazz = this.repository.getClass();
         this.providerAPI = mockProviderAPI();
-        this.configFileService = new PolarisMockConfigService(new HashMap<>());
-        this.configFilePublishService = new PolarisMockConfigService(new HashMap<>());
-        this.metaConfig = new PolarisMockConfigFile("shenyu", FILE_GROUP, META_DATA_FILE_NAME);
+        final PolarisMockConfigService polarisMockConfigService = new PolarisMockConfigService(new HashMap<>());
+        this.configFileService = polarisMockConfigService;
+        this.configFilePublishService = polarisMockConfigService;
+        this.metaConfig = new PolarisMockConfigFile("default", FILE_GROUP, META_DATA_FILE_NAME);
 
         setField(clazz, "providerAPI", this.providerAPI);
         setField(clazz, "configFileService", this.configFileService);
@@ -138,12 +135,12 @@ public class PolarisClientRegisterRepositoryTest {
                 .ruleName("ruleName")
                 .build();
         repository.persistInterface(metadata);
-        String configPath = "default:shenyu:" + RegisterPathConstants.buildMetaDataParentPath(metadata.getRpcType(), metadata.getContextPath());
+        String configPath = RegisterPathConstants.buildMetaDataParentPath(metadata.getRpcType(), metadata.getContextPath());
         PolarisMockConfigFile configFileMetadata = new PolarisMockConfigFile(metaConfig);
         configFileMetadata.setFileName(configPath);
         assertTrue(configFileService.getConfigFile(configFileMetadata).hasContent());
 
-        String dataStr = GsonUtils.getInstance().toJson(metadata);
+        String dataStr = GsonUtils.getInstance().toJson(Lists.newArrayList(metadata));
         assertTrue(configFileService.getConfigFile(configFileMetadata).getContent().equals(dataStr));
     }
 
@@ -174,15 +171,21 @@ public class PolarisClientRegisterRepositoryTest {
 
         MockedStatic<DiscoveryAPIFactory> apiFactoryMockedStatic = mockStatic(DiscoveryAPIFactory.class);
         MockedStatic<SDKContext> sdkContextMockedStatic = mockStatic(SDKContext.class);
+        MockedStatic<ConfigFileServiceFactory> configFileServiceFactoryMockedStatic = mockStatic(ConfigFileServiceFactory.class);
+        MockedStatic<ConfigFileServicePublishFactory> configFileServicePublishFactoryMockedStatic = mockStatic(ConfigFileServicePublishFactory.class);
         SDKContext sdkContext = mock(SDKContext.class);
         ProviderAPI providerMock = mock(ProviderAPI.class);
         sdkContextMockedStatic.when(() -> SDKContext.initContextByConfig(any(Configuration.class))).thenReturn(sdkContext);
         apiFactoryMockedStatic.when(() -> DiscoveryAPIFactory.createProviderAPIByContext(any(SDKContext.class))).thenReturn(providerMock);
+        configFileServiceFactoryMockedStatic.when(() -> ConfigFileServiceFactory.createConfigFileService(any(SDKContext.class))).thenReturn(this.configFileService);
+        configFileServicePublishFactoryMockedStatic.when(() -> ConfigFileServicePublishFactory.createConfigFilePublishService(any(SDKContext.class))).thenReturn(this.configFilePublishService);
         this.repository = new PolarisClientRegisterRepository();
         Assertions.assertDoesNotThrow(() -> this.repository.init(config));
         Assertions.assertDoesNotThrow(() -> this.repository.closeRepository());
         apiFactoryMockedStatic.close();
         sdkContextMockedStatic.close();
+        configFileServiceFactoryMockedStatic.close();
+        configFileServicePublishFactoryMockedStatic.close();
     }
 
     @AfterEach
