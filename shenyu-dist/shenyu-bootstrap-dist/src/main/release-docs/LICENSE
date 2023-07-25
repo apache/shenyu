@@ -589,6 +589,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     hamcrest-core 2.2: https://github.com/hamcrest/JavaHamcrest ,BSD 3-Clause
     asm 9.2: https://github.com/llbit/ow2-asm, BSD 3-Clause
     asm-tree 9.2: https://asm.ow2.io/, BSD 3-Clause
+    polaris-all 1.13.0: https://github.com/polarismesh/polaris-java, BSD 3-Clause
 
 ========================================================================
 CC0 licenses
