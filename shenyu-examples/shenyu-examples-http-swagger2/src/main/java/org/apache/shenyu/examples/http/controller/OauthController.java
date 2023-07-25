@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.examples.http.controller;
 
-import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
-import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/oauth")
 @ShenyuSpringMvcClient("/oauth")
-@ApiModule(value = "oauth")
 public class OauthController {
 
     /**
@@ -39,7 +36,6 @@ public class OauthController {
      * @return String
      */
     @GetMapping("/authorize")
-    @ApiDoc(desc = "authorize")
     public String testCode() {
         return "authorize";
     }
