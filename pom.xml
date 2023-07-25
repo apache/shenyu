@@ -138,6 +138,7 @@
         <eureka.version>1.10.17</eureka.version>
         <javatuples.version>1.2</javatuples.version>
         <k8s-client.version>17.0.2</k8s-client.version>
+        <polaris.version>1.13.0</polaris.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -408,6 +409,12 @@
                 <groupId>com.ctrip.framework.apollo</groupId>
                 <artifactId>apollo-openapi</artifactId>
                 <version>${apollo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.tencent.polaris</groupId>
+                <artifactId>polaris-all</artifactId>
+                <version>${polaris.version}</version>
             </dependency>
 
             <dependency>
