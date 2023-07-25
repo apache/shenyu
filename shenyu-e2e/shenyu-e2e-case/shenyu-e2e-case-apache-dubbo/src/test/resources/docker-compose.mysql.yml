@@ -23,7 +23,7 @@ services:
     restart: always
 
   nacos:
-    image: nacos/nacos-server:v2.2.3-slim
+    image: nacos/nacos-server:v2.2.3
     environment:
       - TZ=Asia/Shanghai
       - MODE=standalone
@@ -37,7 +37,7 @@ services:
       - "9849:9849"
 
   admin:
-    image: apache/shenyu-admin:latest
+    image: shenyu/admin:latest
     expose:
       - 9095
     ports:
@@ -69,7 +69,7 @@ services:
         condition: service_healthy
 
   gateway:
-    image: apache/shenyu-bootstrap:latest
+    image: shenyu/bootstrap:latest
     expose:
       - 9195
     ports:
