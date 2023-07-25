@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+package org.apache.shenyu.e2e.testcase.apachedubbo;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -386,7 +388,13 @@ public class ApacheDubboPluginCases implements ShenYuScenarioProvider {
                 .build();
     }
 
-    public static void verifierUri(String handle) throws JsonProcessingException {
+    /**
+     * verifier uri.
+     *
+     * @param handle handle
+     * @throws JsonProcessingException JsonProcessingException
+     */
+    public static void verifierUri(final String handle) throws JsonProcessingException {
         List<DubboHandler> dubboHandlerList = MAPPER.readValue(handle, List.class);
         Map<String, Object> map = (Map<String, Object>) dubboHandlerList.get(0);
         Assertions.assertEquals(50, map.get("weight"));

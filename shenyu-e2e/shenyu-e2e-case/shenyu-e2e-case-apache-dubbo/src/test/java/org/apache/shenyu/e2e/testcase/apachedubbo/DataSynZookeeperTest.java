@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
+package org.apache.shenyu.e2e.testcase.apachedubbo;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
-import org.apache.shenyu.e2e.engine.annotation.ShenYuTest.Parameter;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
 import org.apache.shenyu.e2e.model.data.MetaData;
 import org.apache.shenyu.e2e.model.data.RuleCacheData;
@@ -30,7 +31,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 /**
- * Testing the correctness of Nacos data synchronization method.
+ * Testing the correctness of Apollo data synchronization method.
  */
 @ShenYuTest(
         mode = ShenYuEngineConfigure.Mode.DOCKER,
@@ -40,9 +41,9 @@ import java.util.List;
                         port = 9095,
                         baseUrl = "http://{hostname:localhost}:9095",
                         parameters = {
-                                @Parameter(key = "username", value = "admin"),
-                                @Parameter(key = "password", value = "123456"),
-                                @Parameter(key = "dataSyn", value = "nacos")
+                                @ShenYuTest.Parameter(key = "username", value = "admin"),
+                                @ShenYuTest.Parameter(key = "password", value = "123456"),
+                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
                         }
                 ),
                 @ShenYuTest.ServiceConfigure(
@@ -51,18 +52,18 @@ import java.util.List;
                         baseUrl = "http://{hostname:localhost}:9195",
                         type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
                         parameters = {
-                                @Parameter(key = "dataSyn", value = "nacos")
+                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
                         }
                 )
         },
         dockerComposeFile = "classpath:./docker-compose.mysql.yml"
 )
-public class DataSynNacosTest {
+public class DataSynZookeeperTest {
 
     @Test
     void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
-        Thread.sleep(20000);
+        Thread.sleep(10000);
         List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
@@ -70,4 +71,5 @@ public class DataSynNacosTest {
         Assertions.assertEquals(12, metaDataCacheList.size());
         Assertions.assertEquals(12, ruleCacheList.size());
     }
+
 }

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+package org.apache.shenyu.e2e.testcase.apachedubbo;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
@@ -71,10 +73,10 @@ import java.util.List;
  * Testing spring-cloud plugin.
  */
 public class ApacheDubboPluginTest {
-    List<String> selectorIds = Lists.newArrayList();
+    private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeAll
-    static void setup(AdminClient adminClient, GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
+    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
         Thread.sleep(10000);
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
@@ -111,7 +113,7 @@ public class ApacheDubboPluginTest {
     }
 
     @BeforeEach
-    void before(AdminClient client, GatewayClient gateway, BeforeEachSpec spec) {
+    void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
         spec.getChecker().check(gateway);
 
         ResourcesData resources = spec.getResources();
@@ -129,26 +131,26 @@ public class ApacheDubboPluginTest {
     }
 
     @ShenYuScenario(provider = ApacheDubboPluginCases.class)
-    void testSpringCloud(GatewayClient gateway, CaseSpec spec) {
+    void testSpringCloud(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 
     @AfterEach
-    void before(AdminClient client, GatewayClient gateway, AfterEachSpec spec) {
+    void before(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
         spec.getDeleter().delete(client, selectorIds);
         spec.getPostChecker().check(gateway);
         selectorIds = Lists.newArrayList();
     }
 
     @AfterAll
-    static void teardown(AdminClient client) {
+    static void teardown(final AdminClient client) {
         client.deleteAllSelectors();
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id","6");
-        formData.add("name","dubbo");
-        formData.add("enabled","false");
-        formData.add("role","Proxy");
-        formData.add("sort","310");
+        formData.add("id", "6");
+        formData.add("name", "dubbo");
+        formData.add("enabled", "false");
+        formData.add("role", "Proxy");
+        formData.add("sort", "310");
         client.changePluginStatus("6", formData);
     }
 }
