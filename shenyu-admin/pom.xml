@@ -82,6 +82,11 @@
         </dependency>
 
         <dependency>
+            <artifactId>grpc-netty</artifactId>
+            <groupId>io.grpc</groupId>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-register-client-server-apollo</artifactId>
             <version>${project.version}</version>
