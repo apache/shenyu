@@ -392,7 +392,7 @@ The text of each license is the standard Apache 2.0 license.
     kotlin-stdlib 1.6.21 https://kotlinlang.org, Apache 2.0
     kotlin-stdlib-common 1.6.21 https://kotlinlang.org, Apache 2.0
     reactor-core 3.4.30 https://github.com/reactor/reactor-core/blob/main/LICENSE, Apache 2.0
-    simpleclient_common 0.15.0 https://github.com/micrometer-metrics/micrometer/blob/main/LICENSE, Apache 2.0
+    simpleclient_common 0.12.0 https://github.com/micrometer-metrics/micrometer/blob/main/LICENSE, Apache 2.0
     guice 5.0.1 https://github.com/google/guice/blob/master/COPYING, Apache 2.0
 
 ========================================================================
@@ -413,6 +413,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     protobuf-java 3.12.0: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
     protobuf-java-util 3.21.1: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
     openGauss-connector-jdbc 5.0.0-og https://github.com/opengauss-mirror/openGauss-connector-jdbc
+    polaris-all 1.13.0: https://github.com/polarismesh/polaris-java, BSD 3-Clause
 
 ========================================================================
 CC0 licenses
