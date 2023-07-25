@@ -413,6 +413,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     protobuf-java 3.12.0: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
     protobuf-java-util 3.21.1: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
     openGauss-connector-jdbc 5.0.0-og https://github.com/opengauss-mirror/openGauss-connector-jdbc
+    polaris-all 1.13.0: https://github.com/polarismesh/polaris-java, BSD 3-Clause
 
 ========================================================================
 CC0 licenses
