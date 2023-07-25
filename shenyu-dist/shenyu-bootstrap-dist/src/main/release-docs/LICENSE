@@ -279,7 +279,7 @@ The text of each license is the standard Apache 2.0 license.
     grpc-okhttp 1.48.0: https://github.com/grpc/grpc, Apache 2.0
     grpc-protobuf 1.28.0: https://github.com/grpc/grpc, Apache 2.0
     grpc-protobuf-lite 1.28.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-services 1.33.1: https://github.com/grpc/grpc, Apache 2.0
+    grpc-services 1.48.0: https://github.com/grpc/grpc, Apache 2.0
     grpc-stub 1.28.0: https://github.com/grpc/grpc, Apache 2.0
     grpc-testing 1.48.0: https://github.com/grpc/grpc, Apache 2.0
     grpc-xds 1.48.0: https://github.com/grpc/grpc, Apache 2.0
