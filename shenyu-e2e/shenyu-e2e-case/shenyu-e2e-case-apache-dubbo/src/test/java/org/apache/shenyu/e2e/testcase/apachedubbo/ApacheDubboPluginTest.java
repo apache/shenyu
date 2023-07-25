@@ -87,7 +87,7 @@ public class ApacheDubboPluginTest {
         Assertions.assertEquals(12, ruleDTOList.size());
 
         for (SelectorDTO selectorDTO :selectorDTOList) {
-            if (selectorDTO.getHandle() != null && selectorDTO.getHandle() != "") {
+            if (selectorDTO.getHandle() != null && !selectorDTO.getHandle().equals("")) {
                 ApacheDubboPluginCases.verifierUri(selectorDTO.getHandle());
             }
         }
