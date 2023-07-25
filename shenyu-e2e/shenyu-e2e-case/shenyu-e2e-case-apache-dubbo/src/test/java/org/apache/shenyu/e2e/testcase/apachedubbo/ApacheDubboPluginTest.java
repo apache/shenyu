@@ -100,11 +100,11 @@ public class ApacheDubboPluginTest {
         Assertions.assertEquals(12, ruleCacheList.size());
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id","6");
-        formData.add("name","dubbo");
-        formData.add("enabled","true");
-        formData.add("role","Proxy");
-        formData.add("sort","310");
+        formData.add("id", "6");
+        formData.add("name", "dubbo");
+        formData.add("enabled", "true");
+        formData.add("role", "Proxy");
+        formData.add("sort", "310");
         formData.add("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\",\"threadpool\":\"shared\",\"threads\":2147483647,\"register\":\"zookeeper://zookeeper:2181\"}");
         adminClient.changePluginStatus("6", formData);
         adminClient.deleteAllSelectors();
