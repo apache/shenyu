@@ -21,12 +21,18 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.ecwid.consul.v1.ConsulClient;
+import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
+import com.tencent.polaris.configuration.api.core.ConfigFileService;
+import com.tencent.polaris.configuration.factory.ConfigFileServiceFactory;
+import com.tencent.polaris.configuration.factory.ConfigFileServicePublishFactory;
+import com.tencent.polaris.factory.ConfigAPIFactory;
 import io.etcd.jetcd.Client;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ConsulProperties;
 import org.apache.shenyu.admin.config.properties.EtcdProperties;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.config.properties.NacosProperties;
+import org.apache.shenyu.admin.config.properties.PolarisProperties;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
 import org.apache.shenyu.admin.config.properties.ApolloProperties;
@@ -44,6 +50,8 @@ import org.apache.shenyu.admin.listener.etcd.EtcdDataDataChangedListener;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedInit;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedListener;
+import org.apache.shenyu.admin.listener.polaris.PolarisDataChangedInit;
+import org.apache.shenyu.admin.listener.polaris.PolarisDataChangedListener;
 import org.apache.shenyu.admin.listener.websocket.WebsocketCollector;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedInit;
@@ -60,6 +68,7 @@ import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -206,6 +215,67 @@ public class DataSyncConfiguration {
         public DataChangedInit nacosDataChangedInit(final ConfigService configService) {
             return new NacosDataChangedInit(configService);
         }
+    }
+
+    /**
+     * The type Polaris listener.
+     */
+    @Configuration
+    @ConditionalOnProperty(prefix = "shenyu.sync.polaris", name = "url")
+    @EnableConfigurationProperties(PolarisProperties.class)
+    static class PolarisListener {
+
+        /**
+         * register configFileService in spring ioc.
+         *
+         * @return ConfigFileService {@linkplain ConfigFileService}
+         */
+        @Bean
+        @ConditionalOnMissingBean(ConfigFileService.class)
+        public ConfigFileService polarisConfigFileService(final PolarisProperties polarisProperties) {
+            com.tencent.polaris.api.config.Configuration configuration = ConfigAPIFactory.defaultConfig();
+            configuration.getConfigFile().getServerConnector().setAddresses(Arrays.asList(polarisProperties.getUrl()));
+            return ConfigFileServiceFactory.createConfigFileService(configuration);
+        }
+
+        /**
+         * register configFilePublishService in spring ioc.
+         *
+         * @return ConfigFilePublishService {@linkplain ConfigFilePublishService}
+         */
+        @Bean
+        @ConditionalOnMissingBean(ConfigFilePublishService.class)
+        public ConfigFilePublishService polarisConfigFilePublishService(final PolarisProperties polarisProperties) {
+            com.tencent.polaris.api.config.Configuration configuration = ConfigAPIFactory.defaultConfig();
+            configuration.getConfigFile().getServerConnector().setAddresses(Arrays.asList(polarisProperties.getUrl()));
+            return ConfigFileServicePublishFactory.createConfigFilePublishService(configuration);
+        }
+
+        /**
+         * Data changed listener data changed listener.
+         *
+         * @param configFileService the config service
+         * @return the data changed listener
+         */
+        @Bean
+        @ConditionalOnMissingBean(PolarisDataChangedListener.class)
+        public DataChangedListener polarisDataChangedListener(final PolarisProperties polarisProperties, final ConfigFileService configFileService,
+                                                              final ConfigFilePublishService configFilePublishService) {
+            return new PolarisDataChangedListener(polarisProperties, configFileService, configFilePublishService);
+        }
+
+        /**
+         * Polaris data init polaris data init.
+         *
+         * @param configFileService the config service
+         * @return the polaris data init
+         */
+        @Bean
+        @ConditionalOnMissingBean(PolarisDataChangedInit.class)
+        public DataChangedInit polarisDataChangedInit(final PolarisProperties polarisProperties, final ConfigFileService configFileService) {
+            return new PolarisDataChangedInit(polarisProperties, configFileService);
+        }
+
     }
 
     /**
