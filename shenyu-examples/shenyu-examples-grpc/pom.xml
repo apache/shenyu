@@ -28,8 +28,8 @@
     <artifactId>shenyu-examples-grpc</artifactId>
 
     <properties>
-        <grpc.version>1.33.1</grpc.version>
-        <protobuf.version>3.13.0</protobuf.version>
+        <grpc.version>1.48.0</grpc.version>
+        <protobuf.version>3.21.12</protobuf.version>
         <os-maven-plugin.version>1.6.2</os-maven-plugin.version>
     </properties>
 
@@ -54,13 +54,7 @@
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-client-grpc</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>guava</artifactId>
-                    <groupId>com.google.guava</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+            </dependency>
 
         <!--shenyu consul register center -->
         <!--<dependency>
@@ -68,18 +62,6 @@
             <artifactId>spring-cloud-starter-consul-discovery</artifactId>
             <version>2.2.6.RELEASE</version>
         </dependency>-->
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-all</artifactId>
-            <version>${grpc.version}</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>grpc-okhttp</artifactId>
-                    <groupId>io.grpc</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
     </dependencies>
 
     <build>
