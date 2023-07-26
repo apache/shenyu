@@ -17,16 +17,15 @@
 
 package org.apache.shenyu.sdk.spring.annotation;
 
+import static com.google.common.base.Strings.emptyToNull;
+import java.lang.annotation.Annotation;
+import java.util.Map;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
+import static org.apache.shenyu.sdk.core.util.Util.checkState;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.springframework.web.bind.annotation.PathVariable;
-
-import java.lang.annotation.Annotation;
-
-import static com.google.common.base.Strings.emptyToNull;
-import static org.apache.shenyu.sdk.core.util.Util.checkState;
 
 /**
  * {@link PathVariable} parameter processor.
@@ -44,13 +43,30 @@ public class PathVariableParameterProcessor implements AnnotatedParameterProcess
     public boolean processArgument(final ShenyuRequest shenyuRequest, final Annotation annotation, final Object arg) {
         String name = ANNOTATION.cast(annotation).value();
         RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
-        checkState(emptyToNull(name) != null, "PathVariable annotation was empty on param %s.", requestTemplate.getMethod());
-        checkState(arg instanceof String, "PathVariable Object class pls is String %s.", requestTemplate.getMethod());
-        String varName = "{" + name + "}";
-        String varNameRegex = "\\{" + name + "\\}";
-        if (requestTemplate.getPath().contains(varName)) {
-            shenyuRequest.setUrl(requestTemplate.getUrl() + RegExUtils.replaceAll(requestTemplate.getPath(), varNameRegex, String.valueOf(arg)));
+        checkState((arg instanceof String && emptyToNull(name) != null) || arg instanceof Map,
+            "PathVariable Object class pls is String or Map<String, String> and PathVariable annotation value could not be empty when String class at the method %s.", requestTemplate.getMethod());
+
+        if (arg instanceof String) {
+            String varName = "{" + name + "}";
+            String varNameRegex = "\\{" + name + "\\}";
+            if (requestTemplate.getPath().contains(varName)) {
+                shenyuRequest.setUrl(requestTemplate.getUrl() + RegExUtils.replaceAll(requestTemplate.getPath(), varNameRegex, String.valueOf(arg)));
+            }
+            return true;
         }
+        String path = requestTemplate.getPath();
+        for (Map.Entry<?, ?> entry : ((Map<?, ?>) arg).entrySet()) {
+            final Object key = entry.getKey();
+            final Object value = entry.getValue();
+            if (key instanceof String && value instanceof String) {
+                String varName = "{" + key + "}";
+                String varNameRegex = "\\{" + key + "\\}";
+                if (path.contains(varName)) {
+                    path = RegExUtils.replaceAll(path, varNameRegex, (String) value);
+                }
+            }
+        }
+        shenyuRequest.setUrl(requestTemplate.getUrl() + path);
         return true;
     }
 }
