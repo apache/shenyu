@@ -26,6 +26,8 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ReactiveHttpOutputMessage;
+import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
@@ -59,7 +61,7 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
         // exchange is deprecated, so change to {@link WebClient.RequestHeadersSpec#exchangeToMono(Function)}
         return webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
                 .headers(headers -> headers.addAll(httpHeaders))
-                .body((outputMessage, context) -> {
+                .bodyValue((BodyInserter<?, ReactiveHttpOutputMessage>) (outputMessage, context) -> {
                     MediaType mediaType = httpHeaders.getContentType();
                     if (MediaType.TEXT_EVENT_STREAM.isCompatibleWith(mediaType)
                             || MediaType.MULTIPART_MIXED.isCompatibleWith(mediaType)
