@@ -26,8 +26,6 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.ReactiveHttpOutputMessage;
-import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -77,10 +75,8 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                 || MediaType.APPLICATION_OCTET_STREAM.isCompatibleWith(mediaType)) {
             spec = bodySpec.body(BodyInserters.fromDataBuffers(body));
         } else {
-            spec = bodySpec.bodyValue((BodyInserter<?, ReactiveHttpOutputMessage>) (outputMessage, context) -> {
-                // fix chinese garbled code
-                return outputMessage.writeWith(DataBufferUtils.join(body));
-            });
+            // fix chinese garbled code
+            spec = bodySpec.bodyValue(BodyInserters.fromDataBuffers(DataBufferUtils.join(body)));
         }
         return spec
                 .exchangeToMono(response -> response.bodyToMono(byte[].class)
