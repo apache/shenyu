@@ -122,7 +122,11 @@ public class ZookeeperSyncDataService implements SyncDataService {
         SelectorData selectorData = new SelectorData();
         final String selectorId = dataPath.substring(dataPath.lastIndexOf("/") + 1);
         final String str = dataPath.substring(DefaultPathConstants.SELECTOR_PARENT.length());
-        final String pluginName = str.substring(1, str.length() - selectorId.length() - 1);
+        final int pluginNameIndex = str.length() - selectorId.length() - 1;
+        if (pluginNameIndex <= 0) {
+            return;
+        }
+        final String pluginName = str.substring(1, pluginNameIndex);
         selectorData.setPluginName(pluginName);
         selectorData.setId(selectorId);
 
@@ -137,10 +141,14 @@ public class ZookeeperSyncDataService implements SyncDataService {
     }
 
     private void unCacheRuleData(final String dataPath) {
-        String substring = dataPath.substring(dataPath.lastIndexOf("/") + 1);
+        String ruleDataId = dataPath.substring(dataPath.lastIndexOf("/") + 1);
         final String str = dataPath.substring(DefaultPathConstants.RULE_PARENT.length());
-        final String pluginName = str.substring(1, str.length() - substring.length() - 1);
-        final List<String> list = Lists.newArrayList(Splitter.on(DefaultPathConstants.SELECTOR_JOIN_RULE).split(substring));
+        final int pluginNameIndex = str.length() - ruleDataId.length() - 1;
+        if (pluginNameIndex <= 0) {
+            return;
+        }
+        final String pluginName = str.substring(1, pluginNameIndex);
+        final List<String> list = Lists.newArrayList(Splitter.on(DefaultPathConstants.SELECTOR_JOIN_RULE).split(ruleDataId));
 
         RuleData ruleData = new RuleData();
         ruleData.setPluginName(pluginName);
@@ -253,9 +261,7 @@ public class ZookeeperSyncDataService implements SyncDataService {
             if (!path.contains(DefaultPathConstants.SELECTOR_PARENT)) {
                 return;
             }
-            if (!zkClient.getChildren(path).isEmpty()) {
-                return;
-            }
+
             if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 unCacheSelectorData(path);
                 return;
@@ -320,9 +326,6 @@ public class ZookeeperSyncDataService implements SyncDataService {
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
             if (!path.contains(DefaultPathConstants.RULE_PARENT)) {
-                return;
-            }
-            if (!zkClient.getChildren(path).isEmpty()) {
                 return;
             }
             if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
