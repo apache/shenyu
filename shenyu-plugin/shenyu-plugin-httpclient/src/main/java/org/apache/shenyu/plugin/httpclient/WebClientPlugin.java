@@ -26,8 +26,11 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
+import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -57,24 +60,26 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
         // springWebflux5.3 mark #exchange() deprecated. because #echange maybe make memory leak.
         // https://github.com/spring-projects/spring-framework/issues/25751
         // exchange is deprecated, so change to {@link WebClient.RequestHeadersSpec#exchangeToMono(Function)}
-        return webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
-                .headers(headers -> headers.addAll(httpHeaders))
-                .body((outputMessage, context) -> {
-                    MediaType mediaType = httpHeaders.getContentType();
-                    if (MediaType.TEXT_EVENT_STREAM.isCompatibleWith(mediaType)
-                            || MediaType.MULTIPART_MIXED.isCompatibleWith(mediaType)
-                            || MediaType.IMAGE_PNG.isCompatibleWith(mediaType)
-                            || MediaType.IMAGE_JPEG.isCompatibleWith(mediaType)
-                            || MediaType.IMAGE_GIF.isCompatibleWith(mediaType)
-                            //APPLICATION_STREAM_JSON is deprecated
-                            || MediaType.APPLICATION_NDJSON.isCompatibleWith(mediaType)
-                            || MediaType.APPLICATION_PDF.isCompatibleWith(mediaType)
-                            || MediaType.APPLICATION_OCTET_STREAM.isCompatibleWith(mediaType)) {
-                        return outputMessage.writeWith(body);
-                    }
-                    // fix chinese garbled code
-                    return outputMessage.writeWith(DataBufferUtils.join(body));
-                })
+        final RequestHeadersSpec<?> spec;
+        final RequestBodySpec bodySpec = webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
+                .headers(headers -> headers.addAll(httpHeaders));
+        final MediaType mediaType = httpHeaders.getContentType();
+        if (MediaType.TEXT_EVENT_STREAM.isCompatibleWith(mediaType)
+                || MediaType.MULTIPART_MIXED.isCompatibleWith(mediaType)
+                || MediaType.IMAGE_PNG.isCompatibleWith(mediaType)
+                || MediaType.IMAGE_JPEG.isCompatibleWith(mediaType)
+                || MediaType.IMAGE_GIF.isCompatibleWith(mediaType)
+                //APPLICATION_STREAM_JSON is deprecated
+                || MediaType.APPLICATION_NDJSON.isCompatibleWith(mediaType)
+                || MediaType.APPLICATION_PDF.isCompatibleWith(mediaType)
+                || MediaType.APPLICATION_OCTET_STREAM.isCompatibleWith(mediaType)) {
+            spec = bodySpec.body(BodyInserters.fromDataBuffers(body));
+        } else {
+            // fix chinese garbled code
+            spec = bodySpec.bodyValue(BodyInserters.fromDataBuffers(
+                    DataBufferUtils.join(body)));
+        }
+        return spec
                 .exchangeToMono(response -> response.bodyToMono(byte[].class)
                         .flatMap(bytes -> Mono.fromCallable(() -> Optional.ofNullable(bytes))).defaultIfEmpty(Optional.empty())
                         .flatMap(option -> {
