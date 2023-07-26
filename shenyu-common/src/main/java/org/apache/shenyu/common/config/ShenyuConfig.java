@@ -377,7 +377,7 @@ public class ShenyuConfig {
     }
     
     /**
-     * get shenyu alert report config
+     * Get shenyu alert report config.
      * @return alert config
      */
     public AlertConfig getAlert() {
@@ -385,10 +385,10 @@ public class ShenyuConfig {
     }
     
     /**
-     * set shenyu alert report config
+     * Set shenyu alert report config.
      * @param alert alert config
      */
-    public void setAlert(AlertConfig alert) {
+    public void setAlert(final AlertConfig alert) {
         this.alert = alert;
     }
     
@@ -1800,7 +1800,6 @@ public class ShenyuConfig {
     
         /**
          * Sets metrics name.
-         *
          * @param name the metrics name
          */
         public void setName(final String name) {
@@ -1809,7 +1808,6 @@ public class ShenyuConfig {
     
         /**
          * Gets host.
-         *
          * @return the host
          */
         public String getHost() {
@@ -1818,7 +1816,6 @@ public class ShenyuConfig {
     
         /**
          * Sets host.
-         *
          * @param host the host
          */
         public void setHost(final String host) {
@@ -1827,7 +1824,6 @@ public class ShenyuConfig {
     
         /**
          * Gets port.
-         *
          * @return the port
          */
         public Integer getPort() {
@@ -1845,7 +1841,6 @@ public class ShenyuConfig {
     
         /**
          * Gets jmx config.
-         *
          * @return the jmx config
          */
         public String getJmxConfig() {
@@ -1854,7 +1849,6 @@ public class ShenyuConfig {
     
         /**
          * Sets jmx config.
-         *
          * @param jmxConfig the jmx config
          */
         public void setJmxConfig(final String jmxConfig) {
@@ -1863,7 +1857,6 @@ public class ShenyuConfig {
     
         /**
          * Gets props.
-         *
          * @return the props
          */
         public Properties getProps() {
@@ -1872,7 +1865,6 @@ public class ShenyuConfig {
     
         /**
          * Sets props.
-         *
          * @param props the props
          */
         public void setProps(final Properties props) {
@@ -1897,7 +1889,6 @@ public class ShenyuConfig {
     
         /**
          * get match enabled.
-         *
          * @return Boolean
          */
         public Boolean getEnabled() {
@@ -1906,7 +1897,6 @@ public class ShenyuConfig {
     
         /**
          * set match enabled.
-         *
          * @param enabled enabled
          */
         public void setEnabled(final Boolean enabled) {
@@ -1915,7 +1905,6 @@ public class ShenyuConfig {
     
         /**
          * get cache size.
-         *
          * @return cache size
          */
         public Long getCacheSize() {
@@ -1924,7 +1913,6 @@ public class ShenyuConfig {
 
         /**
          * set cache size.
-         *
          * @param cacheSize cache size
          */
         public void setCacheSize(final Long cacheSize) {
@@ -1933,8 +1921,7 @@ public class ShenyuConfig {
     
         /**
          * get match mode.
-         *
-         * @return motch mode
+         * @return match mode
          */
         public String getMatchMode() {
             return matchMode;
@@ -1942,7 +1929,6 @@ public class ShenyuConfig {
 
         /**
          * set match mode.
-         *
          * @param matchMode match mode
          */
         public void setMatchMode(final String matchMode) {
@@ -1955,7 +1941,6 @@ public class ShenyuConfig {
         
         /**
          * get shenyu spring cloud cache status.
-         *
          * @return the enabled status
          */
         public Boolean getEnabled() {
@@ -1964,7 +1949,6 @@ public class ShenyuConfig {
         
         /**
          * set shenyu spring cloud cache status.
-         *
          * @param enabled the status
          */
         public void setEnabled(final Boolean enabled) {
@@ -1979,7 +1963,6 @@ public class ShenyuConfig {
         
         /**
          * get shenyu spring cloud cache status.
-         *
          * @return the enabled status
          */
         public Boolean getEnabled() {
@@ -1988,7 +1971,6 @@ public class ShenyuConfig {
         
         /**
          * set shenyu spring cloud cache status.
-         *
          * @param enabled the status
          */
         public void setEnabled(final Boolean enabled) {
@@ -1996,7 +1978,7 @@ public class ShenyuConfig {
         }
         
         /**
-         * get shenyu admin alert report url
+         * Get shenyu admin alert report url.
          * @return url
          */
         public String getReportUrl() {
@@ -2004,10 +1986,10 @@ public class ShenyuConfig {
         }
         
         /**
-         * set shenyu admin alert report url
+         * Set shenyu admin alert report url.
          * @param reportUrl admin url
          */
-        public void setReportUrl(String reportUrl) {
+        public void setReportUrl(final String reportUrl) {
             this.reportUrl = reportUrl;
         }
     }

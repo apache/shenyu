@@ -80,16 +80,16 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     
     @Override
     @Pageable
-    public CommonPager<AlertReceiverDTO> listByPage(AlertReceiverQuery receiverQuery) {
+    public CommonPager<AlertReceiverDTO> listByPage(final AlertReceiverQuery receiverQuery) {
         return PageResultUtils.result(receiverQuery.getPageParameter(), 
-                () -> alertReceiverMapper.selectByQuery(receiverQuery)
-                              .stream()
-                              .map(item -> {
-                                  AlertReceiverDTO receiverDTO = new AlertReceiverDTO();
-                                  BeanUtils.copyProperties(item, receiverDTO);
-                                  return receiverDTO;
-                              })
-                              .collect(Collectors.toList()));
+            () -> alertReceiverMapper.selectByQuery(receiverQuery)
+                          .stream()
+                          .map(item -> {
+                              AlertReceiverDTO receiverDTO = new AlertReceiverDTO();
+                              BeanUtils.copyProperties(item, receiverDTO);
+                              return receiverDTO;
+                          })
+                          .collect(Collectors.toList()));
     }
     
     @Override

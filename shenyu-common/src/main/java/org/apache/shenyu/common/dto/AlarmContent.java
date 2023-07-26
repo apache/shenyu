@@ -17,14 +17,13 @@
 
 package org.apache.shenyu.common.dto;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
 /**
  * AlertContent.
  */
-public class AlarmContent implements Serializable {
+public final class AlarmContent {
     
     /**
      * primary key id.
@@ -64,7 +63,7 @@ public class AlarmContent implements Serializable {
      */
     private Date dateUpdated;
     
-    private AlarmContent(Builder builder) {
+    private AlarmContent(final Builder builder) {
         setTitle(builder.title);
         setLevel(builder.level);
         setLabels(builder.labels);
@@ -194,47 +193,113 @@ public class AlarmContent implements Serializable {
     }
     
     
+    /**
+     * builder.
+     */
     public static final class Builder {
+        /**
+         * alert title.
+         */
         private String title;
+        
+        /**
+         * Alarm level.
+         * 0: high-emergency-critical alarm-red.
+         * 1: medium-critical-critical alarm-orange.
+         * 2: low-warning-warning alarm-yellow
+         */
         private byte level;
+        
+        /**
+         * alert labels.
+         */
         private Map<String, String> labels;
+        
+        /**
+         * The actual content of the alarm notification.
+         */
         private String content;
+        
+        /**
+         * create time.
+         */
         private Date dateCreated;
+        
+        /**
+         * update time.
+         */
         private Date dateUpdated;
         
+        /**
+         * builder constructor.
+         */
         public Builder() {
         }
         
-        public Builder title(String val) {
+        /**
+         * builder constructor.
+         * @param val title
+         * @return builder
+         */
+        public Builder title(final String val) {
             title = val;
             return this;
         }
         
-        public Builder level(byte val) {
+        /**
+         * builder constructor.
+         * @param val level
+         * @return level
+         */
+        public Builder level(final byte val) {
             level = val;
             return this;
         }
         
-        public Builder labels(Map<String, String> val) {
+        /**
+         * builder constructor.
+         * @param val labels
+         * @return builder
+         */
+        public Builder labels(final Map<String, String> val) {
             labels = val;
             return this;
         }
         
-        public Builder content(String val) {
+        /**
+         * builder constructor.
+         * @param val content
+         * @return builder
+         */
+        public Builder content(final String val) {
             content = val;
             return this;
         }
         
-        public Builder dateCreated(Date val) {
+        /**
+         * builder constructor.
+         * @param val date created
+         * @return builder
+         */
+        public Builder dateCreated(final Date val) {
             dateCreated = val;
             return this;
         }
         
-        public Builder dateUpdated(Date val) {
+        /**
+         * builder constructor.
+         * @param val date updated
+         * @return builder
+         */
+        public Builder dateUpdated(final Date val) {
             dateUpdated = val;
             return this;
         }
         
+        /**
+         * build content.
+         * @return alarm content
+         */
         public AlarmContent build() {
             return new AlarmContent(this);
         }

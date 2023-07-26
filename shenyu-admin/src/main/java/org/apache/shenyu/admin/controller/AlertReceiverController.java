@@ -101,6 +101,8 @@ public class AlertReceiverController {
     
     /**
      * query receiver.
+     * @param currentPage current page 
+     * @param pageSize page size
      * @return receiver
      */
     @GetMapping

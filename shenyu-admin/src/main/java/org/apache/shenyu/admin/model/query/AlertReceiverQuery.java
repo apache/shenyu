@@ -37,7 +37,7 @@ public class AlertReceiverQuery implements Serializable {
     public AlertReceiverQuery() {
     }
     
-    public AlertReceiverQuery(PageParameter pageParameter) {
+    public AlertReceiverQuery(final PageParameter pageParameter) {
         this.pageParameter = pageParameter;
     }
     
