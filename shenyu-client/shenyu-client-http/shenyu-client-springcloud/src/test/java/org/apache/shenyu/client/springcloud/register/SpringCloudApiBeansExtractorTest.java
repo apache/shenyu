@@ -31,31 +31,30 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 public class SpringCloudApiBeansExtractorTest {
-
-    private final ApiBeansExtractor extractor = new SpringCloudApiBeansExtractor("/http");
-
+    
+    private final ApiBeansExtractor extractor = SpringCloudApiBeansExtractor.buildDefaultSpringCloudApiBeansExtractor();
+    
     @Test
     public void testExtractBeans() throws NoSuchMethodException {
-
+        
         GenericApplicationContext applicationContext = new GenericApplicationContext();
         applicationContext.refresh();
         applicationContext.registerBean(ExtractorTestBean.class);
         applicationContext.registerBean(ExtractorTestWithoutControllerBean.class);
-
+        
         List<ApiBean> apiBeans = extractor.extract(applicationContext);
-
+        
         assertThat(apiBeans.size(), is(1));
         ApiBean apiBean = apiBeans.get(0);
         assertThat(apiBean.getBeanClass(), is(ExtractorTestBean.class));
         assertThat(apiBean.getBeanPath(), is("/testBean"));
-        assertThat(apiBean.getContextPath(), is("/http"));
         assertThat(apiBean.getApiDefinitions().size(), is(1));
-
+        
         ApiBean.ApiDefinition apiDefinition = apiBean.getApiDefinitions().get(0);
         assertThat(apiDefinition.getApiMethod(), is(ExtractorTestBean.class.getMethod("test")));
         assertThat(apiDefinition.getMethodPath(), is("/testMethod"));
     }
-
+    
     @Controller
     @RequestMapping("/testBean")
     private static class ExtractorTestBean {
@@ -63,15 +62,15 @@ public class SpringCloudApiBeansExtractorTest {
         public String test() {
             return "";
         }
-
+        
         public String testWithoutRequestMapping() {
             return "";
         }
-
+        
     }
-
+    
     @Service
     private static class ExtractorTestWithoutControllerBean {
     }
-
+    
 }

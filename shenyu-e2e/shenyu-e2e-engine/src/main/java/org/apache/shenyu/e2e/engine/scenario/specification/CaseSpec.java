@@ -25,8 +25,16 @@ import java.util.List;
 @ShenYuScenarioParameter
 public interface CaseSpec {
     
+    /**
+     * get case spec name.
+     * @return String
+     */
     String getName();
     
+    /**
+     * get case spec verifiers.
+     * @return List
+     */
     List<Verifier> getVerifiers();
 
 }

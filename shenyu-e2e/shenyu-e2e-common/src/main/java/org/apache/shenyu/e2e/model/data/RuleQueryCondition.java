@@ -21,37 +21,51 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.Arrays;
 
+/**
+ * rule query condition.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class RuleQueryCondition implements QueryCondition {
-
+public final class RuleQueryCondition implements QueryCondition {
+    
+    /**
+     * excluded.
+     */
     private String excluded;
-
+    
+    /**
+     * keyword.
+     */
     private String keyword;
-
+    
+    /**
+     * selectors.
+     */
     private String[] selectors;
-
+    
+    /**
+     * status switch.
+     */
     private boolean switchStatus;
-
+    
     /**
      * builder constructor.
-     *
      * @param builder builder
      */
-    private RuleQueryCondition (Builder builder) {
+    private RuleQueryCondition(final Builder builder) {
         this.excluded = builder.excluded;
         this.keyword = builder.keyword;
         this.selectors = builder.selectors;
         this.switchStatus = builder.switchStatus;
     }
+    
     /**
      * class builder.
-     *
      * @return Builder
      */
     public static Builder builder() {
         return new Builder();
     }
-
+    
     /**
      * get excluded.
      *
@@ -60,16 +74,16 @@ public class RuleQueryCondition implements QueryCondition {
     public String getExcluded() {
         return excluded;
     }
-
+    
     /**
      * set excluded.
      *
      * @param excluded excluded
      */
-    public void setExcluded(String excluded) {
+    public void setExcluded(final String excluded) {
         this.excluded = excluded;
     }
-
+    
     /**
      * get keyword.
      *
@@ -78,16 +92,16 @@ public class RuleQueryCondition implements QueryCondition {
     public String getKeyword() {
         return keyword;
     }
-
+    
     /**
      * set keyword.
      *
      * @param keyword keyword
      */
-    public void setKeyword(String keyword) {
+    public void setKeyword(final String keyword) {
         this.keyword = keyword;
     }
-
+    
     /**
      * get selectors.
      *
@@ -96,16 +110,16 @@ public class RuleQueryCondition implements QueryCondition {
     public String[] getSelectors() {
         return selectors;
     }
-
+    
     /**
      * set selectors.
      *
      * @param selectors selectors
      */
-    public void setSelectors(String[] selectors) {
+    public void setSelectors(final String[] selectors) {
         this.selectors = selectors;
     }
-
+    
     /**
      * is switchStatus.
      *
@@ -114,16 +128,16 @@ public class RuleQueryCondition implements QueryCondition {
     public boolean isSwitchStatus() {
         return switchStatus;
     }
-
+    
     /**
      * set switchStatus.
      *
      * @param switchStatus switchStatus
      */
-    public void setSwitchStatus(boolean switchStatus) {
+    public void setSwitchStatus(final boolean switchStatus) {
         this.switchStatus = switchStatus;
     }
-
+    
     @Override
     public String toString() {
         return "RuleQueryCondition{"
@@ -139,27 +153,27 @@ public class RuleQueryCondition implements QueryCondition {
                 + switchStatus
                 + '}';
     }
-
+    
     /**
      * class builder.
      */
     public static final class Builder {
-
+        
         private String excluded;
-
+        
         private String keyword;
-
+        
         private String[] selectors;
-
+        
         private boolean switchStatus;
-
+        
         /**
          * no args constructor.
          */
         private Builder() {
-
+        
         }
-
+        
         /**
          * build new Object.
          *
@@ -168,47 +182,47 @@ public class RuleQueryCondition implements QueryCondition {
         public RuleQueryCondition build() {
             return new RuleQueryCondition(this);
         }
-
+        
         /**
          * build excluded.
          *
          * @param excluded excluded
          * @return this
          */
-        public Builder excluded(String excluded) {
+        public Builder excluded(final String excluded) {
             this.excluded = excluded;
             return this;
         }
-
+        
         /**
          * build keyword.
          *
          * @param keyword keyword
          * @return this
          */
-        public Builder keyword(String keyword) {
+        public Builder keyword(final String keyword) {
             this.keyword = keyword;
             return this;
         }
-
+        
         /**
          * build selectors.
          *
          * @param selectors selectors
          * @return this
          */
-        public Builder selectors(String[] selectors) {
+        public Builder selectors(final String[] selectors) {
             this.selectors = selectors;
             return this;
         }
-
+        
         /**
          * build switchStatus.
          *
          * @param switchStatus switchStatus
          * @return this
          */
-        public Builder switchStatus(boolean switchStatus) {
+        public Builder switchStatus(final boolean switchStatus) {
             this.switchStatus = switchStatus;
             return this;
         }

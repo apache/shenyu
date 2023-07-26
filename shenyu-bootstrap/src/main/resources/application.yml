@@ -16,6 +16,9 @@
 server:
   port: 9195
   address: 0.0.0.0
+  compression:
+    enabled: true
+    minResponseSize: 1048576 # If the response data is greater than 1M, enable compression.
 
 spring:
   main:
@@ -74,7 +77,7 @@ management:
     web:
       exposure:
         include: "*" # or health,info
-        
+
 
 shenyu:
   selectorMatchCache:
@@ -251,6 +254,10 @@ shenyu:
 #        namespace:
 #        accessKey:
 #        secretKey:
+#    polaris:
+#      url: 127.0.0.1:8093
+#      namespace:
+#      fileGroup:
 #    etcd:
 #      url: http://localhost:2379
 #    consul:

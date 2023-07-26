@@ -38,4 +38,9 @@ public @interface ApiModule {
      */
     String value();
 
+    /**
+     * control whether it is necessary to generate in admin.
+     * @return generated
+     */
+    boolean generated() default true;
 }

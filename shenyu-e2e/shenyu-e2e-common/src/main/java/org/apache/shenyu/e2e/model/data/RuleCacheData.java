@@ -26,33 +26,60 @@ import java.util.Objects;
  * @since 2.0.0
  */
 public class RuleCacheData {
-
+    
+    /**
+     * id.
+     */
     private String id;
-
+    
+    /**
+     * name.
+     */
     private String name;
-
+    
+    /**
+     * plugin name.
+     */
     private String pluginName;
-
+    
+    /**
+     * selector id.
+     */
     private String selectorId;
 
     /**
-     * match way（0 and  1 or).
+     * match way（0 or 1).
      */
     private Integer matchMode;
-
+    
+    /**
+     * sort.
+     */
     private Integer sort;
-
+    
+    /**
+     * enabled or not.
+     */
     private Boolean enabled;
-
+    
+    /**
+     * logged.
+     */
     private Boolean loged;
 
     /**
      * handle message（different plugin have different handle to mark ,json style）.
      */
     private String handle;
-
+    
+    /**
+     * condition data list.
+     */
     private List<ConditionData> conditionDataList;
-
+    
+    /**
+     * before condition list.
+     */
     private List<ConditionData> beforeConditionDataList;
 
     /**
@@ -250,7 +277,7 @@ public class RuleCacheData {
      * @param loged loged
      * @return this
      */
-    public RuleCacheData setLoged(final Boolean loged) {
+    public RuleCacheData setLogged(final Boolean loged) {
         this.loged = loged;
         return this;
     }

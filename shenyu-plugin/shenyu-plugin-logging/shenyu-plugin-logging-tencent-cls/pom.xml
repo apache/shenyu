@@ -25,14 +25,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-logging-tencent-cls</artifactId>
 
-    <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-        <aliyun-log.version>0.6.70</aliyun-log.version>
-        <protobuf-java.version>3.19.2</protobuf-java.version>
-        <tencent-log-sdk.version>1.0.9</tencent-log-sdk.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>

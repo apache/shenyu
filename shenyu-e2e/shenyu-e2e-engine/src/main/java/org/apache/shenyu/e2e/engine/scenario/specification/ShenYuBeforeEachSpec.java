@@ -41,12 +41,16 @@ public class ShenYuBeforeEachSpec implements BeforeEachSpec {
 
     private final Waiting waiting;
 
-   ShenYuBeforeEachSpec(Checker checker, ResourcesData resources, Waiting waiting) {
+    ShenYuBeforeEachSpec(final Checker checker, final ResourcesData resources, final Waiting waiting) {
         this.checker = checker;
         this.resources = resources;
         this.waiting = waiting;
     }
-
+    
+    /**
+     * builder.
+     * @return ShenYuBeforeEachSpecBuilder
+     */
     public static ShenYuBeforeEachSpecBuilder builder() {
         return new ShenYuBeforeEachSpecBuilder();
     }
@@ -89,33 +93,65 @@ public class ShenYuBeforeEachSpec implements BeforeEachSpec {
 
         private Waiting waiting = Waiting.DEFAULT;
         
-        public ShenYuBeforeEachSpecBuilder checker(@NotNull Checker checker) {
+        /**
+         * builder set checker.
+         * @param checker checker
+         * @return ShenYuBeforeEachSpecBuilder
+         */
+        public ShenYuBeforeEachSpecBuilder checker(final @NotNull Checker checker) {
             this.checker = checker;
             return this;
         }
         
-        public ShenYuBeforeEachSpecBuilder addSelectorAndRule(SelectorData selector, RuleData... rules) {
+        /**
+         * builder add selector and rule.
+         * @param selector selector
+         * @param rules rules
+         * @return ShenYuBeforeEachSpecBuilder
+         */
+        public ShenYuBeforeEachSpecBuilder addSelectorAndRule(final SelectorData selector, final RuleData... rules) {
             builder.add(selector, rules);
             return this;
         }
         
-        public ShenYuBeforeEachSpecBuilder waiting(@NotNull Waiting waiting) {
+        /**
+         * builder set waiting.
+         * @param waiting waiting
+         * @return ShenYuBeforeEachSpecBuilder
+         */
+        public ShenYuBeforeEachSpecBuilder waiting(final @NotNull Waiting waiting) {
             this.waiting = waiting;
             return this;
         }
         
-        public ShenYuBeforeEachSpecBuilder waiting(Method method, String endpoint, ResponseSpecification expected) {
+        /**
+         * builder set waiting.
+         * @param method method
+         * @param endpoint endpoint
+         * @param expected expected
+         * @return ShenYuBeforeEachSpecBuilder
+         */
+        public ShenYuBeforeEachSpecBuilder waiting(final Method method, final String endpoint, final ResponseSpecification expected) {
             this.waiting = (HttpWaiting) supplier -> WaitForHelper.waitForEffecting(supplier, method, endpoint, expected);
             return this;
         }
         
-        public ShenYuBeforeEachSpecBuilder waiting(@NotNull Checker checker) {
+        /**
+         * builder set waiting with checker.
+         * @param checker checker
+         * @return ShenYuBeforeEachSpecBuilder
+         */
+        public ShenYuBeforeEachSpecBuilder waiting(final @NotNull Checker checker) {
             this.waiting = (HttpWaiting) supplier -> {
                 WaitForHelper.waitForEffecting(supplier, (HttpChecker) checker);
             };
             return this;
         }
         
+        /**
+         * builder build before each spec.
+         * @return ShenYuBeforeEachSpec
+         */
         public ShenYuBeforeEachSpec build() {
             return new ShenYuBeforeEachSpec(checker, builder.build(), waiting);
         }

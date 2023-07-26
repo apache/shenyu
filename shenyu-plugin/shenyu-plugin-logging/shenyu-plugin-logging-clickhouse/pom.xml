@@ -16,33 +16,29 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <parent>
-    <artifactId>shenyu-plugin-logging</artifactId>
-    <groupId>org.apache.shenyu</groupId>
-    <version>2.6.0-SNAPSHOT</version>
-  </parent>
-  <modelVersion>4.0.0</modelVersion>
-  <artifactId>shenyu-plugin-logging-clickhouse</artifactId>
-  <dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>shenyu-plugin-logging</artifactId>
+        <groupId>org.apache.shenyu</groupId>
+        <version>2.6.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>shenyu-plugin-logging-clickhouse</artifactId>
+    <dependencies>
 
-    <dependency>
-      <groupId>com.clickhouse</groupId>
-      <artifactId>clickhouse-http-client</artifactId>
-      <version>${clickhouse-http-client.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>com.clickhouse</groupId>
+            <artifactId>clickhouse-http-client</artifactId>
+            <version>${clickhouse-http-client.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.apache.shenyu</groupId>
-      <artifactId>shenyu-plugin-logging-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-logging-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>io.projectreactor</groupId>
-      <artifactId>reactor-test</artifactId>
-    </dependency>
-
-  </dependencies>
+    </dependencies>
 
 </project>

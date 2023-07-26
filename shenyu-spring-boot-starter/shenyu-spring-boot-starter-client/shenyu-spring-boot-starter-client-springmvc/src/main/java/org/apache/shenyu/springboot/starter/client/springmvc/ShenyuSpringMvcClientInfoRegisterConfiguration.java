@@ -22,29 +22,31 @@ import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublishe
 import org.apache.shenyu.client.core.register.ClientInfoRefreshedEventListener;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
-import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
+import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
 import org.apache.shenyu.client.core.register.registrar.AbstractApiDocRegistrar;
 import org.apache.shenyu.client.core.register.registrar.AbstractApiMetaRegistrar;
 import org.apache.shenyu.client.core.register.registrar.HttpApiDocRegistrar;
+import org.apache.shenyu.client.springmvc.proceeor.register.ShenyuSpringMvcClientProcessorImpl;
 import org.apache.shenyu.client.springmvc.register.SpringMvcApiBeansExtractor;
 import org.apache.shenyu.client.springmvc.register.SpringMvcApiMetaRegister;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+import java.util.List;
+
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnBean(ClientRegisterConfiguration.class)
 public class ShenyuSpringMvcClientInfoRegisterConfiguration {
-
+    
     public ShenyuSpringMvcClientInfoRegisterConfiguration() {
     }
-
+    
     /**
      * ClientInfoRefreshedEventListener Bean.
      *
@@ -57,19 +59,33 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
                                                                     final ShenyuClientRegisterEventPublisher publisher) {
         return new ClientInfoRefreshedEventListener(clientRegisterConfig, publisher);
     }
-
+    
     /**
      * ApiBeansExtractor Bean.
      *
-     * @param clientRegisterConfig clientRegisterConfig
+     * @param extractorProcessorList extractorProcessorList
      * @return apiBeansExtractor
      */
     @Bean
     @ConditionalOnMissingBean
-    public ApiBeansExtractor apiBeansExtractor(final ClientRegisterConfig clientRegisterConfig) {
-        return new SpringMvcApiBeansExtractor(clientRegisterConfig.getContextPath());
+    public SpringMvcApiBeansExtractor springMvcApiBeansExtractor(final List<ExtractorProcessor> extractorProcessorList) {
+        final SpringMvcApiBeansExtractor extractor = SpringMvcApiBeansExtractor.buildDefaultSpringMvcApiBeansExtractor();
+        for (ExtractorProcessor processor : extractorProcessorList) {
+            extractor.addExtractorProcessor(processor);
+        }
+        return extractor;
     }
-
+    
+    /**
+     * shenyuSpringMvcClientProcessor.
+     *
+     * @return shenyuSpringMvcClientProcessor
+     */
+    @Bean
+    public ShenyuSpringMvcClientProcessorImpl shenyuSpringMvcClientProcessor() {
+        return new ShenyuSpringMvcClientProcessorImpl();
+    }
+    
     /**
      * Builds ApiMetaRegistrar Bean.
      *
@@ -77,14 +93,14 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      * @param clientRegisterConfig clientRegisterConfig
      * @return ApiMetaRegistrar
      */
-    @Bean(name = "ApiMetaRegistrar")
-    @ConditionalOnProperty(value = "shenyu.register.api.meta.enabled", matchIfMissing = true, havingValue = "true")
+//    @Bean(name = "ApiMetaRegistrar")
+//    @ConditionalOnProperty(value = "shenyu.register.api.meta.enabled", matchIfMissing = true, havingValue = "true")
     public AbstractApiMetaRegistrar buildApiMetaRegistrar(final ShenyuClientRegisterEventPublisher publisher,
                                                           final ClientRegisterConfig clientRegisterConfig) {
-
+        
         return new SpringMvcApiMetaRegister(publisher, clientRegisterConfig);
     }
-
+    
     /**
      * Builds ApiDocRegistrar  Bean.
      *
@@ -92,13 +108,13 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      * @param clientRegisterConfig clientRegisterConfig
      * @return ApiDocRegistrar
      */
-    @Bean(name = "ApiDocRegistrar")
-    @ConditionalOnProperty(value = "shenyu.register.api.data.enabled", matchIfMissing = true, havingValue = "true")
+//    @Bean(name = "ApiDocRegistrar")
+//    @ConditionalOnProperty(value = "shenyu.register.api.data.enabled", matchIfMissing = true, havingValue = "true")
     public AbstractApiDocRegistrar buildApiDocRegistrar(final ShenyuClientRegisterEventPublisher publisher,
                                                         final ClientRegisterConfig clientRegisterConfig) {
         return new HttpApiDocRegistrar(publisher, clientRegisterConfig);
     }
-
+    
     /**
      * ClientRegisterConfig Bean.
      *

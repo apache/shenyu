@@ -78,7 +78,7 @@ public class ZookeeperClientRegisterRepositoryTest {
                 connectionStateListener.stateChanged(null, ConnectionState.RECONNECTED);
             });
             Assertions.assertDoesNotThrow(() -> new ZookeeperClientRegisterRepository());
-            repository.close();
+            repository.closeRepository();
         }
     }
 }

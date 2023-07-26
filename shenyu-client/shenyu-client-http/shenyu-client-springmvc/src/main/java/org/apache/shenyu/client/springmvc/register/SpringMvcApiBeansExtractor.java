@@ -17,83 +17,40 @@
 
 package org.apache.shenyu.client.springmvc.register;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.lang.NonNull;
+import org.apache.shenyu.client.core.register.extractor.BaseAnnotationApiBeansExtractor;
+import org.apache.shenyu.client.core.register.extractor.RpcApiBeansExtractor;
+import org.apache.shenyu.client.springmvc.proceeor.extractor.RequestMappingProcessor;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-
-public class SpringMvcApiBeansExtractor implements ApiBeansExtractor {
-
-    private final String contextPath;
-
-    public SpringMvcApiBeansExtractor(final String contextPath) {
-        this.contextPath = contextPath;
-    }
-
+/**
+ * SpringMvcApiBeansExtractor.<br>
+ * It is used to support the extraction of the springMVC interface and convert it to the API Bean protocol.
+ */
+public class SpringMvcApiBeansExtractor extends BaseAnnotationApiBeansExtractor implements RpcApiBeansExtractor {
+    
     @Override
-    public List<ApiBean> extract(final ApplicationContext applicationContext) {
-        Map<String, Object> beanMap = applicationContext.getBeansWithAnnotation(Controller.class);
-
-        List<ApiBean> apiBeans = new ArrayList<>();
-
-        beanMap.forEach((k, v) -> {
-            bean2ApiBean(k, v).ifPresent(apiBeans::add);
-        });
-        return apiBeans;
+    public String clientName() {
+        return RpcTypeEnum.HTTP.getName();
     }
-
-    private Optional<ApiBean> bean2ApiBean(final String beanName, final Object bean) {
-
-        Class<?> targetClass = getCorrectedClass(bean);
-
-        RequestMapping classRequestMapping = AnnotationUtils.findAnnotation(targetClass, RequestMapping.class);
-
-        String beanPath = Objects.isNull(classRequestMapping) ? "" : getPath(classRequestMapping);
-
-        ApiBean apiBean = new ApiBean(contextPath, beanName, bean, beanPath, targetClass);
-
-        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(targetClass);
-
-        for (Method method : methods) {
-
-            final RequestMapping methodRequestMapping =
-                    AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
-            if (Objects.isNull(methodRequestMapping)) {
-                continue;
-            }
-            apiBean.addApiDefinition(method, getPath(methodRequestMapping));
-        }
-
-        return Optional.of(apiBean);
-    }
-
-    private Class<?> getCorrectedClass(final Object bean) {
-
-        Class<?> clazz = bean.getClass();
-        if (AopUtils.isAopProxy(bean)) {
-            clazz = AopUtils.getTargetClass(bean);
-        }
-        return clazz;
-    }
-
-    private String getPath(@NonNull final RequestMapping requestMapping) {
-        if (ArrayUtils.isEmpty(requestMapping.path())) {
-            return "";
-        }
-        return requestMapping.path()[0];
+    
+    /**
+     * default.
+     *
+     * @return default
+     */
+    public static SpringMvcApiBeansExtractor buildDefaultSpringMvcApiBeansExtractor() {
+        final SpringMvcApiBeansExtractor extractor = new SpringMvcApiBeansExtractor();
+        
+        // Annotations supported by class
+        extractor.addSupportedApiAnnotations(Controller.class);
+        extractor.addSupportedApiAnnotations(RequestMapping.class);
+        
+        // Annotations supported by the method
+        extractor.addSupportedApiDefinitionAnnotations(RequestMapping.class);
+        
+        extractor.addExtractorProcessor(new RequestMappingProcessor());
+        return extractor;
     }
 }

@@ -34,6 +34,7 @@ import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -92,7 +93,17 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
     }
 
     @Override
-    public void close() {
+    public void offline(final URIRegisterDTO offlineDTO) {
+        String rpcType = offlineDTO.getRpcType();
+        String contextPath = ContextPathUtils.buildRealNode(offlineDTO.getContextPath(), offlineDTO.getAppName());
+        String host = offlineDTO.getHost();
+        int port = offlineDTO.getPort();
+        unRegisterService(rpcType, contextPath, host, port, offlineDTO);
+        LogUtils.info(LOGGER, "{} nacos client unRegister uri success: {}", rpcType, offlineDTO);
+    }
+
+    @Override
+    public void closeRepository() {
         try {
             configService.shutDown();
             namingService.shutDown();
@@ -135,7 +146,6 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         metadataMap.put(Constants.CONTEXT_PATH, contextPath);
         metadataMap.put(URI_META_DATA, GsonUtils.getInstance().toJson(registerDTO));
         instance.setMetadata(metadataMap);
-
         String serviceName = RegisterPathConstants.buildServiceInstancePath(rpcType);
         try {
             namingService.registerInstance(serviceName, instance);
@@ -143,6 +153,29 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
             throw new ShenyuException(e);
         }
         LOGGER.info("register service uri success: {}", serviceName);
+    }
+
+    private synchronized void unRegisterService(final String rpcType,
+                                                final String contextPath,
+                                                final String host,
+                                                final int port,
+                                                final URIRegisterDTO offlineDTO) {
+        Instance instance = new Instance();
+        instance.setEphemeral(true);
+        instance.setIp(host);
+        instance.setPort(port);
+        Map<String, String> metadataMap = new HashMap<>();
+        metadataMap.put(Constants.CONTEXT_PATH, contextPath);
+        metadataMap.put(URI_META_DATA, GsonUtils.getInstance().toJson(offlineDTO));
+        instance.setMetadata(metadataMap);
+        String serviceName = RegisterPathConstants.buildServiceInstancePath(rpcType);
+        try {
+            LOGGER.info("unRegisterService instance:{}", instance);
+            namingService.deregisterInstance(serviceName, instance);
+        } catch (NacosException e) {
+            throw new ShenyuException(e);
+        }
+        LOGGER.info("unregister service uri success: {}", serviceName);
     }
 
     private synchronized void registerConfig(final String rpcType,
