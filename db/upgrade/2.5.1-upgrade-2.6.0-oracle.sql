@@ -298,3 +298,6 @@ VALUES ('1678997277012557824', '42', 'clientMaxConnections', 'clientMaxConnectio
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 VALUES ('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{"required":"0","defaultValue":"5","rule":""}');
+
+-- resort rewrite plugin
+UPDATE plugin SET sort = '-2' WHERE "plugin_id" = '3';

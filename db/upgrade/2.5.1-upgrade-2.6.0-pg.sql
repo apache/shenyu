@@ -226,3 +226,6 @@ VALUES('1678997277012557824', '42', 'clientMaxConnections', 'clientMaxConnection
 INSERT INTO "public"."plugin_handle"
 (id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
 VALUES('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{"required":"0","defaultValue":"5","rule":""}', '2023-07-12 13:19:47.000', '2023-07-12 13:23:33.253');
+
+-- resort rewrite plugin
+UPDATE "public"."sort" SET sort = -2 WHERE plugin_id = '3';

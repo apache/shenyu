@@ -168,3 +168,6 @@ INSERT INTO `plugin_handle` VALUES ('1678996921914392576', '42', 'loadBalance', 
 INSERT INTO `plugin_handle` VALUES ('1678997769998467072', '42', 'clientMaxLifeTimeMs', 'clientMaxLifeTimeMs', 2, 1, 8, '{\"required\":\"0\",\"defaultValue\":\"60000\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 INSERT INTO `plugin_handle` VALUES ('1678997277012557824', '42', 'clientMaxConnections', 'clientMaxConnections', 2, 1, 6, '{\"required\":\"0\",\"defaultValue\":\"20\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 INSERT INTO `plugin_handle` VALUES ('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{\"required\":\"0\",\"defaultValue\":\"5\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
+
+-- resort rewrite plugin
+UPDATE plugin_handle SET sort = -2 WHERE plugin_id = '3';
