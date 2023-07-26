@@ -53,6 +53,7 @@ public class RewritePlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
         String rewriteUri = exchange.getRequest().getURI().getPath();
+        // the default percentage compatible with older versions is 100
         final Integer percentage = Optional.ofNullable(rewriteHandle.getPercentage()).orElse(100);
         if (StringUtils.isNoneBlank(rewriteHandle.getRegex(), rewriteHandle.getReplace())
                 && ThreadLocalRandom.current().nextInt(100) <= percentage) {
