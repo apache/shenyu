@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.listener.apollo;
+package org.apache.shenyu.registry.apollo;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.apache.shenyu.admin.config.properties.ApolloProperties;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -30,23 +29,19 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-@ContextConfiguration(classes = {ApolloProperties.class})
+@ContextConfiguration(classes = {ApolloConfig.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ApolloClientTest {
 
     @MockBean
     private ApolloClient apolloClient;
 
-    /**
-     * Method under test: {@link ApolloClient#ApolloClient(ApolloProperties)}.
-     */
     @Test
     public void testConstructor() {
-        ApolloProperties apolloConfig = new ApolloProperties();
+        ApolloConfig apolloConfig = new ApolloConfig();
         apolloConfig.setAppId("42");
         apolloConfig.setClusterName("Cluster Name");
         apolloConfig.setEnv("Env");
-        apolloConfig.setMeta("Meta");
         apolloConfig.setNamespace("Namespace");
         apolloConfig.setPortalUrl("http://localhost:8080");
         apolloConfig.setToken("ABC123");
@@ -55,7 +50,6 @@ public class ApolloClientTest {
         assertEquals("ABC123", apolloConfig.getToken());
         assertEquals("http://localhost:8080", apolloConfig.getPortalUrl());
         assertEquals("Namespace", apolloConfig.getNamespace());
-        assertEquals("Meta", apolloConfig.getMeta());
         assertEquals("Env", apolloConfig.getEnv());
         assertEquals("Cluster Name", apolloConfig.getClusterName());
     }
@@ -79,6 +73,16 @@ public class ApolloClientTest {
                 .createOrUpdateItem(Mockito.<String>any(), Mockito.<Object>any(), Mockito.<String>any());
         apolloClient.createOrUpdateItem("Key", (Object) "Value", "Comment");
         verify(apolloClient).createOrUpdateItem(Mockito.<String>any(), Mockito.<Object>any(), Mockito.<String>any());
+    }
+
+    /**
+     * Method under test: {@link ApolloClient#removeItem(String)}
+     */
+    @Test
+    public void testRemoveItem() {
+        String keyToRemove = "KeyToRemove";
+        apolloClient.removeItem(keyToRemove);
+        verify(apolloClient).removeItem(keyToRemove);
     }
 
     /**
