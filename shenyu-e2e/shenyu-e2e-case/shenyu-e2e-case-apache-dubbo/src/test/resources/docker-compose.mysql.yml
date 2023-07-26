@@ -1,0 +1,86 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+version: '2.3'
+
+services:
+  zookeeper:
+    image: zookeeper:3.5
+    restart: always
+
+  nacos:
+    image: nacos/nacos-server:v2.2.3
+    environment:
+      - TZ=Asia/Shanghai
+      - MODE=standalone
+    expose:
+      - 8848
+      - 9848
+      - 9849
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "9849:9849"
+
+  admin:
+    image: shenyu/admin:latest
+    expose:
+      - 9095
+    ports:
+      - "9095:9095"
+    volumes:
+      - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://admin:9095/actuator/health | grep UP || exit 1" ]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+
+  dubbo:
+    image: shenyu-examples-apache-dubbo-service:latest
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://dubbo:8011/actuator/health | grep UP || exit 1" ]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    ports:
+      - "8011:8011"
+      - "20888:20888"
+    environment:
+      - dubbo.registry.address=zookeeper://zookeeper:2181
+      - shenyu.register.serverLists=http://admin:9095
+    depends_on:
+      gateway:
+        condition: service_healthy
+
+  gateway:
+    image: shenyu/bootstrap:latest
+    expose:
+      - 9195
+    ports:
+      - "9195:9195"
+    depends_on:
+      admin:
+        condition: service_healthy
+    volumes:
+      - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "-O", "-", "http://gateway:9195/actuator/health" ]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
