@@ -49,11 +49,9 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        if (Objects.nonNull(shenyuContext)) {
+        if (!exchange.getAttributes().containsKey(Constants.PARAM_TRANSFORM)
+                && Objects.nonNull(shenyuContext)) {
             MediaType mediaType = request.getHeaders().getContentType();
-            if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
-                return body(exchange, request, chain);
-            }
             if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)) {
                 return formData(exchange, request, chain);
             }
@@ -70,16 +68,6 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
     @Override
     public String named() {
         return PluginEnum.RPC_PARAM_TRANSFORM.getName();
-    }
-
-    private Mono<Void> body(final ServerWebExchange exchange, final ServerHttpRequest serverHttpRequest, final ShenyuPluginChain chain) {
-        return Mono.from(DataBufferUtils.join(serverHttpRequest.getBody())
-                .flatMap(data -> Mono.just(Optional.of(data)))
-                .defaultIfEmpty(Optional.empty())
-                .flatMap(body -> {
-                    body.ifPresent(dataBuffer -> exchange.getAttributes().put(Constants.PARAM_TRANSFORM, resolveBodyFromRequest(dataBuffer)));
-                    return chain.execute(exchange);
-                }));
     }
 
     private Mono<Void> formData(final ServerWebExchange exchange, final ServerHttpRequest serverHttpRequest, final ShenyuPluginChain chain) {

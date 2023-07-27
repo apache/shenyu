@@ -17,12 +17,19 @@
 
 package org.apache.shenyu.plugin.global;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.lang.NonNull;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -46,7 +53,32 @@ public class GlobalPlugin implements ShenyuPlugin {
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         ShenyuContext shenyuContext = builder.build(exchange);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        
+        final ServerHttpRequest request = exchange.getRequest();
+        MediaType mediaType = request.getHeaders().getContentType();
+        if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
+            return body(exchange, request, chain);
+        }
+        
         return chain.execute(exchange);
+    }
+    
+    private Mono<Void> body(final ServerWebExchange exchange, final ServerHttpRequest serverHttpRequest, final ShenyuPluginChain chain) {
+        return Mono.from(DataBufferUtils.join(serverHttpRequest.getBody())
+                .flatMap(data -> Mono.just(Optional.of(data)))
+                .defaultIfEmpty(Optional.empty())
+                .flatMap(body -> {
+                    body.ifPresent(dataBuffer -> exchange.getAttributes().put(Constants.PARAM_TRANSFORM, resolveBodyFromRequest(dataBuffer)));
+                    return chain.execute(exchange);
+                }));
+    }
+    
+    @NonNull
+    private String resolveBodyFromRequest(final DataBuffer dataBuffer) {
+        byte[] bytes = new byte[dataBuffer.readableByteCount()];
+        dataBuffer.read(bytes);
+        DataBufferUtils.release(dataBuffer);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
     
     @Override
