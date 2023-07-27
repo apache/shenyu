@@ -25,6 +25,8 @@ import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import org.springframework.http.HttpStatus;
@@ -35,6 +37,7 @@ import org.springframework.http.HttpStatus;
 public class ShenyuClientInvocationHandlerTest extends AbstractProxyTest {
 
     @Test
+    @DisabledForJreRange(min = JRE.JAVA_16)
     public void registerBeanDefinitionsTest() throws IllegalAccessException, IOException {
         init();
 

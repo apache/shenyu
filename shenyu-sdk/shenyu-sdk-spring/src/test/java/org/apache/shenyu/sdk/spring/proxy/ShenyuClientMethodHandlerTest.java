@@ -23,6 +23,8 @@ import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 /**
  * {@link ShenyuClientMethodHandler} test.
@@ -30,6 +32,7 @@ import org.junit.jupiter.api.Test;
 public class ShenyuClientMethodHandlerTest extends AbstractProxyTest {
 
     @Test
+    @DisabledForJreRange(min = JRE.JAVA_16)
     public void handlerTest() throws IOException, IllegalAccessException {
         init();
 

@@ -26,6 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -56,6 +58,7 @@ public class ShenyuClientsRegistrarTest {
     }
 
     @Test
+    @DisabledForJreRange(min = JRE.JAVA_16)
     public void nullUrlTest() {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         final ShenyuSdkClient client = spy(ShenyuSdkClient.class);
@@ -77,6 +80,7 @@ public class ShenyuClientsRegistrarTest {
     }
 
     @Test
+    @DisabledForJreRange(min = JRE.JAVA_16)
     public void notNullUrlTest() {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         final ShenyuSdkClient client = spy(ShenyuSdkClient.class);

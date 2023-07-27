@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentMap;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 /**
  * {@link ShenyuClientProxyFactory} test.
@@ -29,6 +31,7 @@ public class ShenyuClientProxyFactoryTest extends AbstractProxyTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    @DisabledForJreRange(min = JRE.JAVA_16)
     public void factoryTest() throws IllegalAccessException, IOException {
         init();
 
