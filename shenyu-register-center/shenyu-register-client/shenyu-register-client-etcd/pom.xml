@@ -30,36 +30,24 @@
         <dependency>
             <groupId>io.etcd</groupId>
             <artifactId>jetcd-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>grpc-protobuf</artifactId>
-                    <groupId>io.grpc</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>grpc-stub</artifactId>
-                    <groupId>io.grpc</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-core</artifactId>
-            <version>${grpc.version}</version>
         </dependency>
         <dependency>
             <artifactId>grpc-protobuf</artifactId>
             <groupId>io.grpc</groupId>
-            <version>${grpc.version}</version>
         </dependency>
         <dependency>
             <artifactId>grpc-stub</artifactId>
             <groupId>io.grpc</groupId>
-            <version>${grpc.version}</version>
+        </dependency>
+
+        <dependency>
+            <artifactId>grpc-netty</artifactId>
+            <groupId>io.grpc</groupId>
         </dependency>
 
         <dependency>
