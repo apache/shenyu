@@ -1,3 +1,181 @@
+## 2.6.0
+
+### New Features
+
+1. Support shenyu-admin expose prometheus metrics
+2. Add shenyu Level-1 cache and Level-2 cache
+3. Save extend plugin jar to shenyu admin
+4. Support shenyu upload plugin hot load in gateway
+5. Support apollo sync data and register data
+6. Initializes client information collection
+7. Support spring-boot-client auto config in shenyu client
+8. Add TCP plugin
+9. Super admin forces password change
+10. Spring-mvc(boot) client support collect api-meta
+11. Add zookeeper discovery sync
+12. Initializes Shenyu ingress controller
+13. Add discovery upstream and proxy selector proxy
+14. Expose shenyu actuator endpoint
+15. Add naocs discovery sync
+16. Add apollo discovery sync
+17. Add HttpLongPolling discovery sync
+18. Add consul discove sync
+19. Add huawei cloud lts loging plugin
+20. Support openGauss database for shenyu admin
+21. Support polaris config sync and register center
+
+### API Changes
+
+### Enhancement
+
+1. Add tags for shenyu api doc client
+2. Add brpc integrated test
+3. Brpc support shared thread pool
+4. Add mapType to cryptor request and response plugin
+5. Crypto plugin supports multi field names
+6. Add p2c loadbalancer
+7. Modify plugin jar to Base64-string in plugin data
+8. Add shortest response load balancer
+9. Add hash load balancer test case
+10. Add DetailSerivice test case
+11. Tolerant path slash for shenyu
+12. Add shenyu-common enums test case
+13. Add shenyu-common dto test case
+14. Add shenyu-admin model test case
+15. Add shenyu match cache test case
+16. Support k8s probes
+17. Add shenyu-admin service test case
+18. Add document json data in api doc
+19. The SPEL in the mock plugin is secure by default
+20. Add test cases for ShenyuClientApiDocExecutorSubscriber
+21. Add test case for shenyu-client-sofa module
+22. Add tag relation for shenyu api doc
+23. Support shenyu admin, bootstrap service stop script bat in windows
+24. Add test case for ShenyuSdkClientFactory
+25. Add websocket synchronization method for e2e-springcloud
+26. Support divide plugin active offline
+27. Add springcloud service instance cache
+28. Change password support i18n
+29. Add websocket sync for shenyu discovery
+30. Update springboot to 2.7.13
+31. Add other syn method e2e-spring-cloud
+32. Add api doc client generated annotation attribute
+33. Update zookeeper client register repository active offline
+34. Update apollo client register repository active offline
+35. Storage adjustment for swagger type API documents, change from local cache to database
+36. Support nacos client offline
+37. Add e2e alibaba dubbo case
+
+### Refactor
+
+1. Optimize shenyu-admin
+2. Refactor least active balance algorithm
+3. Optimized version-one for sign-plugin
+4. Optimize upstream check service
+5. Resolve shenyu project global version
+6. Refactor ShenyuConsulConfigWatch code
+7. Refactor shenyu trie codes
+8. Check uri condition of rule when saving
+9. Optimize shenyu-client code for shenyu-client-websocket
+10. Add license for admin dependency micrometer
+11. Update maven-assembly-plugin to 3.5.0
+12. Optimize global plugin sorting
+13. Use BearerToken replace StatelessToken in shenyu-admin
+14. Refactor shenyu-logging module
+15. Add validation for api doc
+16. Optimize Trie code and improve wildcard * supporting
+17. Refactor the custom plugin support hot load
+18. Refactor ShenyuWebHandler putPlugin methods
+19. Refactor Shenyu webfilter
+20. Reactor oauth2 plguin
+21. Refactor shenyu selector data continued field
+22. Refactor shenyu selector and rule cache
+23. Removed unused generics in shenyu client
+24. Refactor shenyu-plugin-sentinel plugin
+25. Refactor cache and add endpoint to expose cache
+26. Refactor checkUserPassword, not print known error log when startup
+27. Add some parameters for log
+28. Refactor shenyu global exception handler
+29. Add shenyu upload plugin integrated test case
+30. Optimize some syntactic sugar
+31. Change discovery_upstream discovery_handler_id
+32. Refactor shenyu global exception handlers
+33. Refactor shenyu plugin module
+34. Refactor AlibabaDubboConfigCache
+35. Remove hutool from dependency
+36. Refactor ShenyuClientShutdownHook
+37. Extractor add BaseAnnotationApiBeansExtractor
+38. Support multi-client registration
+39. Refactor shenyu-e2e support shenyu check style
+40. Refactor shenyu client register base
+41. Add domain test for shenyu divide plugin
+42. Update other rpc_ext for the same service
+43. Optimize consul connect operation
+44. Refactor shenyu e2e springcloud yaml change
+45. Add integrated test for k8s ingress controller
+46. Split the document field of the apidoc detail interface,and add fields such as requestHeaders and responseParameters
+47. Add swagger sample project to test the relevant functionality of the API documentation
+48. Optimize the display of form fields in json format
+49. Refactor shenyu log observability
+50. Add bootstrap start log
+51. Refactor api document for swagger
+52. Upgrade grpc version to 1.48.0
+
+### Bug Fix
+
+1. Smart h2 path
+2. Fix crypto-response plugin
+3. Fix jdk8 Map computeIfAbsent performance bug
+4. Fix zombieRemovalTimes code
+5. Fix the upgraded sql file
+6. Remove detectOfflineLinks tag
+7. Ignore flattened-pom
+8. Fix LOG invoke method
+9. Fix NPE for shenyu-example-springcloud with nacos
+10. Fix shenyu-admin names for arguement of type
+11. Fix loadbalance spi resource
+12. Fix sql script error
+13. Fix to 24-hour format and timeZone for jackson
+14. Fix JwtUtils error
+15. Fix dubbo invoker cache bug
+16. Fix missing HOST delete operation
+17. Fix SpringMvcClientEventListener test case
+18. Fix pass update PENDING_SYNC for zombie
+19. Fix Memory leak
+20. Fix rule query failed because there are too many rules
+21. Fix missing actuator dependency and port error in examples http
+22. Fix UpstreamCheckUtils http and https
+23. Fix FileFilter make memory leak
+24. Fix zookeeper sync error
+25. Fix MemorySafeWindowTinyLFUMap memory leak error
+26. Fix lack separator of path of ApiDoc
+27. Fix NPE for shenyu trie
+28. Fix plugin skip error
+29. Fix oracle sql error
+30. Fix shenyu icon can't load in shenyu admin
+31. Fix hystrix fallback bug
+32. Fix warm up time for divide and springcloud
+33. Fix springcloud service chooser
+34. Fix shenyu-spring-boot-starter-plugin-mock add spring.factories
+35. Fix shenyu-client-mvc and shenyu-client-springcloud lose ip
+36. Fix empty rule data and selector data in cache
+37. Fix api document module update api detail error
+38. Fix get topic from config in KafkaLogCollectClient
+39. Fix logging console thread safety
+40. Fix brpc integration testing response size
+41. Fix selector update gray remove cache for plugn-dubbo-common
+42. Fix shenyu admin menu name bug
+43. Fix shenyu admin cannot configure consul port
+44. Fix shenyu client metadata and uri cannot sync to admin with apollo
+45. Fix PathVariable annotation url cannot match
+46. Fix could not update uri in PathPattern mode
+47. Fix client shutdown method call twice
+48. Fix shenyu mishandle consul configuration
+49. Remove unused configuration from Request, modifyResponse plugin
+50. Fix http registration metadata
+51. Fix websocket lost the user-defined clost status
+52. Fix consul register lose the prop of meta-path when special symbol
+
 ## 2.5.1
 
 ### New Features
