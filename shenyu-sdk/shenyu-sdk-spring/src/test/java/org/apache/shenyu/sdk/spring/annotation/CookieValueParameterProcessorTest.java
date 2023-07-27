@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -60,14 +61,14 @@ public class CookieValueParameterProcessorTest {
 
     @Test
     public void processArgumentNullTest() {
-        final CookieValue cookie = mock(CookieValue.class);
+        final CookieValue cookie = spy(CookieValue.class);
         when(cookie.value()).thenReturn("");
         Assert.assertThrows(IllegalStateException.class, () -> processor.processArgument(request, cookie, ""));
     }
 
     @Test
     public void processArgumentOneTest() {
-        final CookieValue cookie = mock(CookieValue.class);
+        final CookieValue cookie = spy(CookieValue.class);
         when(cookie.value()).thenReturn("name");
         processor.processArgument(request, cookie, "one");
 
@@ -78,7 +79,7 @@ public class CookieValueParameterProcessorTest {
     @Test
     public void processArgumentTwoTest() {
         headers.put(HttpHeaders.COOKIE, Lists.newArrayList("one=one"));
-        final CookieValue cookie = mock(CookieValue.class);
+        final CookieValue cookie = spy(CookieValue.class);
         when(cookie.value()).thenReturn("two");
         processor.processArgument(request, cookie, "twoValue");
 
@@ -94,7 +95,7 @@ public class CookieValueParameterProcessorTest {
         template.setHeaders(headers);
         when(request.getRequestTemplate()).thenReturn(template);
 
-        final CookieValue cookie = mock(CookieValue.class);
+        final CookieValue cookie = spy(CookieValue.class);
         when(cookie.value()).thenReturn("two");
         processor.processArgument(request, cookie, "twoValue");
 

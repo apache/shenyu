@@ -21,6 +21,7 @@ import java.io.IOException;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
+import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
@@ -39,13 +40,14 @@ public class ShenyuClientInvocationHandlerTest extends AbstractProxyTest {
 
         assertEquals(InvocationClient.class.getMethods().length, getMap().size(), "shenyu client handle method error.");
 
+        final ShenyuSdkClient client = getClient();
         ShenyuResponse response = new ShenyuResponse(HttpStatus.OK.value(), "", null, JsonUtils.toJson(getMetaData()), null);
-        when(getClient().execute(any(ShenyuRequest.class))).thenReturn(response);
+        when(client.execute(any(ShenyuRequest.class))).thenReturn(response);
 
         assertDoesNotThrow(() -> getTopClient().findById("id"));
 
         response = new ShenyuResponse(HttpStatus.OK.value(), "", null, "32", null);
-        when(getClient().execute(any(ShenyuRequest.class))).thenReturn(response);
+        when(client.execute(any(ShenyuRequest.class))).thenReturn(response);
         final Integer insert = getTopClient().insert(getMetaData());
         assertEquals(insert, 32);
     }
