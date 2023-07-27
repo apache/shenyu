@@ -44,7 +44,6 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -393,10 +392,6 @@ public class EtcdSyncDataService implements SyncDataService {
             LOG.error(e.getMessage(), e);
         }
         return Collections.emptyList();
-    }
-
-    private List<String> etcdClientGetChildrenByMap(final String parent, final Map<String, String> map) {
-        return etcdClient.getChildrenKeysByMap(parent, "/", map);
     }
 
     @Override
