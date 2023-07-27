@@ -18,6 +18,9 @@
 package org.apache.shenyu.sdk.spring;
 
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
+import org.apache.shenyu.sdk.spring.registrar.package1.TopLevelSubLevelTestConfig;
+import org.apache.shenyu.sdk.spring.registrar.package1.sub.SubLevelClient;
+import org.apache.shenyu.sdk.spring.registrar.package2.ClientConfig;
 import org.apache.shenyu.sdk.spring.support.SpringMvcContract;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -46,8 +49,8 @@ public class ShenyuClientsRegistrarTest {
 
         context.refresh();
 
-        final TopLevelClient topClient = context.getBean(TopLevelClient.class);
-        final TopLevelSubLevelTestConfig.SubLevelClient subClient = context.getBean(TopLevelSubLevelTestConfig.SubLevelClient.class);
+        final TopLevelSubLevelTestConfig.TopLevelClient topClient = context.getBean(TopLevelSubLevelTestConfig.TopLevelClient.class);
+        final SubLevelClient subClient = context.getBean(SubLevelClient.class);
         assertNotNull(topClient);
         assertNotNull(subClient);
     }
@@ -57,12 +60,12 @@ public class ShenyuClientsRegistrarTest {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         final ShenyuSdkClient client = spy(ShenyuSdkClient.class);
         ((DefaultListableBeanFactory) context.getBeanFactory()).setAllowBeanDefinitionOverriding(false);
-        context.register(NullUrlTestConfig.class);
+        context.register(ClientConfig.NullUrlTestConfig.class);
         context.register(SpringMvcContract.class);
         context.registerBean("shenyuSdkClient", ShenyuSdkClient.class, () -> client);
 
         context.refresh();
-        final NullUrlShenClient topClient = context.getBean(NullUrlShenClient.class);
+        final ClientConfig.NullUrlShenClient topClient = context.getBean(ClientConfig.NullUrlShenClient.class);
 
         Object invocationHandler = ReflectionTestUtils.getField(topClient, "h");
         assertNotNull(invocationHandler);
@@ -78,7 +81,7 @@ public class ShenyuClientsRegistrarTest {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         final ShenyuSdkClient client = spy(ShenyuSdkClient.class);
         ((DefaultListableBeanFactory) context.getBeanFactory()).setAllowBeanDefinitionOverriding(false);
-        context.register(NotNullUrlTestConfig.class);
+        context.register(ClientConfig.NotNullUrlTestConfig.class);
         context.register(SpringMvcContract.class);
         context.registerBean("shenyuSdkClient", ShenyuSdkClient.class, () -> client);
 
@@ -91,7 +94,7 @@ public class ShenyuClientsRegistrarTest {
         context = contextSpy;
         context.refresh();
 
-        final NotNullUrlShenClient topClient = context.getBean(NotNullUrlShenClient.class);
+        final ClientConfig.NotNullUrlShenClient topClient = context.getBean(ClientConfig.NotNullUrlShenClient.class);
 
         Object invocationHandler = ReflectionTestUtils.getField(topClient, "h");
         assertNotNull(invocationHandler);
@@ -100,41 +103,6 @@ public class ShenyuClientsRegistrarTest {
         assertEquals(factoryBean.getName(), "notNullUrlShenClient");
         assertEquals(factoryBean.getUrl(), "http://localhost");
         assertEquals(factoryBean.getPath(), "/dev/null");
-    }
-
-    @EnableShenyuClients(basePackageClasses = {TopLevelClient.class, TopLevelSubLevelTestConfig.SubLevelClient.class})
-    protected static class TopLevelSubLevelTestConfig {
-
-        @ShenyuClient("sub-level")
-        public interface SubLevelClient {
-
-        }
-
-    }
-
-    @EnableShenyuClients(basePackageClasses = {NullUrlShenClient.class})
-    protected static class NullUrlTestConfig {
-
-    }
-
-    @EnableShenyuClients(basePackageClasses = {NotNullUrlShenClient.class})
-    protected static class NotNullUrlTestConfig {
-
-    }
-
-    @ShenyuClient(name = "nullUrlShenClient", url = "${test.url:#{null}}", path = "${test.path:#{null}}")
-    protected interface NullUrlShenClient {
-
-    }
-
-    @ShenyuClient(name = "notNullUrlShenClient", url = "#{test.url}", path = "#{test.path}")
-    protected interface NotNullUrlShenClient {
-
-    }
-
-    @ShenyuClient("top-level")
-    public interface TopLevelClient {
-
     }
 
 }
