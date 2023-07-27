@@ -20,9 +20,13 @@ package org.apache.shenyu.plugin.base.alert;
 import org.apache.shenyu.common.dto.AlarmContent;
 
 /**
- * alarm service
+ * Alarm service.
  */
 public interface AlarmService {
     
+    /**
+     * Send alarm content.
+     * @param content alarm
+     */
     void alarm(AlarmContent content);
 }

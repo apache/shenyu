@@ -26,17 +26,25 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * ShenyuThreadPoolExecutor for alarm sender send async data
+ * ShenyuThreadPoolExecutor for alarm sender send async data.
  */
-public class AlarmThreadPoolExecutor {
+public final class AlarmThreadPoolExecutor {
     
+    /**
+     * the thread pool executor
+     */
     private static ShenyuThreadPoolExecutor threadPoolExecutor;
     
-    
+    /**
+     * Private constructor.
+     */
     private AlarmThreadPoolExecutor() {
         initWorkExecutor();
     }
     
+    /**
+     * Init work executor.
+     */
     private void initWorkExecutor() {
         threadPoolExecutor =  new ShenyuThreadPoolExecutor(10, 100, 60000L,
                 TimeUnit.MILLISECONDS, new MemorySafeTaskQueue<>(Constants.THE_256_MB),
@@ -45,7 +53,7 @@ public class AlarmThreadPoolExecutor {
     }
     
     /**
-     * execute alarm runnable task
+     * Execute alarm runnable task.
      * @param runnable task
      */
     public void execute(Runnable runnable) {
@@ -53,7 +61,7 @@ public class AlarmThreadPoolExecutor {
     }
     
     /**
-     * get AlarmThreadPoolExecutor single instance
+     * Get AlarmThreadPoolExecutor single instance.
      * @return AlarmThreadPoolExecutor instance
      */
     public static AlarmThreadPoolExecutor getInstance() {
@@ -61,7 +69,7 @@ public class AlarmThreadPoolExecutor {
     }
     
     /**
-     * single instance for AlarmThreadPoolExecutor
+     * Single instance for AlarmThreadPoolExecutor.
      */
     private static class SingleInstance {
         private static final AlarmThreadPoolExecutor INSTANCE = new AlarmThreadPoolExecutor();

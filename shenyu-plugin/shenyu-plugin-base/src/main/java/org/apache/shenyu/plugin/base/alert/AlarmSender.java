@@ -19,22 +19,17 @@ package org.apache.shenyu.plugin.base.alert;
 
 import org.apache.shenyu.common.dto.AlarmContent;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Map;
 
 /**
- * alarm data sender
+ * The alarm data sender.
  */
 public class AlarmSender {
-    
-    private static final Logger logger = LoggerFactory.getLogger(AlarmSender.class);
     
     private static AlarmService alarmService;
     
     /**
-     * send alarm content to shenyu admin
+     * Send alarm content to shenyu admin.
      * @param alarmContent alarm content
      */
     public static void alarm(AlarmContent alarmContent) {
@@ -47,7 +42,7 @@ public class AlarmSender {
     }
     
     /**
-     * send alarm content to shenyu admin
+     * Send alarm content to shenyu admin.
      * @param level Alarm level. 0: high-emergency-critical 1: medium-critical-critical 2: low-warning-warning
      * @param title Alarm title
      * @param content Alarm content
@@ -61,7 +56,7 @@ public class AlarmSender {
     }
     
     /**
-     * send alarm content to shenyu admin
+     * Send alarm content to shenyu admin.
      * @param level Alarm level. 0: high-emergency-critical 1: medium-critical-critical 2: low-warning-warning
      * @param title Alarm title
      * @param content Alarm content

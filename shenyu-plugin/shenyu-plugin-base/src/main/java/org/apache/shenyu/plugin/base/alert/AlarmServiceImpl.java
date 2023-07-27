@@ -28,11 +28,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * alarm service implement
+ * Alarm service implement.
  */
 public class AlarmServiceImpl implements AlarmService {
     
-    private static final Logger logger = LoggerFactory.getLogger(AlarmServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AlarmServiceImpl.class);
     
     private final RestTemplate restTemplate;
     
@@ -40,14 +40,14 @@ public class AlarmServiceImpl implements AlarmService {
     
     private final boolean enabled;
     
-    public AlarmServiceImpl(RestTemplate restTemplate, String reportUrl, boolean enabled) {
+    public AlarmServiceImpl(final RestTemplate restTemplate, final String reportUrl, final boolean enabled) {
         this.restTemplate = restTemplate;
         this.adminReportUrl = reportUrl;
         this.enabled = enabled;
     }
     
     @Override
-    public void alarm(AlarmContent content) {
+    public void alarm(final AlarmContent content) {
         if (!enabled) {
             return;
         }
@@ -56,9 +56,9 @@ public class AlarmServiceImpl implements AlarmService {
         HttpEntity<AlarmContent> request = new HttpEntity<>(content, headers);
         ResponseEntity<Void> response = restTemplate.postForEntity(adminReportUrl, request, Void.class);
         if (response.getStatusCode() == HttpStatus.OK) {
-            logger.debug("send alarm content success: {}.", content);
+            LOGGER.debug("send alarm content success: {}.", content);
         } else {
-            logger.debug("send alarm content failed: {}.", response.getStatusCode());
+            LOGGER.debug("send alarm content failed: {}.", response.getStatusCode());
         }
     }
 }
