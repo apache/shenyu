@@ -25,7 +25,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-register-client-server</artifactId>
     <packaging>pom</packaging>
-    
+
     <modules>
         <module>shenyu-register-client-server-api</module>
         <module>shenyu-register-client-server-zookeeper</module>
@@ -33,5 +33,6 @@
         <module>shenyu-register-client-server-consul</module>
         <module>shenyu-register-client-server-nacos</module>
         <module>shenyu-register-client-server-apollo</module>
+        <module>shenyu-register-client-server-polaris</module>
     </modules>
 </project>

@@ -55,7 +55,7 @@ public class ShenyuClientShutdownHook {
 
     public ShenyuClientShutdownHook(final ShenyuClientRegisterRepository repository, final ShenyuRegisterCenterConfig config) {
         String name = String.join("-", hookNamePrefix, String.valueOf(hookId.incrementAndGet()));
-        Runtime.getRuntime().addShutdownHook(new Thread(repository::closeRepository, name));
+        ShutdownHookManager.get().addShutdownHook(new Thread(repository::closeRepository, name), 1);
         LOG.info("Add hook {}", name);
         ShenyuClientShutdownHook.props = config.getProps();
     }
@@ -68,7 +68,7 @@ public class ShenyuClientShutdownHook {
      */
     public static void set(final ShenyuClientRegisterRepository repository, final Properties props) {
         String name = String.join("-", hookNamePrefix, String.valueOf(hookId.incrementAndGet()));
-        Runtime.getRuntime().addShutdownHook(new Thread(repository::closeRepository, name));
+        ShutdownHookManager.get().addShutdownHook(new Thread(repository::closeRepository, name), 1);
         LOG.info("Add hook {}", name);
         ShenyuClientShutdownHook.props = props;
     }
