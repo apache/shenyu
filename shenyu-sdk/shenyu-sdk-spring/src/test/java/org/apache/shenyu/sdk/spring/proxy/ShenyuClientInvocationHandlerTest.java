@@ -46,7 +46,6 @@ public class ShenyuClientInvocationHandlerTest extends AbstractProxyTest {
         final ShenyuSdkClient client = getClient();
         ShenyuResponse response = new ShenyuResponse(HttpStatus.OK.value(), "", null, JsonUtils.toJson(getMetaData()), null);
         when(client.execute(any(ShenyuRequest.class))).thenReturn(response);
-
         assertDoesNotThrow(() -> getTopClient().findById("id"));
 
         response = new ShenyuResponse(HttpStatus.OK.value(), "", null, "32", null);
