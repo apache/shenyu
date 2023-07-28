@@ -18,10 +18,8 @@
 package org.apache.shenyu.sync.data.zookeeper;
 
 import com.google.common.base.Strings;
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
-import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
@@ -71,35 +69,8 @@ public class ZookeeperSyncDataService extends AbstractNodeDataSyncService {
     }
 
     private void watcherData0(final String registerPath) {
-        zkClient.addCache(registerPath, new CommonCacheListener(registerPath, this));
-    }
-
-    @Override
-    public void close() {
-        if (Objects.nonNull(zkClient)) {
-            zkClient.close();
-        }
-    }
-
-    static class CommonCacheListener implements TreeCacheListener {
-
-        private final String registerPath;
-
-        private final AbstractNodeDataSyncService abstractNodeDataSyncService;
-
-        /**
-         * CommonCacheListener.
-         *
-         * @param registerPath registerPath
-         */
-        CommonCacheListener(final String registerPath, final AbstractNodeDataSyncService abstractNodeDataSyncService) {
-            this.registerPath = registerPath;
-            this.abstractNodeDataSyncService = abstractNodeDataSyncService;
-        }
-
-        @Override
-        public final void childEvent(final CuratorFramework client, final TreeCacheEvent event) {
-            ChildData childData = event.getData();
+        zkClient.addCache(registerPath, (curatorFramework, treeCacheEvent) -> {
+            ChildData childData = treeCacheEvent.getData();
             if (null == childData) {
                 return;
             }
@@ -112,9 +83,16 @@ public class ZookeeperSyncDataService extends AbstractNodeDataSyncService {
                 return;
             }
 
-            EventType eventType = event.getType().equals(TreeCacheEvent.Type.NODE_REMOVED) ? EventType.DELETE : EventType.PUT;
+            EventType eventType = treeCacheEvent.getType().equals(TreeCacheEvent.Type.NODE_REMOVED) ? EventType.DELETE : EventType.PUT;
             final String updateData = childData.getData() != null ? new String(childData.getData(), StandardCharsets.UTF_8) : null;
-            abstractNodeDataSyncService.event(path, updateData, registerPath, eventType);
+            this.event(path, updateData, registerPath, eventType);
+        });
+    }
+
+    @Override
+    public void close() {
+        if (Objects.nonNull(zkClient)) {
+            zkClient.close();
         }
     }
 
