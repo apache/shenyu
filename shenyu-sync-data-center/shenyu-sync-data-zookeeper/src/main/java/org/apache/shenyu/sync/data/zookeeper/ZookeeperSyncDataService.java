@@ -113,9 +113,8 @@ public class ZookeeperSyncDataService extends AbstractNodeDataSyncService {
             }
 
             EventType eventType = event.getType().equals(TreeCacheEvent.Type.NODE_REMOVED) ? EventType.DELETE : EventType.PUT;
-
-            abstractNodeDataSyncService.event(path,
-                    new String(childData.getData(), StandardCharsets.UTF_8), registerPath, eventType);
+            final String updateData = childData.getData() != null ? new String(childData.getData(), StandardCharsets.UTF_8) : null;
+            abstractNodeDataSyncService.event(path, updateData, registerPath, eventType);
         }
     }
 
