@@ -76,7 +76,7 @@ public class ApolloClientTest {
     }
 
     /**
-     * Method under test: {@link ApolloClient#removeItem(String)}
+     * Method under test: {@link ApolloClient#removeItem(String)}.
      */
     @Test
     public void testRemoveItem() {

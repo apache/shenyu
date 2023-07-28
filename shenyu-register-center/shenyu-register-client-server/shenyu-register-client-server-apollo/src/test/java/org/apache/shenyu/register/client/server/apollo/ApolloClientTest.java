@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.client.apollo;
+package org.apache.shenyu.register.client.server.apollo;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,6 +73,18 @@ public class ApolloClientTest {
                 .createOrUpdateItem(Mockito.<String>any(), Mockito.<Object>any(), Mockito.<String>any());
         apolloClient.createOrUpdateItem("Key", (Object) "Value", "Comment");
         verify(apolloClient).createOrUpdateItem(Mockito.<String>any(), Mockito.<Object>any(), Mockito.<String>any());
+    }
+
+    /**
+     * Method under test: {@link ApolloClient#removeItem(String)}.
+     */
+    @Test
+    public void testRemoveItem() {
+        String keyToRemove = "KeyToRemove";
+        apolloClient.removeItem(keyToRemove);
+        verify(apolloClient).removeItem(keyToRemove);
+        apolloClient.getItemValue(keyToRemove);
+        assertEquals(apolloClient.getItemValue(keyToRemove), null);
     }
 
     /**
