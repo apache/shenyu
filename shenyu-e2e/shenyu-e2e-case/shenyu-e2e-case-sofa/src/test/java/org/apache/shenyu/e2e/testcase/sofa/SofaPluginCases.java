@@ -1,4 +1,4 @@
-package org.apache.shenyu.e2e.testcase.sofa;/*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -15,8 +15,8 @@ package org.apache.shenyu.e2e.testcase.sofa;/*
  * limitations under the License.
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+package org.apache.shenyu.e2e.testcase.sofa;
+
 import com.google.common.collect.Lists;
 import io.restassured.http.Method;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
@@ -27,11 +27,8 @@ import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuCaseSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
 import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.data.Condition;
-import org.apache.shenyu.e2e.model.handle.SpringCloudRuleHandle;
-import org.junit.jupiter.api.Assertions;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExists;
