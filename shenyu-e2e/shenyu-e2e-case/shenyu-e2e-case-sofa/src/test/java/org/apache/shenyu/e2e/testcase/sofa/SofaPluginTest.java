@@ -99,7 +99,7 @@ public class SofaPluginTest {
         formData.add("enabled", "true");
         formData.add("role", "Proxy");
         formData.add("sort", "310");
-        formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zk:2181\"}");
+        formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"zookeeper:2181\"}");
         adminClient.changePluginStatus("11", formData);
         adminClient.deleteAllSelectors();
         selectorDTOList = adminClient.listAllSelectors();
