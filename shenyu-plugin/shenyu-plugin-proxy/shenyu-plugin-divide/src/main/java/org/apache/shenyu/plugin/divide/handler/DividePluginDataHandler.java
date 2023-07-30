@@ -31,7 +31,9 @@ import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.springframework.util.ObjectUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -90,6 +92,9 @@ public class DividePluginDataHandler implements PluginDataHandler {
     }
     
     private List<Upstream> convertUpstreamList(final List<DivideUpstream> upstreamList) {
+        if (ObjectUtils.isEmpty(upstreamList)) {
+            return Collections.emptyList();
+        }
         return upstreamList.stream().map(u -> Upstream.builder()
                 .protocol(u.getProtocol())
                 .url(u.getUpstreamUrl())
