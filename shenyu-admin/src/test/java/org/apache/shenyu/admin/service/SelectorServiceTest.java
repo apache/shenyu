@@ -170,7 +170,7 @@ public final class SelectorServiceTest {
     @Test
     public void testFindByName() {
         SelectorDO selectorDO1 = buildSelectorDO();
-        given(this.selectorMapper.selectByName(eq("kuan"))).willReturn(selectorDO1);
+        given(this.selectorMapper.selectByName(eq("kuan")).get(0)).willReturn(selectorDO1);
         SelectorDO selectorDO2 = this.selectorService.findByName("kuan");
         assertNotNull(selectorDO2);
         assertEquals(selectorDO1.getId(), selectorDO2.getId());
