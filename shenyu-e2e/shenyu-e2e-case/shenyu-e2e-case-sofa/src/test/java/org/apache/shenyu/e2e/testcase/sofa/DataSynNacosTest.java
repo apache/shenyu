@@ -44,7 +44,7 @@ import java.util.List;
                         parameters = {
                                 @Parameter(key = "username", value = "admin"),
                                 @Parameter(key = "password", value = "123456"),
-                                @Parameter(key = "dataSyn", value = "admin_nacos")
+                                @Parameter(key = "dataSyn", value = "nacos")
                         }
                 ),
                 @ShenYuTest.ServiceConfigure(
@@ -53,7 +53,7 @@ import java.util.List;
                         baseUrl = "http://{hostname:localhost}:9195",
                         type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
                         parameters = {
-                                @Parameter(key = "dataSyn", value = "gateway_nacos")
+                                @Parameter(key = "dataSyn", value = "nacos")
                         }
                 )
         },

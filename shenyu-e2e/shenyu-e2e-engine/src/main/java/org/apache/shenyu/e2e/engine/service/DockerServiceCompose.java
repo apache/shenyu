@@ -311,7 +311,7 @@ public class DockerServiceCompose implements ServiceCompose {
                 }
                 reader.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error(e.getMessage(), e);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);

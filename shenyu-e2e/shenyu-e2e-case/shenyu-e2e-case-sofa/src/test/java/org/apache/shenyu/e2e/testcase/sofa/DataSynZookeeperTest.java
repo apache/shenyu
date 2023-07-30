@@ -43,7 +43,7 @@ import java.util.List;
                         parameters = {
                                 @ShenYuTest.Parameter(key = "username", value = "admin"),
                                 @ShenYuTest.Parameter(key = "password", value = "123456"),
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "admin_zookeeper")
+                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
                         }
                 ),
                 @ShenYuTest.ServiceConfigure(
@@ -52,7 +52,7 @@ import java.util.List;
                         baseUrl = "http://{hostname:localhost}:9195",
                         type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
                         parameters = {
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "gateway_zookeeper")
+                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
                         }
                 )
         },
