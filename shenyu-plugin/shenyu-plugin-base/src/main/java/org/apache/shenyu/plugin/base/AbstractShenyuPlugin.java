@@ -323,7 +323,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         SelectorData selectorData = null;
         ShenyuTrieNode shenyuTrieNode = selectorTrie.match(path, pluginName);
         if (Objects.nonNull(shenyuTrieNode)) {
-            LogUtils.info(LOG, "{} selector match path from shenyu trie");
+            LogUtils.info(LOG, "{} selector match path from shenyu trie, path:{}", pluginName, path);
             List<?> collection = shenyuTrieNode.getPathCache().get(pluginName);
             if (CollectionUtils.isNotEmpty(collection)) {
                 Pair<Boolean, SelectorData> selectorDataPair;

@@ -25,27 +25,23 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-sofa</artifactId>
 
-    <properties>
-        <grpc-core.version>1.28.1</grpc-core.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>
             <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-core</artifactId>
-            <version>${grpc-core.version}</version>
+            <version>${grpc.version}</version>
+        </dependency>
+
+        <dependency>
+            <artifactId>grpc-api</artifactId>
+            <groupId>io.grpc</groupId>
+            <version>${grpc.version}</version>
         </dependency>
     </dependencies>
 </project>
