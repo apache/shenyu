@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-
 /**
  * Test Cases for SelectorMapper.
  */
@@ -114,10 +113,10 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         SelectorDO selectorDO = buildSelectorDO();
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
-
-        SelectorDO selector = selectorMapper.selectByName(selectorDO.getName());
-        assertNotNull(selector);
-        assertEquals(selectorDO.getName(), selector.getName());
+        List<SelectorDO> doList = selectorMapper.selectByName(selectorDO.getName());
+        assertEquals(doList.size(), 1);
+        assertNotNull(doList.get(0));
+        assertEquals(selectorDO.getName(), doList.get(0).getName());
 
         int delete = selectorMapper.delete(selectorDO.getId());
         assertEquals(1, delete);
@@ -224,19 +223,19 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
     private SelectorDO buildSelectorDO() {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         return SelectorDO.builder()
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .pluginId("test-plugin-id")
-                .name("test-name")
-                .matchMode(1)
-                .type(1)
-                .sort(1)
-                .enabled(Boolean.TRUE)
-                .loged(Boolean.TRUE)
-                .matchRestful(false)
-                .continued(Boolean.TRUE)
-                .handle("handle")
-                .build();
+            .id(UUIDUtils.getInstance().generateShortUuid())
+            .dateCreated(currentTime)
+            .dateUpdated(currentTime)
+            .pluginId("test-plugin-id")
+            .name("test-name")
+            .matchMode(1)
+            .type(1)
+            .sort(1)
+            .enabled(Boolean.TRUE)
+            .loged(Boolean.TRUE)
+            .matchRestful(false)
+            .continued(Boolean.TRUE)
+            .handle("handle")
+            .build();
     }
 }
