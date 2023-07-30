@@ -17,16 +17,16 @@
 
 package org.apache.shenyu.admin.listener.apollo;
 
-import static org.junit.Assert.assertFalse;
+import static org.apache.shenyu.common.constant.NacosPathConstants.AUTH_DATA_ID;
+import static org.apache.shenyu.common.constant.NacosPathConstants.PLUGIN_DATA_ID;
+import static org.apache.shenyu.common.constant.NacosPathConstants.META_DATA_ID;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.apache.shenyu.admin.config.properties.ApolloProperties;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -38,7 +38,7 @@ public class ApolloDataChangedInitTest {
     @MockBean
     private ApolloClient apolloClient;
 
-    @Autowired
+    @MockBean
     private ApolloDataChangedInit apolloDataChangedInit;
 
     /**
@@ -64,9 +64,22 @@ public class ApolloDataChangedInitTest {
      */
     @Test
     public void testNotExist() {
-        when(apolloClient.getItemValue(Mockito.<String>any())).thenReturn("42");
-        assertFalse(apolloDataChangedInit.notExist());
-        verify(apolloClient).getItemValue(Mockito.<String>any());
+
+        when(apolloClient.getItemValue(PLUGIN_DATA_ID)).thenReturn(PLUGIN_DATA_ID);
+        boolean pluginExist = apolloDataChangedInit.notExist();
+        Assertions.assertFalse(pluginExist, "plugin exist.");
+        when(apolloClient.getItemValue(PLUGIN_DATA_ID)).thenReturn(null);
+
+        when(apolloClient.getItemValue(AUTH_DATA_ID)).thenReturn(AUTH_DATA_ID);
+        boolean authExist = apolloDataChangedInit.notExist();
+        Assertions.assertFalse(authExist, "auth exist.");
+        when(apolloClient.getItemValue(AUTH_DATA_ID)).thenReturn(null);
+
+        when(apolloClient.getItemValue(META_DATA_ID)).thenReturn(META_DATA_ID);
+        boolean metaDataExist = apolloDataChangedInit.notExist();
+        Assertions.assertFalse(metaDataExist, "metadata exist.");
+        when(apolloClient.getItemValue(META_DATA_ID)).thenReturn(null);
+
     }
 }
 
