@@ -77,6 +77,7 @@ public class TagServiceImpl implements TagService {
         TagDO tagDO = TagDO.buildTagDO(tagDTO);
         tagDO.setExt(ext);
         tagDTO.setId(tagDO.getId());
+        tagDO.setDateCreated(tagDO.getDateUpdated());
         return tagMapper.insert(tagDO);
     }
 
