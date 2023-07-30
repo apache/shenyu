@@ -241,12 +241,6 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public SelectorDO findByName(final String name) {
-        List<SelectorDO> doList = selectorMapper.selectByName(name);
-        return CollectionUtils.isNotEmpty(doList) ? doList.get(0) : null;
-    }
-
-    @Override
-    public List<SelectorDO> findListByName(final String name) {
         return selectorMapper.selectByName(name);
     }
 
@@ -265,7 +259,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public SelectorData buildByName(final String name) {
-        return buildSelectorData(this.findByName(name));
+        return buildSelectorData(selectorMapper.selectByName(name));
     }
 
     /**
