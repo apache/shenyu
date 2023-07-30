@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
@@ -27,6 +29,7 @@ import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -39,6 +42,7 @@ import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.common.enums.ApiSourceEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.service.MetaDataService;
@@ -124,7 +128,7 @@ public class ApiServiceImpl implements ApiService {
             }
             if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
                 register(apiDO);
-            } else if (ApiStateEnum.OFFLINE.getState() == apiDO.getState()) {
+            } else if (ApiStateEnum.UNPUBLISHED.getState() == apiDO.getState()) {
                 unregister(apiDO);
             }
         }
@@ -176,12 +180,17 @@ public class ApiServiceImpl implements ApiService {
                     .collect(Collectors.toList()));
         }
         //clean selector
-        Optional.ofNullable(selectorService.findByName(apiDO.getContextPath()))
+        Optional.ofNullable(selectorService.findByNameAndPluginName(apiDO.getContextPath(), PluginEnum.DIVIDE.getName()))
                 .ifPresent(selectorDO -> {
                     final String selectorId = selectorDO.getId();
                     final List<RuleData> data = ruleService.findBySelectorId(selectorId);
                     if (CollectionUtils.isEmpty(data)) {
-                        selectorService.delete(Lists.newArrayList(selectorId));
+                        ArrayList<String> selectorIds = Lists.newArrayList(selectorId);
+                        SelectorDO contextPathDO = selectorService.findByNameAndPluginName(apiDO.getContextPath(), PluginEnum.CONTEXT_PATH.getName());
+                        if (Objects.nonNull(contextPathDO)) {
+                            selectorIds.add(contextPathDO.getId());
+                        }
+                        selectorService.delete(selectorIds);
                     }
                 });
         //clean metadata

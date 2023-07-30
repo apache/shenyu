@@ -127,7 +127,14 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @return selector do
      */
     SelectorDO findByName(String name);
-    
+
+    /**
+     * find selector list by name.
+     * @param name name
+     * @return list
+     */
+    List<SelectorDO> findListByName(String name);
+
     /**
      * Find by name and plugin id selector do.
      *
