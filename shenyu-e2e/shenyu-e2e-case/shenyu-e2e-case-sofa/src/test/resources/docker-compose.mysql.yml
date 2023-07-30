@@ -74,6 +74,9 @@ services:
       timeout: 2s
       retries: 3
       start_period: 5s
+    expose:
+      - 28011
+      - 8888
     ports:
       - "28011:28011"
       - "8888:8888"
