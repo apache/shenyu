@@ -168,7 +168,6 @@ public final class TagDO extends BaseDO {
                 tagDO.setDateCreated(currentTime);
             } else {
                 tagDO.setId(item.getId());
-                tagDO.setDateCreated(currentTime);
             }
             return tagDO;
         }).orElse(null);
@@ -316,6 +315,18 @@ public final class TagDO extends BaseDO {
         private TagExt parent;
 
         /**
+         * Last updated document time.
+         */
+        private Long refreshTime;
+
+        /**
+         * The md5 value of the swagger document for the application.
+         */
+        private String apiDocMd5;
+
+        private String docLock;
+
+        /**
          * get id.
          * @return id
          */
@@ -377,6 +388,57 @@ public final class TagDO extends BaseDO {
          */
         public void setParent(final TagExt parent) {
             this.parent = parent;
+        }
+
+        /**
+         * get refreshTime.
+         *
+         * @return refreshTime
+         */
+        public Long getRefreshTime() {
+            return refreshTime;
+        }
+
+        /**
+         * set refreshTime.
+         *
+         * @param refreshTime refreshTime
+         */
+        public void setRefreshTime(final Long refreshTime) {
+            this.refreshTime = refreshTime;
+        }
+
+        /**
+         * get apiDoc md5.
+         *
+         * @return apiDocMd5
+         */
+        public String getApiDocMd5() {
+            return apiDocMd5;
+        }
+
+        /**
+         * set apiDoc md5.
+         * @param apiDocMd5 apiDocMd5
+         */
+        public void setApiDocMd5(final String apiDocMd5) {
+            this.apiDocMd5 = apiDocMd5;
+        }
+
+        /**
+         * get docLock.
+         * @return docLock
+         */
+        public String getDocLock() {
+            return docLock;
+        }
+
+        /**
+         * set docLock.
+         * @param docLock docLock
+         */
+        public void setDocLock(final String docLock) {
+            this.docLock = docLock;
         }
     }
 

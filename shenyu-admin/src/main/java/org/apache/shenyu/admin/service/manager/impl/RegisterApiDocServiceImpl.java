@@ -29,7 +29,6 @@ import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.admin.service.TagService;
 import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -69,9 +68,8 @@ public class RegisterApiDocServiceImpl implements RegisterApiDocService {
                     String id = UUIDUtils.getInstance().generateShortUuid();
                     tagDTO.setTagDesc(tag);
                     tagDTO.setName(tag);
-                    tagDTO.setParentTagId(AdminConstants.TAG_ROOT_PARENT_ID);
                     tagDTO.setId(id);
-                    tagService.create(tagDTO);
+                    tagService.createRootTag(tagDTO, null);
                     tagsIds.add(id);
                 }
             }
