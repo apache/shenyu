@@ -70,7 +70,7 @@ services:
       - shenyu.register.serverLists=http://admin:9095
       - com.alipay.sofa.rpc.registry-address=zookeeper://zookeeper:2181
     healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://sofa:28011/sofa/findAll | grep UP || exit 1" ]
+      test: [ "CMD-SHELL", "wget -q -O - http://localhost:28011/sofa/findAll | grep UP || exit 1" ]
       timeout: 2s
       retries: 3
       start_period: 5s
@@ -91,7 +91,7 @@ services:
     ports:
       - "9195:9195"
     depends_on:
-      sofa:
+      admin:
         condition: service_healthy
     volumes:
       - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
