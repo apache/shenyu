@@ -23,7 +23,7 @@ import com.google.common.cache.LoadingCache;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.config.RegistryConfig;
-import com.weibo.api.motan.proxy.CommonHandler;
+import com.weibo.api.motan.proxy.CommonClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -62,7 +62,7 @@ public final class ApplicationConfigCache {
     
     private ProtocolConfig protocolConfig;
     
-    private final LoadingCache<String, RefererConfig<CommonHandler>> cache = CacheBuilder.newBuilder()
+    private final LoadingCache<String, RefererConfig<CommonClient>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener(notification -> {
                 RefererConfig<?> config = (RefererConfig<?>) notification.getValue();
@@ -77,10 +77,10 @@ public final class ApplicationConfigCache {
                     }
                 }
             })
-            .build(new CacheLoader<String, RefererConfig<CommonHandler>>() {
+            .build(new CacheLoader<String, RefererConfig<CommonClient>>() {
                 @Override
                 @NonNull
-                public RefererConfig<CommonHandler> load(@NonNull final String key) {
+                public RefererConfig<CommonClient> load(@NonNull final String key) {
                     return new RefererConfig<>();
                 }
             });
@@ -107,8 +107,8 @@ public final class ApplicationConfigCache {
             registryConfig = new RegistryConfig();
             registryConfig.setId("shenyu_motan_proxy");
             registryConfig.setRegister(false);
-            registryConfig.setRegProtocol("zookeeper");
-            registryConfig.setAddress(motanRegisterConfig.getRegister());
+            registryConfig.setRegProtocol(motanRegisterConfig.getRegisterProtocol());
+            registryConfig.setAddress(motanRegisterConfig.getRegisterAddress());
         }
         if (Objects.isNull(protocolConfig)) {
             protocolConfig = new ProtocolConfig();
@@ -139,9 +139,9 @@ public final class ApplicationConfigCache {
      * @param metaData the meta data
      * @return the reference config
      */
-    public RefererConfig<CommonHandler> initRef(final MetaData metaData) {
+    public RefererConfig<CommonClient> initRef(final MetaData metaData) {
         try {
-            RefererConfig<CommonHandler> referenceConfig = cache.get(metaData.getPath());
+            RefererConfig<CommonClient> referenceConfig = cache.get(metaData.getPath());
             if (StringUtils.isNoneBlank(referenceConfig.getServiceInterface())) {
                 return referenceConfig;
             }
@@ -158,12 +158,12 @@ public final class ApplicationConfigCache {
      * @param metaData the meta data
      * @return the reference config
      */
-    public RefererConfig<CommonHandler> build(final MetaData metaData) {
+    public RefererConfig<CommonClient> build(final MetaData metaData) {
         if (Objects.isNull(protocolConfig) || Objects.isNull(registryConfig)) {
             return new RefererConfig<>();
         }
-        RefererConfig<CommonHandler> reference = new RefererConfig<>();
-        reference.setInterface(CommonHandler.class);
+        RefererConfig<CommonClient> reference = new RefererConfig<>();
+        reference.setInterface(CommonClient.class);
         reference.setServiceInterface(metaData.getServiceName());
         // the group of motan rpc call
         MotanParamExtInfo motanParamExtInfo =
@@ -189,7 +189,7 @@ public final class ApplicationConfigCache {
         reference.setRequestTimeout(Optional.ofNullable(motanParamExtInfo.getTimeout()).orElse(1000));
         reference.setRegistry(registryConfig);
         reference.setProtocol(protocolConfig);
-        CommonHandler obj = reference.getRef();
+        CommonClient obj = reference.getRef();
         if (Objects.nonNull(obj)) {
             LOG.info("init motan reference success there meteData is :{}", metaData);
             cache.put(metaData.getPath(), reference);

@@ -43,8 +43,8 @@ shenyu:
 
 motan:
   registry:
-    protocol: zookeeper
-    address: 127.0.0.1:2181
+    protocol: local
+    address: 127.0.0.1:8002
 
 logging:
   level:

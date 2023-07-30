@@ -47,6 +47,7 @@ public class MotanDemoServiceImpl implements MotanDemoService {
     @ShenyuMotanClient(value = "/timeout")
     @ApiDoc(desc = "timeout")
     public String testTimeOut(final long seconds) {
+        System.out.println("demo testTimeOut in....");
         try {
             Thread.sleep(seconds * 1000);
         } catch (InterruptedException e) {
