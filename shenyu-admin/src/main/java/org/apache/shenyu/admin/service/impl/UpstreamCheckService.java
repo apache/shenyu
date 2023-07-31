@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
@@ -369,6 +370,9 @@ public class UpstreamCheckService {
 
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         String handler = converterFactor.newInstance(pluginDO.getName()).handler(selectorDO.getHandle(), aliveList);
+        if (!ObjectUtils.notEqual(selectorDO.getHandle(), handler)) {
+            return;
+        }
         selectorDO.setHandle(handler);
         selectorMapper.updateSelective(selectorDO);
 

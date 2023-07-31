@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
@@ -166,8 +167,14 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         //upstreamCheckService.fetchUpstreamData();
         //update upstream
         List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).collect(Collectors.toList());
+        if (ObjectUtils.isEmpty(validUriList)) {
+            return ShenyuResultMessage.SUCCESS;
+        }
         String handler = buildHandle(validUriList, selectorDO);
         if (handler != null) {
+            if (!ObjectUtils.notEqual(selectorDO.getHandle(), handler)) {
+                return ShenyuResultMessage.SUCCESS;
+            }
             selectorDO.setHandle(handler);
             SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
             selectorData.setHandle(handler);
