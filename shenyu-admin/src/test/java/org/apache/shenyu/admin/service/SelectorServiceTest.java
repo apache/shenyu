@@ -174,7 +174,7 @@ public final class SelectorServiceTest {
         SelectorDO selectorDO2 = this.selectorService.findByName("kuan");
         assertNotNull(selectorDO2);
         assertEquals(selectorDO1List.size(), 1);
-        assertEquals(selectorDO1List.get(0), selectorDO2.getId());
+        assertEquals(selectorDO1List.get(0).getId(), selectorDO2.getId());
     }
 
     @Test
