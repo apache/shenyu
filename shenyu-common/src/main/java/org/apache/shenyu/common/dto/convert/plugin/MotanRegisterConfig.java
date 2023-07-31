@@ -21,7 +21,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Motan register config.
+ * The type motan register config.
  */
 public class MotanRegisterConfig implements Serializable {
 
@@ -79,7 +79,7 @@ public class MotanRegisterConfig implements Serializable {
     /**
      * get threads.
      *
-     * @return threads
+     * @return threads threads
      */
     public Integer getThreads() {
         return threads;
@@ -112,19 +112,39 @@ public class MotanRegisterConfig implements Serializable {
         this.queues = queues;
     }
 
+    /**
+     * get RegisterProtocol.
+     *
+     * @return registerProtocol
+     */
     public String getRegisterProtocol() {
         return registerProtocol;
     }
 
-    public void setRegisterProtocol(String registerProtocol) {
+    /**
+     * set registerProtocol.
+     *
+     * @param registerProtocol registerProtocol
+     */
+    public void setRegisterProtocol(final String registerProtocol) {
         this.registerProtocol = registerProtocol;
     }
 
+    /**
+     * get RegisterAddress.
+     *
+     * @return registerAddress
+     */
     public String getRegisterAddress() {
         return registerAddress;
     }
 
-    public void setRegisterAddress(String registerAddress) {
+    /**
+     * set RegisterAddress.
+     *
+     * @param registerAddress registerAddress
+     */
+    public void setRegisterAddress(final String registerAddress) {
         this.registerAddress = registerAddress;
     }
 
@@ -144,7 +164,7 @@ public class MotanRegisterConfig implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(registerProtocol,registerAddress, threadpool, corethreads, threads, queues);
+        return Objects.hash(registerProtocol, registerAddress, threadpool, corethreads, threads, queues);
     }
 
     @Override
