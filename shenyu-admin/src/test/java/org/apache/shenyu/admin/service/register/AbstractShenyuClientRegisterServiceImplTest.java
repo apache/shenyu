@@ -167,7 +167,7 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
 
     @Test
     public void testDoSubmit() {
-        assertFalse(abstractShenyuClientRegisterService.doSubmit("Selector_Id", new ArrayList<>()));
+        assertTrue(abstractShenyuClientRegisterService.doSubmit("Selector_Id", new ArrayList<>()));
 
         CommonUpstream commonUpstream = new CommonUpstream();
         when(upstreamCheckService.checkAndSubmit(any(), any())).thenReturn(true);
