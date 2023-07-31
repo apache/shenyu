@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+
 /**
  * Test Cases for SelectorMapper.
  */
@@ -223,19 +224,19 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
     private SelectorDO buildSelectorDO() {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         return SelectorDO.builder()
-            .id(UUIDUtils.getInstance().generateShortUuid())
-            .dateCreated(currentTime)
-            .dateUpdated(currentTime)
-            .pluginId("test-plugin-id")
-            .name("test-name")
-            .matchMode(1)
-            .type(1)
-            .sort(1)
-            .enabled(Boolean.TRUE)
-            .loged(Boolean.TRUE)
-            .matchRestful(false)
-            .continued(Boolean.TRUE)
-            .handle("handle")
-            .build();
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .pluginId("test-plugin-id")
+                .name("test-name")
+                .matchMode(1)
+                .type(1)
+                .sort(1)
+                .enabled(Boolean.TRUE)
+                .loged(Boolean.TRUE)
+                .matchRestful(false)
+                .continued(Boolean.TRUE)
+                .handle("handle")
+                .build();
     }
 }

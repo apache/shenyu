@@ -177,9 +177,9 @@ public class ApiServiceImpl implements ApiService {
         final List<RuleVO> rules = ruleService.searchByCondition(condition);
         if (CollectionUtils.isNotEmpty(rules)) {
             ruleService.delete(rules.stream()
-                .map(RuleVO::getId)
-                .distinct()
-                .collect(Collectors.toList()));
+                    .map(RuleVO::getId)
+                    .distinct()
+                    .collect(Collectors.toList()));
         }
         //clean selector
         List<SelectorDO> selectorDOList = selectorService.findByNameAndPluginNames(apiDO.getContextPath(), PluginEnum.getUpstreamNames());
