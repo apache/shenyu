@@ -23,7 +23,7 @@ import com.google.common.cache.LoadingCache;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.config.RegistryConfig;
-import com.weibo.api.motan.proxy.CommonHandler;
+import com.weibo.api.motan.proxy.CommonClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -50,19 +50,19 @@ import java.util.concurrent.ExecutionException;
  * The cache info.
  */
 public final class ApplicationConfigCache {
-    
+
     /**
      * The constant PARAM_MAP.
      */
     public static final ConcurrentMap<String, MotanParamInfo> PARAM_MAP = new ConcurrentHashMap<>();
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
-    
+
     private RegistryConfig registryConfig;
-    
+
     private ProtocolConfig protocolConfig;
-    
-    private final LoadingCache<String, RefererConfig<CommonHandler>> cache = CacheBuilder.newBuilder()
+
+    private final LoadingCache<String, RefererConfig<CommonClient>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener(notification -> {
                 RefererConfig<?> config = (RefererConfig<?>) notification.getValue();
@@ -77,17 +77,17 @@ public final class ApplicationConfigCache {
                     }
                 }
             })
-            .build(new CacheLoader<String, RefererConfig<CommonHandler>>() {
+            .build(new CacheLoader<String, RefererConfig<CommonClient>>() {
                 @Override
                 @NonNull
-                public RefererConfig<CommonHandler> load(@NonNull final String key) {
+                public RefererConfig<CommonClient> load(@NonNull final String key) {
                     return new RefererConfig<>();
                 }
             });
-    
+
     private ApplicationConfigCache() {
     }
-    
+
     /**
      * Gets instance.
      *
@@ -96,7 +96,7 @@ public final class ApplicationConfigCache {
     public static ApplicationConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
-    
+
     /**
      * Init.
      *
@@ -107,8 +107,8 @@ public final class ApplicationConfigCache {
             registryConfig = new RegistryConfig();
             registryConfig.setId("shenyu_motan_proxy");
             registryConfig.setRegister(false);
-            registryConfig.setRegProtocol("zookeeper");
-            registryConfig.setAddress(motanRegisterConfig.getRegister());
+            registryConfig.setRegProtocol(motanRegisterConfig.getRegisterProtocol());
+            registryConfig.setAddress(motanRegisterConfig.getRegisterAddress());
         }
         if (Objects.isNull(protocolConfig)) {
             protocolConfig = new ProtocolConfig();
@@ -116,7 +116,7 @@ public final class ApplicationConfigCache {
             protocolConfig.setName("motan2");
         }
     }
-    
+
     /**
      * Get reference config.
      *
@@ -132,16 +132,16 @@ public final class ApplicationConfigCache {
             throw new ShenyuException(e.getCause());
         }
     }
-    
+
     /**
      * Init ref reference config.
      *
      * @param metaData the meta data
      * @return the reference config
      */
-    public RefererConfig<CommonHandler> initRef(final MetaData metaData) {
+    public RefererConfig<CommonClient> initRef(final MetaData metaData) {
         try {
-            RefererConfig<CommonHandler> referenceConfig = cache.get(metaData.getPath());
+            RefererConfig<CommonClient> referenceConfig = cache.get(metaData.getPath());
             if (StringUtils.isNoneBlank(referenceConfig.getServiceInterface())) {
                 return referenceConfig;
             }
@@ -149,21 +149,21 @@ public final class ApplicationConfigCache {
             LOG.error("init motan ref ex:{}", e.getMessage());
         }
         return build(metaData);
-        
+
     }
-    
+
     /**
      * Build reference config.
      *
      * @param metaData the meta data
      * @return the reference config
      */
-    public RefererConfig<CommonHandler> build(final MetaData metaData) {
+    public RefererConfig<CommonClient> build(final MetaData metaData) {
         if (Objects.isNull(protocolConfig) || Objects.isNull(registryConfig)) {
             return new RefererConfig<>();
         }
-        RefererConfig<CommonHandler> reference = new RefererConfig<>();
-        reference.setInterface(CommonHandler.class);
+        RefererConfig<CommonClient> reference = new RefererConfig<>();
+        reference.setInterface(CommonClient.class);
         reference.setServiceInterface(metaData.getServiceName());
         // the group of motan rpc call
         MotanParamExtInfo motanParamExtInfo =
@@ -189,14 +189,14 @@ public final class ApplicationConfigCache {
         reference.setRequestTimeout(Optional.ofNullable(motanParamExtInfo.getTimeout()).orElse(1000));
         reference.setRegistry(registryConfig);
         reference.setProtocol(protocolConfig);
-        CommonHandler obj = reference.getRef();
+        CommonClient obj = reference.getRef();
         if (Objects.nonNull(obj)) {
             LOG.info("init motan reference success there meteData is :{}", metaData);
             cache.put(metaData.getPath(), reference);
         }
         return reference;
     }
-    
+
     /**
      * Invalidate.
      *
@@ -205,38 +205,38 @@ public final class ApplicationConfigCache {
     public void invalidate(final String path) {
         cache.invalidate(path);
     }
-    
+
     /**
      * Invalidate all.
      */
     public void invalidateAll() {
         cache.invalidateAll();
     }
-    
+
     /**
      * The type Application config cache instance.
      */
     static final class ApplicationConfigCacheInstance {
-        
+
         /**
          * The Instance.
          */
         static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
-        
+
         private ApplicationConfigCacheInstance() {
-        
+
         }
     }
-    
+
     /**
      * The type Motan param ext info.
      */
     static class MethodInfo {
-        
+
         private String methodName;
-        
+
         private List<Pair<String, String>> params;
-        
+
         /**
          * Gets method name.
          *
@@ -245,7 +245,7 @@ public final class ApplicationConfigCache {
         public String getMethodName() {
             return methodName;
         }
-        
+
         /**
          * Sets method name.
          *
@@ -254,7 +254,7 @@ public final class ApplicationConfigCache {
         public void setMethodName(final String methodName) {
             this.methodName = methodName;
         }
-        
+
         /**
          * Gets params.
          *
@@ -263,7 +263,7 @@ public final class ApplicationConfigCache {
         public List<Pair<String, String>> getParams() {
             return params;
         }
-        
+
         /**
          * Sets params.
          *
@@ -273,18 +273,18 @@ public final class ApplicationConfigCache {
             this.params = params;
         }
     }
-    
+
     /**
      * The type Motan param ext info.
      */
     static class MotanParamExtInfo {
-        
+
         private List<MethodInfo> methodInfo;
-        
+
         private String group;
 
         private Integer timeout;
-        
+
         /**
          * Gets method info.
          *
@@ -293,7 +293,7 @@ public final class ApplicationConfigCache {
         public List<MethodInfo> getMethodInfo() {
             return methodInfo;
         }
-        
+
         /**
          * Sets method info.
          *
@@ -302,7 +302,7 @@ public final class ApplicationConfigCache {
         public void setMethodInfo(final List<MethodInfo> methodInfo) {
             this.methodInfo = methodInfo;
         }
-        
+
         /**
          * Gets group.
          *
@@ -311,7 +311,7 @@ public final class ApplicationConfigCache {
         public String getGroup() {
             return group;
         }
-        
+
         /**
          * Sets group.
          *
@@ -329,16 +329,16 @@ public final class ApplicationConfigCache {
             this.timeout = timeout;
         }
     }
-    
+
     /**
      * The type Motan param ext info.
      */
     public static class MotanParamInfo {
-        
+
         private Class<?>[] paramTypes;
-        
+
         private String[] paramNames;
-        
+
         /**
          * Instantiates a new Motan param info.
          *
@@ -349,7 +349,7 @@ public final class ApplicationConfigCache {
             this.paramTypes = paramTypes;
             this.paramNames = paramNames;
         }
-        
+
         /**
          * Get param types class [ ].
          *
@@ -358,7 +358,7 @@ public final class ApplicationConfigCache {
         public Class<?>[] getParamTypes() {
             return paramTypes;
         }
-        
+
         /**
          * Sets param types.
          *
@@ -367,7 +367,7 @@ public final class ApplicationConfigCache {
         public void setParamTypes(final Class<?>[] paramTypes) {
             this.paramTypes = paramTypes;
         }
-        
+
         /**
          * Get param names string [ ].
          *
@@ -376,7 +376,7 @@ public final class ApplicationConfigCache {
         public String[] getParamNames() {
             return paramNames;
         }
-        
+
         /**
          * Sets param names.
          *
