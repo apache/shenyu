@@ -23,7 +23,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.model.bean.DocInfo;
-import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.DocVO;
 import org.apache.shenyu.admin.model.vo.MenuDocItem;
@@ -85,17 +84,6 @@ public class ApiDocController {
         return ShenyuAdminResult.success(docVO);
     }
 
-    /**
-     * Query the document content according to the document ID.
-     * @param id docmentId
-     * @return ShenyuAdminResult
-     */
-    @GetMapping("/getDocItem")
-    public ShenyuAdminResult getDocItem(final String id) {
-        DocItem docItem = docManager.getDocItem(id);
-        return ShenyuAdminResult.success(docItem);
-    }
-
     private Function<DocInfo, MenuProject> getMenuAndDocInfo() {
         return docInfo -> {
             MenuProject menuProject = new MenuProject();
@@ -108,7 +96,6 @@ public class ApiDocController {
                     List<MenuDocItem> docItems = docModule.getDocItems().stream()
                         .map(docItem -> {
                             MenuDocItem menuDocItem = new MenuDocItem();
-                            menuDocItem.setId(docItem.getId());
                             menuDocItem.setLabel(docItem.getSummary());
                             menuDocItem.setName(docItem.getName());
                             return menuDocItem;

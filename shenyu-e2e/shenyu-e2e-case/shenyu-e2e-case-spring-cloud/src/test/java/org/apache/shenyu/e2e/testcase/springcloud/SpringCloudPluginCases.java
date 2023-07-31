@@ -45,7 +45,7 @@ import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExi
 
 public class SpringCloudPluginCases implements ShenYuScenarioProvider {
 
-    private static final String TEST = "/springboot/test";
+    private static final String TEST = "/springcloud/test";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -60,18 +60,18 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
-                testDivideWithUriEquals(),
-                testDivideWithUriPathPattern(),
-                testDivideWithUriStartWith(),
-                testDivideWithEndWith(),
-                testDivideWithMethodGet(),
-                testDivideWithMethodPost(),
-                testDivideWithMethodPut(),
-                testDivideWithMethodDelete()
+                testWithUriEquals(),
+                testWithUriPathPattern(),
+                testWithUriStartWith(),
+                testWithEndWith(),
+                testWithMethodGet(),
+                testWithMethodPost(),
+                testWithMethodPut(),
+                testWithMethodDelete()
         );
     }
 
-    private ShenYuScenarioSpec testDivideWithUriEquals() {
+    private ShenYuScenarioSpec testWithUriEquals() {
         return ShenYuScenarioSpec.builder()
                 .name("single-spring-cloud uri =]")
                 .beforeEachSpec(
@@ -105,7 +105,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                 .build();
     }
 
-    private ShenYuScenarioSpec testDivideWithUriPathPattern() {
+    private ShenYuScenarioSpec testWithUriPathPattern() {
         return ShenYuScenarioSpec.builder()
                 .name("single-spring-cloud uri path_pattern]")
                 .beforeEachSpec(
@@ -142,7 +142,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                 .build();
     }
 
-    private ShenYuScenarioSpec testDivideWithUriStartWith() {
+    private ShenYuScenarioSpec testWithUriStartWith() {
         return ShenYuScenarioSpec.builder()
                 .name("single-spring-cloud uri starts_with]")
                 .beforeEachSpec(
@@ -178,7 +178,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                 .build();
     }
 
-    private ShenYuScenarioSpec testDivideWithEndWith() {
+    private ShenYuScenarioSpec testWithEndWith() {
         return ShenYuScenarioSpec.builder()
                 .name("single-spring-cloud uri ends_with]")
                 .beforeEachSpec(
@@ -211,7 +211,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                 .build();
     }
 
-    private ShenYuScenarioSpec testDivideWithMethodGet() {
+    private ShenYuScenarioSpec testWithMethodGet() {
         return ShenYuScenarioSpec.builder()
                 .name("single-spring-cloud method GET")
                 .beforeEachSpec(
@@ -254,7 +254,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                 .build();
     }
 
-    private ShenYuScenarioSpec testDivideWithMethodPost() {
+    private ShenYuScenarioSpec testWithMethodPost() {
         return ShenYuScenarioSpec.builder()
                 .name("single-spring-cloud method POST")
                 .beforeEachSpec(
@@ -297,7 +297,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                 .build();
     }
 
-    private ShenYuScenarioSpec testDivideWithMethodPut() {
+    private ShenYuScenarioSpec testWithMethodPut() {
         return ShenYuScenarioSpec.builder()
                 .name("single-spring-cloud method PUT")
                 .beforeEachSpec(
@@ -340,7 +340,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                 .build();
     }
 
-    private ShenYuScenarioSpec testDivideWithMethodDelete() {
+    private ShenYuScenarioSpec testWithMethodDelete() {
         return ShenYuScenarioSpec.builder()
                 .name("single-divide method DELETE")
                 .beforeEachSpec(

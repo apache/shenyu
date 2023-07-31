@@ -98,7 +98,7 @@ public class EtcdClientRegisterRepositoryTest {
         String metadataPath = "/shenyu/register/metadata/http/context/context-ruleName";
         assertTrue(etcdBroker.containsKey(metadataPath));
         assertEquals(etcdBroker.get(metadataPath), GsonUtils.getInstance().toJson(data));
-        repository.close();
+        repository.closeRepository();
     }
     
     @Test
@@ -131,7 +131,7 @@ public class EtcdClientRegisterRepositoryTest {
         String metadataPath = "/shenyu/register/metadata/grpc/context/testService.testMethod";
         assertTrue(etcdBroker.containsKey(metadataPath));
         assertEquals(etcdBroker.get(metadataPath), GsonUtils.getInstance().toJson(data));
-        repository.close();
+        repository.closeRepository();
     }
 
     @Test

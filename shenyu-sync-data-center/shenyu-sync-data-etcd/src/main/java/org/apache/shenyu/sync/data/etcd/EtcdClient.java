@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
@@ -53,6 +54,8 @@ public class EtcdClient {
     private final Client client;
 
     private final ConcurrentHashMap<String, Watch.Watcher> watchCache = new ConcurrentHashMap<>();
+
+    private final ConcurrentHashMap<String, Watch.Watcher> watchChildCache = new ConcurrentHashMap<>();
 
     public EtcdClient(final Client client) {
         this.client = client;
@@ -182,8 +185,10 @@ public class EtcdClient {
                                 final BiConsumer<String, String> updateHandler,
                                 final Consumer<String> deleteHandler) {
         Watch.Listener listener = watch(updateHandler, deleteHandler);
-        Watch.Watcher watch = client.getWatchClient().watch(ByteSequence.from(key, UTF_8), listener);
-        watchCache.put(key, watch);
+        if (!watchCache.containsKey(key)) {
+            Watch.Watcher watch = client.getWatchClient().watch(ByteSequence.from(key, UTF_8), listener);
+            watchCache.put(key, watch);
+        }
     }
 
     /**
@@ -200,8 +205,10 @@ public class EtcdClient {
         WatchOption option = WatchOption.newBuilder()
                 .withPrefix(ByteSequence.from(key, UTF_8))
                 .build();
-        Watch.Watcher watch = client.getWatchClient().watch(ByteSequence.from(key, UTF_8), option, listener);
-        watchCache.put(key, watch);
+        if (!watchChildCache.containsKey(key)) {
+            Watch.Watcher watch = client.getWatchClient().watch(ByteSequence.from(key, UTF_8), option, listener);
+            watchChildCache.put(key, watch);
+        }
     }
 
     private Watch.Listener watch(final BiConsumer<String, String> updateHandler,
@@ -212,15 +219,18 @@ public class EtcdClient {
                 String value = event.getKeyValue().getValue().toString(UTF_8);
                 switch (event.getEventType()) {
                     case PUT:
-                        updateHandler.accept(path, value);
+                        Optional.ofNullable(updateHandler).ifPresent(handler -> handler.accept(path, value));
                         continue;
                     case DELETE:
-                        deleteHandler.accept(path);
+                        Optional.ofNullable(deleteHandler).ifPresent(handler -> handler.accept(path));
                         continue;
                     default:
                 }
             }
-        });
+        }, throwable -> {
+                LOG.error("etcd watch error {}", throwable.getMessage(), throwable);
+                throw new ShenyuException(throwable);
+            });
     }
 
     /**
@@ -232,6 +242,10 @@ public class EtcdClient {
         if (watchCache.containsKey(key)) {
             watchCache.get(key).close();
             watchCache.remove(key);
+        }
+        if (watchChildCache.containsKey(key)) {
+            watchChildCache.get(key).close();
+            watchChildCache.remove(key);
         }
     }
 }

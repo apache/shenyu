@@ -36,6 +36,9 @@ public class MapperConfigTest {
 
     @InjectMocks
     private MapperConfig.PostgreSQLConfig postgreSQLConfig;
+
+    @InjectMocks
+    private MapperConfig.OpenGaussSQLConfig openGaussSQLConfig;
     
     @Test
     public void testPostgreSQLQueryInterceptor() {
@@ -59,7 +62,18 @@ public class MapperConfigTest {
     }
 
     @Test
-    public void postgreSqlUpdateInterceptorTest() {
-        assertNotNull(postgreSQLConfig.postgreSqlUpdateInterceptor());
+    public void openGaussSqlPrepareInterceptorTest() {
+        assertNotNull(openGaussSQLConfig.openGaussSqlPrepareInterceptor());
     }
+
+    @Test
+    public void openGaussSqlUpdateInterceptorTest() {
+        assertNotNull(openGaussSQLConfig.openGaussSqlUpdateInterceptor());
+    }
+
+    @Test
+    public void openGaussSqlQueryInterceptorTest() {
+        assertNotNull(openGaussSQLConfig.openGaussSqlQueryInterceptor());
+    }
+
 }

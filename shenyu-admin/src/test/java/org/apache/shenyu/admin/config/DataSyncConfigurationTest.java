@@ -21,11 +21,14 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.client.config.NacosConfigService;
 import com.ecwid.consul.v1.ConsulClient;
+import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
+import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.admin.AbstractConfigurationTest;
 import org.apache.shenyu.admin.config.properties.ConsulProperties;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.config.properties.NacosProperties;
+import org.apache.shenyu.admin.config.properties.PolarisProperties;
 import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
 import org.apache.shenyu.admin.listener.etcd.EtcdClient;
 import org.apache.shenyu.admin.service.DiscoveryService;
@@ -195,6 +198,33 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     }
 
     @Test
+    public void testPolarisDataChangedListener() {
+        DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        PolarisProperties polarisProperties = mock(PolarisProperties.class);
+        ConfigFileService polarisConfigFileService = mock(ConfigFileService.class);
+        ConfigFilePublishService polarisConfigFilePublishService = mock(ConfigFilePublishService.class);
+        assertNotNull(polarisListener.polarisDataChangedListener(polarisProperties, polarisConfigFileService, polarisConfigFilePublishService));
+    }
+
+    @Test
+    public void testPolarisDataInit() {
+        DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        PolarisProperties polarisProperties = mock(PolarisProperties.class);
+        ConfigFileService polarisConfigFileService = mock(ConfigFileService.class);
+        assertNotNull(polarisListener.polarisDataChangedInit(polarisProperties, polarisConfigFileService));
+    }
+
+    @Test
+    public void polarisConfigServiceTest() {
+        final PolarisProperties polarisProperties = new PolarisProperties();
+        polarisProperties.setUrl("127.0.0.1:8093");
+        polarisProperties.setNamespace("namespace");
+        DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        assertNotNull(polarisListener.polarisConfigFileService(polarisProperties));
+        assertNotNull(polarisListener.polarisConfigFilePublishService(polarisProperties));
+    }
+
+    @Test
     public void testEtcdDataChangedListener() {
         DataSyncConfiguration.EtcdListener etcdListener = new DataSyncConfiguration.EtcdListener();
         EtcdClient client = mock(EtcdClient.class);
@@ -213,7 +243,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     public void testConsulClient() {
         DataSyncConfiguration.ConsulListener consulListener = new DataSyncConfiguration.ConsulListener();
         ConsulProperties consulProperties = mock(ConsulProperties.class);
-        when(consulProperties.getUrl()).thenReturn("127.0.0.1");
+        when(consulProperties.getUrl()).thenReturn("http://127.0.0.1:8500");
         assertNotNull(consulListener.consulClient(consulProperties));
     }
 

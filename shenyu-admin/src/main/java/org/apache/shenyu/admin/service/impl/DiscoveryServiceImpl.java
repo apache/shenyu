@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.discovery.DiscoveryMode;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
@@ -31,6 +31,8 @@ import org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +81,21 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Transactional(rollbackFor = Exception.class)
     public DiscoveryVO createOrUpdate(final DiscoveryDTO discoveryDTO) {
         return StringUtils.isBlank(discoveryDTO.getId()) ? this.create(discoveryDTO) : this.update(discoveryDTO);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String delete(final String discoveryId) {
+        List<DiscoveryHandlerDO> discoveryHandlerDOS = discoveryHandlerMapper.selectByDiscoveryId(discoveryId);
+        if (CollectionUtils.isNotEmpty(discoveryHandlerDOS)) {
+            LOG.warn("shenyu this discovery has discoveryHandler can't be delete");
+            throw new ShenyuException("shenyu this discovery has discoveryHandler can't be delete");
+        }
+        DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryId);
+        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
+        discoveryProcessor.removeDiscovery(discoveryDO);
+        discoveryMapper.delete(discoveryId);
+        return ShenyuResultMessage.DELETE_SUCCESS;
     }
 
     private DiscoveryVO create(final DiscoveryDTO discoveryDTO) {
@@ -142,7 +159,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     public void syncData() {
         LOG.info("shenyu DiscoveryService sync db ");
         List<DiscoveryDO> discoveryDOS = discoveryMapper.selectAll();
-        discoveryDOS.stream().filter(d -> !DiscoveryMode.LOCAL.name().equalsIgnoreCase(d.getType())).forEach(d -> {
+        discoveryDOS.forEach(d -> {
             DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(d.getType());
             discoveryProcessor.createDiscovery(d);
             proxySelectorMapper.selectByDiscoveryId(d.getId()).stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).forEach(ps -> {

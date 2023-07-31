@@ -17,20 +17,13 @@
 
 package org.apache.shenyu.sync.data.etcd;
 
-import com.google.protobuf.ByteString;
-import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
-import io.etcd.jetcd.KV;
-import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.Watch;
-import io.etcd.jetcd.kv.GetResponse;
-import io.etcd.jetcd.options.WatchOption;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -38,7 +31,6 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -48,12 +40,12 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -76,7 +68,9 @@ public class EtcdSyncDataServiceTest {
 
     private EtcdSyncDataService etcdSyncDataService;
 
-    @InjectMocks
+    private PluginData pluginData;
+
+    @Mock
     private EtcdClient etcdClient;
 
     @Mock
@@ -87,47 +81,14 @@ public class EtcdSyncDataServiceTest {
 
     @BeforeEach
     public void setUp() {
-        PluginData pluginData = PluginData.builder().name(MOCK_PLUGIN_NAME).enabled(Boolean.FALSE).build();
-        KV kv = mock(KV.class);
-        CompletableFuture<GetResponse> future = mock(CompletableFuture.class);
-        GetResponse getResponse = mock(GetResponse.class);
-        final List<KeyValue> keyValues = new ArrayList<>(2);
-        KeyValue keyValue1 = mock(KeyValue.class);
-        keyValues.add(keyValue1);
-        final ByteString key1 = ByteString.copyFromUtf8(MOCK_PLUGIN_PATH);
-        final ByteString value1 = ByteString.copyFromUtf8(GsonUtils.getInstance().toJson(pluginData));
-
-        /**
-         *  mock get method.
-         */
-        when(client.getKVClient()).thenReturn(kv);
-        try {
-            when(future.get()).thenReturn(getResponse);
-        } catch (Exception e) {
-            throw new ShenyuException(e.getCause());
-        }
-        when(getResponse.getKvs()).thenReturn(keyValues);
-        when(keyValue1.getValue()).thenReturn(ByteSequence.from(value1));
-        /**
-         * mock getChildrenKeys method.
-         */
-        when(kv.get(any(), any())).thenReturn(future);
-        when(keyValue1.getKey()).thenReturn(ByteSequence.from(key1));
-        /**
-         * mock watchDataChange method.
-         */
-        Watch watch = mock(Watch.class);
-        when(client.getWatchClient()).thenReturn(watch);
-        when(watch.watch(any(ByteSequence.class), any(Watch.Listener.class))).thenReturn(watcher);
-        /**
-         * mock watchChildChange method.
-         */
-        when(watch.watch(any(ByteSequence.class), any(WatchOption.class), any(Watch.Listener.class))).thenReturn(watcher);
+        pluginData = PluginData.builder().name(MOCK_PLUGIN_NAME).enabled(Boolean.FALSE).build();
     }
 
     @Test
-    public void testWatchPluginWhenInit() {
+    public void testWatchPluginWhenInit() throws ExecutionException, InterruptedException {
         final List<PluginData> subscribeList = new ArrayList<>(1);
+        when(etcdClient.getChildrenKeys(anyString(), anyString())).thenReturn(Collections.singletonList("sign"));
+        when(etcdClient.get(anyString())).thenReturn(GsonUtils.getInstance().toJson(pluginData));
         etcdSyncDataService = new EtcdSyncDataService(etcdClient, new PluginDataSubscriber() {
             @Override
             public void onSubscribe(final PluginData pluginData) {
@@ -253,6 +214,16 @@ public class EtcdSyncDataServiceTest {
     }
 
     @Test
+    public void discoverUpstreamTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        this.commonTest(ConfigGroupEnum.DISCOVER_UPSTREAM, "/shenyu/discoveryUpstream/divide/id");
+    }
+
+    @Test
+    public void proxySelectorTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        this.commonTest(ConfigGroupEnum.PROXY_SELECTOR, "/shenyu/proxySelectorData/divide/id");
+    }
+
+    @Test
     public void appAuthTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
         this.commonTest(ConfigGroupEnum.APP_AUTH, "/shenyu/appAuth/divide/appAuthId");
     }
@@ -297,7 +268,7 @@ public class EtcdSyncDataServiceTest {
         assertThrows(InvocationTargetException.class, () -> subscribeChildChanges.invoke(etcdSyncDataService, ConfigGroupEnum.PLUGIN, "groupParentPath"));
 
         biConsumers.forEach(biConsumer -> {
-            biConsumer.accept("updatePath", "updateValue");
+            biConsumer.accept("updatePath", "{}");
         });
         dataConsumers.forEach(consumer -> {
             consumer.accept(key);
