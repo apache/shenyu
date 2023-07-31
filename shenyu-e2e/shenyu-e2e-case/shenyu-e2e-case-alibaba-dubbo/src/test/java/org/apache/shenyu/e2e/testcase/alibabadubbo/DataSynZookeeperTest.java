@@ -68,8 +68,8 @@ public class DataSynZookeeperTest {
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
         Assertions.assertEquals(1, selectorCacheList.size());
-        Assertions.assertEquals(12, metaDataCacheList.size());
-        Assertions.assertEquals(12, ruleCacheList.size());
+        Assertions.assertEquals(25, metaDataCacheList.size());
+        Assertions.assertEquals(25, ruleCacheList.size());
     }
 
 }
