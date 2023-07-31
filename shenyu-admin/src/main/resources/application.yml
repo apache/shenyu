@@ -20,10 +20,6 @@ server:
 spring:
   profiles:
     active: h2
-  datasource:
-    dbcp2:
-      validation-query: SELECT 1
-      time-between-eviction-runs-millis: 18800
   thymeleaf:
     cache: true
     encoding: utf-8
