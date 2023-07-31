@@ -64,7 +64,11 @@
 34. Update apollo client register repository active offline
 35. Storage adjustment for swagger type API documents, change from local cache to database
 36. Support nacos client offline
-37. Add e2e alibaba dubbo case
+37. Add e2e alibaba dubbo test case
+38. Add e2e apache dubbo test case
+39. Add shenyu-spring-sdk test cases
+40. Add e2e sofa test cases
+41. Add apollo config sync test case
 
 ### Refactor
 
@@ -119,7 +123,7 @@
 49. Refactor shenyu log observability
 50. Add bootstrap start log
 51. Refactor api document for swagger
-52. Upgrade grpc version to 1.48.0
+52. Upgrade grpc version to 1.53.0
 
 ### Bug Fix
 
@@ -175,6 +179,7 @@
 50. Fix http registration metadata
 51. Fix websocket lost the user-defined clost status
 52. Fix consul register lose the prop of meta-path when special symbol
+53. Fix etcd sync error
 
 ## 2.5.1
 
