@@ -83,11 +83,11 @@ public class ApiServiceImpl implements ApiService {
     private final TagMapper tagMapper;
 
     public ApiServiceImpl(final SelectorService selectorService,
-        final RuleService ruleService,
-        final MetaDataService metaDataService,
-        final ApiMapper apiMapper,
-        final TagRelationMapper tagRelationMapper,
-        final TagMapper tagMapper) {
+                          final RuleService ruleService,
+                          final MetaDataService metaDataService,
+                          final ApiMapper apiMapper,
+                          final TagRelationMapper tagRelationMapper,
+                          final TagMapper tagMapper) {
         this.selectorService = selectorService;
         this.ruleService = ruleService;
         this.metaDataService = metaDataService;
@@ -152,12 +152,12 @@ public class ApiServiceImpl implements ApiService {
                 List<String> tagIds = apiDTO.getTagIds();
                 Timestamp currentTime = new Timestamp(System.currentTimeMillis());
                 List<TagRelationDO> tags = tagIds.stream().map(tagId -> TagRelationDO.builder()
-                    .id(UUIDUtils.getInstance().generateShortUuid())
-                    .apiId(apiDO.getId())
-                    .tagId(tagId)
-                    .dateCreated(currentTime)
-                    .dateUpdated(currentTime)
-                    .build()).collect(Collectors.toList());
+                        .id(UUIDUtils.getInstance().generateShortUuid())
+                        .apiId(apiDO.getId())
+                        .tagId(tagId)
+                        .dateCreated(currentTime)
+                        .dateUpdated(currentTime)
+                        .build()).collect(Collectors.toList());
                 tagRelationMapper.batchInsert(tags);
             }
             if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
@@ -209,29 +209,29 @@ public class ApiServiceImpl implements ApiService {
         final String host = ext.getHost();
         final Integer port = ext.getPort();
         publisher.publish(MetaDataRegisterDTO.builder()
-            .addPrefixed(ext.isAddPrefixed())
-            .appName(appName)
-            .serviceName(ext.getServiceName())
-            .methodName(ext.getMethodName())
-            .contextPath(contextPath)
-            .host(host)
-            .port(port)
-            .path(path)
-            .ruleName(path)
-            .pathDesc(apiDO.getApiDesc())
-            .parameterTypes(ext.getParameterTypes())
-            .rpcExt(ext.getRpcExt())
-            .rpcType(apiDO.getRpcType())
-            .enabled(true)
-            .build());
+                .addPrefixed(ext.isAddPrefixed())
+                .appName(appName)
+                .serviceName(ext.getServiceName())
+                .methodName(ext.getMethodName())
+                .contextPath(contextPath)
+                .host(host)
+                .port(port)
+                .path(path)
+                .ruleName(path)
+                .pathDesc(apiDO.getApiDesc())
+                .parameterTypes(ext.getParameterTypes())
+                .rpcExt(ext.getRpcExt())
+                .rpcType(apiDO.getRpcType())
+                .enabled(true)
+                .build());
         publisher.publish(URIRegisterDTO.builder()
-            .contextPath(contextPath)
-            .appName(appName)
-            .protocol(ext.getProtocol())
-            .host(host)
-            .port(port)
-            .rpcType(apiDO.getRpcType())
-            .build());
+                .contextPath(contextPath)
+                .appName(appName)
+                .protocol(ext.getProtocol())
+                .host(host)
+                .port(port)
+                .rpcType(apiDO.getRpcType())
+                .build());
     }
 
     @Override
@@ -277,16 +277,16 @@ public class ApiServiceImpl implements ApiService {
     @Override
     public CommonPager<ApiVO> listByPage(final ApiQuery apiQuery) {
         return PageResultUtils.result(apiQuery.getPageParameter(), () -> apiMapper.selectByQuery(apiQuery)
-            .stream().map(item -> {
-                List<TagRelationDO> tagRelations = tagRelationMapper.selectByQuery(TagRelationQuery.builder().apiId(item.getId()).build());
-                List<String> tagIds = tagRelations.stream().map(TagRelationDO::getTagId).collect(Collectors.toList());
-                List<TagVO> tagVOS = Lists.newArrayList();
-                if (CollectionUtils.isNotEmpty(tagIds)) {
-                    List<TagDO> tagDOS = tagMapper.selectByIds(tagIds);
-                    tagVOS = tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
-                }
-                return ApiVO.buildApiVO(item, tagVOS);
-            }).collect(Collectors.toList()));
+                .stream().map(item -> {
+                    List<TagRelationDO> tagRelations = tagRelationMapper.selectByQuery(TagRelationQuery.builder().apiId(item.getId()).build());
+                    List<String> tagIds = tagRelations.stream().map(TagRelationDO::getTagId).collect(Collectors.toList());
+                    List<TagVO> tagVOS = Lists.newArrayList();
+                    if (CollectionUtils.isNotEmpty(tagIds)) {
+                        List<TagDO> tagDOS = tagMapper.selectByIds(tagIds);
+                        tagVOS = tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
+                    }
+                    return ApiVO.buildApiVO(item, tagVOS);
+                }).collect(Collectors.toList()));
     }
 
     @Override
