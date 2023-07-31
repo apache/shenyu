@@ -80,7 +80,9 @@ public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPat
             }
             handleAdd = GsonUtils.getInstance().toJson(existList);
         }
-        doSubmit(selectorDO.getId(), canAddList);
+        if (doSubmit(selectorDO.getId(), canAddList)) {
+            return null;
+        }
         return handleAdd;
     }
 
