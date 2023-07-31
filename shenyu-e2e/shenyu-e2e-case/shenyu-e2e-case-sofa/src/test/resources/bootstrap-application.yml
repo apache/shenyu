@@ -18,7 +18,7 @@ server:
   address: 0.0.0.0
   compression:
     enabled: true
-    minResponseSize: 1MB # If the response data is greater than 1MB, enable compression.
+    minResponseSize: 1048576 # If the response data is greater than 1M, enable compression.
 
 spring:
   main:
@@ -143,55 +143,55 @@ shenyu:
         mod: k8s #manul
         defaultK8sSecretNamespace: shenyu-ingress
         defaultK8sSecretName: default-cert
-#        mod: manual
-#        certificates:
-#          - domain: 'localhost'
-#            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
-#            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
-#          - domain: 'example.com'
-#            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
-#            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
-#  httpclient:
-#    strategy: webClient # netty
-#    connectTimeout: 45000
-#    responseTimeout: 3000
-#    readerIdleTime: 3000
-#    writerIdleTime: 3000
-#    allIdleTime: 3000
-#    readTimeout: 3000
-#    writeTimeout: 3000
-#    wiretap: false
-#    keepAlive: false
-#    maxInMemorySize: 1 #1mb
-#    pool:
-#      type: ELASTIC
-#      name: proxy
-#      maxConnections: 16
-#      acquireTimeout: 45000
-#      maxIdleTime: 3000
-#    proxy:
-#      host:
-#      port:
-#      username:
-#      password:
-#      nonProxyHostsPattern:
-#    ssl:
-#      useInsecureTrustManager: true
-#      keyStoreType: PKCS12
-#      keyStorePath: classpath:keystore.p12
-#      keyStorePassword: 123456
-#      keyStoreProvider:
-#      keyPassword: 123456
-#      trustedX509Certificates:
-#      handshakeTimeout:
-#      closeNotifyFlushTimeout:
-#      closeNotifyReadTimeout:
-#      defaultConfigurationType:
-#    threadPool:
-#      prefix: shenyu
-#      selectCount: 1
-#      workerCount: 8
-#      daemon: true
+  #        mod: manual
+  #        certificates:
+  #          - domain: 'localhost'
+  #            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
+  #            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
+  #          - domain: 'example.com'
+  #            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
+  #            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
+  #  httpclient:
+  #    strategy: webClient # netty
+  #    connectTimeout: 45000
+  #    responseTimeout: 3000
+  #    readerIdleTime: 3000
+  #    writerIdleTime: 3000
+  #    allIdleTime: 3000
+  #    readTimeout: 3000
+  #    writeTimeout: 3000
+  #    wiretap: false
+  #    keepAlive: false
+  #    maxInMemorySize: 1 #1mb
+  #    pool:
+  #      type: ELASTIC
+  #      name: proxy
+  #      maxConnections: 16
+  #      acquireTimeout: 45000
+  #      maxIdleTime: 3000
+  #    proxy:
+  #      host:
+  #      port:
+  #      username:
+  #      password:
+  #      nonProxyHostsPattern:
+  #    ssl:
+  #      useInsecureTrustManager: true
+  #      keyStoreType: PKCS12
+  #      keyStorePath: classpath:keystore.p12
+  #      keyStorePassword: 123456
+  #      keyStoreProvider:
+  #      keyPassword: 123456
+  #      trustedX509Certificates:
+  #      handshakeTimeout:
+  #      closeNotifyFlushTimeout:
+  #      closeNotifyReadTimeout:
+  #      defaultConfigurationType:
+  #    threadPool:
+  #      prefix: shenyu
+  #      selectCount: 1
+  #      workerCount: 8
+  #      daemon: true
   register:
     enabled: false
     registerType: zookeeper #etcd #consul
@@ -202,19 +202,19 @@ shenyu:
     allowedHeaders:
     allowedMethods: "*"
     allowedAnyOrigin: true # the same of Access-Control-Allow-Origin: "*"
-#    allowedOrigin:
+      #    allowedOrigin:
       # format : schema://prefix spacer domain
-      # Access-Control-Allow-Origin: "http://a.apache.org,http://b.apache.org"
-#      spacer: "."
-#      domain: apache.org
-#      prefixes:
-#        - a # a.apache.org
-#        - b # b.apache.org
-#      origins:
-#        - c.apache.org
-#        - d.apache.org
-#        - http://e.apache.org
-#      originRegex: ^http(|s)://(.*\.|)abc.com$
+    # Access-Control-Allow-Origin: "http://a.apache.org,http://b.apache.org"
+    #      spacer: "."
+    #      domain: apache.org
+    #      prefixes:
+    #        - a # a.apache.org
+    #        - b # b.apache.org
+    #      origins:
+    #        - c.apache.org
+    #        - d.apache.org
+    #        - http://e.apache.org
+    #      originRegex: ^http(|s)://(.*\.|)abc.com$
     allowedExpose: ""
     maxAge: "18000"
     allowCredentials: true
@@ -229,41 +229,37 @@ shenyu:
     websocket:
       urls: ws://localhost:9095/websocket
       allowOrigin: ws://localhost:9195
-#    apollo:
-#      appId: shenyu
-#      meta: http://localhost:8080
-#      env: dev
-#      clusterName: test
-#      namespace: application
-#    zookeeper:
-#      url: localhost:2181
-#      sessionTimeout: 5000
-#      connectionTimeout: 2000
-#    http:
-#      url: http://localhost:9095
-#      username:
-#      password:
-#    nacos:
-#      url: localhost:8848
-#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-#      username:
-#      password:
-#      acm:
-#        enabled: false
-#        endpoint: acm.aliyun.com
-#        namespace:
-#        accessKey:
-#        secretKey:
-#    polaris:
-#      url: 127.0.0.1:8093
-#      namespace:
-#      fileGroup:
-#    etcd:
-#      url: http://localhost:2379
-#    consul:
-#      url: http://localhost:8500
-#      waitTime: 1000
-#      watchDelay: 1000
+  #    apollo:
+  #      appId: shenyu
+  #      meta: http://localhost:8080
+  #      env: dev
+  #      clusterName: test
+  #      namespace: application
+  #    zookeeper:
+  #      url: localhost:2181
+  #      sessionTimeout: 5000
+  #      connectionTimeout: 2000
+  #    http:
+  #      url: http://localhost:9095
+  #      username:
+  #      password:
+  #    nacos:
+  #      url: localhost:8848
+  #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+  #      username:
+  #      password:
+  #      acm:
+  #        enabled: false
+  #        endpoint: acm.aliyun.com
+  #        namespace:
+  #        accessKey:
+  #        secretKey:
+  #    etcd:
+  #      url: http://localhost:2379
+  #    consul:
+  #      url: http://localhost:8500
+  #      waitTime: 1000
+  #      watchDelay: 1000
   exclude:
     enabled: false
     paths:
@@ -310,8 +306,8 @@ shenyu:
     jmxConfig:
     props:
       jvm_enabled: true
-#  plugins:
-#    rate-limiter.enabled: false
+  #  plugins:
+  #    rate-limiter.enabled: false
   local:
     enabled: false
     sha512Key: "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548BAEAE6956DF346EC8C17F5EA10F35EE3CBC514797ED7DDD3145464E2A0BAB413"
