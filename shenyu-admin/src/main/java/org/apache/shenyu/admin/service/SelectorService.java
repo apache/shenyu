@@ -122,10 +122,12 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     
     /**
      * find selector by name.
-     *
+     * By querying under this condition, multiple data are usually obtained.
+     * Therefore, it is recommended to: {@linkplain SelectorService#findListByName(java.lang.String)}
      * @param name the name
      * @return selector do
      */
+    @Deprecated
     SelectorDO findByName(String name);
 
     /**
@@ -143,6 +145,14 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @return the selector do
      */
     SelectorDO findByNameAndPluginName(String name, String pluginName);
+
+    /**
+     * Find selectorDO list by name and plugin name list.
+     * @param name name
+     * @param pluginNames pluginNames
+     * @return selectorDO list
+     */
+    List<SelectorDO> findByNameAndPluginNames(String name, List<String> pluginNames);
     
     /**
      * Build by name selector data.

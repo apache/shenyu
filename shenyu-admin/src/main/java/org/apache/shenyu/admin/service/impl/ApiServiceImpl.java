@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
-import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
@@ -39,6 +38,7 @@ import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.query.TagRelationQuery;
 import org.apache.shenyu.admin.model.vo.ApiVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.common.enums.ApiSourceEnum;
@@ -130,6 +130,8 @@ public class ApiServiceImpl implements ApiService {
                 register(apiDO);
             } else if (ApiStateEnum.UNPUBLISHED.getState() == apiDO.getState()) {
                 unregister(apiDO);
+            } else if (ApiStateEnum.OFFLINE.getState() == apiDO.getState()) {
+                //todo Next version implementation.
             }
         }
         return ShenyuResultMessage.UPDATE_SUCCESS;
@@ -180,19 +182,18 @@ public class ApiServiceImpl implements ApiService {
                     .collect(Collectors.toList()));
         }
         //clean selector
-        Optional.ofNullable(selectorService.findByNameAndPluginName(apiDO.getContextPath(), PluginEnum.DIVIDE.getName()))
-                .ifPresent(selectorDO -> {
+        List<SelectorDO> selectorDOList = selectorService.findByNameAndPluginNames(apiDO.getContextPath(), PluginEnum.getUpstreamNames());
+        ArrayList<String> selectorIds = Lists.newArrayList();
+        Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new).stream().forEach(selectorDO -> {
                     final String selectorId = selectorDO.getId();
                     final List<RuleData> data = ruleService.findBySelectorId(selectorId);
                     if (CollectionUtils.isEmpty(data)) {
-                        ArrayList<String> selectorIds = Lists.newArrayList(selectorId);
-                        SelectorDO contextPathDO = selectorService.findByNameAndPluginName(apiDO.getContextPath(), PluginEnum.CONTEXT_PATH.getName());
-                        if (Objects.nonNull(contextPathDO)) {
-                            selectorIds.add(contextPathDO.getId());
-                        }
-                        selectorService.delete(selectorIds);
+                        selectorIds.add(selectorId);
                     }
-                });
+        });
+        if(CollectionUtils.isNotEmpty(selectorIds)){
+            selectorService.delete(selectorIds);
+        }
         //clean metadata
         Optional.ofNullable(metaDataService.findByPath(path))
                 .ifPresent(metaDataDO -> metaDataService.delete(Lists.newArrayList(metaDataDO.getId())));
