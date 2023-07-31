@@ -31,19 +31,30 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class SpringCloudApiBeansExtractor extends BaseAnnotationApiBeansExtractor implements RpcApiBeansExtractor {
     
     public SpringCloudApiBeansExtractor() {
-        // Annotations supported by class
-        addSupportedApiAnnotations(Controller.class);
-        addSupportedApiAnnotations(RequestMapping.class);
-        
-        // Annotations supported by the method
-        addSupportedApiDefinitionAnnotations(RequestMapping.class);
-        
-        addExtractorProcessor(new RequestMappingProcessor());
+    
     }
     
     @Override
     public String clientName() {
         return RpcTypeEnum.SPRING_CLOUD.getName();
     }
-
+    
+    /**
+     * default.
+     *
+     * @return default
+     */
+    public static SpringCloudApiBeansExtractor buildDefaultSpringCloudApiBeansExtractor() {
+        final SpringCloudApiBeansExtractor extractor = new SpringCloudApiBeansExtractor();
+        
+        // Annotations supported by class
+        extractor.addSupportedApiAnnotations(Controller.class);
+        extractor.addSupportedApiAnnotations(RequestMapping.class);
+        
+        // Annotations supported by the method
+        extractor.addSupportedApiDefinitionAnnotations(RequestMapping.class);
+        
+        extractor.addExtractorProcessor(new RequestMappingProcessor());
+        return extractor;
+    }
 }

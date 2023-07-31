@@ -18,13 +18,16 @@
 package org.apache.shenyu.examples.http.controller;
 
 import com.google.common.collect.ImmutableMap;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import java.util.Arrays;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.examples.http.dto.UserDTO;
 import org.apache.shenyu.examples.http.result.ResultBean;
+import org.apache.shenyu.examples.http.result.TreeResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -64,6 +67,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/test")
 @ShenyuSpringMvcClient("/test/**")
+@Api(tags = "HttpBaseTestAPI")
 public class HttpTestController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpTestController.class);
@@ -74,7 +78,7 @@ public class HttpTestController {
      * @param userDTO the user dto
      * @return the user dto
      */
-    @ApiOperation(value = "payment", notes = "The user pays the order.")
+    @ApiOperation(value = "payment", notes = "The user pays the order.", position = -100)
     @PostMapping("/payment")
     public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
@@ -281,6 +285,7 @@ public class HttpTestController {
      * @param requestParameter parameter
      * @return result
      */
+    @ApiOperation(value = "modifyRequestWithHeaderAndCookie", notes = "modify request with header and cookie.")
     @PostMapping(path = "/modifyRequest")
     public Map<String, Object> modifyRequest(@RequestBody final UserDTO userDTO,
         @CookieValue(value = "cookie", defaultValue = "") final String cookie,
@@ -292,6 +297,35 @@ public class HttpTestController {
         result.put("header", requestHeader);
         result.put("parameter", requestParameter);
         return result;
+    }
+
+    /**
+     * Return Tree structure data.
+     *
+     * @param param param
+     * @return TreeResult
+     */
+    @ApiOperation(value = "retureTreeData", notes = "Return Tree structure data.")
+    @PostMapping("/tree/v1")
+    public TreeResult tree(final UserDTO param) {
+        int id = 0;
+        TreeResult parent = new TreeResult();
+        parent.setId(++id);
+        parent.setName("parentNode" + param.getUserName());
+        parent.setParentId(0);
+
+        TreeResult child1 = new TreeResult();
+        child1.setId(++id);
+        child1.setName("childNode1");
+        child1.setParentId(1);
+
+        TreeResult child2 = new TreeResult();
+        child2.setId(++id);
+        child2.setName("childNode2");
+        child2.setParentId(1);
+
+        parent.setChildren(Arrays.asList(child1, child2));
+        return parent;
     }
 
     /**

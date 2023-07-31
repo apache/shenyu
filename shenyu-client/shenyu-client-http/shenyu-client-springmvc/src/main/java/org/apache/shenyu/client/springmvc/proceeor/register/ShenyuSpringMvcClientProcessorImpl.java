@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.springmvc.proceeor.register;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.BaseAnnotationApiProcessor;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
@@ -35,7 +36,9 @@ public class ShenyuSpringMvcClientProcessorImpl extends BaseAnnotationApiProcess
     public void process(final ApiBean apiBean, final ShenyuSpringMvcClient annotation) {
         apiBean.setBeanPath(annotation.path());
         apiBean.addProperties("desc", annotation.desc());
-        apiBean.addProperties("rule", annotation.ruleName());
+        if (StringUtils.isNotBlank(apiBean.getPropertiesValue("rule"))) {
+            apiBean.addProperties("rule", annotation.ruleName());
+        }
         apiBean.addProperties("value", annotation.value());
         apiBean.addProperties("enabled", Objects.toString(annotation.enabled()));
         apiBean.addProperties("registerMetaData", Objects.toString(annotation.registerMetaData()));
@@ -43,6 +46,10 @@ public class ShenyuSpringMvcClientProcessorImpl extends BaseAnnotationApiProcess
             apiBean.setStatus(ApiBean.Status.CAN_NO_BE_REGISTERED);
         } else {
             apiBean.setStatus(ApiBean.Status.REGISTRABLE_API);
+        }
+        // This annotation is on the support class, and all APIs will be registered
+        for (ApiBean.ApiDefinition definition : apiBean.getApiDefinitions()) {
+            definition.setStatus(apiBean.getStatus());
         }
     }
     

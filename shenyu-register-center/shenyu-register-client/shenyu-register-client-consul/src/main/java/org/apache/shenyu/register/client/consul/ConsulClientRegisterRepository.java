@@ -58,6 +58,8 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
 
     private NewService service;
 
+    private String customMetadataPath;
+
     public ConsulClientRegisterRepository() { }
 
     public ConsulClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
@@ -94,6 +96,8 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         if (StringUtils.isNotBlank(port)) {
             service.setPort(Integer.parseInt(port));
         }
+
+        customMetadataPath = properties.getProperty("metadata-path");
     }
 
     private String[] splitAndCheckAddress(final String serverList) {
@@ -159,6 +163,9 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         String contextPath = ContextPathUtils.buildRealNode(metadata.getContextPath(), metadata.getAppName());
         String metadataNodeName = buildMetadataNodeName(metadata);
         String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
+        if (StringUtils.isNotBlank(customMetadataPath)) {
+            metaDataPath = metaDataPath.replace(RegisterPathConstants.ROOT_PATH, customMetadataPath);
+        }
         String realNode = RegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
 
         GetValue oldValue = consulClient.getKVValue(realNode).getValue();
@@ -186,7 +193,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
                 || Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), rpcType)) {
             nodeName = String.join(SELECTOR_JOIN_RULE,
                     metadata.getContextPath(),
-                    metadata.getRuleName().replace(PATH_SEPARATOR, SELECTOR_JOIN_RULE));
+                    metadata.getRuleName().replace(PATH_SEPARATOR, SELECTOR_JOIN_RULE)).replace("{", "%7B").replace("}", "%7D");
         } else {
             nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
         }
