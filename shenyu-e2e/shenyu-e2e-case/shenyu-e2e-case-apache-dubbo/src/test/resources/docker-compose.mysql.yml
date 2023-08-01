@@ -19,7 +19,7 @@ version: '2.3'
 
 services:
   zookeeper:
-    image: zookeeper:3.5
+    image: zookeeper:3.8
     restart: always
 
   nacos:
@@ -61,7 +61,7 @@ services:
     restart: always
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://dubbo:8011/actuator/health | grep UP || exit 1" ]
-      timeout: 2s
+      timeout: 3s
       retries: 3
       start_period: 5s
     ports:
@@ -71,7 +71,7 @@ services:
       - dubbo.registry.address=zookeeper://zookeeper:2181
       - shenyu.register.serverLists=http://admin:9095
     depends_on:
-      gateway:
+      admin:
         condition: service_healthy
 
   gateway:
@@ -99,8 +99,8 @@ services:
       - MYSQL_PASSWORD=123456
     healthcheck:
       test: "/usr/bin/mysql --user=root --password=123123 --execute \"SHOW DATABASES;\""
-      interval: 2s
-      timeout: 20s
-      retries: 10
+      interval: 3s
+      timeout: 30s
+      retries: 5
     volumes:
       - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
