@@ -61,11 +61,7 @@ services:
       retries: 3
       start_period: 5s
     depends_on:
-      mysql:
-        condition: service_healthy
-      nacos:
-        condition: service_healthy
-      zookeeper:
+      springcloud:
         condition: service_healthy
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
@@ -97,7 +93,11 @@ services:
     depends_on:
       eureka:
         condition: service_healthy
-      admin:
+      mysql:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      zookeeper:
         condition: service_healthy
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://springcloud:8884/actuator/health | grep UP || exit 1" ]
@@ -114,7 +114,7 @@ services:
     ports:
       - "9195:9195"
     depends_on:
-      springcloud:
+      admin:
         condition: service_healthy
     volumes:
       - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
