@@ -96,7 +96,7 @@ services:
     ports:
       - "9195:9195"
     depends_on:
-      admin:
+      dubbo:
         condition: service_healthy
     volumes:
       - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
