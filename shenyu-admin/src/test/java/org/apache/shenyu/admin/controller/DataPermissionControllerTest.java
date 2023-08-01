@@ -77,8 +77,8 @@ public class DataPermissionControllerTest {
                 new SelectorQuery(pluginId, name, pageParameter), userId)).willReturn(commonPager);
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/data-permission/selector")
-                .param("currentPage", currentPage + "")
-                .param("pageSize", pageSize + "")
+                .param("currentPage", String.valueOf(currentPage))
+                .param("pageSize", String.valueOf(pageSize))
                 .param("userId", userId)
                 .param("pluginId", pluginId)
                 .param("name", name))
@@ -102,8 +102,8 @@ public class DataPermissionControllerTest {
                 new RuleQuery(selectorId, name, pageParameter), userId)).willReturn(commonPager);
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/data-permission/rules")
-                .param("currentPage", currentPage + "")
-                .param("pageSize", pageSize + "")
+                .param("currentPage", String.valueOf(currentPage))
+                .param("pageSize", String.valueOf(pageSize))
                 .param("userId", userId)
                 .param("selectorId", selectorId)
                 .param("name", name))

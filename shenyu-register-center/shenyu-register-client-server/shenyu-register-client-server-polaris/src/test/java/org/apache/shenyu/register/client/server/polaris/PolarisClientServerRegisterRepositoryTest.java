@@ -174,7 +174,7 @@ public class PolarisClientServerRegisterRepositoryTest {
                 MockedStatic<ConfigAPIFactory> configAPIFactoryMockedStatic = mockStatic(ConfigAPIFactory.class);
                 MockedStatic<SDKContext> sdkContextMockedStatic = mockStatic(SDKContext.class);
                 MockedStatic<DiscoveryAPIFactory> discoveryAPIFactoryMockedStatic = mockStatic(DiscoveryAPIFactory.class);
-                MockedStatic<ConfigFileServiceFactory> configFileServiceFactoryMockedStatic = mockStatic(ConfigFileServiceFactory.class);
+                MockedStatic<ConfigFileServiceFactory> configFileServiceFactoryMockedStatic = mockStatic(ConfigFileServiceFactory.class)
         ) {
             Configuration configService = mock(Configuration.class);
             SDKContext sdkContext = mock(SDKContext.class);
