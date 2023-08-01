@@ -24,3 +24,14 @@ spring:
     username: root
     password: 123456
     driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      connection-timeout: 30000
+      minimum-idle: 5
+      maximum-pool-size: 20
+      auto-commit: true
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 'x' FROM DUAL
+      connection-init-sql:
+      validation-timeout: 800
+
