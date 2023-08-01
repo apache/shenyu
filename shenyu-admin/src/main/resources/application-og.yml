@@ -24,6 +24,16 @@ spring:
     username: root
     password: Shenyu123456
     driver-class-name: org.opengauss.Driver
+    hikari:
+      connection-timeout: 30000
+      minimum-idle: 5
+      maximum-pool-size: 20
+      auto-commit: true
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+      connection-init-sql:
+      validation-timeout: 800
 
 mybatis:
   type-handlers-package: org.apache.shenyu.admin.mybatis.og.handler

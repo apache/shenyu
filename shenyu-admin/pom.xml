@@ -257,7 +257,8 @@
         <dependency>
             <groupId>org.opengauss</groupId>
             <artifactId>opengauss-jdbc</artifactId>
-            <version>5.0.0-og</version>
+            <version>${opengauss-jdbc.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

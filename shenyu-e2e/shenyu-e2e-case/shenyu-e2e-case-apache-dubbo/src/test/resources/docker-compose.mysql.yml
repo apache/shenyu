@@ -19,7 +19,7 @@ version: '2.3'
 
 services:
   zookeeper:
-    image: zookeeper:3.5
+    image: zookeeper:3.8
     restart: always
 
   nacos:
@@ -42,8 +42,14 @@ services:
       - 9095
     ports:
       - "9095:9095"
+    environment:
+      - SPRING_PROFILES_ACTIVE=mysql
+      - spring.datasource.username=shenyue2e
+      - spring.datasource.password=123456
+      - spring.datasource.url=jdbc:mysql://mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
+      - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://admin:9095/actuator/health | grep UP || exit 1" ]
       timeout: 2s
@@ -55,7 +61,7 @@ services:
     restart: always
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://dubbo:8011/actuator/health | grep UP || exit 1" ]
-      timeout: 2s
+      timeout: 3s
       retries: 3
       start_period: 5s
     ports:
@@ -65,7 +71,7 @@ services:
       - dubbo.registry.address=zookeeper://zookeeper:2181
       - shenyu.register.serverLists=http://admin:9095
     depends_on:
-      gateway:
+      admin:
         condition: service_healthy
 
   gateway:
@@ -84,3 +90,17 @@ services:
       timeout: 2s
       retries: 3
       start_period: 5s
+
+  mysql:
+    image: mysql:8
+    environment:
+      - MYSQL_ROOT_PASSWORD=123123
+      - MYSQL_USER=shenyue2e
+      - MYSQL_PASSWORD=123456
+    healthcheck:
+      test: "/usr/bin/mysql --user=root --password=123123 --execute \"SHOW DATABASES;\""
+      interval: 3s
+      timeout: 30s
+      retries: 5
+    volumes:
+      - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
