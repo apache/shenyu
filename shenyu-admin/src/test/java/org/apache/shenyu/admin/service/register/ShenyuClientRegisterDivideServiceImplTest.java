@@ -98,7 +98,6 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
 
-
     @Test
     public void testBuildHandle() {
         shenyuClientRegisterDivideService = spy(shenyuClientRegisterDivideService);
@@ -134,7 +133,6 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
         resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 1);
     }
-
 
     @Test
     public void testBuildDivideUpstreamList() {

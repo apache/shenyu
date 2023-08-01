@@ -246,8 +246,6 @@ public final class DubboUpstream extends CommonUpstream {
         }
         DubboUpstream that = (DubboUpstream) o;
         return port == that.port
-                && weight == that.weight
-                && warmup == that.warmup
                 && Objects.equals(registry, that.registry)
                 && Objects.equals(appName, that.appName)
                 && Objects.equals(this.getProtocol(), that.getProtocol())
