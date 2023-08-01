@@ -23,6 +23,11 @@ services:
     restart: always
     expose:
       - 2181
+    healthcheck:
+      test: [ "CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   nacos:
     image: nacos/nacos-server:v2.2.3
@@ -33,10 +38,11 @@ services:
       - 8848
       - 9848
       - 9849
-    ports:
-      - "8848:8848"
-      - "9848:9848"
-      - "9849:9849"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://nacos:8848/nacos/v1/console/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   admin:
     image: shenyu/admin:latest
@@ -55,7 +61,13 @@ services:
       retries: 3
       start_period: 5s
     depends_on:
-      springcloud:
+      mysql:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
+      eureka:
         condition: service_healthy
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
@@ -85,7 +97,7 @@ services:
     ports:
       - "8884:8884"
     depends_on:
-      eureka:
+      admin:
         condition: service_healthy
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://springcloud:8884/actuator/health | grep UP || exit 1" ]
