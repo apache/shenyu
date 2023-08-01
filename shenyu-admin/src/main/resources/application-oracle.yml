@@ -27,3 +27,4 @@ spring:
     dbcp2:
       validation-query: SELECT 'x' FROM DUAL;
       time-between-eviction-runs-millis: 60000
+
