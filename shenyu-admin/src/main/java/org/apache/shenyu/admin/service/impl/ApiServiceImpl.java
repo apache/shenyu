@@ -127,11 +127,8 @@ public class ApiServiceImpl implements ApiService {
             }
             if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
                 register(apiDO);
-            } else if (ApiStateEnum.UNPUBLISHED.getState() == apiDO.getState()) {
-                unregister(apiDO);
             } else if (ApiStateEnum.OFFLINE.getState() == apiDO.getState()) {
-                //todo Next version implementation.
-                return ShenyuResultMessage.UPDATE_SUCCESS;
+                removeRegister(apiDO);
             }
         }
         return ShenyuResultMessage.UPDATE_SUCCESS;
@@ -162,14 +159,12 @@ public class ApiServiceImpl implements ApiService {
             }
             if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
                 register(apiDO);
-            } else if (ApiStateEnum.OFFLINE.getState() == apiDO.getState()) {
-                unregister(apiDO);
             }
         }
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
 
-    private void unregister(final ApiDO apiDO) {
+    private void removeRegister(final ApiDO apiDO) {
         final String path = apiDO.getApiPath();
         RuleQueryCondition condition = new RuleQueryCondition();
         condition.setKeyword(path);
@@ -196,7 +191,7 @@ public class ApiServiceImpl implements ApiService {
         }
         //clean metadata
         Optional.ofNullable(metaDataService.findByPath(path))
-            .ifPresent(metaDataDO -> metaDataService.delete(Lists.newArrayList(metaDataDO.getId())));
+                .ifPresent(metaDataDO -> metaDataService.delete(Lists.newArrayList(metaDataDO.getId())));
     }
 
     private void register(final ApiDO apiDO) {
