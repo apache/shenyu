@@ -24,3 +24,6 @@ spring:
     username: root
     password: 123456
     driver-class-name: oracle.jdbc.OracleDriver
+    dbcp2:
+      validation-query: SELECT 'x' FROM DUAL;
+      time-between-eviction-runs-millis: 60000

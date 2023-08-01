@@ -24,3 +24,6 @@ spring:
     username: root
     password: 12345678
     driver-class-name: com.mysql.cj.jdbc.Driver
+    dbcp2:
+      validation-query: SELECT 1
+      time-between-eviction-runs-millis: 60000

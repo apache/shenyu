@@ -24,6 +24,9 @@ spring:
     username: root
     password: Shenyu123456
     driver-class-name: org.opengauss.Driver
+    dbcp2:
+      validation-query: SELECT 1
+      time-between-eviction-runs-millis: 60000
 
 mybatis:
   type-handlers-package: org.apache.shenyu.admin.mybatis.og.handler

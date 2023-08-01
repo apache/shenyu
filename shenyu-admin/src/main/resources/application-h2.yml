@@ -25,4 +25,6 @@ spring:
     username: sa
     password: sa
     driver-class-name: org.h2.Driver
-
+    dbcp2:
+      validation-query: SELECT 1
+      time-between-eviction-runs-millis: 60000
