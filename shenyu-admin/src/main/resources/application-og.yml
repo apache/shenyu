@@ -32,7 +32,7 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
       connection-test-query: SELECT 1
-      connection-init-sql: SET NAMES utf8mb4
+      connection-init-sql:
       validation-timeout: 800
 
 mybatis:
