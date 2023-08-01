@@ -19,7 +19,7 @@
 15. Add naocs discovery sync
 16. Add apollo discovery sync
 17. Add HttpLongPolling discovery sync
-18. Add consul discove sync
+18. Add consul discovery sync
 19. Add huawei cloud lts loging plugin
 20. Support openGauss database for shenyu admin
 21. Support polaris config sync and register center
