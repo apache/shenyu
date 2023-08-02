@@ -187,15 +187,14 @@ public class UpstreamCheckService {
     }
 
     /**
-     * Submit.
+     * Submit client health check.
      *
      * @param selectorId     the selector id
      * @param commonUpstream the common upstream
-     * @return whether this module handles
      */
-    public boolean submit(final String selectorId, final CommonUpstream commonUpstream) {
+    public void submit(final String selectorId, final CommonUpstream commonUpstream) {
         if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked) {
-            return false;
+            return;
         }
 
         List<CommonUpstream> upstreams = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> new CopyOnWriteArrayList<>());
@@ -213,7 +212,6 @@ public class UpstreamCheckService {
             PENDING_SYNC.add(NumberUtils.INTEGER_ZERO);
         }
         executor.execute(() -> updateHandler(selectorId, upstreams, upstreams));
-        return true;
     }
 
     /**
@@ -234,7 +232,8 @@ public class UpstreamCheckService {
     public boolean checkAndSubmit(final String selectorId, final CommonUpstream commonUpstream) {
         final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
         if (pass) {
-            return submit(selectorId, commonUpstream);
+            this.submit(selectorId, commonUpstream);
+            return false;
         }
         ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
         LOG.error("add zombie node, url={}", commonUpstream.getUpstreamUrl());

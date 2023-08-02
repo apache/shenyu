@@ -112,7 +112,7 @@ public class DocManagerImpl implements DocManager {
                 .tags(Collections.singletonList(docInfo.getContextPath()))
                 .apiPath(docItem.getName())
                 .apiSource(ApiSourceEnum.SWAGGER.getValue())
-                .state(ApiStateEnum.PUBLISHED.getState())
+                .state(ApiStateEnum.UNPUBLISHED.getState())
                 .apiOwner("admin")
                 .eventType(EventType.REGISTER)
                 .build();
