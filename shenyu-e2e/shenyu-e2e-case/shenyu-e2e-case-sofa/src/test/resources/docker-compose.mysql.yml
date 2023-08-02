@@ -23,8 +23,11 @@ services:
     restart: always
     expose:
       - 2181
-    ports:
-      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/commands/stat"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   nacos:
     image: nacos/nacos-server:v2.2.3
@@ -35,10 +38,11 @@ services:
       - 8848
       - 9848
       - 9849
-    ports:
-      - "8848:8848"
-      - "9848:9848"
-      - "9849:9849"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   admin:
     image: shenyu/admin:latest
@@ -48,7 +52,11 @@ services:
       - "9095:9095"
     depends_on:
       zookeeper:
-        condition: service_started
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
@@ -70,7 +78,7 @@ services:
       - shenyu.register.serverLists=http://admin:9095
       - com.alipay.sofa.rpc.registry-address=zookeeper://zookeeper:2181
     healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://localhost:28011/sofa/findAll | grep UP || exit 1" ]
+      test: ["CMD", "nc", "-z", "localhost", "28011"]
       timeout: 2s
       retries: 3
       start_period: 5s
@@ -91,7 +99,7 @@ services:
     ports:
       - "9195:9195"
     depends_on:
-      admin:
+      sofa:
         condition: service_healthy
     volumes:
       - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
