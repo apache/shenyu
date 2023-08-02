@@ -74,9 +74,8 @@ public class ShenyuLoaderService {
             List<ShenyuLoaderResult> extendPlugins = new ArrayList<>();
             for (PluginJarParser.PluginJar extPath : uploadPluginJars) {
                 LOG.info("shenyu extPlugin find new {} to load", extPath.getAbsolutePath());
-                try (ShenyuPluginClassLoader extPathClassLoader = ShenyuPluginClassloaderHolder.getSingleton().createExtPathClassLoader(extPath)) {
-                    extendPlugins.addAll(extPathClassLoader.loadUploadedJarPlugins());
-                }
+                ShenyuPluginClassLoader extPathClassLoader = ShenyuPluginClassloaderHolder.getSingleton().createExtPathClassLoader(extPath);
+                extendPlugins.addAll(extPathClassLoader.loadUploadedJarPlugins());
             }
             loaderPlugins(extendPlugins);
         } catch (Exception e) {

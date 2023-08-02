@@ -96,6 +96,7 @@ public abstract class AbstractReflectGetterSetterTest {
      * @throws Exception maybe throw reflect Exception.
      */
     @Test
+    @SuppressWarnings("all")
     public void testGetAndSet() throws Exception {
         Class<?> clazz = getTargetClass();
         Object target = clazz.getDeclaredConstructor().newInstance();
@@ -113,7 +114,7 @@ public abstract class AbstractReflectGetterSetterTest {
                     try {
                         // get the get and set methods of the field by PropertyDescriptor
                         // (String) f.getName() for java11 (can not find com.sun.beans.introspect.PropertyInfo class)
-                        PropertyDescriptor property = new PropertyDescriptor(f.getName(), clazz);
+                        PropertyDescriptor property = new PropertyDescriptor((String) f.getName(), clazz);
                         Method getter = property.getReadMethod();
                         Method setter = property.getWriteMethod();
 
