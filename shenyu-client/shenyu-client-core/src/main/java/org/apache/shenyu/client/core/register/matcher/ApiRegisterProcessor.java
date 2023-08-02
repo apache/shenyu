@@ -15,39 +15,42 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.apache.dubbo.processor.extractor;
+package org.apache.shenyu.client.core.register.matcher;
 
 import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.client.core.register.matcher.ApiAnnotationProcessor;
-import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.ListUtil;
-import org.springframework.stereotype.Service;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.util.List;
 
 /**
- * ServiceProcessor.
+ * ApiProcessor.<br>
+ * API bean processor.
  */
-public class ServiceProcessor implements ApiAnnotationProcessor<Service>, ExtractorProcessor {
+public interface ApiRegisterProcessor extends Matcher<ApiBean> {
     
-    @Override
-    public List<String> supportedClient() {
-        return ListUtil.of(RpcTypeEnum.DUBBO.getName());
+    /**
+     * process.
+     *
+     * @param apiBean apiBean
+     */
+    void process(ApiBean apiBean);
+    
+    /**
+     * Determines the order in which processors are executed.
+     *
+     * @return order
+     */
+    default int order() {
+        return Integer.MAX_VALUE;
     }
     
-    @Override
-    public void process(final ApiBean apiBean, final Service annotation) {
-        apiBean.setBeanPath(annotation.value());
-    }
-    
-    @Override
-    public void process(final ApiBean.ApiDefinition definition, final Service annotation) {
-        // nothing
-    }
-    
-    @Override
-    public Class<Service> matchAnnotation() {
-        return Service.class;
+    /**
+     * registerDataType.
+     *
+     * @return class type
+     */
+    default List<Class<?>> supportedRegisterDataType() {
+        return ListUtil.of(DataTypeParent.class);
     }
 }
