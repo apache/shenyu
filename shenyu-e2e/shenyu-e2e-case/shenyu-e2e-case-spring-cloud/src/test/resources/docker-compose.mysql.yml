@@ -63,6 +63,10 @@ services:
     depends_on:
       springcloud:
         condition: service_healthy
+      nacos:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
@@ -92,12 +96,6 @@ services:
       - "8884:8884"
     depends_on:
       eureka:
-        condition: service_healthy
-      mysql:
-        condition: service_healthy
-      nacos:
-        condition: service_healthy
-      zookeeper:
         condition: service_healthy
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://springcloud:8884/actuator/health | grep UP || exit 1" ]
