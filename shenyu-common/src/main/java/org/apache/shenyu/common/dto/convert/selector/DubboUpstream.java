@@ -257,7 +257,7 @@ public final class DubboUpstream extends CommonUpstream {
 
     @Override
     public int hashCode() {
-        return Objects.hash(registry, appName, port, gray, weight, warmup, group, version);
+        return Objects.hash(registry, appName, port, gray, group, version);
     }
 
     @Override
