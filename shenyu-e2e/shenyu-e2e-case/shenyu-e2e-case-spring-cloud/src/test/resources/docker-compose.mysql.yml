@@ -19,7 +19,7 @@ version: '2.3'
 
 services:
   zookeeper:
-    image: zookeeper:3.5
+    image: zookeeper:3.8.0
     restart: always
     expose:
       - 2181
@@ -57,10 +57,14 @@ services:
       - spring.datasource.url=jdbc:mysql://mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://admin:9095/actuator/health | grep UP || exit 1" ]
-      timeout: 2s
+      timeout: 5s
       retries: 3
       start_period: 5s
     depends_on:
+      nacos:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
       springcloud:
         condition: service_healthy
     volumes:
@@ -76,7 +80,7 @@ services:
       - "8761:8761"
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://eureka:8761/actuator/health | grep UP || exit 1" ]
-      timeout: 2s
+      timeout: 5s
       retries: 3
       start_period: 5s
 
@@ -93,16 +97,10 @@ services:
     depends_on:
       eureka:
         condition: service_healthy
-      mysql:
-        condition: service_healthy
-      nacos:
-        condition: service_healthy
-      zookeeper:
-        condition: service_healthy
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://springcloud:8884/actuator/health | grep UP || exit 1" ]
-      timeout: 2s
-      retries: 5
+      timeout: 5s
+      retries: 3
       start_period: 8s
 
   gateway:
@@ -116,6 +114,8 @@ services:
     depends_on:
       admin:
         condition: service_healthy
+      springcloud:
+        condition: service_healthy
     volumes:
       - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
 
@@ -127,7 +127,7 @@ services:
       - MYSQL_PASSWORD=123456
     healthcheck:
       test: "/usr/bin/mysql --user=root --password=123123 --execute \"SHOW DATABASES;\""
-      interval: 2s
+      interval: 5s
       timeout: 20s
       retries: 10
     volumes:
