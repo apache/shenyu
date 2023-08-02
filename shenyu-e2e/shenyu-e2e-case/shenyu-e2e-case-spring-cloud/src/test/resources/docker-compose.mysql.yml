@@ -81,8 +81,8 @@ services:
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://eureka:8761/actuator/health | grep UP || exit 1" ]
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 5
+      start_period: 20s
 
   springcloud:
     image: shenyu-examples-springcloud:latest
