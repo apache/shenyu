@@ -44,6 +44,19 @@ services:
       timeout: 5s
       retries: 3
 
+  eureka:
+    image: shenyu-examples-eureka:latest
+    restart: always
+    expose:
+      - 8761
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://eureka:8761/actuator/health | grep UP || exit 1" ]
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   admin:
     image: shenyu/admin:latest
     expose:
@@ -68,19 +81,6 @@ services:
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
-
-  eureka:
-    image: shenyu-examples-eureka:latest
-    restart: always
-    expose:
-      - 8761
-    ports:
-      - "8761:8761"
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://eureka:8761/actuator/health | grep UP || exit 1" ]
-      timeout: 5s
-      retries: 5
-      start_period: 20s
 
   springcloud:
     image: shenyu-examples-springcloud:latest
@@ -111,8 +111,6 @@ services:
       - "9195:9195"
     depends_on:
       admin:
-        condition: service_healthy
-      springcloud:
         condition: service_healthy
     volumes:
       - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
