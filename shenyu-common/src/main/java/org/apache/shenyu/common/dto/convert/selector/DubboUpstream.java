@@ -246,8 +246,6 @@ public final class DubboUpstream extends CommonUpstream {
         }
         DubboUpstream that = (DubboUpstream) o;
         return port == that.port
-                && weight == that.weight
-                && warmup == that.warmup
                 && Objects.equals(registry, that.registry)
                 && Objects.equals(appName, that.appName)
                 && Objects.equals(this.getProtocol(), that.getProtocol())
@@ -259,7 +257,7 @@ public final class DubboUpstream extends CommonUpstream {
 
     @Override
     public int hashCode() {
-        return Objects.hash(registry, appName, port, gray, weight, warmup, group, version);
+        return Objects.hash(registry, appName, port, gray, group, version);
     }
 
     @Override
