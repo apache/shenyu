@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +41,11 @@ public class MateDataApiRegistrarImplImpl extends BaseApiRegistrarImpl {
     }
     
     @Override
+    public Class<?> registerDataType() {
+        return MetaDataRegisterDTO.class;
+    }
+    
+    @Override
     protected void doRegisterApi(final ApiBean.ApiDefinition api) {
         final MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder()
                 .contextPath(clientRegisterConfig.getContextPath())
@@ -54,7 +58,7 @@ public class MateDataApiRegistrarImplImpl extends BaseApiRegistrarImpl {
                 .path(buildPath(api))
                 .pathDesc(buildDesc(api))
                 .parameterTypes(buildParameterTypes(api))
-                .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
+                .rpcType(api.getApiBean().getClientName())
                 .enabled(getEnable(api))
                 .ruleName(buildRule(api))
                 .build();
@@ -75,7 +79,7 @@ public class MateDataApiRegistrarImplImpl extends BaseApiRegistrarImpl {
                 .path(buildPath(apiBean))
                 .pathDesc(buildDesc(apiBean))
                 .parameterTypes(buildParameterTypes(apiBean))
-                .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
+                .rpcType(apiBean.getClientName())
                 .enabled(getEnable(apiBean))
                 .ruleName(buildRule(apiBean))
                 .build();

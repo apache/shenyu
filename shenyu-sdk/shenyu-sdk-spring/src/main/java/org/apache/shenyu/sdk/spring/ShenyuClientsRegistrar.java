@@ -64,13 +64,13 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     private ResourceLoader resourceLoader;
 
     private Environment environment;
-    
+
     /**
      * Instantiates a new Shenyu clients registrar.
      */
     ShenyuClientsRegistrar() {
     }
-    
+
     /**
      * Validate fallback.
      *
@@ -79,7 +79,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     static void validateFallback(final Class clazz) {
         Assert.isTrue(!clazz.isInterface(), "Fallback class must implement the interface annotated by @ShenyuClient");
     }
-    
+
     /**
      * Validate fallback factory.
      *
@@ -99,7 +99,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     public void registerBeanDefinitions(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
         registerShenyuClients(metadata, registry);
     }
-    
+
     /**
      * Register shenyu clients.
      *
@@ -202,8 +202,8 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
             if (beanFactory == null) {
                 return this.environment.resolvePlaceholders(value);
             }
-            BeanExpressionResolver resolver = beanFactory.getBeanExpressionResolver();
             String resolved = beanFactory.resolveEmbeddedValue(value);
+            BeanExpressionResolver resolver = beanFactory.getBeanExpressionResolver();
             if (resolver == null) {
                 return resolved;
             }
@@ -215,7 +215,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         }
         return value;
     }
-    
+
     /**
      * Gets scanner.
      *
@@ -235,7 +235,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
             }
         };
     }
-    
+
     /**
      * Gets base packages.
      *
@@ -293,7 +293,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     public void setEnvironment(final Environment environment) {
         this.environment = environment;
     }
-    
+
     /**
      * Gets name.
      *
@@ -320,7 +320,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         Assert.state(host != null, "Service id not legal hostname (" + name + ")");
         return name;
     }
-    
+
     /**
      * Gets name.
      *
@@ -330,7 +330,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     String getName(final Map<String, Object> attributes) {
         return getName(null, attributes);
     }
-    
+
     /**
      * Gets name.
      *
@@ -346,7 +346,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         name = resolve(beanFactory, name);
         return getName(name);
     }
-    
+
     /**
      * Gets url.
      *
@@ -383,7 +383,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         String path = resolve(beanFactory, (String) attributes.get("path"));
         return getPath(path);
     }
-    
+
     /**
      * Gets path.
      *

@@ -28,7 +28,7 @@
     <artifactId>shenyu-examples-sdk-grpc-provider</artifactId>
 
     <properties>
-        <grpc.version>1.33.1</grpc.version>
+        <grpc.version>1.48.0</grpc.version>
     </properties>
 
     <dependencies>
@@ -36,13 +36,6 @@
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-examples-grpc</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-all</artifactId>
-            <version>${grpc.version}</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 

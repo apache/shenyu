@@ -22,7 +22,6 @@ import io.grpc.ConnectivityState;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
 import io.grpc.ManagedChannel;
-import io.grpc.NameResolver;
 import javax.annotation.Nonnull;
 import java.net.SocketAddress;
 import java.util.Collections;
@@ -37,11 +36,6 @@ public class UnitTestIdleHelper extends LoadBalancer.Helper {
     @Override
     public void updateBalancingState(@Nonnull final ConnectivityState newState, @Nonnull final LoadBalancer.SubchannelPicker newPicker) {
 
-    }
-
-    @Override
-    public NameResolver.Factory getNameResolverFactory() {
-        return null;
     }
 
     @Override

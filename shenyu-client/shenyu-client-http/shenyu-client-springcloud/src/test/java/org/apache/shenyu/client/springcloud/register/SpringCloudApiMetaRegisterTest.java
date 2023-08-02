@@ -43,7 +43,7 @@ public class SpringCloudApiMetaRegisterTest {
     
     private SpringCloudApiMetaRegister springCloudApiMetaRegister;
     
-    private final SpringCloudApiBeansExtractor beansExtractor = new SpringCloudApiBeansExtractor();
+    private final SpringCloudApiBeansExtractor beansExtractor = SpringCloudApiBeansExtractor.buildDefaultSpringCloudApiBeansExtractor();
     
     @BeforeEach
     public void init() {

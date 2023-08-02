@@ -24,6 +24,7 @@ import io.grpc.NameResolverRegistry;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.plugin.GrpcRegisterConfig;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -34,6 +35,7 @@ import org.apache.shenyu.plugin.grpc.loadbalance.RoundRobinLoadBalancerProvider;
 import org.apache.shenyu.plugin.grpc.resolver.ShenyuNameResolverProvider;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
+import java.net.URI;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
@@ -58,7 +60,8 @@ public final class GrpcClientBuilder {
      * @return ShenyuGrpcClient  shenyuGrpcClient
      */
     public static ShenyuGrpcClient buildClient(final String contextPath) {
-        ManagedChannelBuilder<?> builder = ManagedChannelBuilder.forTarget(contextPath)
+        URI url = URI.create(PluginEnum.GRPC.getName() + "://" + contextPath);
+        ManagedChannelBuilder<?> builder = ManagedChannelBuilder.forTarget(url.toString())
                 .intercept(new ContextClientInterceptor())
                 .defaultLoadBalancingPolicy(LoadBalancerStrategy.RANDOM.getStrategy())
                 .usePlaintext()
