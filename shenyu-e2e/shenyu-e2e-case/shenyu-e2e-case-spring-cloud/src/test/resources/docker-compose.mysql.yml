@@ -65,8 +65,6 @@ services:
         condition: service_healthy
       zookeeper:
         condition: service_healthy
-      springcloud:
-        condition: service_healthy
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
