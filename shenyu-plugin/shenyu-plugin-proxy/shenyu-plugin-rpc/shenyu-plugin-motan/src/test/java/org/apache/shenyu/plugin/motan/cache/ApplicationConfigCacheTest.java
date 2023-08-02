@@ -77,7 +77,7 @@ public final class ApplicationConfigCacheTest {
     @Test
     public void testApplicationConfigCache() throws NoSuchFieldException, IllegalAccessException {
         ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
-        Assertions.assertEquals(ApplicationConfigCache.getInstance().getClass(), ApplicationConfigCache.class);
+        Assertions.assertEquals(applicationConfigCache.getInstance().getClass(), ApplicationConfigCache.class);
         PluginData pluginData = new PluginData();
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"register\" : \"localhost:2181\"}");
