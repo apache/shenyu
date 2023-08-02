@@ -241,11 +241,17 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public SelectorDO findByName(final String name) {
+        List<SelectorDO> doList = selectorMapper.selectByName(name);
+        return CollectionUtils.isNotEmpty(doList) ? doList.get(0) : null;
+    }
+
+    @Override
+    public List<SelectorDO> findListByName(final String name) {
         return selectorMapper.selectByName(name);
     }
 
     /**
-     * Find by name and plugin id selector do.
+     * Find selectorDO by name and plugin name.
      *
      * @param name       the name
      * @param pluginName the plugin name
@@ -258,8 +264,21 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
+    public List<SelectorDO> findByNameAndPluginNames(final String name, final List<String> pluginNames) {
+        final List<PluginDO> pluginDOList = pluginMapper.selectByNames(pluginNames);
+        if (CollectionUtils.isEmpty(pluginDOList)) {
+            return Lists.newArrayList();
+        }
+        List<String> pluginIds = pluginDOList.stream().map(it -> it.getId()).collect(Collectors.toList());
+        SelectorQuery selectorQuery = new SelectorQuery();
+        selectorQuery.setName(name);
+        selectorQuery.setPluginIds(pluginIds);
+        return selectorMapper.selectByQuery(selectorQuery);
+    }
+
+    @Override
     public SelectorData buildByName(final String name) {
-        return buildSelectorData(selectorMapper.selectByName(name));
+        return buildSelectorData(this.findByName(name));
     }
 
     /**

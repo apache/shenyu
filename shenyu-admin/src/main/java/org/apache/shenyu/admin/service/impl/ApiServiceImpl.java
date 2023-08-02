@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
@@ -27,6 +28,7 @@ import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -39,6 +41,7 @@ import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.common.enums.ApiSourceEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.service.MetaDataService;
@@ -125,7 +128,7 @@ public class ApiServiceImpl implements ApiService {
             if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
                 register(apiDO);
             } else if (ApiStateEnum.OFFLINE.getState() == apiDO.getState()) {
-                unregister(apiDO);
+                removeRegister(apiDO);
             }
         }
         return ShenyuResultMessage.UPDATE_SUCCESS;
@@ -156,14 +159,12 @@ public class ApiServiceImpl implements ApiService {
             }
             if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
                 register(apiDO);
-            } else if (ApiStateEnum.OFFLINE.getState() == apiDO.getState()) {
-                unregister(apiDO);
             }
         }
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
 
-    private void unregister(final ApiDO apiDO) {
+    private void removeRegister(final ApiDO apiDO) {
         final String path = apiDO.getApiPath();
         RuleQueryCondition condition = new RuleQueryCondition();
         condition.setKeyword(path);
@@ -176,14 +177,18 @@ public class ApiServiceImpl implements ApiService {
                     .collect(Collectors.toList()));
         }
         //clean selector
-        Optional.ofNullable(selectorService.findByName(apiDO.getContextPath()))
-                .ifPresent(selectorDO -> {
-                    final String selectorId = selectorDO.getId();
-                    final List<RuleData> data = ruleService.findBySelectorId(selectorId);
-                    if (CollectionUtils.isEmpty(data)) {
-                        selectorService.delete(Lists.newArrayList(selectorId));
-                    }
-                });
+        List<SelectorDO> selectorDOList = selectorService.findByNameAndPluginNames(apiDO.getContextPath(), PluginEnum.getUpstreamNames());
+        ArrayList<String> selectorIds = Lists.newArrayList();
+        Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new).stream().forEach(selectorDO -> {
+            final String selectorId = selectorDO.getId();
+            final List<RuleData> data = ruleService.findBySelectorId(selectorId);
+            if (CollectionUtils.isEmpty(data)) {
+                selectorIds.add(selectorId);
+            }
+        });
+        if (CollectionUtils.isNotEmpty(selectorIds)) {
+            selectorService.delete(selectorIds);
+        }
         //clean metadata
         Optional.ofNullable(metaDataService.findByPath(path))
                 .ifPresent(metaDataDO -> metaDataService.delete(Lists.newArrayList(metaDataDO.getId())));
