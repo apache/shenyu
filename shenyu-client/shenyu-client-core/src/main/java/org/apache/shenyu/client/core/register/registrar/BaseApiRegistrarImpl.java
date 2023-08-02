@@ -18,7 +18,7 @@
 package org.apache.shenyu.client.core.register.registrar;
 
 import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.client.core.register.matcher.ApiProcessor;
+import org.apache.shenyu.client.core.register.matcher.ApiRegisterProcessor;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.util.ArrayList;
@@ -30,11 +30,11 @@ import java.util.List;
  */
 public abstract class BaseApiRegistrarImpl implements ApiRegistrar, InitializingBean {
     
-    private final List<ApiProcessor> processors = new ArrayList<>();
+    private final List<ApiRegisterProcessor> processors = new ArrayList<>();
     
     @Override
     public void afterPropertiesSet() {
-        processors.sort(Comparator.comparingInt(ApiProcessor::order));
+        processors.sort(Comparator.comparingInt(ApiRegisterProcessor::order));
     }
     
     /**
@@ -42,16 +42,16 @@ public abstract class BaseApiRegistrarImpl implements ApiRegistrar, Initializing
      *
      * @param processor processor
      */
-    public void addApiProcessor(final ApiProcessor processor) {
+    public void addApiProcessor(final ApiRegisterProcessor processor) {
         if (supportedType(processor)) {
             processors.add(processor);
-            processors.sort(Comparator.comparingInt(ApiProcessor::order));
+            processors.sort(Comparator.comparingInt(ApiRegisterProcessor::order));
         }
     }
     
     @Override
     public void register(final ApiBean apiBean) {
-        for (ApiProcessor processor : processors) {
+        for (ApiRegisterProcessor processor : processors) {
             processor.process(apiBean);
         }
         if (ApiBean.Status.INIT.equals(apiBean.getStatus())) {
@@ -81,7 +81,7 @@ public abstract class BaseApiRegistrarImpl implements ApiRegistrar, Initializing
         }
     }
     
-    private boolean supportedType(final ApiProcessor processor) {
+    private boolean supportedType(final ApiRegisterProcessor processor) {
         for (Class<?> type : processor.supportedRegisterDataType()) {
             if (type.isAssignableFrom(registerDataType())) {
                 return true;
