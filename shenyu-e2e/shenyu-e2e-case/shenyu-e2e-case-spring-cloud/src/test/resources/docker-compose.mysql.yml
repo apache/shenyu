@@ -124,7 +124,8 @@ services:
     healthcheck:
       test: "/usr/bin/mysql --user=root --password=123123 --execute \"SHOW DATABASES;\""
       interval: 5s
-      timeout: 20s
+      timeout: 40s
       retries: 10
+      start_period: 40s
     volumes:
       - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
