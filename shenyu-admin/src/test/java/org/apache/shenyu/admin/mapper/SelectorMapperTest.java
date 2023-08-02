@@ -114,10 +114,10 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         SelectorDO selectorDO = buildSelectorDO();
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
-
-        SelectorDO selector = selectorMapper.selectByName(selectorDO.getName());
-        assertNotNull(selector);
-        assertEquals(selectorDO.getName(), selector.getName());
+        List<SelectorDO> doList = selectorMapper.selectByName(selectorDO.getName());
+        assertEquals(doList.size(), 1);
+        assertNotNull(doList.get(0));
+        assertEquals(selectorDO.getName(), doList.get(0).getName());
 
         int delete = selectorMapper.delete(selectorDO.getId());
         assertEquals(1, delete);
