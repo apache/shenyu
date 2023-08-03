@@ -54,11 +54,11 @@ services:
       - "9095:9095"
     depends_on:
       zookeeper:
-        condition: service_completed_successfully
+        condition: service_started
       nacos:
-        condition: service_completed_successfully
+        condition: service_started
       mysql:
-        condition: service_completed_successfully
+        condition: service_started
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar

@@ -54,11 +54,11 @@ services:
       - "9095:9095"
     depends_on:
       mysql:
-        condition: service_completed_successfully
+        condition: service_started
       nacos:
-        condition: service_completed_successfully
+        condition: service_started
       zookeeper:
-        condition: service_completed_successfully
+        condition: service_started
     environment:
       - SPRING_PROFILES_ACTIVE=mysql
       - spring.datasource.username=shenyue2e
