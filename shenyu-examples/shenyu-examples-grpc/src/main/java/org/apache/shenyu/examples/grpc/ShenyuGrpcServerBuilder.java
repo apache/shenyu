@@ -19,6 +19,7 @@ package org.apache.shenyu.examples.grpc;
 
 import io.grpc.ServerBuilder;
 import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,8 +28,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class ShenyuGrpcServerBuilder implements GrpcServerBuilder {
 
+    @Value("${shenyu.client.grpc.props.port}")
+    private Integer port;
+
     @Override
     public ServerBuilder<?> buildServerBuilder() {
-        return ServerBuilder.forPort(38080);
+        return ServerBuilder.forPort(port);
     }
 }

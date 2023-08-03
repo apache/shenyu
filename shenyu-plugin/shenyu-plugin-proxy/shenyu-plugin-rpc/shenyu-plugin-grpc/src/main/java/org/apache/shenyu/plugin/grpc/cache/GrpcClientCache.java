@@ -48,10 +48,10 @@ public final class GrpcClientCache {
     /**
      * Init client.
      *
-     * @param contextPath contextPath
+     * @param selectorId selectorId
      */
-    public static void initGrpcClient(final String contextPath) {
-        MapUtils.computeIfAbsent(CLIENT_CACHE, contextPath, s -> GrpcClientBuilder.buildClient(contextPath));
+    public static void initGrpcClient(final String selectorId) {
+        MapUtils.computeIfAbsent(CLIENT_CACHE, selectorId, s -> GrpcClientBuilder.buildClient(selectorId));
     }
     
     /**

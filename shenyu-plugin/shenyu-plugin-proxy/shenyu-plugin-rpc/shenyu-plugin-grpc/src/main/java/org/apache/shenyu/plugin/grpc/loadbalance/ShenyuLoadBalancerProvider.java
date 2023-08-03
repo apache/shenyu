@@ -15,37 +15,42 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.grpc.resolver;
+package org.apache.shenyu.plugin.grpc.loadbalance;
 
-import io.grpc.NameResolver;
-import io.grpc.NameResolverProvider;
-import io.grpc.internal.GrpcUtil;
-import org.apache.shenyu.common.enums.PluginEnum;
+import io.grpc.LoadBalancer;
+import io.grpc.LoadBalancerProvider;
+import org.apache.shenyu.plugin.grpc.loadbalance.picker.AbstractReadyPicker;
+import org.apache.shenyu.plugin.grpc.loadbalance.picker.ShenyuPicker;
 
-import java.net.URI;
+import java.util.List;
 
 /**
- * ShenyuNameResolverProvider.
+ * ShenyuLoadBalancerProvider.
  */
-public class ShenyuNameResolverProvider extends NameResolverProvider {
+public class ShenyuLoadBalancerProvider extends LoadBalancerProvider {
 
     @Override
-    public NameResolver newNameResolver(final URI targetUri, final NameResolver.Args args) {
-        return new ShenyuNameResolver(targetUri.getHost(), args, GrpcUtil.SHARED_CHANNEL_EXECUTOR);
-    }
-
-    @Override
-    protected boolean isAvailable() {
+    public boolean isAvailable() {
         return true;
     }
 
     @Override
-    protected int priority() {
+    public int getPriority() {
         return 6;
     }
 
     @Override
-    public String getDefaultScheme() {
-        return PluginEnum.GRPC.getName();
+    public String getPolicyName() {
+        return LoadBalancerStrategy.SHENYU.getStrategy();
+    }
+
+    @Override
+    public LoadBalancer newLoadBalancer(final LoadBalancer.Helper helper) {
+        return new AbstractLoadBalancer(helper) {
+            @Override
+            protected AbstractReadyPicker newPicker(final List<Subchannel> list) {
+                return new ShenyuPicker(list);
+            }
+        };
     }
 }

@@ -15,38 +15,38 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.grpc.loadbalance;
+package org.apache.shenyu.plugin.grpc.context;
+
+import io.grpc.Context;
 
 /**
- * LoadBalancerStrategy.
+ * GrpcConstants.
  */
-public enum LoadBalancerStrategy {
+public interface GrpcConstants {
 
     /**
-     * Random load balancer strategy.
+     * grpc gray release selector id.
      */
-    RANDOM("random"),
-    /**
-     * Round robin load balancer strategy.
-     */
-    ROUND_ROBIN("round-robin"),
-    /**
-     * Shenyu load balancer strategy.
-     */
-    SHENYU("SHENYU");
-
-    private final String strategy;
-
-    LoadBalancerStrategy(final String strategy) {
-        this.strategy = strategy;
-    }
+    Context.Key<String> GRPC_SELECTOR_ID = Context.key("grpcSelectorId");
 
     /**
-     * Gets strategy.
-     *
-     * @return the strategy
+     * grpc gray release rule id.
      */
-    public String getStrategy() {
-        return strategy;
+    Context.Key<String> GRPC_RULE_ID = Context.key("grpcRuleId");
+
+    /**
+     * grpc remote address.
+     */
+    Context.Key<String> GRPC_REMOTE_ADDRESS = Context.key("grpcRemoteAddress");
+
+    /**
+     * selectorCachedHandle.
+     */
+    Context.Key<String> SELECTOR_CACHED_HANDLE = Context.key("selectorCachedHandle");
+
+    /**
+     * GrpcConstants.
+     */
+    default void findGrpcConstants() {
     }
 }
