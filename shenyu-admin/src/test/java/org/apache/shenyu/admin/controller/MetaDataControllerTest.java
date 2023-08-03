@@ -101,8 +101,8 @@ public final class MetaDataControllerTest {
         given(this.metaDataService.listByPage(metaDataQuery)).willReturn(commonPager);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/queryList")
                 .param("path", "path")
-                .param("currentPage", pageParameter.getCurrentPage() + "")
-                .param("pageSize", pageParameter.getPageSize() + ""))
+                .param("currentPage", String.valueOf(pageParameter.getCurrentPage()))
+                .param("pageSize", String.valueOf(pageParameter.getPageSize())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].appName", is(metaDataVO.getAppName())))
