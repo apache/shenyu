@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.sofa;
+package org.apache.shenyu.e2e.testcase.alibabadubbo;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
-import org.apache.shenyu.e2e.engine.annotation.ShenYuTest.Parameter;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
 import org.apache.shenyu.e2e.model.data.MetaData;
 import org.apache.shenyu.e2e.model.data.RuleCacheData;
@@ -32,7 +31,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 /**
- * Testing the correctness of Nacos data synchronization method.
+ * Testing the correctness of Http data synchronization method.
  */
 @ShenYuTest(
         mode = ShenYuEngineConfigure.Mode.DOCKER,
@@ -42,9 +41,9 @@ import java.util.List;
                         port = 9095,
                         baseUrl = "http://{hostname:localhost}:9095",
                         parameters = {
-                                @Parameter(key = "username", value = "admin"),
-                                @Parameter(key = "password", value = "123456"),
-                                @Parameter(key = "dataSyn", value = "nacos")
+                                @ShenYuTest.Parameter(key = "username", value = "admin"),
+                                @ShenYuTest.Parameter(key = "password", value = "123456"),
+                                @ShenYuTest.Parameter(key = "dataSyn", value = "admin_http")
                         }
                 ),
                 @ShenYuTest.ServiceConfigure(
@@ -53,13 +52,13 @@ import java.util.List;
                         baseUrl = "http://{hostname:localhost}:9195",
                         type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
                         parameters = {
-                                @Parameter(key = "dataSyn", value = "nacos")
+                                @ShenYuTest.Parameter(key = "dataSyn", value = "gateway_http")
                         }
                 )
         },
         dockerComposeFile = "classpath:./docker-compose.mysql.yml"
 )
-public class DataSynNacosTest {
+public class DataSynHttpTest {
 
     @Test
     void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
@@ -69,7 +68,7 @@ public class DataSynNacosTest {
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
         Assertions.assertEquals(1, selectorCacheList.size());
-        Assertions.assertEquals(12, metaDataCacheList.size());
-        Assertions.assertEquals(12, ruleCacheList.size());
+        Assertions.assertEquals(25, metaDataCacheList.size());
+        Assertions.assertEquals(25, ruleCacheList.size());
     }
 }

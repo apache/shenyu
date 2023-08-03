@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.sofa;
+package org.apache.shenyu.e2e.testcase.alibabadubbo;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
@@ -69,7 +69,7 @@ public class DataSynNacosTest {
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
         Assertions.assertEquals(1, selectorCacheList.size());
-        Assertions.assertEquals(12, metaDataCacheList.size());
-        Assertions.assertEquals(12, ruleCacheList.size());
+        Assertions.assertEquals(25, metaDataCacheList.size());
+        Assertions.assertEquals(25, ruleCacheList.size());
     }
 }
