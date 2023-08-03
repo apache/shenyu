@@ -26,7 +26,7 @@ import java.util.Objects;
  * BaseAnnotationApiProcessor.<br>
  * API processor that supports annotations.
  */
-public abstract class BaseAnnotationApiProcessor<T extends Annotation> implements ApiAnnotationProcessor<T>, ApiProcessor {
+public abstract class BaseAnnotationApiProcessor<T extends Annotation> implements ApiAnnotationProcessor<T>, ApiRegisterProcessor {
     
     @Override
     public void process(final ApiBean apiBean) {
