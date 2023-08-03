@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.core.register.extractor;
 
 import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +42,8 @@ import java.util.stream.Collectors;
 public abstract class BaseApiBeansExtractor implements RpcApiBeansExtractor {
     
     protected static final Logger LOG = LoggerFactory.getLogger(BaseApiBeansExtractor.class);
+    
+    private final List<ExtractorProcessor> extractorProcessors = new ArrayList<>(5);
     
     @Override
     public List<ApiBean> extract(final ApplicationContext applicationContext) {
@@ -85,6 +89,9 @@ public abstract class BaseApiBeansExtractor implements RpcApiBeansExtractor {
      * @param api api
      */
     protected void apiPostProcess(final ApiBean api) {
+        for (ExtractorProcessor apiAnnotationProcessor : extractorProcessors) {
+            apiAnnotationProcessor.process(api);
+        }
         LOG.debug("[Shenyu Client] extract api info [{}]", api);
     }
     
@@ -140,6 +147,9 @@ public abstract class BaseApiBeansExtractor implements RpcApiBeansExtractor {
      * @param apiDefinition apiDefinition
      */
     protected void definitionPostProcess(final ApiBean.ApiDefinition apiDefinition) {
+        for (ExtractorProcessor apiAnnotationProcessor : extractorProcessors) {
+            apiAnnotationProcessor.process(apiDefinition);
+        }
         LOG.debug("[Shenyu Client] extract api definition info [{}]", apiDefinition);
     }
     
@@ -174,6 +184,20 @@ public abstract class BaseApiBeansExtractor implements RpcApiBeansExtractor {
     protected List<Method> extractSupportMethods(final Object bean, final ApplicationContext applicationContext) {
         return Arrays.stream(ReflectionUtils.getUniqueDeclaredMethods(bean.getClass()))
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * addExtractorProcessor.
+     *
+     * @param processor processor.
+     */
+    public void addExtractorProcessor(final ExtractorProcessor processor) {
+        if (CollectionUtils.isEmpty(processor.supportedClient())) {
+            return;
+        }
+        if (processor.supportedClient().contains(clientName())) {
+            extractorProcessors.add(processor);
+        }
     }
     
     /**
