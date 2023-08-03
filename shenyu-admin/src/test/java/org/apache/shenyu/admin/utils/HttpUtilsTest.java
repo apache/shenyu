@@ -37,7 +37,7 @@ public class HttpUtilsTest {
 
     private static final String ACTUAL_PARAM_URL = "http://127.0.0.1/?param-1=123&param-2=456";
 
-    private Map<String, Object> formMap = new HashMap<>();
+    private final Map<String, Object> formMap = new HashMap<>();
 
     {
         formMap.put("param-1", "123");

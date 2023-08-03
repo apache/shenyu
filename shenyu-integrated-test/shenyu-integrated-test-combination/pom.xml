@@ -133,22 +133,22 @@
         <dependency>
             <groupId>com.weibo</groupId>
             <artifactId>motan-core</artifactId>
-            <version>1.1.9</version>
+            <version>1.2.1</version>
         </dependency>
         <dependency>
             <groupId>com.weibo</groupId>
             <artifactId>motan-registry-zookeeper</artifactId>
-            <version>1.1.9</version>
+            <version>1.2.1</version>
         </dependency>
         <dependency>
             <groupId>com.weibo</groupId>
             <artifactId>motan-transport-netty4</artifactId>
-            <version>1.1.9</version>
+            <version>1.2.1</version>
         </dependency>
         <dependency>
             <groupId>com.weibo</groupId>
             <artifactId>motan-springsupport</artifactId>
-            <version>1.1.9</version>
+            <version>1.2.1</version>
         </dependency>
         <!-- apache shenyu motan plugin end-->
 

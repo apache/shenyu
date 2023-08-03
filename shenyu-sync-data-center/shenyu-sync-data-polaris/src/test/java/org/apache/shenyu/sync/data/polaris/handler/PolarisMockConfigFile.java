@@ -24,7 +24,7 @@ import java.lang.reflect.Type;
 
 public class PolarisMockConfigFile implements ConfigFile {
 
-    private String content;
+    private final String content;
 
     public PolarisMockConfigFile(final String content) {
         this.content = content;

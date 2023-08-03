@@ -19,8 +19,16 @@ version: '2.3'
 
 services:
   zookeeper:
-    image: zookeeper:3.8
+    image: zookeeper:3.8.0
     restart: always
+    expose:
+      - 2181
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/commands/stat"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   nacos:
     image: nacos/nacos-server:v2.2.3
@@ -31,10 +39,12 @@ services:
       - 8848
       - 9848
       - 9849
-    ports:
-      - "8848:8848"
-      - "9848:9848"
-      - "9849:9849"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   admin:
     image: shenyu/admin:latest
@@ -42,6 +52,13 @@ services:
       - 9095
     ports:
       - "9095:9095"
+    depends_on:
+      mysql:
+        condition: service_started
+      nacos:
+        condition: service_started
+      zookeeper:
+        condition: service_started
     environment:
       - SPRING_PROFILES_ACTIVE=mysql
       - spring.datasource.username=shenyue2e
@@ -54,7 +71,7 @@ services:
       test: [ "CMD-SHELL", "wget -q -O - http://admin:9095/actuator/health | grep UP || exit 1" ]
       timeout: 2s
       retries: 3
-      start_period: 5s
+      start_period: 10s
 
   dubbo:
     image: shenyu-examples-apache-dubbo-service:latest
@@ -102,5 +119,6 @@ services:
       interval: 3s
       timeout: 30s
       retries: 5
+      start_period: 60s
     volumes:
       - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql

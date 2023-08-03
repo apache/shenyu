@@ -72,7 +72,7 @@ public class ShenyuPostMappingTest {
 
         @ShenyuPostMapping(value = "/save", ruleName = "divide", enabled = false, desc = "it`s test.")
         public String save(@RequestBody final String body) {
-            return "" + body;
+            return body;
         }
         
     }

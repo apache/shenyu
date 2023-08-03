@@ -72,7 +72,7 @@ public class ShenyuDeleteMappingTest {
 
         @ShenyuDeleteMapping(value = "/{id}", ruleName = "divide", enabled = false, desc = "it`s test.")
         public String delete(@PathVariable final String id) {
-            return "" + id;
+            return id;
         }
     }
 }
