@@ -227,7 +227,7 @@ INSERT INTO "public"."plugin_handle"
 (id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
 VALUES('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{"required":"0","defaultValue":"5","rule":""}', '2023-07-12 13:19:47.000', '2023-07-12 13:23:33.253');
 
-UPDATE "public"."plugin" set config = '{"registerProtocol":"direct",registerAddress":"127.0.0.1:2181","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}' WHERE id = '17';
+UPDATE "public"."plugin" set config = '{"registerProtocol":"zk",registerAddress":"127.0.0.1:2181","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}' WHERE id = '17';
 UPDATE "public"."plugin_handle" set field = 'registerProtocol', label = 'registerProtocol', ext_obj = '{"required":"0","defaultValue":"direct","placeholder":"registerProtocol","rule":""}' where id = '1529403902783524879';
 UPDATE "public"."plugin_handle" set sort = 2 where id = '1529403902783524880';
 UPDATE "public"."plugin_handle" set sort = 3 where id = '1529403902783524881';
