@@ -23,7 +23,7 @@ import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.core.register.extractor.MultiClientApiBeansExtractorImpl;
 import org.apache.shenyu.client.core.register.extractor.RpcApiBeansExtractor;
 import org.apache.shenyu.client.core.register.matcher.ApiDocProcessorImpl;
-import org.apache.shenyu.client.core.register.matcher.ApiProcessor;
+import org.apache.shenyu.client.core.register.matcher.ApiRegisterProcessor;
 import org.apache.shenyu.client.core.register.registrar.ApiRegistrar;
 import org.apache.shenyu.client.core.register.registrar.MateDataApiRegistrarImplImpl;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -57,9 +57,9 @@ public class ClientRegisterConfiguration {
      * @return register
      */
     @Bean
-    public MateDataApiRegistrarImplImpl mateDataApiRegistrarImpl(final ClientRegisterConfig clientRegisterConfig, final List<ApiProcessor> processor) {
+    public MateDataApiRegistrarImplImpl mateDataApiRegistrarImpl(final ClientRegisterConfig clientRegisterConfig, final List<ApiRegisterProcessor> processor) {
         final MateDataApiRegistrarImplImpl apiRegistrarImpl = new MateDataApiRegistrarImplImpl(clientRegisterConfig);
-        for (ApiProcessor apiProcessor : processor) {
+        for (ApiRegisterProcessor apiProcessor : processor) {
             apiRegistrarImpl.addApiProcessor(apiProcessor);
         }
         return apiRegistrarImpl;
