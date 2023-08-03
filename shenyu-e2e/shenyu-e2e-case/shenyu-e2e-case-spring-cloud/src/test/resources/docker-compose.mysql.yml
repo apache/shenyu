@@ -44,7 +44,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 60s
+      start_period: 30s
 
   eureka:
     image: shenyu-examples-eureka:latest
@@ -76,10 +76,12 @@ services:
       retries: 3
       start_period: 20s
     depends_on:
+      mysql:
+        condition: service_completed_successfully
       nacos:
-        condition: service_started
+        condition: service_completed_successfully
       zookeeper:
-        condition: service_started
+        condition: service_completed_successfully
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
