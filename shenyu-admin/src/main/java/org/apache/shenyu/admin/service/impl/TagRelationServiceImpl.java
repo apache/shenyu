@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TagRelationServiceImpl implements TagRelationService {
 
-    private TagRelationMapper tagRelationMapper;
+    private final TagRelationMapper tagRelationMapper;
 
     public TagRelationServiceImpl(final TagRelationMapper tagRelationMapper) {
         this.tagRelationMapper = tagRelationMapper;

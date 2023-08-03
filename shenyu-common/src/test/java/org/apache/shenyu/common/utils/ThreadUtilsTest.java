@@ -51,6 +51,6 @@ public final class ThreadUtilsTest {
         doThrow(InterruptedException.class).when(timeUnit).sleep(1);
         ThreadUtils.sleep(timeUnit, 1);
         verify(timeUnit, times(1)).sleep(eq(1L));
-        assertTrue(Thread.currentThread().interrupted());
+        assertTrue(Thread.interrupted());
     }
 }

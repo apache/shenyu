@@ -19,7 +19,7 @@ version: '2.3'
 
 services:
   zookeeper:
-    image: zookeeper:3.5
+    image: zookeeper:3.8.0
     restart: always
     expose:
       - 2181
@@ -28,6 +28,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+      start_period: 40s
 
   nacos:
     image: nacos/nacos-server:v2.2.3
@@ -43,6 +44,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+      start_period: 30s
 
   admin:
     image: shenyu/admin:latest
@@ -52,11 +54,11 @@ services:
       - "9095:9095"
     depends_on:
       zookeeper:
-        condition: service_healthy
+        condition: service_started
       nacos:
-        condition: service_healthy
+        condition: service_started
       mysql:
-        condition: service_healthy
+        condition: service_started
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
@@ -69,7 +71,7 @@ services:
       test: [ "CMD-SHELL", "wget -q -O - http://admin:9095/actuator/health | grep UP || exit 1" ]
       timeout: 2s
       retries: 3
-      start_period: 5s
+      start_period: 10s
 
   sofa:
     image: shenyu-examples-sofa:latest
@@ -81,7 +83,7 @@ services:
       test: ["CMD", "nc", "-z", "localhost", "28011"]
       timeout: 2s
       retries: 3
-      start_period: 5s
+      start_period: 10s
     expose:
       - 28011
       - 8888
@@ -120,5 +122,6 @@ services:
       interval: 2s
       timeout: 20s
       retries: 10
+      start_period: 60s
     volumes:
       - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql

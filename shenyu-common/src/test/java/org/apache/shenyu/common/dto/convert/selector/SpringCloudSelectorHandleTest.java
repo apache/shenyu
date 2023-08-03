@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -34,7 +35,7 @@ public class SpringCloudSelectorHandleTest {
     @Test
     public void testBuilderAndGetterSetter() {
         SpringCloudSelectorHandle selectorHandle = SpringCloudSelectorHandle.builder().serviceId("serviceId")
-                .gray(true).divideUpstreams(Arrays.asList(new DivideUpstream())).build();
+                .gray(true).divideUpstreams(Collections.singletonList(new DivideUpstream())).build();
         
         selectorHandle.setServiceId("serviceId1");
         selectorHandle.setGray(false);

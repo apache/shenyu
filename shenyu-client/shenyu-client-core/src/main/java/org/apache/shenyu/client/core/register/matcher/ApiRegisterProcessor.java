@@ -15,25 +15,42 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.enums;
+package org.apache.shenyu.client.core.register.matcher;
+
+import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.common.utils.ListUtil;
+import org.apache.shenyu.register.common.type.DataTypeParent;
+
+import java.util.List;
 
 /**
- * Rule trie event enum.
+ * ApiProcessor.<br>
+ * API bean processor.
  */
-public enum TrieEventEnum {
-
+public interface ApiRegisterProcessor extends Matcher<ApiBean> {
+    
     /**
-     * Shenyu Trie insert event.
+     * process.
+     *
+     * @param apiBean apiBean
      */
-    INSERT,
-
+    void process(ApiBean apiBean);
+    
     /**
-     * Shenyu Trie update event.
+     * Determines the order in which processors are executed.
+     *
+     * @return order
      */
-    UPDATE,
-
+    default int order() {
+        return Integer.MAX_VALUE;
+    }
+    
     /**
-     * Shenyu Trie remove event.
+     * registerDataType.
+     *
+     * @return class type
      */
-    REMOVE
+    default List<Class<?>> supportedRegisterDataType() {
+        return ListUtil.of(DataTypeParent.class);
+    }
 }

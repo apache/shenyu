@@ -18,6 +18,7 @@
 package org.apache.shenyu.register.client.server.apollo;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,9 +60,9 @@ public class ApolloClientTest {
      */
     @Test
     public void testGetItemValue() {
-        when(apolloClient.getItemValue(Mockito.<String>any())).thenReturn("42");
+        when(apolloClient.getItemValue(Mockito.any())).thenReturn("42");
         assertEquals("42", apolloClient.getItemValue("Key"));
-        verify(apolloClient).getItemValue(Mockito.<String>any());
+        verify(apolloClient).getItemValue(Mockito.any());
     }
 
     /**
@@ -70,9 +71,9 @@ public class ApolloClientTest {
     @Test
     public void testCreateOrUpdateItem() {
         doNothing().when(apolloClient)
-                .createOrUpdateItem(Mockito.<String>any(), Mockito.<Object>any(), Mockito.<String>any());
+                .createOrUpdateItem(Mockito.any(), Mockito.<Object>any(), Mockito.any());
         apolloClient.createOrUpdateItem("Key", (Object) "Value", "Comment");
-        verify(apolloClient).createOrUpdateItem(Mockito.<String>any(), Mockito.<Object>any(), Mockito.<String>any());
+        verify(apolloClient).createOrUpdateItem(Mockito.any(), Mockito.<Object>any(), Mockito.any());
     }
 
     /**
@@ -84,7 +85,7 @@ public class ApolloClientTest {
         apolloClient.removeItem(keyToRemove);
         verify(apolloClient).removeItem(keyToRemove);
         apolloClient.getItemValue(keyToRemove);
-        assertEquals(apolloClient.getItemValue(keyToRemove), null);
+        assertNull(apolloClient.getItemValue(keyToRemove));
     }
 
     /**
@@ -92,9 +93,9 @@ public class ApolloClientTest {
      */
     @Test
     public void testPublishNamespace() {
-        doNothing().when(apolloClient).publishNamespace(Mockito.<String>any(), Mockito.<String>any());
+        doNothing().when(apolloClient).publishNamespace(Mockito.any(), Mockito.any());
         apolloClient.publishNamespace("Dr", "1.0.2");
-        verify(apolloClient).publishNamespace(Mockito.<String>any(), Mockito.<String>any());
+        verify(apolloClient).publishNamespace(Mockito.any(), Mockito.any());
     }
 }
 

@@ -69,6 +69,8 @@
 39. Add shenyu-spring-sdk test cases
 40. Add e2e sofa test cases
 41. Add apollo config sync test case
+42. Add database connection pool
+43. Add idea icon for shenyu project
 
 ### Refactor
 
@@ -124,6 +126,8 @@
 50. Add bootstrap start log
 51. Refactor api document for swagger
 52. Upgrade grpc version to 1.53.0
+53. Refactor api meta data process function
+54. polish master code and pom
 
 ### Bug Fix
 
@@ -180,6 +184,8 @@
 51. Fix websocket lost the user-defined clost status
 52. Fix consul register lose the prop of meta-path when special symbol
 53. Fix etcd sync error
+54. Fix admin sync error
+55. Fix shenyu motan plugin execute error
 
 ## 2.5.1
 

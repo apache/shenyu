@@ -317,7 +317,7 @@ public class SwaggerDocParser implements DocParser {
 
     private RefInfo getRefInfo(final JsonObject jsonObject) {
         JsonElement refElement;
-        boolean isArray = Objects.isNull(jsonObject.get("type")) ? false : "array".equals(jsonObject.get("type").getAsString());
+        boolean isArray = Objects.nonNull(jsonObject.get("type")) && "array".equals(jsonObject.get("type").getAsString());
         if (isArray) {
             refElement = jsonObject.getAsJsonObject("items").get("$ref");
         } else {

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.sync.data.zookeeper;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -226,7 +227,7 @@ public class ZookeeperClient implements AutoCloseable {
     public TreeCache addCache(final String path, final TreeCacheListener... listeners) {
         TreeCache cache = TreeCache.newBuilder(client, path).build();
         caches.put(path, cache);
-        if (listeners != null && listeners.length > 0) {
+        if (ArrayUtils.isNotEmpty(listeners)) {
             for (TreeCacheListener listener : listeners) {
                 cache.getListenable().addListener(listener);
             }
