@@ -31,7 +31,7 @@ import org.apache.shenyu.springboot.starter.client.motan.ShenyuMotanClientConfig
  * <P>Default motan service name is "motan2", If you want to inject other services,
  * please refer to {@link ShenyuMotanClientConfiguration}
  */
-@ShenyuMotanService(value = "/demo/**", export = "motan2:8002")
+@ShenyuMotanService(value = "/demo", export = "motan2:8002")
 @ApiModule("MotanDemoService")
 public class MotanDemoServiceImpl implements MotanDemoService {
 
@@ -52,6 +52,6 @@ public class MotanDemoServiceImpl implements MotanDemoService {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        return "hello timeout " + seconds + "s";
+        return "hello seconds " + seconds + "s";
     }
 }
