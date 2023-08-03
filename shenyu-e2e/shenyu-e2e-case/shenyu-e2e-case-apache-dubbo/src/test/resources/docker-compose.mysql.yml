@@ -28,6 +28,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+      start_period: 40s
 
   nacos:
     image: nacos/nacos-server:v2.2.3
@@ -43,6 +44,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+      start_period: 40s
 
   admin:
     image: shenyu/admin:latest
@@ -69,7 +71,7 @@ services:
       test: [ "CMD-SHELL", "wget -q -O - http://admin:9095/actuator/health | grep UP || exit 1" ]
       timeout: 2s
       retries: 3
-      start_period: 5s
+      start_period: 10s
 
   dubbo:
     image: shenyu-examples-apache-dubbo-service:latest
@@ -96,7 +98,7 @@ services:
     ports:
       - "9195:9195"
     depends_on:
-      dubbo:
+      admin:
         condition: service_healthy
     volumes:
       - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
@@ -117,5 +119,6 @@ services:
       interval: 3s
       timeout: 30s
       retries: 5
+      start_period: 40s
     volumes:
       - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
