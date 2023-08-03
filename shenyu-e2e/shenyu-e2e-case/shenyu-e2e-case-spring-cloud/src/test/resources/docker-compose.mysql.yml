@@ -74,7 +74,7 @@ services:
       test: [ "CMD-SHELL", "wget -q -O - http://admin:9095/actuator/health | grep UP || exit 1" ]
       timeout: 5s
       retries: 3
-      start_period: 5s
+      start_period: 20s
     depends_on:
       nacos:
         condition: service_started
