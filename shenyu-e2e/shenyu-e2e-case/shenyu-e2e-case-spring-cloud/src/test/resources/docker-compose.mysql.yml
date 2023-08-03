@@ -56,7 +56,7 @@ services:
       test: [ "CMD-SHELL", "wget -q -O - http://eureka:8761/actuator/health | grep UP || exit 1" ]
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s
 
   admin:
     image: shenyu/admin:latest
@@ -127,6 +127,6 @@ services:
       interval: 5s
       timeout: 40s
       retries: 10
-      start_period: 40s
+      start_period: 60s
     volumes:
       - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
