@@ -53,7 +53,7 @@ public class ShortestResponseLoadBalancerTest {
                 select2++;
             }
         }
-        Assertions.assertEquals(true, select1 < select2);
+        Assertions.assertTrue(select1 < select2);
         Assertions.assertEquals(loop, select1 + select2);
     }
 
@@ -79,7 +79,7 @@ public class ShortestResponseLoadBalancerTest {
                 select2++;
             }
         }
-        Assertions.assertEquals(true, select1 < select2);
+        Assertions.assertTrue(select1 < select2);
         Assertions.assertEquals(loop, select1 + select2);
 
     }

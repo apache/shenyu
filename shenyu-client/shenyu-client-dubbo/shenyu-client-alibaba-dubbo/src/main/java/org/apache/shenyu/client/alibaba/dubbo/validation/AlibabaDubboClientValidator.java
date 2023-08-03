@@ -185,12 +185,10 @@ public class AlibabaDubboClientValidator implements Validator {
 
     private static boolean hasConstraintParameter(final Method method) {
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-        if (parameterAnnotations.length > 0) {
-            for (Annotation[] annotations : parameterAnnotations) {
-                for (Annotation annotation : annotations) {
-                    if (annotation.annotationType().isAnnotationPresent(Constraint.class)) {
-                        return true;
-                    }
+        for (Annotation[] annotations : parameterAnnotations) {
+            for (Annotation annotation : annotations) {
+                if (annotation.annotationType().isAnnotationPresent(Constraint.class)) {
+                    return true;
                 }
             }
         }
