@@ -298,3 +298,8 @@ VALUES ('1678997277012557824', '42', 'clientMaxConnections', 'clientMaxConnectio
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 VALUES ('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{"required":"0","defaultValue":"5","rule":""}');
+
+UPDATE "public"."plugin" set config = '{"registerProtocol":"direct",registerAddress":"127.0.0.1:2181","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}' WHERE id = '17';
+UPDATE "public"."plugin_handle" set field = 'registerProtocol', label = 'registerProtocol', sort = 0, ext_obj = '{"required":"0","defaultValue":"direct","placeholder":"registerProtocol","rule":""}' where id = '1518229897214468142';
+
+INSERT INTO "public"."plugin_handle" VALUES ('1678997557628272641', '17', 'registerAddress', 'registerAddress', 2, 3, 1, '{"required":"0","defaultValue":"127.0.0.1:2181","placeholder":"registerAddress","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');

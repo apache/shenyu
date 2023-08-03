@@ -36,12 +36,12 @@ public class MotanClassDemoServiceImpl implements MotanClassDemoService {
     }
 
     @Override
-    public String testTimeOut(final long timeout) {
+    public String testTimeOut(final long seconds) {
         try {
-            Thread.sleep(timeout * 1000);
+            Thread.sleep(seconds * 1000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        return "hello timeout " + timeout + "s";
+        return "hello seconds " + seconds + "s";
     }
 }
