@@ -19,7 +19,7 @@ version: '2.3'
 
 services:
   zookeeper:
-    image: zookeeper:3.8
+    image: zookeeper:3.8.0
     restart: always
     expose:
       - 2181
@@ -28,7 +28,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 30s
 
   nacos:
     image: nacos/nacos-server:v2.2.3
@@ -44,7 +44,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 30s
 
   admin:
     image: shenyu/admin:latest
@@ -54,11 +54,11 @@ services:
       - "9095:9095"
     depends_on:
       mysql:
-        condition: service_healthy
+        condition: service_completed_successfully
       nacos:
-        condition: service_healthy
+        condition: service_completed_successfully
       zookeeper:
-        condition: service_healthy
+        condition: service_completed_successfully
     environment:
       - SPRING_PROFILES_ACTIVE=mysql
       - spring.datasource.username=shenyue2e
@@ -119,6 +119,6 @@ services:
       interval: 3s
       timeout: 30s
       retries: 5
-      start_period: 40s
+      start_period: 60s
     volumes:
       - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql

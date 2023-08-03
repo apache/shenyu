@@ -19,7 +19,7 @@ version: '2.3'
 
 services:
   zookeeper:
-    image: zookeeper:3.5
+    image: zookeeper:3.8.0
     restart: always
     expose:
       - 2181
@@ -44,7 +44,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 30s
 
   admin:
     image: shenyu/admin:latest
@@ -54,11 +54,11 @@ services:
       - "9095:9095"
     depends_on:
       zookeeper:
-        condition: service_started
+        condition: service_completed_successfully
       nacos:
-        condition: service_started
+        condition: service_completed_successfully
       mysql:
-        condition: service_healthy
+        condition: service_completed_successfully
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar

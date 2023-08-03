@@ -19,7 +19,7 @@ version: '2.3'
 
 services:
   zookeeper:
-    image: zookeeper:3.5
+    image: zookeeper:3.8.0
     restart: always
     expose:
       - 2181
@@ -27,7 +27,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/commands/stat"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
+      start_period: 30s
 
   nacos:
     image: nacos/nacos-server:v2.2.3
@@ -43,6 +44,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+      start_period: 30s
 
   admin:
     image: shenyu/admin:latest
@@ -52,11 +54,11 @@ services:
       - "9095:9095"
     depends_on:
       mysql:
-        condition: service_healthy
+        condition: service_completed_successfully
       nacos:
-        condition: service_healthy
+        condition: service_completed_successfully
       zookeeper:
-        condition: service_healthy
+        condition: service_completed_successfully
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
@@ -69,7 +71,7 @@ services:
       test: [ "CMD-SHELL", "wget -q -O - http://admin:9095/actuator/health | grep UP || exit 1" ]
       timeout: 2s
       retries: 3
-      start_period: 5s
+      start_period: 30s
 
   dubbo:
     image: shenyu-examples-alibaba-dubbo-service:latest
@@ -78,7 +80,7 @@ services:
       test: [ "CMD-SHELL", "wget -q -O - http://dubbo:8011/actuator/health | grep UP || exit 1" ]
       timeout: 2s
       retries: 3
-      start_period: 5s
+      start_period: 20s
     ports:
       - "8011:8011"
       - "20888:20888"
@@ -96,7 +98,7 @@ services:
     ports:
       - "9195:9195"
     depends_on:
-      dubbo:
+      admin:
         condition: service_healthy
     volumes:
       - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
@@ -104,7 +106,7 @@ services:
       test: [ "CMD", "wget", "-q", "-O", "-", "http://gateway:9195/actuator/health" ]
       timeout: 2s
       retries: 3
-      start_period: 5s
+      start_period: 30s
 
   mysql:
     image: mysql:8
@@ -117,5 +119,6 @@ services:
       interval: 2s
       timeout: 20s
       retries: 10
+      start_period: 60s
     volumes:
       - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
