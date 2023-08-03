@@ -129,7 +129,7 @@ public final class ApplicationConfigCache {
         try {
             return (RefererConfig<T>) cache.get(path);
         } catch (ExecutionException e) {
-            throw new ShenyuException(e.getCause());
+            throw new ShenyuException(e);
         }
     }
 
