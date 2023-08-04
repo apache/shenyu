@@ -19,20 +19,20 @@ kind: Deployment
 metadata:
   labels:
     app: shenyu-zk
-    all: shenyu-examples-http
+    all: shenyu-examples-dubbo
   name: shenyu-zk
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: shenyu-zk
-      all: shenyu-examples-http
+      all: shenyu-examples-dubbo
   strategy: {}
   template:
     metadata:
       labels:
         app: shenyu-zk
-        all: shenyu-examples-http
+        all: shenyu-examples-dubbo
     spec:
       containers:
         - image: zookeeper:3.5
@@ -57,12 +57,12 @@ metadata:
   name: shenyu-zk
   labels:
     app: shenyu-zk
-    all: shenyu-examples-http
+    all: shenyu-examples-dubbo
 spec:
   type: NodePort
   selector:
     app: shenyu-zk
-    all: shenyu-examples-http
+    all: shenyu-examples-dubbo
   ports:
     - name: "client"
       port: 2181

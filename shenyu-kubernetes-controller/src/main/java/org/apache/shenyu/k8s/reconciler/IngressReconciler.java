@@ -177,9 +177,18 @@ public class IngressReconciler implements Reconciler {
     }
 
     private void doDeleteConfigByIngress(final Request request, final V1Ingress oldIngress) {
-        List<String> selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName());
+        List<String> selectorList = new ArrayList<>();
+        if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName());
+        }  else {
+            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName());
+        }
         if (Objects.nonNull(selectorList) && !selectorList.isEmpty()) {
-            IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName());
+            if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName());
+            } else {
+                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName());
+            }
         }
         List<Pair<String, String>> serviceList = parseServiceFromIngress(oldIngress);
         Objects.requireNonNull(serviceList).forEach(pair -> {
@@ -246,6 +255,16 @@ public class IngressReconciler implements Reconciler {
             .sort(PluginEnum.GENERAL_CONTEXT.getCode())
             .build();
         shenyuCacheRepository.saveOrUpdatePluginData(generalContextPlugin);
+        //duubo
+        PluginData dubboPlugin = PluginData.builder()
+            .id(String.valueOf(PluginEnum.DUBBO.getCode()))
+            .name(PluginEnum.DUBBO.getName())
+            .config("")
+            .role(PluginRoleEnum.SYS.getName())
+            .enabled(true)
+            .sort(PluginEnum.DUBBO.getCode())
+            .build();
+        shenyuCacheRepository.saveOrUpdatePluginData(dubboPlugin);
     }
 
     /**
@@ -356,8 +375,13 @@ public class IngressReconciler implements Reconciler {
                             ruleData.setSelectorId(selectorData.getId());
                             ruleData.setSort(100);
                             shenyuCacheRepository.saveOrUpdateRuleData(ruleData);
-                            IngressSelectorCache.getInstance().put(Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace(),
-                                v1Ingress.getMetadata().getName(), PluginEnum.DIVIDE.getName(), selectorData.getId());
+                            if (Objects.equals(ingressCopy.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+                                IngressSelectorCache.getInstance().put(Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace(),
+                                        v1Ingress.getMetadata().getName(), PluginEnum.DUBBO.getName(), selectorData.getId());
+                            } else {
+                                IngressSelectorCache.getInstance().put(Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace(),
+                                        v1Ingress.getMetadata().getName(), PluginEnum.DIVIDE.getName(), selectorData.getId());
+                            }
                         } else {
                             shenyuCacheRepository.deleteSelectorData(selectorData.getPluginName(), selectorData.getId());
                         }
@@ -372,8 +396,13 @@ public class IngressReconciler implements Reconciler {
                         shenyuCacheRepository.saveOrUpdateSelectorData(shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getLeft());
                         shenyuCacheRepository.saveOrUpdateRuleData(shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getRight());
                         globalDefaultBackend = shenyuMemoryConfig.getGlobalDefaultBackend();
-                        IngressSelectorCache.getInstance().put(Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace(),
-                            v1Ingress.getMetadata().getName(), PluginEnum.DIVIDE.getName(), shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getLeft().getId());
+                        if (Objects.equals(ingressCopy.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+                            IngressSelectorCache.getInstance().put(Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace(),
+                                    v1Ingress.getMetadata().getName(), PluginEnum.DUBBO.getName(), shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getLeft().getId());
+                        } else {
+                            IngressSelectorCache.getInstance().put(Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace(),
+                                    v1Ingress.getMetadata().getName(), PluginEnum.DIVIDE.getName(), shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getLeft().getId());
+                        }
                     }
                 }
             }

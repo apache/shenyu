@@ -19,7 +19,7 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: shenyu
-    shenyu.apache.org/plugin-dubbo-enabled: true
+    shenyu.apache.org/plugin-dubbo-enabled: 'true'
     shenyu.apache.org/plugin-dubbo-app-name: dubbo
     shenyu.apache.org/plugin-dubbo-path: /dubbo/findById
     shenyu.apache.org/plugin-dubbo-rpc-type: dubbo
@@ -33,7 +33,7 @@ spec:
         paths:
           - backend:
               service:
-                name: shenyu-examples-dubbo-service
+                name: shenyu-examples-apache-dubbo-service
                 port:
                   number: 8011
             path: /**

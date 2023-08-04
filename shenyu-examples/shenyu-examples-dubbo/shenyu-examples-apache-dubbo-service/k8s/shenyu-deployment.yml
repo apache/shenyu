@@ -55,18 +55,18 @@ metadata:
   name: shenyu-bootstrap
   labels:
     app: shenyu-bootstrap
-    all: shenyu-examples-http
+    all: shenyu-examples-dubbo
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: shenyu-bootstrap
-      all: shenyu-examples-http
+      all: shenyu-examples-dubbo
   template:
     metadata:
       labels:
         app: shenyu-bootstrap
-        all: shenyu-examples-http
+        all: shenyu-examples-dubbo
     spec:
       containers:
         - name: shenyu-bootstrap

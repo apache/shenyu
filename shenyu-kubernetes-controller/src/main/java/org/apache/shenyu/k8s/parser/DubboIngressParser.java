@@ -20,8 +20,6 @@ package org.apache.shenyu.k8s.parser;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1EndpointAddress;
-import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1Ingress;
@@ -29,7 +27,6 @@ import io.kubernetes.client.openapi.models.V1IngressBackend;
 import io.kubernetes.client.openapi.models.V1IngressRule;
 import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1IngressTLS;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServicePort;
@@ -146,7 +143,6 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
         return res;
     }
 
-    //TODO:配置labls，确定是否下发到endpoints
     private List<MetaData> parseDubboService(final V1IngressBackend dubboBackend, final String namespace) {
         List<MetaData> dubboMetaData = new ArrayList<>();
         if (Objects.nonNull(dubboBackend) && Objects.nonNull(dubboBackend.getService())) {
@@ -274,29 +270,32 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
         return null;
     }
 
-    //TODO:使用service进行监听
     private List<MetaData> parseMetaData(final V1IngressBackend backend, final String namespace) {
         List<MetaData> dubboMetaData = new ArrayList<>();
         if (Objects.nonNull(backend) && Objects.nonNull(backend.getService()) && Objects.nonNull(backend.getService().getName())) {
             String serviceName = backend.getService().getName();
             // shenyu routes directly to the container
             V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
-            List<V1ServicePort> ports = v1Service.getSpec().getPorts();
-            if (Objects.isNull(ports) || CollectionUtils.isEmpty(ports)) {
-                LOG.info("Service {} do not have ports", serviceName);
+            V1ServiceSpec spec = v1Service.getSpec();
+            if (Objects.isNull(spec)) {
+                LOG.info("Service {} do not have spec", serviceName);
             } else {
-                for (V1ServicePort port : ports) {
-                    MetaData metaData = new MetaData();
-                    metaData.setAppName("dubbo");
-                    metaData.setMethodName("findAll");
-                    metaData.setPath("/dubbo/findAll");
-                    metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
-                    metaData.setServiceName("dubboService");
-                    metaData.setContextPath("contextPath");
-                    metaData.setRpcExt("rpcExt");
-                    metaData.setParameterTypes("parameterTypes");
-                    metaData.setEnabled(true);
-                    dubboMetaData.add(metaData);
+                List<String> clusterIPs = spec.getClusterIPs();
+                for (String clusterIP : clusterIPs) {
+                    String defaultPort = parsePort(backend.getService());
+                    if (Objects.nonNull(defaultPort)) {
+                        MetaData metaData = new MetaData();
+                        metaData.setAppName("dubbo");
+                        metaData.setMethodName("findAll");
+                        metaData.setPath("/dubbo/findAll");
+                        metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
+                        metaData.setServiceName("dubboService");
+                        metaData.setContextPath("contextPath");
+                        metaData.setRpcExt("rpcExt");
+                        metaData.setParameterTypes("parameterTypes");
+                        metaData.setEnabled(true);
+                        dubboMetaData.add(metaData);
+                    }
                 }
             }
         }

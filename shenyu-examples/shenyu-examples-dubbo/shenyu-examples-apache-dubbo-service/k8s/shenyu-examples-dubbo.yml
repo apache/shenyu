@@ -17,7 +17,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shenyu-examples-http-deployment
+  name: shenyu-examples-dubbo-deployment
   labels:
     app: shenyu-examples-dubbo
     all: shenyu-examples-dubbo
@@ -57,7 +57,7 @@ status: {}
 apiVersion: v1
 kind: Service
 metadata:
-  name: shenyu-examples-http-service
+  name: shenyu-examples-apache-dubbo-service
   labels:
     app: shenyu-examples-dubbo
     all: shenyu-examples-dubbo
@@ -70,6 +70,6 @@ spec:
     - name: "8189"
       port: 8189
       targetPort: 8189
-      nodePort: 31189
+      nodePort: 31190
 status:
   loadBalancer: {}

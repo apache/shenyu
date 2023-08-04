@@ -43,6 +43,6 @@ if [ $status -eq 200 ]; then
     echo -e "\n-------------------"
     exit 0
 fi
-echo -e "Failed to send request from shenyu-bootstrap to http example: $status"
+echo -e "Failed to send request from shenyu-bootstrap to dubbo example: $status"
 echo -e "\n-------------------"
 exit 1
