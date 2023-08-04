@@ -76,7 +76,7 @@ public class MotanPluginTest {
     List<String> selectorIds = Lists.newArrayList();
 
     @BeforeAll
-    static void setup(AdminClient adminClient, GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
+    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
         Thread.sleep(10000);
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
@@ -94,11 +94,11 @@ public class MotanPluginTest {
         Assertions.assertEquals(5, ruleCacheList.size());
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id","17");
-        formData.add("name","motan");
-        formData.add("enabled","true");
-        formData.add("role","Proxy");
-        formData.add("sort","310");
+        formData.add("id", "17");
+        formData.add("name", "motan");
+        formData.add("enabled", "true");
+        formData.add("role", "Proxy");
+        formData.add("sort", "310");
         formData.add("config", "{\"registerProtocol\":\"zk\", \"registerAddress\":\"zookeeper:2181\"}");
         adminClient.changePluginStatus("17", formData);
         adminClient.deleteAllSelectors();
@@ -108,7 +108,7 @@ public class MotanPluginTest {
     }
 
     @BeforeEach
-    void before(AdminClient client, GatewayClient gateway, BeforeEachSpec spec) {
+    void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
         spec.getChecker().check(gateway);
 
         ResourcesData resources = spec.getResources();
@@ -126,26 +126,26 @@ public class MotanPluginTest {
     }
 
     @ShenYuScenario(provider = MotanPluginCases.class)
-    void testMotan(GatewayClient gateway, CaseSpec spec) {
+    void testMotan(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 
     @AfterEach
-    void before(AdminClient client, GatewayClient gateway, AfterEachSpec spec) {
+    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
         spec.getDeleter().delete(client, selectorIds);
         spec.getPostChecker().check(gateway);
         selectorIds = Lists.newArrayList();
     }
 
     @AfterAll
-    static void teardown(AdminClient client) {
+    static void teardown(final AdminClient client) {
         client.deleteAllSelectors();
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id","17");
-        formData.add("name","motan");
-        formData.add("enabled","false");
-        formData.add("role","Proxy");
-        formData.add("sort","310");
+        formData.add("id", "17");
+        formData.add("name", "motan");
+        formData.add("enabled", "false");
+        formData.add("role", "Proxy");
+        formData.add("sort", "310");
         client.changePluginStatus("17", formData);
     }
 }
