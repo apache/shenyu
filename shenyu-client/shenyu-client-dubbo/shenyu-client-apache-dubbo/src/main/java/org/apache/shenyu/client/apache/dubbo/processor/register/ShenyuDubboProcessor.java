@@ -18,14 +18,14 @@
 package org.apache.shenyu.client.apache.dubbo.processor.register;
 
 import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.client.core.register.matcher.ApiProcessor;
+import org.apache.shenyu.client.core.register.matcher.ApiRegisterProcessor;
 import org.apache.shenyu.client.core.register.matcher.BaseAnnotationApiProcessor;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 
 /**
  * ShenyuDubboProcessor.
  */
-public class ShenyuDubboProcessor extends BaseAnnotationApiProcessor<ShenyuDubboClient> implements ApiProcessor {
+public class ShenyuDubboProcessor extends BaseAnnotationApiProcessor<ShenyuDubboClient> implements ApiRegisterProcessor {
     
     @Override
     public void process(final ApiBean apiBean, final ShenyuDubboClient annotation) {

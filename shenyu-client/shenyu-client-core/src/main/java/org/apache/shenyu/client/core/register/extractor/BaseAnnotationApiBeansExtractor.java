@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.client.core.register.extractor;
 
-import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
@@ -41,8 +39,6 @@ public abstract class BaseAnnotationApiBeansExtractor extends BaseApiBeansExtrac
     
     private final List<Class<? extends Annotation>> supportedApiDefinitionAnnotations = new ArrayList<>(1);
     
-    private final List<ExtractorProcessor> extractorProcessors = new ArrayList<>(1);
-    
     @Override
     protected Map<String, Object> extractSupportBeans(final ApplicationContext applicationContext) {
         return supportedApiAnnotations().stream()
@@ -60,22 +56,6 @@ public abstract class BaseAnnotationApiBeansExtractor extends BaseApiBeansExtrac
                         .stream()
                         .anyMatch(annotationClass -> Objects.nonNull(AnnotatedElementUtils.findMergedAnnotation(method, annotationClass))))
                 .collect(Collectors.toList());
-    }
-    
-    @Override
-    protected void apiPostProcess(final ApiBean api) {
-        for (ExtractorProcessor apiAnnotationProcessor : extractorProcessors) {
-            apiAnnotationProcessor.process(api);
-        }
-        super.apiPostProcess(api);
-    }
-    
-    @Override
-    protected void definitionPostProcess(final ApiBean.ApiDefinition apiDefinition) {
-        for (ExtractorProcessor apiAnnotationProcessor : extractorProcessors) {
-            apiAnnotationProcessor.process(apiDefinition);
-        }
-        super.definitionPostProcess(apiDefinition);
     }
     
     /**
@@ -96,15 +76,6 @@ public abstract class BaseAnnotationApiBeansExtractor extends BaseApiBeansExtrac
     @NonNull
     protected List<Class<? extends Annotation>> supportedApiDefinitionAnnotations() {
         return supportedApiDefinitionAnnotations;
-    }
-    
-    /**
-     * addExtractorProcessor.
-     *
-     * @param processor processor.
-     */
-    public void addExtractorProcessor(final ExtractorProcessor processor) {
-        extractorProcessors.add(processor);
     }
     
     /**

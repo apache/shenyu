@@ -62,7 +62,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     private final List<ShenyuPlugin> sourcePlugins;
 
-    private ShenyuLoaderService shenyuLoaderService;
+    private final ShenyuLoaderService shenyuLoaderService;
 
     private final boolean scheduled;
 

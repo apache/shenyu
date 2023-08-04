@@ -20,15 +20,25 @@ package org.apache.shenyu.client.springcloud.proceeor.extractor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.ApiAnnotationProcessor;
+import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
  * RequestMappingProcessor.
  */
-public class RequestMappingProcessor implements ApiAnnotationProcessor<RequestMapping> {
+public class RequestMappingProcessor implements ApiAnnotationProcessor<RequestMapping>, ExtractorProcessor {
+    
+    @Override
+    public List<String> supportedClient() {
+        return ListUtil.of(RpcTypeEnum.SPRING_CLOUD.getName());
+    }
+    
     @Override
     public void process(final ApiBean api, final RequestMapping annotation) {
         
