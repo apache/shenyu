@@ -20,10 +20,9 @@ package org.apache.shenyu.client.core.register.matcher;
 import org.apache.shenyu.client.core.register.ApiBean;
 
 /**
- * ApiProcessor.<br>
- * API bean processor.
+ * ApiBeanProcessor.
  */
-public interface ApiProcessor extends Matcher<ApiBean> {
+public interface ApiBeanProcessor {
     
     /**
      * process.
@@ -33,11 +32,10 @@ public interface ApiProcessor extends Matcher<ApiBean> {
     void process(ApiBean apiBean);
     
     /**
-     * Determines the order in which processors are executed.
+     * process.
      *
-     * @return order
+     * @param definition definition
      */
-    default int order() {
-        return Integer.MAX_VALUE;
-    }
+    void process(ApiBean.ApiDefinition definition);
+    
 }

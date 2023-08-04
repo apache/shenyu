@@ -19,12 +19,22 @@ package org.apache.shenyu.client.apache.dubbo.processor.extractor;
 
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.ApiAnnotationProcessor;
+import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * ServiceProcessor.
  */
-public class ServiceProcessor implements ApiAnnotationProcessor<Service> {
+public class ServiceProcessor implements ApiAnnotationProcessor<Service>, ExtractorProcessor {
+    
+    @Override
+    public List<String> supportedClient() {
+        return ListUtil.of(RpcTypeEnum.DUBBO.getName());
+    }
     
     @Override
     public void process(final ApiBean apiBean, final Service annotation) {

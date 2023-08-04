@@ -128,7 +128,7 @@ public class SpringMvcClientEventListenerTest {
     private SpringMvcClientEventListener buildSpringMvcClientEventListener(final boolean full, final boolean port) {
         Properties properties = new Properties();
         properties.setProperty("contextPath", "/mvc");
-        properties.setProperty("isFull", full + "");
+        properties.setProperty("isFull", String.valueOf(full));
         properties.setProperty("ip", "127.0.0.1");
         if (port) {
             properties.setProperty("port", "8289");
@@ -194,14 +194,14 @@ public class SpringMvcClientEventListenerTest {
     @RequestMapping("/hello2/*")
     static class SpringMvcClientTestBean2 {
         public String test(final String hello) {
-            return hello + "";
+            return hello;
         }
     }
 
     @RestController
     static class SpringMvcClientTestBean3 {
         public String test(final String hello) {
-            return hello + "";
+            return hello;
         }
     }
 
@@ -209,7 +209,7 @@ public class SpringMvcClientEventListenerTest {
     @ShenyuSpringMvcClient(path = "/order/*")
     static class SpringMvcClientTestBean4 {
         public String test(final String hello) {
-            return hello + "";
+            return hello;
         }
     }
 

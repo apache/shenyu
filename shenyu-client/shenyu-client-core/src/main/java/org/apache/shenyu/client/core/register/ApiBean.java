@@ -66,7 +66,7 @@ public class ApiBean {
     /**
      * supper uri.
      */
-    private String beanPath;
+    private String beanPath = "";
     
     /**
      * Custom properties for beans.
@@ -84,7 +84,6 @@ public class ApiBean {
         this.beanInstance = beanInstance;
         this.beanClass = getCorrectedClass(beanInstance);
         this.apiDefinitions = apiDefinitions;
-        this.beanPath = beanClass.getSimpleName();
         for (ApiDefinition apiDefinition : apiDefinitions) {
             apiDefinition.apiBean = this;
         }
@@ -95,7 +94,6 @@ public class ApiBean {
         this.beanName = beanName;
         this.beanInstance = beanInstance;
         this.beanClass = getCorrectedClass(beanInstance);
-        this.beanPath = beanClass.getSimpleName();
         this.apiDefinitions = new ArrayList<>(5);
     }
     
@@ -285,7 +283,7 @@ public class ApiBean {
         /**
          * status.
          */
-        private Status status;
+        private Status status = Status.INIT;
         
         public ApiDefinition(final Method apiMethod) {
             this.apiMethod = apiMethod;

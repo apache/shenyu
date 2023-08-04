@@ -19,6 +19,7 @@ package org.apache.shenyu.examples.http.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.StringJoiner;
 
 /**
@@ -31,6 +32,9 @@ public class OrderDTO implements Serializable {
 
     @ApiModelProperty(value = "name", required = true, example = "jack")
     private String name;
+
+    @ApiModelProperty(value = "createTime", example = "2023-08-01 10:10:01")
+    private Date createTime;
 
     /**
      * Get id.
@@ -68,11 +72,28 @@ public class OrderDTO implements Serializable {
         this.name = name;
     }
 
+    /**
+     * get createTime.
+     * @return createTime
+     */
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    /**
+     * setCreateTime.
+     * @param createTime createTime
+     */
+    public void setCreateTime(final Date createTime) {
+        this.createTime = createTime;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", OrderDTO.class.getSimpleName() + "[", "]")
             .add("id='" + id + "'")
             .add("name='" + name + "'")
+            .add("createTime='" + createTime + "'")
             .toString();
     }
 

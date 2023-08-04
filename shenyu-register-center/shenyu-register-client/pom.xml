@@ -34,5 +34,6 @@
         <module>shenyu-register-client-consul</module>
         <module>shenyu-register-client-nacos</module>
         <module>shenyu-register-client-apollo</module>
+        <module>shenyu-register-client-polaris</module>
     </modules>
 </project>

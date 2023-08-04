@@ -49,7 +49,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -167,7 +166,7 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
 
     @Test
     public void testDoSubmit() {
-        assertFalse(abstractShenyuClientRegisterService.doSubmit("Selector_Id", new ArrayList<>()));
+        assertTrue(abstractShenyuClientRegisterService.doSubmit("Selector_Id", new ArrayList<>()));
 
         CommonUpstream commonUpstream = new CommonUpstream();
         when(upstreamCheckService.checkAndSubmit(any(), any())).thenReturn(true);

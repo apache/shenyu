@@ -17,16 +17,16 @@
 
 package org.apache.shenyu.sdk.spring.annotation;
 
-import org.apache.shenyu.sdk.core.ShenyuRequest;
-import org.apache.shenyu.sdk.core.common.RequestTemplate;
-import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
-import org.springframework.web.bind.annotation.RequestParam;
-
+import static com.google.common.base.Strings.emptyToNull;
+import com.google.common.collect.Maps;
 import java.lang.annotation.Annotation;
 import java.util.Map;
-
-import static com.google.common.base.Strings.emptyToNull;
+import org.apache.shenyu.sdk.core.ShenyuRequest;
+import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import static org.apache.shenyu.sdk.core.util.Util.checkState;
+import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * {@link RequestParam} parameter processor.
@@ -45,19 +45,23 @@ public class RequestParamParameterProcessor implements AnnotatedParameterProcess
         RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
         RequestParam requestParam = ANNOTATION.cast(annotation);
         String name = requestParam.value();
-        checkState(emptyToNull(name) != null, "RequestParam.value() was empty on parameter %s#%s",
-                requestTemplate.getMethod().getDeclaringClass().getSimpleName(), requestTemplate.getMethod().getName());
+        checkState(emptyToNull(name) != null || arg instanceof Map, "RequestParam.value() was empty on parameter %s#%s",
+            requestTemplate.getMethod().getDeclaringClass().getSimpleName(), requestTemplate.getMethod().getName());
         StringBuilder pathResult = new StringBuilder(requestTemplate.getPath());
-        if (arg instanceof String) {
+        Map<Object, Object> params = Maps.newHashMap();
+        if (!(arg instanceof Map) && !(arg instanceof MultipartFile)) {
+            params.put(name, arg);
+        } else if (arg instanceof Map) {
+            params = (Map<Object, Object>) arg;
+        }
+        params.forEach((key, value) -> {
             if (pathResult.indexOf("?") > 0) {
                 pathResult.append("&");
             } else {
                 pathResult.append("?");
             }
-            pathResult.append(name).append("=").append(arg);
-        } else if (arg instanceof Map) {
-            ((Map<?, ?>) arg).forEach((key, value) -> pathResult.append(key).append("=").append(value));
-        }
+            pathResult.append(key).append("=").append(value);
+        });
         shenyuRequest.setUrl(requestTemplate.getUrl() + pathResult);
         return true;
     }
