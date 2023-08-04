@@ -24,6 +24,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.springframework.core.annotation.AliasFor;
 
 /**
  * Scans for interfaces that declare they are Shenyu clients (via
@@ -44,6 +45,7 @@ public @interface EnableShenyuClients {
      * {@code @ComponentScan(basePackages="org.my.pkg")}.
      * @return the array of 'basePackages'.
      */
+    @AliasFor("basePackages")
     String[] value() default {};
 
     /**
@@ -55,6 +57,7 @@ public @interface EnableShenyuClients {
      * package names.
      * @return the array of 'basePackages'.
      */
+    @AliasFor("value")
     String[] basePackages() default {};
 
     /**

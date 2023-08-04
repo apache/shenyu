@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,7 +53,7 @@ class DiscoveryUpstreamMapperTest extends AbstractSpringIntegrationTest {
     @Test
     void selectByIds() {
 
-        List<DiscoveryUpstreamDO> dos = discoveryUpstreamMapper.selectByIds(Arrays.asList(discoveryUpstreamDO.getId()));
+        List<DiscoveryUpstreamDO> dos = discoveryUpstreamMapper.selectByIds(Collections.singletonList(discoveryUpstreamDO.getId()));
         assertEquals(1, dos.size());
         assertEquals("1", dos.get(0).getDiscoveryHandlerId());
     }
@@ -69,15 +69,15 @@ class DiscoveryUpstreamMapperTest extends AbstractSpringIntegrationTest {
 
         discoveryUpstreamDO.setDiscoveryHandlerId("2");
         discoveryUpstreamMapper.update(discoveryUpstreamDO);
-        List<DiscoveryUpstreamDO> dos = discoveryUpstreamMapper.selectByIds(Arrays.asList(discoveryUpstreamDO.getId()));
+        List<DiscoveryUpstreamDO> dos = discoveryUpstreamMapper.selectByIds(Collections.singletonList(discoveryUpstreamDO.getId()));
         assertEquals("2", dos.get(0).getDiscoveryHandlerId());
     }
 
     @Test
     void deleteByIds() {
 
-        discoveryUpstreamMapper.deleteByIds(Arrays.asList(discoveryUpstreamDO.getId()));
-        List<DiscoveryUpstreamDO> dos = discoveryUpstreamMapper.selectByIds(Arrays.asList(discoveryUpstreamDO.getId()));
+        discoveryUpstreamMapper.deleteByIds(Collections.singletonList(discoveryUpstreamDO.getId()));
+        List<DiscoveryUpstreamDO> dos = discoveryUpstreamMapper.selectByIds(Collections.singletonList(discoveryUpstreamDO.getId()));
         assertEquals(0, dos.size());
     }
 
