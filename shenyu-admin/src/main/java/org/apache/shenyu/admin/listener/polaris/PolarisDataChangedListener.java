@@ -24,7 +24,7 @@ import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.client.internal.DefaultConfigFileMetadata;
 import org.apache.shenyu.admin.config.properties.PolarisProperties;
 import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
-import org.apache.shenyu.common.constant.NacosPathConstants;
+import org.apache.shenyu.common.constant.ListDataNodePathConstants;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -47,7 +47,7 @@ public class PolarisDataChangedListener extends AbstractListDataChangedListener 
     public PolarisDataChangedListener(final PolarisProperties polarisProperties, final ConfigFileService configFileService, final ConfigFilePublishService configFilePublishService) {
         super(new ChangeData(PolarisPathConstants.PLUGIN_DATA_FILE_NAME, PolarisPathConstants.SELECTOR_DATA_FILE_NAME,
                 PolarisPathConstants.RULE_DATA_FILE_NAME, PolarisPathConstants.AUTH_DATA_ID_FILE_NAME,
-                PolarisPathConstants.META_DATA_FILE_NAME, PolarisPathConstants.PROXY_SELECTOR_FILE_NAME, NacosPathConstants.DISCOVERY_DATA_ID));
+                PolarisPathConstants.META_DATA_FILE_NAME, PolarisPathConstants.PROXY_SELECTOR_FILE_NAME, ListDataNodePathConstants.DISCOVERY_DATA_ID));
         this.polarisProperties = polarisProperties;
         this.configFileService = configFileService;
         this.configFilePublishService = configFilePublishService;

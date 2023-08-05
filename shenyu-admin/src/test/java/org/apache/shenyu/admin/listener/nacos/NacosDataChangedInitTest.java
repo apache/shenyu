@@ -19,15 +19,15 @@ package org.apache.shenyu.admin.listener.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
-import org.apache.shenyu.common.constant.NacosPathConstants;
+import org.apache.shenyu.common.constant.ListDataNodePathConstants;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.apache.shenyu.common.constant.NacosPathConstants.AUTH_DATA_ID;
-import static org.apache.shenyu.common.constant.NacosPathConstants.META_DATA_ID;
-import static org.apache.shenyu.common.constant.NacosPathConstants.PLUGIN_DATA_ID;
+import static org.apache.shenyu.common.constant.ListDataNodePathConstants.AUTH_DATA_ID;
+import static org.apache.shenyu.common.constant.ListDataNodePathConstants.META_DATA_ID;
+import static org.apache.shenyu.common.constant.ListDataNodePathConstants.PLUGIN_DATA_ID;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -43,8 +43,8 @@ public class NacosDataChangedInitTest {
 
     @Test
     public void testNotExist() throws NacosException {
-        String group = NacosPathConstants.GROUP;
-        long timeout = NacosPathConstants.DEFAULT_TIME_OUT;
+        String group = ListDataNodePathConstants.GROUP;
+        long timeout = ListDataNodePathConstants.DEFAULT_TIME_OUT;
         NacosDataChangedInit nacosDataChangedInit = new NacosDataChangedInit(configService);
 
         when(configService.getConfig(PLUGIN_DATA_ID, group, timeout)).thenReturn(PLUGIN_DATA_ID);

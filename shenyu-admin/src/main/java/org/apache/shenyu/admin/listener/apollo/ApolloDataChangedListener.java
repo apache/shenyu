@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.listener.apollo;
 
 import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
+import org.apache.shenyu.common.constant.ListDataNodePathConstants;
 import org.springframework.util.StringUtils;
 
 /**
@@ -34,13 +35,13 @@ public class ApolloDataChangedListener extends AbstractListDataChangedListener {
      * @param apolloClient the apollo client
      */
     public ApolloDataChangedListener(final ApolloClient apolloClient) {
-        super(new ChangeData(ApolloPathConstants.PLUGIN_DATA_ID,
-                ApolloPathConstants.SELECTOR_DATA_ID,
-                ApolloPathConstants.RULE_DATA_ID,
-                ApolloPathConstants.AUTH_DATA_ID,
-                ApolloPathConstants.META_DATA_ID,
-                ApolloPathConstants.PROXY_SELECTOR_DATA_ID,
-                ApolloPathConstants.DISCOVERY_DATA_ID));
+        super(new ChangeData(ListDataNodePathConstants.PLUGIN_DATA_ID,
+                ListDataNodePathConstants.SELECTOR_DATA_ID,
+                ListDataNodePathConstants.RULE_DATA_ID,
+                ListDataNodePathConstants.AUTH_DATA_ID,
+                ListDataNodePathConstants.META_DATA_ID,
+                ListDataNodePathConstants.PROXY_SELECTOR_DATA_ID,
+                ListDataNodePathConstants.DISCOVERY_DATA_ID));
         this.apolloClient = apolloClient;
     }
 
@@ -53,6 +54,6 @@ public class ApolloDataChangedListener extends AbstractListDataChangedListener {
     @Override
     public String getConfig(final String dataId) {
         String config = this.apolloClient.getItemValue(dataId);
-        return StringUtils.hasLength(config) ? config : ApolloPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
+        return StringUtils.hasLength(config) ? config : ListDataNodePathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
     }
 }

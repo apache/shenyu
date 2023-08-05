@@ -22,7 +22,6 @@ import com.alibaba.nacos.api.config.listener.Listener;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.constant.ListDataNodePathConstants;
-import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.sync.data.api.AbstarctListDataNodeSyncDataService;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -102,7 +101,7 @@ public class NacosSyncDataService extends AbstarctListDataNodeSyncDataService {
     @Override
     public void close() {
         LISTENERS.forEach((dataId, lss) -> {
-            lss.forEach(listener -> configService.removeListener(dataId, NacosPathConstants.GROUP, listener));
+            lss.forEach(listener -> configService.removeListener(dataId, ListDataNodePathConstants.GROUP, listener));
             lss.clear();
         });
         LISTENERS.clear();
@@ -140,7 +139,7 @@ public class NacosSyncDataService extends AbstarctListDataNodeSyncDataService {
     private String getConfigAndSignListener(final String dataId, final Listener listener) {
         String config = null;
         try {
-            config = configService.getConfigAndSignListener(dataId, NacosPathConstants.GROUP, ListDataNodePathConstants.DEFAULT_TIME_OUT, listener);
+            config = configService.getConfigAndSignListener(dataId, ListDataNodePathConstants.GROUP, ListDataNodePathConstants.DEFAULT_TIME_OUT, listener);
         } catch (NacosException e) {
             LOG.error(e.getMessage(), e);
         }

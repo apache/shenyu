@@ -17,13 +17,11 @@
 
 package org.apache.shenyu.admin.listener.apollo;
 
-import static org.apache.shenyu.common.constant.NacosPathConstants.AUTH_DATA_ID;
-import static org.apache.shenyu.common.constant.NacosPathConstants.PLUGIN_DATA_ID;
-import static org.apache.shenyu.common.constant.NacosPathConstants.META_DATA_ID;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import org.apache.shenyu.admin.config.properties.ApolloProperties;
+import org.apache.shenyu.common.constant.ListDataNodePathConstants;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
@@ -65,20 +63,20 @@ public class ApolloDataChangedInitTest {
     @Test
     public void testNotExist() {
 
-        when(apolloClient.getItemValue(PLUGIN_DATA_ID)).thenReturn(PLUGIN_DATA_ID);
+        when(apolloClient.getItemValue(ListDataNodePathConstants.PLUGIN_DATA_ID)).thenReturn(ListDataNodePathConstants.PLUGIN_DATA_ID);
         boolean pluginExist = apolloDataChangedInit.notExist();
         Assertions.assertFalse(pluginExist, "plugin exist.");
-        when(apolloClient.getItemValue(PLUGIN_DATA_ID)).thenReturn(null);
+        when(apolloClient.getItemValue(ListDataNodePathConstants.PLUGIN_DATA_ID)).thenReturn(null);
 
-        when(apolloClient.getItemValue(AUTH_DATA_ID)).thenReturn(AUTH_DATA_ID);
+        when(apolloClient.getItemValue(ListDataNodePathConstants.AUTH_DATA_ID)).thenReturn(ListDataNodePathConstants.AUTH_DATA_ID);
         boolean authExist = apolloDataChangedInit.notExist();
         Assertions.assertFalse(authExist, "auth exist.");
-        when(apolloClient.getItemValue(AUTH_DATA_ID)).thenReturn(null);
+        when(apolloClient.getItemValue(ListDataNodePathConstants.AUTH_DATA_ID)).thenReturn(null);
 
-        when(apolloClient.getItemValue(META_DATA_ID)).thenReturn(META_DATA_ID);
+        when(apolloClient.getItemValue(ListDataNodePathConstants.META_DATA_ID)).thenReturn(ListDataNodePathConstants.META_DATA_ID);
         boolean metaDataExist = apolloDataChangedInit.notExist();
         Assertions.assertFalse(metaDataExist, "metadata exist.");
-        when(apolloClient.getItemValue(META_DATA_ID)).thenReturn(null);
+        when(apolloClient.getItemValue(ListDataNodePathConstants.META_DATA_ID)).thenReturn(null);
 
     }
 }

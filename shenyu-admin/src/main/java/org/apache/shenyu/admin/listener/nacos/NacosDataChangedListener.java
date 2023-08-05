@@ -21,7 +21,7 @@ import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.exception.NacosException;
 import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
-import org.apache.shenyu.common.constant.NacosPathConstants;
+import org.apache.shenyu.common.constant.ListDataNodePathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
@@ -38,8 +38,13 @@ public class NacosDataChangedListener extends AbstractListDataChangedListener {
     private final ConfigService configService;
 
     public NacosDataChangedListener(final ConfigService configService) {
-        super(new ChangeData(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.SELECTOR_DATA_ID,
-                NacosPathConstants.RULE_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID, NacosPathConstants.PROXY_SELECTOR_DATA_ID, NacosPathConstants.DISCOVERY_DATA_ID));
+        super(new ChangeData(ListDataNodePathConstants.PLUGIN_DATA_ID,
+                ListDataNodePathConstants.SELECTOR_DATA_ID,
+                ListDataNodePathConstants.RULE_DATA_ID,
+                ListDataNodePathConstants.AUTH_DATA_ID,
+                ListDataNodePathConstants.META_DATA_ID,
+                ListDataNodePathConstants.PROXY_SELECTOR_DATA_ID,
+                ListDataNodePathConstants.DISCOVERY_DATA_ID));
         this.configService = configService;
     }
 
@@ -47,8 +52,8 @@ public class NacosDataChangedListener extends AbstractListDataChangedListener {
     public void publishConfig(final String dataId, final Object data) {
         try {
             configService.publishConfig(
-                    dataId, 
-                    NacosPathConstants.GROUP, 
+                    dataId,
+                    ListDataNodePathConstants.GROUP,
                     GsonUtils.getInstance().toJson(data),
                     ConfigType.JSON.getType());
         } catch (NacosException e) {
@@ -60,8 +65,8 @@ public class NacosDataChangedListener extends AbstractListDataChangedListener {
     @Override
     public String getConfig(final String dataId) {
         try {
-            String config = configService.getConfig(dataId, NacosPathConstants.GROUP, NacosPathConstants.DEFAULT_TIME_OUT);
-            return StringUtils.hasLength(config) ? config : NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
+            String config = configService.getConfig(dataId, ListDataNodePathConstants.GROUP, ListDataNodePathConstants.DEFAULT_TIME_OUT);
+            return StringUtils.hasLength(config) ? config : ListDataNodePathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
         } catch (NacosException e) {
             LOG.error("Get data from nacos error.", e);
             throw new ShenyuException(e.getMessage());

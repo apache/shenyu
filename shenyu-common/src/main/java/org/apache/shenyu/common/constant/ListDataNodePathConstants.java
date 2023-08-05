@@ -27,7 +27,7 @@ import java.util.Set;
 public class ListDataNodePathConstants {
 
     /**
-     * apollo config default group.
+     * listData config default group.
      */
     public static final String GROUP = "DEFAULT_GROUP";
 
