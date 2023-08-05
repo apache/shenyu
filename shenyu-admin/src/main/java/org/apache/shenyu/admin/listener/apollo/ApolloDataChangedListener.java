@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.listener.apollo;
 
 import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
-import org.apache.shenyu.common.constant.ApolloPathConstants;
 import org.springframework.util.StringUtils;
 
 /**

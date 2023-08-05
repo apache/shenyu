@@ -23,17 +23,23 @@ import static org.mockito.Mockito.mock;
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.internals.DefaultConfig;
 import com.ctrip.framework.apollo.internals.LocalFileConfigRepository;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import org.apache.shenyu.common.constant.ListDataNodePathConstants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@ContextConfiguration(classes = {ApolloDataServiceTest.class})
+@RunWith(SpringJUnit4ClassRunner.class)
 public class ApolloDataServiceTest {
+
 
     /**
      * Method under test: {@link ApolloDataService#ApolloDataService(Config, PluginDataSubscriber, List, List, List, List)}.
@@ -46,8 +52,10 @@ public class ApolloDataServiceTest {
         ArrayList<MetaDataSubscriber> metaDataSubscribers = new ArrayList<>();
         ArrayList<AuthDataSubscriber> authDataSubscribers = new ArrayList<>();
         ArrayList<ProxySelectorDataSubscriber> proxySelectorDataSubscribers = new ArrayList<>();
+        ApolloDataService apolloDataService = new ApolloDataService(configService, pluginDataSubscriber,
+                metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, new ArrayList<>());
         assertTrue((new ApolloDataService(configService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
-                proxySelectorDataSubscribers, new ArrayList<>())).subscriberAuthData().isEmpty());
+                proxySelectorDataSubscribers, new ArrayList<>())).subscriberAuthData(apolloDataService.readData(ListDataNodePathConstants.AUTH_DATA_ID)).isEmpty());
     }
 
     /**
@@ -62,8 +70,10 @@ public class ApolloDataServiceTest {
         ArrayList<MetaDataSubscriber> metaDataSubscribers = new ArrayList<>();
         ArrayList<AuthDataSubscriber> authDataSubscribers = new ArrayList<>();
         ArrayList<ProxySelectorDataSubscriber> proxySelectorDataSubscribers = new ArrayList<>();
+        ApolloDataService apolloDataService = new ApolloDataService(configService, pluginDataSubscriber,
+                metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, new ArrayList<>());
         assertTrue((new ApolloDataService(configService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
-                proxySelectorDataSubscribers, new ArrayList<>())).subscriberAuthData().isEmpty());
+                proxySelectorDataSubscribers, new ArrayList<>())).subscriberAuthData(apolloDataService.readData(ListDataNodePathConstants.SELECTOR_DATA_ID)).isEmpty());
     }
 
     /**
@@ -80,15 +90,15 @@ public class ApolloDataServiceTest {
         ApolloDataService apolloDataService = new ApolloDataService(configService, pluginDataSubscriber,
                 metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, new ArrayList<>());
         apolloDataService.subAllData();
-        assertTrue(apolloDataService.subscriberAuthData().isEmpty());
-        assertTrue(apolloDataService.subscriberProxySelectorData().isEmpty());
-        assertTrue(apolloDataService.subscriberPluginData().isEmpty());
-        assertTrue(apolloDataService.subscriberMetaData().isEmpty());
-        assertTrue(apolloDataService.subscriberDiscoverySyncData().isEmpty());
+        assertTrue(apolloDataService.subscriberAuthData(apolloDataService.readData(ListDataNodePathConstants.AUTH_DATA_ID)).isEmpty());
+        assertTrue(apolloDataService.subscriberProxySelectorData(apolloDataService.readData(ListDataNodePathConstants.PROXY_SELECTOR_DATA_ID)).isEmpty());
+        assertTrue(apolloDataService.subscriberPluginData(apolloDataService.readData(ListDataNodePathConstants.PLUGIN_DATA_ID)).isEmpty());
+        assertTrue(apolloDataService.subscriberMetaData(apolloDataService.readData(ListDataNodePathConstants.META_DATA_ID)).isEmpty());
+        assertTrue(apolloDataService.subscriberDiscoverySyncData(apolloDataService.readData(ListDataNodePathConstants.DISCOVERY_DATA_ID)).isEmpty());
     }
 
     /**
-     * Method under test: {@link ApolloDataService#subscriberPluginData()}.
+     * Method under test: {@link ApolloDataService#subscriberPluginData(String)} ()}.
      */
     @Test
     public void testSubscriberPluginData() {
@@ -98,12 +108,14 @@ public class ApolloDataServiceTest {
         ArrayList<MetaDataSubscriber> metaDataSubscribers = new ArrayList<>();
         ArrayList<AuthDataSubscriber> authDataSubscribers = new ArrayList<>();
         ArrayList<ProxySelectorDataSubscriber> proxySelectorDataSubscribers = new ArrayList<>();
+        ApolloDataService apolloDataService = new ApolloDataService(configService, pluginDataSubscriber,
+                metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, new ArrayList<>());
         assertTrue((new ApolloDataService(configService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
-                proxySelectorDataSubscribers, new ArrayList<>())).subscriberPluginData().isEmpty());
+                proxySelectorDataSubscribers, new ArrayList<>())).subscriberPluginData(apolloDataService.readData(ListDataNodePathConstants.PLUGIN_DATA_ID)).isEmpty());
     }
 
     /**
-     * Method under test: {@link ApolloDataService#subscriberSelectorData()}.
+     * Method under test: {@link ApolloDataService#subscriberSelectorData(String)} ()}.
      */
     @Test
     public void testSubscriberSelectorData() {
@@ -113,12 +125,14 @@ public class ApolloDataServiceTest {
         ArrayList<MetaDataSubscriber> metaDataSubscribers = new ArrayList<>();
         ArrayList<AuthDataSubscriber> authDataSubscribers = new ArrayList<>();
         ArrayList<ProxySelectorDataSubscriber> proxySelectorDataSubscribers = new ArrayList<>();
+        ApolloDataService apolloDataService = new ApolloDataService(configService, pluginDataSubscriber,
+                metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, new ArrayList<>());
         assertTrue((new ApolloDataService(configService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
-                proxySelectorDataSubscribers, new ArrayList<>())).subscriberSelectorData().isEmpty());
+                proxySelectorDataSubscribers, new ArrayList<>())).subscriberSelectorData(apolloDataService.readData(ListDataNodePathConstants.META_DATA_ID)).isEmpty());
     }
 
     /**
-     * Method under test: {@link ApolloDataService#subscriberRuleData()}.
+     * Method under test: {@link ApolloDataService#subscriberRuleData(String)} ()}.
      */
     @Test
     public void testSubscriberRuleData() {
@@ -128,12 +142,14 @@ public class ApolloDataServiceTest {
         ArrayList<MetaDataSubscriber> metaDataSubscribers = new ArrayList<>();
         ArrayList<AuthDataSubscriber> authDataSubscribers = new ArrayList<>();
         ArrayList<ProxySelectorDataSubscriber> proxySelectorDataSubscribers = new ArrayList<>();
+        ApolloDataService apolloDataService = new ApolloDataService(configService, pluginDataSubscriber,
+                metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, new ArrayList<>());
         assertTrue((new ApolloDataService(configService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
-                proxySelectorDataSubscribers, new ArrayList<>())).subscriberRuleData().isEmpty());
+                proxySelectorDataSubscribers, new ArrayList<>())).subscriberRuleData(apolloDataService.readData(ListDataNodePathConstants.RULE_DATA_ID)).isEmpty());
     }
 
     /**
-     * Method under test: {@link ApolloDataService#subscriberMetaData()}.
+     * Method under test: {@link ApolloDataService#subscriberMetaData(String)} ()}.
      */
     @Test
     public void testSubscriberMetaData() {
@@ -143,12 +159,14 @@ public class ApolloDataServiceTest {
         ArrayList<MetaDataSubscriber> metaDataSubscribers = new ArrayList<>();
         ArrayList<AuthDataSubscriber> authDataSubscribers = new ArrayList<>();
         ArrayList<ProxySelectorDataSubscriber> proxySelectorDataSubscribers = new ArrayList<>();
+        ApolloDataService apolloDataService = new ApolloDataService(configService, pluginDataSubscriber,
+                metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, new ArrayList<>());
         assertTrue((new ApolloDataService(configService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
-                proxySelectorDataSubscribers, new ArrayList<>())).subscriberMetaData().isEmpty());
+                proxySelectorDataSubscribers, new ArrayList<>())).subscriberMetaData(apolloDataService.readData(ListDataNodePathConstants.META_DATA_ID)).isEmpty());
     }
 
     /**
-     * Method under test: {@link ApolloDataService#subscriberProxySelectorData()}.
+     * Method under test: {@link ApolloDataService#subscriberProxySelectorData(String)} ()}.
      */
     @Test
     public void testSubscriberProxySelectorData() {
@@ -158,12 +176,14 @@ public class ApolloDataServiceTest {
         ArrayList<MetaDataSubscriber> metaDataSubscribers = new ArrayList<>();
         ArrayList<AuthDataSubscriber> authDataSubscribers = new ArrayList<>();
         ArrayList<ProxySelectorDataSubscriber> proxySelectorDataSubscribers = new ArrayList<>();
+        ApolloDataService apolloDataService = new ApolloDataService(configService, pluginDataSubscriber,
+                metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, new ArrayList<>());
         assertTrue((new ApolloDataService(configService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
-                proxySelectorDataSubscribers, new ArrayList<>())).subscriberProxySelectorData().isEmpty());
+                proxySelectorDataSubscribers, new ArrayList<>())).subscriberProxySelectorData(apolloDataService.readData(ListDataNodePathConstants.SELECTOR_DATA_ID)).isEmpty());
     }
 
     /**
-     * Method under test: {@link ApolloDataService#subscriberDiscoverySyncData()}.
+     * Method under test: {@link ApolloDataService#subscriberDiscoverySyncData(String)} ()}.
      */
     @Test
     public void testSubscriberDiscoverySyncData() {
@@ -173,8 +193,10 @@ public class ApolloDataServiceTest {
         ArrayList<MetaDataSubscriber> metaDataSubscribers = new ArrayList<>();
         ArrayList<AuthDataSubscriber> authDataSubscribers = new ArrayList<>();
         ArrayList<ProxySelectorDataSubscriber> proxySelectorDataSubscribers = new ArrayList<>();
+        ApolloDataService apolloDataService = new ApolloDataService(configService, pluginDataSubscriber,
+                metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, new ArrayList<>());
         assertTrue((new ApolloDataService(configService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
-                proxySelectorDataSubscribers, new ArrayList<>())).subscriberDiscoverySyncData().isEmpty());
+                proxySelectorDataSubscribers, new ArrayList<>())).subscriberDiscoverySyncData(apolloDataService.readData(ListDataNodePathConstants.DISCOVERY_DATA_ID)).isEmpty());
     }
 
     /**
@@ -191,11 +213,11 @@ public class ApolloDataServiceTest {
         ApolloDataService apolloDataService = new ApolloDataService(configService, pluginDataSubscriber,
                 metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, new ArrayList<>());
         apolloDataService.close();
-        assertTrue(apolloDataService.subscriberAuthData().isEmpty());
-        assertTrue(apolloDataService.subscriberProxySelectorData().isEmpty());
-        assertTrue(apolloDataService.subscriberPluginData().isEmpty());
-        assertTrue(apolloDataService.subscriberMetaData().isEmpty());
-        assertTrue(apolloDataService.subscriberDiscoverySyncData().isEmpty());
+        assertTrue(apolloDataService.subscriberAuthData(apolloDataService.readData(ListDataNodePathConstants.AUTH_DATA_ID)).isEmpty());
+        assertTrue(apolloDataService.subscriberProxySelectorData(apolloDataService.readData(ListDataNodePathConstants.PROXY_SELECTOR_DATA_ID)).isEmpty());
+        assertTrue(apolloDataService.subscriberPluginData(apolloDataService.readData(ListDataNodePathConstants.PLUGIN_DATA_ID)).isEmpty());
+        assertTrue(apolloDataService.subscriberMetaData(apolloDataService.readData(ListDataNodePathConstants.META_DATA_ID)).isEmpty());
+        assertTrue(apolloDataService.subscriberDiscoverySyncData(apolloDataService.readData(ListDataNodePathConstants.DISCOVERY_DATA_ID)).isEmpty());
     }
 }
 

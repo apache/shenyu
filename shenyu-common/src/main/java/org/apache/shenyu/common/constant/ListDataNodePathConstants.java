@@ -22,9 +22,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * apollo path.
+ * ListData Node path.
  */
-public class ApolloPathConstants {
+public class ListDataNodePathConstants {
 
     /**
      * apollo config default group.
@@ -95,4 +95,3 @@ public class ApolloPathConstants {
         return new HashSet<>(Arrays.asList(PLUGIN_DATA_ID, SELECTOR_DATA_ID, RULE_DATA_ID, AUTH_DATA_ID, META_DATA_ID));
     }
 }
-

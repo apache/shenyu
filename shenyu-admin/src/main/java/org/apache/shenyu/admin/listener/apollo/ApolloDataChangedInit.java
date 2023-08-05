@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.listener.apollo;
 
 import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
-import org.apache.shenyu.common.constant.ApolloPathConstants;
 
 import java.util.Objects;
 import java.util.stream.Stream;

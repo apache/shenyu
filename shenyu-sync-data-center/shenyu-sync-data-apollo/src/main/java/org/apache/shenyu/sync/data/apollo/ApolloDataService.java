@@ -19,7 +19,7 @@ package org.apache.shenyu.sync.data.apollo;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigChangeListener;
-import org.apache.shenyu.common.constant.ApolloPathConstants;
+import org.apache.shenyu.common.constant.ListDataNodePathConstants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -27,26 +27,24 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
-import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.sync.data.api.AbstarctListDataNodeSyncDataService;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
-import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
-public class ApolloDataService implements SyncDataService {
+/**
+ * The type Apollo data service.
+ */
+public class ApolloDataService extends AbstarctListDataNodeSyncDataService {
 
     /**
      * logger.
@@ -54,16 +52,6 @@ public class ApolloDataService implements SyncDataService {
     private static final Logger LOG = LoggerFactory.getLogger(ApolloDataService.class);
 
     private final Config configService;
-
-    private final PluginDataSubscriber pluginDataSubscriber;
-
-    private final List<MetaDataSubscriber> metaDataSubscribers;
-
-    private final List<AuthDataSubscriber> authDataSubscribers;
-
-    private final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers;
-
-    private final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers;
 
     private final Map<String, ConfigChangeListener> cache = new ConcurrentHashMap<>();
 
@@ -80,164 +68,64 @@ public class ApolloDataService implements SyncDataService {
                              final List<AuthDataSubscriber> authDataSubscribers,
                              final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                              final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
+        super(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.configService = configService;
-        this.pluginDataSubscriber = pluginDataSubscriber;
-        this.metaDataSubscribers = metaDataSubscribers;
-        this.authDataSubscribers = authDataSubscribers;
-        this.proxySelectorDataSubscribers = proxySelectorDataSubscribers;
-        this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
         subAllData();
         watchData();
 
     }
 
     /**
-     * sub all data.
-     */
-    public void subAllData() {
-        subscriberAuthData();
-        subscriberMetaData();
-        subscriberPluginData();
-        subscriberRuleData();
-        subscriberSelectorData();
-        subscriberProxySelectorData();
-    }
-
-    /**
-     * watch plugin data.
-     * @return plugin data list
-     */
-    public List<PluginData> subscriberPluginData() {
-        List<PluginData> pluginDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.PLUGIN_DATA_ID, "{}"), PluginData.class).values());
-        pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
-            subscriber.unSubscribe(pluginData);
-            subscriber.onSubscribe(pluginData);
-        }));
-        return pluginDataList;
-    }
-
-    /**
-     * subscriber selector data.
-     * @return selector data list
-     */
-    public List<SelectorData> subscriberSelectorData() {
-        List<SelectorData> selectorDataList = GsonUtils.getInstance().toObjectMapList(configService.getProperty(ApolloPathConstants.SELECTOR_DATA_ID, "{}"), SelectorData.class).values()
-                .stream().flatMap(Collection::stream)
-                .collect(Collectors.toList());
-        selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
-            subscriber.unSelectorSubscribe(selectorData);
-            subscriber.onSelectorSubscribe(selectorData);
-        }));
-        return selectorDataList;
-    }
-
-    /**
-     * subscriber rule data.
-     * @return rule data list
-     */
-    public List<RuleData> subscriberRuleData() {
-        List<RuleData> ruleDataList = GsonUtils.getInstance().toObjectMapList(configService.getProperty(ApolloPathConstants.RULE_DATA_ID, "{}"), RuleData.class).values()
-                .stream().flatMap(Collection::stream)
-                .collect(Collectors.toList());
-        ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
-            subscriber.unRuleSubscribe(ruleData);
-            subscriber.onRuleSubscribe(ruleData);
-        }));
-        return ruleDataList;
-    }
-
-    /**
-     * subscriber meta data.
-     * @return meta data list
-     */
-    public List<MetaData> subscriberMetaData() {
-        List<MetaData> metaDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.META_DATA_ID, "{}"), MetaData.class).values());
-        metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> {
-            subscriber.unSubscribe(metaData);
-            subscriber.onSubscribe(metaData);
-        }));
-        return metaDataList;
-    }
-
-    /**
-     * subscriber auth data.
-     * @return auth data list
-     */
-    public List<AppAuthData> subscriberAuthData() {
-        List<AppAuthData> appAuthDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.AUTH_DATA_ID, "{}"), AppAuthData.class).values());
-        appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(subscriber -> {
-            subscriber.unSubscribe(appAuthData);
-            subscriber.onSubscribe(appAuthData);
-        }));
-        return appAuthDataList;
-    }
-
-    /**
-     * subscriber proxy selector data.
-     * @return proxy selector data list
-     */
-    public List<ProxySelectorData> subscriberProxySelectorData() {
-        List<ProxySelectorData> proxySelectorDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.PROXY_SELECTOR_DATA_ID, "{}"),
-                ProxySelectorData.class).values());
-        proxySelectorDataList.forEach(discoverySyncData -> proxySelectorDataSubscribers.forEach(subscriber -> {
-            subscriber.unSubscribe(discoverySyncData);
-        }));
-        return proxySelectorDataList;
-    }
-
-    /**
-     * subscriber discovery sync data.
-     * @return discovery sync data list
-     */
-    public List<DiscoverySyncData> subscriberDiscoverySyncData() {
-        List<DiscoverySyncData> discoverySyncDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.DISCOVERY_DATA_ID, "{}"),
-                DiscoverySyncData.class).values());
-        discoverySyncDataList.forEach(discoverySyncData -> discoveryUpstreamDataSubscribers.forEach(subscriber -> {
-            subscriber.unSubscribe(discoverySyncData);
-        }));
-        return discoverySyncDataList;
-    }
-
-    /**
      * watch plugin data.
      */
-    private void watchData() {
+    @Override
+    protected void watchData() {
         ConfigChangeListener configChangeListener = changeEvent -> changeEvent.changedKeys().forEach(key -> {
             switch (key) {
-                case ApolloPathConstants.PLUGIN_DATA_ID:
-                    List<PluginData> pluginData = subscriberPluginData();
+                case ListDataNodePathConstants.PLUGIN_DATA_ID:
+                    List<PluginData> pluginData = subscriberPluginData(readData(key));
                     LOG.info("apollo listener pluginData: {}", pluginData);
                     break;
-                case ApolloPathConstants.SELECTOR_DATA_ID:
-                    List<SelectorData> selectorDataList = subscriberSelectorData();
+                case ListDataNodePathConstants.SELECTOR_DATA_ID:
+                    List<SelectorData> selectorDataList = subscriberSelectorData(readData(key));
                     LOG.info("apollo listener selectorData: {}", selectorDataList);
                     break;
-                case ApolloPathConstants.RULE_DATA_ID:
-                    List<RuleData> ruleDataList = subscriberRuleData();
+                case ListDataNodePathConstants.RULE_DATA_ID:
+                    List<RuleData> ruleDataList = subscriberRuleData(readData(key));
                     LOG.info("apollo listener ruleData: {}", ruleDataList);
                     break;
-                case ApolloPathConstants.META_DATA_ID:
-                    List<MetaData> metaDataList = subscriberMetaData();
+                case ListDataNodePathConstants.META_DATA_ID:
+                    List<MetaData> metaDataList = subscriberMetaData(readData(key));
                     LOG.info("apollo listener metaData: {}", metaDataList);
                     break;
-                case ApolloPathConstants.AUTH_DATA_ID:
-                    List<AppAuthData> appAuthDataList = subscriberAuthData();
+                case ListDataNodePathConstants.AUTH_DATA_ID:
+                    List<AppAuthData> appAuthDataList = subscriberAuthData(readData(key));
                     LOG.info("apollo listener authData: {}", appAuthDataList);
                     break;
-                case ApolloPathConstants.PROXY_SELECTOR_DATA_ID:
-                    List<ProxySelectorData> proxySelectorData = subscriberProxySelectorData();
+                case ListDataNodePathConstants.PROXY_SELECTOR_DATA_ID:
+                    List<ProxySelectorData> proxySelectorData = subscriberProxySelectorData(readData(key));
                     LOG.info("apollo listener ProxySelectorData: {}", proxySelectorData);
                     break;
-                case ApolloPathConstants.DISCOVERY_DATA_ID:
-                    List<DiscoverySyncData> discoverySyncData = subscriberDiscoverySyncData();
+                case ListDataNodePathConstants.DISCOVERY_DATA_ID:
+                    List<DiscoverySyncData> discoverySyncData = subscriberDiscoverySyncData(readData(key));
                     LOG.info("apollo listener discoverySyncData: {}", discoverySyncData);
                     break;
                 default:
                     break;
             }
         });
-        cache.put(ApolloPathConstants.pathKeySet().toString(), configChangeListener);
-        configService.addChangeListener(configChangeListener, ApolloPathConstants.pathKeySet());
+        cache.put(ListDataNodePathConstants.pathKeySet().toString(), configChangeListener);
+        configService.addChangeListener(configChangeListener, ListDataNodePathConstants.pathKeySet());
+    }
+
+    /**
+     * read data.
+     * @param configName config name
+     * @return config value
+     */
+    @Override
+    protected String readData(final String configName) {
+        return configService.getProperty(configName, "{}");
     }
 
     /**
