@@ -170,7 +170,7 @@ INSERT INTO `plugin_handle` VALUES ('1678997277012557824', '42', 'clientMaxConne
 INSERT INTO `plugin_handle` VALUES ('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{\"required\":\"0\",\"defaultValue\":\"5\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 
 /* motan rpc */
-UPDATE `plugin` set config = '{\"registerProtocol\":\"direct\",\"registerAddress\":\"127.0.0.1:8002\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"shared\"}' WHERE id = '17';
+UPDATE `plugin` set config = '{\"registerProtocol\":\"zk\",\"registerAddress\":\"127.0.0.1:8002\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"shared\"}' WHERE id = '17';
 UPDATE `plugin_handle` set field = 'registerProtocol', label = 'registerProtocol', sort = 0, ext_obj = '{\"required\":\"0\",\"defaultValue\":\"direct\",\"placeholder\":\"registerProtocol\",\"rule\":\"\"}' WHERE id = '1529402613204172834';
 UPDATE `plugin_handle` set sort = 2 where id = '1529402613204172835';
 UPDATE `plugin_handle` set sort = 3 where id = '1529402613204172836';
