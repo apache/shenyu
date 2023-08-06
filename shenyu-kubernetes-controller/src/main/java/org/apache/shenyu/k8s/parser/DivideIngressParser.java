@@ -33,8 +33,10 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyStream;
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
@@ -104,15 +106,15 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
             if (Objects.isNull(rules) || CollectionUtils.isEmpty(rules)) {
                 // if rules is null, defaultBackend become global default
                 if (Objects.nonNull(defaultBackend) && Objects.nonNull(defaultBackend.getService())) {
-                    Pair<SelectorData, RuleData> defaultRouteConfig = getDefaultRouteConfig(defaultUpstreamList, ingress.getMetadata().getAnnotations());
+                    Triple<SelectorData, RuleData, MetaData> defaultRouteConfig = getDefaultRouteConfig(defaultUpstreamList, ingress.getMetadata().getAnnotations());
                     res.setGlobalDefaultBackend(Pair.of(Pair.of(namespace + "/" + ingress.getMetadata().getName(), defaultBackend.getService().getName()),
                             defaultRouteConfig));
                 }
             } else {
                 // if rules is not null, defaultBackend is default in this ingress
-                List<Pair<SelectorData, RuleData>> routeList = new ArrayList<>(rules.size());
+                List<Triple<SelectorData, RuleData, MetaData>> routeList = new ArrayList<>(rules.size());
                 for (V1IngressRule ingressRule : rules) {
-                    List<Pair<SelectorData, RuleData>> routes = parseIngressRule(ingressRule, defaultUpstreamList,
+                    List<Triple<SelectorData, RuleData, MetaData>> routes = parseIngressRule(ingressRule, defaultUpstreamList,
                             Objects.requireNonNull(ingress.getMetadata()).getNamespace(), ingress.getMetadata().getAnnotations());
                     routeList.addAll(routes);
                 }
@@ -180,11 +182,11 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
         return defaultUpstreamList;
     }
 
-    private List<Pair<SelectorData, RuleData>> parseIngressRule(final V1IngressRule ingressRule,
+    private List<Triple<SelectorData, RuleData, MetaData>> parseIngressRule(final V1IngressRule ingressRule,
                                                                 final List<DivideUpstream> defaultUpstream,
                                                                 final String namespace,
                                                                 final Map<String, String> annotations) {
-        List<Pair<SelectorData, RuleData>> res = new ArrayList<>();
+        List<Triple<SelectorData, RuleData, MetaData>> res = new ArrayList<>();
 
         ConditionData hostCondition = null;
         if (Objects.nonNull(ingressRule.getHost())) {
@@ -256,7 +258,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                             .loged(false)
                             .enabled(true).build();
 
-                    res.add(Pair.of(selectorData, ruleData));
+                    res.add(Triple.of(selectorData, ruleData, null));
                 }
             }
         }
@@ -310,7 +312,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
         return upstreamList;
     }
 
-    private Pair<SelectorData, RuleData> getDefaultRouteConfig(final List<DivideUpstream> divideUpstream, final Map<String, String> annotations) {
+    private Triple<SelectorData, RuleData, MetaData> getDefaultRouteConfig(final List<DivideUpstream> divideUpstream, final Map<String, String> annotations) {
         final ConditionData conditionData = new ConditionData();
         conditionData.setParamName("default");
         conditionData.setParamType(ParamTypeEnum.URI.getName());
@@ -350,6 +352,6 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                 .enabled(true)
                 .sort(Integer.MAX_VALUE).build();
 
-        return Pair.of(selectorData, ruleData);
+        return Triple.of(selectorData, ruleData, new MetaData());
     }
 }

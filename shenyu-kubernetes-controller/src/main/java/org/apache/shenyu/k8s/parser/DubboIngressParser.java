@@ -20,6 +20,8 @@ package org.apache.shenyu.k8s.parser;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1Ingress;
@@ -27,17 +29,23 @@ import io.kubernetes.client.openapi.models.V1IngressBackend;
 import io.kubernetes.client.openapi.models.V1IngressRule;
 import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1IngressTLS;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServicePort;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyStream;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
@@ -47,6 +55,7 @@ import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.k8s.common.IngressConstants;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,20 +107,20 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
             List<V1IngressTLS> tlsList = ingress.getSpec().getTls();
 
             String namespace = Objects.requireNonNull(ingress.getMetadata()).getNamespace();
-            List<MetaData> dubboMetaData = parseDubboService(dubboBackend, namespace);
+            List<DubboUpstream> dubboUpstreamList = parseDubboService(dubboBackend, namespace);
 
             if (Objects.isNull(rules) || CollectionUtils.isEmpty(rules)) {
                 // if rules is null, dubboBackend become global default
                 if (Objects.nonNull(dubboBackend) && Objects.nonNull(dubboBackend.getService())) {
-                    Pair<SelectorData, RuleData> defaultRouteConfig = getDubboRouteConfig(dubboMetaData, ingress.getMetadata().getAnnotations());
+                    Triple<SelectorData, RuleData, MetaData> defaultRouteConfig = getDubboRouteConfig(dubboUpstreamList, ingress.getMetadata().getAnnotations());
                     res.setGlobalDefaultBackend(Pair.of(Pair.of(namespace + "/" + ingress.getMetadata().getName(), dubboBackend.getService().getName()),
                             defaultRouteConfig));
                 }
             } else {
                 // if rules is not null, dubboBackend is default in this ingress
-                List<Pair<SelectorData, RuleData>> routeList = new ArrayList<>(rules.size());
+                List<Triple<SelectorData, RuleData, MetaData>> routeList = new ArrayList<>(rules.size());
                 for (V1IngressRule ingressRule : rules) {
-                    List<Pair<SelectorData, RuleData>> routes = parseIngressRule(ingressRule, dubboMetaData,
+                    List<Triple<SelectorData, RuleData, MetaData>> routes = parseIngressRule(ingressRule, dubboUpstreamList,
                             Objects.requireNonNull(ingress.getMetadata()).getNamespace(), ingress.getMetadata().getAnnotations());
                     routeList.addAll(routes);
                 }
@@ -143,39 +152,58 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
         return res;
     }
 
-    private List<MetaData> parseDubboService(final V1IngressBackend dubboBackend, final String namespace) {
-        List<MetaData> dubboMetaData = new ArrayList<>();
-        if (Objects.nonNull(dubboBackend) && Objects.nonNull(dubboBackend.getService())) {
-            String serviceName = dubboBackend.getService().getName();
+    private List<DubboUpstream> parseDubboService(final V1IngressBackend defaultBackend, final String namespace) {
+        List<DubboUpstream> dubboUpstreamList = new ArrayList<>();
+        if (Objects.nonNull(defaultBackend) && Objects.nonNull(defaultBackend.getService())) {
+            String serviceName = defaultBackend.getService().getName();
             // shenyu routes directly to the container
-            V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
-            List<V1ServicePort> ports = v1Service.getSpec().getPorts();
-            if (Objects.isNull(ports) || CollectionUtils.isEmpty(ports)) {
-                LOG.info("Service {} do not have ports", serviceName);
+            V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
+            List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
+            if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
+                LOG.info("Endpoints {} do not have subsets", serviceName);
             } else {
-                for (V1ServicePort port : ports) {
-                    MetaData metaData = new MetaData();
-                    metaData.setAppName("dubbo");
-                    metaData.setMethodName("findAll");
-                    metaData.setPath("/dubbo/findAll");
-                    metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
-                    metaData.setServiceName("dubboService");
-                    metaData.setContextPath("contextPath");
-                    metaData.setRpcExt("rpcExt");
-                    metaData.setParameterTypes("parameterTypes");
-                    metaData.setEnabled(true);
-                    dubboMetaData.add(metaData);
+                for (V1EndpointSubset subset : subsets) {
+                    List<V1EndpointAddress> addresses = subset.getAddresses();
+                    if (Objects.isNull(addresses) || CollectionUtils.isEmpty(addresses)) {
+                        continue;
+                    }
+                    for (V1EndpointAddress address : addresses) {
+                        String upstreamIp = address.getIp();
+                        String defaultPort = parsePort(defaultBackend.getService());
+                        if (Objects.nonNull(defaultPort)) {
+                            DubboUpstream upstream = DubboUpstream.builder()
+                                    .upstreamUrl(upstreamIp + ":" + defaultPort)
+                                    .weight(100)
+                                    .protocol("http://")
+                                    .warmup(0)
+                                    .status(true)
+                                    .upstreamHost("")
+                                    .build();
+                            dubboUpstreamList.add(upstream);
+                        }
+                    }
                 }
             }
         }
-        return dubboMetaData;
+        return dubboUpstreamList;
     }
 
-    private List<Pair<SelectorData, RuleData>> parseIngressRule(final V1IngressRule ingressRule,
-                                                                final List<MetaData> dubboMetaData,
-                                                                final String namespace,
-                                                                final Map<String, String> annotations) {
-        List<Pair<SelectorData, RuleData>> res = new ArrayList<>();
+    private String parsePort(final V1IngressServiceBackend service) {
+        if (Objects.nonNull(service.getPort())) {
+            if (service.getPort().getNumber() != null && service.getPort().getNumber() > 0) {
+                return String.valueOf(service.getPort().getNumber());
+            } else if (service.getPort().getName() != null && !"".equals(service.getPort().getName().trim())) {
+                return service.getPort().getName().trim();
+            }
+        }
+        return null;
+    }
+
+    private List<Triple<SelectorData, RuleData, MetaData>> parseIngressRule(final V1IngressRule ingressRule,
+                                                                            final List<DubboUpstream> dubboUpstreamList,
+                                                                            final String namespace,
+                                                                            final Map<String, String> annotations) {
+        List<Triple<SelectorData, RuleData, MetaData>> res = new ArrayList<>();
 
         ConditionData hostCondition = null;
         if (Objects.nonNull(ingressRule.getHost())) {
@@ -224,85 +252,76 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                             .logged(false)
                             .continued(true)
                             .conditionList(conditionList).build();
-                    List<MetaData> meata = parseMetaData(path.getBackend(), namespace);
-                    if (Objects.isNull(meata)) {
-                        meata = dubboMetaData;
+                    List<DubboUpstream> upstreamList = parseUpstream(path.getBackend(), namespace);
+                    if (upstreamList.isEmpty()) {
+                        upstreamList = dubboUpstreamList;
                     }
-                    selectorData.setHandle(GsonUtils.getInstance().toJson(dubboMetaData));
+                    selectorData.setHandle(GsonUtils.getInstance().toJson(upstreamList));
 
-                    MetaData metaData = new MetaData();
+                    DubboRuleHandle dubboRuleHandle = new DubboRuleHandle();
                     if (Objects.nonNull(annotations)) {
-                        metaData.setAppName(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_APP_NAME, "dubbo"));
-                        metaData.setMethodName(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_METHOD_NAME, "methodName"));
-                        metaData.setPath(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_PATH, "/dubbo/findAll"));
-                        metaData.setRpcType(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_RPC_TYPE, RpcTypeEnum.DUBBO.getName()));
-                        metaData.setServiceName(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_SERVICE_NAME, "dubboService"));
-                        metaData.setContextPath(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_CONTEXT_PATH, "contextPath"));
-                        metaData.setRpcExt(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_RPC_EXT, "rpcExt"));
-                        metaData.setServiceName(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_SERVICE_NAME, "serviceName"));
-                        metaData.setParameterTypes(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_PARAMENT_TYPE, "parameterTypes"));
-                        metaData.setEnabled(Boolean.parseBoolean(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_ENABLED, "true")));
+                        dubboRuleHandle.setLoadbalance(annotations.getOrDefault(IngressConstants.LOADBALANCER_ANNOTATION_KEY, LoadBalanceEnum.RANDOM.getName()));
                     }
                     RuleData ruleData = RuleData.builder()
                             .name(path.getPath())
                             .pluginName(PluginEnum.DUBBO.getName())
                             .matchMode(MatchModeEnum.AND.getCode())
                             .conditionDataList(conditionList)
-                            .handle(GsonUtils.getInstance().toJson(metaData))
+                            .handle(GsonUtils.getInstance().toJson(dubboRuleHandle))
                             .loged(false)
                             .enabled(true).build();
 
-                    res.add(Pair.of(selectorData, ruleData));
+                    MetaData metaData = parseMetaData(annotations);
+
+                    res.add(Triple.of(selectorData, ruleData, metaData));
                 }
             }
         }
         return res;
     }
 
-    private String parsePort(final V1IngressServiceBackend service) {
-        if (Objects.nonNull(service.getPort())) {
-            if (Objects.nonNull(service.getPort().getNumber()) && service.getPort().getNumber() > 0) {
-                return String.valueOf(service.getPort().getNumber());
-            } else if (Objects.nonNull(service.getPort().getName()) && !"".equals(service.getPort().getName().trim())) {
-                return service.getPort().getName().trim();
-            }
-        }
-        return null;
-    }
-
-    private List<MetaData> parseMetaData(final V1IngressBackend backend, final String namespace) {
-        List<MetaData> dubboMetaData = new ArrayList<>();
+    private List<DubboUpstream> parseUpstream(final V1IngressBackend backend, final String namespace) {
+        List<DubboUpstream> upstreamList = new ArrayList<>();
         if (Objects.nonNull(backend) && Objects.nonNull(backend.getService()) && Objects.nonNull(backend.getService().getName())) {
             String serviceName = backend.getService().getName();
             // shenyu routes directly to the container
+            V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
-            V1ServiceSpec spec = v1Service.getSpec();
-            if (Objects.isNull(spec)) {
-                LOG.info("Service {} do not have spec", serviceName);
+            List<String> clusterIPs = v1Service.getSpec().getClusterIPs();
+            if (Objects.isNull(clusterIPs) || CollectionUtils.isEmpty(clusterIPs)) {
+                LOG.info("Endpoints {} do not have clusterIPs", serviceName);
             } else {
-                List<String> clusterIPs = spec.getClusterIPs();
                 for (String clusterIP : clusterIPs) {
                     String defaultPort = parsePort(backend.getService());
                     if (Objects.nonNull(defaultPort)) {
-                        MetaData metaData = new MetaData();
-                        metaData.setAppName("dubbo");
-                        metaData.setMethodName("findAll");
-                        metaData.setPath("/dubbo/findAll");
-                        metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
-                        metaData.setServiceName("dubboService");
-                        metaData.setContextPath("contextPath");
-                        metaData.setRpcExt("rpcExt");
-                        metaData.setParameterTypes("parameterTypes");
-                        metaData.setEnabled(true);
-                        dubboMetaData.add(metaData);
+                        DubboUpstream upstream = DubboUpstream.builder()
+                                .upstreamUrl(clusterIP + ":" + defaultPort)
+                                .weight(100)
+                                .protocol("http://")
+                                .warmup(0)
+                                .status(true)
+                                .upstreamHost("")
+                                .build();
+                        upstreamList.add(upstream);
                     }
                 }
             }
         }
-        return dubboMetaData;
+        return upstreamList;
     }
 
-    private Pair<SelectorData, RuleData> getDubboRouteConfig(final List<MetaData> duobboMeta, final Map<String, String> annotations) {
+    private MetaData parseMetaData(final Map<String, String> annotations) {
+        return MetaData.builder()
+                .appName(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_APP_NAME, "dubbo"))
+                .path(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_PATH, "/dubbo/findById"))
+                .rpcType(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_RPC_TYPE, String.valueOf(RpcTypeEnum.DUBBO.getName())))
+                .serviceName(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_SERVICE_NAME, "org.apache.shenyu.test.dubbo.api.service.DubboTestService"))
+                .methodName(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_METHOD_NAME, "findAll"))
+                .enabled(true)
+                .build();
+    }
+
+    private Triple<SelectorData, RuleData, MetaData> getDubboRouteConfig(final List<DubboUpstream> dubboUpstreamList, final Map<String, String> annotations) {
         final ConditionData conditionData = new ConditionData();
         conditionData.setParamName("dubbo");
         conditionData.setParamType(ParamTypeEnum.URI.getName());
@@ -313,7 +332,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                 .name("dubbo-selector")
                 .sort(Integer.MAX_VALUE)
                 .conditionList(Collections.singletonList(conditionData))
-                .handle(GsonUtils.getInstance().toJson(duobboMeta))
+                .handle(GsonUtils.getInstance().toJson(dubboUpstreamList))
                 .enabled(true)
                 .id(IngressConstants.ID)
                 .pluginName(PluginEnum.DUBBO.getName())
@@ -322,6 +341,16 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                 .continued(true)
                 .matchMode(MatchModeEnum.AND.getCode())
                 .type(SelectorTypeEnum.FULL_FLOW.getCode()).build();
+
+        final RuleData ruleData = RuleData.builder()
+                .selectorId(IngressConstants.ID)
+                .pluginName(PluginEnum.DUBBO.getName())
+                .name("dubbo-rule")
+                .matchMode(MatchModeEnum.AND.getCode())
+                .conditionDataList(Collections.singletonList(conditionData))
+                .loged(false)
+                .enabled(true)
+                .sort(Integer.MAX_VALUE).build();
 
         MetaData metaData = new MetaData();
         if (Objects.nonNull(annotations)) {
@@ -336,17 +365,6 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
             metaData.setParameterTypes(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_PARAMENT_TYPE, "parameterTypes"));
             metaData.setEnabled(Boolean.parseBoolean(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_ENABLED, "true")));
         }
-        final RuleData ruleData = RuleData.builder()
-                .selectorId(IngressConstants.ID)
-                .pluginName(PluginEnum.DUBBO.getName())
-                .name("dubbo-rule")
-                .matchMode(MatchModeEnum.AND.getCode())
-                .conditionDataList(Collections.singletonList(conditionData))
-                .handle(GsonUtils.getInstance().toJson(metaData))
-                .loged(false)
-                .enabled(true)
-                .sort(Integer.MAX_VALUE).build();
-
-        return Pair.of(selectorData, ruleData);
+        return Triple.of(selectorData, ruleData, metaData);
     }
 }
