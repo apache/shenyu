@@ -79,16 +79,16 @@ services:
     environment:
       - shenyu.register.serverLists=http://admin:9095
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "55222"]
+      test: [ "CMD-SHELL", "wget -q -O - http://localhost:55290/test/grpc/hello | grep UP || exit 1" ]
       timeout: 2s
       retries: 3
       start_period: 10s
     expose:
-      - 38080
-      - 55222
+      - 55290
+      - 8080
     ports:
-      - "55222:55222"
-      - "38080:38080"
+      - "55290:55290"
+      - "8080:8080"
     depends_on:
       admin:
         condition: service_healthy
