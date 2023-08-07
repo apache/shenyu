@@ -203,7 +203,7 @@ shenyu:
     allowedMethods: "*"
     allowedAnyOrigin: true # the same of Access-Control-Allow-Origin: "*"
       #    allowedOrigin:
-      # format : schema://prefix spacer domain
+    # format : schema://prefix spacer domain
     # Access-Control-Allow-Origin: "http://a.apache.org,http://b.apache.org"
     #      spacer: "."
     #      domain: apache.org
