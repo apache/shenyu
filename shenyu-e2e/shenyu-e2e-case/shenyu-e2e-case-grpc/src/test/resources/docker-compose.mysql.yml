@@ -79,7 +79,7 @@ services:
     environment:
       - shenyu.register.serverLists=http://admin:9095
     healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://localhost:55290/test/grpc/hello | grep UP || exit 1" ]
+      test: ["CMD", "nc", "-z", "localhost", "55290"]
       timeout: 2s
       retries: 3
       start_period: 10s

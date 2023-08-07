@@ -145,7 +145,7 @@ public class GrpcPluginTest {
         formData.add("enabled", "false");
         formData.add("role", "Proxy");
         formData.add("sort", "310");
-        client.changePluginStatus("11", formData);
+        client.changePluginStatus("15", formData);
     }
 }
 
