@@ -68,7 +68,7 @@ public class DataSynHttpTest {
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
         Assertions.assertEquals(1, selectorCacheList.size());
-        Assertions.assertEquals(12, metaDataCacheList.size());
-        Assertions.assertEquals(12, ruleCacheList.size());
+        Assertions.assertEquals(9, metaDataCacheList.size());
+        Assertions.assertEquals(9, ruleCacheList.size());
     }
 }

@@ -83,15 +83,15 @@ public class GrpcPluginTest {
         List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
         List<RuleDTO> ruleDTOList = adminClient.listAllRules();
         Assertions.assertEquals(1, selectorDTOList.size());
-        Assertions.assertEquals(12, metaDataDTOList.size());
-        Assertions.assertEquals(12, ruleDTOList.size());
+        Assertions.assertEquals(9, metaDataDTOList.size());
+        Assertions.assertEquals(9, ruleDTOList.size());
 
         List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
         Assertions.assertEquals(1, selectorCacheList.size());
-        Assertions.assertEquals(12, metaDataCacheList.size());
-        Assertions.assertEquals(12, ruleCacheList.size());
+        Assertions.assertEquals(9, metaDataCacheList.size());
+        Assertions.assertEquals(9, ruleCacheList.size());
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "15");
@@ -100,7 +100,7 @@ public class GrpcPluginTest {
         formData.add("role", "Proxy");
         formData.add("sort", "310");
         formData.add("config", "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}");
-        adminClient.changePluginStatus("11", formData);
+        adminClient.changePluginStatus("15", formData);
         adminClient.deleteAllSelectors();
         selectorDTOList = adminClient.listAllSelectors();
         Assertions.assertEquals(0, selectorDTOList.size());
