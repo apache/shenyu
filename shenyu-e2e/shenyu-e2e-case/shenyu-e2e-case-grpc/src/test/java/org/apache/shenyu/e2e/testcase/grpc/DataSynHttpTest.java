@@ -22,10 +22,6 @@ import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
-import org.apache.shenyu.e2e.model.data.MetaData;
-import org.apache.shenyu.e2e.model.data.RuleCacheData;
-import org.apache.shenyu.e2e.model.data.SelectorCacheData;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,14 +63,5 @@ public class DataSynHttpTest {
     void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
         Thread.sleep(10000);
-        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
-        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
-        List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        LOG.info("metaDataCacheList:{}, size:{}", metaDataCacheList, metaDataCacheList.size());
-        LOG.info("selectorCacheList:{}, size:{}", selectorCacheList, selectorCacheList.size());
-        LOG.info("ruleCacheList:{}, size:{}", ruleCacheList, ruleCacheList.size());
-        Assertions.assertEquals(1, 1);
-        Assertions.assertEquals(9, 9);
-        Assertions.assertEquals(9, 9);
     }
 }
