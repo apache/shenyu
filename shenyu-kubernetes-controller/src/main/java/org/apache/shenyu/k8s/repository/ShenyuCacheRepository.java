@@ -139,6 +139,11 @@ public class ShenyuCacheRepository {
         subscriber.unRuleSubscribe(RuleData.builder().pluginName(pluginName).selectorId(selectorId).id(ruleId).build());
     }
 
+    /**
+     * Find MetaData by path.
+     * @param path path
+     * @return MetaData
+     */
     public MetaData findMetaData(final String path) {
         return MetaDataCache.getInstance().obtain(path);
     }
@@ -155,7 +160,7 @@ public class ShenyuCacheRepository {
      * Delete MetaData by MetaData.
      * @param metaData MetaData
      */
-    public void deleteMetaData(MetaData metaData) {
+    public void deleteMetaData(final MetaData metaData) {
         metaDataSubscriber.unSubscribe(metaData);
     }
 }
