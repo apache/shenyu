@@ -39,7 +39,7 @@ public final class SelectorUpdatedEventTest {
     private SelectorUpdatedEvent selectorUpdatedEvent;
 
     @BeforeEach
-    void init() {
+    public void init() {
         selectorDO = buildSelectorDO();
 
         selectorUpdatedEvent = new SelectorUpdatedEvent(selectorDO, selectorDO, "test-operator");

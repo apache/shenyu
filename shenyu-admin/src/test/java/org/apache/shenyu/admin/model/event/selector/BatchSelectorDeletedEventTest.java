@@ -53,7 +53,7 @@ public final class BatchSelectorDeletedEventTest {
     private BatchSelectorDeletedEvent batchSelectorDeletedEvent;
 
     @BeforeEach
-    void init() {
+    public void init() {
         selectorDO = buildSelectorDO();
         selectorDOList = Collections.singletonList(selectorDO);
 

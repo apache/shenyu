@@ -39,7 +39,7 @@ public final class SelectorChangedEventTest {
     private SelectorDO after;
 
     @BeforeEach
-    void init() {
+    public void init() {
         before = buildBeforeSelectorDO();
         after = buildAfterSelectorDO();
     }
