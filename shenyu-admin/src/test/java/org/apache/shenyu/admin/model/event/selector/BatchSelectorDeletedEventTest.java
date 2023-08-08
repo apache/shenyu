@@ -38,7 +38,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
-class BatchSelectorDeletedEventTest {
+/**
+ * Test case for {@linkplain BatchSelectorDeletedEvent}.
+ */
+public final class BatchSelectorDeletedEventTest {
     private SelectorDO selectorDO;
 
     private List<SelectorDO> selectorDOList;

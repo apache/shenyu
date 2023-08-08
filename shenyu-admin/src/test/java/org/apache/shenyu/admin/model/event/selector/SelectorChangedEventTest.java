@@ -30,7 +30,10 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class SelectorChangedEventTest {
+/**
+ * Test case for {@linkplain SelectorChangedEvent}.
+ */
+public final class SelectorChangedEventTest {
     private SelectorDO before;
 
     private SelectorDO after;

@@ -30,7 +30,10 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class SelectorCreatedEventTest {
+/**
+ * Test case for {@linkplain SelectorCreatedEvent}.
+ */
+public final class SelectorCreatedEventTest {
     private SelectorDO selectorDO;
 
     private SelectorCreatedEvent selectorCreatedEvent;
