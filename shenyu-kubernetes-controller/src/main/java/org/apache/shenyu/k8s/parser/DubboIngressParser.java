@@ -314,9 +314,9 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
         return MetaData.builder()
                 .appName(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_APP_NAME, "dubbo"))
                 .path(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_PATH, "/dubbo/findById"))
-                .rpcType(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_RPC_TYPE, String.valueOf(RpcTypeEnum.DUBBO.getName())))
-                .serviceName(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_SERVICE_NAME, "org.apache.shenyu.test.dubbo.api.service.DubboTestService"))
-                .methodName(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_METHOD_NAME, "findAll"))
+                .rpcType(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_RPC_TYPE, RpcTypeEnum.DUBBO.getName()))
+                .serviceName(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_SERVICE_NAME, "org.apache.shenyu.examples.apache.dubbo.service.impl.DubboTestServiceImpl"))
+                .methodName(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_METHOD_NAME, "findById"))
                 .enabled(true)
                 .build();
     }

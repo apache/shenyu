@@ -21,10 +21,12 @@ metadata:
     kubernetes.io/ingress.class: shenyu
     shenyu.apache.org/plugin-dubbo-enabled: 'true'
     shenyu.apache.org/plugin-dubbo-app-name: dubbo
+    shenyu.apache.org/plugin-context-path: /dubbo
     shenyu.apache.org/plugin-dubbo-path: /dubbo/findById
     shenyu.apache.org/plugin-dubbo-rpc-type: dubbo
-    shenyu.apache.org/plugin-dubbo-servive-name: org.apache.shenyu.examples.dubbo.api.service.DubboService
-    shenyu.apache.org/plugin-dubbo-method-name: findAll
+    shenyu.apache.org/plugin-dubbo-servive-name: org.apache.shenyu.examples.dubbo.api.service.DubboTestService
+    shenyu.apache.org/plugin-dubbo-method-name: findById
+    shenyu.apache.org/plugin-dubbo-rule-name: /dubbo/findById
     shenyu.apache.org/plugin-dubbo-param-types: java.lang.String
   name: demo-ingress
 spec:
