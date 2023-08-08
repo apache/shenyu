@@ -17,16 +17,16 @@
 
 package org.apache.shenyu.common.utils;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.URL;
 import java.security.CodeSource;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * VersionUtils.
@@ -102,7 +102,7 @@ public final class VersionUtils {
     }
 
     /**
-     * checkDuplicate,this method refers to the design of dubbo,url:https://dubbo.apache.org/zh/docs/v2.7/dev/principals/dummy/ .
+     * checkDuplicate,this method refers to the design of dubbo .
      * @param cls cls
      */
     public static void checkDuplicate(final Class<?> cls) {
@@ -115,7 +115,7 @@ public final class VersionUtils {
                 LOG.error("checkDuplicate error,{}", error);
             }
         } catch (Throwable e) {
-            LOG.error("checkDuplicate error,msg={},e={}", e.getMessage(), e);
+            LOG.error("checkDuplicate error,msg :{}", e.getMessage(), e);
         }
     }
 
@@ -128,7 +128,7 @@ public final class VersionUtils {
      */
     private static Set<String> readResources(final String path, final Class<?> cls) throws IOException {
         Enumeration<URL> urls = cls.getClassLoader().getResources(path);
-        Set<String> files = new HashSet<String>();
+        Set<String> files = new HashSet<>();
         while (urls.hasMoreElements()) {
             URL url = urls.nextElement();
             if (url != null) {

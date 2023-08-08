@@ -31,5 +31,15 @@
             <artifactId>shenyu-protocol-grpc</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <artifactId>grpc-stub</artifactId>
+            <groupId>io.grpc</groupId>
+        </dependency>
+
+        <dependency>
+            <artifactId>grpc-netty</artifactId>
+            <groupId>io.grpc</groupId>
+        </dependency>
     </dependencies>
 </project>

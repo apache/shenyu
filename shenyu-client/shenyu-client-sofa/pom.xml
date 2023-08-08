@@ -27,7 +27,6 @@
 
     <properties>
         <runtime-sofa-boot-starter.version>3.1.4</runtime-sofa-boot-starter.version>
-        <grpc-core.version>1.28.1</grpc-core.version>
     </properties>
     
     <dependencies>
@@ -35,6 +34,12 @@
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-client-core</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>grpc-netty</artifactId>
+                    <groupId>io.grpc</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.alipay.sofa</groupId>
@@ -46,17 +51,6 @@
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>
             <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-core</artifactId>
-            <version>${grpc-core.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

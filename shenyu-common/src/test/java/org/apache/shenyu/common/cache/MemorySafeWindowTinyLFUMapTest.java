@@ -73,7 +73,7 @@ public class MemorySafeWindowTinyLFUMapTest {
 
     @Test
     public void testWindowTinyLFUOutOufMemoryException() {
-        final int mb = 1 * 1024 * 1024;
+        final int mb = 1024 * 1024;
         for (int i = 0; i < 1000; i++) {
             MemorySafeWindowTinyLFUMap<String, Byte[]> instance = new MemorySafeWindowTinyLFUMap<>(1, 1024);
             instance.put(String.valueOf(1), new Byte[mb]);

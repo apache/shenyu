@@ -20,15 +20,24 @@ package org.apache.shenyu.client.springmvc.proceeor.extractor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.ApiAnnotationProcessor;
+import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
  * RequestMappingProcessor.
  */
-public class RequestMappingProcessor implements ApiAnnotationProcessor<RequestMapping> {
+public class RequestMappingProcessor implements ApiAnnotationProcessor<RequestMapping>, ExtractorProcessor {
+    
+    @Override
+    public List<String> supportedClient() {
+        return ListUtil.of(RpcTypeEnum.HTTP.getName());
+    }
     
     @Override
     public void process(final ApiBean api, final RequestMapping annotation) {
@@ -54,6 +63,9 @@ public class RequestMappingProcessor implements ApiAnnotationProcessor<RequestMa
         definition.addProperties("consumes", String.join(",", annotation.consumes()));
         definition.addProperties("produces", String.join(",", annotation.produces()));
         
+        definition.addProperties("desc", definition.getApiMethodName());
+        definition.addProperties("rule", "");
+        definition.addProperties("value", getPath(annotation));
         // Get additional values from the annotation.
         // TO_DO : Provides support annotation extensions
     }

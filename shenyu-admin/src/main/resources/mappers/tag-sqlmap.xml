@@ -62,7 +62,7 @@
                 name = #{name, jdbcType=VARCHAR}
             </if>
             <if test="parentTagId != null">
-                parent_tag_id = #{parentTagId, jdbcType=VARCHAR}
+                and parent_tag_id = #{parentTagId, jdbcType=VARCHAR}
             </if>
         </where>
     </select>

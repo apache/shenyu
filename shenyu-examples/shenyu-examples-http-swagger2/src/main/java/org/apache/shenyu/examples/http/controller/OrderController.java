@@ -38,7 +38,7 @@ import java.util.Objects;
 /**
  * TestController.
  */
-@Api(tags = "Order API")
+@Api(tags = "Order API", position = 2)
 @RestController
 @RequestMapping("/order")
 @ShenyuSpringMvcClient("/order")
