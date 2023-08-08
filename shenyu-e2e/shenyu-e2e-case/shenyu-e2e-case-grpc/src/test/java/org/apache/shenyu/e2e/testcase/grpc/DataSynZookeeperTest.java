@@ -31,10 +31,10 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 /**
- * Testing the correctness of Http data synchronization method.
+ * Testing the correctness of Apollo data synchronization method.
  */
 @ShenYuTest(
-        mode = ShenYuEngineConfigure.Mode.HOST,
+        mode = ShenYuEngineConfigure.Mode.DOCKER,
         services = {
                 @ShenYuTest.ServiceConfigure(
                         serviceName = "admin",
@@ -43,7 +43,7 @@ import java.util.List;
                         parameters = {
                                 @ShenYuTest.Parameter(key = "username", value = "admin"),
                                 @ShenYuTest.Parameter(key = "password", value = "123456"),
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "admin_http")
+                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
                         }
                 ),
                 @ShenYuTest.ServiceConfigure(
@@ -52,13 +52,13 @@ import java.util.List;
                         baseUrl = "http://{hostname:localhost}:9195",
                         type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
                         parameters = {
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "gateway_http")
+                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
                         }
                 )
         },
         dockerComposeFile = "classpath:./docker-compose.mysql.yml"
 )
-public class DataSynHttpTest {
+public class DataSynZookeeperTest {
 
     @Test
     void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
@@ -71,4 +71,5 @@ public class DataSynHttpTest {
         Assertions.assertEquals(9, metaDataCacheList.size());
         Assertions.assertEquals(9, ruleCacheList.size());
     }
+
 }

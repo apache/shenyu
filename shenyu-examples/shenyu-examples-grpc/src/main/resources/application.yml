@@ -14,7 +14,7 @@
 # limitations under the License.
 
 server:
-  port: 55222
+  port: 55290
   servlet:
     context-path: /grpc
   address: 0.0.0.0
