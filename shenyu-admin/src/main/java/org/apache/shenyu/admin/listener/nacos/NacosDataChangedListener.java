@@ -26,7 +26,6 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 /**
  * Use nacos to push data changes.
@@ -57,11 +56,21 @@ public class NacosDataChangedListener extends AbstractListDataChangedListener {
         }
     }
 
+    public void delConfig(final String dataId) {
+        try {
+            configService.removeConfig(
+                    dataId,
+                    NacosPathConstants.GROUP);
+        } catch (NacosException e) {
+            LOG.error("Publish data to nacos error.", e);
+            throw new ShenyuException(e.getMessage());
+        }
+    }
+
     @Override
     public String getConfig(final String dataId) {
         try {
-            String config = configService.getConfig(dataId, NacosPathConstants.GROUP, NacosPathConstants.DEFAULT_TIME_OUT);
-            return StringUtils.hasLength(config) ? config : NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
+            return configService.getConfig(dataId, NacosPathConstants.GROUP, NacosPathConstants.DEFAULT_TIME_OUT);
         } catch (NacosException e) {
             LOG.error("Get data from nacos error.", e);
             throw new ShenyuException(e.getMessage());

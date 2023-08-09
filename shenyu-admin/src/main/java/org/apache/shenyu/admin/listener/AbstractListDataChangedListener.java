@@ -20,27 +20,29 @@ package org.apache.shenyu.admin.listener;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -79,179 +81,195 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
 
     @Override
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
-        updateAuthMap(getConfig(changeData.getAuthDataId()));
+        final String configKeyPrefix = changeData.getAuthDataId();
+        final List<String> changeNames = changed.stream().map(AppAuthData::getAppKey).collect(Collectors.toList());
         switch (eventType) {
             case DELETE:
-                changed.forEach(appAuth -> AUTH_MAP.remove(appAuth.getAppKey()));
+                changed.stream().map(AppAuthData::getAppKey).forEach(removeKey -> {
+                    delConfig(configKeyPrefix + "." + removeKey);
+                });
+                delChangedData(configKeyPrefix, changeNames);
                 break;
             case REFRESH:
             case MYSELF:
-                Set<String> set = new HashSet<>(AUTH_MAP.keySet());
-                changed.forEach(appAuth -> {
-                    set.remove(appAuth.getAppKey());
-                    AUTH_MAP.put(appAuth.getAppKey(), appAuth);
+                final List<String> configDataNames = this.getConfigDataNames(configKeyPrefix, changed, AppAuthData::getAppKey, AppAuthData.class);
+                changed.forEach(appAuthData -> {
+                    if (configDataNames.contains(appAuthData.getAppKey())) {
+                        delConfig(configKeyPrefix + "." + appAuthData.getAppKey());
+                    } else {
+                        publishConfig(configKeyPrefix + "." + appAuthData.getAppKey(), appAuthData);
+                    }
                 });
-                AUTH_MAP.keySet().removeAll(set);
+                publishConfig(configKeyPrefix + ".list", changeNames);
                 break;
             default:
-                changed.forEach(appAuth -> AUTH_MAP.put(appAuth.getAppKey(), appAuth));
+                changed.forEach(appAuthData -> publishConfig(configKeyPrefix + "." + appAuthData.getAppKey(), appAuthData));
+                putChangeData(configKeyPrefix, changeNames);
                 break;
         }
-        publishConfig(changeData.getAuthDataId(), AUTH_MAP);
-        LOG.debug("[DataChangedListener] AppAuthChanged {}", changeData.getAuthDataId());
+
+        publishConfig(configKeyPrefix, AUTH_MAP);
+        LOG.debug("[DataChangedListener] AppAuthChanged {}", configKeyPrefix);
     }
 
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
-        updatePluginMap(getConfig(changeData.getPluginDataId()));
+        final String configKeyPrefix = changeData.getPluginDataId();
+        final List<String> changeNames = changed.stream().map(PluginData::getName).collect(Collectors.toList());
         switch (eventType) {
             case DELETE:
-                changed.forEach(plugin -> PLUGIN_MAP.remove(plugin.getName()));
+                changed.stream().map(PluginData::getName).forEach(removeKey -> {
+                    delConfig(configKeyPrefix + "." + removeKey);
+                });
+                delChangedData(configKeyPrefix, changeNames);
                 break;
             case REFRESH:
             case MYSELF:
-                Set<String> set = new HashSet<>(PLUGIN_MAP.keySet());
+                final List<String> configDataNames = this.getConfigDataNames(configKeyPrefix, changed, PluginData::getName, PluginData.class);
                 changed.forEach(plugin -> {
-                    set.remove(plugin.getName());
-                    PLUGIN_MAP.put(plugin.getName(), plugin);
+                    if (configDataNames.contains(plugin.getName())) {
+                        delConfig(configKeyPrefix + "." + plugin.getName());
+                    } else {
+                        publishConfig(configKeyPrefix + "." + plugin.getName(), plugin);
+                    }
                 });
-                PLUGIN_MAP.keySet().removeAll(set);
+                publishConfig(configKeyPrefix + ".list", changeNames);
                 break;
             default:
-                changed.forEach(plugin -> PLUGIN_MAP.put(plugin.getName(), plugin));
+                changed.forEach(plugin -> publishConfig(configKeyPrefix + "." + plugin.getName(), plugin));
+                putChangeData(configKeyPrefix, changeNames);
                 break;
         }
-        publishConfig(changeData.getPluginDataId(), PLUGIN_MAP);
-        LOG.debug("[DataChangedListener] PluginChanged {}", changeData.getPluginDataId());
+
+        LOG.debug("[DataChangedListener] PluginChanged {}", configKeyPrefix);
     }
 
-    @Override
-    public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        updateSelectorMap(getConfig(changeData.getSelectorDataId()));
-        switch (eventType) {
-            case DELETE:
-                changed.forEach(selector -> {
-                    List<SelectorData> ls = SELECTOR_MAP
-                            .getOrDefault(selector.getPluginName(), new ArrayList<>())
-                            .stream()
-                            .filter(s -> !s.getId().equals(selector.getId()))
-                            .sorted(SELECTOR_DATA_COMPARATOR)
-                            .collect(Collectors.toList());
-                    SELECTOR_MAP.put(selector.getPluginName(), ls);
-                });
-                break;
-            case REFRESH:
-            case MYSELF:
-                if (CollectionUtils.isNotEmpty(changed)) {
-                    SELECTOR_MAP.remove(changed.get(0).getPluginName());
-                }
-                changed.forEach(selector -> {
-                    List<SelectorData> ls = new ArrayList<>(SELECTOR_MAP.getOrDefault(selector.getPluginName(),
-                            new ArrayList<>()));
-                    ls.add(selector);
-                    ls.sort(SELECTOR_DATA_COMPARATOR);
-                    SELECTOR_MAP.put(selector.getPluginName(), ls);
-                });
-                break;
-            default:
-                changed.forEach(selector -> {
-                    List<SelectorData> ls = SELECTOR_MAP
-                            .getOrDefault(selector.getPluginName(), new ArrayList<>())
-                            .stream()
-                            .filter(s -> !s.getId().equals(selector.getId()))
-                            .collect(Collectors.toList());
-                    ls.add(selector);
-                    ls.sort(SELECTOR_DATA_COMPARATOR);
-                    SELECTOR_MAP.put(selector.getPluginName(), ls);
-                });
-                break;
-        }
-        publishConfig(changeData.getSelectorDataId(), SELECTOR_MAP);
-        LOG.debug("[DataChangedListener] SelectorChanged {}", changeData.getSelectorDataId());
+    private void putChangeData(final String configKeyPrefix, final List<String> changeNames) {
+        final String dataList2 = Optional.ofNullable(getConfig(configKeyPrefix + ".list")).orElse("[]");
+        final List<String> orginList = GsonUtils.getInstance().fromList(dataList2, String.class);
+        orginList.addAll(changeNames.stream().filter(changeName -> !orginList.contains(changeName)).collect(Collectors.toList()));
+        publishConfig(configKeyPrefix + ".list", orginList);
+    }
+
+    private void delChangedData(final String configKeyPrefix, final List<String> changeNames) {
+        final String dataList = Optional.ofNullable(getConfig(configKeyPrefix + ".list")).orElse("[]");
+        final List<String> orginList = GsonUtils.getInstance().fromList(dataList, String.class);
+        orginList.removeAll(changeNames);
+        publishConfig(configKeyPrefix + ".list", orginList);
     }
 
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
-        updateMetaDataMap(getConfig(changeData.getMetaDataId()));
+        final String configKeyPrefix = changeData.getMetaDataId();
+        final List<String> changeNames = changed.stream().map(MetaData::getId).collect(Collectors.toList());
         switch (eventType) {
             case DELETE:
-                changed.forEach(meta -> META_DATA.remove(meta.getPath()));
+                changed.stream().map(MetaData::getId).forEach(removeKey -> {
+                    delConfig(configKeyPrefix + "." + removeKey);
+                });
+                delChangedData(configKeyPrefix, changeNames);
                 break;
             case REFRESH:
             case MYSELF:
-                Set<String> set = new HashSet<>(META_DATA.keySet());
-                changed.forEach(meta -> {
-                    set.remove(meta.getPath());
-                    META_DATA.put(meta.getPath(), meta);
+                final List<String> configDataNames = this.getConfigDataNames(configKeyPrefix, changed, MetaData::getId, MetaData.class);
+                changed.forEach(metaData -> {
+                    if (configDataNames.contains(metaData.getId())) {
+                        delConfig(configKeyPrefix + "." + metaData.getId());
+                    } else {
+                        publishConfig(configKeyPrefix + "." + metaData.getId(), metaData);
+                    }
                 });
-                META_DATA.keySet().removeAll(set);
+                publishConfig(configKeyPrefix + ".list", changeNames);
                 break;
             default:
-                changed.forEach(meta -> {
-                    META_DATA
-                            .values()
-                            .stream()
-                            .filter(md -> Objects.equals(md.getId(), meta.getId()))
-                            .forEach(md -> META_DATA.remove(md.getPath()));
-
-                    META_DATA.put(meta.getPath(), meta);
-                });
+                changed.forEach(metaData -> publishConfig(configKeyPrefix + "." + metaData.getId(), metaData));
+                putChangeData(configKeyPrefix, changeNames);
                 break;
         }
-        publishConfig(changeData.getMetaDataId(), META_DATA);
+
         LOG.debug("[DataChangedListener] MetaDataChanged {}", changeData.getMetaDataId());
     }
 
     @Override
-    public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        updateRuleMap(getConfig(changeData.getRuleDataId()));
+    public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
+        final String configKeyPrefix = changeData.getSelectorDataId();
+        final Map<String, List<String>> pluginNameToSelectorIdMap = changed.stream()
+                .collect(Collectors.groupingBy(SelectorData::getPluginName, Collectors.mapping(SelectorData::getId, Collectors.toList())));
         switch (eventType) {
             case DELETE:
-                changed.forEach(rule -> {
-                    List<RuleData> ls = RULE_MAP
-                            .getOrDefault(rule.getSelectorId(), new ArrayList<>())
-                            .stream()
-                            .filter(s -> !s.getId().equals(rule.getId()))
-                            .sorted(RULE_DATA_COMPARATOR)
-                            .collect(Collectors.toList());
-                    RULE_MAP.put(rule.getSelectorId(), ls);
+                changed.forEach(selector -> {
+                    delConfig(configKeyPrefix + "." + selector.getPluginName() + "." + selector.getId());
                 });
+                this.delChangedMapToList(pluginNameToSelectorIdMap, configKeyPrefix);
                 break;
             case REFRESH:
             case MYSELF:
-                Set<String> selectIdSet = changed
-                        .stream()
-                        .map(RuleData::getSelectorId)
-                        .collect(Collectors.toSet());
-                RULE_MAP.keySet().removeAll(selectIdSet);
-                changed.forEach(rule -> {
-                    List<RuleData> ls = new ArrayList<>(RULE_MAP.getOrDefault(rule.getSelectorId(),
-                            new ArrayList<>()));
-                    ls.add(rule);
-                    ls.sort(RULE_DATA_COMPARATOR);
-                    RULE_MAP.put(rule.getSelectorId(), ls);
-                });
-                break;
             default:
-                changed.forEach(rule -> {
-                    List<RuleData> ls = RULE_MAP
-                            .getOrDefault(rule.getSelectorId(), new ArrayList<>())
-                            .stream()
-                            .filter(s -> !s.getId().equals(rule.getId()))
-                            .collect(Collectors.toList());
-                    ls.add(rule);
-                    ls.sort(RULE_DATA_COMPARATOR);
-                    RULE_MAP.put(rule.getSelectorId(), ls);
+                changed.forEach(selector -> {
+                    publishConfig(configKeyPrefix + "." + selector.getPluginName() + "." + selector.getId(), selector);
                 });
+                this.putChangedMapToList(pluginNameToSelectorIdMap, configKeyPrefix);
                 break;
         }
-        publishConfig(changeData.getRuleDataId(), RULE_MAP);
+
+        LOG.debug("[DataChangedListener] SelectorChanged {}", configKeyPrefix);
+    }
+
+    @Override
+    public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
+        final String configKeyPrefix = changeData.getRuleDataId();
+        final Map<String, List<String>> pluginNameToSelectorIdMap = changed.stream()
+                .collect(Collectors.groupingBy(RuleData::getSelectorId, Collectors.mapping(RuleData::getId, Collectors.toList())));
+        switch (eventType) {
+            case DELETE:
+                changed.forEach(selector -> {
+                    delConfig(configKeyPrefix + "." + selector.getSelectorId() + "." + selector.getId());
+                });
+                this.delChangedMapToList(pluginNameToSelectorIdMap, configKeyPrefix);
+                break;
+            case REFRESH:
+            case MYSELF:
+            default:
+                changed.forEach(selector -> {
+                    publishConfig(configKeyPrefix + "." + selector.getSelectorId() + "." + selector.getId(), selector);
+                });
+                this.putChangedMapToList(pluginNameToSelectorIdMap, configKeyPrefix);
+                break;
+        }
         LOG.debug("[DataChangedListener] RuleChanged {}", changeData.getRuleDataId());
+    }
+
+    private void putChangedMapToList(final Map<String, List<String>> stringListMap, final String configKeyPrefix) {
+        stringListMap.forEach((key, listIds) -> {
+            final String dataList = Optional.ofNullable(getConfig(configKeyPrefix + "." + key + ".list"))
+                    .orElse("[]");
+            final List<String> selectorIds = GsonUtils.getInstance().fromList(dataList, String.class);
+            selectorIds.addAll(listIds.stream().filter(selectorId -> !selectorIds.contains(selectorId)).collect(Collectors.toList()));
+            if (ObjectUtils.isEmpty(selectorIds)) {
+                delConfig(configKeyPrefix + "." + key + ".list");
+            } else {
+                publishConfig(configKeyPrefix + "." + key + ".list", selectorIds);
+            }
+        });
+    }
+
+    private void delChangedMapToList(final Map<String, List<String>> stringListMap, final String configKeyPrefix) {
+        stringListMap.forEach((key, listIds) -> {
+            final String dataList = Optional.ofNullable(getConfig(configKeyPrefix + "." + key + ".list"))
+                    .orElse("[]");
+            final List<String> selectorIds = GsonUtils.getInstance().fromList(dataList, String.class);
+            selectorIds.removeAll(listIds);
+            if (ObjectUtils.isEmpty(selectorIds)) {
+                delConfig(configKeyPrefix + "." + key + ".list");
+            } else {
+                publishConfig(configKeyPrefix + "." + key + ".list", selectorIds);
+            }
+        });
     }
 
     @Override
     public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
-        updateProxySelectorMap(getConfig(changeData.getProxySelectorDataId()));
+        updateRuleMap(Optional.ofNullable(getConfig(changeData.getProxySelectorDataId())).orElse("{}"));
         switch (eventType) {
             case DELETE:
                 changed.forEach(proxySelectorData -> {
@@ -376,12 +394,40 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
     public abstract void publishConfig(String dataId, Object data);
 
     /**
+     * delConfig.
+     *
+     * @param dataId dataId
+     */
+    public void delConfig(final String dataId) {
+
+    }
+
+    /**
      * getConfig.
      *
      * @param dataId dataId
      * @return {@link String}
      */
     public abstract String getConfig(String dataId);
+
+    /**
+     * getConfigDataNames.
+     *
+     * @param authDataId authDataId
+     * @param changed changed
+     * @param mapper mapper
+     * @param tClass tClass
+     * @return {@link List }
+     */
+    private <T> List<String> getConfigDataNames(final String authDataId, final List<T> changed,
+                                                final Function<? super T, ? extends String> mapper, final Class<T> tClass) {
+        final List<String> names = changed.stream().map(mapper).collect(Collectors.toList());
+        return names.stream().map(pluginName -> this.getConfig(authDataId + ".info." + pluginName))
+                .filter(StringUtils::hasText)
+                .map(configStr -> GsonUtils.getInstance().fromJson(configStr, tClass))
+                .map(mapper)
+                .collect(Collectors.toList());
+    }
 
     public static class ChangeData {
 
