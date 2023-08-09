@@ -28,7 +28,11 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okhttp3.logging.HttpLoggingInterceptor;
+import okhttp3.logging.HttpLoggingInterceptor.Level;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -50,6 +54,9 @@ import java.util.concurrent.TimeUnit;
  * HTTP request tool, based on okhttp3.
  */
 public class HttpUtils {
+
+    private static final Logger LOG = LoggerFactory.getLogger(HttpUtils.class);
+
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
 
     private Map<String, List<Cookie>> cookieStore = new HashMap<>();
@@ -148,7 +155,14 @@ public class HttpUtils {
     }
 
     protected void initHttpClient(final HttpToolConfig httpToolConfig) {
+        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(s -> {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(s);
+            }
+        });
+        httpLoggingInterceptor.setLevel(Level.BODY);
         httpClient = new OkHttpClient.Builder()
+            .addInterceptor(httpLoggingInterceptor)
             .connectTimeout(httpToolConfig.connectTimeoutSeconds, TimeUnit.SECONDS)
             .readTimeout(httpToolConfig.readTimeoutSeconds, TimeUnit.SECONDS)
             .writeTimeout(httpToolConfig.writeTimeoutSeconds, TimeUnit.SECONDS)
