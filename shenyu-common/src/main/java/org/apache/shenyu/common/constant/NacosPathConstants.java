@@ -55,12 +55,12 @@ public final class NacosPathConstants {
     /**
      * proxy selector data id.
      */
-    public static final String PROXY_SELECTOR_DATA_ID = "shenyu.proxy.selector.json";
+    public static final String PROXY_SELECTOR_DATA_ID = "proxy.selector";
 
     /**
      * proxy selector data id.
      */
-    public static final String DISCOVERY_DATA_ID = "shenyu.discovery.data.json";
+    public static final String DISCOVERY_DATA_ID = "discovery";
 
     /**
      * default value of get config.

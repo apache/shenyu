@@ -22,7 +22,6 @@ import com.alibaba.nacos.api.config.listener.Listener;
 import com.alibaba.nacos.api.exception.NacosException;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -90,13 +89,14 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
             final List<String> pluginNames = getConfigListOnWatch("plugin.list", updateData -> {
                 List<String> changedPluginNames = GsonUtils.getInstance().fromList(updateData, String.class);
                 watcherPlugin(changedPluginNames);
-            }, this::removeListener);
+            });
 
             watcherPlugin(pluginNames);
 
             watchCommonList("auth.", this::cacheAuthData, this::unCacheAuthData, this::removeListener);
 
             watchCommonList("meta.", this::cacheMetaData, this::unCacheMetaData, this::removeListener);
+
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
@@ -114,9 +114,12 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
             final List<String> selectorIds = getConfigListOnWatch("selector." + pluginName + ".list", updateData -> {
                 List<String> changedSelectorIds = GsonUtils.getInstance().fromList(updateData, String.class);
                 watcherSelector(pluginName, changedSelectorIds);
-            }, this::removeListener);
+            });
 
             watcherSelector(pluginName, selectorIds);
+
+            watchCommonList(String.join(".", NacosPathConstants.PROXY_SELECTOR_DATA_ID, pluginName) + ".", this::cacheProxySelectorData, this::unCacheProxySelectorData, this::removeListener);
+            watchCommonList(String.join(".", NacosPathConstants.DISCOVERY_DATA_ID, pluginName) + ".", this::cacheProxySelectorData, this::unCacheProxySelectorData, this::removeListener);
         });
     }
 
@@ -137,7 +140,7 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
         final List<String> keyIds = getConfigListOnWatch(keyPrefix + "list", updateData -> {
             List<String> changedIds = GsonUtils.getInstance().fromList(updateData, String.class);
             watcherCommonData(changedIds, keyPrefix, updateHandler, deleteHandler);
-        }, removeListener);
+        });
 
         watcherCommonData(keyIds, keyPrefix, updateHandler, deleteHandler);
     }
@@ -149,7 +152,6 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
         }
         keys.forEach(key -> {
             final String keyData = this.getConfigOnWatch(keyPrefix + key, updateHandler, deleteHandler);
-
             updateHandler.accept(keyData);
         });
     }
@@ -167,21 +169,9 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
             final List<String> ruleIds = getConfigListOnWatch("rule." + selectorId + ".list", updateData -> {
                 List<String> upSelectorIds = GsonUtils.getInstance().fromList(updateData, String.class);
                 watcherRule(selectorId, upSelectorIds, pluginName);
-            }, this::removeListener);
+            });
 
             watcherRule(selectorId, ruleIds, pluginName);
-        });
-    }
-
-    private void watcherAppAuth(final String pluginName, final List<String> authAppKeys) {
-        if (ObjectUtils.isEmpty(authAppKeys)) {
-            return;
-        }
-        authAppKeys.forEach(selectorId -> {
-            final String selectorData = this.getConfigOnWatch("selector." + pluginName + "." + selectorId,
-                    this::cacheSelectorData, this::unCacheSelectorData);
-
-            cacheSelectorData(selectorData);
         });
     }
 
@@ -197,6 +187,7 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
     }
 
     private void removeListener(final String key) {
+        LOG.info("nacos sync remove listener key:{}", key);
         final Listener listener = watchCache.get(key);
         if (!ObjectUtils.isEmpty(listener)) {
             configService.removeListener(key, NacosPathConstants.GROUP, listener);
@@ -204,12 +195,12 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
         }
     }
 
-    private List<String> getConfigListOnWatch(final String key, final Consumer<String> updateHandler, final Consumer<String> deleteHandler) {
+    private List<String> getConfigListOnWatch(final String key, final Consumer<String> updateHandler) {
         try {
             if (watchCache.containsKey(key)) {
                 return GsonUtils.getInstance().fromList(configService.getConfig(key, NacosPathConstants.GROUP, 3000), String.class);
             }
-            final String serviceConfig = getServiceConfig(key, updateHandler, deleteHandler);
+            final String serviceConfig = getServiceConfig(key, updateHandler, null);
             return GsonUtils.getInstance().fromList(serviceConfig, String.class);
         } catch (Exception e) {
             throw new ShenyuException(e);
@@ -225,7 +216,7 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
 
             @Override
             public void receiveConfigInfo(final String configInfo) {
-                if (StringUtils.isBlank(configInfo)) {
+                if (StringUtils.isBlank(configInfo) && deleteHandler != null) {
                     deleteHandler.accept(key);
                 } else {
                     updateHandler.accept(configInfo);
@@ -326,16 +317,13 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
                 .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.onSubscribe(data)));
     }
 
-    private void unCacheProxySelectorData(final String dataPath) {
+    private void unCacheProxySelectorData(final String removeKey) {
         ProxySelectorData proxySelectorData = new ProxySelectorData();
-        final String selectorId = dataPath.substring(dataPath.lastIndexOf("/") + 1);
-        final String str = dataPath.substring(DefaultPathConstants.PROXY_SELECTOR.length());
-        final String pluginName = str.substring(1, str.length() - selectorId.length() - 1);
-        proxySelectorData.setPluginName(pluginName);
-        proxySelectorData.setId(selectorId);
+        final String[] proxySelectorKeys = StringUtils.split(removeKey, ".");
+        proxySelectorData.setPluginName(proxySelectorKeys[2]);
+        proxySelectorData.setName(proxySelectorKeys[3]);
         proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData));
-
-        removeListener(dataPath);
+        removeListener(removeKey);
     }
 
     private String buildRealPath(final String parent, final String children) {
