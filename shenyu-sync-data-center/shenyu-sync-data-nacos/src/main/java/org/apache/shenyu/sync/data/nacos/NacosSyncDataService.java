@@ -84,7 +84,6 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
         this.authDataSubscribers = authDataSubscribers;
         this.proxySelectorDataSubscribers = proxySelectorDataSubscribers;
         this.configService = configService;
-        start();
         try {
             final List<String> pluginNames = getConfigListOnWatch("plugin.list", updateData -> {
                 List<String> changedPluginNames = GsonUtils.getInstance().fromList(updateData, String.class);
@@ -118,8 +117,8 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
 
             watcherSelector(pluginName, selectorIds);
 
-            watchCommonList(String.join(".", NacosPathConstants.PROXY_SELECTOR_DATA_ID, pluginName) + ".", this::cacheProxySelectorData, this::unCacheProxySelectorData, this::removeListener);
-            watchCommonList(String.join(".", NacosPathConstants.DISCOVERY_DATA_ID, pluginName) + ".", this::cacheProxySelectorData, this::unCacheProxySelectorData, this::removeListener);
+            watchCommonList(NacosPathConstants.PROXY_SELECTOR_DATA_ID + "." + pluginName + ".", this::cacheProxySelectorData, this::unCacheProxySelectorData, this::removeListener);
+            watchCommonList(NacosPathConstants.DISCOVERY_DATA_ID + "." + pluginName + ".", this::cacheProxySelectorData, this::unCacheProxySelectorData, this::removeListener);
         });
     }
 
@@ -187,11 +186,11 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
     }
 
     private void removeListener(final String key) {
-        LOG.info("nacos sync remove listener key:{}", key);
         final Listener listener = watchCache.get(key);
         if (!ObjectUtils.isEmpty(listener)) {
             configService.removeListener(key, NacosPathConstants.GROUP, listener);
             watchCache.remove(key);
+            LOG.info("nacos sync remove listener key:{}", key);
         }
     }
 
@@ -216,10 +215,14 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
 
             @Override
             public void receiveConfigInfo(final String configInfo) {
-                if (StringUtils.isBlank(configInfo) && deleteHandler != null) {
-                    deleteHandler.accept(key);
-                } else {
-                    updateHandler.accept(configInfo);
+                try {
+                    if (StringUtils.isBlank(configInfo) && deleteHandler != null) {
+                        deleteHandler.accept(key);
+                    } else {
+                        updateHandler.accept(configInfo);
+                    }
+                } catch (Exception e) {
+                    LOG.error("nacos sync listener receiveConfigInfo error", e);
                 }
             }
         };
@@ -306,8 +309,7 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
         final MetaData metaData = new MetaData();
         final String[] ruleKeys = StringUtils.split(removeKey, ".");
         metaData.setId(ruleKeys[1]);
-        Optional.ofNullable(metaData)
-                .ifPresent(data -> metaDataSubscribers.forEach(e -> e.unSubscribe(metaData)));
+        metaDataSubscribers.forEach(e -> e.unSubscribe(metaData));
         removeListener(removeKey);
     }
 
@@ -324,23 +326,6 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
         proxySelectorData.setName(proxySelectorKeys[3]);
         proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData));
         removeListener(removeKey);
-    }
-
-    private String buildRealPath(final String parent, final String children) {
-        return String.join("/", parent, children);
-    }
-
-    /**
-     * Start.
-     */
-    public void start() {
-
-//        watcherData(NacosPathConstants.PLUGIN_DATA_ID, this::updatePluginMap);
-//        watcherData(NacosPathConstants.SELECTOR_DATA_ID, this::updateSelectorMap);
-//        watcherData(NacosPathConstants.RULE_DATA_ID, this::updateRuleMap);
-//        watcherData(NacosPathConstants.META_DATA_ID, this::updateMetaDataMap);
-//        watcherData(NacosPathConstants.AUTH_DATA_ID, this::updateAuthMap);
-//        watcherData(NacosPathConstants.PROXY_SELECTOR_DATA_ID, this::updateProxySelectorMap);
     }
 
     @Override

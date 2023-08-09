@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.listener;
 
-import com.google.common.collect.Maps;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -35,7 +34,6 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -45,12 +43,6 @@ import java.util.stream.Collectors;
 public abstract class AbstractListDataChangedListener implements DataChangedListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractListDataChangedListener.class);
-
-    private static final ConcurrentMap<String, List<RuleData>> RULE_MAP = Maps.newConcurrentMap();
-
-    private static final ConcurrentMap<String, AppAuthData> AUTH_MAP = Maps.newConcurrentMap();
-
-    private static final ConcurrentMap<String, List<ProxySelectorData>> PROXY_SELECTOR_MAP = Maps.newConcurrentMap();
 
     private final ChangeData changeData;
 
@@ -67,7 +59,6 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
         final String configKeyPrefix = changeData.getAuthDataId() + ".";
         this.onCommonChanged(configKeyPrefix, changed, eventType, AppAuthData::getAppKey, AppAuthData.class);
-        publishConfig(configKeyPrefix, AUTH_MAP);
         LOG.debug("[DataChangedListener] AppAuthChanged {}", configKeyPrefix);
     }
 
