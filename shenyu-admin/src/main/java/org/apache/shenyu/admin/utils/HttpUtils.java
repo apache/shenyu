@@ -21,7 +21,6 @@ import okhttp3.Cookie;
 import okhttp3.CookieJar;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
-import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -29,6 +28,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.springframework.http.MediaType;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -50,7 +51,6 @@ import java.util.concurrent.TimeUnit;
  * HTTP request tool, based on okhttp3.
  */
 public class HttpUtils {
-    private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
 
     private Map<String, List<Cookie>> cookieStore = new HashMap<>();
 
@@ -215,20 +215,18 @@ public class HttpUtils {
      * @return String
      * @throws IOException IOException
      */
-    public String requestJson(final String url, final String json,
+    public Response requestJson(final String url, final String json,
         final Map<String, String> header) throws IOException {
-        RequestBody body = RequestBody.create(MEDIA_TYPE_JSON, json);
+        RequestBody body = RequestBody.create(okhttp3.MediaType.parse(MediaType.APPLICATION_JSON_VALUE), json);
         Request.Builder requestBuilder = new Request.Builder()
             .url(url)
             .post(body);
         addHeader(requestBuilder, header);
 
         Request request = requestBuilder.build();
-        try (Response response = httpClient
+        return httpClient
             .newCall(request)
-            .execute()) {
-            return response.body().string();
-        }
+            .execute();
     }
 
     /**
@@ -298,6 +296,8 @@ public class HttpUtils {
         final HTTPMethod method, final List<UploadFile> files) throws IOException {
         if (Objects.nonNull(files) && !files.isEmpty()) {
             return requestFile(url, form, header, files);
+        } else if (isJsonRequest(header)) {
+            return requestJson(url, JsonUtils.toJson(form), header);
         } else {
             return requestForResponse(url, form, header, method);
         }
@@ -373,6 +373,15 @@ public class HttpUtils {
                 builder.addHeader(entry.getKey(), String.valueOf(entry.getValue()));
             }
         }
+    }
+
+    private boolean isJsonRequest(final Map<String, String> headers) {
+        try {
+            return MediaType.APPLICATION_JSON.equals(MediaType.valueOf(headers.get("Content-Type")));
+        } catch (Exception e) {
+            System.err.println(e);
+        }
+        return false;
     }
 
     public enum HTTPMethod {
