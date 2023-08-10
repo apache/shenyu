@@ -55,17 +55,9 @@ public final class PolarisSyncDataConfigurationTest {
     private PolarisConfig polarisConfig;
 
     @Test
-    public void polarisSyncDataServiceTest() {
-        assertNotNull(syncDataService);
-    }
-
-    @Test
-    public void polarisConfigTest() {
-        assertNotNull(polarisConfig);
-    }
-
-    @Test
     public void polarisConfigServiceTest() {
+        assertNotNull(syncDataService);
+        assertNotNull(polarisConfig);
         final PolarisSyncDataConfiguration polarisSyncDataConfiguration = new PolarisSyncDataConfiguration();
 
         final ConfigFileService configFileService = Assertions.assertDoesNotThrow(() -> polarisSyncDataConfiguration.polarisConfigServices(polarisConfig));
