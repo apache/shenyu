@@ -29,7 +29,6 @@ import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.data.Condition;
 import org.apache.shenyu.e2e.model.handle.GrpcSelectorHandle;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
