@@ -25,7 +25,6 @@ import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Resource;
 
-import io.vertx.core.json.Json;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
