@@ -81,6 +81,14 @@ jobs:
     runs-on: ubuntu-latest
     if: (github.repository == 'apache/shenyu')
     steps:
+      - name: "Cache local Maven repository"
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+            ${{ runner.os }}-maven-
       - name: Start docker compose
         if: steps.filter.outputs.changed == 'true'
         run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
