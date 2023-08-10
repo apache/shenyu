@@ -46,7 +46,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository/org/apache/shenyu
-          key: ${{ runner.os }}-dubbo-snapshot-${{ github.sha }}-${{ github.run_id }}
+          key: ${{ runner.os }}-shenyu-snapshot-${{ github.sha }}-${{ github.run_id }}
       - uses: actions/setup-java@v1
         if: steps.filter.outputs.changed == 'true'
         with:
@@ -90,18 +90,14 @@ jobs:
             ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
             ${{ runner.os }}-maven-
       - name: Start docker compose
-        if: steps.filter.outputs.changed == 'true'
         run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
       - name: Wait for docker compose start up completely
-        if: steps.filter.outputs.changed == 'true'
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
       - name: Run test
         id: test
-        if: steps.filter.outputs.changed == 'true'
         run: ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
         continue-on-error: true
       - name: Check test result
-        if: steps.filter.outputs.changed == 'true'
         run: |
           docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --tail="all"
           if [[ ${{steps.test.outcome}} == "failure" ]]; then
