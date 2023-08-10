@@ -25,4 +25,17 @@ spring:
     username: sa
     password: sa
     driver-class-name: org.h2.Driver
-
+  mail:
+    # Attention: this is mail server address.
+    host: smtp.qq.com
+    username: shenyu@apache.com
+    # Attention: this is not email account password, this requires an email authorization code
+    password: your-password
+    port: 465
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          socketFactoryClass: javax.net.ssl.SSLSocketFactory
+          ssl:
+            enable: true
