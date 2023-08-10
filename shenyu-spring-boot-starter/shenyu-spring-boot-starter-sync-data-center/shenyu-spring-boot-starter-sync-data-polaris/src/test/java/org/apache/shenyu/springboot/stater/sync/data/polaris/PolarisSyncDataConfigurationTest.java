@@ -41,14 +41,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(
         classes = PolarisSyncDataConfiguration.class,
         properties = {
-                "shenyu.sync.polaris.url=" + PolarisSyncDataConfigurationTest.URL,
+                PolarisSyncDataConfigurationTest.URL,
                 "shenyu.sync.polaris.namespace=default",
                 "shenyu.sync.polaris.fileGroup=fileGroup"
         })
 @EnableAutoConfiguration
 public final class PolarisSyncDataConfigurationTest {
 
-    public static final String URL = "127.0.0.1:8093";
+    public static final String URL = "shenyu.sync.polaris.url=127.0.0.1:8093";
 
     @Autowired
     private SyncDataService syncDataService;
