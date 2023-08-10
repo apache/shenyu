@@ -81,10 +81,10 @@ public abstract class AbstractNodeDataSyncService implements SyncDataService {
     public void event(final String updatePath, final String updateData, final String registerPath, final EventType eventType) {
         switch (registerPath) {
             case DefaultPathConstants.PLUGIN_PARENT:
-                this.pluginHandlerEvent(updatePath, updateData, eventType);
+                pluginHandlerEvent(updatePath, updateData, eventType);
                 break;
             case DefaultPathConstants.SELECTOR_PARENT:
-                this.selectorHandlerEvent(updatePath, updateData, eventType);
+                selectorHandlerEvent(updatePath, updateData, eventType);
                 break;
             case DefaultPathConstants.META_DATA:
                 metaDataHandlerEvent(updatePath, updateData, eventType);
