@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 public final class AlarmThreadPoolExecutor {
     
     /**
-     * the thread pool executor
+     * The thread pool executor.
      */
     private static ShenyuThreadPoolExecutor threadPoolExecutor;
     
@@ -46,9 +46,9 @@ public final class AlarmThreadPoolExecutor {
      * Init work executor.
      */
     private void initWorkExecutor() {
-        threadPoolExecutor =  new ShenyuThreadPoolExecutor(10, 100, 60000L,
+        threadPoolExecutor = new ShenyuThreadPoolExecutor(10, 100, 60000L,
                 TimeUnit.MILLISECONDS, new MemorySafeTaskQueue<>(Constants.THE_256_MB),
-                ShenyuThreadFactory.create("alarm sender", true),
+                ShenyuThreadFactory.create("alarm-sender", true),
                 new ThreadPoolExecutor.AbortPolicy());
     }
     
@@ -56,7 +56,7 @@ public final class AlarmThreadPoolExecutor {
      * Execute alarm runnable task.
      * @param runnable task
      */
-    public void execute(Runnable runnable) {
+    public void execute(final Runnable runnable) {
         threadPoolExecutor.execute(runnable);
     }
     

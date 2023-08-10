@@ -32,7 +32,7 @@ public class AlarmSender {
      * Send alarm content to shenyu admin.
      * @param alarmContent alarm content
      */
-    public static void alarm(AlarmContent alarmContent) {
+    public static void alarm(final AlarmContent alarmContent) {
         if (alarmService == null) {
             alarmService = SpringBeanUtils.getInstance().getBean(AlarmService.class);
         }
@@ -48,7 +48,7 @@ public class AlarmSender {
      * @param content Alarm content
      * @param labels Alarm labels
      */
-    public static void alarm(byte level, String title, String content, Map<String, String> labels) {
+    public static void alarm(final byte level, final String title, final String content, final Map<String, String> labels) {
         AlarmContent alarmContent = new AlarmContent.Builder()
                                             .level(level).title(title).content(content)
                                             .labels(labels).build();
@@ -61,7 +61,7 @@ public class AlarmSender {
      * @param title Alarm title
      * @param content Alarm content
      */
-    public static void alarm(byte level, String title, String content) {
+    public static void alarm(final byte level, final String title, final String content) {
         AlarmContent alarmContent = new AlarmContent.Builder()
                                             .level(level).title(title)
                                             .content(content).build();
