@@ -34,14 +34,19 @@ jobs:
         with:
           filters: '.github/filters.yml'
           list-files: json
-      - name: Cache Maven Repos
-        if: steps.filter.outputs.changed == 'true'
-        uses: actions/cache@v2
+      - name: "Cache local Maven repository"
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}-${{ github.run_id }}
           restore-keys: |
+            ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
             ${{ runner.os }}-maven-
+      - name: "Shenyu cache"
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository/org/apache/shenyu
+          key: ${{ runner.os }}-dubbo-snapshot-${{ github.sha }}-${{ github.run_id }}
       - uses: actions/setup-java@v1
         if: steps.filter.outputs.changed == 'true'
         with:
