@@ -165,9 +165,11 @@ public final class TagDO extends BaseDO {
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
                 tagDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                tagDO.setDateCreated(currentTime);
             } else {
                 tagDO.setId(item.getId());
+            }
+            if (Objects.isNull(tagDO.getDateCreated())) {
+                tagDO.setDateCreated(currentTime);
             }
             return tagDO;
         }).orElse(null);
@@ -324,8 +326,11 @@ public final class TagDO extends BaseDO {
          */
         private String apiDocMd5;
 
+        private String docLock;
+
         /**
          * get id.
+         *
          * @return id
          */
         public String getId() {
@@ -334,6 +339,7 @@ public final class TagDO extends BaseDO {
 
         /**
          * set id.
+         *
          * @param id id
          */
         public void setId(final String id) {
@@ -342,6 +348,7 @@ public final class TagDO extends BaseDO {
 
         /**
          * get desc.
+         *
          * @return get desc
          */
         public String getDesc() {
@@ -350,6 +357,7 @@ public final class TagDO extends BaseDO {
 
         /**
          * set desc.
+         *
          * @param desc desc
          */
         public void setDesc(final String desc) {
@@ -358,6 +366,7 @@ public final class TagDO extends BaseDO {
 
         /**
          * get name.
+         *
          * @return name
          */
         public String getName() {
@@ -365,7 +374,8 @@ public final class TagDO extends BaseDO {
         }
 
         /**
-         *  set name.
+         * set name.
+         *
          * @param name name
          */
         public void setName(final String name) {
@@ -374,6 +384,7 @@ public final class TagDO extends BaseDO {
 
         /**
          * get parent.
+         *
          * @return TagExt
          */
         public TagExt getParent() {
@@ -382,6 +393,7 @@ public final class TagDO extends BaseDO {
 
         /**
          * set parent.
+         *
          * @param parent parent
          */
         public void setParent(final TagExt parent) {
@@ -417,10 +429,29 @@ public final class TagDO extends BaseDO {
 
         /**
          * set apiDoc md5.
+         *
          * @param apiDocMd5 apiDocMd5
          */
         public void setApiDocMd5(final String apiDocMd5) {
             this.apiDocMd5 = apiDocMd5;
+        }
+
+        /**
+         * get docLock.
+         *
+         * @return docLock
+         */
+        public String getDocLock() {
+            return docLock;
+        }
+
+        /**
+         * set docLock.
+         *
+         * @param docLock docLock
+         */
+        public void setDocLock(final String docLock) {
+            this.docLock = docLock;
         }
     }
 

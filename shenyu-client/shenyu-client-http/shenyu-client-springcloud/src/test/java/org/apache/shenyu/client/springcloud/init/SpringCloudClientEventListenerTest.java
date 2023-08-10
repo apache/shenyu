@@ -119,7 +119,7 @@ public final class SpringCloudClientEventListenerTest {
     private SpringCloudClientEventListener buildSpringCloudClientEventListener(final boolean full) {
         Properties properties = new Properties();
         properties.setProperty("contextPath", "/test");
-        properties.setProperty("isFull", full + "");
+        properties.setProperty("isFull", String.valueOf(full));
         properties.setProperty("ip", "127.0.0.1");
         properties.setProperty("port", "8081");
         properties.setProperty("username", "admin");
@@ -143,13 +143,13 @@ public final class SpringCloudClientEventListenerTest {
         @PostMapping("/save")
         @ShenyuSpringCloudClient(path = "/order/save")
         public String save(@RequestBody final String body) {
-            return "" + body;
+            return body;
         }
 
         @PostMapping("/update")
         @ShenyuSpringCloudClient(path = "")
         public String update(@RequestBody final String body) {
-            return "" + body;
+            return body;
         }
     }
 

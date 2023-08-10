@@ -17,16 +17,32 @@
 
 package org.apache.shenyu.admin.discovery;
 
+/**
+ * The enum Discovery level.
+ */
 public enum DiscoveryLevel {
-
-    GLOBAL("2"), PLUGIN("1"), SELECTOR("0");
+    
+    /**
+     * Global discovery level.
+     */
+    GLOBAL("2"),
+    
+    /**
+     * Plugin discovery level.
+     */
+    PLUGIN("1"),
+    
+    /**
+     * Selector discovery level.
+     */
+    SELECTOR("0");
 
     private final String code;
 
     DiscoveryLevel(final String code) {
         this.code = code;
     }
-
+    
     /**
      * getCode.
      *

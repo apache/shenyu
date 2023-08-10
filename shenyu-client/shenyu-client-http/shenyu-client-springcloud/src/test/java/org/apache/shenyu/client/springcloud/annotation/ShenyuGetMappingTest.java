@@ -71,7 +71,7 @@ public class ShenyuGetMappingTest {
 
         @ShenyuGetMapping(value = "/{id}", ruleName = "divide", enabled = false, desc = "it`s test.")
         public String get(@PathVariable final String id) {
-            return "" + id;
+            return id;
         }
     }
 }

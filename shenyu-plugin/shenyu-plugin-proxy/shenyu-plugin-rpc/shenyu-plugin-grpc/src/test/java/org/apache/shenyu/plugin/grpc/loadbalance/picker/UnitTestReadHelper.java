@@ -23,7 +23,6 @@ import io.grpc.ConnectivityStateInfo;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
 import io.grpc.ManagedChannel;
-import io.grpc.NameResolver;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannels;
 import javax.annotation.Nonnull;
 import java.net.SocketAddress;
@@ -39,11 +38,6 @@ public class UnitTestReadHelper extends LoadBalancer.Helper {
     @Override
     public void updateBalancingState(@Nonnull final ConnectivityState newState, @Nonnull final LoadBalancer.SubchannelPicker newPicker) {
 
-    }
-
-    @Override
-    public NameResolver.Factory getNameResolverFactory() {
-        return null;
     }
 
     @Override

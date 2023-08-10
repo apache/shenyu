@@ -94,20 +94,7 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
         if (doSubmit(selectorDO.getId(), canAddList)) {
             return null;
         }
-
-        List<TarsUpstream> handleList;
-        if (CollectionUtils.isEmpty(existList)) {
-            handleList = addList;
-        } else {
-            List<TarsUpstream> aliveList;
-            if (isEventDeleted) {
-                aliveList = existList.stream().filter(e -> e.isStatus() && !e.equals(addList.get(0))).collect(Collectors.toList());
-            } else {
-                aliveList = addList;
-            }
-            handleList = tarsSelectorHandleConverter.updateStatusAndFilter(existList, aliveList);
-        }
-        return GsonUtils.getInstance().toJson(handleList);
+        return GsonUtils.getInstance().toJson(CollectionUtils.isEmpty(existList) ? canAddList : existList);
     }
 
     private List<TarsUpstream> buildTarsUpstreamList(final List<URIRegisterDTO> uriList) {

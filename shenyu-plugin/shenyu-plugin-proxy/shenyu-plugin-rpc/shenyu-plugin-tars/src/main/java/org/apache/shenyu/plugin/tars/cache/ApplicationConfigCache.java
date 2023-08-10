@@ -152,7 +152,6 @@ public final class ApplicationConfigCache {
                         queueSize > 0 ? new LinkedBlockingQueue<>(queueSize) : new SynchronousQueue<>(), factory);
                 return;
             default:
-                return;
         }
     }
 
