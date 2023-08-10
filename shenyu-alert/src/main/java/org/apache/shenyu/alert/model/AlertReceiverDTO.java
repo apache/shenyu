@@ -97,7 +97,7 @@ public class AlertReceiverDTO implements Serializable {
     /**
      * Enterprise weChat appId: The notification method is valid for Enterprise WeChat app message.
      */
-    private Integer agentId;
+    private String agentId;
     
     /**
      * Enterprise weChat secret: The notification method is valid for Enterprise WeChat app message.
@@ -376,7 +376,7 @@ public class AlertReceiverDTO implements Serializable {
      * get agent id.
      * @return agent id
      */
-    public Integer getAgentId() {
+    public String getAgentId() {
         return agentId;
     }
     
@@ -384,7 +384,7 @@ public class AlertReceiverDTO implements Serializable {
      * set agent id.
      * @param agentId agent id
      */
-    public void setAgentId(final Integer agentId) {
+    public void setAgentId(final String agentId) {
         this.agentId = agentId;
     }
     

@@ -20,8 +20,8 @@
 <mapper namespace="org.apache.shenyu.admin.mapper.AlertReceiverMapper">
     <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
         <!--@mbg.generated-->
-        <!--@Table alert_template-->
-        <id column="id" jdbcType="BIGINT" property="id"/>
+        <!--@Table alert_receiver-->
+        <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="name" jdbcType="VARCHAR" property="name"/>
         <result column="enable" jdbcType="TINYINT" property="enable"/>
         <result column="type" jdbcType="TINYINT" property="type"/>
@@ -44,8 +44,8 @@
         <result column="smn_region" jdbcType="VARCHAR" property="smnRegion"/>
         <result column="smn_topic_urn" jdbcType="VARCHAR" property="smnTopicUrn"/>
         <result column="match_all" jdbcType="TINYINT" property="matchAll"/>
-        <result column="labels" jdbcType="VARCHAR" property="labels"/>
-        <result column="levels" jdbcType="VARCHAR" property="levels"/>
+        <result column="labels" jdbcType="VARCHAR" property="labels" javaType="java.util.Map" typeHandler="org.apache.shenyu.admin.mybatis.handler.MapStringTypeHandler"/>
+        <result column="levels" jdbcType="VARCHAR" property="levels" javaType="java.util.List"  typeHandler="org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
     </resultMap>
@@ -71,8 +71,8 @@
         #{corpId,jdbcType=VARCHAR}, #{agentId,jdbcType=VARCHAR}, #{appSecret,jdbcType=VARCHAR},
         #{discordChannelId,jdbcType=VARCHAR}, #{discordBotToken,jdbcType=VARCHAR}, #{smnAk,jdbcType=VARCHAR},
         #{smnSk,jdbcType=VARCHAR}, #{smnProjectId,jdbcType=VARCHAR}, #{smnRegion,jdbcType=VARCHAR},
-        #{smnTopicUrn,jdbcType=VARCHAR}, #{matchAll,jdbcType=TINYINT}, #{labels,jdbcType=VARCHAR},
-        #{levels,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
+        #{smnTopicUrn,jdbcType=VARCHAR}, #{matchAll,jdbcType=TINYINT}, #{labels,jdbcType=VARCHAR,javaType=java.util.Map,typeHandler=org.apache.shenyu.admin.mybatis.handler.MapStringTypeHandler},
+        #{levels,jdbcType=VARCHAR,javaType=java.util.List,typeHandler=org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
     </insert>
     <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
         update alert_receiver
@@ -99,8 +99,8 @@
             smn_region = #{smnRegion,jdbcType=VARCHAR},
             smn_topic_urn = #{smnTopicUrn,jdbcType=VARCHAR},
             match_all = #{matchAll,jdbcType=TINYINT},
-            labels = #{labels,jdbcType=VARCHAR},
-            levels = #{levels,jdbcType=VARCHAR},
+            labels = #{labels,jdbcType=VARCHAR,typeHandler=org.apache.shenyu.admin.mybatis.handler.MapStringTypeHandler},
+            levels = #{levels,jdbcType=VARCHAR,typeHandler=org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler},
             date_created = #{dateCreated,jdbcType=TIMESTAMP},
             date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
         where id = #{id,jdbcType=VARCHAR}
