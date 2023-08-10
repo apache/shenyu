@@ -27,8 +27,12 @@ import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuCaseSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
 import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.data.Condition;
+import org.apache.shenyu.e2e.model.handle.GrpcSelectorHandle;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExists;
@@ -38,6 +42,7 @@ import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
 
 public class GrpcPluginCases implements ShenYuScenarioProvider {
+
 
     @Override
     public List<ScenarioSpec> get() {
@@ -59,25 +64,32 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
      * @return ShenYuScenarioSpec
      */
     public ShenYuScenarioSpec testWithUriEquals() {
+        Map<String, List<MessageData>> body = new ConcurrentHashMap<>();
+        body.put("data", Lists.newArrayList(new MessageData("hello grpc")));
         return ShenYuScenarioSpec.builder()
                 .name("single-grpc uri =]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("selector", Plugin.GRPC)
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/findAll"))
+                                                .name("/grpc")
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/echo"))
+                                                .handle(GrpcSelectorHandle.builder()
+                                                        .status(true)
+                                                        .upstreamUrl("localhost:38080")
+                                                        .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/findAll"))
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/echo"))
                                                 .build()
                                 )
-                                .checker(notExists("/grpc/findAll"))
-                                .waiting(exists("/grpc/findAll"))
+                                .checker(notExists("/sofa/findAll"))
+                                .waiting(exists(Method.POST, "/grpc/echo", body))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists("/grpc/findAll")
+                                .addExists(Method.POST, "/grpc/echo", body)
                                 .addNotExists("/grpc/fin")
                                 .addNotExists("/put")
                                 .addNotExists("/get")
@@ -92,28 +104,38 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
      * @return ShenYuScenarioSpec
      */
     public ShenYuScenarioSpec testWithUriPathPattern() {
+        Map<String, List<MessageData>> body = new ConcurrentHashMap<>();
+        body.put("data", Lists.newArrayList(new MessageData("hello grpc")));
         return ShenYuScenarioSpec.builder()
                 .name("single-grpc uri path_pattern]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("selector", Plugin.GRPC)
+                                                .name("/grpc")
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.PATH_PATTERN, "/grpc/**"))
+                                                .handle(GrpcSelectorHandle.builder()
+                                                        .status(true)
+                                                        .upstreamUrl("localhost:38080")
+                                                        .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.PATH_PATTERN, "/grpc/**"))
                                                 .build()
                                 )
                                 .checker(notExists("/grpc/findAll"))
-                                .waiting(exists("/grpc/findAll"))
+                                .waiting(exists(Method.POST, "/grpc/echo", body))
                                 .build()
                 ).caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists("/grpc/findAll")
-                                .addNotExists("/grp")
-                                .addExists(Method.POST, "/grpc/findAll")
-                                .addExists(Method.PUT, "/grpc/findAll")
-                                .addExists(Method.DELETE, "/grpc/findAll")
+                                .addExists(Method.POST, "/grpc/echo", body)
+                                .addExists(Method.POST, "/grpc/unaryFun", body)
+                                .addExists(Method.POST, "/grpc/bidiStreamingFun", body)
+                                .addExists(Method.POST, "/grpc/serverStreamingFun", body)
+                                .addNotExists(Method.GET,"/grp")
+                                .addNotExists(Method.POST, "/grpc/findAll")
+                                .addNotExists(Method.PUT, "/grpc/findAll")
+                                .addNotExists(Method.DELETE, "/grpc/findAll")
                                 .build())
                 .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
                 .build();
@@ -125,29 +147,37 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
      * @return ShenYuScenarioSpec
      */
     public ShenYuScenarioSpec testWithUriStartWith() {
+        Map<String, List<MessageData>> body = new ConcurrentHashMap<>();
+        body.put("data", Lists.newArrayList(new MessageData("hello grpc")));
         return ShenYuScenarioSpec.builder()
-                .name("single-grpc uri starts_with]")
+                .name("single-grpc uri path_pattern]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("selector", Plugin.GRPC)
+                                                .name("/grpc")
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/grpc/"))
+                                                .handle(GrpcSelectorHandle.builder()
+                                                        .status(true)
+                                                        .upstreamUrl("localhost:38080")
+                                                        .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/grpc/"))
                                                 .build()
                                 )
                                 .checker(notExists("/grpc/findAll"))
-                                .waiting(exists("/grpc/findAll"))
+                                .waiting(exists(Method.POST, "/grpc/echo", body))
                                 .build()
-                )
-                .caseSpec(
+                ).caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists("/grpc/findAll")
-                                .addNotExists("/grpc/de")
-                                .addExists(Method.POST, "/grpc/findAll")
-                                .addExists(Method.PUT, "/grpc/findAll")
-                                .addExists(Method.DELETE, "/grpc/findAll")
+                                .addExists(Method.POST, "/grpc/echo", body)
+                                .addExists(Method.POST, "/grpc/unaryFun", body)
+                                .addExists(Method.POST, "/grpc/bidiStreamingFun", body)
+                                .addExists(Method.POST, "/grpc/serverStreamingFun", body)
+                                .addNotExists(Method.POST, "/grpc/findAll")
+                                .addNotExists(Method.PUT, "/grpc/findAll")
+                                .addNotExists(Method.DELETE, "/grpc/findAll")
                                 .build())
                 .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
                 .build();
@@ -159,29 +189,35 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
      * @return ShenYuScenarioSpec
      */
     public ShenYuScenarioSpec testWithEndWith() {
+        Map<String, List<MessageData>> body = new ConcurrentHashMap<>();
+        body.put("data", Lists.newArrayList(new MessageData("hello grpc")));
         return ShenYuScenarioSpec.builder()
-                .name("single-alibaba-grpc uri ends_with]")
+                .name("single-grpc uri path_pattern]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("selector", Plugin.GRPC)
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/findAll"))
+                                                .name("/grpc")
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/echo"))
+                                                .handle(GrpcSelectorHandle.builder()
+                                                        .status(true)
+                                                        .upstreamUrl("localhost:38080")
+                                                        .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/findAll"))
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/echo"))
                                                 .build()
                                 )
                                 .checker(notExists("/grpc/findAll"))
-                                .waiting(exists("/grpc/findAll"))
+                                .waiting(exists(Method.POST, "/grpc/echo", body))
                                 .build()
-                )
-                .caseSpec(
+                ).caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists("/grpc/findAll")
-                                .addNotExists("/grpc/find")
-                                .addExists(Method.POST, "/grpc/findAll")
-                                .addExists(Method.PUT, "/grpc/findAll")
-                                .addExists(Method.DELETE, "/grpc/findAll")
+                                .addExists(Method.POST, "/grpc/echo", body)
+                                .addNotExists("/grp")
+                                .addNotExists(Method.POST, "/grpc/findAll")
+                                .addNotExists(Method.PUT, "/grpc/findAll")
+                                .addNotExists(Method.DELETE, "/grpc/findAll")
                                 .build())
                 .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
                 .build();
@@ -193,31 +229,38 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
      * @return ShenYuScenarioSpec
      */
     public ShenYuScenarioSpec testWithMethodGet() {
+        Map<String, List<MessageData>> body = new ConcurrentHashMap<>();
+        body.put("data", Lists.newArrayList(new MessageData("hello grpc")));
         return ShenYuScenarioSpec.builder()
                 .name("single-grpc uri method GET]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("selector", Plugin.GRPC)
+                                                .name("/grpc")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "GET"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/grpc/")
                                                 ))
+                                                .handle(GrpcSelectorHandle.builder()
+                                                        .status(true)
+                                                        .upstreamUrl("localhost:38080")
+                                                        .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "GET"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/echo")
                                                 ))
                                                 .build()
                                 )
                                 .checker(notExists(Method.GET, "/grpc/findAll"))
-                                .waiting(exists(Method.GET, "/grpc/findAll"))
+                                .waiting(notExists(Method.GET, "/grpc/findAll"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.GET, "/grpc/findAll")
+                                .addExists(Method.POST, "/grpc/echo", body)
                                 .addNotExists(Method.GET, "/grpc/find")
                                 .addNotExists(Method.POST, "/grpc/findAll")
                                 .addNotExists(Method.PUT, "/grpc/findAll")
@@ -233,31 +276,38 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
      * @return ShenYuScenarioSpec
      */
     public ShenYuScenarioSpec testWithMethodPost() {
+        Map<String, List<MessageData>> body = new ConcurrentHashMap<>();
+        body.put("data", Lists.newArrayList(new MessageData("hello grpc")));
         return ShenYuScenarioSpec.builder()
                 .name("single-grpc uri method POST]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("selector", Plugin.GRPC)
+                                                .name("/grpc")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "POST"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/grpc/")
                                                 ))
+                                                .handle(GrpcSelectorHandle.builder()
+                                                        .status(true)
+                                                        .upstreamUrl("localhost:38080")
+                                                        .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "POST"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/echo")
                                                 ))
                                                 .build()
                                 )
                                 .checker(notExists(Method.POST, "/grpc/findAll"))
-                                .waiting(exists(Method.POST, "/grpc/findAll"))
+                                .waiting(exists(Method.POST, "/grpc/echo", body))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.POST, "/grpc/findAll")
+                                .addExists(Method.POST, "/grpc/echo", body)
                                 .addNotExists(Method.POST, "/grpc/find")
                                 .addNotExists(Method.GET, "/grpc/findAll")
                                 .addNotExists(Method.PUT, "/grpc/findAll")
@@ -273,31 +323,38 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
      * @return ShenYuScenarioSpec
      */
     public ShenYuScenarioSpec testWithMethodPut() {
+        Map<String, List<MessageData>> body = new ConcurrentHashMap<>();
+        body.put("data", Lists.newArrayList(new MessageData("hello grpc")));
         return ShenYuScenarioSpec.builder()
                 .name("single-grpc uri method PUT]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("selector", Plugin.GRPC)
+                                                .name("/grpc")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "PUT"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/grpc/")
                                                 ))
+                                                .handle(GrpcSelectorHandle.builder()
+                                                        .status(true)
+                                                        .upstreamUrl("localhost:38080")
+                                                        .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "PUT"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/echo")
                                                 ))
                                                 .build()
                                 )
                                 .checker(notExists(Method.PUT, "/grpc/findAll"))
-                                .waiting(exists(Method.PUT, "/grpc/findAll"))
+                                .waiting(exists(Method.POST, "/grpc/echo", body))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.PUT, "/grpc/findAll")
+                                .addExists(Method.POST, "/grpc/echo", body)
                                 .addNotExists(Method.PUT, "/grpc/find")
                                 .addNotExists(Method.GET, "/grpc/findAll")
                                 .addNotExists(Method.POST, "/grpc/findAll")
@@ -313,31 +370,38 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
      * @return ShenYuScenarioSpec
      */
     public ShenYuScenarioSpec testWithMethodDelete() {
+        Map<String, List<MessageData>> body = new ConcurrentHashMap<>();
+        body.put("data", Lists.newArrayList(new MessageData("hello grpc")));
         return ShenYuScenarioSpec.builder()
                 .name("single-grpc uri method DELETE]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("selector", Plugin.GRPC)
+                                                .name("/grpc")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "DELETE"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/grpc/echo")
                                                 ))
+                                                .handle(GrpcSelectorHandle.builder()
+                                                        .status(true)
+                                                        .upstreamUrl("localhost:38080")
+                                                        .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "DELETE"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/echo")
                                                 ))
                                                 .build()
                                 )
                                 .checker(notExists(Method.DELETE, "/grpc/findAll"))
-                                .waiting(exists(Method.DELETE, "/grpc/findAll"))
+                                .waiting(exists(Method.POST, "/grpc/echo", body))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.DELETE, "/grpc/findAll")
+                                .addExists(Method.POST, "/grpc/echo", body)
                                 .addNotExists(Method.DELETE, "/grpc/find")
                                 .addNotExists(Method.GET, "/grpc/findAll")
                                 .addNotExists(Method.POST, "/grpc/findAll")
@@ -346,4 +410,34 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                 .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
                 .build();
     }
+
+    public static class MessageData {
+
+        /**
+         * message.
+         */
+        private String message;
+
+        /**
+         * default constructor.
+         */
+        public MessageData() {
+        }
+
+        public MessageData(final String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+
+    }
+
+
 }

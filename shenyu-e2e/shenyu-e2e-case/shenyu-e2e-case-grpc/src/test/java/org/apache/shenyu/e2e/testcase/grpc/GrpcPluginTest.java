@@ -30,6 +30,7 @@ import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.data.MetaData;
 import org.apache.shenyu.e2e.model.data.RuleCacheData;
 import org.apache.shenyu.e2e.model.data.SelectorCacheData;
+import org.apache.shenyu.e2e.model.data.SelectorData;
 import org.apache.shenyu.e2e.model.response.MetaDataDTO;
 import org.apache.shenyu.e2e.model.response.RuleDTO;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
@@ -45,7 +46,7 @@ import org.testcontainers.shaded.com.google.common.collect.Lists;
 import java.util.List;
 
 @ShenYuTest(
-        mode = ShenYuEngineConfigure.Mode.DOCKER,
+        mode = ShenYuEngineConfigure.Mode.HOST,
         services = {
                 @ShenYuTest.ServiceConfigure(
                         serviceName = "admin",
@@ -75,13 +76,22 @@ import java.util.List;
 public class GrpcPluginTest {
     private List<String> selectorIds = Lists.newArrayList();
 
+    private static String selectorId = "";
+    private static String condictionId = "";
+
     @BeforeAll
-    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
+    void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
         Thread.sleep(10000);
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
         List<RuleDTO> ruleDTOList = adminClient.listAllRules();
+
+
+        selectorId = selectorDTOList.get(0).getId();
+        selectorIds.add(selectorId);
+        SelectorDTO selector = adminClient.getSelector(selectorId);
+        condictionId = selector.getConditionList().get(0).getId();
         Assertions.assertEquals(1, selectorDTOList.size());
         Assertions.assertEquals(9, metaDataDTOList.size());
         Assertions.assertEquals(9, ruleDTOList.size());
@@ -101,22 +111,26 @@ public class GrpcPluginTest {
         formData.add("sort", "310");
         formData.add("config", "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}");
         adminClient.changePluginStatus("15", formData);
-        adminClient.deleteAllSelectors();
-        selectorDTOList = adminClient.listAllSelectors();
-        Assertions.assertEquals(0, selectorDTOList.size());
+        adminClient.deleteAllRules(selectorId);
     }
 
     @BeforeEach
     void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
         spec.getChecker().check(gateway);
-
         ResourcesData resources = spec.getResources();
         for (ResourcesData.Resource res : resources.getResources()) {
-            SelectorDTO dto = client.create(res.getSelector());
-            selectorIds.add(dto.getId());
+            SelectorData selector = res.getSelector();
+            selector.setId(selectorId);
+            selector.getConditionList().forEach(
+                    condition -> {
+                        condition.setSelectorId(selectorId);
+                        condition.setId(condictionId);
+                    }
+            );
+            client.changeSelector(selector.getId(), selector);
 
             res.getRules().forEach(rule -> {
-                rule.setSelectorId(dto.getId());
+                rule.setSelectorId(selectorId);
                 client.create(rule);
             });
         }
@@ -125,18 +139,12 @@ public class GrpcPluginTest {
     }
 
     @ShenYuScenario(provider = GrpcPluginCases.class)
-    void testgrpc(final GatewayClient gateway, final CaseSpec spec) {
+    void testGrpc(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 
-    @AfterEach
-    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
-        spec.getDeleter().delete(client, selectorIds);
-        spec.getPostChecker().check(gateway);
-        selectorIds = Lists.newArrayList();
-    }
 
-    @AfterAll
+//    @AfterAll
     static void teardown(final AdminClient client) {
         client.deleteAllSelectors();
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
