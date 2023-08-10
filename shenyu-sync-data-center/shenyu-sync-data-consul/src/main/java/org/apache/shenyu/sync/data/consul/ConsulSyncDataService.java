@@ -106,37 +106,37 @@ public class ConsulSyncDataService extends AbstractNodeDataSyncService {
         this.executor.schedule(() -> watchConfigKeyValues(registerPath, updateHandler, deleteHandler), -1, TimeUnit.MILLISECONDS);
     }
 
-    private void watchConfigKeyValues(final String context,
+    private void watchConfigKeyValues(final String watchPathRoot,
                                       final BiConsumer<String, String> updateHandler,
                                       final Consumer<String> deleteHandler) {
         try {
-            Long currentIndex = this.consulIndexes.get(context);
+            Long currentIndex = this.consulIndexes.get(watchPathRoot);
             if (Objects.isNull(currentIndex)) {
                 currentIndex = ConsulConstants.INIT_CONFIG_VERSION_INDEX;
             }
-            Response<List<GetValue>> response = this.consulClient.getKVValues(context, null,
+            Response<List<GetValue>> response = this.consulClient.getKVValues(watchPathRoot, null,
                     new QueryParams(TimeUnit.MILLISECONDS.toSeconds(consulConfig.getWaitTime()), currentIndex));
             if (Objects.isNull(response.getValue()) || response.getValue().isEmpty()) {
                 if (LOG.isTraceEnabled()) {
-                    LOG.trace("No value for context " + context);
+                    LOG.trace("No value for watchPathRoot " + watchPathRoot);
                 }
-                this.executor.schedule(() -> watchConfigKeyValues(context, updateHandler, deleteHandler),
+                this.executor.schedule(() -> watchConfigKeyValues(watchPathRoot, updateHandler, deleteHandler),
                         consulConfig.getWatchDelay(), TimeUnit.MILLISECONDS);
                 return;
             }
             Long newIndex = response.getConsulIndex();
             if (Objects.isNull(newIndex) || Objects.equals(newIndex, currentIndex)) {
                 if (LOG.isTraceEnabled()) {
-                    LOG.trace("Same index for context " + context);
+                    LOG.trace("Same index for watchPathRoot " + watchPathRoot);
                 }
-                this.executor.schedule(() -> watchConfigKeyValues(context, updateHandler, deleteHandler),
+                this.executor.schedule(() -> watchConfigKeyValues(watchPathRoot, updateHandler, deleteHandler),
                         -1, TimeUnit.MILLISECONDS);
                 return;
             }
             if (!this.consulIndexes.containsValue(newIndex)
                     && !currentIndex.equals(ConsulConstants.INIT_CONFIG_VERSION_INDEX)) {
                 if (LOG.isTraceEnabled()) {
-                    LOG.trace("Context " + context + " has new index " + newIndex);
+                    LOG.trace("watchPathRoot " + watchPathRoot + " has new index " + newIndex);
                 }
                 final Long lastIndex = currentIndex;
 
@@ -147,7 +147,7 @@ public class ConsulSyncDataService extends AbstractNodeDataSyncService {
                     }
                     updateHandler.accept(data.getKey(), data.getDecodedValue());
                 });
-                final List<String> lastKeys = cacheConsulDataKeyMap.get(context);
+                final List<String> lastKeys = cacheConsulDataKeyMap.get(watchPathRoot);
                 final List<String> currentKeys = response.getValue().stream().map(GetValue::getKey).collect(Collectors.toList());
                 if (!ObjectUtils.isEmpty(lastKeys)) {
                     // handler delete event
@@ -157,16 +157,16 @@ public class ConsulSyncDataService extends AbstractNodeDataSyncService {
                 }
 
                 // save last Keys
-                cacheConsulDataKeyMap.put(context, currentKeys);
+                cacheConsulDataKeyMap.put(watchPathRoot, currentKeys);
             } else if (LOG.isTraceEnabled()) {
-                LOG.info("Event for index already published for context " + context);
+                LOG.info("Event for index already published for watchPathRoot " + watchPathRoot);
             }
-            this.consulIndexes.put(context, newIndex);
-            this.executor.schedule(() -> watchConfigKeyValues(context, updateHandler, deleteHandler),
+            this.consulIndexes.put(watchPathRoot, newIndex);
+            this.executor.schedule(() -> watchConfigKeyValues(watchPathRoot, updateHandler, deleteHandler),
                     -1, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
-            LOG.warn("Error querying consul Key/Values for context '" + context + "'. Message: ", e);
-            this.executor.schedule(() -> watchConfigKeyValues(context, updateHandler, deleteHandler),
+            LOG.warn("Error querying consul Key/Values for watchPathRoot '" + watchPathRoot + "'. Message: ", e);
+            this.executor.schedule(() -> watchConfigKeyValues(watchPathRoot, updateHandler, deleteHandler),
                     consulConfig.getWatchDelay(), TimeUnit.MILLISECONDS);
         }
     }
