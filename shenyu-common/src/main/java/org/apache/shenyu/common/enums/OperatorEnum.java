@@ -80,11 +80,16 @@ public enum OperatorEnum {
      * Time after operator enum.
      */
     TIME_AFTER("TimeAfter", true),
-    
+
     /**
      * Path patter operator enum.
      */
-    PATH_PATTERN("pathPattern", true);
+    PATH_PATTERN("pathPattern", true),
+
+    /**
+     * Is blank operator enum.
+     */
+    IS_BLANK("isBlank", true);
 
     private final String alias;
 
