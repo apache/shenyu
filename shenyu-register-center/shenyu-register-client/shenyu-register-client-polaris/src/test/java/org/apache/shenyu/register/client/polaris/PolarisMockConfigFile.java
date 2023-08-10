@@ -181,7 +181,7 @@ public class PolarisMockConfigFile implements ConfigFile, ConfigKVFile {
 
     @Override
     public String[] getArrayProperty(final String key, final String delimiter, final String[] defaultValue) {
-        return new String[0];
+        return null;
     }
 
     @Override
