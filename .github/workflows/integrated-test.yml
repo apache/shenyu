@@ -46,7 +46,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository/org/apache/shenyu
-          key: ${{ runner.os }}-shenyu-snapshot-${{ github.sha }}-${{ github.run_id }}
+          key: ${{ runner.os }}-maven-${{ github.sha }}-${{ github.run_id }}
       - uses: actions/setup-java@v1
         if: steps.filter.outputs.changed == 'true'
         with:
@@ -90,7 +90,7 @@ jobs:
             ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
             ${{ runner.os }}-maven-
       - name: Start docker compose
-        run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
+        run: docker-compose -f ${{ github.workspace }}/shenyu/shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
       - name: Wait for docker compose start up completely
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
       - name: Run test
