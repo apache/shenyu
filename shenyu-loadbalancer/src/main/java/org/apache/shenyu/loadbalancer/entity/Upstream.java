@@ -102,9 +102,9 @@ public final class Upstream {
      */
     private AtomicLong inflight = new AtomicLong(1);
 
-    private AtomicLong succeeded = new AtomicLong(0);
+    private final AtomicLong succeeded = new AtomicLong(0);
 
-    private AtomicLong succeededElapsed = new AtomicLong(0);
+    private final AtomicLong succeededElapsed = new AtomicLong(0);
 
     private Upstream(final Builder builder) {
         this.protocol = builder.protocol;

@@ -141,7 +141,7 @@ public class PolarisClientRegisterRepositoryTest {
         assertTrue(configFileService.getConfigFile(configFileMetadata).hasContent());
 
         String dataStr = GsonUtils.getInstance().toJson(Lists.newArrayList(metadata));
-        assertTrue(configFileService.getConfigFile(configFileMetadata).getContent().equals(dataStr));
+        assertEquals(configFileService.getConfigFile(configFileMetadata).getContent(), dataStr);
     }
 
     @Test

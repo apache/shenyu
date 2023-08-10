@@ -23,10 +23,14 @@ import org.apache.dubbo.config.annotation.DubboService;
 import org.apache.dubbo.config.spring.ServiceBean;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.ApiAnnotationProcessor;
+import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.ListUtil;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.apache.dubbo.remoting.Constants.DEFAULT_CONNECT_TIMEOUT;
@@ -34,7 +38,12 @@ import static org.apache.dubbo.remoting.Constants.DEFAULT_CONNECT_TIMEOUT;
 /**
  * DubboServiceProcessor.
  */
-public class DubboServiceProcessor implements ApiAnnotationProcessor<DubboService> {
+public class DubboServiceProcessor implements ApiAnnotationProcessor<DubboService>, ExtractorProcessor {
+    
+    @Override
+    public List<String> supportedClient() {
+        return ListUtil.of(RpcTypeEnum.DUBBO.getName());
+    }
     
     @Override
     public void process(final ApiBean apiBean, final DubboService annotation) {

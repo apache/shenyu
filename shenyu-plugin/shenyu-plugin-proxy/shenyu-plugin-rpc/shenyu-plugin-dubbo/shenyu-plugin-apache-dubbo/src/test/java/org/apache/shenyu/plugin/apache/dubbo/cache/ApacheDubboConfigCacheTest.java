@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.cache;
 
-import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
