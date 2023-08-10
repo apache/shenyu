@@ -25,21 +25,30 @@ import org.springframework.web.client.RestTemplate;
 
 
 /**
- * restTemplate config
+ * RestTemplate config.
  */
 @Configuration
 public class RestTemplateConfig {
     
+    /**
+     * ClientHttpRequestFactory bean.
+     * @return ClientHttpRequestFactory
+     */
     @Bean
-    public ClientHttpRequestFactory simpleClientHttpRequestFactory(){
+    public ClientHttpRequestFactory simpleClientHttpRequestFactory() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(5000);
         factory.setReadTimeout(5000);
         return factory;
     }
     
+    /**
+     * RestTemplate bean.
+     * @param factory ClientHttpRequestFactory
+     * @return RestTemplate
+     */
     @Bean
-    public RestTemplate restTemplate(ClientHttpRequestFactory factory){
+    public RestTemplate restTemplate(final ClientHttpRequestFactory factory) {
         return new RestTemplate(factory);
     }
 

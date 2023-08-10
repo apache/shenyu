@@ -26,7 +26,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Collections;
 
 /**
- * restTemplate config.
+ * RestTemplate config.
  */
 @Configuration
 public class RestTemplateConfig {

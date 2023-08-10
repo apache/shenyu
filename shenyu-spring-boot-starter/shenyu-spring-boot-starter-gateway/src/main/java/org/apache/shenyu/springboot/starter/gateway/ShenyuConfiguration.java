@@ -307,7 +307,9 @@ public class ShenyuConfiguration {
     }
     
     /**
-     * shenyu alarm service
+     * shenyu alarm service.
+     * @param restTemplate restTemplate
+     * @param shenyuConfig shenyuConfig
      * @return AlarmService
      */
     @Bean
