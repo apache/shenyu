@@ -22,23 +22,7 @@ on:
       - master
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        case:
-          - shenyu-integrated-test-alibaba-dubbo
-          - shenyu-integrated-test-apache-dubbo
-          - shenyu-integrated-test-grpc
-          - shenyu-integrated-test-http
-          - shenyu-integrated-test-https
-          - shenyu-integrated-test-motan
-          - shenyu-integrated-test-spring-cloud
-          - shenyu-integrated-test-sofa
-          - shenyu-integrated-test-brpc
-          - shenyu-integrated-test-websocket
-          - shenyu-integrated-test-combination
-          - shenyu-integrated-test-sdk-apache-dubbo
-          - shenyu-integrated-test-sdk-http
+  build-source:
     runs-on: ubuntu-latest
     if: (github.repository == 'apache/shenyu')
     steps:
@@ -71,6 +55,27 @@ jobs:
       - name: Build integrated tests
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+  build:
+    needs: [build-source]
+    strategy:
+      matrix:
+        case:
+          - shenyu-integrated-test-alibaba-dubbo
+          - shenyu-integrated-test-apache-dubbo
+          - shenyu-integrated-test-grpc
+          - shenyu-integrated-test-http
+          - shenyu-integrated-test-https
+          - shenyu-integrated-test-motan
+          - shenyu-integrated-test-spring-cloud
+          - shenyu-integrated-test-sofa
+          - shenyu-integrated-test-brpc
+          - shenyu-integrated-test-websocket
+          - shenyu-integrated-test-combination
+          - shenyu-integrated-test-sdk-apache-dubbo
+          - shenyu-integrated-test-sdk-http
+    runs-on: ubuntu-latest
+    if: (github.repository == 'apache/shenyu')
+    steps:
       - name: Start docker compose
         if: steps.filter.outputs.changed == 'true'
         run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
