@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Resource;
+
+import io.vertx.core.json.Json;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -123,7 +125,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
     }
 
     private TagVO saveTagVOAndAcquireLock(final UpstreamInstance instance) {
-        List<TagVO> tagVOList = tagService.findByQuery(instance.getContextPath(), AdminConstants.TAG_ROOT_PARENT_ID);
+        List<TagVO> tagVOList = tagService.findByQuery(instance.getClusterName(), AdminConstants.TAG_ROOT_PARENT_ID);
         if (CollectionUtils.isNotEmpty(tagVOList)) {
             TagVO tagVO = tagVOList.get(0);
             TagDO.TagExt tagExt = convertTagExt(tagVO.getExt());
@@ -142,7 +144,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
     private TagVO createRootTagAndAcquireLock(final UpstreamInstance instance) {
         TagDTO tagDTO = new TagDTO();
         tagDTO.setTagDesc(instance.getClusterName());
-        tagDTO.setName(instance.getContextPath());
+        tagDTO.setName(instance.getClusterName());
         tagDTO.setParentTagId(AdminConstants.TAG_ROOT_PARENT_ID);
         TagDO.TagExt tagExt = new TagDO.TagExt();
         tagExt.setDocLock(this.generateDocLock());

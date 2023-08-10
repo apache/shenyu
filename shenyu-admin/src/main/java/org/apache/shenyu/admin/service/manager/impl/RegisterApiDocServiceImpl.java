@@ -60,6 +60,8 @@ public class RegisterApiDocServiceImpl implements RegisterApiDocService {
                 tags = apiDocRegisterDTO.getTags();
             }
             for (String tag : tags) {
+                // tag is contextPath,so remove first char '/'
+                tag = tag.substring(1);
                 List<TagVO> byQuery = tagService.findByQuery(tag);
                 if (CollectionUtils.isNotEmpty(byQuery)) {
                     tagsIds.addAll(byQuery.stream().map(TagVO::getId).collect(Collectors.toList()));
@@ -76,8 +78,7 @@ public class RegisterApiDocServiceImpl implements RegisterApiDocService {
             apiDTO.setTagIds(tagsIds);
             apiService.createOrUpdate(apiDTO);
         } else if (apiDocRegisterDTO.getEventType().equals(EventType.OFFLINE)) {
-            String contextPath = apiDocRegisterDTO.getContextPath();
-            apiService.offlineByContextPath(contextPath);
+            apiService.offlineByContextPath(apiDocRegisterDTO.getContextPath());
         }
     }
 
