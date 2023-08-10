@@ -90,7 +90,7 @@ jobs:
             ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
             ${{ runner.os }}-maven-
       - name: Start docker compose
-        run: docker-compose -f ${{ github.workspace }}/./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
+        run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
       - name: Wait for docker compose start up completely
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
       - name: Run test
