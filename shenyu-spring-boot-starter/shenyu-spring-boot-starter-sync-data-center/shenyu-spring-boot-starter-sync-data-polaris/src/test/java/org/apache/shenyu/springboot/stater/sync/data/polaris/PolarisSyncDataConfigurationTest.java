@@ -17,18 +17,22 @@
 
 package org.apache.shenyu.springboot.stater.sync.data.polaris;
 
+import com.tencent.polaris.client.api.SDKContext;
+import com.tencent.polaris.configuration.api.core.ConfigFileService;
+import com.tencent.polaris.configuration.client.DefaultConfigFileService;
 import org.apache.shenyu.springboot.starter.sync.data.polaris.PolarisSyncDataConfiguration;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.polaris.config.PolarisConfig;
 import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * The test case for {@link PolarisSyncDataConfiguration}.
@@ -63,6 +67,11 @@ public final class PolarisSyncDataConfigurationTest {
     @Test
     public void polarisConfigServiceTest() {
         final PolarisSyncDataConfiguration polarisSyncDataConfiguration = new PolarisSyncDataConfiguration();
-        Assertions.assertDoesNotThrow(() -> polarisSyncDataConfiguration.polarisConfigServices(polarisConfig));
+
+        final ConfigFileService configFileService = Assertions.assertDoesNotThrow(() -> polarisSyncDataConfiguration.polarisConfigServices(polarisConfig));
+        assertInstanceOf(DefaultConfigFileService.class, configFileService);
+        DefaultConfigFileService defaultConfigFileService = (DefaultConfigFileService) configFileService;
+        final SDKContext sdkContext = defaultConfigFileService.getSDKContext();
+        assertTrue(sdkContext.getConfig().getConfigFile().getServerConnector().getAddresses().contains("127.0.0.1:8093"));
     }
 }
