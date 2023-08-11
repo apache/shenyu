@@ -28,41 +28,37 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(value = "shenyu-gateway1", fallbackFactory = ShenyuSpringCloudClientApiFallbackFactory.class)
 public interface FeignSpringCloudClientApi {
-	
-	/**
-	 * save.
-	 *
-	 * @param orderDTO OrderDTO
-	 * @return OrderDTO
-	 */
-	@PostMapping("/springcloud/order/save")
-	OrderDTO save(@RequestBody OrderDTO orderDTO);
-	
-	/**
-	 * Find by id order dto.
-	 *
-	 * @param id the id
-	 * @return the order dto
-	 */
-	@GetMapping("/springcloud/order/findById")
-	OrderDTO findById(@RequestParam("id") String id);
-	
-	/**
-	 * Gets path variable.
-	 *
-	 * @param id   the id
-	 * @param name the name
-	 * @return the path variable
-	 */
-	@GetMapping("/springcloud/order/path/{id}/{name}")
-	OrderDTO getPathVariable(@PathVariable("id") String id, @PathVariable("name") String name);
-	
-	/**
-	 * Test rest ful order dto.
-	 *
-	 * @param id the id
-	 * @return the order dto
-	 */
-	@GetMapping("/springcloud/order/path/{id}/name")
-	OrderDTO testRestFul(@PathVariable("id") String id);
+
+    /**
+     * save.
+     * @param orderDTO OrderDTO
+     * @return OrderDTO
+     */
+    @PostMapping("/springcloud/order/save")
+    OrderDTO save(@RequestBody OrderDTO orderDTO);
+
+    /**
+     * Find by id order dto.
+     * @param id the id
+     * @return the order dto
+     */
+    @GetMapping("/springcloud/order/findById")
+    OrderDTO findById(@RequestParam("id") String id);
+
+    /**
+     * Gets path variable.
+     * @param id   the id
+     * @param name the name
+     * @return the path variable
+     */
+    @GetMapping("/springcloud/order/path/{id}/{name}")
+    OrderDTO getPathVariable(@PathVariable("id") String id, @PathVariable("name") String name);
+
+    /**
+     * Test rest ful order dto.
+     * @param id the id
+     * @return the order dto
+     */
+    @GetMapping("/springcloud/order/path/{id}/name")
+    OrderDTO testRestFul(@PathVariable("id") String id);
 }

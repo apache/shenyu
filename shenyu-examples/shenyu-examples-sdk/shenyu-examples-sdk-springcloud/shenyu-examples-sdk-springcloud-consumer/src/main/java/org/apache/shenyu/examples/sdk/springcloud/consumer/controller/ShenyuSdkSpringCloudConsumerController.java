@@ -33,12 +33,12 @@ public class ShenyuSdkSpringCloudConsumerController {
 
     @Autowired
     private ShenyuSpringCloudClientApi clientApi;
+
     @Autowired
     private FeignSpringCloudClientApi feignClientApi;
 
     /**
      * save.
-     *
      * @param orderDTO orderDto
      * @return OrderDTO
      */
@@ -49,7 +49,6 @@ public class ShenyuSdkSpringCloudConsumerController {
 
     /**
      * findById.
-     *
      * @param id id
      * @return OrderDTO
      */
@@ -60,7 +59,6 @@ public class ShenyuSdkSpringCloudConsumerController {
 
     /**
      * getPathVariable.
-     *
      * @param id   id
      * @param name name
      * @return OrderDTO
@@ -72,7 +70,6 @@ public class ShenyuSdkSpringCloudConsumerController {
 
     /**
      * testRestFul.
-     *
      * @param id id
      * @return OrderDTO
      */
