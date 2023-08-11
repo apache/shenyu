@@ -84,6 +84,9 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 8
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
       - name: Cache local Maven repository
         uses: actions/cache@v3
         with:
@@ -92,9 +95,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
             ${{ runner.os }}-maven-
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
       - name: Shenyu cache
         uses: actions/cache@v3
         with:
