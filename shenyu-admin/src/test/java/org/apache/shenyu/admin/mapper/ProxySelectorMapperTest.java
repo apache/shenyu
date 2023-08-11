@@ -27,10 +27,11 @@ import org.junit.jupiter.api.Test;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class ProxySelectorMapperTest extends AbstractSpringIntegrationTest {
 
@@ -88,7 +89,7 @@ class ProxySelectorMapperTest extends AbstractSpringIntegrationTest {
     @Test
     void selectByIds() {
 
-        List<ProxySelectorDO> list = proxySelectorMapper.selectByIds(Arrays.asList(proxySelectorDO.getId()));
+        List<ProxySelectorDO> list = proxySelectorMapper.selectByIds(Collections.singletonList(proxySelectorDO.getId()));
         assertEquals(list.size(), 1);
         assertEquals(list.get(0).getName(), "test");
     }
@@ -96,9 +97,9 @@ class ProxySelectorMapperTest extends AbstractSpringIntegrationTest {
     @Test
     void deleteByIds() {
 
-        proxySelectorMapper.deleteByIds(Arrays.asList(proxySelectorDO.getId()));
+        proxySelectorMapper.deleteByIds(Collections.singletonList(proxySelectorDO.getId()));
         Boolean b = proxySelectorMapper.existed(1);
-        assertEquals(null, b);
+        assertNull(b);
     }
 
     private ProxySelectorDO build() {

@@ -25,7 +25,7 @@ import java.util.Objects;
 /**
  * ApiAnnotationProcessor.
  */
-public interface ApiAnnotationProcessor<T extends Annotation> extends ExtractorProcessor {
+public interface ApiAnnotationProcessor<T extends Annotation> extends ApiBeanProcessor {
     
     /**
      * process.

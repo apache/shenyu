@@ -267,22 +267,22 @@ The text of each license is the standard Apache 2.0 license.
     fastjson2 2.0.14: https://github.com/alibaba/fastjson2, Apache 2.0
     google-http-client 1.34.0: https://github.com/googleapis/google-http-java-client/google-http-client, Apache 2.0
     google-http-client-jackson2 1.34.0: https://github.com/googleapis/google-http-java-client/google-http-client-jackson2, Apache 2.0
-    grpc-all 1.48.0 https://github.com/grpc/grpc, Apache 2.0
-    grpc-alts 1.48.0 https://github.com/grpc/grpc, Apache 2.0
-    grpc-api 1.48.0 https://github.com/grpc/grpc, Apache 2.0
-    grpc-auth 1.48.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-context 1.48.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-core 1.48.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-grpclb 1.48.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-netty 1.48.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-netty-shaded 1.48.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-okhttp 1.48.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-protobuf 1.48.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-protobuf-lite 1.48.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-services 1.48.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-stub 1.48.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-testing 1.48.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-xds 1.48.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-all 1.53.0 https://github.com/grpc/grpc, Apache 2.0
+    grpc-alts 1.53.0 https://github.com/grpc/grpc, Apache 2.0
+    grpc-api 1.53.0 https://github.com/grpc/grpc, Apache 2.0
+    grpc-auth 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-context 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-core 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-grpclb 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-netty 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-netty-shaded 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-okhttp 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-protobuf 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-protobuf-lite 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-services 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-stub 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-testing 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-xds 1.53.0: https://github.com/grpc/grpc, Apache 2.0
     gson 2.9.0: https://github.com/google/gson, Apache 2.0
     guava 31.1-jre: https://github.com/google/guava, Apache 2.0
     hessian 3.3.7: http://github.com/alipay/sofa-hessian, Apache 2.0
@@ -337,10 +337,10 @@ The text of each license is the standard Apache 2.0 license.
     lz4-java 1.8.0: https://github.com/jpountz/lz4-java, Apache 2.0
     metrics-core 3.0.1: https://mvnrepository.com/artifact/com.codahale.metrics/metrics-core, Apache 2.0
     micrometer-core 1.9.12: https://github.com/micrometer-metrics/micrometer, Apache 2.0
-    motan-core 1.2.0 https://github.com/weibocom/motan, Apache 2.0
-    motan-transport-netty4 1.2.0 https://github.com/weibocom/motan, Apache 2.0
-    motan-registry-zookeeper 1.2.0 https://github.com/weibocom/motan, Apache 2.0
-    motan-springsupport 1.2.0 https://github.com/weibocom/motan, Apache 2.0
+    motan-core 1.2.1: https://github.com/weibocom/motan, Apache 2.0
+    motan-transport-netty4 1.2.1: https://github.com/weibocom/motan, Apache 2.0
+    motan-registry-zookeeper 1.2.1: https://github.com/weibocom/motan, Apache 2.0
+    motan-springsupport 1.2.1: https://github.com/weibocom/motan, Apache 2.0
     msg-simple 1.1: https://github.com/fge/msg-simple, Apache 2.0 and LGPL
     netty-all 4.1.94.Final: https://github.com/netty, Apache 2.0
     netty-buffer 4.1.94.Final: https://github.com/netty, Apache 2.0
@@ -396,8 +396,8 @@ The text of each license is the standard Apache 2.0 license.
     opentracing-mock 0.22.0: https://github.com/opentracing/opentracing-java, Apache 2.0
     opentracing-noop 0.22.0: https://github.com/opentracing/opentracing-java, Apache 2.0
     opentracing-util 0.22.0: https://github.com/opentracing/opentracing-java, Apache 2.0
-    perfmark-api 0.19.0: https://github.com/perfmark/perfmark, Apache 2.0
-    proto-google-common-protos 1.17.0: https://github.com/googleapis/common-protos-java, Apache 2.0
+    perfmark-api 0.25.0: https://github.com/perfmark/perfmark, Apache 2.0
+    proto-google-common-protos 2.9.0: https://github.com/googleapis/common-protos-java, Apache 2.0
     reactor-core 3.4.30: https://github.com/reactor/reactor-core, Apache 2.0
     reactor-extra 3.4.10: https://github.com/reactor/reactor-addons, Apache 2.0
     reactor-netty 1.0.33: https://github.com/reactor/reactor-netty, Apache 2.0
@@ -546,7 +546,7 @@ The text of each license is the standard Apache 2.0 license.
 	pulsar-client-api 2.10.1: https://mvnrepository.com/artifact/org.apache.pulsar/pulsar-client-api, Apache 2.0
     aliyun-log 0.6.57: https://github.com/aliyun/aliyun-log-java-producer, Apache 2.0
     aliyun-log-producer 0.3.10: https://github.com/aliyun/aliyun-log-java-producer, Apache 2.0
-    tencentcloud-cls-sdk-java 1.0.9: https://github.com/TencentCloud/tencentcloud-cls-sdk-java, Apache 2.0
+    tencentcloud-cls-sdk-java 1.0.14: https://github.com/TencentCloud/tencentcloud-cls-sdk-java, Apache 2.0
     casdoor-java-sdk 1.9.0: https://github.com/casdoor/casdoor-java-sdk, Apache 2.0
     nimbus-jose-jwt 9.10: https://connect2id.com/products/nimbus-jose-jwt, Apache 2.0
     oltu 1.0.2: https://oltu.apache.org/, Apache 2.0
@@ -561,6 +561,8 @@ The text of each license is the standard Apache 2.0 license.
     kotlin-stdlib 1.6.21 https://kotlinlang.org, Apache 2.0
     kotlin-stdlib-common 1.6.21 https://kotlinlang.org, Apache 2.0
     lts-sdk-java 1.0.1: https://github.com/huaweicloud/huaweicloud-lts-sdk-java, Apache 2.0
+    lts-sdk-common 1.0.1: https://github.com/huaweicloud/huaweicloud-lts-sdk-java, Apache 2.0
+
 ========================================================================
 BSD licenses
 ========================================================================
@@ -575,8 +577,8 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     google-auth-library-oauth2-http 0.20.0: https://github.com/googleapis/google-auth-library-java/google-auth-library-oauth2-http, BSD 3-Clause
     jakarta.activation-api 1.2.2: https://github.com/eclipse-ee4j/jaf, BSD 3-Clause
     jakarta.xml.bind-api 2.3.3: https://github.com/eclipse-ee4j/jaxb-api, BSD 3-Clause
-    protobuf-java 3.11.0: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
-    protobuf-java-util 3.15.3: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
+    protobuf-java 3.21.12: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
+    protobuf-java-util 3.23.3: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
     tars-client 1.7.2: https://github.com/TarsCloud/Tars/tars-client, BSD 3-Clause
     tars-context 1.7.2: https://github.com/TarsCloud/Tars/tars-context, BSD 3-Clause
     tars-net 1.7.2: https://github.com/TarsCloud/Tars/tars-net, BSD 3-Clause
@@ -650,7 +652,7 @@ MIT licenses
 The following components are provided under the MIT License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
-    animal-sniffer-annotations 1.18: https://github.com/mojohaus/animal-sniffer, MIT
+    animal-sniffer-annotations 1.21: https://github.com/mojohaus/animal-sniffer, MIT
     bcpkix-jdk15on 1.68: http://www.bouncycastle.org/licence.html , MIT
     bcprov-jdk15on 1.69: http://www.bouncycastle.org/licence.html , MIT
 	bcprov-ext-jdk15on 1.69: http://www.bouncycastle.org/licence.html , MIT

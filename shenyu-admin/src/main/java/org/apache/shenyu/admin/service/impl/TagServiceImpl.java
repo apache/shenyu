@@ -45,7 +45,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TagServiceImpl implements TagService {
 
-    private TagMapper tagMapper;
+    private final TagMapper tagMapper;
 
     public TagServiceImpl(final TagMapper tagMapper) {
         this.tagMapper = tagMapper;
@@ -72,7 +72,7 @@ public class TagServiceImpl implements TagService {
             TagDO tagDO = tagMapper.selectByPrimaryKey(tagDTO.getParentTagId());
             ext = buildExtParamByParentTag(tagDO);
         } else {
-            ext = GsonUtils.getInstance().toJson(tagExt);
+            ext = GsonUtils.getInstance().toJson(Optional.ofNullable(tagExt).orElse(new TagDO.TagExt()));
         }
         TagDO tagDO = TagDO.buildTagDO(tagDTO);
         tagDO.setExt(ext);
