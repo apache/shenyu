@@ -28,8 +28,6 @@ jobs:
         java: [ 8, 11 ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         include:
-          - java: 15-ea
-            os: ubuntu-latest
           - java: 16
             os: ubuntu-latest
           - java: 17
