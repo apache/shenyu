@@ -34,7 +34,7 @@ import java.util.List;
  * Testing the correctness of Http data synchronization method.
  */
 @ShenYuTest(
-        mode = ShenYuEngineConfigure.Mode.HOST,
+        mode = ShenYuEngineConfigure.Mode.DOCKER,
         services = {
                 @ShenYuTest.ServiceConfigure(
                         serviceName = "admin",
