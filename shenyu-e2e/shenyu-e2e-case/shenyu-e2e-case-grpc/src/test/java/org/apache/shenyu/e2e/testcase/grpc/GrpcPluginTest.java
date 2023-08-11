@@ -23,7 +23,6 @@ import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
-import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.model.ResourcesData;
@@ -35,7 +34,6 @@ import org.apache.shenyu.e2e.model.response.MetaDataDTO;
 import org.apache.shenyu.e2e.model.response.RuleDTO;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +44,7 @@ import org.testcontainers.shaded.com.google.common.collect.Lists;
 import java.util.List;
 
 @ShenYuTest(
-        mode = ShenYuEngineConfigure.Mode.HOST,
+        mode = ShenYuEngineConfigure.Mode.DOCKER,
         services = {
                 @ShenYuTest.ServiceConfigure(
                         serviceName = "admin",
@@ -74,20 +72,20 @@ import java.util.List;
   Testing grpc plugin.
  */
 public class GrpcPluginTest {
-    private List<String> selectorIds = Lists.newArrayList();
 
     private static String selectorId = "";
+
     private static String condictionId = "";
+
+    private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeAll
     void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
         Thread.sleep(10000);
-        List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
-        List<RuleDTO> ruleDTOList = adminClient.listAllRules();
-
-
+        final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
+        final List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
+        final List<RuleDTO> ruleDTOList = adminClient.listAllRules();
         selectorId = selectorDTOList.get(0).getId();
         selectorIds.add(selectorId);
         SelectorDTO selector = adminClient.getSelector(selectorId);
@@ -122,10 +120,10 @@ public class GrpcPluginTest {
             SelectorData selector = res.getSelector();
             selector.setId(selectorId);
             selector.getConditionList().forEach(
-                    condition -> {
-                        condition.setSelectorId(selectorId);
-                        condition.setId(condictionId);
-                    }
+                condition -> {
+                    condition.setSelectorId(selectorId);
+                    condition.setId(condictionId);
+                }
             );
             client.changeSelector(selector.getId(), selector);
 
@@ -143,8 +141,7 @@ public class GrpcPluginTest {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 
-
-//    @AfterAll
+    @AfterAll
     static void teardown(final AdminClient client) {
         client.deleteAllSelectors();
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();

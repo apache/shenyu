@@ -42,7 +42,6 @@ import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBui
 
 public class GrpcPluginCases implements ShenYuScenarioProvider {
 
-
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
@@ -131,7 +130,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.POST, "/grpc/unaryFun", body)
                                 .addExists(Method.POST, "/grpc/bidiStreamingFun", body)
                                 .addExists(Method.POST, "/grpc/serverStreamingFun", body)
-                                .addNotExists(Method.GET,"/grp")
+                                .addNotExists(Method.GET, "/grp")
                                 .addNotExists(Method.POST, "/grpc/findAll")
                                 .addNotExists(Method.PUT, "/grpc/findAll")
                                 .addNotExists(Method.DELETE, "/grpc/findAll")
@@ -427,16 +426,24 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
             this.message = message;
         }
 
+        /**
+         * get message.
+         *
+         * @return message
+         */
         public String getMessage() {
             return message;
         }
 
-        public void setMessage(String message) {
+        /**
+         * set message.
+         *
+         * @param message message
+         */
+        public void setMessage(final String message) {
             this.message = message;
         }
 
-
     }
-
 
 }
