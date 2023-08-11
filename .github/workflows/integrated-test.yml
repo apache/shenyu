@@ -40,14 +40,14 @@ jobs:
           java-version: 8
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dcheckstyle.skip=true -Dcheckstyle_unix.skip=true -Dmaven.test.skip=true
       - name: Build examples
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
       - name: Build integrated tests
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
-      - name: "Cache local Maven repository"
+      - name: Cache local Maven repository
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository
@@ -55,13 +55,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
             ${{ runner.os }}-maven-
-      - name: "Shenyu cache"
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository/org/apache/shenyu
-          key: ${{ runner.os }}-maven-${{ github.sha }}-${{ github.run_id }}
   build:
-    needs: [build-source]
+    needs: [ build-source ]
     strategy:
       matrix:
         case:
@@ -81,7 +76,11 @@ jobs:
     runs-on: ubuntu-latest
     if: (github.repository == 'apache/shenyu')
     steps:
-      - name: "Cache local Maven repository"
+      - uses: actions/setup-java@v1
+        if: steps.filter.outputs.changed == 'true'
+        with:
+          java-version: 8
+      - name: Cache local Maven repository
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository
