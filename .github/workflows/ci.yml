@@ -62,7 +62,7 @@ jobs:
             ${{ runner.os }}-maven-
       - uses: actions/setup-java@v3
         if: steps.filter.outputs.changed == 'true'
-       with:
+        with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
           cache: maven

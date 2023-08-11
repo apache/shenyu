@@ -61,6 +61,8 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
         with:
           java-version: 8
+          distribution: 'temurin'
+          cache: maven
 
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
