@@ -65,6 +65,11 @@
                 <artifactId>shenyu-spring-boot-starter-sdk-spring</artifactId>
                 <version>${shenyu-sdk.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-sdk-springcloud</artifactId>
+                <version>${shenyu-sdk.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
