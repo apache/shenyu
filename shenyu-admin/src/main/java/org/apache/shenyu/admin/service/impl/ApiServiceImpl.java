@@ -18,14 +18,17 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
 import org.apache.shenyu.admin.mapper.ApiMapper;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
+import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -37,6 +40,9 @@ import org.apache.shenyu.admin.model.vo.ApiVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.ApiService;
+import org.apache.shenyu.common.enums.ApiSourceEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
@@ -65,11 +71,11 @@ import java.util.stream.Collectors;
 public class ApiServiceImpl implements ApiService {
 
     private final SelectorService selectorService;
-    
+
     private final RuleService ruleService;
-    
+
     private final MetaDataService metaDataService;
-    
+
     private final ApiMapper apiMapper;
 
     private final TagRelationMapper tagRelationMapper;
@@ -122,7 +128,7 @@ public class ApiServiceImpl implements ApiService {
             if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
                 register(apiDO);
             } else if (ApiStateEnum.OFFLINE.getState() == apiDO.getState()) {
-                unregister(apiDO);
+                removeRegister(apiDO);
             }
         }
         return ShenyuResultMessage.UPDATE_SUCCESS;
@@ -153,14 +159,12 @@ public class ApiServiceImpl implements ApiService {
             }
             if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
                 register(apiDO);
-            } else if (ApiStateEnum.OFFLINE.getState() == apiDO.getState()) {
-                unregister(apiDO);
             }
         }
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
-    
-    private void unregister(final ApiDO apiDO) {
+
+    private void removeRegister(final ApiDO apiDO) {
         final String path = apiDO.getApiPath();
         RuleQueryCondition condition = new RuleQueryCondition();
         condition.setKeyword(path);
@@ -173,19 +177,23 @@ public class ApiServiceImpl implements ApiService {
                     .collect(Collectors.toList()));
         }
         //clean selector
-        Optional.ofNullable(selectorService.findByName(apiDO.getContextPath()))
-                .ifPresent(selectorDO -> {
-                    final String selectorId = selectorDO.getId();
-                    final List<RuleData> data = ruleService.findBySelectorId(selectorId);
-                    if (CollectionUtils.isEmpty(data)) {
-                        selectorService.delete(Lists.newArrayList(selectorId));
-                    }
-                });
+        List<SelectorDO> selectorDOList = selectorService.findByNameAndPluginNames(apiDO.getContextPath(), PluginEnum.getUpstreamNames());
+        ArrayList<String> selectorIds = Lists.newArrayList();
+        Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new).stream().forEach(selectorDO -> {
+            final String selectorId = selectorDO.getId();
+            final List<RuleData> data = ruleService.findBySelectorId(selectorId);
+            if (CollectionUtils.isEmpty(data)) {
+                selectorIds.add(selectorId);
+            }
+        });
+        if (CollectionUtils.isNotEmpty(selectorIds)) {
+            selectorService.delete(selectorIds);
+        }
         //clean metadata
         Optional.ofNullable(metaDataService.findByPath(path))
                 .ifPresent(metaDataDO -> metaDataService.delete(Lists.newArrayList(metaDataDO.getId())));
     }
-    
+
     private void register(final ApiDO apiDO) {
         //register selector/rule/metadata if necessary
         final ApiDocRegisterDTO.ApiExt ext = GsonUtils.getInstance().fromJson(apiDO.getExt(), ApiDocRegisterDTO.ApiExt.class);
@@ -220,7 +228,7 @@ public class ApiServiceImpl implements ApiService {
                 .rpcType(apiDO.getRpcType())
                 .build());
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String delete(final List<String> ids) {
@@ -243,12 +251,21 @@ public class ApiServiceImpl implements ApiService {
         return Optional.ofNullable(apiMapper.selectByPrimaryKey(id)).map(item -> {
             List<TagRelationDO> tagRelations = tagRelationMapper.selectByQuery(TagRelationQuery.builder().apiId(item.getId()).build());
             List<String> tagIds = tagRelations.stream().map(TagRelationDO::getTagId).collect(Collectors.toList());
-            List<TagVO> tagVOS = Lists.newArrayList();
+            List<TagVO> tagVOs = Lists.newArrayList();
             if (CollectionUtils.isNotEmpty(tagIds)) {
                 List<TagDO> tagDOS = tagMapper.selectByIds(tagIds);
-                tagVOS = tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
+                tagVOs = tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
             }
-            return ApiVO.buildApiVO(item, tagVOS);
+            ApiVO apiVO = ApiVO.buildApiVO(item, tagVOs);
+            if (apiVO.getApiSource().equals(ApiSourceEnum.SWAGGER.getValue())) {
+                DocItem docItem = JsonUtils.jsonToObject(apiVO.getDocument(), DocItem.class);
+                apiVO.setRequestHeaders(docItem.getRequestHeaders());
+                apiVO.setRequestParameters(docItem.getRequestParameters());
+                apiVO.setResponseParameters(docItem.getResponseParameters());
+                apiVO.setBizCustomCodeList(docItem.getBizCodeList());
+            }
+            return apiVO;
+
         }).orElse(null);
     }
 

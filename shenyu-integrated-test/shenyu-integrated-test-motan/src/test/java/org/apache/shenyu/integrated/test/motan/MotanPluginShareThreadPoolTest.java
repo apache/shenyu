@@ -36,7 +36,7 @@ public class MotanPluginShareThreadPoolTest extends AbstractPluginDataInit {
 
     @BeforeAll
     public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.MOTAN.getName(), "{\"register\":\"shenyu-zk:2181\",\"threadpool\": \"shared\"}");
+        String pluginResult = initPlugin(PluginEnum.MOTAN.getName(), "{\"registerProtocol\":\"zk\",\"registerAddress\":\"shenyu-zk:2181\",\"threadpool\": \"shared\"}");
         assertThat(pluginResult, is("success"));
     }
 

@@ -934,14 +934,14 @@ INSERT INTO "public"."plugin" VALUES ('13', 'tars', '{"multiSelectorHandle":"1",
 INSERT INTO "public"."plugin" VALUES ('14', 'contextPath', NULL, 'HttpProcess', 80, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('15', 'grpc', '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}', 'Proxy', 310, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('16', 'redirect', NULL, 'HttpProcess', 110, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
-INSERT INTO "public"."plugin" VALUES ('17', 'motan', '{"register":"127.0.0.1:2181","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}', 'Proxy', 310, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
+INSERT INTO "public"."plugin" VALUES ('17', 'motan', '{"registerProtocol":"direct",registerAddress":"127.0.0.1:2181","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}', 'Proxy', 310, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('18', 'loggingConsole', NULL, 'Logging', 160, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('19', 'jwt', '{"secretKey":"key"}', 'Authentication', 30, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('2', 'waf', '{"model":"black"}', 'Authentication', 50, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('20', 'request', NULL, 'HttpProcess', 120, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('21', 'oauth2', NULL, 'Authentication', 40, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
-INSERT INTO "public"."plugin" VALUES ('22', 'paramMapping', '{"ruleHandlePageType":"custom"}', 'HttpProcess', 70, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
-INSERT INTO "public"."plugin" VALUES ('23', 'modifyResponse', '{"ruleHandlePageType":"custom"}', 'HttpProcess', 220, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
+INSERT INTO "public"."plugin" VALUES ('22', 'paramMapping', NULL, 'HttpProcess', 70, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
+INSERT INTO "public"."plugin" VALUES ('23', 'modifyResponse', NULL, 'HttpProcess', 220, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('24', 'cryptorRequest', NULL, 'Cryptor', 100, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('25', 'cryptorResponse', NULL, 'Cryptor', 410, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('26', 'websocket', '{"multiSelectorHandle":"1"}', 'Proxy', 200, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
@@ -1077,7 +1077,6 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330584', '15', 'multi
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330585', '15', 'threadpool', 'threadpool', 3, 3, 0, '{"required":"0","defaultValue":"cached","placeholder":"threadpool","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330586', '14', 'contextPath', 'contextPath', 2, 2, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330587', '14', 'addPrefix', 'addPrefix', 2, 2, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330588', '20', 'ruleHandlePageType', 'ruleHandlePageType', 3, 3, 0, '{"required":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330589', '19', 'secretKey', 'secretKey', 2, 3, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330590', '24', 'strategyName', 'strategyName', 3, 2, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330591', '24', 'fieldNames', 'fieldNames', 2, 2, 3, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -1118,11 +1117,12 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524875', '26', 'loadB
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524876', '26', 'retry', 'retryCount', 1, 2, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524877', '26', 'timeout', 'timeout', 1, 2, 2, '{"defaultValue":"3000","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524878', '26', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524879', '17', 'register', 'register', 2, 3, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524880', '17', 'corethreads', 'corethreads', 1, 3, 0, '{"required":"0","defaultValue":"0","placeholder":"corethreads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524881', '17', 'threads', 'threads', 1, 3, 0, '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524882', '17', 'queues', 'queues', 1, 3, 0, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524883', '17', 'threadpool', 'threadpool', 3, 3, 0, '{"required":"0","defaultValue":"cached","placeholder":"threadpool","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524879', '17', 'registerProtocol', 'registerProtocol', 2, 3, 0, '{"required":"0","defaultValue":"zk","placeholder":"registerProtocol","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997557628272641', '17', 'registerAddress', 'registerAddress', 2, 3, 1, '{"required":"0","defaultValue":"127.0.0.1:2181","placeholder":"registerAddress","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524880', '17', 'corethreads', 'corethreads', 1, 3, 2, '{"required":"0","defaultValue":"0","placeholder":"corethreads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524881', '17', 'threads', 'threads', 1, 3, 3, '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524882', '17', 'queues', 'queues', 1, 3, 4, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524883', '17', 'threadpool', 'threadpool', 3, 3, 5, '{"required":"0","defaultValue":"cached","placeholder":"threadpool","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524884', '28', 'port', 'port', 1, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524885', '28', 'bossGroupThreadCount', 'bossGroupThreadCount', 1, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524886', '28', 'maxPayloadSize', 'maxPayloadSize', 1, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -1300,6 +1300,17 @@ INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312081', '43', 'setGi
 INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312082', '43', 'keyword', 'keyword', 2, 2, 0, '{"required":"0","placeholder":"please use ‘;’ to split keyword","rule":""}', '2023-07-05 14:26:20.600', '2023-07-07 22:50:00.620');
 INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312083', '43', 'maskType', 'maskType', 3, 2, 1, '{"required":"0","defaultValue":"dataMaskByMD5","rule":""}', '2023-07-05 14:26:20.600', '2023-07-07 22:50:00.620');
 INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312084', '43', 'maskStatus', 'maskStatus', 3, 2, 2, '{"required":"0","defaultValue":"false","rule":""}','2023-07-05 14:26:20.600', '2023-07-07 22:50:00.620');
+
+INSERT INTO "public"."plugin_handle" VALUES ('1678293333363167232', '42', 'discoveryHandler', 'discoveryHandler', 2, 1, 0, '{"required":"0","defaultValue":"url,protocol,status,weight","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997037438107648', '42', 'bossGroupThreadCount', 'bossGroupThreadCount', 2, 1, 1, '{"required":"0","defaultValue":"1","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997142656417792', '42', 'workerGroupThreadCount', 'workerGroupThreadCount', 2, 1, 2, '{"required":"0","defaultValue":"12","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997399104552960', '42', 'clientMaxIdleTimeMs', 'clientMaxIdleTimeMs', 2, 1, 7, '{"required":"0","defaultValue":"30000","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997479614218240', '42', 'clientPendingAcquireMaxCount', 'clientPendingAcquireMaxCount', 2, 1, 4, '{"required":"0","defaultValue":"5","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678996921914392576', '42', 'loadBalance', 'loadBalance', 3, 1, 3, '{"required":"0","defaultValue":"random","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997769998467072', '42', 'clientMaxLifeTimeMs', 'clientMaxLifeTimeMs', 2, 1, 8, '{"required":"0","defaultValue":"60000","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997277012557824', '42', 'clientMaxConnections', 'clientMaxConnections', 2, 1, 6, '{"required":"0","defaultValue":"20","rule":""}');
+INSERT INTO "public"."plugin_handle" VALUES ('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{"required":"0","defaultValue":"5","rule":""}');
+
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
@@ -1931,7 +1942,7 @@ CREATE TABLE "public"."shenyu_dict" (
   "type" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
   "dict_code" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
   "dict_name" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
-  "dict_value" varchar(100) COLLATE "pg_catalog"."default",
+  "dict_value" varchar(2048) COLLATE "pg_catalog"."default",
   "desc" varchar(255) COLLATE "pg_catalog"."default",
   "sort" int4 NOT NULL,
   "enabled" int2,
@@ -2053,6 +2064,7 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1630761573833920512', 'mapType', 'ma
 INSERT INTO "public"."shenyu_dict" VALUES ('1630761984393367552', 'mapType', 'mapType', 'field', 'field', '', 1, 1, '2023-03-01 10:48:49', '2023-03-01 10:48:49');
 INSERT INTO "public"."shenyu_dict" VALUES ('1572621976689762308', 'loadBalance', 'LOAD_BALANCE', 'p2c', 'p2c', 'p2c', 4, 1, '2023-03-07 22:15:16.846', '2023-03-07 22:15:16.846');
 INSERT INTO "public"."shenyu_dict" VALUES ('1572621976689762309', 'loadBalance', 'LOAD_BALANCE', 'shortestResponse', 'shortestResponse', 'shortestResponse', 5, 1, '2023-03-17 10:15:16.846', '2023-03-07 10:15:16.846');
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737472', 'discoveryMode', 'DISCOVERY_MODE', 'zookeeper', '{"baseSleepTimeMilliseconds":"1000","maxRetries":"3","maxSleepTimeMilliseconds":"1000","connectionTimeoutMilliseconds":"1000","sessionTimeoutMilliseconds":"1000","namespace":"","digest":null}', 'discoery mode to link zookeeper', 0, 1,'2023-03-17 10:15:16.846', '2023-03-07 10:15:16.846');
 
 -- ----------------------------
 -- Table structure for user_role
@@ -2341,6 +2353,33 @@ COMMENT ON COLUMN "public"."proxy_selector"."type" IS 'the type ';
 COMMENT ON COLUMN "public"."proxy_selector"."forward_port" IS 'the forward port';
 COMMENT ON COLUMN "public"."proxy_selector"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."proxy_selector"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for discovery_upstream
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."discovery_upstream";
+CREATE TABLE "public"."discovery_upstream"
+(
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_handler_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "protocol"    varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "url"         varchar(128) COLLATE "pg_catalog"."default",
+    "status"      int4  NOT NULL,
+    "weight"      int4  NOT NULL,
+    "props"        text COLLATE "pg_catalog"."default",
+    "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+;
+COMMENT ON COLUMN "public"."discovery_upstream"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."discovery_upstream"."discovery_handler_id" IS 'the discovery handler id';
+COMMENT ON COLUMN "public"."discovery_upstream"."protocol" IS 'for http, https, tcp, ws';
+COMMENT ON COLUMN "public"."discovery_upstream"."url" IS 'ip:port';
+COMMENT ON COLUMN "public"."discovery_upstream"."status" IS 'type (0, healthy, 1 unhealthy)';
+COMMENT ON COLUMN "public"."discovery_upstream"."weight" IS 'the weight for lists';
+COMMENT ON COLUMN "public"."discovery_upstream"."props" IS 'the other field (json)';
+COMMENT ON COLUMN "public"."discovery_upstream"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."discovery_upstream"."date_updated" IS 'update time';
 
 -- ----------------------------
 -- Table structure for alert_template

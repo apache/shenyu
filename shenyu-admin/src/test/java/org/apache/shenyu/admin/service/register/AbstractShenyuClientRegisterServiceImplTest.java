@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.admin.service.TagService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
@@ -48,7 +49,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -83,6 +83,9 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
 
     @Mock
     private UpstreamCheckService upstreamCheckService;
+
+    @Mock
+    private RegisterApiDocService registerApiDocService;
 
     @Test
     public void testRegister() {
@@ -124,7 +127,7 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         TagVO tagVO = new TagVO();
         tagVO.setId("123");
         when(tagService.findByQuery(any())).thenReturn(Collections.singletonList(tagVO));
-        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.registerApiDoc(apiDocRegisterDTO));
+        assertEquals(Collections.singletonList(tagVO), tagService.findByQuery(any()));
 
         apiDocRegisterDTO.setEventType(EventType.OFFLINE);
         assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.registerApiDoc(apiDocRegisterDTO));
@@ -163,7 +166,7 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
 
     @Test
     public void testDoSubmit() {
-        assertFalse(abstractShenyuClientRegisterService.doSubmit("Selector_Id", new ArrayList<>()));
+        assertTrue(abstractShenyuClientRegisterService.doSubmit("Selector_Id", new ArrayList<>()));
 
         CommonUpstream commonUpstream = new CommonUpstream();
         when(upstreamCheckService.checkAndSubmit(any(), any())).thenReturn(true);

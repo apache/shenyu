@@ -78,7 +78,7 @@ public class UpstreamCheckUtils {
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(host, port), timeout);
         } catch (Exception e) {
-            LOG.error("socket connect is error.", e);
+            LOG.error("socket connect is error. host:{} port:{} timeout:{}", host, port, timeout, e);
             return false;
         }
         return true;

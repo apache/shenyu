@@ -693,7 +693,7 @@ public interface Constants {
     String CACHED = "cached";
     
     /**
-     * user can use the specify-domian to replace of upstream url of the divide plugin.
+     * user can use the specify-domain to replace of upstream url of the divide plugin.
      */
     String SPECIFY_DOMAIN = "specify-domain";
     

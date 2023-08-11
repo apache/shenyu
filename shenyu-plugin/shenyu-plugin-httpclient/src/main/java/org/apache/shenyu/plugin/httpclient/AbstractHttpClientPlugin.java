@@ -57,7 +57,6 @@ import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The type abstract http client plugin.
@@ -82,7 +81,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         LogUtils.debug(LOG, () -> String.format("The request urlPath is: %s, retryTimes is : %s, retryStrategy is : %s", uri, retryTimes, retryStrategy));
         final HttpHeaders httpHeaders = buildHttpHeaders(exchange);
         final Mono<R> response = doRequest(exchange, exchange.getRequest().getMethodValue(), uri, httpHeaders, exchange.getRequest().getBody())
-                .timeout(duration, Mono.error(new TimeoutException("Response took longer than timeout: " + duration)))
+                .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
         if (RetryEnum.CURRENT.getName().equals(retryStrategy)) {
             //old version of DividePlugin and SpringCloudPlugin will run on this
@@ -156,7 +155,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             // in order not to affect the next retry call, newUri needs to be excluded
             exclude.add(newUri);
             return doRequest(exchange, exchange.getRequest().getMethodValue(), newUri, httpHeaders, exchange.getRequest().getBody())
-                    .timeout(duration, Mono.error(new TimeoutException("Response took longer than timeout: " + duration)))
+                    .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                     .doOnError(e -> LOG.error(e.getMessage(), e));
         });
     }
@@ -170,13 +169,6 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
     private HttpHeaders buildHttpHeaders(final ServerWebExchange exchange) {
         final HttpHeaders headers = new HttpHeaders();
         headers.addAll(exchange.getRequest().getHeaders());
-        // remove gzip
-        List<String> acceptEncoding = headers.get(HttpHeaders.ACCEPT_ENCODING);
-        if (CollectionUtils.isNotEmpty(acceptEncoding)) {
-            acceptEncoding = Stream.of(String.join(",", acceptEncoding).split(",")).collect(Collectors.toList());
-            acceptEncoding.remove(Constants.HTTP_ACCEPT_ENCODING_GZIP);
-            headers.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncoding));
-        }
         headers.remove(HttpHeaders.HOST);
         return headers;
     }

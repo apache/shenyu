@@ -203,7 +203,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
                         .tags(pairs.getRight())
                         .apiPath(apiPath)
                         .apiSource(ApiSourceEnum.ANNOTATION_GENERATION.getValue())
-                        .state(ApiStateEnum.PUBLISHED.getState())
+                        .state(ApiStateEnum.UNPUBLISHED.getState())
                         .apiOwner("admin")
                         .eventType(EventType.REGISTER)
                         .build();

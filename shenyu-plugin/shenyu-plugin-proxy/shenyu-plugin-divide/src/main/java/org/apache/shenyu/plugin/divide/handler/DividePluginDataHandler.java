@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.divide.handler;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -32,8 +31,11 @@ import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.springframework.util.ObjectUtils;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -47,10 +49,10 @@ public class DividePluginDataHandler implements PluginDataHandler {
     
     @Override
     public void handlerSelector(final SelectorData selectorData) {
-        List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
-        if (CollectionUtils.isEmpty(upstreamList)) {
+        if (Objects.isNull(selectorData) || Objects.isNull(selectorData.getId())) {
             return;
         }
+        List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
         UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(upstreamList));
         // the update is also need to clean, but there is no way to
         // distinguish between crate and update, so it is always clean
@@ -90,6 +92,9 @@ public class DividePluginDataHandler implements PluginDataHandler {
     }
     
     private List<Upstream> convertUpstreamList(final List<DivideUpstream> upstreamList) {
+        if (ObjectUtils.isEmpty(upstreamList)) {
+            return Collections.emptyList();
+        }
         return upstreamList.stream().map(u -> Upstream.builder()
                 .protocol(u.getProtocol())
                 .url(u.getUpstreamUrl())

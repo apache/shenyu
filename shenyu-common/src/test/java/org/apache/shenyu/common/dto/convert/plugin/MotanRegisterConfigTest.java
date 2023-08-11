@@ -32,12 +32,14 @@ public class MotanRegisterConfigTest {
     @Test
     public void testGetterSetter() {
         MotanRegisterConfig config = new MotanRegisterConfig();
-        config.setRegister("reg");
+        config.setRegisterAddress("reg");
+        config.setRegisterProtocol("zk");
         config.setCorethreads(10);
         config.setThreads(10);
         config.setQueues(2);
-        
-        assertThat(config.getRegister(), is("reg"));
+
+        assertThat(config.getRegisterAddress(), is("reg"));
+        assertThat(config.getRegisterProtocol(), is("zk"));
         assertThat(config.getCorethreads(), is(10));
         assertThat(config.getThreads(), is(10));
         assertThat(config.getQueues(), is(2));

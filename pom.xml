@@ -25,7 +25,7 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.6.0-SNAPSHOT</version>
+    <version>2.6.1-SNAPSHOT</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
@@ -81,6 +81,25 @@
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- maven plugin version start -->
+        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.3</nexus-staging-maven-plugin.version>
+        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+        <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
+        <maven-javadoc-plugin.version>2.10.3</maven-javadoc-plugin.version>
+        <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+        <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
+        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
+        <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
+        <apache-rat-plugin.version>0.13</apache-rat-plugin.version>
+        <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
+        <frontend-maven-plugin.node.version>v12.14.1</frontend-maven-plugin.node.version>
+        <!-- maven plugin version end -->
+
+        <!-- dependency version start -->
         <jasypt.version>1.9.2</jasypt.version>
         <springfox.version>2.6.1</springfox.version>
         <mybatis.starter.version>2.2.2</mybatis.starter.version>
@@ -92,11 +111,10 @@
         <disruptor.version>3.4.0</disruptor.version>
         <consul.api.version>1.4.5</consul.api.version>
         <consul.version>2.2.6.RELEASE</consul.version>
-        <jetcd.version>0.0.2</jetcd.version>
         <hessian.version>4.0.38</hessian.version>
         <protostuff.version>1.0.8</protostuff.version>
         <kryo.version>4.0.0</kryo.version>
-        <pagehelper.version>5.3.1</pagehelper.version>
+        <pagehelper.version>5.3.3</pagehelper.version>
         <alibaba.dubbo.version>2.6.12</alibaba.dubbo.version>
         <apache.dubbo.version>3.1.1</apache.dubbo.version>
         <gson.version>2.9.0</gson.version>
@@ -114,7 +132,7 @@
         <zkclient.version>0.10</zkclient.version>
         <shiro.version>1.8.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
-        <motan.version>1.2.0</motan.version>
+        <motan.version>1.2.1</motan.version>
         <spring-boot.version>2.7.13</spring-boot.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
@@ -125,7 +143,7 @@
         <commons-io.version>2.11.0</commons-io.version>
         <nacos-client.version>2.0.4</nacos-client.version>
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
-        <grpc.version>1.33.1</grpc.version>
+        <grpc.version>1.53.0</grpc.version>
         <brpc.version>2022.2.0</brpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>
         <pulsar-client.version>2.10.1</pulsar-client.version>
@@ -139,22 +157,7 @@
         <eureka.version>1.10.17</eureka.version>
         <javatuples.version>1.2</javatuples.version>
         <k8s-client.version>17.0.2</k8s-client.version>
-        <!--maven plugin version-->
-        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
-        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
-        <nexus-staging-maven-plugin.version>1.6.3</nexus-staging-maven-plugin.version>
-        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
-        <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
-        <maven-javadoc-plugin.version>2.10.3</maven-javadoc-plugin.version>
-        <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
-        <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
-        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-        <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
-        <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
-        <apache-rat-plugin.version>0.13</apache-rat-plugin.version>
-        <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
-        <frontend-maven-plugin.node.version>v12.14.1</frontend-maven-plugin.node.version>
+        <polaris.version>1.13.0</polaris.version>
         <bytebuddy.version>1.12.6</bytebuddy.version>
         <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
         <jaxb.api.version>2.3.1</jaxb.api.version>
@@ -174,12 +177,14 @@
         <resilience.version>1.7.1</resilience.version>
         <sentinel.version>1.8.3</sentinel.version>
         <lettuce.version>6.1.2.RELEASE</lettuce.version>
-        <protobuf-java.version>3.19.6</protobuf-java.version>
+        <protobuf-java.version>3.21.12</protobuf-java.version>
         <aliyun-log-producer.version>0.3.10</aliyun-log-producer.version>
         <tencent-log-sdk.version>1.0.14</tencent-log-sdk.version>
         <jsonpath.version>2.4.0</jsonpath.version>
         <casdoor-java-sdk.version>1.9.0</casdoor-java-sdk.version>
         <huawei-log-sdk.version>1.0.1</huawei-log-sdk.version>
+        <opengauss-jdbc.version>5.0.0-og</opengauss-jdbc.version>
+        <!-- dependency version end -->
     </properties>
 
     <dependencyManagement>
@@ -260,7 +265,6 @@
                 <version>${prometheus-java-client.version}</version>
             </dependency>
 
-            <!-- https://mvnrepository.com/artifact/io.prometheus.jmx/collector -->
             <dependency>
                 <groupId>io.prometheus.jmx</groupId>
                 <artifactId>collector</artifactId>
@@ -282,8 +286,29 @@
                         <groupId>net.jcip</groupId>
                         <artifactId>jcip-annotations</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-api</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-protobuf</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-stub</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-netty-shaded</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
                 </exclusions>
             </dependency>
+
 
             <dependency>
                 <groupId>com.alibaba</groupId>
@@ -318,12 +343,6 @@
                 <artifactId>mysql-connector-java</artifactId>
                 <version>${mysql.version}</version>
                 <scope>provided</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>druid</artifactId>
-                <version>${druid.version}</version>
             </dependency>
 
             <dependency>
@@ -389,6 +408,12 @@
                 <groupId>com.ctrip.framework.apollo</groupId>
                 <artifactId>apollo-openapi</artifactId>
                 <version>${apollo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.tencent.polaris</groupId>
+                <artifactId>polaris-all</artifactId>
+                <version>${polaris.version}</version>
             </dependency>
 
             <dependency>
@@ -495,6 +520,60 @@
                 <groupId>io.etcd</groupId>
                 <artifactId>jetcd-core</artifactId>
                 <version>${jetcd-core.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>grpc-protobuf</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-stub</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-netty</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-core</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>grpc-protobuf</artifactId>
+                <groupId>io.grpc</groupId>
+                <version>${grpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>grpc-stub</artifactId>
+                <groupId>io.grpc</groupId>
+                <version>${grpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>grpc-netty</artifactId>
+                <groupId>io.grpc</groupId>
+                <version>${grpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>grpc-okhttp</artifactId>
+                <groupId>io.grpc</groupId>
+                <version>${grpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf-java.version}</version>
             </dependency>
 
             <dependency>

@@ -28,6 +28,10 @@ public class DocInfo {
 
     private String clusterName;
 
+    private String contextPath;
+
+    private String docMd5;
+
     private List<DocModule> docModuleList;
 
     /**
@@ -64,6 +68,40 @@ public class DocInfo {
      */
     public void setClusterName(final String clusterName) {
         this.clusterName = clusterName;
+    }
+
+    /**
+     * get contextPath.
+     *
+     * @return contextPath
+     */
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    /**
+     * set contextPath.
+     *
+     * @param contextPath contextPath
+     */
+    public void setContextPath(final String contextPath) {
+        this.contextPath = contextPath;
+    }
+
+    /**
+     * getDocMd5.
+     * @return docMd5
+     */
+    public String getDocMd5() {
+        return docMd5;
+    }
+
+    /**
+     * setDocMd5.
+     * @param docMd5 docMd5
+     */
+    public void setDocMd5(final String docMd5) {
+        this.docMd5 = docMd5;
     }
 
     /**
