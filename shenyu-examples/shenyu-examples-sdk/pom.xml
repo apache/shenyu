@@ -35,7 +35,7 @@
     </modules>
 
     <properties>
-        <shenyu-sdk.version>2.6.0-SNAPSHOT</shenyu-sdk.version>
+        <shenyu-sdk.version>${project.version}</shenyu-sdk.version>
     </properties>
 
     <dependencyManagement>
@@ -62,7 +62,7 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.shenyu</groupId>
-                <artifactId>shenyu-spring-boot-starter-sdk-springcloud</artifactId>
+                <artifactId>shenyu-spring-boot-starter-sdk-spring</artifactId>
                 <version>${shenyu-sdk.version}</version>
             </dependency>
         </dependencies>
