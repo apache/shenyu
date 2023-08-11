@@ -47,19 +47,11 @@ jobs:
       - name: Build integrated tests
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
-      - name: Cache local Maven repository
-        uses: actions/cache@v3
+      - name: Upload tar results
+        uses: actions/upload-artifact@v3
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-            ${{ runner.os }}-maven-
-      - name: Shenyu cache
-        uses: actions/cache@v3
-        with:
+          name: docker-tars
           path: ${{ github.workspace }}/shenyu-integrated-test
-          key: ${{ runner.os }}-shenyu-snapshot-${{ github.sha }}-${{ github.run_id }}
   build:
     needs: [ build-source ]
     strategy:
@@ -87,19 +79,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
-      - name: Cache local Maven repository
-        uses: actions/cache@v3
+      - name: Download tar results from build source
+        uses: actions/download-artifact@v3
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-            ${{ runner.os }}-maven-
-      - name: Shenyu cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workspace }}/shenyu-integrated-test
-          key: ${{ runner.os }}-shenyu-snapshot-${{ github.sha }}-${{ github.run_id }}
+          name: docker-tars
       - name: Start docker compose
         run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
       - name: Wait for docker compose start up completely
