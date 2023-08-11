@@ -74,7 +74,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/echo"))
                                                 .handle(GrpcSelectorHandle.builder()
                                                         .status(true)
-                                                        .upstreamUrl("localhost:38080")
+                                                        .upstreamUrl("grpc:38080")
                                                         .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
@@ -114,7 +114,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.PATH_PATTERN, "/grpc/**"))
                                                 .handle(GrpcSelectorHandle.builder()
                                                         .status(true)
-                                                        .upstreamUrl("localhost:38080")
+                                                        .upstreamUrl("grpc:38080")
                                                         .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
@@ -157,7 +157,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/grpc/"))
                                                 .handle(GrpcSelectorHandle.builder()
                                                         .status(true)
-                                                        .upstreamUrl("localhost:38080")
+                                                        .upstreamUrl("grpc:38080")
                                                         .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
@@ -199,7 +199,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/echo"))
                                                 .handle(GrpcSelectorHandle.builder()
                                                         .status(true)
-                                                        .upstreamUrl("localhost:38080")
+                                                        .upstreamUrl("grpc:38080")
                                                         .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
@@ -242,7 +242,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                                 ))
                                                 .handle(GrpcSelectorHandle.builder()
                                                         .status(true)
-                                                        .upstreamUrl("localhost:38080")
+                                                        .upstreamUrl("grpc:38080")
                                                         .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
@@ -289,7 +289,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                                 ))
                                                 .handle(GrpcSelectorHandle.builder()
                                                         .status(true)
-                                                        .upstreamUrl("localhost:38080")
+                                                        .upstreamUrl("grpc:38080")
                                                         .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
@@ -336,7 +336,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                                 ))
                                                 .handle(GrpcSelectorHandle.builder()
                                                         .status(true)
-                                                        .upstreamUrl("localhost:38080")
+                                                        .upstreamUrl("grpc:38080")
                                                         .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
@@ -383,7 +383,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                                 ))
                                                 .handle(GrpcSelectorHandle.builder()
                                                         .status(true)
-                                                        .upstreamUrl("localhost:38080")
+                                                        .upstreamUrl("grpc:38080")
                                                         .weight(50).build())
                                                 .build(),
                                         newRuleBuilder("rule")
