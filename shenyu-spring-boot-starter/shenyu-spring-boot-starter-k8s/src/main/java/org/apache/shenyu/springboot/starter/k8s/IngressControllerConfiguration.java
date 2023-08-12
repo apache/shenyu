@@ -163,8 +163,8 @@ public class IngressControllerConfiguration {
      * @return ShenyuCacheRepository
      */
     @Bean
-    public ShenyuCacheRepository shenyuCacheRepository(final PluginDataSubscriber subscriber, final CommonMetaDataSubscriber metaDataSubscriber) {
-        return new ShenyuCacheRepository(subscriber, metaDataSubscriber);
+    public ShenyuCacheRepository shenyuCacheRepository(final PluginDataSubscriber pluginDataSubscriber, final CommonMetaDataSubscriber metaDataSubscriber) {
+        return new ShenyuCacheRepository(pluginDataSubscriber, metaDataSubscriber);
     }
 
     /**

@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 
 public class IngressConfiguration {
+
     private final SelectorData selectorData;
 
     private final RuleData ruleData;
