@@ -23,6 +23,8 @@ public class IngressConstants {
 
     public static final String SHENYU_INGRESS_CLASS = "shenyu";
 
+    public static final String ID = "1";
+
     // Load balance type name, refer to LoadBalanceEnum
     public static final String LOADBALANCER_ANNOTATION_KEY = "shenyu.apache.org/loadbalancer";
 
@@ -37,4 +39,31 @@ public class IngressConstants {
 
     // The maximum length of the request header, in bytes
     public static final String REQUEST_MAX_SIZE_ANNOTATION_KEY = "shenyu.apache.org/request-max-size";
+
+    //Determine if the dubbo plugin is enabled, in bool
+    public static final String PLUGIN_DUBBO_ENABLED = "shenyu.apache.org/plugin-dubbo-enabled";
+
+    // The configuration key to specify the Dubbo application name for the plugin, in string
+    public static final String PLUGIN_DUBBO_APP_NAME = "shenyu.apache.org/plugin-dubbo-app-name";
+
+    // The configuration key to specify the Dubbo method name for the plugin, in string
+    public static final String PLUGIN_DUBBO_METHOD_NAME = "shenyu.apache.org/plugin-dubbo-method-name";
+
+    // The configuration key to specify the Dubbo path for the plugin, in string
+    public static final String PLUGIN_DUBBO_PATH = "shenyu.apache.org/plugin-dubbo-PATH";
+
+    // The configuration key to specify the Dubbo RPC type for the plugin, in string
+    public static final String PLUGIN_DUBBO_RPC_TYPE = "shenyu.apache.org/plugin-dubbo-rpc-type";
+
+    // The configuration key to specify the Dubbo service name for the plugin, in string
+    public static final String PLUGIN_DUBBO_SERVICE_NAME = "shenyu.apache.org/plugin-dubbo-service-name";
+
+    // The configuration key to specify the context path for the Dubbo service, in string
+    public static final String PLUGIN_DUBBO_CONTEXT_PATH = "shenyu.apache.org/plugin-dubbo-context-path";
+
+    // The configuration key to specify additional RPC extension for the Dubbo plugin, in string
+    public static final String PLUGIN_DUBBO_RPC_EXT = "shenyu.apache.org/plugin-dubbo-rpc-ext";
+
+    // The configuration key to specify parameter types for the Dubbo plugin, in string
+    public static final String PLUGIN_DUBBO_PARAMENT_TYPE = "shenyu.apache.org/plugin-dubbo-parament-type";
 }
