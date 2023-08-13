@@ -90,7 +90,7 @@
                 AND enabled = #{enabled, jdbcType=TINYINT}
             </if>
         </where>
-      ORDER BY sort ASC
+      ORDER BY sort, id ASC
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery"
