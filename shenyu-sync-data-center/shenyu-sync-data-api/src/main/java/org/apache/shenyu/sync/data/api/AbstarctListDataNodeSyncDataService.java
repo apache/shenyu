@@ -190,6 +190,10 @@ public abstract class AbstarctListDataNodeSyncDataService implements SyncDataSer
      */
     protected abstract String readData(String configName);
 
+    /**
+     * close.
+     * @throws Exception exception
+     */
     @Override
     public void close() throws Exception {
     }
