@@ -19,8 +19,6 @@ package org.apache.shenyu.k8s.common;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyStream;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
 
 import java.util.List;
 
@@ -29,9 +27,9 @@ import java.util.List;
  */
 public class ShenyuMemoryConfig {
 
-    private Pair<Pair<String, String>, Pair<SelectorData, RuleData>> globalDefaultBackend;
+    private Pair<Pair<String, String>, IngressConfiguration> globalDefaultBackend;
 
-    private List<Pair<SelectorData, RuleData>> routeConfigList;
+    private List<IngressConfiguration> routeConfigList;
 
     private List<SslCrtAndKeyStream> tlsConfigList;
 
@@ -46,7 +44,7 @@ public class ShenyuMemoryConfig {
      *
      * @return GlobalDefaultBackend
      */
-    public Pair<Pair<String, String>, Pair<SelectorData, RuleData>> getGlobalDefaultBackend() {
+    public Pair<Pair<String, String>, IngressConfiguration> getGlobalDefaultBackend() {
         return globalDefaultBackend;
     }
 
@@ -55,7 +53,7 @@ public class ShenyuMemoryConfig {
      *
      * @param globalDefaultBackend GlobalDefaultBackend
      */
-    public void setGlobalDefaultBackend(final Pair<Pair<String, String>, Pair<SelectorData, RuleData>> globalDefaultBackend) {
+    public void setGlobalDefaultBackend(final Pair<Pair<String, String>, IngressConfiguration> globalDefaultBackend) {
         this.globalDefaultBackend = globalDefaultBackend;
     }
 
@@ -64,7 +62,7 @@ public class ShenyuMemoryConfig {
      *
      * @return RouteConfigList
      */
-    public List<Pair<SelectorData, RuleData>> getRouteConfigList() {
+    public List<IngressConfiguration> getRouteConfigList() {
         return routeConfigList;
     }
 
@@ -73,7 +71,7 @@ public class ShenyuMemoryConfig {
      *
      * @param routeConfigList RouteConfigList
      */
-    public void setRouteConfigList(final List<Pair<SelectorData, RuleData>> routeConfigList) {
+    public void setRouteConfigList(final List<IngressConfiguration> routeConfigList) {
         this.routeConfigList = routeConfigList;
     }
 
