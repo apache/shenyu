@@ -30,6 +30,8 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -51,6 +53,9 @@ import java.util.concurrent.TimeUnit;
  * HTTP request tool, based on okhttp3.
  */
 public class HttpUtils {
+
+    private static final Logger LOG = LoggerFactory.getLogger(HttpUtils.class);
+
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
 
     private Map<String, List<Cookie>> cookieStore = new HashMap<>();
@@ -380,9 +385,9 @@ public class HttpUtils {
         try {
             return MEDIA_TYPE_JSON.equals(MediaType.parse(headers.get("Content-Type")));
         } catch (Exception e) {
-            System.err.println(e);
+            LOG.error("parse http client json request error: ", e);
+            return false;
         }
-        return false;
     }
 
     public enum HTTPMethod {
