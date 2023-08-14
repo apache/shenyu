@@ -56,6 +56,11 @@
             <artifactId>shenyu-registry-apollo</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-registry-polaris</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

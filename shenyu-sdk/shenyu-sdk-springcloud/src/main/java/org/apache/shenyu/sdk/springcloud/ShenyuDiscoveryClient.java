@@ -110,10 +110,13 @@ public class ShenyuDiscoveryClient implements DiscoveryClient {
             upstream = LoadBalancerFactory.selector(upstreams, algorithm, "");
         }
 
-        return Stream.of(upstream).map(stream -> {
-            final URI uri = UriUtils.createUri(stream.getUrl());
-            return new DefaultServiceInstance(stream.buildDomain(), serviceId, uri.getHost(), uri.getPort(), "https".equals(scheme));
-        }).collect(Collectors.toList());
+        final List<ServiceInstance> list = Stream.of(upstream)
+                                                  .map(stream -> {
+                                                      final URI uri = UriUtils.createUri(stream.getUrl());
+                                                      return new DefaultServiceInstance(stream.getUrl(), serviceId, uri.getHost(), uri.getPort(), "https".equals(scheme));
+                                                  })
+                                                  .collect(Collectors.toList());
+        return list;
     }
 
     /**

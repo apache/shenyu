@@ -54,7 +54,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -130,25 +129,23 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         String className = annotationMetadata.getClassName();
         Class clazz = ClassUtils.resolveClassName(className, null);
         ConfigurableBeanFactory beanFactory = registry instanceof ConfigurableBeanFactory ? (ConfigurableBeanFactory) registry : null;
-        String contextId = getContextId(beanFactory, attributes);
 
         // init to loadBalance serviceId.
-        // String name = getName(attributes);
         String name = ShenyuServiceInstanceLoadBalancer.SHENYU_SERVICE_ID;
 
         FeignClientFactoryBean factoryBean = new FeignClientFactoryBean();
         factoryBean.setBeanFactory(beanFactory);
         factoryBean.setName(name);
-        factoryBean.setContextId(contextId);
+        factoryBean.setContextId(name);
         factoryBean.setType(clazz);
         BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(clazz, () -> {
             factoryBean.setPath(getPath(beanFactory, attributes));
             Object fallback = attributes.get("fallback");
-            if (fallback != null) {
+            if (fallback != null && !void.class.equals(fallback)) {
                 factoryBean.setFallback(fallback instanceof Class ? (Class<?>) fallback : ClassUtils.resolveClassName(fallback.toString(), null));
             }
             Object fallbackFactory = attributes.get("fallbackFactory");
-            if (fallbackFactory != null) {
+            if (fallbackFactory != null && !void.class.equals(fallbackFactory)) {
                 factoryBean.setFallbackFactory(fallbackFactory instanceof Class ? (Class<?>) fallbackFactory : ClassUtils.resolveClassName(fallbackFactory.toString(), null));
             }
             return factoryBean.getObject();
@@ -168,7 +165,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
         String[] qualifiers = getQualifiers(attributes);
         if (ObjectUtils.isEmpty(qualifiers)) {
-            qualifiers = new String[] {Optional.ofNullable(contextId).orElse(name) + "ShenyuClient"};
+            qualifiers = new String[] {name + "ShenyuClient"};
         }
         BeanDefinitionHolder holder = new BeanDefinitionHolder(beanDefinition, className, qualifiers);
         BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
