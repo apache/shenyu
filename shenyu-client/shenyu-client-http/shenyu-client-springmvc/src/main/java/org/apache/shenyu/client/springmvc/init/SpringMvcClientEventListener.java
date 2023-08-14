@@ -175,7 +175,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         ShenyuSpringMvcClient shenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
         // the result of ReflectionUtils#getUniqueDeclaredMethods contains method such as hashCode, wait, toSting
         // add Objects.nonNull(requestMapping) to make sure not register wrong method
-        if (Objects.nonNull(shenyuClient) &&Objects.nonNull(requestMapping)) {
+        if (Objects.nonNull(shenyuClient) && Objects.nonNull(requestMapping)) {
             final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, shenyuClient,
                     buildApiPath(method, superPath, methodShenyuClient), clazz, method);
             getPublisher().publishEvent(metaData);
