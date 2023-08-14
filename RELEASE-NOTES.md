@@ -20,7 +20,7 @@
 16. Add apollo discovery sync
 17. Add HttpLongPolling discovery sync
 18. Add consul discovery sync
-19. Add huawei cloud lts loging plugin
+19. Add huawei cloud lts logging plugin
 20. Support openGauss database for shenyu admin
 21. Support polaris config sync and register center
 
@@ -296,34 +296,34 @@
 16. Add api document
 17. Add user permissions Exclude admin
 18. Add springBoot upgrade to 2.6.8
-19. Add support regsiter instance to consul
+19. Add support register instance to consul
 20. Add admin Support oracle database
 
 ### API Changes
 
 ### Enhancement
 
-1. Enhancement cache pluign
+1. Enhancement cache plugin
 2. Enhancement divide plugin
 
 ### Refactor
 1. Refactor spring cloud loadbalancer
 2. Refactor thread pool
-4. Refactor max memory config logic
-5. Refactor cors logic
-6. Refactor selector match
-7. Refactor fixed and elastic connection provider pool
-8. Refactor uri register
-9. Refactor zk client delete logic
-10. Refactor IpUtils
-11. Refactor result wrap
-13. Refactor app auth
-14. Refactor http client
-15. Refactor proxy and webclient remove host
-16. Refactor shared thread pool
+3. Refactor max memory config logic
+4. Refactor cors logic
+5. Refactor selector match
+6. Refactor fixed and elastic connection provider pool
+7. Refactor uri register
+8. Refactor zk client delete logic
+9. Refactor IpUtils
+10. Refactor result wrap
+11. Refactor app auth
+12. Refactor http client
+13. Refactor proxy and webclient remove host
+14. Refactor shared thread pool
 
 ### Bug Fix
-1. Fix divide has nullpointerexception
+1. Fix null pointer exception in divide plugin
 2. Fix body maxInMemorySize
 3. Fix admin delay update handle in selector
 4. Fix register-client loop error
@@ -334,7 +334,7 @@
 9. Fix spring cloud dubbo example
 10. Fix NPE repair of admin module caused by spring MVC example synchronization
 11. Fix curator version incompatible in bootstrap
-12. Fix hiden logic bug
+12. Fix hidden logic bug
 13. Fix failure to load local plugins
 14. Fix pg script error
 15. Fix hystrix-plugin tests failure
@@ -499,44 +499,44 @@
 
 ### Enhancement
 
-1. Optimze code about dubbo async call
-1. Add loadbalancer common module
-1. Optimize sql init
-1. Refactor Admin PageHelper to query list
-1. Optimize GlobalErrorHandler
-1. Optimize the return value of the'skip' method interface of'ShenyuPlugin' to boolean
-1. Optimize register rules
-1. Modify dubbo and sofa param resolve service
-1. Refactor sign plugin api
-1. Remove websocket filter
+1. Optimize code about dubbo async call
+2. Add loadbalancer common module
+3. Optimize sql init
+4. Refactor Admin PageHelper to query list
+5. Optimize GlobalErrorHandler
+6. Optimize the return value of the'skip' method interface of'ShenyuPlugin' to boolean
+7. Optimize register rules
+8. Modify dubbo and sofa param resolve service
+9. Refactor sign plugin api
+10. Remove websocket filter
 
 ### Refactor
 
 1. Remove lombok dependency
-1. Remove mapstruct dependency
-1. Support JDK8 ~ JDK15
-1. Add missing plugin_handle sql for plugin motan
+2. Remove mapstruct dependency
+3. Support JDK8 ~ JDK15
+4. Add missing plugin_handle sql for plugin motan
 
 ### Bug Fix
 
 1. Fix JsonSyntaxException in jwt plugin
-1. Fix sql miss for resilience4j plugin handler
-1. Fix disruptor problem of hold event data in consume event
-1. Fix deadlock bug of HealthCheckTask
-1. Fix client retry the connection add log and increase sleep time
-1. Fix the default_group of nacos
-1. Fix maven ignore and docker entrypoint
-1. Fix admin Return password question
-1. Fix LDAP query built from user-controlled source
-1. Fix the IP address retrieval error
-1. Fix Gson toJson is null
-1. Fix the index out of range bug for context path.
-1. Fix monitor init metrics label bug
-1. Fix GlobalErrorHandler error object to map bug by JacksonUtils.toMap
-1. Fix modify response plugin order bug
-1. Fix the bug of register
-1. Fix sofa plugin register metadata and parameters resolve
-1. Fix motan ,dubbo, sofa plugin metadata init bug
+2. Fix sql miss for resilience4j plugin handler
+3. Fix disruptor problem of hold event data in consume event
+4. Fix deadlock bug of HealthCheckTask
+5. Fix client retry the connection add log and increase sleep time
+6. Fix the default_group of nacos
+7. Fix maven ignore and docker entrypoint
+8. Fix admin Return password question
+9. Fix LDAP query built from user-controlled source
+10. Fix the IP address retrieval error
+11. Fix Gson toJson is null
+12. Fix the index out of range bug for context path.
+13. Fix monitor init metrics label bug
+14. Fix GlobalErrorHandler error object to map bug by JacksonUtils.toMap
+15. Fix modify response plugin order bug
+16. Fix the bug of register
+17. Fix sofa plugin register metadata and parameters resolve
+18. Fix motan ,dubbo, sofa plugin metadata init bug
 
 
 ## 2.4.0
@@ -544,50 +544,50 @@
 ### New Features
 
 1. Support reading init_script file which is not under resource/directory
-1. Display the plugin menus in categories
-1. Admin add execute Multi-path sql script
-1. IpUtils add a parameter to select the network ip
-1. Add parameter-mapping plugin
-1. Support Consul as shenyu-register-center
-1. Support Etcd as shenyu-sync-data-center
-1. Add sentinel customized fallbackhandler
-1. Add response plugin
-1. Add JWT plugin
-1. Add Request plugin
-1. Add Motan plugin
-1. Add Logging plugin
-1. Add Modify-response plugin
-1. Add Oauth2 plugin
-1. Add Menu Resource Permissions
-1. Add Data Permissions
+2. Display the plugin menus in categories
+3. Admin add execute Multi-path sql script
+4. IpUtils add a parameter to select the network ip
+5. Add parameter-mapping plugin
+6. Support Consul as shenyu-register-center
+7. Support Etcd as shenyu-sync-data-center
+8. Add sentinel customized fallbackhandler
+9. Add response plugin
+10. Add JWT plugin
+11. Add Request plugin
+12. Add Motan plugin
+13. Add Logging plugin
+14. Add Modify-response plugin
+15. Add Oauth2 plugin
+16. Add Menu Resource Permissions
+17. Add Data Permissions
 
 ### API Changes
 
 1. Change the project name from Soul to ShenYu
-1. Change the group id from org.dromara to org.apache.shenyu
+2. Change the group id from org.dromara to org.apache.shenyu
 
 ### Enhancement
 
-1. H2 support insert ingore into in Mysql model
-1. Improvements For the Apache Dubbo plugin
-1. Optimization of GRPC plugin
+1. H2 support insert ignore into in Mysql model
+2. Improvements For the Apache Dubbo plugin
+3. Optimization of GRPC plugin
 
 ### Refactor
 
 1. Refactor code about "async invoke" is not supported in Dubbo lower than 2.7.3
-1. Replace the term Operator by Predicate
-1. Refine judge conditions operator
-1. Refactor PredicateJudge module using SPI
-1. Refactor code about client register
+2. Replace the term Operator by Predicate
+3. Refine judge conditions operator
+4. Refactor PredicateJudge module using SPI
+5. Refactor code about client register
 
 ### Bug Fix
 
 1. Fix the JwtUtil.getUserId method bug
-1. Fix the  shenyu-spring-boot-starter bug
-1. The encoded urlPath will be re-encoded in WebClientPlugin
-1. Replace The Risky Cryptographic Algorithm "AES/ECB/NoPadding"
-1. ReadTimeoutHandler on a channel which in a PooledConnectionProvider would cause an unexpected ReadTimeoutException
-1. Got ClassNotFoundException while start my Gateway in 2.4.8 spring boot
+2. Fix the shenyu-spring-boot-starter bug
+3. The encoded urlPath will be re-encoded in WebClientPlugin
+4. Replace The Risky Cryptographic Algorithm "AES/ECB/NoPadding"
+5. ReadTimeoutHandler on a channel which in a PooledConnectionProvider would cause an unexpected ReadTimeoutException
+6. Got ClassNotFoundException while start my Gateway in 2.4.8 spring boot
 
 
 2.3.0（2021-04-02）

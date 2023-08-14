@@ -47,7 +47,7 @@ metadata:
     shenyu.apache.org/plugin-context-path: /dubbo
     shenyu.apache.org/plugin-dubbo-path: /dubbo/findAll
     shenyu.apache.org/plugin-dubbo-rpc-type: dubbo
-    shenyu.apache.org/plugin-dubbo-servive-name: org.dromara.shenyu.examples.dubbo.api.service.DubboTestService
+    shenyu.apache.org/plugin-dubbo-servive-name: org.apache.shenyu.examples.dubbo.api.service.DubboTestService
     shenyu.apache.org/plugin-dubbo-method-name: findAll
     shenyu.apache.org/plugin-dubbo-rule-name: /dubbo/findAll
 spec:
