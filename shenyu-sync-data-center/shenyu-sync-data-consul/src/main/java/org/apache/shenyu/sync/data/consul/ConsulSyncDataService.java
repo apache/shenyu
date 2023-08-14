@@ -21,7 +21,9 @@ import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.QueryParams;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.kv.model.GetValue;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.ConsulConstants;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
@@ -56,7 +58,7 @@ public class ConsulSyncDataService extends AbstractNodeDataSyncService {
 
     private final Map<String, Long> consulIndexes = new HashMap<>();
 
-    private final Map<String, List<String>> cacheConsulDataKeyMap = new HashMap<>();
+    private final Map<String, List<ConsulData>> cacheConsulDataKeyMap = new HashMap<>();
 
     private final ScheduledThreadPoolExecutor executor;
 
@@ -125,10 +127,15 @@ public class ConsulSyncDataService extends AbstractNodeDataSyncService {
                 return;
             }
             Long newIndex = response.getConsulIndex();
-            if (Objects.isNull(newIndex) || Objects.equals(newIndex, currentIndex)) {
+            if (Objects.isNull(newIndex)) {
                 if (LOG.isTraceEnabled()) {
                     LOG.trace("Same index for watchPathRoot " + watchPathRoot);
                 }
+                this.executor.schedule(() -> watchConfigKeyValues(watchPathRoot, updateHandler, deleteHandler),
+                        consulConfig.getWatchDelay(), TimeUnit.MILLISECONDS);
+                return;
+            }
+            if (Objects.equals(newIndex, currentIndex)) {
                 this.executor.schedule(() -> watchConfigKeyValues(watchPathRoot, updateHandler, deleteHandler),
                         -1, TimeUnit.MILLISECONDS);
                 return;
@@ -139,25 +146,39 @@ public class ConsulSyncDataService extends AbstractNodeDataSyncService {
                     LOG.trace("watchPathRoot " + watchPathRoot + " has new index " + newIndex);
                 }
                 final Long lastIndex = currentIndex;
-
+                final List<ConsulData> lastDatas = cacheConsulDataKeyMap.get(watchPathRoot);
                 response.getValue().forEach(data -> {
                     if (data.getModifyIndex() == lastIndex) {
                         //data has not changed
                         return;
                     }
+                    if (lastDatas != null) {
+                        final ConsulData consulData = lastDatas.stream()
+                                .filter(lastData -> data.getKey().equals(lastData.getConsulKey())).findFirst().orElse(null);
+                        if (consulData != null && !StringUtils.isBlank(consulData.getConsulDataMd5())
+                                && consulData.getConsulDataMd5().equals(DigestUtils.md5Hex(data.getValue()))) {
+                            return;
+                        }
+                    }
+
                     updateHandler.accept(data.getKey(), data.getDecodedValue());
                 });
-                final List<String> lastKeys = cacheConsulDataKeyMap.get(watchPathRoot);
                 final List<String> currentKeys = response.getValue().stream().map(GetValue::getKey).collect(Collectors.toList());
-                if (!ObjectUtils.isEmpty(lastKeys)) {
+                if (!ObjectUtils.isEmpty(lastDatas)) {
                     // handler delete event
-                    lastKeys.stream()
+                    lastDatas.stream()
+                            .map(ConsulData::getConsulKey)
                             .filter(lastKey -> !currentKeys.contains(lastKey))
                             .forEach(deleteHandler);
                 }
 
                 // save last Keys
-                cacheConsulDataKeyMap.put(watchPathRoot, currentKeys);
+                cacheConsulDataKeyMap.put(watchPathRoot, response.getValue().stream().map(data -> {
+                    final ConsulData consulData = new ConsulData();
+                    consulData.setConsulKey(data.getKey());
+                    consulData.setConsulDataMd5(DigestUtils.md5Hex(data.getValue()));
+                    return consulData;
+                }).collect(Collectors.toList()));
             } else if (LOG.isTraceEnabled()) {
                 LOG.info("Event for index already published for watchPathRoot " + watchPathRoot);
             }
@@ -175,6 +196,49 @@ public class ConsulSyncDataService extends AbstractNodeDataSyncService {
     public void close() {
         if (!ObjectUtils.isEmpty(executor)) {
             executor.shutdown();
+        }
+    }
+
+    private static class ConsulData {
+
+        private String consulKey;
+
+        private String consulDataMd5;
+
+        /**
+         * consulKey.
+         *
+         * @return ConsulKey
+         */
+        public String getConsulKey() {
+            return consulKey;
+        }
+
+        /**
+         * set consulKey.
+         *
+         * @param consulKey consulKey
+         */
+        public void setConsulKey(final String consulKey) {
+            this.consulKey = consulKey;
+        }
+
+        /**
+         * consulDataMd5.
+         *
+         * @return ConsulDataMd5
+         */
+        public String getConsulDataMd5() {
+            return consulDataMd5;
+        }
+
+        /**
+         * set consulDataMd5.
+         *
+         * @param consulDataMd5 consulDataMd5
+         */
+        public void setConsulDataMd5(final String consulDataMd5) {
+            this.consulDataMd5 = consulDataMd5;
         }
     }
 }
