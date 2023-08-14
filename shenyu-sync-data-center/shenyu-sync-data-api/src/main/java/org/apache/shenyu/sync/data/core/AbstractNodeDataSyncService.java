@@ -43,7 +43,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * AbstractNodeDataSyncService Synchronization accurate to a single piece of data.
+ * AbstractNodeDataSyncService.
+ * Abstract method to monitor child node changes.
  */
 public abstract class AbstractNodeDataSyncService implements SyncDataService {
 
