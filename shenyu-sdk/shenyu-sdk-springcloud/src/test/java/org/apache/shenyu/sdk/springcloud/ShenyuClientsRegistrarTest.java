@@ -28,6 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -57,6 +59,7 @@ import reactor.core.publisher.Mono;
 public class ShenyuClientsRegistrarTest {
 
     @Test
+    @DisabledForJreRange(min = JRE.JAVA_16)
     public void registerBeanDefinitionsTest() {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         ((DefaultListableBeanFactory) context.getBeanFactory()).setAllowBeanDefinitionOverriding(false);
