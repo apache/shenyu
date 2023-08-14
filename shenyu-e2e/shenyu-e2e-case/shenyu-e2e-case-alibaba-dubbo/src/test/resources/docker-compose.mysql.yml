@@ -24,7 +24,7 @@ services:
     expose:
       - 2181
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/commands/stat"]
+      test: ["CMD-SHELL", "echo srvr | nc localhost 2181"]
       interval: 10s
       timeout: 5s
       retries: 10
