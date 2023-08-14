@@ -160,7 +160,6 @@ public class ConsulSyncDataService extends AbstractNodeDataSyncService {
                             return;
                         }
                     }
-
                     updateHandler.accept(data.getKey(), data.getDecodedValue());
                 });
                 final List<String> currentKeys = response.getValue().stream().map(GetValue::getKey).collect(Collectors.toList());
