@@ -14,18 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:8-jre-alpine
+FROM alpine AS prepare
 
 ARG APP_NAME
 
 ENV LOCAL_PATH /opt/shenyu-admin
-ENV ADMIN_JVM ""
-
-RUN apk --no-cache add procps
 
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
+FROM openjdk:8-jre-alpine
+
+RUN apk --no-cache add procps
+
+ENV LOCAL_PATH /opt/shenyu-admin
+ENV ADMIN_JVM ""
+
+COPY --from=prepare ${LOCAL_PATH} ${LOCAL_PATH}
 COPY docker/logback.xml ${LOCAL_PATH}/conf/logback.xml
 COPY docker/entrypoint.sh ${LOCAL_PATH}/entrypoint.sh
 RUN chmod +x ${LOCAL_PATH}/entrypoint.sh
