@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.listener.apollo;
 
 import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
-import org.springframework.util.StringUtils;
 
 /**
  * use apollo to push data changes.
@@ -53,7 +52,11 @@ public class ApolloDataChangedListener extends AbstractListDataChangedListener {
 
     @Override
     public String getConfig(final String dataId) {
-        String config = this.apolloClient.getItemValue(dataId);
-        return StringUtils.hasLength(config) ? config : ApolloPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
+        return this.apolloClient.getItemValue(dataId);
+    }
+
+    @Override
+    public void delConfig(final String dataId) {
+        apolloClient.removeItemKey(dataId);
     }
 }

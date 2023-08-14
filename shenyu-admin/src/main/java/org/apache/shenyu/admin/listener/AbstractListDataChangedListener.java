@@ -145,7 +145,9 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         final String configKeyPrefix = changeData.getRuleDataId() + ".";
-        this.onCommonMultiChanged(changed, eventType, configKeyPrefix, RuleData::getSelectorId, RuleData::getId);
+        this.onCommonMultiChanged(changed, eventType,
+                configKeyPrefix, ruleData -> String.join(".", ruleData.getPluginName(), ruleData.getSelectorId()),
+                RuleData::getId);
         LOG.debug("[DataChangedListener] RuleChanged {}", changeData.getRuleDataId());
     }
 

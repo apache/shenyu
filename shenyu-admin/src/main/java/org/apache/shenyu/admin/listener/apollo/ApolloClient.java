@@ -73,6 +73,21 @@ public class ApolloClient {
         return openItemDTO.getValue();
     }
 
+
+    /**
+     * removeItemKey.
+     *
+     * @param key key
+     */
+    public void removeItemKey(final String key) {
+        this.apolloOpenApiClient.removeItem(
+                apolloConfig.getAppId(),
+                apolloConfig.getEnv(),
+                apolloConfig.getClusterName(),
+                apolloConfig.getNamespace(),
+                key, "apollo");
+    }
+
     /**
      * create or update item into namespace.
      * @param key item key

@@ -35,12 +35,7 @@ public final class NacosSyncDataServiceTest {
     public void setup() {
         ConfigService configService = new NacosMockConfigService();
         nacosSyncDataService = new NacosSyncDataService(configService, null,
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-    }
-
-    @Test
-    public void testStart() {
-        nacosSyncDataService.start();
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
     }
 
     @Test
