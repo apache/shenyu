@@ -144,7 +144,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
         } else {
             serviceName = service.interfaceClass().getName();
         }
-        String protocol = StringUtils.isNotEmpty(service.protocol())?service.protocol():(getProtocolFromExport());
+        String protocol = StringUtils.isNotEmpty(service.protocol()) ? service.protocol() : (getProtocolFromExport());
         return MetaDataRegisterDTO.builder()
                 .appName(this.getAppName())
                 .serviceName(serviceName)
@@ -157,7 +157,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
                 .rpcType(RpcTypeEnum.MOTAN.getName())
-                .rpcExt(buildRpcExt(method, timeout,protocol))
+                .rpcExt(buildRpcExt(method, timeout, protocol))
                 .enabled(shenyuMotanClient.enabled())
                 .build();
     }
@@ -194,15 +194,15 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
         return new MotanRpcExt.RpcExt(method.getName(), params);
     }
 
-    private String buildRpcExt(final Method method, final Integer timeout,final String rpcProtocol) {
+    private String buildRpcExt(final Method method, final Integer timeout, final String rpcProtocol) {
         List<MotanRpcExt.RpcExt> list = new ArrayList<>();
         list.add(buildRpcExt(method));
-        MotanRpcExt buildList = new MotanRpcExt(list, group, timeout,rpcProtocol);
+        MotanRpcExt buildList = new MotanRpcExt(list, group, timeout, rpcProtocol);
         return GsonUtils.getInstance().toJson(buildList);
     }
 
     /**
-     * Get the protocol from BasicServiceConfigBean export
+     * Get the protocol from BasicServiceConfigBean export.
      * @return rpc protocol
      */
     private String getProtocolFromExport() {

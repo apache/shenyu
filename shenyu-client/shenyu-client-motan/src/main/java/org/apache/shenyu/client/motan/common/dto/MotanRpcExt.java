@@ -52,7 +52,7 @@ public class MotanRpcExt {
      * @param timeout timeout
      * @param rpcProtocol rpcProtocol
      */
-    public MotanRpcExt(final List<RpcExt> methodInfo, final String group, final Integer timeout,final String rpcProtocol) {
+    public MotanRpcExt(final List<RpcExt> methodInfo, final String group, final Integer timeout, final String rpcProtocol) {
         this.methodInfo = methodInfo;
         this.group = group;
         this.timeout = timeout;
@@ -111,15 +111,19 @@ public class MotanRpcExt {
         this.timeout = timeout;
     }
 
+    /**
+     * get rpc protocol.
+     * @return rpcProtocol
+     */
     public String getRpcProtocol() {
         return rpcProtocol;
     }
 
     /**
-     * set rpcProtocol
+     * set rpcProtocol.
      * @param rpcProtocol rpc protocol
      */
-    public void setRpcProtocol(String rpcProtocol) {
+    public void setRpcProtocol(final String rpcProtocol) {
         this.rpcProtocol = rpcProtocol;
     }
 

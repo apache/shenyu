@@ -188,7 +188,7 @@ public final class ApplicationConfigCache {
         reference.setVersion("1.0");
         reference.setRequestTimeout(Optional.ofNullable(motanParamExtInfo.getTimeout()).orElse(1000));
         reference.setRegistry(registryConfig);
-        if(Objects.nonNull(motanParamExtInfo.getRpcProtocol())) {
+        if (Objects.nonNull(motanParamExtInfo.getRpcProtocol())) {
             protocolConfig.setName(motanParamExtInfo.getRpcProtocol());
         }
         reference.setProtocol(protocolConfig);
@@ -339,10 +339,10 @@ public final class ApplicationConfigCache {
         }
 
         /**
-         *
+         * Sets rpc protocol.
          * @param rpcProtocol the rpc protocol
          */
-        public void setRpcProtocol(String rpcProtocol) {
+        public void setRpcProtocol(final String rpcProtocol) {
             this.rpcProtocol = rpcProtocol;
         }
     }

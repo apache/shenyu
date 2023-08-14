@@ -89,9 +89,9 @@ public class ShenyuMotanConfig {
          * @return name
          */
         public String getName() {
-            if(StringUtils.isNotEmpty(name)){
+            if (StringUtils.isNotEmpty(name)) {
                 return name;
-            }else{
+            } else {
                 return "motan2";
             }
         }

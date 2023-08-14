@@ -126,7 +126,7 @@ public class ShenyuMotanClientConfiguration implements ApplicationListener<Conte
      *
      * <p>The protocol id、name are "motan",service export like this "motan:8001".
      * @param shenyuMotanConfig shenyu motan config
-     * @return
+     * @return ProtocolConfigBean
      */
     @Bean("motan")
     public ProtocolConfigBean motanProtocolConfig(final ShenyuMotanConfig shenyuMotanConfig) {
