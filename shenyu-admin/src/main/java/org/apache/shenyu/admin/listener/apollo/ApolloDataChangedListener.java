@@ -57,6 +57,7 @@ public class ApolloDataChangedListener extends AbstractListDataChangedListener {
 
     @Override
     public void delConfig(final String dataId) {
-        apolloClient.removeItemKey(dataId);
+        this.apolloClient.removeItemKey(dataId);
+        this.apolloClient.publishNamespace("delete config data", "");
     }
 }

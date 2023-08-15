@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * apollo open-api client.
@@ -35,7 +36,7 @@ public class ApolloClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(ApolloClient.class);
 
-    private static final String DEFAULT_USER = "apollo";
+    private final String operatorUser;
 
     private final ApolloProperties apolloConfig;
 
@@ -49,6 +50,7 @@ public class ApolloClient {
                 .withPortalUrl(apolloConfig.getPortalUrl())
                 .withToken(apolloConfig.getToken())
                 .build();
+        operatorUser = Optional.ofNullable(apolloConfig.getOperatorUser()).orElse("apollo");
     }
 
     /**
@@ -85,7 +87,7 @@ public class ApolloClient {
                 apolloConfig.getEnv(),
                 apolloConfig.getClusterName(),
                 apolloConfig.getNamespace(),
-                key, "apollo");
+                key, operatorUser);
     }
 
     /**
@@ -109,8 +111,8 @@ public class ApolloClient {
         openItemDTO.setKey(key);
         openItemDTO.setValue(value);
         openItemDTO.setComment(comment);
-        openItemDTO.setDataChangeCreatedBy(DEFAULT_USER);
-        openItemDTO.setDataChangeLastModifiedBy(DEFAULT_USER);
+        openItemDTO.setDataChangeCreatedBy(operatorUser);
+        openItemDTO.setDataChangeLastModifiedBy(operatorUser);
         Date now = new Date();
         openItemDTO.setDataChangeCreatedTime(now);
         openItemDTO.setDataChangeLastModifiedTime(now);
@@ -133,7 +135,7 @@ public class ApolloClient {
         NamespaceReleaseDTO namespaceReleaseDTO = new NamespaceReleaseDTO();
         namespaceReleaseDTO.setReleaseTitle(releaseTitle);
         namespaceReleaseDTO.setReleaseComment(releaseComment);
-        namespaceReleaseDTO.setReleasedBy(DEFAULT_USER);
+        namespaceReleaseDTO.setReleasedBy(operatorUser);
 
         this.apolloOpenApiClient.publishNamespace(
                 apolloConfig.getAppId(),

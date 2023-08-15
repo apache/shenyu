@@ -81,6 +81,7 @@ public class ApolloDataService extends AbstractListDataSyncService implements Sy
                     if (changeKey.lastIndexOf("list") == changeKey.length() - 4) {
                         return;
                     }
+                    // check prefix
                     if (changeKey.indexOf(ApolloPathConstants.PLUGIN_DATA_ID) == 0) {
                         if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
                             unCachePluginData(changeKey);
@@ -126,7 +127,7 @@ public class ApolloDataService extends AbstractListDataSyncService implements Sy
                     }
 
                 } catch (Exception e) {
-                    LOG.error("nacos sync listener receiveConfigInfo error", e);
+                    LOG.error("apollo sync listener change key handler error", e);
                 }
             });
         };
