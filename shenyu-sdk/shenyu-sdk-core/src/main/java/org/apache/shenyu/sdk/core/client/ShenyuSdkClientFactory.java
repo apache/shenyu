@@ -36,11 +36,6 @@ public class ShenyuSdkClientFactory {
      * @return the shenyu instance register repository
      */
     public static ShenyuSdkClient newInstance(final String clientType) {
-        if (!SDK_CLIENT_MAP.containsKey(clientType)) {
-            ShenyuSdkClient result = ExtensionLoader.getExtensionLoader(ShenyuSdkClient.class).getJoin(clientType);
-            SDK_CLIENT_MAP.put(clientType, result);
-            return result;
-        }
-        return SDK_CLIENT_MAP.get(clientType);
+        return SDK_CLIENT_MAP.computeIfAbsent(clientType, ExtensionLoader.getExtensionLoader(ShenyuSdkClient.class)::getJoin);
     }
 }
