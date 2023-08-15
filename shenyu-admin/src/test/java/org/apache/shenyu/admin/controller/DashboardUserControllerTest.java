@@ -84,10 +84,10 @@ public final class DashboardUserControllerTest {
 
     private final DashboardUserDTO dashboardUserDTO = new DashboardUserDTO("2", "userName",
             "Admin@123", 0, Lists.newArrayList("1"), false);
-    
-    private final DashboardUserModifyPasswordDTO modifyPasswordDTO = new DashboardUserModifyPasswordDTO("2", 
-            "admin", "ShenYu=123", "ShenYu=123");
-    
+
+    private final DashboardUserModifyPasswordDTO modifyPasswordDTO = new DashboardUserModifyPasswordDTO("2",
+            "admin", "ShenYu=#.123", "ShenYu=#.123");
+
     @BeforeEach
     public void setUp() throws Exception {
         mockMvc = MockMvcBuilders.standaloneSetup(dashboardUserController).build();
@@ -172,7 +172,7 @@ public final class DashboardUserControllerTest {
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(0)));
     }
-    
+
     @Test
     public void modifyPassword() throws Exception {
         final String url = "/dashboardUser/modify-password/2";
@@ -181,7 +181,7 @@ public final class DashboardUserControllerTest {
         principalMap.put("real", userInfo);
         ThreadContext.bind(new DefaultSecurityManager());
         ThreadContext.bind(new Subject.Builder().principals(principalMap).buildSubject());
-        
+
         given(dashboardUserService.modifyPassword(any())).willReturn(1);
         mockMvc.perform(put(url, modifyPasswordDTO)
                         .content(GsonUtils.getInstance().toJson(modifyPasswordDTO))
@@ -190,7 +190,7 @@ public final class DashboardUserControllerTest {
                 .andDo(print())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(1)));
-        
+
         ThreadContext.bind(new Subject.Builder().principals(new SimplePrincipalMap()).buildSubject());
         mockMvc.perform(put(url, modifyPasswordDTO)
                         .content(GsonUtils.getInstance().toJson(modifyPasswordDTO))
@@ -198,6 +198,6 @@ public final class DashboardUserControllerTest {
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DASHBOARD_USER_LOGIN_ERROR)));
-        
+
     }
 }
