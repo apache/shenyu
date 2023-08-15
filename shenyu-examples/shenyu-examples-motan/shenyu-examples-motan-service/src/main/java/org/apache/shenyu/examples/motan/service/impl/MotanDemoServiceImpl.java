@@ -36,6 +36,14 @@ import org.apache.shenyu.springboot.starter.client.motan.ShenyuMotanClientConfig
 public class MotanDemoServiceImpl implements MotanDemoService {
 
     @Override
+    @ShenyuMotanClient(value = "/hi")
+    @Log
+    @ApiDoc(desc = "hi")
+    public String hi() {
+        return "{\"say\":\"hi\"}";
+    }
+
+    @Override
     @ShenyuMotanClient(value = "/hello")
     @Log
     @ApiDoc(desc = "hello")
