@@ -21,35 +21,35 @@ package org.apache.shenyu.admin.model.constant;
  * RegConstant.
  */
 public final class RegConstant {
-    
+
     /**
      * Minimum length of 8, including upper and lower case letters, numbers and special characters.
      */
-    public static final String PASSWORD_RULE = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&=_+-])[A-Za-z\\d@$!%*?&=_+-]{8,}$";
-    
-    
+    public static final String PASSWORD_RULE = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#.=_+-])[A-Za-z\\d@$!%*?&#.=_+-]{8,}$";
+
+
     /**
      * At least 8 in length, containing at least one letter and one number.
      */
     public static final String PASSWORD_RULE_L0 = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$";
-    
+
     /**
      * Minimum length of 8, containing at least one letter and one number and one special character.
      */
-    public static final String PASSWORD_RULE_L1 = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$";
-    
+    public static final String PASSWORD_RULE_L1 = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&#.=_+-])[A-Za-z\\d@$!%*?&#.=_+-]{8,}$";
+
     /**
      * At least 8 in length, with at least one number and both upper and lower case letters.
      */
     public static final String PASSWORD_RULE_L2 = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d]{8,}$";
-    
+
     /**
      * Minimum length of 8 - 16, including upper and lower case letters, numbers and special characters.
      */
-    public static final String PASSWORD_RULE_L3 = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,16}$";
-    
+    public static final String PASSWORD_RULE_L3 = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\)(?=.*[@$!%*?&#.=_+-])[A-Za-z\\d@$!%*?&#.=_+-]{8,16}$";
+
     private RegConstant() {
-    
+
     }
-    
+
 }
