@@ -24,7 +24,7 @@ services:
     expose:
       - 2181
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/commands/stat"]
+      test: ["CMD-SHELL", "echo srvr | nc localhost 2181"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -77,11 +77,11 @@ services:
       start_period: 20s
     depends_on:
       mysql:
-        condition: service_started
+        condition: service_healthy
       nacos:
-        condition: service_started
+        condition: service_healthy
       zookeeper:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
