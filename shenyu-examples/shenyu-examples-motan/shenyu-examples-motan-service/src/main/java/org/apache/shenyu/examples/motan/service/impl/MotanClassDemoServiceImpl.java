@@ -27,7 +27,7 @@ import org.apache.shenyu.springboot.starter.client.motan.ShenyuMotanClientConfig
  * <P>Default motan service name is "motan2", If you want to inject other services,
  * please refer to {@link ShenyuMotanClientConfiguration}
  */
-@ShenyuMotanService(value = "/demoTest/**", export = "motan2:8002",protocol = "motan2")
+@ShenyuMotanService(value = "/demoTest/**", export = "motan2:8002")
 public class MotanClassDemoServiceImpl implements MotanClassDemoService {
 
     @Override
