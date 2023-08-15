@@ -1,0 +1,85 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+apiVersion: v1
+kind: Service
+metadata:
+  name: dubbo-findbyid
+  annotations:
+      kubernetes.io/ingress.class: shenyu
+      shenyu.apache.org/plugin-dubbo-enabled: 'true'
+      shenyu.apache.org/plugin-dubbo-app-name: dubbo
+      shenyu.apache.org/plugin-context-path: /dubbo
+      shenyu.apache.org/plugin-dubbo-path: /dubbo/findById
+      shenyu.apache.org/plugin-dubbo-rpc-type: dubbo
+      shenyu.apache.org/plugin-dubbo-servive-name: org.apache.shenyu.examples.dubbo.api.service.DubboTestService
+      shenyu.apache.org/plugin-dubbo-method-name: findById
+      shenyu.apache.org/plugin-dubbo-rule-name: /dubbo/findById
+      shenyu.apache.org/plugin-dubbo-param-types: java.lang.String
+spec:
+  selector:
+    app: shenyu-examples-dubbo
+  ports:
+    - port: 20880  # Assuming this is the Dubbo service port
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: dubbo-findall
+  annotations:
+    kubernetes.io/ingress.class: shenyu
+    shenyu.apache.org/plugin-dubbo-enabled: 'true'
+    shenyu.apache.org/plugin-dubbo-app-name: dubbo
+    shenyu.apache.org/plugin-context-path: /dubbo
+    shenyu.apache.org/plugin-dubbo-path: /dubbo/findAll
+    shenyu.apache.org/plugin-dubbo-rpc-type: dubbo
+    shenyu.apache.org/plugin-dubbo-servive-name: org.apache.shenyu.examples.dubbo.api.service.DubboTestService
+    shenyu.apache.org/plugin-dubbo-method-name: findAll
+    shenyu.apache.org/plugin-dubbo-rule-name: /dubbo/findAll
+spec:
+  selector:
+    app: shenyu-examples-dubbo
+  ports:
+    - port: 20880  # Assuming this is the Dubbo service port
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: shenyu
+    shenyu.apache.org/plugin-dubbo-enabled: 'true'
+  name: demo-ingress
+spec:
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: dubbo-findbyid
+                port:
+                  number: 20880
+            path: /dubbo/findById
+            pathType: ImplementationSpecific
+          - backend:
+              service:
+                name: dubbo-findall
+                port:
+                  number: 20880
+            path: /dubbo/findAll
+            pathType: ImplementationSpecific

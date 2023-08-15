@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.e2e.engine;
 
-import com.google.common.collect.Maps;
 import junit.framework.AssertionFailedError;
 import org.apache.shenyu.e2e.client.ExternalServiceClient;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
@@ -28,6 +27,7 @@ import org.apache.shenyu.e2e.engine.service.DockerServiceCompose;
 import org.apache.shenyu.e2e.engine.service.HostServiceCompose;
 import org.apache.shenyu.e2e.engine.service.ServiceCompose;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -96,14 +96,9 @@ public class ShenYuExtensionContext {
      */
     public ExternalServiceClient getExternalServiceClient(final String externalServiceName) {
         if (Objects.isNull(externalServiceClientMap)) {
-            externalServiceClientMap = Maps.newHashMap();
+            externalServiceClientMap = new HashMap<>();
         }
-        if (externalServiceClientMap.containsKey(externalServiceName)) {
-            return externalServiceClientMap.get(externalServiceName);
-        }
-        ExternalServiceClient client = serviceCompose.newExternalServiceClient(externalServiceName);
-        externalServiceClientMap.put(externalServiceName, client);
-        return client;
+        return externalServiceClientMap.computeIfAbsent(externalServiceName, serviceCompose::newExternalServiceClient);
     }
     
     /**
