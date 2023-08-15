@@ -1782,6 +1782,7 @@ INSERT INTO `shenyu_dict` VALUES ('1529402613195784210', 'operator', 'OPERATOR',
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784211', 'operator', 'OPERATOR', 'startsWith', 'startsWith', 'startsWith', 7, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784212', 'operator', 'OPERATOR', 'endsWith', 'endsWith', 'endsWith', 8, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `shenyu_dict` VALUES ('1629402613195884212', 'operator', 'OPERATOR', 'pathPattern', 'pathPattern', 'pathPattern', 9, 1, '2022-07-19 18:02:53', '2022-07-19 18:02:53');
+INSERT INTO `shenyu_dict` VALUES ('1629402613195884213', 'operator', 'OPERATOR', 'isBlank', 'isBlank', 'isBlank', 10, 1, '2023-08-10 11:11:18', '2023-08-10 11:11:18');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784213', 'paramType', 'PARAM_TYPE', 'post', 'post', 'post', 0, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784214', 'paramType', 'PARAM_TYPE', 'uri', 'uri', 'uri', 1, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784215', 'paramType', 'PARAM_TYPE', 'query', 'query', 'query', 2, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
