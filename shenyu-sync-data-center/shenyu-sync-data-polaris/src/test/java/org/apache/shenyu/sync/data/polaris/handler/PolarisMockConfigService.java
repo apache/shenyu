@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.client.polaris;
+package org.apache.shenyu.sync.data.polaris.handler;
 
 import com.tencent.polaris.api.exception.ServerCodes;
 import com.tencent.polaris.api.plugin.configuration.ConfigFile;
 import com.tencent.polaris.api.plugin.configuration.ConfigFileResponse;
 import com.tencent.polaris.configuration.api.core.ConfigFileMetadata;
 import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
-
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.api.core.ConfigKVFile;
 import com.tencent.polaris.configuration.client.internal.DefaultConfigFileMetadata;
