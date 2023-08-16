@@ -37,7 +37,7 @@ public final class LoggingClickHousePluginDataHandlerTest {
     @Test
     public void testHandlerPlugin() {
         PluginData pluginData = new PluginData();
-        pluginData.setConfig("{\"host\":\"127.0.0.1\",\"port\":\"8123\",\"database\":\"shenyu-gateway\",\"username\":\"foo\",\"password\":\"bar\"}");
+        pluginData.setConfig("{\"host\":\"127.0.0.1\",\"port\":\"8123\",\"database\":\"shenyu-gateway\",\"username\":\"foo\",\"password\":\"bar\", \"ttl\":\"30\"}");
         pluginData.setEnabled(true);
         pluginData.setId("37");
         pluginData.setName("loggingClickHouse");
