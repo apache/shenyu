@@ -80,7 +80,7 @@ public class ClickHouseLogCollectConfig {
          * set ttl.
          * @param ttl ttl
          */
-        public void setTtl(String ttl) {
+        public void setTtl(final String ttl) {
             this.ttl = ttl;
         }
 
