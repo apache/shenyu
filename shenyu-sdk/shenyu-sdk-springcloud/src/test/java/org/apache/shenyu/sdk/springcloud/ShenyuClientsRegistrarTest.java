@@ -42,9 +42,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.commons.httpclient.HttpClientConfiguration;
-import org.springframework.cloud.loadbalancer.blocking.client.BlockingLoadBalancerClient;
-import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.cloud.openfeign.loadbalancer.FeignBlockingLoadBalancerClient;
@@ -67,12 +66,10 @@ public class ShenyuClientsRegistrarTest {
 
     private final Client delegate = mock(Client.class);
 
-    private final BlockingLoadBalancerClient loadBalancerClient = mock(BlockingLoadBalancerClient.class);
-
-    private final LoadBalancerClientFactory loadBalancerClientFactory = mock(LoadBalancerClientFactory.class);
+    private final LoadBalancerClient loadBalancerClient = mock(LoadBalancerClient.class);
 
     private final FeignBlockingLoadBalancerClient feignBlockingLoadBalancerClient = new FeignBlockingLoadBalancerClient(
-        delegate, loadBalancerClient, loadBalancerClientFactory);
+        delegate, loadBalancerClient, null);
 
     @Test
     @DisabledForJreRange(min = JRE.JAVA_16)
