@@ -120,6 +120,7 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
     public void initClient0(@NonNull final ClickHouseLogCollectConfig.ClickHouseLogConfig config) {
         final String username = config.getUsername();
         final String password = config.getPassword();
+        final String ttl = config.getTtl().isEmpty() ? "30" : config.getTtl();
         database = config.getDatabase();
         endpoint = ClickHouseNode.builder()
             .host(config.getHost())
@@ -130,7 +131,7 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
             client = ClickHouseClient.builder().build();
             ClickHouseRequest<?> request = client.connect(endpoint).format(ClickHouseFormat.TabSeparatedWithNamesAndTypes);
             request.query(String.format(ClickHouseLoggingConstant.CREATE_DATABASE_SQL, database)).executeAndWait();
-            request.query(String.format(ClickHouseLoggingConstant.CREATE_TABLE_SQL, database, config.getEngine())).executeAndWait();
+            request.query(String.format(ClickHouseLoggingConstant.CREATE_TABLE_SQL, database, config.getEngine(), ttl)).executeAndWait();
             request.query(String.format(ClickHouseLoggingConstant.CREATE_DISTRIBUTED_TABLE_SQL, database, database, config.getClusterName(), database)).executeAndWait();
         } catch (Exception e) {
             LOG.error("inti ClickHouseLogClient error", e);
