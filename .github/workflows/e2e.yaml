@@ -57,7 +57,7 @@ jobs:
           cache: maven
 
       - name: Build Apache ShenYu with Maven
-        run: ./mvnw -B clean install -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package
+        run: ./mvnw -B clean install -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -94,7 +94,7 @@ jobs:
           cache: maven
 
       - name: Build shenyu-e2e-engine with Maven
-        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -am -pl shenyu-e2e-engine clean install
+        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -am -pl shenyu-e2e-engine clean install -T1C
 
       - name: Upload Docker Image Artifacts
         uses: actions/upload-artifact@v3
@@ -175,7 +175,7 @@ jobs:
           docker image ls -a
 
       - name: Build examples with Maven
-        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml -T1C
 
       - uses: actions/checkout@v3
         with:
@@ -230,10 +230,10 @@ jobs:
           sed -i 's|</dependencies>| <dependency>\n <groupId>org.apache.shenyu</groupId>\n <artifactId>shenyu-spring-boot-starter-plugin-alibaba-dubbo</artifactId>\n <version>${project.version}</version>\n </dependency>\n <dependency>\n <groupId>com.alibaba</groupId>\n <artifactId>dubbo</artifactId>\n <version>${alibaba.dubbo.version}</version>\n </dependency>\n <dependency>\n <groupId>org.apache.curator</groupId>\n <artifactId>curator-client</artifactId>\n <version>${curator.version}</version>\n <exclusions>\n <exclusion>\n <artifactId>log4j</artifactId>\n <groupId>log4j</groupId>\n </exclusion>\n </exclusions>\n </dependency>\n <dependency>\n <groupId>org.apache.curator</groupId>\n <artifactId>curator-framework</artifactId>\n <version>${curator.version}</version>\n </dependency>\n <dependency>\n <groupId>org.apache.curator</groupId>\n <artifactId>curator-recipes</artifactId>\n <version>${curator.version}</version>\n </dependency>\n </dependencies>|' ./shenyu-bootstrap/pom.xml
 
       - name: Build with Maven
-        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -T1C
 
       - name: Build examples with Maven
-        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml -T1C
 
       - uses: actions/checkout@v3
         with:
