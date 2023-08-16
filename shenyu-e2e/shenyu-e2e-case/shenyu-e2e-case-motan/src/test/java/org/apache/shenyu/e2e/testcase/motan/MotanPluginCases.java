@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.sofa;
+package org.apache.shenyu.e2e.testcase.motan;
 
 import com.google.common.collect.Lists;
 import io.restassured.http.Method;
@@ -27,6 +27,7 @@ import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuCaseSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
 import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.data.Condition;
+import org.apache.shenyu.e2e.model.handle.DivideRuleHandle;
 
 import java.util.List;
 
@@ -37,7 +38,7 @@ import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
 
-public class SofaPluginCases implements ShenYuScenarioProvider {
+public class MotanPluginCases implements ShenYuScenarioProvider {
 
     @Override
     public List<ScenarioSpec> get() {
@@ -60,28 +61,30 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithUriEquals() {
         return ShenYuScenarioSpec.builder()
-                .name("single-sofa uri =]")
+                .name("single-motan uri =]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
-                                        newSelectorBuilder("selector", Plugin.SOFA)
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/sofa/findAll"))
+                                        newSelectorBuilder("selector", Plugin.MOTAN)
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi"))
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/sofa/findAll"))
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi"))
+                                                .handle(DivideRuleHandle.builder().timeout(100000).retry(10).build())
                                                 .build()
                                 )
-                                .checker(notExists("/sofa/findAll"))
-                                .waiting(exists("/sofa/findAll"))
+                                .checker(notExists("/motan/demo/hi"))
+                                .waiting(exists("/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists("/sofa/findAll")
-                                .addNotExists("/sofa/fin")
+                                .addExists("/motan/demo/hi")
+                                .addNotExists("/motan/demo/h")
                                 .addNotExists("/put")
                                 .addNotExists("/get")
-                                .build())
+                                .build()
+                )
                 .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
                 .build();
     }
@@ -93,27 +96,27 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithUriPathPattern() {
         return ShenYuScenarioSpec.builder()
-                .name("single-sofa uri path_pattern]")
+                .name("single-motan uri path_pattern]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
-                                        newSelectorBuilder("selector", Plugin.SOFA)
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.PATH_PATTERN, "/sofa/**"))
+                                        newSelectorBuilder("selector", Plugin.MOTAN)
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.PATH_PATTERN, "/motan/demo/**"))
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.PATH_PATTERN, "/sofa/**"))
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.PATH_PATTERN, "/motan/demo/**"))
                                                 .build()
                                 )
-                                .checker(notExists("/sofa/findAll"))
-                                .waiting(exists("/sofa/findAll"))
+                                .checker(notExists("/motan/demo/hi"))
+                                .waiting(exists("/motan/demo/hi"))
                                 .build()
                 ).caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists("/sofa/findAll")
-                                .addNotExists("/sof")
-                                .addExists(Method.POST, "/sofa/findAll")
-                                .addExists(Method.PUT, "/sofa/findAll")
-                                .addExists(Method.DELETE, "/sofa/findAll")
+                                .addExists("/motan/demo/hi")
+                                .addNotExists("/motan/de")
+                                .addExists(Method.POST, "/motan/demo/hi")
+                                .addExists(Method.PUT, "/motan/demo/hi")
+                                .addExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
                 .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
                 .build();
@@ -126,28 +129,28 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithUriStartWith() {
         return ShenYuScenarioSpec.builder()
-                .name("single-sofa uri starts_with]")
+                .name("single-motan uri starts_with]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
-                                        newSelectorBuilder("selector", Plugin.SOFA)
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/sofa/"))
+                                        newSelectorBuilder("selector", Plugin.MOTAN)
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/motan/"))
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/sofa/"))
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/motan/"))
                                                 .build()
                                 )
-                                .checker(notExists("/sofa/findAll"))
-                                .waiting(exists("/sofa/findAll"))
+                                .checker(notExists("/motan/demo/hi"))
+                                .waiting(exists("/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists("/sofa/findAll")
-                                .addNotExists("/sofa/de")
-                                .addExists(Method.POST, "/sofa/findAll")
-                                .addExists(Method.PUT, "/sofa/findAll")
-                                .addExists(Method.DELETE, "/sofa/findAll")
+                                .addExists("/motan/demo/hi")
+                                .addNotExists("/mota/")
+                                .addExists(Method.POST, "/motan/demo/hi")
+                                .addExists(Method.PUT, "/motan/demo/hi")
+                                .addExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
                 .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
                 .build();
@@ -160,28 +163,28 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithEndWith() {
         return ShenYuScenarioSpec.builder()
-                .name("single-sofa uri ends_with]")
+                .name("single-motan uri ends_with]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
-                                        newSelectorBuilder("selector", Plugin.SOFA)
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/findAll"))
+                                        newSelectorBuilder("selector", Plugin.MOTAN)
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/hi"))
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/findAll"))
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/hi"))
                                                 .build()
                                 )
-                                .checker(notExists("/sofa/findAll"))
-                                .waiting(exists("/sofa/findAll"))
+                                .checker(notExists("/motan/demo/hi"))
+                                .waiting(exists("/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists("/sofa/findAll")
-                                .addNotExists("/sofa/find")
-                                .addExists(Method.POST, "/sofa/findAll")
-                                .addExists(Method.PUT, "/sofa/findAll")
-                                .addExists(Method.DELETE, "/sofa/findAll")
+                                .addExists("/motan/demo/hi")
+                                .addNotExists("/motan/demo/h")
+                                .addExists(Method.POST, "/motan/demo/hi")
+                                .addExists(Method.PUT, "/motan/demo/hi")
+                                .addExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
                 .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
                 .build();
@@ -194,34 +197,34 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithMethodGet() {
         return ShenYuScenarioSpec.builder()
-                .name("single-sofa uri method GET]")
+                .name("single-motan uri method GET]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
-                                        newSelectorBuilder("selector", Plugin.SOFA)
+                                        newSelectorBuilder("selector", Plugin.MOTAN)
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "GET"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/sofa/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "GET"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/sofa/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build()
                                 )
-                                .checker(notExists(Method.GET, "/sofa/findAll"))
-                                .waiting(exists(Method.GET, "/sofa/findAll"))
+                                .checker(notExists(Method.GET, "/motan/demo/hi"))
+                                .waiting(exists(Method.GET, "/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.GET, "/sofa/findAll")
-                                .addNotExists(Method.GET, "/sofa/find")
-                                .addNotExists(Method.POST, "/sofa/findAll")
-                                .addNotExists(Method.PUT, "/sofa/findAll")
-                                .addNotExists(Method.DELETE, "/sofa/findAll")
+                                .addExists(Method.GET, "/motan/demo/hi")
+                                .addNotExists(Method.GET, "/motan/demo/h")
+                                .addNotExists(Method.POST, "/motan/demo/hi")
+                                .addNotExists(Method.PUT, "/motan/demo/hi")
+                                .addNotExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
                 .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
                 .build();
@@ -234,34 +237,34 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithMethodPost() {
         return ShenYuScenarioSpec.builder()
-                .name("single-sofa uri method POST]")
+                .name("single-motan uri method POST]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
-                                        newSelectorBuilder("selector", Plugin.SOFA)
+                                        newSelectorBuilder("selector", Plugin.MOTAN)
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "POST"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/sofa/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "POST"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/sofa/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build()
                                 )
-                                .checker(notExists(Method.POST, "/sofa/findAll"))
-                                .waiting(exists(Method.POST, "/sofa/findAll"))
+                                .checker(notExists(Method.POST, "/motan/demo/hi"))
+                                .waiting(exists(Method.POST, "/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.POST, "/sofa/findAll")
-                                .addNotExists(Method.POST, "/sofa/find")
-                                .addNotExists(Method.GET, "/sofa/findAll")
-                                .addNotExists(Method.PUT, "/sofa/findAll")
-                                .addNotExists(Method.DELETE, "/sofa/findAll")
+                                .addExists(Method.POST, "/motan/demo/hi")
+                                .addNotExists(Method.POST, "/motan/demo/h")
+                                .addNotExists(Method.GET, "/motan/demo/hi")
+                                .addNotExists(Method.PUT, "/motan/demo/hi")
+                                .addNotExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
                 .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
                 .build();
@@ -274,38 +277,39 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithMethodPut() {
         return ShenYuScenarioSpec.builder()
-                .name("single-sofa uri method PUT]")
+                .name("single-motan uri method PUT]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
-                                        newSelectorBuilder("selector", Plugin.SOFA)
+                                        newSelectorBuilder("selector", Plugin.MOTAN)
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "PUT"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/sofa/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "PUT"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/sofa/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build()
                                 )
-                                .checker(notExists(Method.PUT, "/sofa/findAll"))
-                                .waiting(exists(Method.PUT, "/sofa/findAll"))
+                                .checker(notExists(Method.PUT, "/motan/demo/hi"))
+                                .waiting(exists(Method.PUT, "/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.PUT, "/sofa/findAll")
-                                .addNotExists(Method.PUT, "/sofa/find")
-                                .addNotExists(Method.GET, "/sofa/findAll")
-                                .addNotExists(Method.POST, "/sofa/findAll")
-                                .addNotExists(Method.DELETE, "/sofa/findAll")
+                                .addExists(Method.PUT, "/motan/demo/hi")
+                                .addNotExists(Method.PUT, "/motan/demo/h")
+                                .addNotExists(Method.GET, "/motan/demo/hi")
+                                .addNotExists(Method.POST, "/motan/demo/hi")
+                                .addNotExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
                 .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
                 .build();
     }
+
 
     /**
      * test with uri method delete.
@@ -314,34 +318,34 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithMethodDelete() {
         return ShenYuScenarioSpec.builder()
-                .name("single-sofa uri method DELETE]")
+                .name("single-motan uri method DELETE]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
-                                        newSelectorBuilder("selector", Plugin.SOFA)
+                                        newSelectorBuilder("selector", Plugin.MOTAN)
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "DELETE"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/sofa/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "DELETE"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/sofa/findAll")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build()
                                 )
-                                .checker(notExists(Method.DELETE, "/sofa/findAll"))
-                                .waiting(exists(Method.DELETE, "/sofa/findAll"))
+                                .checker(notExists(Method.DELETE, "/motan/demo/hi"))
+                                .waiting(exists(Method.DELETE, "/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.DELETE, "/sofa/findAll")
-                                .addNotExists(Method.DELETE, "/sofa/find")
-                                .addNotExists(Method.GET, "/sofa/findAll")
-                                .addNotExists(Method.POST, "/sofa/findAll")
-                                .addNotExists(Method.PUT, "/sofa/findAll")
+                                .addExists(Method.DELETE, "/motan/demo/hi")
+                                .addNotExists(Method.DELETE, "/motan/demo/h")
+                                .addNotExists(Method.GET, "/motan/demo/hi")
+                                .addNotExists(Method.POST, "/motan/demo/hi")
+                                .addNotExists(Method.PUT, "/motan/demo/hi")
                                 .build())
                 .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
                 .build();
