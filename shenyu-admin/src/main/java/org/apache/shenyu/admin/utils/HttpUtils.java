@@ -42,6 +42,7 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -383,7 +384,11 @@ public class HttpUtils {
 
     private boolean isJsonRequest(final Map<String, String> headers) {
         try {
-            return MEDIA_TYPE_JSON.equals(MediaType.parse(headers.get("Content-Type")));
+            return Objects.compare(
+                MEDIA_TYPE_JSON, 
+                MediaType.parse(headers.get("Content-Type")), 
+                Comparator.comparing(o -> String.format("%s/%s", o.type(), o.subtype()))
+            ) == 0;
         } catch (Exception e) {
             LOG.error("parse http client json request error: ", e);
             return false;
