@@ -98,40 +98,43 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
     private <T> void onCommonChanged(final String configKeyPrefix, final List<T> changedList,
                                      final DataEventTypeEnum eventType, final Function<? super T, ? extends String> mapperToKey,
                                      final Class<T> tClass) {
-        final List<String> changeNames = changedList.stream().map(mapperToKey).collect(Collectors.toList());
-        switch (eventType) {
-            case DELETE:
-                changedList.stream().map(mapperToKey).forEach(removeKey -> {
-                    delConfig(configKeyPrefix + removeKey);
-                });
-                delChangedData(configKeyPrefix, changeNames);
-                break;
-            case REFRESH:
-            case MYSELF:
-                final List<String> configDataNames = this.getConfigDataNames(configKeyPrefix);
-                changedList.forEach(changedData -> {
-                    publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData);
-                });
+        // Avoiding concurrent operations on list nodes
+        final ReentrantLock reentrantLock = listSaveLockMap.computeIfAbsent(configKeyPrefix, key -> new ReentrantLock());
+        try {
+            reentrantLock.lock();
+            final List<String> changeNames = changedList.stream().map(mapperToKey).collect(Collectors.toList());
+            switch (eventType) {
+                case DELETE:
+                    changedList.stream().map(mapperToKey).forEach(removeKey -> {
+                        delConfig(configKeyPrefix + removeKey);
+                    });
+                    delChangedData(configKeyPrefix, changeNames);
+                    break;
+                case REFRESH:
+                case MYSELF:
+                    final List<String> configDataNames = this.getConfigDataNames(configKeyPrefix);
+                    changedList.forEach(changedData -> {
+                        publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData);
+                    });
 
-                if (configDataNames != null && configDataNames.size() > changedList.size()) {
-                    configDataNames.removeAll(changeNames);
-                    configDataNames.forEach(this::delConfig);
-                }
+                    if (configDataNames != null && configDataNames.size() > changedList.size()) {
+                        configDataNames.removeAll(changeNames);
+                        configDataNames.forEach(this::delConfig);
+                    }
 
-                publishConfig(configKeyPrefix + DefaultNodeConstants.LIST_STR, changeNames);
-                break;
-            default:
-                final ReentrantLock reentrantLock = listSaveLockMap.computeIfAbsent(configKeyPrefix, key -> new ReentrantLock());
-                try {
-                    reentrantLock.lock();
+                    publishConfig(configKeyPrefix + DefaultNodeConstants.LIST_STR, changeNames);
+                    break;
+                default:
                     changedList.forEach(changedData -> {
                         publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData);
                     });
                     putChangeData(configKeyPrefix, changeNames);
-                } finally {
-                    reentrantLock.unlock();
-                }
-                break;
+                    break;
+            }
+        } catch (Exception e) {
+            LOG.error("AbstractNodeDataChangedListener onCommonMultiChanged error ", e);
+        } finally {
+            reentrantLock.unlock();
         }
     }
 
@@ -190,31 +193,32 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
     private <T> void onCommonMultiChanged(final List<T> changedList, final DataEventTypeEnum eventType,
                                           final String configKeyPrefix, final Function<? super T, ? extends String> mappingKey,
                                           final Function<? super T, ? extends String> mappingValue) {
-        final Map<String, List<String>> nameToIdMap = changedList.stream()
-                .collect(Collectors.groupingBy(mappingKey, Collectors.mapping(mappingValue, Collectors.toList())));
-        switch (eventType) {
-            case DELETE:
-                changedList.forEach(changedData -> {
-                    delConfig(configKeyPrefix + mappingKey.apply(changedData) + DefaultNodeConstants.JOIN_POINT + mappingValue.apply(changedData));
-                });
-                this.delChangedMapToList(nameToIdMap, configKeyPrefix);
-                break;
-            case REFRESH:
-            case MYSELF:
-            default:
-                final ReentrantLock reentrantLock = listSaveLockMap.computeIfAbsent(configKeyPrefix, key -> new ReentrantLock());
-                try {
-                    reentrantLock.lock();
+        // Avoiding concurrent operations on list nodes
+        final ReentrantLock reentrantLock = listSaveLockMap.computeIfAbsent(configKeyPrefix, key -> new ReentrantLock());
+        try {
+            reentrantLock.lock();
+            final Map<String, List<String>> nameToIdMap = changedList.stream()
+                    .collect(Collectors.groupingBy(mappingKey, Collectors.mapping(mappingValue, Collectors.toList())));
+            switch (eventType) {
+                case DELETE:
+                    changedList.forEach(changedData -> {
+                        delConfig(configKeyPrefix + mappingKey.apply(changedData) + DefaultNodeConstants.JOIN_POINT + mappingValue.apply(changedData));
+                    });
+                    this.delChangedMapToList(nameToIdMap, configKeyPrefix);
+                    break;
+                case REFRESH:
+                case MYSELF:
+                default:
                     changedList.forEach(changedData -> {
                         publishConfig(configKeyPrefix + mappingKey.apply(changedData) + DefaultNodeConstants.JOIN_POINT + mappingValue.apply(changedData), changedData);
                     });
                     this.putChangedMapToList(nameToIdMap, configKeyPrefix);
-                } catch (Exception e) {
-                    LOG.error("AbstractNodeDataChangedListener onCommonMultiChanged error ", e);
-                } finally {
-                    reentrantLock.unlock();
-                }
-                break;
+                    break;
+            }
+        } catch (Exception e) {
+            LOG.error("AbstractNodeDataChangedListener onCommonMultiChanged error ", e);
+        } finally {
+            reentrantLock.unlock();
         }
     }
 
