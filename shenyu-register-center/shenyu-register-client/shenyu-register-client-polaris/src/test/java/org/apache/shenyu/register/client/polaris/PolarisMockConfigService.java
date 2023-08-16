@@ -17,13 +17,15 @@
 
 package org.apache.shenyu.register.client.polaris;
 
+import com.tencent.polaris.api.exception.ServerCodes;
+import com.tencent.polaris.api.plugin.configuration.ConfigFile;
 import com.tencent.polaris.api.plugin.configuration.ConfigFileResponse;
-import com.tencent.polaris.configuration.api.core.ConfigFile;
 import com.tencent.polaris.configuration.api.core.ConfigFileMetadata;
 import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
 
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.api.core.ConfigKVFile;
+import com.tencent.polaris.configuration.client.internal.DefaultConfigFileMetadata;
 import java.util.Map;
 
 public class PolarisMockConfigService implements ConfigFilePublishService, ConfigFileService {
@@ -35,65 +37,76 @@ public class PolarisMockConfigService implements ConfigFilePublishService, Confi
     }
 
     @Override
-    public ConfigFileResponse createConfigFile(final String s, final String s1, final String s2, final String s3) {
-        return null;
+    public ConfigFileResponse createConfigFile(final String namespace, final String fileGroup, final String fileName, final String content) {
+        final DefaultConfigFileMetadata configFileMetadata = new DefaultConfigFileMetadata(namespace, fileGroup, fileName);
+        store.put(configFileMetadata, content);
+        final ConfigFile configFile = new ConfigFile(namespace, fileGroup, fileName);
+        configFile.setContent(content);
+        return new ConfigFileResponse(ServerCodes.EXECUTE_SUCCESS, "success", configFile);
     }
 
     @Override
     public ConfigFileResponse createConfigFile(final ConfigFileMetadata configFileMetadata, final String content) {
-        store.put(configFileMetadata, content);
-        return null;
+        return createConfigFile(configFileMetadata.getNamespace(), configFileMetadata.getFileGroup(), configFileMetadata.getFileName(), content);
     }
 
     @Override
-    public ConfigFileResponse updateConfigFile(final String s, final String s1, final String s2, final String s3) {
-        return null;
+    public ConfigFileResponse updateConfigFile(final String namespace, final String fileGroup, final String fileName, final String content) {
+        final DefaultConfigFileMetadata configFileMetadata = new DefaultConfigFileMetadata(namespace, fileGroup, fileName);
+        store.put(configFileMetadata, content);
+        final ConfigFile configFile =
+            new ConfigFile(namespace, fileGroup, fileName);
+        configFile.setContent(content);
+        return new ConfigFileResponse(ServerCodes.EXECUTE_SUCCESS, "success", configFile);
     }
 
     @Override
     public ConfigFileResponse updateConfigFile(final ConfigFileMetadata configFileMetadata, final String content) {
-        store.put(configFileMetadata, content);
-        return null;
+        return updateConfigFile(configFileMetadata.getNamespace(), configFileMetadata.getFileGroup(), configFileMetadata.getFileName(), content);
     }
 
     @Override
-    public ConfigFileResponse releaseConfigFile(final String s, final String s1, final String s2) {
-        return null;
+    public ConfigFileResponse releaseConfigFile(final String namespace, final String fileGroup, final String fileName) {
+        final DefaultConfigFileMetadata configFileMetadata = new DefaultConfigFileMetadata(namespace, fileGroup, fileName);
+        final ConfigFile configFile = new ConfigFile(namespace, fileGroup, fileName);
+        configFile.setContent(store.getOrDefault(configFileMetadata, "{}"));
+        return new ConfigFileResponse(ServerCodes.EXECUTE_SUCCESS, "success", configFile);
     }
 
     @Override
     public ConfigFileResponse releaseConfigFile(final ConfigFileMetadata configFileMetadata) {
-        return null;
+        return releaseConfigFile(configFileMetadata.getNamespace(), configFileMetadata.getFileGroup(), configFileMetadata.getFileName());
     }
 
     @Override
-    public ConfigKVFile getConfigPropertiesFile(final String s, final String s1, final String s2) {
-        return null;
+    public ConfigKVFile getConfigPropertiesFile(final String namespace, final String fileGroup, final String fileName) {
+        final DefaultConfigFileMetadata configFileMetadata = new DefaultConfigFileMetadata(namespace, fileGroup, fileName);
+        return new PolarisMockConfigFile(configFileMetadata, store.getOrDefault(configFileMetadata, "{}"));
     }
 
     @Override
     public ConfigKVFile getConfigPropertiesFile(final ConfigFileMetadata configFileMetadata) {
-        store.get(configFileMetadata);
-        return null;
+        return getConfigPropertiesFile(configFileMetadata.getNamespace(), configFileMetadata.getFileGroup(), configFileMetadata.getFileName());
     }
 
     @Override
-    public ConfigKVFile getConfigYamlFile(final String s, final String s1, final String s2) {
-        return null;
+    public ConfigKVFile getConfigYamlFile(final String namespace, final String fileGroup, final String fileName) {
+        final DefaultConfigFileMetadata configFileMetadata = new DefaultConfigFileMetadata(namespace, fileGroup, fileName);
+        return new PolarisMockConfigFile(configFileMetadata, store.getOrDefault(configFileMetadata, "{}"));
     }
 
     @Override
     public ConfigKVFile getConfigYamlFile(final ConfigFileMetadata configFileMetadata) {
-        return null;
+        return getConfigYamlFile(configFileMetadata.getNamespace(), configFileMetadata.getFileGroup(), configFileMetadata.getFileName());
     }
 
     @Override
-    public ConfigFile getConfigFile(final String s, final String s1, final String s2) {
-        return null;
+    public com.tencent.polaris.configuration.api.core.ConfigFile getConfigFile(final String namespace, final String fileGroup, final String fileName) {
+        return getConfigFile(new DefaultConfigFileMetadata(namespace, fileGroup, fileName));
     }
 
     @Override
-    public ConfigFile getConfigFile(final ConfigFileMetadata configFileMetadata) {
-        return new PolarisMockConfigFile(configFileMetadata, store.get(configFileMetadata));
+    public com.tencent.polaris.configuration.api.core.ConfigFile getConfigFile(final ConfigFileMetadata configFileMetadata) {
+        return new PolarisMockConfigFile(configFileMetadata, store.getOrDefault(configFileMetadata, "{}"));
     }
 }
