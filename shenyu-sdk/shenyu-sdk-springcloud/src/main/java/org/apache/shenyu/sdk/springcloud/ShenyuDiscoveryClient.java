@@ -28,7 +28,7 @@ import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
-import static org.apache.shenyu.sdk.springcloud.ShenyuServiceInstanceLoadBalancer.SHENYU_SERVICE_ID;
+import static org.apache.shenyu.sdk.springcloud.ShenyuClientCapability.SHENYU_SERVICE_ID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.DefaultServiceInstance;
@@ -110,13 +110,12 @@ public class ShenyuDiscoveryClient implements DiscoveryClient {
             upstream = LoadBalancerFactory.selector(upstreams, algorithm, "");
         }
 
-        final List<ServiceInstance> list = Stream.of(upstream)
-                                                  .map(stream -> {
-                                                      final URI uri = UriUtils.createUri(stream.getUrl());
-                                                      return new DefaultServiceInstance(stream.getUrl(), serviceId, uri.getHost(), uri.getPort(), "https".equals(scheme));
-                                                  })
-                                                  .collect(Collectors.toList());
-        return list;
+        return Stream.of(upstream)
+                   .map(stream -> {
+                       final URI uri = UriUtils.createUri(stream.getUrl());
+                       return new DefaultServiceInstance(stream.getUrl(), serviceId, uri.getHost(), uri.getPort(), "https".equals(scheme));
+                   })
+                   .collect(Collectors.toList());
     }
 
     /**

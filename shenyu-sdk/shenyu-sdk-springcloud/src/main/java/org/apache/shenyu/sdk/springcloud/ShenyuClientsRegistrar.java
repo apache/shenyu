@@ -131,22 +131,28 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         ConfigurableBeanFactory beanFactory = registry instanceof ConfigurableBeanFactory ? (ConfigurableBeanFactory) registry : null;
 
         // init to loadBalance serviceId.
-        String name = ShenyuServiceInstanceLoadBalancer.SHENYU_SERVICE_ID;
+        String name = ShenyuClientCapability.SHENYU_SERVICE_ID;
+        String contextId = getContextId(beanFactory, attributes);
 
         FeignClientFactoryBean factoryBean = new FeignClientFactoryBean();
         factoryBean.setBeanFactory(beanFactory);
         factoryBean.setName(name);
-        factoryBean.setContextId(name);
+        factoryBean.setContextId(contextId);
         factoryBean.setType(clazz);
+        factoryBean.setRefreshableClient(isClientRefreshEnabled());
         BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(clazz, () -> {
+            factoryBean.setUrl(getUrl(beanFactory, attributes));
             factoryBean.setPath(getPath(beanFactory, attributes));
+            factoryBean.setDecode404(Boolean.parseBoolean(String.valueOf(attributes.get("decode404"))));
             Object fallback = attributes.get("fallback");
-            if (fallback != null && !void.class.equals(fallback)) {
-                factoryBean.setFallback(fallback instanceof Class ? (Class<?>) fallback : ClassUtils.resolveClassName(fallback.toString(), null));
+            if (fallback != null) {
+                factoryBean.setFallback(fallback instanceof Class ? (Class<?>) fallback
+                                            : ClassUtils.resolveClassName(fallback.toString(), null));
             }
             Object fallbackFactory = attributes.get("fallbackFactory");
-            if (fallbackFactory != null && !void.class.equals(fallbackFactory)) {
-                factoryBean.setFallbackFactory(fallbackFactory instanceof Class ? (Class<?>) fallbackFactory : ClassUtils.resolveClassName(fallbackFactory.toString(), null));
+            if (fallbackFactory != null) {
+                factoryBean.setFallbackFactory(fallbackFactory instanceof Class ? (Class<?>) fallbackFactory
+                                                   : ClassUtils.resolveClassName(fallbackFactory.toString(), null));
             }
             return factoryBean.getObject();
         });
@@ -357,6 +363,11 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         return resultUrl;
     }
 
+    private String getUrl(final ConfigurableBeanFactory beanFactory, final Map<String, Object> attributes) {
+        String url = resolve(beanFactory, (String) attributes.get("url"));
+        return getUrl(url);
+    }
+
     private String getPath(final ConfigurableBeanFactory beanFactory, final Map<String, Object> attributes) {
         String path = resolve(beanFactory, (String) attributes.get("path"));
         return getPath(path);
@@ -379,6 +390,10 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
             }
         }
         return resultPath;
+    }
+
+    private boolean isClientRefreshEnabled() {
+        return environment.getProperty("feign.client.refresh-enabled", Boolean.class, false);
     }
 
 }

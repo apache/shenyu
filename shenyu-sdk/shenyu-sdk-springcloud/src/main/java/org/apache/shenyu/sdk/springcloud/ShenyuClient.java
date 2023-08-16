@@ -58,6 +58,13 @@ public @interface ShenyuClient {
     String contextId() default "";
 
     /**
+     * an absolute URL or resolvable hostname.
+     * @return an absolute URL or resolvable hostname (the protocol is optional).
+     */
+    @AliasFor(value = "url", annotation = FeignClient.class)
+    String url() default "";
+
+    /**
      * name.
      * @return The service id with optional protocol prefix. Synonym for {@link #value()
      * value}.

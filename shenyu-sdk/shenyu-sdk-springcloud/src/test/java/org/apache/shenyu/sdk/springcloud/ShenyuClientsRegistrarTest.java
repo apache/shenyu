@@ -17,33 +17,41 @@
 
 package org.apache.shenyu.sdk.springcloud;
 
-import feign.RetryableException;
+import com.google.common.collect.Maps;
+import feign.Client;
+import feign.Request;
+import feign.Response;
 import feign.Target;
-import java.util.Objects;
-import java.util.Optional;
+import feign.codec.DecodeException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.loadbalancer.Response;
+import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
 import org.springframework.cloud.commons.httpclient.HttpClientConfiguration;
+import org.springframework.cloud.loadbalancer.blocking.client.BlockingLoadBalancerClient;
+import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
-import org.springframework.cloud.openfeign.loadbalancer.FeignLoadBalancerAutoConfiguration;
+import org.springframework.cloud.openfeign.loadbalancer.FeignBlockingLoadBalancerClient;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,29 +59,40 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import reactor.core.publisher.Mono;
 
 /**
  * {@link ShenyuClientsRegistrar} test.
  */
 public class ShenyuClientsRegistrarTest {
 
+    private final Client delegate = mock(Client.class);
+
+    private final BlockingLoadBalancerClient loadBalancerClient = mock(BlockingLoadBalancerClient.class);
+
+    private final LoadBalancerClientFactory loadBalancerClientFactory = mock(LoadBalancerClientFactory.class);
+
+    private final FeignBlockingLoadBalancerClient feignBlockingLoadBalancerClient = new FeignBlockingLoadBalancerClient(
+        delegate, loadBalancerClient, loadBalancerClientFactory);
+
     @Test
     @DisabledForJreRange(min = JRE.JAVA_16)
-    public void registerBeanDefinitionsTest() {
+    public void registerBeanDefinitionsTest() throws IOException {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         ((DefaultListableBeanFactory) context.getBeanFactory()).setAllowBeanDefinitionOverriding(false);
-        context.scan("org.springframework.cloud.loadbalancer.config");
         context.register(FeignAutoConfiguration.class);
-        context.register(FeignLoadBalancerAutoConfiguration.class);
         context.register(FeignClientsConfiguration.class);
         context.register(HttpClientConfiguration.class);
         context.register(ShenyuTestConfig.class);
+        context.register(HttpMessageConvertersAutoConfiguration.class);
+
+        final FeignBlockingLoadBalancerClient clientMock = spy(feignBlockingLoadBalancerClient);
+        context.registerBean(FeignBlockingLoadBalancerClient.class, () -> clientMock);
 
         final RegisterConfig config = spy(RegisterConfig.class);
         when(config.getServerLists()).thenReturn("localhost:1234");
         final ShenyuDiscoveryClient shenyuDiscoveryClient = spy(new ShenyuDiscoveryClient(config));
-        context.registerBean(ShenyuServiceInstanceLoadBalancer.class, shenyuDiscoveryClient);
+        context.registerBean(ShenyuDiscoveryClient.class, () -> shenyuDiscoveryClient);
+        context.register(ClientCapabilityRegistrar.class);
         context.refresh();
 
         final ShenyuClientsRegistrarTest.ShenyuApiClient apiClient = context.getBean(ShenyuClientsRegistrarTest.ShenyuApiClient.class);
@@ -86,13 +105,15 @@ public class ShenyuClientsRegistrarTest {
         assertEquals(factoryBean.url(), "http://shenyu-gateway/dev/api");
         assertEquals(factoryBean.type(), ShenyuApiClient.class);
 
-        assertThrows(RetryableException.class, () -> apiClient.findById("id"));
+        final Response respSpy = spy(Response.builder()
+                                         .body("1", StandardCharsets.UTF_8)
+                                         .status(HttpStatus.OK.value())
+                                         .request(Request.create(Request.HttpMethod.POST, "/dev/null", Maps.newHashMap(), null, null, null))
+                                         .build());
+        when(delegate.execute(any(), any())).thenReturn(respSpy);
+        assertThrowsExactly(DecodeException.class, () -> apiClient.del("id"));
+        verify(delegate, times(1)).execute(any(), any());
         verify(shenyuDiscoveryClient, times(1)).getInstances(anyString());
-
-        final ShenyuServiceInstanceLoadBalancer instanceLoadBalancer = context.getBean(ShenyuServiceInstanceLoadBalancer.class);
-        final Mono<Response<ServiceInstance>> chosen = instanceLoadBalancer.choose();
-        final Optional<ServiceInstance> serviceInstance = chosen.map(Response::getServer).filter(instance -> Objects.equals("http://localhost:1234", instance.getInstanceId())).blockOptional();
-        assertTrue(serviceInstance.isPresent(), "loadBalancer not work in local env.");
     }
 
     @Configuration
@@ -133,7 +154,7 @@ public class ShenyuClientsRegistrarTest {
          * @param id id
          * @return int
          */
-        @DeleteMapping("/delete")
+        @DeleteMapping(value = "/delete", consumes = MediaType.TEXT_PLAIN_VALUE)
         int del(@RequestParam("id") String id);
     }
 }
