@@ -52,7 +52,7 @@ public class ClickHouseLoggingConstant {
             + "    path    String\n"
             + ") ENGINE = %s()\n"
             + "ORDER BY (timeLocal,clientIp,method,rpcType,upstreamIp,upstreamResponseTime)\n"
-            +" TTL toDateTime(timeLocal) + INTERVAL %s DAY \n"
+            + " TTL toDateTime(timeLocal) + INTERVAL %s DAY \n"
             + ";";
 
 
