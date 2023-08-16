@@ -38,6 +38,7 @@ public class ClickHouseLogCollectConfigTest {
         clickHouseLogConfig.setUsername("foo");
         clickHouseLogConfig.setPassword("bar");
         clickHouseLogConfig.setTtl("30");
+        clickHouseLogConfig.setClusterName("clusterName");
         clickHouseLogConfig.setDatabase(GenericLoggingConstant.DEFAULT_SOURCE);
     }
 
@@ -123,5 +124,17 @@ public class ClickHouseLogCollectConfigTest {
     public void testGetTTL() {
         final String ttl = clickHouseLogConfig.getTtl();
         Assertions.assertEquals("30", ttl);
+    }
+
+    @Test
+    public void testSetClusterName() {
+        clickHouseLogConfig.setClusterName("clusterName");
+        Assertions.assertNull(null);
+    }
+
+    @Test
+    public void testGetClusterName() {
+        final String clusterName = clickHouseLogConfig.getClusterName();
+        Assertions.assertEquals("clusterName", clusterName);
     }
 }
