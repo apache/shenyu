@@ -150,7 +150,7 @@ jobs:
     if: ${{ needs.changes.outputs.e2e == 'true' }}
     strategy:
       matrix:
-        case: [ "shenyu-e2e-case-spring-cloud", "shenyu-e2e-case-apache-dubbo", "shenyu-e2e-case-sofa", "shenyu-e2e-case-grpc" ]
+        case: [ "shenyu-e2e-case-spring-cloud", "shenyu-e2e-case-apache-dubbo", "shenyu-e2e-case-sofa", "shenyu-e2e-case-motan" ]
     steps:
       - uses: actions/checkout@v3
         with:

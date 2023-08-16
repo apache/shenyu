@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.springboot.starter.client.motan.property;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Shenyu motan properties.
  */
@@ -62,7 +64,7 @@ public class ShenyuMotanConfig {
 
         private boolean isDefault = true;
 
-        private String name = "motan2";
+        private String name;
 
         private Integer maxContentLength = 1048576;
 
@@ -87,7 +89,11 @@ public class ShenyuMotanConfig {
          * @return name
          */
         public String getName() {
-            return name;
+            if (StringUtils.isNotEmpty(name)) {
+                return name;
+            } else {
+                return "motan2";
+            }
         }
 
         /**

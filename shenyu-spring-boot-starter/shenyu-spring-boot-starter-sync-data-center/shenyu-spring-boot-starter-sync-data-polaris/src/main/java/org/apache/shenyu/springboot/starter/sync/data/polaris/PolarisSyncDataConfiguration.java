@@ -61,13 +61,13 @@ public class PolarisSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService polarisSyncDataService(final PolarisConfig polarisConfig, final ObjectProvider<ConfigFileService> configFileServices,
+    public SyncDataService polarisSyncDataService(final ObjectProvider<PolarisConfig> polarisConfig, final ObjectProvider<ConfigFileService> configFileServices,
                                                   final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                                   final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
                                                   final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                                   final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers) {
         LOGGER.info("you use polaris sync shenyu data.......");
-        return new PolarisSyncDataService(polarisConfig, configFileServices.getIfAvailable(), pluginSubscriber.getIfAvailable(),
+        return new PolarisSyncDataService(polarisConfig.getIfAvailable(), configFileServices.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
                 proxySelectorSubscribers.getIfAvailable());
     }
