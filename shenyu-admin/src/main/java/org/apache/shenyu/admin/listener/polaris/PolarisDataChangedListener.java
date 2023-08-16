@@ -23,7 +23,7 @@ import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.client.internal.DefaultConfigFileMetadata;
 import org.apache.shenyu.admin.config.properties.PolarisProperties;
-import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
+import org.apache.shenyu.admin.listener.AbstractNodeDataChangedListener;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Use polaris to push data changes.
  */
-public class PolarisDataChangedListener extends AbstractListDataChangedListener {
+public class PolarisDataChangedListener extends AbstractNodeDataChangedListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(PolarisDataChangedListener.class);
 
@@ -54,43 +54,44 @@ public class PolarisDataChangedListener extends AbstractListDataChangedListener 
     }
 
     @Override
-    public void publishConfig(final String dataId, final Object data) {
+    public void doPublishConfig(final String dataId, final Object data) {
         try {
             DefaultConfigFileMetadata metadata = new DefaultConfigFileMetadata(
                     polarisProperties.getNamespace(),
                     polarisProperties.getFileGroup(),
                     dataId);
-            if (isReleased(dataId)) {
-                configFilePublishService.updateConfigFile(metadata, GsonUtils.getInstance().toJson(data));
+            if (isReleased(metadata)) {
+                configFilePublishService.updateConfigFile(metadata, data == null ? "" : GsonUtils.getInstance().toJson(data));
             } else {
                 configFilePublishService.createConfigFile(metadata, GsonUtils.getInstance().toJson(data));
             }
             configFilePublishService.releaseConfigFile(metadata);
         } catch (PolarisException e) {
-            LOG.error("Publish data to polaris error.", e);
-            throw new ShenyuException(e.getMessage());
+            LOG.error("Polaris Publish data to polaris error.", e);
         }
+    }
+
+    @Override
+    public void doDelConfig(final String dataId) {
+        doPublishConfig(dataId, null);
     }
 
     @Override
     public String getConfig(final String dataId) {
         try {
             ConfigFile configFile = configFileService.getConfigFile(polarisProperties.getNamespace(), polarisProperties.getFileGroup(), dataId);
-            return configFile.hasContent() ? configFile.getContent() : PolarisPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
+            return configFile.hasContent() ? configFile.getContent() : null;
         } catch (PolarisException e) {
-            LOG.error("Get data from polaris error.", e);
+            LOG.error("Polaris Get data from polaris error.", e);
             throw new ShenyuException(e.getMessage());
         }
     }
 
-    private boolean isReleased(final String pluginDataId) {
+    private boolean isReleased(final DefaultConfigFileMetadata metadata) {
         try {
-            return configFileService.getConfigFile(
-                    polarisProperties.getNamespace(),
-                    polarisProperties.getFileGroup(),
-                    pluginDataId).hasContent();
+            return configFileService.getConfigFile(metadata).getContent() != null;
         } catch (PolarisException e) {
-            LOG.error("Get data from polaris error.", e);
+            LOG.error("Polaris Get data from polaris error.", e);
             throw new ShenyuException(e.getMessage());
         }
     }

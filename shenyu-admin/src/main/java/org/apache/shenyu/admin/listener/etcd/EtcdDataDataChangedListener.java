@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.admin.listener.etcd;
 
-import org.apache.shenyu.admin.listener.AbstractNodeDataChangedListener;
+import org.apache.shenyu.admin.listener.AbstractPathDataChangedListener;
 import org.apache.shenyu.common.utils.GsonUtils;
 
 /**
  * EtcdDataDataChangedListener.
  */
-public class EtcdDataDataChangedListener extends AbstractNodeDataChangedListener {
+public class EtcdDataDataChangedListener extends AbstractPathDataChangedListener {
 
     private final EtcdClient etcdClient;
 

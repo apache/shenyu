@@ -17,22 +17,27 @@
 
 package org.apache.shenyu.admin.listener;
 
-import org.apache.shenyu.common.constant.DefaultPathConstants;
+import org.apache.shenyu.common.constant.DefaultNodeConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ObjectUtils;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * AbstractNodeDataChangedListener.
@@ -41,159 +46,385 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractNodeDataChangedListener.class);
 
-    private final Object ruleSyncObject = new Object();
+    private final ChangeData changeData;
 
-    private final Object selectorSyncObject = new Object();
+    private final Map<String, ReentrantLock> listSaveLockMap = new ConcurrentHashMap<>();
+
+    /**
+     * AbstractListDataChangedListener.
+     *
+     * @param changeData changeData
+     */
+    protected AbstractNodeDataChangedListener(final ChangeData changeData) {
+        this.changeData = changeData;
+    }
 
     @Override
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
-        for (AppAuthData data : changed) {
-            String appAuthPath = DefaultPathConstants.buildAppAuthPath(data.getAppKey());
-            // delete
-            if (eventType == DataEventTypeEnum.DELETE) {
-                deleteNode(appAuthPath);
-                LOG.debug("[DataChangedListener] delete appKey {}", data.getAppKey());
-                continue;
-            }
-            // create or update
-            createOrUpdate(appAuthPath, data);
-            LOG.debug("[DataChangedListener] change appKey {}", data.getAppKey());
-        }
-    }
-
-    @Override
-    public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
-        for (MetaData data : changed) {
-            try {
-                String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(), "UTF-8"));
-                // delete
-                if (eventType == DataEventTypeEnum.DELETE) {
-                    deleteNode(metaDataPath);
-                    LOG.debug("[DataChangedListener] delete appKey {}", metaDataPath);
-                    continue;
-                }
-                // create or update
-                createOrUpdate(metaDataPath, data);
-                LOG.debug("[DataChangedListener] change metaDataPath {}", metaDataPath);
-            } catch (UnsupportedEncodingException e) {
-                LOG.error("[DataChangedListener] url encode error.", e);
-                throw new ShenyuException(e.getMessage());
-            }
-        }
-    }
-
-    @Override
-    public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
-        for (ProxySelectorData data : changed) {
-            String proxySelectorPath = DefaultPathConstants.buildProxySelectorPath(data.getPluginName(), data.getName());
-            // delete
-            if (eventType == DataEventTypeEnum.DELETE) {
-                deleteNode(proxySelectorPath);
-                LOG.debug("[DataChangedListener] delete appKey {}", proxySelectorPath);
-                continue;
-            }
-            // create or update
-            createOrUpdate(proxySelectorPath, data);
-            LOG.info("[DataChangedListener] change proxySelector path={}|data={}", proxySelectorPath, data);
-        }
-    }
-
-    @Override
-    public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
-        for (DiscoverySyncData data : changed) {
-            String upstreamPath = DefaultPathConstants.buildDiscoveryUpstreamPath(data.getPluginName(), data.getSelectorName());
-            // delete
-            if (eventType == DataEventTypeEnum.DELETE) {
-                deleteNode(upstreamPath);
-                LOG.debug("[DataChangedListener] delete appKey {}", upstreamPath);
-                continue;
-            }
-            // create or update
-            createOrUpdate(upstreamPath, data);
-            LOG.info("[DataChangedListener] change discoveryUpstream path={}|data={}", upstreamPath, data);
-        }
-    }
-
-    @Override
-    public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
-            String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(changed.get(0).getPluginName());
-            deletePathRecursive(selectorParentPath);
-        }
-        for (SelectorData data : changed) {
-            String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(data.getPluginName(), data.getId());
-            if (eventType == DataEventTypeEnum.DELETE) {
-                deleteNode(selectorRealPath);
-                LOG.debug("[DataChangedListener] delete appKey {}", selectorRealPath);
-                continue;
-            }
-            //create or update
-            synchronized (selectorSyncObject) {
-                createOrUpdate(selectorRealPath, data);
-            }
-            LOG.debug("[DataChangedListener] change path {} with data {}", selectorRealPath, data);
-        }
+        final String configKeyPrefix = changeData.getAuthDataId() + DefaultNodeConstants.JOIN_POINT;
+        this.onCommonChanged(configKeyPrefix, changed, eventType, AppAuthData::getAppKey, AppAuthData.class);
+        LOG.debug("[DataChangedListener] AppAuthChanged {}", configKeyPrefix);
     }
 
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
-        for (PluginData data : changed) {
-            String pluginPath = DefaultPathConstants.buildPluginPath(data.getName());
-            // delete
-            if (eventType == DataEventTypeEnum.DELETE) {
-                deletePathRecursive(pluginPath);
-                String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(data.getName());
-                deletePathRecursive(selectorParentPath);
-                String ruleParentPath = DefaultPathConstants.buildRuleParentPath(data.getName());
-                deletePathRecursive(ruleParentPath);
-                LOG.debug("[DataChangedListener] delete pluginPath {}", pluginPath);
-                continue;
-            }
-            //create or update
-            createOrUpdate(pluginPath, data);
-            LOG.debug("[DataChangedListener] change path {} with data {}", pluginPath, data);
+        final String configKeyPrefix = changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT;
+        this.onCommonChanged(configKeyPrefix, changed, eventType, PluginData::getName, PluginData.class);
+        LOG.debug("[DataChangedListener] PluginChanged {}", configKeyPrefix);
+    }
+
+    @Override
+    public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
+        final String configKeyPrefix = changeData.getMetaDataId() + DefaultNodeConstants.JOIN_POINT;
+        this.onCommonChanged(configKeyPrefix, changed, eventType, MetaData::getId, MetaData.class);
+        LOG.debug("[DataChangedListener] MetaDataChanged {}", changeData.getMetaDataId());
+    }
+
+    /**
+     * onCommonChanged.
+     * save to configuration center common methods.
+     * examples data:
+     *  meta.list
+     *   -> meta.id
+     *   -> meta.id
+     *   -> meta.id
+     *
+     * @param configKeyPrefix configKeyPrefix
+     * @param changedList changedList
+     * @param eventType eventType
+     * @param mapperToKey mapperToKey
+     * @param tClass tClass
+     */
+    private <T> void onCommonChanged(final String configKeyPrefix, final List<T> changedList,
+                                     final DataEventTypeEnum eventType, final Function<? super T, ? extends String> mapperToKey,
+                                     final Class<T> tClass) {
+        final List<String> changeNames = changedList.stream().map(mapperToKey).collect(Collectors.toList());
+        switch (eventType) {
+            case DELETE:
+                changedList.stream().map(mapperToKey).forEach(removeKey -> {
+                    delConfig(configKeyPrefix + removeKey);
+                });
+                delChangedData(configKeyPrefix, changeNames);
+                break;
+            case REFRESH:
+            case MYSELF:
+                final List<String> configDataNames = this.getConfigDataNames(configKeyPrefix);
+                changedList.forEach(changedData -> {
+                    publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData);
+                });
+
+                if (configDataNames != null && configDataNames.size() > changedList.size()) {
+                    configDataNames.removeAll(changeNames);
+                    configDataNames.forEach(this::delConfig);
+                }
+
+                publishConfig(configKeyPrefix + DefaultNodeConstants.LIST_STR, changeNames);
+                break;
+            default:
+                final ReentrantLock reentrantLock = listSaveLockMap.computeIfAbsent(configKeyPrefix, key -> new ReentrantLock());
+                try {
+                    reentrantLock.lock();
+                    changedList.forEach(changedData -> {
+                        publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData);
+                    });
+                    putChangeData(configKeyPrefix, changeNames);
+                } finally {
+                    reentrantLock.unlock();
+                }
+                break;
         }
+    }
+
+    private void putChangeData(final String configKeyPrefix, final List<String> changeNames) {
+        final String oldNodeListStr = Optional.ofNullable(getConfig(configKeyPrefix + DefaultNodeConstants.LIST_STR))
+                .orElse(DefaultNodeConstants.EMPTY_ARRAY_STR);
+
+        final List<String> oldNodeList = GsonUtils.getInstance().fromList(oldNodeListStr, String.class);
+        oldNodeList.addAll(changeNames.stream().filter(changeName -> !oldNodeList.contains(changeName)).collect(Collectors.toList()));
+        publishConfig(configKeyPrefix + DefaultNodeConstants.LIST_STR, oldNodeList);
+    }
+
+    private void delChangedData(final String configKeyPrefix, final List<String> changeNames) {
+        final String oldNodeListStr = Optional.ofNullable(getConfig(configKeyPrefix + DefaultNodeConstants.LIST_STR))
+                .orElse(DefaultNodeConstants.EMPTY_ARRAY_STR);
+
+        final List<String> oldNodeList = GsonUtils.getInstance().fromList(oldNodeListStr, String.class);
+        oldNodeList.removeAll(changeNames);
+        publishConfig(configKeyPrefix + DefaultNodeConstants.LIST_STR, oldNodeList);
+    }
+
+    @Override
+    public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
+        final String configKeyPrefix = changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT;
+        this.onCommonMultiChanged(changed, eventType, configKeyPrefix, SelectorData::getPluginName, SelectorData::getId);
+        LOG.debug("[DataChangedListener] SelectorChanged {}", configKeyPrefix);
     }
 
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
-            String selectorParentPath = DefaultPathConstants.buildRuleParentPath(changed.get(0).getPluginName());
-            deletePathRecursive(selectorParentPath);
-        }
-        for (RuleData data : changed) {
-            String ruleRealPath = DefaultPathConstants.buildRulePath(data.getPluginName(), data.getSelectorId(), data.getId());
-            if (eventType == DataEventTypeEnum.DELETE) {
-                deleteNode(ruleRealPath);
-                continue;
-            }
-            //create or update
-            synchronized (ruleSyncObject) {
-                createOrUpdate(ruleRealPath, data);
-            }
-            LOG.debug("[DataChangedListener] change path {} with data {}", ruleRealPath, data);
-        }
+        final String configKeyPrefix = changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT;
+        this.onCommonMultiChanged(changed, eventType,
+                configKeyPrefix, ruleData -> String.join(DefaultNodeConstants.JOIN_POINT, ruleData.getPluginName(), ruleData.getSelectorId()),
+                RuleData::getId);
+        LOG.debug("[DataChangedListener] RuleChanged {}", changeData.getRuleDataId());
     }
 
     /**
-     * createOrUpdate.
-     *
-     * @param pluginPath pluginPath
-     * @param data       data
+     * onCommonMultiChanged.
+     * save to configuration center common multi methods.
+     * examples data:
+     *  selector.key1
+     *   -> selector.key1.value1
+     *   -> selector.key1.value2
+     *   -> selector.key1.value3
+     *  selector.key2
+     *   -> selector.key2.value4
+     *   -> selector.key2.value5
+     *   -> selector.key2.value6
+     * @param changedList changedList
+     * @param eventType eventType
+     * @param configKeyPrefix configKeyPrefix
+     * @param mappingKey mappingKey
+     * @param mappingValue mappingValue
      */
-    public abstract void createOrUpdate(String pluginPath, Object data);
+    private <T> void onCommonMultiChanged(final List<T> changedList, final DataEventTypeEnum eventType,
+                                          final String configKeyPrefix, final Function<? super T, ? extends String> mappingKey,
+                                          final Function<? super T, ? extends String> mappingValue) {
+        final Map<String, List<String>> nameToIdMap = changedList.stream()
+                .collect(Collectors.groupingBy(mappingKey, Collectors.mapping(mappingValue, Collectors.toList())));
+        switch (eventType) {
+            case DELETE:
+                changedList.forEach(changedData -> {
+                    delConfig(configKeyPrefix + mappingKey.apply(changedData) + DefaultNodeConstants.JOIN_POINT + mappingValue.apply(changedData));
+                });
+                this.delChangedMapToList(nameToIdMap, configKeyPrefix);
+                break;
+            case REFRESH:
+            case MYSELF:
+            default:
+                final ReentrantLock reentrantLock = listSaveLockMap.computeIfAbsent(configKeyPrefix, key -> new ReentrantLock());
+                try {
+                    reentrantLock.lock();
+                    changedList.forEach(changedData -> {
+                        publishConfig(configKeyPrefix + mappingKey.apply(changedData) + DefaultNodeConstants.JOIN_POINT + mappingValue.apply(changedData), changedData);
+                    });
+                    this.putChangedMapToList(nameToIdMap, configKeyPrefix);
+                } catch (Exception e) {
+                    LOG.error("AbstractNodeDataChangedListener onCommonMultiChanged error ", e);
+                } finally {
+                    reentrantLock.unlock();
+                }
+                break;
+        }
+    }
+
+    private void putChangedMapToList(final Map<String, List<String>> stringListMap, final String configKeyPrefix) {
+        stringListMap.forEach((key, listIds) -> {
+            final String oldNodeListStr = Optional.ofNullable(getConfig(configKeyPrefix + key + DefaultNodeConstants.POINT_LIST))
+                    .orElse(DefaultNodeConstants.EMPTY_ARRAY_STR);
+
+            final List<String> oldNodeList = GsonUtils.getInstance().fromList(oldNodeListStr, String.class);
+            oldNodeList.addAll(listIds.stream().filter(selectorId -> !oldNodeList.contains(selectorId)).collect(Collectors.toList()));
+            if (ObjectUtils.isEmpty(oldNodeList)) {
+                delConfig(configKeyPrefix + key + DefaultNodeConstants.POINT_LIST);
+            } else {
+                publishConfig(configKeyPrefix + key + DefaultNodeConstants.POINT_LIST, oldNodeList);
+            }
+        });
+    }
+
+    private void delChangedMapToList(final Map<String, List<String>> stringListMap, final String configKeyPrefix) {
+        stringListMap.forEach((key, listIds) -> {
+            final String oldNodeListStr = Optional.ofNullable(getConfig(configKeyPrefix + key + DefaultNodeConstants.POINT_LIST))
+                    .orElse(DefaultNodeConstants.EMPTY_ARRAY_STR);
+            final List<String> oldNodeList = GsonUtils.getInstance().fromList(oldNodeListStr, String.class);
+            oldNodeList.removeAll(listIds);
+            if (ObjectUtils.isEmpty(oldNodeList)) {
+                delConfig(configKeyPrefix + key + DefaultNodeConstants.POINT_LIST);
+            } else {
+                publishConfig(configKeyPrefix + key + DefaultNodeConstants.POINT_LIST, oldNodeList);
+            }
+        });
+    }
+
+    @Override
+    public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
+        final String configKeyPrefix = changeData.getProxySelectorDataId() + DefaultNodeConstants.JOIN_POINT;
+        this.onCommonMultiChanged(changed, eventType, configKeyPrefix, ProxySelectorData::getPluginName, ProxySelectorData::getName);
+        LOG.debug("[DataChangedListener] ProxySelectorChanged {}", changeData.getProxySelectorDataId());
+    }
+
+    @Override
+    public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
+        final String configKeyPrefix = changeData.getDiscoveryDataId() + DefaultNodeConstants.JOIN_POINT;
+        this.onCommonMultiChanged(changed, eventType, configKeyPrefix, DiscoverySyncData::getPluginName, DiscoverySyncData::getSelectorName);
+        LOG.debug("[DataChangedListener] DiscoveryUpstreamChanged {}", changeData.getDiscoveryDataId());
+    }
+
+    private void publishConfig(final String dataId, final Object data) {
+        LOG.debug("[DataChangedListener] publishConfig {}", dataId);
+        this.doPublishConfig(dataId, data);
+    }
 
     /**
-     * deleteNode.
+     * doPublishConfig.
      *
-     * @param pluginPath pluginPath
+     * @param dataId dataId
+     * @param data   data
      */
-    public abstract void deleteNode(String pluginPath);
+    public abstract void doPublishConfig(String dataId, Object data);
+
+    private void delConfig(final String dataId) {
+        LOG.debug("[DataChangedListener] delConfig {}", dataId);
+        this.doDelConfig(dataId);
+    }
 
     /**
-     * deletePathRecursive.
+     * doDelConfig.
      *
-     * @param selectorParentPath selectorParentPath
+     * @param dataId dataId
      */
-    public abstract void deletePathRecursive(String selectorParentPath);
+    protected abstract void doDelConfig(String dataId);
+
+    /**
+     * getConfig.
+     *
+     * @param dataId dataId
+     * @return {@link String}
+     */
+    public abstract String getConfig(String dataId);
+
+    /**
+     * getConfigDataNames.
+     *
+     * @param configKeyPrefix configKeyPrefix
+     * @return {@link List }
+     */
+    private <T> List<String> getConfigDataNames(final String configKeyPrefix) {
+        return GsonUtils.getInstance().fromList(this.getConfig(configKeyPrefix + DefaultNodeConstants.LIST_STR), String.class);
+    }
+
+    public static class ChangeData {
+
+        /**
+         * plugin data id.
+         */
+        private final String pluginDataId;
+
+        /**
+         * selector data id.
+         */
+        private final String selectorDataId;
+
+        /**
+         * rule data id.
+         */
+        private final String ruleDataId;
+
+        /**
+         * auth data id.
+         */
+        private final String authDataId;
+
+        /**
+         * meta data id.
+         */
+        private final String metaDataId;
+
+        /**
+         * proxySelector data id.
+         */
+        private final String proxySelectorDataId;
+
+        /**
+         * discovery data id.
+         */
+        private final String discoveryDataId;
+
+        /**
+         * ChangeData.
+         *
+         * @param pluginDataId   pluginDataId
+         * @param selectorDataId selectorDataId
+         * @param ruleDataId     ruleDataId
+         * @param authDataId     authDataId
+         * @param metaDataId     metaDataId
+         */
+        public ChangeData(final String pluginDataId, final String selectorDataId,
+                          final String ruleDataId, final String authDataId,
+                          final String metaDataId, final String proxySelectorDataId, final String discoveryDataId) {
+            this.pluginDataId = pluginDataId;
+            this.selectorDataId = selectorDataId;
+            this.ruleDataId = ruleDataId;
+            this.authDataId = authDataId;
+            this.metaDataId = metaDataId;
+            this.proxySelectorDataId = proxySelectorDataId;
+            this.discoveryDataId = discoveryDataId;
+        }
+
+        /**
+         * pluginDataId.
+         *
+         * @return PluginDataId
+         */
+        public String getPluginDataId() {
+            return pluginDataId;
+        }
+
+        /**
+         * selectorDataId.
+         *
+         * @return SelectorDataId
+         */
+        public String getSelectorDataId() {
+            return selectorDataId;
+        }
+
+        /**
+         * ruleDataId.
+         *
+         * @return RuleDataId
+         */
+        public String getRuleDataId() {
+            return ruleDataId;
+        }
+
+        /**
+         * authDataId.
+         *
+         * @return AuthDataId
+         */
+        public String getAuthDataId() {
+            return authDataId;
+        }
+
+        /**
+         * metaDataId.
+         *
+         * @return MetaDataId
+         */
+        public String getMetaDataId() {
+            return metaDataId;
+        }
+
+        /**
+         * get proxySelectorDataId.
+         *
+         * @return proxySelectorDataId
+         */
+        public String getProxySelectorDataId() {
+            return proxySelectorDataId;
+        }
+
+        /**
+         * get discoveryDataId.
+         *
+         * @return discoveryDataId
+         */
+        public String getDiscoveryDataId() {
+            return discoveryDataId;
+        }
+
+    }
+
 }

@@ -18,13 +18,13 @@
 package org.apache.shenyu.admin.listener.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
-import org.apache.shenyu.admin.listener.AbstractNodeDataChangedListener;
+import org.apache.shenyu.admin.listener.AbstractPathDataChangedListener;
 import org.apache.shenyu.common.utils.GsonUtils;
 
 /**
  *  Use Consul to push data changes.
  */
-public class ConsulDataChangedListener extends AbstractNodeDataChangedListener {
+public class ConsulDataChangedListener extends AbstractPathDataChangedListener {
     private final ConsulClient consulClient;
 
     public ConsulDataChangedListener(final ConsulClient consulClient) {

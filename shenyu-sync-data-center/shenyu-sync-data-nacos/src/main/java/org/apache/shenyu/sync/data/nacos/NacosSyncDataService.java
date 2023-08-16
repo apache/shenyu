@@ -23,14 +23,13 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
-import org.apache.shenyu.sync.data.core.AbstractListDataSyncService;
+import org.apache.shenyu.sync.data.core.AbstractNodeDataSyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +41,7 @@ import java.util.function.Consumer;
 /**
  * The type Nacos sync data service.
  */
-public class NacosSyncDataService extends AbstractListDataSyncService implements SyncDataService {
+public class NacosSyncDataService extends AbstractNodeDataSyncService implements SyncDataService {
 
     private static final Logger LOG = LoggerFactory.getLogger(NacosSyncDataService.class);
 
@@ -63,37 +62,29 @@ public class NacosSyncDataService extends AbstractListDataSyncService implements
                                 final List<AuthDataSubscriber> authDataSubscribers,
                                 final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                                 final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
-        super(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+        super(new ChangeData(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.SELECTOR_DATA_ID,
+                NacosPathConstants.RULE_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID,
+                NacosPathConstants.PROXY_SELECTOR_DATA_ID, NacosPathConstants.DISCOVERY_DATA_ID),
+                pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.configService = configService;
         startWatch();
     }
 
     @Override
-    protected void removeListener(final String key) {
+    protected void doRemoveListener(final String key) {
         final Listener listener = watchCache.get(key);
         if (!ObjectUtils.isEmpty(listener)) {
             configService.removeListener(key, NacosPathConstants.GROUP, listener);
             watchCache.remove(key);
-            LOG.info("nacos sync remove listener key:{}", key);
-        }
-    }
-
-    @Override
-    protected List<String> getConfigListOnWatch(final String key, final Consumer<String> updateHandler) {
-        try {
-            if (watchCache.containsKey(key)) {
-                return GsonUtils.getInstance().fromList(configService.getConfig(key, NacosPathConstants.GROUP, 3000), String.class);
-            }
-            final String serviceConfig = getServiceConfig(key, updateHandler, null);
-            return GsonUtils.getInstance().fromList(serviceConfig, String.class);
-        } catch (Exception e) {
-            throw new ShenyuException(e);
         }
     }
 
     @Override
     protected String getServiceConfig(final String key, final Consumer<String> updateHandler, final Consumer<String> deleteHandler) {
         try {
+            if (watchCache.containsKey(key)) {
+                return null;
+            }
             final Listener listener = new Listener() {
                 @Override
                 public Executor getExecutor() {
@@ -116,18 +107,6 @@ public class NacosSyncDataService extends AbstractListDataSyncService implements
             final String serviceConfig = configService.getConfigAndSignListener(key, NacosPathConstants.GROUP, 3000, listener);
             watchCache.put(key, listener);
             return serviceConfig;
-        } catch (Exception e) {
-            throw new ShenyuException(e);
-        }
-    }
-
-    @Override
-    protected String getConfigOnWatch(final String key, final Consumer<String> updateHandler, final Consumer<String> deleteHandler) {
-        try {
-            if (watchCache.containsKey(key)) {
-                return null;
-            }
-            return getServiceConfig(key, updateHandler, deleteHandler);
         } catch (Exception e) {
             throw new ShenyuException(e);
         }

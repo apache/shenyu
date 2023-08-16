@@ -21,32 +21,30 @@ import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigChangeListener;
 import com.ctrip.framework.apollo.enums.PropertyChangeType;
 import com.ctrip.framework.apollo.model.ConfigChange;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.constant.DefaultNodeConstants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
-import org.apache.shenyu.sync.data.core.AbstractListDataSyncService;
+import org.apache.shenyu.sync.data.core.AbstractNodeDataSyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-public class ApolloDataService extends AbstractListDataSyncService implements SyncDataService {
+public class ApolloDataService extends AbstractNodeDataSyncService implements SyncDataService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ApolloDataService.class);
 
     private final Config configService;
 
-    private final Map<String, ConfigChangeListener> watchCache = new ConcurrentHashMap<>();
+    private ConfigChangeListener watchConfigChangeListener;
 
     /**
      * Instantiates a new Nacos sync data service.
@@ -61,7 +59,14 @@ public class ApolloDataService extends AbstractListDataSyncService implements Sy
                              final List<AuthDataSubscriber> authDataSubscribers,
                              final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                              final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
-        super(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+        super(new ChangeData(ApolloPathConstants.PLUGIN_DATA_ID,
+                ApolloPathConstants.SELECTOR_DATA_ID,
+                ApolloPathConstants.RULE_DATA_ID,
+                ApolloPathConstants.AUTH_DATA_ID,
+                ApolloPathConstants.META_DATA_ID,
+                ApolloPathConstants.PROXY_SELECTOR_DATA_ID,
+                ApolloPathConstants.DISCOVERY_DATA_ID),
+                pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.configService = configService;
 
         startWatch();
@@ -78,7 +83,9 @@ public class ApolloDataService extends AbstractListDataSyncService implements Sy
                         return;
                     }
                     final String newValue = configChange.getNewValue();
-                    if (changeKey.lastIndexOf("list") == changeKey.length() - 4) {
+                    // skip last is "list"
+                    final int lastListStrIndex = changeKey.length() - DefaultNodeConstants.LIST_STR.length();
+                    if (changeKey.lastIndexOf(DefaultNodeConstants.LIST_STR) == lastListStrIndex) {
                         return;
                     }
                     // check prefix
@@ -120,53 +127,29 @@ public class ApolloDataService extends AbstractListDataSyncService implements Sy
                         }
                     } else if (changeKey.indexOf(ApolloPathConstants.DISCOVERY_DATA_ID) == 0) {
                         if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
-                            unCacheProxySelectorData(changeKey);
+                            unCacheDiscoveryUpstreamData(changeKey);
                         } else {
                             cacheDiscoveryUpstreamData(newValue);
                         }
                     }
-
                 } catch (Exception e) {
                     LOG.error("apollo sync listener change key handler error", e);
                 }
             });
         };
-
+        watchConfigChangeListener = listener;
         configService.addChangeListener(listener, Collections.emptySet(), ApolloPathConstants.pathKeySet());
 
     }
 
     @Override
-    protected void removeListener(final String key) {
+    protected void doRemoveListener(final String key) {
         // No need to implement
     }
 
     @Override
-    protected List<String> getConfigListOnWatch(final String key, final Consumer<String> updateHandler) {
-        try {
-            if (watchCache.containsKey(key)) {
-                return GsonUtils.getInstance().fromList(configService.getProperty(key, null), String.class);
-            }
-            final String serviceConfig = getServiceConfig(key, updateHandler, null);
-            return GsonUtils.getInstance().fromList(serviceConfig, String.class);
-        } catch (Exception e) {
-            throw new ShenyuException(e);
-        }
-    }
-
-    @Override
-    protected String getServiceConfig(final String key, final Consumer<String> updateHandler,
-                                      final Consumer<String> deleteHandler) {
+    protected String getServiceConfig(final String key, final Consumer<String> updateHandler, final Consumer<String> deleteHandler) {
         return configService.getProperty(key, null);
-    }
-
-    @Override
-    protected String getConfigOnWatch(final String key, final Consumer<String> updateHandler, final Consumer<String> deleteHandler) {
-        try {
-            return getServiceConfig(key, updateHandler, deleteHandler);
-        } catch (Exception e) {
-            throw new ShenyuException(e);
-        }
     }
 
     /**
@@ -174,6 +157,8 @@ public class ApolloDataService extends AbstractListDataSyncService implements Sy
      */
     @Override
     public void close() {
-        watchCache.forEach((key, value) -> configService.removeChangeListener(value));
+        if (!ObjectUtils.isEmpty(watchConfigChangeListener)) {
+            configService.removeChangeListener(watchConfigChangeListener);
+        }
     }
 }

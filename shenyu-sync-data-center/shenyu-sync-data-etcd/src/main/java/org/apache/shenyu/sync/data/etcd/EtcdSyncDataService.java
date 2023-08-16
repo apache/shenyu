@@ -25,7 +25,7 @@ import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
-import org.apache.shenyu.sync.data.core.AbstractNodeDataSyncService;
+import org.apache.shenyu.sync.data.core.AbstractPathDataSyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ import java.util.Objects;
 /**
  * Data synchronize of etcd.
  */
-public class EtcdSyncDataService extends AbstractNodeDataSyncService {
+public class EtcdSyncDataService extends AbstractPathDataSyncService {
 
     private static final Logger LOG = LoggerFactory.getLogger(EtcdSyncDataService.class);
 

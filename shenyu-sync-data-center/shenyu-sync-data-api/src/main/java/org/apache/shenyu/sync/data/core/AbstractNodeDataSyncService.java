@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.sync.data.core;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
-import org.apache.shenyu.common.constant.DefaultPathConstants;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.DefaultNodeConstants;
+import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -34,19 +35,22 @@ import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
-import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
- * AbstractNodeDataSyncService.
+ * AbstractPathDataSyncService.
  * Abstract method to monitor child node changes.
  */
-public abstract class AbstractNodeDataSyncService implements SyncDataService {
+public abstract class AbstractNodeDataSyncService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractNodeDataSyncService.class);
+
+    private final ChangeData changeData;
 
     private final PluginDataSubscriber pluginDataSubscriber;
 
@@ -58,11 +62,13 @@ public abstract class AbstractNodeDataSyncService implements SyncDataService {
 
     private final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers;
 
-    public AbstractNodeDataSyncService(final PluginDataSubscriber pluginDataSubscriber,
+    public AbstractNodeDataSyncService(final ChangeData changeData,
+                                       final PluginDataSubscriber pluginDataSubscriber,
                                        final List<MetaDataSubscriber> metaDataSubscribers,
                                        final List<AuthDataSubscriber> authDataSubscribers,
                                        final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                                        final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
+        this.changeData = changeData;
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
@@ -70,226 +76,351 @@ public abstract class AbstractNodeDataSyncService implements SyncDataService {
         this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
     }
 
+    protected void startWatch() {
+        try {
+            final List<String> pluginNames = getConfigListOnWatch(changeData.getPluginDataId() + DefaultNodeConstants.POINT_LIST, updateData -> {
+                List<String> changedPluginNames = GsonUtils.getInstance().fromList(updateData, String.class);
+                watcherPlugin(changedPluginNames);
+            });
+
+            watcherPlugin(pluginNames);
+
+            watchCommonList(changeData.getAuthDataId() + DefaultNodeConstants.JOIN_POINT, this::cacheAuthData, this::unCacheAuthData);
+
+            watchCommonList(changeData.getMetaDataId() + DefaultNodeConstants.JOIN_POINT, this::cacheMetaData, this::unCacheMetaData);
+
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+
+    private List<String> getConfigListOnWatch(final String key, final Consumer<String> updateHandler) {
+        final String serviceConfig = getServiceConfig(key, updateHandler, null);
+        return GsonUtils.getInstance().fromList(serviceConfig, String.class);
+    }
+
+    protected abstract String getServiceConfig(String key, Consumer<String> updateHandler, Consumer<String> deleteHandler);
+
+    private String getConfigOnWatch(final String key, final Consumer<String> updateHandler, final Consumer<String> deleteHandler) {
+        return getServiceConfig(key, updateHandler, deleteHandler);
+    }
+
+    private void removeListener(final String removeKey) {
+        LOG.info("AbstractNodeDataSyncService sync remove listener key:{}", removeKey);
+        doRemoveListener(removeKey);
+    }
+
+    protected abstract void doRemoveListener(String removeKey);
+
+    private void watcherPlugin(final List<String> pluginNames) {
+        if (ObjectUtils.isEmpty(pluginNames)) {
+            return;
+        }
+        pluginNames.forEach(pluginName -> {
+            final String pluginData = this.getConfigOnWatch(changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT + pluginName, this::cachePluginData, this::unCachePluginData);
+            cachePluginData(pluginData);
+
+            final List<String> selectorIds = getConfigListOnWatch(changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.POINT_LIST, updateData -> {
+                List<String> changedSelectorIds = GsonUtils.getInstance().fromList(updateData, String.class);
+                watcherSelector(pluginName, changedSelectorIds);
+            });
+
+            watcherSelector(pluginName, selectorIds);
+
+            watchCommonList(NacosPathConstants.PROXY_SELECTOR_DATA_ID + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.JOIN_POINT,
+                    this::cacheProxySelectorData, this::unCacheProxySelectorData);
+            watchCommonList(NacosPathConstants.DISCOVERY_DATA_ID + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.JOIN_POINT,
+                    this::cacheProxySelectorData, this::unCacheProxySelectorData);
+        });
+    }
 
     /**
-     * event.
-     *
-     * @param updatePath updatePath
-     * @param updateData updateData
-     * @param registerPath registerPath
-     * @param eventType eventType
+     * watchCommonList.
+     * examples data:
+     *  meta.list
+     *   -> meta.id
+     *   -> meta.id
+     *   -> meta.id
+     * @param keyPrefix keyPrefix
+     * @param updateHandler updateHandler
+     * @param deleteHandler deleteHandler
      */
-    public void event(final String updatePath, final String updateData, final String registerPath, final EventType eventType) {
-        switch (registerPath) {
-            case DefaultPathConstants.PLUGIN_PARENT:
-                pluginHandlerEvent(updatePath, updateData, eventType);
-                break;
-            case DefaultPathConstants.SELECTOR_PARENT:
-                selectorHandlerEvent(updatePath, updateData, eventType);
-                break;
-            case DefaultPathConstants.META_DATA:
-                metaDataHandlerEvent(updatePath, updateData, eventType);
-                break;
-            case DefaultPathConstants.APP_AUTH_PARENT:
-                appAuthHandlerEvent(updatePath, updateData, eventType);
-                break;
-            case DefaultPathConstants.RULE_PARENT:
-                ruleHandlerEvent(updatePath, updateData, eventType);
-                break;
-            case DefaultPathConstants.DISCOVERY_UPSTREAM:
-                discoveryUpstreamHandlerEvent(updatePath, updateData, eventType);
-                break;
-            case DefaultPathConstants.PROXY_SELECTOR:
-                proxyHandlerEvent(updatePath, updateData, eventType);
-                break;
-            default:
-                break;
-        }
+    private void watchCommonList(final String keyPrefix, final Consumer<String> updateHandler,
+                                 final Consumer<String> deleteHandler) {
+        final List<String> keyIds = getConfigListOnWatch(keyPrefix + DefaultNodeConstants.LIST_STR, updateData -> {
+            List<String> changedIds = GsonUtils.getInstance().fromList(updateData, String.class);
+            watcherCommonData(changedIds, keyPrefix, updateHandler, deleteHandler);
+        });
+
+        watcherCommonData(keyIds, keyPrefix, updateHandler, deleteHandler);
     }
 
-    private void proxyHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
-        String[] pathInfoArray = updatePath.split("/");
-        if (pathInfoArray.length != 5) {
+    private void watcherCommonData(final List<String> keys, final String keyPrefix,
+                                   final Consumer<String> updateHandler, final Consumer<String> deleteHandler) {
+        if (ObjectUtils.isEmpty(keys)) {
             return;
         }
-        String pluginName = pathInfoArray[pathInfoArray.length - 2];
-        String proxySelectorName = pathInfoArray[pathInfoArray.length - 1];
-        if (EventType.DELETE.equals(eventType)) {
-            ProxySelectorData proxySelectorData = new ProxySelectorData();
-            proxySelectorData.setPluginName(pluginName);
-            proxySelectorData.setName(proxySelectorName);
-            unCacheProxySelectorData(proxySelectorData);
+        keys.forEach(key -> {
+            final String keyData = this.getConfigOnWatch(keyPrefix + key, updateHandler, deleteHandler);
+            updateHandler.accept(keyData);
+        });
+    }
+
+    private void watcherSelector(final String pluginName, final List<String> selectorIds) {
+        if (ObjectUtils.isEmpty(selectorIds)) {
             return;
         }
-        ProxySelectorData proxySelectorData = GsonUtils.getInstance().fromJson(updateData, ProxySelectorData.class);
-        proxySelectorData.setName(proxySelectorName);
-        proxySelectorData.setPluginName(pluginName);
-        Optional.ofNullable(updateData)
-                .ifPresent(e -> cacheProxySelectorData(proxySelectorData));
+        selectorIds.forEach(selectorId -> {
+            final String selectorData = this.getConfigOnWatch(changeData.getSelectorDataId()
+                            + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.JOIN_POINT + selectorId,
+                    this::cacheSelectorData, this::unCacheSelectorData);
+
+            cacheSelectorData(selectorData);
+
+            final List<String> ruleIds = getConfigListOnWatch(changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT
+                    + pluginName + DefaultNodeConstants.JOIN_POINT + selectorId + DefaultNodeConstants.POINT_LIST,
+                updateData -> {
+                    List<String> upSelectorIds = GsonUtils.getInstance().fromList(updateData, String.class);
+                    watcherRule(selectorId, upSelectorIds, pluginName);
+                });
+
+            watcherRule(selectorId, ruleIds, pluginName);
+        });
     }
 
-    private void discoveryUpstreamHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
-        String[] pathInfoArray2 = updatePath.split("/");
-        if (pathInfoArray2.length != 5) {
+    private void watcherRule(final String selectorId, final List<String> ruleIds, final String pluginName) {
+        if (ObjectUtils.isEmpty(ruleIds)) {
             return;
         }
-        if (!EventType.DELETE.equals(eventType)) {
-            Optional.ofNullable(updateData)
-                    .ifPresent(e -> cacheDiscoveryUpstreamData(GsonUtils.getInstance().fromJson(updateData, DiscoverySyncData.class)));
-        }
+        ruleIds.forEach(ruleId -> {
+            final String ruleDataStr = this.getConfigOnWatch(changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT + pluginName 
+                            + DefaultNodeConstants.JOIN_POINT + selectorId + DefaultNodeConstants.JOIN_POINT + ruleId,
+                    this::cacheRuleData, this::unCacheRuleData);
+            cacheRuleData(ruleDataStr);
+        });
     }
 
-    private void ruleHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
-        if (EventType.DELETE.equals(eventType)) {
-            unCacheRuleData(updatePath);
-            return;
-        }
-        Optional.ofNullable(updateData)
-                .ifPresent(e -> cacheRuleData(GsonUtils.getInstance().fromJson(updateData, RuleData.class)));
-    }
-
-    private void appAuthHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
-        if (EventType.DELETE.equals(eventType)) {
-            unCacheAuthData(updatePath);
-            return;
-        }
-        Optional.ofNullable(updateData)
-                .ifPresent(e -> cacheAuthData(GsonUtils.getInstance().fromJson(updateData, AppAuthData.class)));
-    }
-
-    private void metaDataHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
-        if (EventType.DELETE.equals(eventType)) {
-            final String realPath = updatePath.substring(DefaultPathConstants.META_DATA.length() + 1);
-            MetaData metaData = new MetaData();
-            try {
-                metaData.setPath(URLDecoder.decode(realPath, StandardCharsets.UTF_8.name()));
-            } catch (UnsupportedEncodingException e) {
-                throw new ShenyuException(e);
-            }
-            unCacheMetaData(metaData);
-            return;
-        }
-        Optional.ofNullable(updateData)
-                .ifPresent(e -> cacheMetaData(GsonUtils.getInstance().fromJson(updateData, MetaData.class)));
-    }
-
-    private void selectorHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
-        if (EventType.DELETE.equals(eventType)) {
-            unCacheSelectorData(updatePath);
-            return;
-        }
-        Optional.ofNullable(updateData)
-                .ifPresent(e -> cacheSelectorData(GsonUtils.getInstance().fromJson(updateData, SelectorData.class)));
-    }
-
-    private void pluginHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
-        if (EventType.DELETE.equals(eventType)) {
-            String pluginName = updatePath.substring(updatePath.lastIndexOf("/") + 1);
-            unCachePluginName(pluginName);
-            return;
-        }
-        Optional.ofNullable(updateData)
-                .ifPresent(e -> cachePluginData(GsonUtils.getInstance().fromJson(updateData, PluginData.class)));
-    }
-
-    public enum EventType {
-        PUT,
-        DELETE,
-    }
-
-    protected void cachePluginData(final PluginData pluginData) {
+    protected void cachePluginData(final String dataString) {
+        final PluginData pluginData = GsonUtils.getInstance().fromJson(dataString, PluginData.class);
         Optional.ofNullable(pluginData)
-                .flatMap(data -> Optional.ofNullable(pluginDataSubscriber))
-                .ifPresent(e -> e.onSubscribe(pluginData));
+                .flatMap(data -> Optional.ofNullable(pluginDataSubscriber)).ifPresent(e -> e.onSubscribe(pluginData));
     }
 
-    protected void cacheSelectorData(final SelectorData selectorData) {
+    protected void unCachePluginData(final String pluginName) {
+        final PluginData data = new PluginData();
+        data.setName(pluginName);
+        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(data));
+    }
+
+    protected void cacheSelectorData(final String dataString) {
+        final SelectorData selectorData = GsonUtils.getInstance().fromJson(dataString, SelectorData.class);
         Optional.ofNullable(selectorData)
-                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber)
-                        .ifPresent(e -> e.onSelectorSubscribe(data)));
+                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSelectorSubscribe(data)));
     }
 
-    protected void unCacheSelectorData(final String dataPath) {
-        SelectorData selectorData = new SelectorData();
-        final String selectorId = dataPath.substring(dataPath.lastIndexOf("/") + 1);
-        final String str = dataPath.substring(DefaultPathConstants.SELECTOR_PARENT.length());
-        final int pluginNameIndex = str.length() - selectorId.length() - 1;
-        if (pluginNameIndex <= 0) {
-            return;
-        }
-        final String pluginName = str.substring(1, pluginNameIndex);
-        selectorData.setPluginName(pluginName);
-        selectorData.setId(selectorId);
-
-        Optional.ofNullable(pluginDataSubscriber)
-                .ifPresent(e -> e.unSelectorSubscribe(selectorData));
+    protected void unCacheSelectorData(final String removeKey) {
+        final SelectorData selectorData = new SelectorData();
+        final String[] ruleKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        selectorData.setPluginName(ruleKeys[1]);
+        selectorData.setId(ruleKeys[2]);
+        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSelectorSubscribe(selectorData));
+        removeListener(removeKey);
     }
 
-    protected void unCachePluginName(final String pluginName) {
-        final PluginData pluginData = new PluginData();
-        pluginData.setName(pluginName);
-        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(pluginData));
-    }
-
-    protected void cacheRuleData(final RuleData ruleData) {
+    protected void cacheRuleData(final String dataString) {
+        final RuleData ruleData = GsonUtils.getInstance().fromJson(dataString, RuleData.class);
         Optional.ofNullable(ruleData)
-                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber)
-                        .ifPresent(e -> e.onRuleSubscribe(data)));
+                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onRuleSubscribe(data)));
     }
 
-    protected void unCacheRuleData(final String dataPath) {
-        String ruleDataId = dataPath.substring(dataPath.lastIndexOf("/") + 1);
-        final String str = dataPath.substring(DefaultPathConstants.RULE_PARENT.length());
-        final int pluginNameIndex = str.length() - ruleDataId.length() - 1;
-        if (pluginNameIndex <= 0) {
-            return;
-        }
-        final String pluginName = str.substring(1, pluginNameIndex);
-        final List<String> list = Lists.newArrayList(Splitter.on(DefaultPathConstants.SELECTOR_JOIN_RULE).split(ruleDataId));
-
-        RuleData ruleData = new RuleData();
-        ruleData.setPluginName(pluginName);
-        ruleData.setSelectorId(list.get(0));
-        ruleData.setId(list.get(1));
-
-        Optional.ofNullable(pluginDataSubscriber)
-                .ifPresent(e -> e.unRuleSubscribe(ruleData));
+    protected void unCacheRuleData(final String removeKey) {
+        final RuleData ruleData = new RuleData();
+        final String[] ruleKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        ruleData.setPluginName(ruleKeys[1]);
+        ruleData.setSelectorId(ruleKeys[2]);
+        ruleData.setId(ruleKeys[3]);
+        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unRuleSubscribe(ruleData));
+        removeListener(removeKey);
     }
 
-    protected void cacheAuthData(final AppAuthData appAuthData) {
+    protected void cacheAuthData(final String dataString) {
+        final AppAuthData appAuthData = GsonUtils.getInstance().fromJson(dataString, AppAuthData.class);
         Optional.ofNullable(appAuthData)
                 .ifPresent(data -> authDataSubscribers.forEach(e -> e.onSubscribe(data)));
     }
 
-    protected void unCacheAuthData(final String dataPath) {
-        final String key = dataPath.substring(DefaultPathConstants.APP_AUTH_PARENT.length() + 1);
-        AppAuthData appAuthData = new AppAuthData();
-        appAuthData.setAppKey(key);
+    protected void unCacheAuthData(final String removeKey) {
+        final AppAuthData appAuthData = new AppAuthData();
+        final String[] ruleKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        appAuthData.setAppKey(ruleKeys[1]);
         authDataSubscribers.forEach(e -> e.unSubscribe(appAuthData));
+        removeListener(removeKey);
     }
 
-    protected void cacheMetaData(final MetaData metaData) {
+    protected void cacheMetaData(final String dataString) {
+        final MetaData metaData = GsonUtils.getInstance().fromJson(dataString, MetaData.class);
         Optional.ofNullable(metaData)
                 .ifPresent(data -> metaDataSubscribers.forEach(e -> e.onSubscribe(metaData)));
     }
 
-    protected void cacheProxySelectorData(final ProxySelectorData proxySelectorData) {
+    protected void unCacheMetaData(final String removeKey) {
+        final MetaData metaData = new MetaData();
+        final String[] ruleKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        metaData.setId(ruleKeys[1]);
+        metaDataSubscribers.forEach(e -> e.unSubscribe(metaData));
+        removeListener(removeKey);
+    }
+
+    protected void cacheProxySelectorData(final String dataString) {
+        final ProxySelectorData proxySelectorData = GsonUtils.getInstance().fromJson(dataString, ProxySelectorData.class);
         Optional.ofNullable(proxySelectorData)
-                .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.onSubscribe(proxySelectorData)));
+                .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.onSubscribe(data)));
     }
 
-    protected void cacheDiscoveryUpstreamData(final DiscoverySyncData upstreamDataList) {
-        Optional.ofNullable(discoveryUpstreamDataSubscribers)
-                .ifPresent(data -> discoveryUpstreamDataSubscribers.forEach(e -> e.onSubscribe(upstreamDataList)));
+    protected void unCacheProxySelectorData(final String removeKey) {
+        ProxySelectorData proxySelectorData = new ProxySelectorData();
+        final String[] proxySelectorKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        proxySelectorData.setPluginName(proxySelectorKeys[2]);
+        proxySelectorData.setName(proxySelectorKeys[3]);
+        proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData));
+        removeListener(removeKey);
     }
 
-    protected void unCacheMetaData(final MetaData metaData) {
-        Optional.ofNullable(metaData)
-                .ifPresent(data -> metaDataSubscribers.forEach(e -> e.unSubscribe(metaData)));
+    protected void cacheDiscoveryUpstreamData(final String dataString) {
+        final DiscoverySyncData discoverySyncData = GsonUtils.getInstance().fromJson(dataString, DiscoverySyncData.class);
+        Optional.ofNullable(discoverySyncData)
+                .ifPresent(data -> discoveryUpstreamDataSubscribers.forEach(e -> e.onSubscribe(data)));
     }
 
-    protected void unCacheProxySelectorData(final ProxySelectorData proxySelectorData) {
-        Optional.ofNullable(proxySelectorData)
-                .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData)));
+    protected void unCacheDiscoveryUpstreamData(final String removeKey) {
+        DiscoverySyncData proxySelectorData = new DiscoverySyncData();
+        final String[] proxySelectorKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        proxySelectorData.setPluginName(proxySelectorKeys[2]);
+        proxySelectorData.setSelectorId(proxySelectorKeys[3]);
+        discoveryUpstreamDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData));
+        removeListener(removeKey);
+    }
+
+    public static class ChangeData {
+
+        /**
+         * plugin data id.
+         */
+        private final String pluginDataId;
+
+        /**
+         * selector data id.
+         */
+        private final String selectorDataId;
+
+        /**
+         * rule data id.
+         */
+        private final String ruleDataId;
+
+        /**
+         * auth data id.
+         */
+        private final String authDataId;
+
+        /**
+         * meta data id.
+         */
+        private final String metaDataId;
+
+        /**
+         * proxySelector data id.
+         */
+        private final String proxySelectorDataId;
+
+        /**
+         * discovery data id.
+         */
+        private final String discoveryDataId;
+
+        /**
+         * ChangeData.
+         *
+         * @param pluginDataId   pluginDataId
+         * @param selectorDataId selectorDataId
+         * @param ruleDataId     ruleDataId
+         * @param authDataId     authDataId
+         * @param metaDataId     metaDataId
+         */
+        public ChangeData(final String pluginDataId, final String selectorDataId,
+                          final String ruleDataId, final String authDataId,
+                          final String metaDataId, final String proxySelectorDataId, final String discoveryDataId) {
+            this.pluginDataId = pluginDataId;
+            this.selectorDataId = selectorDataId;
+            this.ruleDataId = ruleDataId;
+            this.authDataId = authDataId;
+            this.metaDataId = metaDataId;
+            this.proxySelectorDataId = proxySelectorDataId;
+            this.discoveryDataId = discoveryDataId;
+        }
+
+        /**
+         * pluginDataId.
+         *
+         * @return PluginDataId
+         */
+        public String getPluginDataId() {
+            return pluginDataId;
+        }
+
+        /**
+         * selectorDataId.
+         *
+         * @return SelectorDataId
+         */
+        public String getSelectorDataId() {
+            return selectorDataId;
+        }
+
+        /**
+         * ruleDataId.
+         *
+         * @return RuleDataId
+         */
+        public String getRuleDataId() {
+            return ruleDataId;
+        }
+
+        /**
+         * authDataId.
+         *
+         * @return AuthDataId
+         */
+        public String getAuthDataId() {
+            return authDataId;
+        }
+
+        /**
+         * metaDataId.
+         *
+         * @return MetaDataId
+         */
+        public String getMetaDataId() {
+            return metaDataId;
+        }
+
+        /**
+         * get proxySelectorDataId.
+         *
+         * @return proxySelectorDataId
+         */
+        public String getProxySelectorDataId() {
+            return proxySelectorDataId;
+        }
+
+        /**
+         * get discoveryDataId.
+         *
+         * @return discoveryDataId
+         */
+        public String getDiscoveryDataId() {
+            return discoveryDataId;
+        }
+
     }
 }

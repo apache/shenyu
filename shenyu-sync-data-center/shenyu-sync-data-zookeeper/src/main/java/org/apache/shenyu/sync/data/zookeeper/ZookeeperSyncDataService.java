@@ -26,7 +26,7 @@ import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
-import org.apache.shenyu.sync.data.core.AbstractNodeDataSyncService;
+import org.apache.shenyu.sync.data.core.AbstractPathDataSyncService;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -35,7 +35,7 @@ import java.util.Objects;
 /**
  * this cache data with zookeeper.
  */
-public class ZookeeperSyncDataService extends AbstractNodeDataSyncService {
+public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
 
     private final ZookeeperClient zkClient;
 

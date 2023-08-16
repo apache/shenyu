@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.listener.apollo;
 
-import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
+import org.apache.shenyu.admin.listener.AbstractNodeDataChangedListener;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
 
 /**
@@ -25,7 +25,7 @@ import org.apache.shenyu.common.constant.ApolloPathConstants;
  *
  * @since 2.6.0
  */
-public class ApolloDataChangedListener extends AbstractListDataChangedListener {
+public class ApolloDataChangedListener extends AbstractNodeDataChangedListener {
     private final ApolloClient apolloClient;
 
     /**
@@ -45,7 +45,7 @@ public class ApolloDataChangedListener extends AbstractListDataChangedListener {
     }
 
     @Override
-    public void publishConfig(final String dataId, final Object data) {
+    public void doPublishConfig(final String dataId, final Object data) {
         this.apolloClient.createOrUpdateItem(dataId, data, "create config data");
         this.apolloClient.publishNamespace("publish config data", "");
     }
@@ -56,7 +56,7 @@ public class ApolloDataChangedListener extends AbstractListDataChangedListener {
     }
 
     @Override
-    public void delConfig(final String dataId) {
+    public void doDelConfig(final String dataId) {
         this.apolloClient.removeItemKey(dataId);
         this.apolloClient.publishNamespace("delete config data", "");
     }

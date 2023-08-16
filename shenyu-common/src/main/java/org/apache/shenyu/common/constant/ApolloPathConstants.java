@@ -92,7 +92,8 @@ public class ApolloPathConstants {
      * @return path key set
      */
     public static Set<String> pathKeySet() {
-        return new HashSet<>(Arrays.asList(PLUGIN_DATA_ID, SELECTOR_DATA_ID, RULE_DATA_ID, AUTH_DATA_ID, META_DATA_ID));
+        return new HashSet<>(Arrays.asList(PLUGIN_DATA_ID, SELECTOR_DATA_ID, RULE_DATA_ID, AUTH_DATA_ID,
+                META_DATA_ID, PROXY_SELECTOR_DATA_ID, DISCOVERY_DATA_ID));
     }
 }
 

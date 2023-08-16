@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.listener.nacos;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.exception.NacosException;
-import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
+import org.apache.shenyu.admin.listener.AbstractNodeDataChangedListener;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Use nacos to push data changes.
  */
-public class NacosDataChangedListener extends AbstractListDataChangedListener {
+public class NacosDataChangedListener extends AbstractNodeDataChangedListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(NacosDataChangedListener.class);
 
@@ -38,12 +38,13 @@ public class NacosDataChangedListener extends AbstractListDataChangedListener {
 
     public NacosDataChangedListener(final ConfigService configService) {
         super(new ChangeData(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.SELECTOR_DATA_ID,
-                NacosPathConstants.RULE_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID, NacosPathConstants.PROXY_SELECTOR_DATA_ID, NacosPathConstants.DISCOVERY_DATA_ID));
+                NacosPathConstants.RULE_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID,
+                NacosPathConstants.PROXY_SELECTOR_DATA_ID, NacosPathConstants.DISCOVERY_DATA_ID));
         this.configService = configService;
     }
 
     @Override
-    public void publishConfig(final String dataId, final Object data) {
+    public void doPublishConfig(final String dataId, final Object data) {
         try {
             configService.publishConfig(
                     dataId, 
@@ -57,7 +58,7 @@ public class NacosDataChangedListener extends AbstractListDataChangedListener {
     }
 
     @Override
-    public void delConfig(final String dataId) {
+    public void doDelConfig(final String dataId) {
         try {
             configService.removeConfig(
                     dataId,
