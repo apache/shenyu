@@ -19,7 +19,7 @@ package org.apache.shenyu.sync.data.polaris;
 
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import org.apache.shenyu.sync.data.polaris.config.PolarisConfig;
-import org.apache.shenyu.sync.data.polaris.handler.PolarisMockConfigFileService;
+import org.apache.shenyu.sync.data.polaris.handler.PolarisMockConfigService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +36,7 @@ public class PolarisSyncDataServiceTest {
     @BeforeEach
     public void setup() {
         PolarisConfig polarisConfig = new PolarisConfig();
-        ConfigFileService configFileService = new PolarisMockConfigFileService(new HashMap<>());
+        ConfigFileService configFileService = new PolarisMockConfigService(new HashMap<>());
         polarisSyncDataService = new PolarisSyncDataService(polarisConfig, configFileService, null,
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
     }

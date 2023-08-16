@@ -44,7 +44,7 @@ public class CombinedExecutor implements Executor {
         final Duration timeoutDuration = resilience4JConf.getTimeLimiterConfig().getTimeoutDuration();
         Mono<T> to = run.transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
                 .transformDeferred(RateLimiterOperator.of(rateLimiter))
-                .timeout(timeoutDuration, Mono.error(new TimeoutException("Response took longer than timeout: " + timeoutDuration)))
+                .timeout(timeoutDuration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + timeoutDuration)))
                 .doOnError(TimeoutException.class, t -> circuitBreaker.onError(
                         resilience4JConf.getTimeLimiterConfig().getTimeoutDuration().toMillis(),
                         TimeUnit.MILLISECONDS,
