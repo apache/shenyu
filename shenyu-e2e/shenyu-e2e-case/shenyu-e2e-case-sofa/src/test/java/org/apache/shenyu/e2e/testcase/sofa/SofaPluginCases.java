@@ -160,7 +160,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithEndWith() {
         return ShenYuScenarioSpec.builder()
-                .name("single-alibaba-sofa uri ends_with]")
+                .name("single-sofa uri ends_with]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
@@ -194,7 +194,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithMethodGet() {
         return ShenYuScenarioSpec.builder()
-                .name("single-alibaba-sofa uri method GET]")
+                .name("single-sofa uri method GET]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
@@ -234,7 +234,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithMethodPost() {
         return ShenYuScenarioSpec.builder()
-                .name("single-alibaba-sofa uri method POST]")
+                .name("single-sofa uri method POST]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
@@ -274,7 +274,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithMethodPut() {
         return ShenYuScenarioSpec.builder()
-                .name("single-alibaba-sofa uri method PUT]")
+                .name("single-sofa uri method PUT]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
@@ -314,7 +314,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithMethodDelete() {
         return ShenYuScenarioSpec.builder()
-                .name("single-alibaba-sofa uri method DELETE]")
+                .name("single-sofa uri method DELETE]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(

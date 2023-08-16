@@ -42,6 +42,7 @@ import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.reconciler.EndpointsReconciler;
 import org.apache.shenyu.k8s.reconciler.IngressReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
+import org.apache.shenyu.plugin.base.cache.CommonMetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -157,12 +158,13 @@ public class IngressControllerConfiguration {
     /**
      * ShenyuCacheRepository.
      *
-     * @param subscriber PluginDataSubscriber
+     * @param pluginDataSubscriber PluginDataSubscriber
+     * @param metaDataSubscriber CommonMetaDataSubscriber
      * @return ShenyuCacheRepository
      */
     @Bean
-    public ShenyuCacheRepository shenyuCacheRepository(final PluginDataSubscriber subscriber) {
-        return new ShenyuCacheRepository(subscriber);
+    public ShenyuCacheRepository shenyuCacheRepository(final PluginDataSubscriber pluginDataSubscriber, final CommonMetaDataSubscriber metaDataSubscriber) {
+        return new ShenyuCacheRepository(pluginDataSubscriber, metaDataSubscriber);
     }
 
     /**
