@@ -26,3 +26,4 @@ TimeAfter=org.apache.shenyu.plugin.base.condition.judge.TimerAfterPredicateJudge
 TimeBefore=org.apache.shenyu.plugin.base.condition.judge.TimerBeforePredicateJudge
 exclude=org.apache.shenyu.plugin.base.condition.judge.ExcludePredicateJudge
 pathPattern=org.apache.shenyu.plugin.base.condition.judge.PathPatternPredicateJudge
+isBlank=org.apache.shenyu.plugin.base.condition.judge.BlankPredicateJudge

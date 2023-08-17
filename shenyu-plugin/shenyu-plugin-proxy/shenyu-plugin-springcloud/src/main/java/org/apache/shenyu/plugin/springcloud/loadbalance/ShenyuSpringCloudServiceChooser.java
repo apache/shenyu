@@ -135,7 +135,7 @@ public final class ShenyuSpringCloudServiceChooser {
         }
         return serviceInstanceList.stream()
                 .map(serviceInstance -> buildDefaultSpringCloudUpstream(serviceInstance.getUri().getRawAuthority(),
-                        serviceInstance.getScheme() + "://"))
+                        serviceInstance.getUri().getScheme() + "://"))
                 .distinct()
                 .collect(Collectors.toList());
     }
