@@ -59,7 +59,6 @@ public final class RuleConditionDTO implements Serializable {
     /**
      * parameter value.
      */
-    @NotBlank
     private String paramValue;
 
     public RuleConditionDTO() {

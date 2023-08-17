@@ -29,6 +29,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.http.HttpStatus;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -177,10 +178,7 @@ public class HttpUtils {
     public String get(final String url, final Map<String, String> header) throws IOException {
         Request.Builder builder = new Request.Builder().url(url).get();
         addHeader(builder, header);
-
-        Request request = builder.build();
-        Response response = httpClient.newCall(request).execute();
-        return response.body().string();
+        return reqString(builder.build());
     }
 
     /**
@@ -197,13 +195,7 @@ public class HttpUtils {
         final HTTPMethod method) throws IOException {
         Request.Builder requestBuilder = buildRequestBuilder(url, form, method);
         addHeader(requestBuilder, header);
-
-        Request request = requestBuilder.build();
-        try (Response response = httpClient
-            .newCall(request)
-            .execute()) {
-            return response.body().string();
-        }
+        return reqString(requestBuilder.build());
     }
 
     /**
@@ -222,13 +214,7 @@ public class HttpUtils {
             .url(url)
             .post(body);
         addHeader(requestBuilder, header);
-
-        Request request = requestBuilder.build();
-        try (Response response = httpClient
-            .newCall(request)
-            .execute()) {
-            return response.body().string();
-        }
+        return reqString(requestBuilder.build());
     }
 
     /**
@@ -372,6 +358,17 @@ public class HttpUtils {
             for (Map.Entry<String, String> entry : entrySet) {
                 builder.addHeader(entry.getKey(), String.valueOf(entry.getValue()));
             }
+        }
+    }
+
+    private String reqString(final Request request) throws IOException {
+        try (Response response = httpClient
+            .newCall(request)
+            .execute()) {
+            if (response.code() != HttpStatus.SC_OK) {
+                throw new IOException(response.toString());
+            }
+            return response.body().string();
         }
     }
 

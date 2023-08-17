@@ -66,6 +66,24 @@ public class ClickHouseLogCollectConfig {
 
         private String engine;
 
+        private String ttl;
+
+        /**
+         * get ttl.
+         * @return ttl
+         */
+        public String getTtl() {
+            return ttl;
+        }
+
+        /**
+         * set ttl.
+         * @param ttl ttl
+         */
+        public void setTtl(final String ttl) {
+            this.ttl = ttl;
+        }
+
         /**
          * get clusterName.
          * @return clusterName
