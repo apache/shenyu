@@ -82,7 +82,7 @@ public class GrpcPluginTest {
     @BeforeAll
     void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
-        Thread.sleep(10000);
+        Thread.sleep(20000);
         final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         final List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
         final List<RuleDTO> ruleDTOList = adminClient.listAllRules();
