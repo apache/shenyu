@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.e2e.client.admin;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Function;
@@ -54,6 +55,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
@@ -477,9 +479,35 @@ public class AdminClient {
         Assertions.assertNotNull(rst, "checking http response body");
         return Assertions.assertDoesNotThrow(() -> rst.toObject(valueType), "checking cast data to " + valueType.getSimpleName());
     }
-    
+
+    /**
+     * change plugin status.
+     *
+     * @param id id
+     * @param selectorData selectorData
+     */
+    public void changeSelector(final String id, final SelectorData selectorData) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            putResourceByJson("/selector", id, mapper.writeValueAsString(selectorData));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void putResourceByJson(final String uri, final String id, final String json) {
+        basicAuth.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        HttpEntity<String> requestEntity = new HttpEntity<>(json, basicAuth);
+        ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri + "/" + id, HttpMethod.PUT, requestEntity, ShenYuResult.class);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
+        ShenYuResult rst = response.getBody();
+        Assertions.assertNotNull(rst, "checking http response body");
+        basicAuth.remove("Content-Type");
+    }
+
     @FunctionalInterface
     interface Mapper<I, O> extends Function<I, O> {
     
     }
+    
 }
