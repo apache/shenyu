@@ -29,6 +29,9 @@ import org.springframework.cloud.openfeign.loadbalancer.FeignBlockingLoadBalance
 import org.springframework.cloud.openfeign.loadbalancer.RetryableFeignBlockingLoadBalancerClient;
 import org.springframework.util.Assert;
 
+/**
+ * custom a shenyu client capability to enrich clients.
+ */
 public class ShenyuClientCapability implements Capability {
 
     public static final String SHENYU_SERVICE_ID = "shenyu-gateway";
