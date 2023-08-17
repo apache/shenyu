@@ -14,7 +14,7 @@
 # limitations under the License.
 server:
   port: 8899
-  #address: 0.0.0.0
+  address: 0.0.0.0
   tomcat:
     max-http-form-post-size: 100MB
 
