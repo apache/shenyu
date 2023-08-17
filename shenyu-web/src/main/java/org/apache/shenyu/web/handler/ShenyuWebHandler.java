@@ -37,12 +37,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -258,7 +253,11 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                     if (skip) {
                         return this.execute(exchange);
                     }
-                    return plugin.execute(exchange, this);
+                    Map<String, Object> map = new HashMap<>();
+                    plugin.before(map);
+                    Mono<Void> execute = plugin.execute(exchange, this);
+                    plugin.after(map);
+                    return execute;
                 }
                 return Mono.empty();
             });

@@ -25,6 +25,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -127,5 +128,20 @@ public interface ShenyuPlugin {
     default boolean skipExceptHttpLike(ServerWebExchange exchange) {
         return !skip(exchange, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD);
     }
+
+    /**
+     * Plugin before operation.
+     *
+     * @param context context
+     */
+    default void before(Map<String, Object> context) {}
+
+    /**
+     * Plugin after operation
+     *
+     * @param context context
+     */
+    default void after(Map<String, Object> context) {}
+
 }
 
