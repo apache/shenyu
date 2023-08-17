@@ -155,7 +155,7 @@ public class ConsulSyncDataService extends AbstractNodeDataSyncService {
                     if (!Objects.isNull(lastDatas)) {
                         final ConsulData consulData = lastDatas.stream()
                                 .filter(lastData -> data.getKey().equals(lastData.getConsulKey())).findFirst().orElse(null);
-                        if (consulData != null && !StringUtils.isBlank(consulData.getConsulDataMd5())
+                        if (!Objects.isNull(consulData) && !StringUtils.isBlank(consulData.getConsulDataMd5())
                                 && consulData.getConsulDataMd5().equals(DigestUtils.md5Hex(data.getValue()))) {
                             return;
                         }
