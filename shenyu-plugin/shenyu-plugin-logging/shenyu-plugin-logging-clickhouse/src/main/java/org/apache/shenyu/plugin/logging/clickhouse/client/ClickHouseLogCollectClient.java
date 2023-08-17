@@ -51,6 +51,11 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
 
     private String database;
 
+    /**
+     * consume logs.
+     * @param logs logs
+     * @throws Exception exception
+     */
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) throws Exception {
         if (CollectionUtils.isNotEmpty(logs)) {
