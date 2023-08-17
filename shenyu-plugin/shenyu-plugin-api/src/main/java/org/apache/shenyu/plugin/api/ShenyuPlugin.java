@@ -25,7 +25,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -134,13 +133,15 @@ public interface ShenyuPlugin {
      *
      * @param exchange context
      */
-    default void before(ServerWebExchange exchange){}
+    default void before(ServerWebExchange exchange) {
+    }
 
     /**
      * Plugin after operation.
      *
      * @param exchange context
      */
-    default void after(ServerWebExchange exchange){}
+    default void after(ServerWebExchange exchange) {
+    }
 }
 
