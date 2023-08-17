@@ -76,7 +76,7 @@ public final class PredicateJudgeFactoryTest {
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**/test"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/http1/**"));
     }
-    
+
     @Test
     public void testPathPatternJudge() {
         conditionData.setOperator(OperatorEnum.PATH_PATTERN.getAlias());
@@ -148,5 +148,13 @@ public final class PredicateJudgeFactoryTest {
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/**/test/http/"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/test/http/**"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/**/http1/"));
+    }
+
+    @Test
+    public void testIsBlankJudge() {
+        conditionData.setOperator(OperatorEnum.IS_BLANK.getAlias());
+        assertTrue(PredicateJudgeFactory.judge(conditionData, null));
+        assertTrue(PredicateJudgeFactory.judge(conditionData, ""));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, "test"));
     }
 }
