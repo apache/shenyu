@@ -17,8 +17,12 @@
 
 package org.apache.shenyu.e2e.engine.scenario.function;
 
+import io.restassured.http.Header;
 import io.restassured.http.Method;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.http.HttpStatus;
+
+import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.lessThan;
@@ -85,6 +89,29 @@ public class HttpCheckers {
                         .log()
                         .ifValidationFails()
                         .body("code", nullValue())
+                        .body("message", not(containsString("please check your configuration!")));
+            } catch (AssertionError error) {
+                Assertions.fail("endpoint '" + endpoint + "' not exists", error);
+            }
+        };
+    }
+
+    /**
+     * Detection endpoint exists.
+     *
+     * @param method method
+     * @param endpoint endpoint
+     * @param body body
+     * @return HttpChecker
+     */
+    public static HttpChecker exists(final Method method, final String endpoint, final Map<String, ?> body) {
+        return request -> {
+            try {
+                request.header(new Header("Content-Type", "application/json")).body(body).request(method, endpoint)
+                        .then()
+                        .log()
+                        .ifValidationFails()
+                        .statusCode(HttpStatus.OK.value())
                         .body("message", not(containsString("please check your configuration!")));
             } catch (AssertionError error) {
                 Assertions.fail("endpoint '" + endpoint + "' not exists", error);

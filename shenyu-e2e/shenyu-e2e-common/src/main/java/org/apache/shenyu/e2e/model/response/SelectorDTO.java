@@ -42,7 +42,7 @@ public final class SelectorDTO implements ResourceDTO {
     private int type;
 
     private String typeName;
-    
+
     private int sort;
 
     private boolean enabled;
@@ -51,16 +51,16 @@ public final class SelectorDTO implements ResourceDTO {
     private boolean logged;
 
     private boolean continued;
-    
+
     private String handle;
-    
+
     @JsonProperty("selectorConditions")
     private List<Condition> conditionList;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date dateCreated;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date dateUpdated;
 
     private SelectorDTO() {
@@ -84,7 +84,7 @@ public final class SelectorDTO implements ResourceDTO {
         this.dateCreated = builder.dateCreated;
         this.dateUpdated = builder.dateUpdated;
     }
-    
+
     /**
      * builder.
      * @return Builder
@@ -397,16 +397,16 @@ public final class SelectorDTO implements ResourceDTO {
         @JsonProperty("selectorConditions")
         private List<Condition> conditionList;
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private Date dateCreated;
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private Date dateUpdated;
 
         private Builder() {
 
         }
-        
+
         /**
          * build.
          * @return SelectorDTO
@@ -414,7 +414,7 @@ public final class SelectorDTO implements ResourceDTO {
         public SelectorDTO build() {
             return new SelectorDTO(this);
         }
-        
+
         /**
          * id.
          * @param id id
@@ -424,7 +424,7 @@ public final class SelectorDTO implements ResourceDTO {
             this.id = id;
             return this;
         }
-        
+
         /**
          * plugin id.
          * @param pluginId pluginId
@@ -434,7 +434,7 @@ public final class SelectorDTO implements ResourceDTO {
             this.pluginId = pluginId;
             return this;
         }
-        
+
         /**
          * name.
          * @param name name
@@ -444,7 +444,7 @@ public final class SelectorDTO implements ResourceDTO {
             this.name = name;
             return this;
         }
-        
+
         /**
          * match mode.
          * @param matchMode matchMode
@@ -454,7 +454,7 @@ public final class SelectorDTO implements ResourceDTO {
             this.matchMode = matchMode;
             return this;
         }
-        
+
         /**
          * match mode name.
          * @param matchModeName matchModeName
@@ -464,7 +464,7 @@ public final class SelectorDTO implements ResourceDTO {
             this.matchModeName = matchModeName;
             return this;
         }
-        
+
         /**
          * type.
          * @param type type
@@ -474,7 +474,7 @@ public final class SelectorDTO implements ResourceDTO {
             this.type = type;
             return this;
         }
-        
+
         /**
          * type name.
          * @param typeName typeName
@@ -484,7 +484,7 @@ public final class SelectorDTO implements ResourceDTO {
             this.typeName = typeName;
             return this;
         }
-        
+
         /**
          * sort.
          * @param sort sort

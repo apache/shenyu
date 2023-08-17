@@ -35,6 +35,7 @@
         <module>shenyu-e2e-case-apache-dubbo</module>
         <module>shenyu-e2e-case-sofa</module>
         <module>shenyu-e2e-case-motan</module>
+        <module>shenyu-e2e-case-grpc</module>
     </modules>
 
     <dependencies>
