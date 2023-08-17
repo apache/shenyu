@@ -183,12 +183,21 @@ public class IngressReconciler implements Reconciler {
         if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName(),
                     oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_CONTEXT_PATH));
+        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
+            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.MOTAN.getName(), 
+            oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_CONTEXT_PATH));
+        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
+            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.SPRING_CLOUD.getName(), "");
         } else {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName(), "");
         }
         if (Objects.nonNull(selectorList) && !selectorList.isEmpty()) {
             if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName());
+            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
+                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.MOTAN.getName());
+            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
+                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.SPRING_CLOUD.getName());
             } else {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName());
             }
@@ -262,12 +271,35 @@ public class IngressReconciler implements Reconciler {
         PluginData dubboPlugin = PluginData.builder()
                 .id(String.valueOf(PluginEnum.DUBBO.getCode()))
                 .name(PluginEnum.DUBBO.getName())
-                .config("")
+                //TODO: Have the user pass in the zookeeper address
+                .config("{\"multiSelectorHandle\":\"1\",\"threadpool\":\"shared\",\"corethreads\":\"0\",\"threads\":2147483647,\"queues\":\"0\",\"register\":\"zookeeper://123.60.144.138:2181\"}\n")
                 .role(PluginRoleEnum.SYS.getName())
                 .enabled(true)
                 .sort(PluginEnum.DUBBO.getCode())
                 .build();
         shenyuCacheRepository.saveOrUpdatePluginData(dubboPlugin);
+        //motan
+        PluginData motanPlugin = PluginData.builder()
+                .id(String.valueOf(PluginEnum.MOTAN.getCode()))
+                .name(PluginEnum.MOTAN.getName())
+                //TODO: Have the user pass in the zookeeper address
+                .config("{\"register\":\"123.60.144.138:2181\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"shared\"}\n")
+                .role(PluginRoleEnum.SYS.getName())
+                .enabled(true)
+                .sort(PluginEnum.MOTAN.getCode())
+                .build();
+        shenyuCacheRepository.saveOrUpdatePluginData(motanPlugin);
+
+        //springCloud
+        PluginData springCloudPlugin = PluginData.builder()
+                .id(String.valueOf(PluginEnum.SPRING_CLOUD.getCode()))
+                .name(PluginEnum.SPRING_CLOUD.getName())
+                .config("")
+                .role(PluginRoleEnum.SYS.getName())
+                .enabled(true)
+                .sort(PluginEnum.SPRING_CLOUD.getCode())
+                .build();
+        shenyuCacheRepository.saveOrUpdatePluginData(springCloudPlugin);
     }
 
     /**
@@ -365,8 +397,20 @@ public class IngressReconciler implements Reconciler {
     private void addNewIngressConfigToShenyu(final V1Ingress v1Ingress, final CoreV1Api apiClient) throws IOException {
         V1Ingress ingressCopy = new V1IngressBuilder(v1Ingress).build();
         ShenyuMemoryConfig shenyuMemoryConfig = ingressParser.parse(ingressCopy, apiClient);
-        String pluginName = Objects.equals(ingressCopy.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")
-                ? PluginEnum.DUBBO.getName() : PluginEnum.DIVIDE.getName();
+        String pluginName;
+        String pluginDubboEnabled = ingressCopy.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED);
+        String pluginMotanEnabled = ingressCopy.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED);
+        String pluginSpringCloudEnabled = ingressCopy.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED);
+
+        if ("true".equals(pluginDubboEnabled)) {
+            pluginName = PluginEnum.DUBBO.getName();
+        } else if ("true".equals(pluginMotanEnabled)) {
+            pluginName = PluginEnum.MOTAN.getName();
+        } else if ("true".equals(pluginSpringCloudEnabled)) {
+            pluginName = PluginEnum.SPRING_CLOUD.getName();
+        } else {
+            pluginName = PluginEnum.DIVIDE.getName();
+        }
         if (Objects.nonNull(shenyuMemoryConfig)) {
             List<IngressConfiguration> routeConfigList = shenyuMemoryConfig.getRouteConfigList();
             if (Objects.isNull(routeConfigList)) {

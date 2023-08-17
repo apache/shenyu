@@ -54,7 +54,7 @@ spec:
   selector:
     app: shenyu-examples-dubbo
   ports:
-    - port: 20880  # Assuming this is the Dubbo service port
+    - port: 20881  # Assuming this is the Dubbo service port
 
 ---
 
@@ -64,6 +64,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: shenyu
     shenyu.apache.org/plugin-dubbo-enabled: 'true'
+    shenyu.apache.org/zookeeper-register-address: 123.60.144.138:2181
   name: demo-ingress
 spec:
   rules:
