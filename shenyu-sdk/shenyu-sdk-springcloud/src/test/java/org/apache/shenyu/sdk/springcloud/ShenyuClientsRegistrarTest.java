@@ -89,7 +89,7 @@ public class ShenyuClientsRegistrarTest {
         when(config.getServerLists()).thenReturn("localhost:1234");
         final ShenyuDiscoveryClient shenyuDiscoveryClient = spy(new ShenyuDiscoveryClient(config));
         context.registerBean(ShenyuDiscoveryClient.class, () -> shenyuDiscoveryClient);
-        context.register(ClientCapabilityRegistrar.class);
+        context.register(ShenyuClientCapability.class);
         context.refresh();
 
         final ShenyuClientsRegistrarTest.ShenyuApiClient apiClient = context.getBean(ShenyuClientsRegistrarTest.ShenyuApiClient.class);
