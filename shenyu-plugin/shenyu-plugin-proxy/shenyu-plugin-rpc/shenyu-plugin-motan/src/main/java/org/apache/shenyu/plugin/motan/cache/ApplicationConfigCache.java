@@ -188,6 +188,9 @@ public final class ApplicationConfigCache {
         reference.setVersion("1.0");
         reference.setRequestTimeout(Optional.ofNullable(motanParamExtInfo.getTimeout()).orElse(1000));
         reference.setRegistry(registryConfig);
+        if (StringUtils.isNotEmpty(motanParamExtInfo.getRpcProtocol())) {
+            protocolConfig.setName(motanParamExtInfo.getRpcProtocol());
+        }
         reference.setProtocol(protocolConfig);
         CommonClient obj = reference.getRef();
         if (Objects.nonNull(obj)) {
@@ -285,6 +288,8 @@ public final class ApplicationConfigCache {
 
         private Integer timeout;
 
+        private String rpcProtocol;
+
         /**
          * Gets method info.
          *
@@ -327,6 +332,18 @@ public final class ApplicationConfigCache {
 
         public void setTimeout(final Integer timeout) {
             this.timeout = timeout;
+        }
+
+        public String getRpcProtocol() {
+            return rpcProtocol;
+        }
+
+        /**
+         * Sets rpc protocol.
+         * @param rpcProtocol the rpc protocol
+         */
+        public void setRpcProtocol(final String rpcProtocol) {
+            this.rpcProtocol = rpcProtocol;
         }
     }
 

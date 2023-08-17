@@ -19,8 +19,10 @@ package org.apache.shenyu.plugin.motan.proxy;
 
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.proxy.CommonClient;
+import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.ResponseFuture;
 import com.weibo.api.motan.rpc.RpcContext;
+import com.weibo.api.motan.util.MotanClientUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
@@ -101,7 +103,10 @@ public class MotanProxyService {
         ResponseFuture responseFuture;
         //CHECKSTYLE:OFF IllegalCatch
         try {
-            responseFuture = (ResponseFuture) commonClient.asyncCall(metaData.getMethodName(), params, Object.class);
+            Request request = MotanClientUtil.buildRequest(reference.getServiceInterface(), metaData.getMethodName(), metaData.getParameterTypes(), params, null);
+            responseFuture = (ResponseFuture)commonClient.asyncCall(request, Object.class);
+            //responseFuture = (ResponseFuture) commonClient.asyncCall(metaData.getMethodName(), params, Object.class);
+
         } catch (Throwable e) {
             LOG.error("Exception caught in MotanProxyService#genericInvoker.", e);
             return null;
