@@ -251,10 +251,7 @@ public class DockerServiceCompose implements ServiceCompose {
 
         Map<String, Object> currentMap = yamlData;
         for (int i = 0; i < subModulePath.length - 1; i++) {
-            if (!currentMap.containsKey(subModulePath[i])) {
-                currentMap.put(subModulePath[i], new LinkedHashMap<>());
-            }
-            currentMap = (Map<String, Object>) currentMap.get(subModulePath[i]);
+            currentMap = (Map<String, Object>) currentMap.computeIfAbsent(subModulePath[i], unused -> new LinkedHashMap<>());
         }
 
         currentMap.put(subModulePath[subModulePath.length - 1], newValue);
