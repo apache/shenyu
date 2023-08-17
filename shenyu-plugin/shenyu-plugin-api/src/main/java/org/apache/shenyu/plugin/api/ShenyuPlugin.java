@@ -134,13 +134,13 @@ public interface ShenyuPlugin {
      *
      * @param exchange context
      */
-    default void before(ServerWebExchange exchange) {}
+    default void before(ServerWebExchange exchange){}
 
     /**
-     * Plugin after operation
+     * Plugin after operation.
      *
      * @param exchange context
      */
-    default void after(ServerWebExchange exchange) {}
+    default void after(ServerWebExchange exchange){}
 }
 
