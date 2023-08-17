@@ -17,23 +17,19 @@
 
 package org.apache.shenyu.plugin.base.condition.judge;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.spi.SPI;
+import org.apache.shenyu.spi.Join;
 
 /**
- * Predicate judge.
+ * Blank predicate judge.
  */
-@SPI
-@FunctionalInterface
-public interface PredicateJudge {
+@Join
+public class BlankPredicateJudge implements PredicateJudge {
 
-    /**
-     * judge conditionData and realData is match.
-     *
-     * @param conditionData {@linkplain ConditionData}
-     * @param realData       realData
-     * @return true is pass  false is not pass.
-     */
-    Boolean judge(ConditionData conditionData, String realData);
+    @Override
+    public Boolean judge(final ConditionData conditionData, final String realData) {
+        return StringUtils.isBlank(realData);
+    }
 
 }

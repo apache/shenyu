@@ -68,7 +68,6 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
             selectorDTO.getSelectorConditions().forEach(selectorConditionDTO -> {
                 Assert.notBlack(selectorConditionDTO.getParamType(), "if type is custom, paramType is not empty");
                 Assert.notBlack(selectorConditionDTO.getParamName(), "if type is custom, paramName is not empty");
-                Assert.notBlack(selectorConditionDTO.getParamValue(), "if type is custom, paramValue is not empty");
             });
         }
         return StringUtils.isEmpty(selectorDTO.getId()) ? create(selectorDTO) : update(selectorDTO);
