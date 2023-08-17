@@ -37,12 +37,6 @@ import java.lang.annotation.Target;
 @Documented
 @Import(ShenyuClientsRegistrar.class)
 public @interface EnableShenyuClients {
-    
-    /**
-     * enabled FeignClients or not.
-     * @return boolean
-     */
-    boolean enabledFeignClients() default false;
 
     /**
      * Alias for the {@link #basePackages()} attribute. Allows for more concise annotation
