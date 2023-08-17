@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.examples.sdk.springcloud.consumer.controller;
 
+import org.apache.shenyu.examples.sdk.springcloud.consumer.api.FeignSpringCloudClientApi;
 import org.apache.shenyu.examples.sdk.springcloud.consumer.api.ShenyuSpringCloudClientApi;
 import org.apache.shenyu.examples.sdk.springcloud.consumer.dto.OrderDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +34,11 @@ public class ShenyuSdkSpringCloudConsumerController {
     @Autowired
     private ShenyuSpringCloudClientApi clientApi;
 
+    @Autowired
+    private FeignSpringCloudClientApi feignClientApi;
+
     /**
      * save.
-     *
      * @param orderDTO orderDto
      * @return OrderDTO
      */
@@ -46,7 +49,6 @@ public class ShenyuSdkSpringCloudConsumerController {
 
     /**
      * findById.
-     *
      * @param id id
      * @return OrderDTO
      */
@@ -57,7 +59,6 @@ public class ShenyuSdkSpringCloudConsumerController {
 
     /**
      * getPathVariable.
-     *
      * @param id   id
      * @param name name
      * @return OrderDTO
@@ -69,7 +70,6 @@ public class ShenyuSdkSpringCloudConsumerController {
 
     /**
      * testRestFul.
-     *
      * @param id id
      * @return OrderDTO
      */

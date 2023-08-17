@@ -19,7 +19,7 @@ package org.apache.shenyu.examples.sdk.springcloud.consumer.impl;
 
 import org.apache.shenyu.examples.sdk.springcloud.consumer.api.ShenyuSpringCloudClientApi;
 import org.apache.shenyu.examples.sdk.springcloud.consumer.dto.OrderDTO;
-import org.apache.shenyu.sdk.spring.FallbackFactory;
+import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -33,10 +33,12 @@ shenyu:
   #          port: 8189
   sdk:
     enabled: true
-    register-type: eureka #local #etcd #nacos #consul
-    server-lists: http://localhost:8761/eureka/ #http://localhost:9095 #http://localhost:2379 #localhost:8848
+    registerType: eureka #zookeeper #local #etcd #nacos #consul
+    serverLists: http://localhost:8761/eureka/ #localhost:2181 #http://localhost:9095 #http://localhost:2379 #localhost:8848
 
 spring:
+  main:
+    allow-bean-definition-overriding: true
   servlet:
     multipart:
       max-file-size: 100MB

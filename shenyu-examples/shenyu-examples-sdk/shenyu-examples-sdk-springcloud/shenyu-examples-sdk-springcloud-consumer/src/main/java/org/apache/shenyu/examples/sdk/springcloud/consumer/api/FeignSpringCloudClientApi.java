@@ -19,19 +19,18 @@ package org.apache.shenyu.examples.sdk.springcloud.consumer.api;
 
 import org.apache.shenyu.examples.sdk.springcloud.consumer.dto.OrderDTO;
 import org.apache.shenyu.examples.sdk.springcloud.consumer.impl.ShenyuSpringCloudClientApiFallbackFactory;
-import org.apache.shenyu.sdk.springcloud.ShenyuClient;
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@ShenyuClient(value = "shenyu-gateway", fallbackFactory = ShenyuSpringCloudClientApiFallbackFactory.class)
-public interface ShenyuSpringCloudClientApi {
+@FeignClient(value = "shenyu-gateway1", fallbackFactory = ShenyuSpringCloudClientApiFallbackFactory.class)
+public interface FeignSpringCloudClientApi {
 
     /**
      * save.
-     *
      * @param orderDTO OrderDTO
      * @return OrderDTO
      */
@@ -40,7 +39,6 @@ public interface ShenyuSpringCloudClientApi {
 
     /**
      * Find by id order dto.
-     *
      * @param id the id
      * @return the order dto
      */
@@ -49,7 +47,6 @@ public interface ShenyuSpringCloudClientApi {
 
     /**
      * Gets path variable.
-     *
      * @param id   the id
      * @param name the name
      * @return the path variable
@@ -59,11 +56,9 @@ public interface ShenyuSpringCloudClientApi {
 
     /**
      * Test rest ful order dto.
-     *
      * @param id the id
      * @return the order dto
      */
     @GetMapping("/springcloud/order/path/{id}/name")
     OrderDTO testRestFul(@PathVariable("id") String id);
-
 }
