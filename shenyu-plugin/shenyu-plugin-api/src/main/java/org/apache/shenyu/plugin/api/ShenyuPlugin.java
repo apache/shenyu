@@ -132,16 +132,15 @@ public interface ShenyuPlugin {
     /**
      * Plugin before operation.
      *
-     * @param context context
+     * @param exchange context
      */
-    default void before(Map<String, Object> context) {}
+    default void before(ServerWebExchange exchange) {}
 
     /**
      * Plugin after operation
      *
-     * @param context context
+     * @param exchange context
      */
-    default void after(Map<String, Object> context) {}
-
+    default void after(ServerWebExchange exchange) {}
 }
 

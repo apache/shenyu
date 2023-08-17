@@ -253,10 +253,9 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                     if (skip) {
                         return this.execute(exchange);
                     }
-                    Map<String, Object> map = new HashMap<>();
-                    plugin.before(map);
+                    plugin.before(exchange);
                     Mono<Void> execute = plugin.execute(exchange, this);
-                    plugin.after(map);
+                    plugin.after(exchange);
                     return execute;
                 }
                 return Mono.empty();
