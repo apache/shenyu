@@ -214,11 +214,11 @@ public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
         String serviceName = path.getBackend().getService().getName();
         V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
         Map<String, String> annotations = v1Service.getMetadata().getAnnotations();
-        if (Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_APP_NAME))
-            || Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_METHOD_NAME))
-            || Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_PATH))
-            || Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_SREVICE_NAME))
-            || Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_PARAMS_TYPE))) {
+        if (!annotations.containsKey(IngressConstants.PLUGIN_MOTAN_APP_NAME)
+            || !annotations.containsKey(IngressConstants.PLUGIN_MOTAN_METHOD_NAME)
+            || !annotations.containsKey(IngressConstants.PLUGIN_MOTAN_PATH)
+            || !annotations.containsKey(IngressConstants.PLUGIN_MOTAN_SREVICE_NAME)
+            || !annotations.containsKey(IngressConstants.PLUGIN_MOTAN_RPC_TYPE)) {
             LOG.error("motan metadata is error, please check motan service. MetaData: [{}]", v1Service.getMetadata());
             throw new ShenyuException(annotations + " is is missing.");
         }
@@ -268,7 +268,7 @@ public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
                 || Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_METHOD_NAME))
                 || Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_PATH))
                 || Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_SREVICE_NAME))
-                || Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_PARAMS_TYPE))) {
+                || Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_RPC_TYPE))) {
             LOG.error("motan metadata is error, please check motan service. MetaData: [{}]", annotations);
             throw new ShenyuException(annotations + " is is missing.");
         }

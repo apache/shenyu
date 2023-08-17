@@ -23,10 +23,10 @@ metadata:
       shenyu.apache.org/plugin-motan-app-name: motan
       shenyu.apache.org/plugin-motan-path: /motan/demoTest/testTimeOut
       shenyu.apache.org/plugin-motan-rpc-type: motan
-      shenyu.apache.org/plugin-motan-servive-name: org.apache.shenyu.examples.motan.service.MotanDemoService
+      shenyu.apache.org/plugin-motan-service-name: org.apache.shenyu.examples.motan.service.MotanDemoService
       shenyu.apache.org/plugin-motan-method-name: testTimeOut
       shenyu.apache.org/plugin-motan-params-type: long
-      shenyu.apache.org/plugin-motan-rpc-expands: |
+      shenyu.apache.org/plugin-motan-rpc-expand: |
         {
           "methodInfo":[
             {
@@ -61,10 +61,10 @@ metadata:
       shenyu.apache.org/plugin-motan-context-path: /motan
       shenyu.apache.org/plugin-motan-path: /motan/demoTest/hello
       shenyu.apache.org/plugin-motan-rpc-type: motan
-      shenyu.apache.org/plugin-motan-servive-name: org.apache.shenyu.examples.motan.service.MotanDemoService
+      shenyu.apache.org/plugin-motan-service-name: org.apache.shenyu.examples.motan.service.MotanDemoService
       shenyu.apache.org/plugin-motan-method-name: hello
       shenyu.apache.org/plugin-motan-params-type: java.lang.String
-      shenyu.apache.org/plugin-motan-rpc-expands: >
+      shenyu.apache.org/plugin-motan-rpc-expand: |
         {
           "methodInfo": [
             {
