@@ -32,6 +32,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.http.HttpStatus;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -184,10 +185,7 @@ public class HttpUtils {
     public String get(final String url, final Map<String, String> header) throws IOException {
         Request.Builder builder = new Request.Builder().url(url).get();
         addHeader(builder, header);
-
-        Request request = builder.build();
-        Response response = httpClient.newCall(request).execute();
-        return response.body().string();
+        return reqString(builder.build());
     }
 
     /**
@@ -204,13 +202,7 @@ public class HttpUtils {
         final HTTPMethod method) throws IOException {
         Request.Builder requestBuilder = buildRequestBuilder(url, form, method);
         addHeader(requestBuilder, header);
-
-        Request request = requestBuilder.build();
-        try (Response response = httpClient
-            .newCall(request)
-            .execute()) {
-            return response.body().string();
-        }
+        return reqString(requestBuilder.build());
     }
 
     /**
@@ -219,7 +211,7 @@ public class HttpUtils {
      * @param url    url
      * @param json   json
      * @param header header
-     * @return String
+     * @return Response
      * @throws IOException IOException
      */
     public Response requestJson(final String url, final String json,
@@ -392,6 +384,17 @@ public class HttpUtils {
         } catch (Exception e) {
             LOG.error("parse http client json request error: ", e);
             return false;
+        }
+    }
+
+    private String reqString(final Request request) throws IOException {
+        try (Response response = httpClient
+            .newCall(request)
+            .execute()) {
+            if (response.code() != HttpStatus.SC_OK) {
+                throw new IOException(response.toString());
+            }
+            return response.body().string();
         }
     }
 
