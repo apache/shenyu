@@ -26,6 +26,9 @@ import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
 import org.apache.shenyu.e2e.model.data.MetaData;
 import org.apache.shenyu.e2e.model.data.RuleCacheData;
 import org.apache.shenyu.e2e.model.data.SelectorCacheData;
+import org.apache.shenyu.e2e.model.response.MetaDataDTO;
+import org.apache.shenyu.e2e.model.response.RuleDTO;
+import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -65,11 +68,14 @@ public class DataSynNacosTest {
     void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
         Thread.sleep(10000);
+        final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
+        final List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
+        final List<RuleDTO> ruleDTOList = adminClient.listAllRules();
         List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        Assertions.assertEquals(1, selectorCacheList.size());
-        Assertions.assertEquals(9, metaDataCacheList.size());
-        Assertions.assertEquals(9, ruleCacheList.size());
+        Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
+        Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
+        Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
     }
 }

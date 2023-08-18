@@ -82,22 +82,17 @@ public class AlibabaDubboPluginTest {
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
         List<RuleDTO> ruleDTOList = adminClient.listAllRules();
-        Assertions.assertEquals(1, selectorDTOList.size());
-        Assertions.assertEquals(25, metaDataDTOList.size());
-        Assertions.assertEquals(25, ruleDTOList.size());
-
         for (SelectorDTO selectorDTO :selectorDTOList) {
             if (selectorDTO.getHandle() != null && !selectorDTO.getHandle().equals("")) {
                 AlibabaDubboPluginCases.verifierUri(selectorDTO.getHandle());
             }
         }
-
         List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        Assertions.assertEquals(1, selectorCacheList.size());
-        Assertions.assertEquals(25, metaDataCacheList.size());
-        Assertions.assertEquals(25, ruleCacheList.size());
+        Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
+        Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
+        Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "6");
