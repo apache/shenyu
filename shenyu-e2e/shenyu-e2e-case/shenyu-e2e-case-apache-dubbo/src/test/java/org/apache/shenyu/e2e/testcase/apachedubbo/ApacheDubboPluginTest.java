@@ -80,21 +80,20 @@ public class ApacheDubboPluginTest {
         adminClient.login();
         Thread.sleep(10000);
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
+        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
+        Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
+        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
         List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
+        Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
+        List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
         List<RuleDTO> ruleDTOList = adminClient.listAllRules();
+        Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
 
         for (SelectorDTO selectorDTO :selectorDTOList) {
             if (selectorDTO.getHandle() != null && !selectorDTO.getHandle().equals("")) {
                 ApacheDubboPluginCases.verifierUri(selectorDTO.getHandle());
             }
         }
-
-        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
-        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
-        List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
-        Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
-        Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "6");

@@ -84,18 +84,17 @@ public class GrpcPluginTest {
         adminClient.login();
         Thread.sleep(10000);
         final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
+        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
+        Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
         final List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
-        final List<RuleDTO> ruleDTOList = adminClient.listAllRules();
+        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
+        Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
         selectorId = selectorDTOList.get(0).getId();
         selectorIds.add(selectorId);
         SelectorDTO selector = adminClient.getSelector(selectorId);
         condictionId = selector.getConditionList().get(0).getId();
-
-        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
-        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
-        Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
+        final List<RuleDTO> ruleDTOList = adminClient.listAllRules();
         Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();

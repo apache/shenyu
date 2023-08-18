@@ -69,13 +69,13 @@ public class DataSynNacosTest {
         adminClient.login();
         Thread.sleep(10000);
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
-        List<RuleDTO> ruleDTOList = adminClient.listAllRules();
-        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
-        List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
         Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
+        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
+        List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
         Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
+        List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
+        List<RuleDTO> ruleDTOList = adminClient.listAllRules();
         Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
     }
 }

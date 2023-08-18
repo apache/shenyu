@@ -68,13 +68,13 @@ public class DataSynHttpTest {
         adminClient.login();
         Thread.sleep(10000);
         final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        final List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
-        final List<RuleDTO> ruleDTOList = adminClient.listAllRules();
-        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
-        List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
         Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
+        final List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
+        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
         Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
+        List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
+        final List<RuleDTO> ruleDTOList = adminClient.listAllRules();
         Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
     }
 }
