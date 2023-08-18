@@ -94,7 +94,8 @@ public class WaitForHelper {
                 
                 try {
                     TimeUnit.MILLISECONDS.sleep(timeInRetry.toMillis());
-                } catch (InterruptedException ignore) {
+                } catch (InterruptedException ex) {
+                    log.error(ex.getMessage(), ex);
                 }
             }
         });
@@ -130,7 +131,8 @@ public class WaitForHelper {
                 
                 try {
                     TimeUnit.MILLISECONDS.sleep(timeInRetry.toMillis());
-                } catch (InterruptedException ignore) {
+                } catch (InterruptedException ex) {
+                    log.error(ex.getMessage(), ex);
                     break;
                 }
             }

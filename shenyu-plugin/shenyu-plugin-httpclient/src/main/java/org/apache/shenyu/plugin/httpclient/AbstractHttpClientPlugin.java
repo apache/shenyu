@@ -81,7 +81,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         LogUtils.debug(LOG, () -> String.format("The request urlPath is: %s, retryTimes is : %s, retryStrategy is : %s", uri, retryTimes, retryStrategy));
         final HttpHeaders httpHeaders = buildHttpHeaders(exchange);
         final Mono<R> response = doRequest(exchange, exchange.getRequest().getMethodValue(), uri, httpHeaders, exchange.getRequest().getBody())
-                .timeout(duration, Mono.error(new TimeoutException("Response took longer than timeout: " + duration)))
+                .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
         if (RetryEnum.CURRENT.getName().equals(retryStrategy)) {
             //old version of DividePlugin and SpringCloudPlugin will run on this
@@ -155,7 +155,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             // in order not to affect the next retry call, newUri needs to be excluded
             exclude.add(newUri);
             return doRequest(exchange, exchange.getRequest().getMethodValue(), newUri, httpHeaders, exchange.getRequest().getBody())
-                    .timeout(duration, Mono.error(new TimeoutException("Response took longer than timeout: " + duration)))
+                    .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                     .doOnError(e -> LOG.error(e.getMessage(), e));
         });
     }
