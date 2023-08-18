@@ -29,6 +29,9 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.http.HttpStatus;
 
 import java.io.ByteArrayOutputStream;
@@ -40,6 +43,7 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +55,9 @@ import java.util.concurrent.TimeUnit;
  * HTTP request tool, based on okhttp3.
  */
 public class HttpUtils {
+
+    private static final Logger LOG = LoggerFactory.getLogger(HttpUtils.class);
+
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
 
     private Map<String, List<Cookie>> cookieStore = new HashMap<>();
@@ -204,17 +211,21 @@ public class HttpUtils {
      * @param url    url
      * @param json   json
      * @param header header
-     * @return String
+     * @return Response
      * @throws IOException IOException
      */
-    public String requestJson(final String url, final String json,
+    public Response requestJson(final String url, final String json,
         final Map<String, String> header) throws IOException {
         RequestBody body = RequestBody.create(MEDIA_TYPE_JSON, json);
         Request.Builder requestBuilder = new Request.Builder()
             .url(url)
             .post(body);
         addHeader(requestBuilder, header);
-        return reqString(requestBuilder.build());
+
+        Request request = requestBuilder.build();
+        return httpClient
+            .newCall(request)
+            .execute();
     }
 
     /**
@@ -284,6 +295,8 @@ public class HttpUtils {
         final HTTPMethod method, final List<UploadFile> files) throws IOException {
         if (Objects.nonNull(files) && !files.isEmpty()) {
             return requestFile(url, form, header, files);
+        } else if (isJsonRequest(header)) {
+            return requestJson(url, JsonUtils.toJson(form), header);
         } else {
             return requestForResponse(url, form, header, method);
         }
@@ -358,6 +371,19 @@ public class HttpUtils {
             for (Map.Entry<String, String> entry : entrySet) {
                 builder.addHeader(entry.getKey(), String.valueOf(entry.getValue()));
             }
+        }
+    }
+
+    private boolean isJsonRequest(final Map<String, String> headers) {
+        try {
+            return Objects.compare(
+                MEDIA_TYPE_JSON, 
+                MediaType.parse(headers.get("Content-Type")), 
+                Comparator.comparing(o -> String.format("%s/%s", o.type(), o.subtype()))
+            ) == 0;
+        } catch (Exception e) {
+            LOG.error("parse http client json request error: ", e);
+            return false;
         }
     }
 
