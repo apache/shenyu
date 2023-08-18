@@ -19,6 +19,8 @@ package org.apache.shenyu.e2e.engine.scenario.function;
 
 import io.restassured.http.Header;
 import io.restassured.http.Method;
+import io.restassured.response.Response;
+import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.http.HttpStatus;
 
@@ -33,7 +35,7 @@ import static org.hamcrest.Matchers.nullValue;
  * Check if the endpoint exists.
  */
 public class HttpCheckers {
-    
+
     /**
      * endpoint is not exist.
      * @param endpoint endpoint
@@ -64,7 +66,7 @@ public class HttpCheckers {
             }
         };
     }
-    
+
     /**
      * exist endpoint.
      * @param endpoint endpoint
@@ -84,12 +86,17 @@ public class HttpCheckers {
     public static HttpChecker exists(final Method method, final String endpoint) {
         return request -> {
             try {
-                request.request(method, endpoint)
+                Response response = request.request(method, endpoint);
+                ValidatableResponse validatableResponse = response
                         .then()
                         .log()
-                        .ifValidationFails()
-                        .body("code", nullValue())
-                        .body("message", not(containsString("please check your configuration!")));
+                        .ifValidationFails();
+                String body = request.request(method, endpoint).body().asString();
+                if (body.startsWith("{") && body.endsWith("}")) {
+                    validatableResponse.body("code", nullValue())
+                            .body("message", not(containsString("please check your configuration!")));
+                }
+                validatableResponse.statusCode(HttpStatus.OK.value());
             } catch (AssertionError error) {
                 Assertions.fail("endpoint '" + endpoint + "' not exists", error);
             }
@@ -118,5 +125,5 @@ public class HttpCheckers {
             }
         };
     }
-    
+
 }
