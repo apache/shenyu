@@ -18,34 +18,31 @@
 package org.apache.shenyu.admin.listener.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
-import com.ecwid.consul.v1.Response;
-import com.ecwid.consul.v1.kv.model.GetValue;
-import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
-import org.apache.shenyu.common.constant.ConsulConstants;
+import org.apache.shenyu.admin.listener.AbstractNodeDataChangedListener;
 import org.apache.shenyu.common.utils.GsonUtils;
-
-import java.util.Objects;
 
 /**
  *  Use Consul to push data changes.
  */
-public class ConsulDataChangedListener extends AbstractListDataChangedListener {
+public class ConsulDataChangedListener extends AbstractNodeDataChangedListener {
     private final ConsulClient consulClient;
 
     public ConsulDataChangedListener(final ConsulClient consulClient) {
-        super(new ChangeData(ConsulConstants.PLUGIN_DATA, ConsulConstants.SELECTOR_DATA,
-                ConsulConstants.RULE_DATA, ConsulConstants.AUTH_DATA, ConsulConstants.META_DATA, ConsulConstants.PROXY_SELECTOR_DATA_ID, ConsulConstants.DISCOVERY_UPSTREAM));
         this.consulClient = consulClient;
     }
 
     @Override
-    public void publishConfig(final String dataKey, final Object data) {
-        consulClient.setKVValue(dataKey, GsonUtils.getInstance().toJson(data));
+    public void createOrUpdate(final String pluginPath, final Object data) {
+        consulClient.setKVValue(pluginPath, GsonUtils.getInstance().toJson(data));
     }
 
     @Override
-    public String getConfig(final String dataKey) {
-        Response<GetValue> kvValue = consulClient.getKVValue(dataKey);
-        return Objects.nonNull(kvValue.getValue()) ? kvValue.getValue().getDecodedValue() : ConsulConstants.EMPTY_CONFIG_DEFAULT_VALUE;
+    public void deleteNode(final String pluginPath) {
+        consulClient.deleteKVValue(pluginPath);
+    }
+
+    @Override
+    public void deletePathRecursive(final String selectorParentPath) {
+        consulClient.deleteKVValues(selectorParentPath);
     }
 }
