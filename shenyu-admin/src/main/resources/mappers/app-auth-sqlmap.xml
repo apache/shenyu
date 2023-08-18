@@ -221,6 +221,7 @@
            SET
                app_secret = #{appSecret, jdbcType=VARCHAR},
                phone = #{phone, jdbcType=VARCHAR},
+               user_id = #{userId, jdbcType=VARCHAR},
                ext_info = #{extInfo, jdbcType=VARCHAR},
                open = #{open, jdbcType=TINYINT},
                enabled = #{enabled, jdbcType=TINYINT}
