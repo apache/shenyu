@@ -88,6 +88,9 @@ jobs:
       - name: Wait for docker compose start up completely
         if: steps.filter.outputs.changed == 'true'
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
+      - name: Disk space info
+        run: |
+          df --human-readable
       - name: Run test
         id: test
         if: steps.filter.outputs.changed == 'true'
