@@ -78,7 +78,7 @@ public class SofaPluginTest {
     @BeforeAll
     static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
-        Thread.sleep(20000);
+        Thread.sleep(10000);
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
         List<RuleDTO> ruleDTOList = adminClient.listAllRules();
