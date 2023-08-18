@@ -19,7 +19,7 @@ package org.apache.shenyu.examples.sdk.springcloud.consumer.api;
 
 import org.apache.shenyu.examples.sdk.springcloud.consumer.dto.OrderDTO;
 import org.apache.shenyu.examples.sdk.springcloud.consumer.impl.ShenyuSpringCloudClientApiFallbackFactory;
-import org.apache.shenyu.sdk.springcloud.ShenyuClient;
+import org.apache.shenyu.sdk.spring.ShenyuClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
