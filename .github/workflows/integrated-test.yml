@@ -75,7 +75,7 @@ jobs:
         run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
       - name: Start docker compose
         if: steps.filter.outputs.changed == 'true'
-        run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d logs --tail="all"
+        run: docker-compose logs -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
       - name: Wait for docker compose start up completely
         if: steps.filter.outputs.changed == 'true'
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
