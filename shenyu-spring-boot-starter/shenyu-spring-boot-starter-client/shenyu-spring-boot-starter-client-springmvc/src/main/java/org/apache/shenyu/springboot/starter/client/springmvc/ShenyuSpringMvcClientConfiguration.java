@@ -74,7 +74,7 @@ public class ShenyuSpringMvcClientConfiguration {
             }
             String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
             if (StringUtils.isBlank(contextPath)) {
-                props.setProperty(ShenyuClientConstants.CONTEXT_PATH, String.format("%s/%s", serverContextPath, serverServletPath).replaceAll("/+", "/"));
+                props.setProperty(ShenyuClientConstants.CONTEXT_PATH, String.format("%s/%s", serverContextPath, serverServletPath).replaceAll("/+", "/").replaceFirst("/$", ""));
             }
         }
         return new SpringMvcClientEventListener(clientPropertiesConfig, shenyuClientRegisterRepository);
