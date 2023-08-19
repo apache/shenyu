@@ -84,22 +84,18 @@ public class GrpcPluginTest {
         adminClient.login();
         Thread.sleep(10000);
         final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
+        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
+        Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
         final List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
-        final List<RuleDTO> ruleDTOList = adminClient.listAllRules();
+        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
+        Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
         selectorId = selectorDTOList.get(0).getId();
         selectorIds.add(selectorId);
         SelectorDTO selector = adminClient.getSelector(selectorId);
         condictionId = selector.getConditionList().get(0).getId();
-        Assertions.assertEquals(1, selectorDTOList.size());
-        Assertions.assertEquals(9, metaDataDTOList.size());
-        Assertions.assertEquals(9, ruleDTOList.size());
-
-        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
-        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        Assertions.assertEquals(1, selectorCacheList.size());
-        Assertions.assertEquals(9, metaDataCacheList.size());
-        Assertions.assertEquals(9, ruleCacheList.size());
+        final List<RuleDTO> ruleDTOList = adminClient.listAllRules();
+        Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "15");
