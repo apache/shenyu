@@ -46,6 +46,8 @@ import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.any;
 
 /**
  * Ingress Reconciler Test.
@@ -114,5 +116,7 @@ public final class IngressReconcilerTest {
     public void testReconcile() {
         Result result = ingressReconciler.reconcile(new Request("mockedNamespace", "mockedIngress"));
         Assertions.assertEquals(new Result(false), result);
+        verify(shenyuCacheRepository).saveOrUpdateSelectorData(any());
+        verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
     }
 }
