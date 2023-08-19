@@ -20,13 +20,12 @@ package org.apache.shenyu.protocol.tcp;
 import com.google.common.eventbus.EventBus;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.protocol.tcp.connection.ActivityConnectionObserver;
 import org.apache.shenyu.protocol.tcp.connection.Bridge;
 import org.apache.shenyu.protocol.tcp.connection.ConnectionContext;
 import org.apache.shenyu.protocol.tcp.connection.DefaultConnectionConfigProvider;
 import org.apache.shenyu.protocol.tcp.connection.TcpConnectionBridge;
-import org.apache.shenyu.protocol.tcp.connection.ActivityConnectionObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -49,6 +48,8 @@ public class TcpBootstrapServer implements BootstrapServer {
 
     private ConnectionContext connectionContext;
 
+    private LoopResources loopResources;
+
     private DisposableServer server;
 
     private final EventBus eventBus;
@@ -66,7 +67,7 @@ public class TcpBootstrapServer implements BootstrapServer {
         this.bridge = new TcpConnectionBridge();
         connectionContext = new ConnectionContext(connectionConfigProvider);
         connectionContext.init(tcpServerConfiguration.getProps());
-        LoopResources loopResources = LoopResources.create("shenyu-tcp-bootstrap-server", Integer.parseInt(bossGroupThreadCount),
+        loopResources = LoopResources.create("shenyu-tcp-bootstrap-server-" + tcpServerConfiguration.getPort(), Integer.parseInt(bossGroupThreadCount),
                 Integer.parseInt(workerGroupThreadCount), true);
         TcpServer tcpServer = TcpServer.create()
                 .doOnChannelInit((connObserver, channel, remoteAddress) -> channel.pipeline().addFirst(new LoggingHandler(LogLevel.INFO)))
@@ -113,6 +114,7 @@ public class TcpBootstrapServer implements BootstrapServer {
     @Override
     public void shutdown() {
         server.disposeNow();
+        loopResources.dispose();
     }
 
 }
