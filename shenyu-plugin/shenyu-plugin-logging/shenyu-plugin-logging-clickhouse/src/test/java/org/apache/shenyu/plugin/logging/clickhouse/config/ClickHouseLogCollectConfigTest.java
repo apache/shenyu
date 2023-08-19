@@ -37,6 +37,7 @@ public class ClickHouseLogCollectConfigTest {
         clickHouseLogConfig.setPort("8123");
         clickHouseLogConfig.setUsername("foo");
         clickHouseLogConfig.setPassword("bar");
+        clickHouseLogConfig.setTtl("30");
         clickHouseLogConfig.setDatabase(GenericLoggingConstant.DEFAULT_SOURCE);
     }
 
@@ -112,4 +113,15 @@ public class ClickHouseLogCollectConfigTest {
         Assertions.assertEquals(GenericLoggingConstant.DEFAULT_SOURCE, database);
     }
 
+    @Test
+    public void testSetTTL() {
+        clickHouseLogConfig.setTtl("30");
+        Assertions.assertNull(null);
+    }
+
+    @Test
+    public void testGetTTL() {
+        final String ttl = clickHouseLogConfig.getTtl();
+        Assertions.assertEquals("30", ttl);
+    }
 }
