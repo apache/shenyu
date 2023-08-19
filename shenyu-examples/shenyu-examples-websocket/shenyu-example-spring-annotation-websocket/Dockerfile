@@ -14,6 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-http://localhost:31095/actuator/health
-http://localhost:31195/actuator/health
-http://localhost:31189/test/path/123?name=tom
+FROM openjdk:8-jre-alpine
+
+ENV APP_NAME shenyu-example-spring-annotation-websocket
+ENV LOCAL_PATH /opt/${APP_NAME}
+
+RUN mkdir -p ${LOCAL_PATH}
+
+ADD target/${APP_NAME}.jar ${LOCAL_PATH}
+
+WORKDIR ${LOCAL_PATH}
+EXPOSE 8001
+
+CMD java -jar ${APP_NAME}.jar

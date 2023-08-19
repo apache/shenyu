@@ -188,6 +188,8 @@ public class IngressReconciler implements Reconciler {
             oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_CONTEXT_PATH));
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.SPRING_CLOUD.getName(), "");
+        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
+            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName(), "");
         } else {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName(), "");
         }
@@ -198,6 +200,8 @@ public class IngressReconciler implements Reconciler {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.MOTAN.getName());
             } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.SPRING_CLOUD.getName());
+            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
+                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName());
             } else {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName());
             }
@@ -271,7 +275,6 @@ public class IngressReconciler implements Reconciler {
         PluginData dubboPlugin = PluginData.builder()
                 .id(String.valueOf(PluginEnum.DUBBO.getCode()))
                 .name(PluginEnum.DUBBO.getName())
-                //TODO: Have the user pass in the zookeeper address
                 .config("{\"multiSelectorHandle\":\"1\",\"threadpool\":\"shared\",\"corethreads\":\"0\",\"threads\":2147483647,\"queues\":\"0\",\"register\":\"zookeeper://123.60.144.138:2181\"}\n")
                 .role(PluginRoleEnum.SYS.getName())
                 .enabled(true)
@@ -282,7 +285,6 @@ public class IngressReconciler implements Reconciler {
         PluginData motanPlugin = PluginData.builder()
                 .id(String.valueOf(PluginEnum.MOTAN.getCode()))
                 .name(PluginEnum.MOTAN.getName())
-                //TODO: Have the user pass in the zookeeper address
                 .config("{\"register\":\"123.60.144.138:2181\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"shared\"}\n")
                 .role(PluginRoleEnum.SYS.getName())
                 .enabled(true)
@@ -300,6 +302,17 @@ public class IngressReconciler implements Reconciler {
                 .sort(PluginEnum.SPRING_CLOUD.getCode())
                 .build();
         shenyuCacheRepository.saveOrUpdatePluginData(springCloudPlugin);
+
+        //webSocket
+        PluginData webSocketPlugin = PluginData.builder()
+                .id(String.valueOf(PluginEnum.WEB_SOCKET.getCode()))
+                .name(PluginEnum.WEB_SOCKET.getName())
+                .config("{multiSelectorHandle: 1}")
+                .role(PluginRoleEnum.SYS.getName())
+                .enabled(true)
+                .sort(PluginEnum.WEB_SOCKET.getCode())
+                .build();
+        shenyuCacheRepository.saveOrUpdatePluginData(webSocketPlugin);
     }
 
     /**
@@ -401,6 +414,7 @@ public class IngressReconciler implements Reconciler {
         String pluginDubboEnabled = ingressCopy.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED);
         String pluginMotanEnabled = ingressCopy.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED);
         String pluginSpringCloudEnabled = ingressCopy.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED);
+        String pluginWebSocketEnabled = ingressCopy.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
 
         if ("true".equals(pluginDubboEnabled)) {
             pluginName = PluginEnum.DUBBO.getName();
@@ -408,6 +422,8 @@ public class IngressReconciler implements Reconciler {
             pluginName = PluginEnum.MOTAN.getName();
         } else if ("true".equals(pluginSpringCloudEnabled)) {
             pluginName = PluginEnum.SPRING_CLOUD.getName();
+        } else if ("true".equals(pluginWebSocketEnabled)) {
+            pluginName = PluginEnum.WEB_SOCKET.getName();
         } else {
             pluginName = PluginEnum.DIVIDE.getName();
         }
@@ -450,6 +466,7 @@ public class IngressReconciler implements Reconciler {
                         // Add a default backend
                         shenyuCacheRepository.saveOrUpdateSelectorData(shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getSelectorData());
                         shenyuCacheRepository.saveOrUpdateRuleData(shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getRuleData());
+                        shenyuCacheRepository.saveOrUpdateMetaData(shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getMetaData());
                         globalDefaultBackend = shenyuMemoryConfig.getGlobalDefaultBackend();
                         IngressSelectorCache.getInstance().put(Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace(),
                                 v1Ingress.getMetadata().getName(), pluginName, shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getSelectorData().getId());

@@ -99,7 +99,7 @@ public class IngressConstants {
     // The configuration key to specify additional RPC extension for the Tars plugin, in string
     public static final String PLUGIN_MOTAN_RPC_EXPAND = "shenyu.apache.org/plugin-motan-rpc-expand";
 
-    // The configuration key to specify the Tars load balance for the plugin, in string
+    // Determining whether to use the SpringCloud plugin, in String
     public static final String PLUGIN_SPRING_CLOUD_ENABLED = "shenyu.apache.org/plugin-spring-cloud-enabled";
 
     // The configuration key to specify the Tars load balance for the plugin, in string
@@ -131,5 +131,8 @@ public class IngressConstants {
 
     // The configuration key to specify the Tars load balance for the plugin, in string
     public static final String PLUGIN_SPRING_CLOUD_DIVIDE_UPSTREAM = "shenyu.apache.org/plugin-spring-cloud-divide-upstream";
+
+    // // Determining whether to use the WebSocket plugin, in String
+    public static final String PLUGIN_WEB_SOCKET_ENABLED = "shenyu.apache.org/plugin-web-socket-enabled";
 
 }

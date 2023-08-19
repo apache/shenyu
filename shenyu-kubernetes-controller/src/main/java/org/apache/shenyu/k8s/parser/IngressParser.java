@@ -70,6 +70,9 @@ public class IngressParser implements K8sResourceParser<V1Ingress> {
         } else if (Objects.equals(ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
             SpringCloudParser springCloudParser = new SpringCloudParser(serviceLister, endpointsLister);
             return springCloudParser.parse(ingress, coreV1Api);
+        } else if (Objects.equals(ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
+            WebSocketParser webSocketParser = new WebSocketParser(serviceLister, endpointsLister);
+            return webSocketParser.parse(ingress, coreV1Api);
         } else {
             DivideIngressParser divideIngressParser = new DivideIngressParser(serviceLister, endpointsLister);
             return divideIngressParser.parse(ingress, coreV1Api);
