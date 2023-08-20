@@ -51,16 +51,6 @@ public class DataSyncHandler {
      * init data sync handler.
      */
     public static void init() {
-        DATA_SYNC_MAP.put("admin_websocket", ADMIN_WEBSOCKET_MAP);
-        DATA_SYNC_MAP.put("gateway_websocket", GATEWAY_WEBSOCKET_MAP);
-        DATA_SYNC_MAP.put("zookeeper", ZOOKEEPER_MAP);
-        DATA_SYNC_MAP.put("admin_apollo", ADMIN_APOLLO_MAP);
-        DATA_SYNC_MAP.put("gateway_apollo", GATEWAY_APOLLO_MAP);
-        DATA_SYNC_MAP.put("admin_http", ADMIN_HTTP_MAP);
-        DATA_SYNC_MAP.put("gateway_http", GATEWAY_HTTP_MAP);
-        DATA_SYNC_MAP.put("nacos", NACOS_MAP);
-        DATA_SYNC_MAP.put("etcd", ETCD_MAP);
-
         ADMIN_WEBSOCKET_MAP.put("enabled", "true");
         GATEWAY_WEBSOCKET_MAP.put("urls", "ws://admin:9095/websocket");
 
@@ -98,6 +88,16 @@ public class DataSyncHandler {
         GATEWAY_APOLLO_MAP.put("namespace", "application");
 
         ETCD_MAP.put("url", "http://etcd:2379");
+
+        DATA_SYNC_MAP.put("admin_websocket", ADMIN_WEBSOCKET_MAP);
+        DATA_SYNC_MAP.put("gateway_websocket", GATEWAY_WEBSOCKET_MAP);
+        DATA_SYNC_MAP.put("zookeeper", ZOOKEEPER_MAP);
+        DATA_SYNC_MAP.put("admin_apollo", ADMIN_APOLLO_MAP);
+        DATA_SYNC_MAP.put("gateway_apollo", GATEWAY_APOLLO_MAP);
+        DATA_SYNC_MAP.put("admin_http", ADMIN_HTTP_MAP);
+        DATA_SYNC_MAP.put("gateway_http", GATEWAY_HTTP_MAP);
+        DATA_SYNC_MAP.put("nacos", NACOS_MAP);
+        DATA_SYNC_MAP.put("etcd", ETCD_MAP);
     }
     
     /**
