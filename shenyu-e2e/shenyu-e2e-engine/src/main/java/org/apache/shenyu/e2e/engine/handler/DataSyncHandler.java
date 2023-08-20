@@ -97,7 +97,7 @@ public class DataSyncHandler {
         GATEWAY_APOLLO_MAP.put("clusterName", "test");
         GATEWAY_APOLLO_MAP.put("namespace", "application");
 
-        ETCD_MAP.put("url", "http://etdc:2379");
+        ETCD_MAP.put("url", "http://etcd:2379");
     }
     
     /**

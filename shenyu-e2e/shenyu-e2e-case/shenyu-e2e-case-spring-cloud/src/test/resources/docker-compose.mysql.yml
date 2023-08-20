@@ -47,11 +47,14 @@ services:
       start_period: 30s
 
   etcd:
-    image: quay.io/coreos/etcd:latest
+    image: bitnami/etcd:3.5
+    environment:
+      - TZ=Asia/Shanghai
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
     expose:
       - 2379
       - 2380
-
   eureka:
     image: shenyu-examples-eureka:latest
     restart: always
