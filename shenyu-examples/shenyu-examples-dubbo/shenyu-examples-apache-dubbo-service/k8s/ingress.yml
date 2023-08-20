@@ -64,7 +64,6 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: shenyu
     shenyu.apache.org/plugin-dubbo-enabled: 'true'
-    shenyu.apache.org/zookeeper-register-address: 123.60.144.138:2181
   name: demo-ingress
 spec:
   rules:
