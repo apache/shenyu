@@ -119,6 +119,21 @@ public class IngressReconciler implements Reconciler {
         // Do not modify current ingress object directly
         final V1Ingress v1Ingress = this.ingressLister.namespace(request.getNamespace()).get(request.getName());
         final V1Ingress oldIngress = IngressCache.getInstance().get(request.getNamespace(), request.getName());
+        Map<String, String> annotations = v1Ingress.getMetadata().getAnnotations();
+        enablePlugin(shenyuCacheRepository, PluginEnum.GLOBAL, annotations);
+        enablePlugin(shenyuCacheRepository, PluginEnum.URI, annotations);
+        enablePlugin(shenyuCacheRepository, PluginEnum.NETTY_HTTP_CLIENT, annotations);
+        if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+            enablePlugin(shenyuCacheRepository, PluginEnum.DUBBO, annotations);
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
+            enablePlugin(shenyuCacheRepository, PluginEnum.MOTAN, annotations);
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
+            enablePlugin(shenyuCacheRepository, PluginEnum.SPRING_CLOUD, annotations);
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
+            enablePlugin(shenyuCacheRepository, PluginEnum.WEB_SOCKET, annotations);
+        } else {
+            enablePlugin(shenyuCacheRepository, PluginEnum.DIVIDE, annotations);
+        }
         if (Objects.isNull(v1Ingress)) {
             if (Objects.nonNull(oldIngress)) {
                 // Delete ingress binding selectors
@@ -221,22 +236,13 @@ public class IngressReconciler implements Reconciler {
     }
 
     private void initPlugins(final ShenyuCacheRepository shenyuCacheRepository) {
-        enablePlugin(shenyuCacheRepository, PluginEnum.GLOBAL);
-        enablePlugin(shenyuCacheRepository, PluginEnum.URI);
-        enablePlugin(shenyuCacheRepository, PluginEnum.NETTY_HTTP_CLIENT);
-        enablePlugin(shenyuCacheRepository, PluginEnum.DIVIDE);
-        enablePlugin(shenyuCacheRepository, PluginEnum.GENERAL_CONTEXT);
-        enablePlugin(shenyuCacheRepository, PluginEnum.DUBBO);
-        enablePlugin(shenyuCacheRepository, PluginEnum.MOTAN);
-        enablePlugin(shenyuCacheRepository, PluginEnum.SPRING_CLOUD);
-        enablePlugin(shenyuCacheRepository, PluginEnum.WEB_SOCKET);
     }
 
-    private void enablePlugin(final ShenyuCacheRepository shenyuCacheRepository, final PluginEnum pluginEnum) {
+    private void enablePlugin(final ShenyuCacheRepository shenyuCacheRepository, final PluginEnum pluginEnum, final Map<String, String> annotations) {
         PluginData pluginData = PluginData.builder()
                 .id(String.valueOf(pluginEnum.getCode()))
                 .name(pluginEnum.getName())
-                .config(getPluginConfig(pluginEnum))
+                .config(getPluginConfig(pluginEnum, annotations))
                 .role(PluginRoleEnum.SYS.getName())
                 .enabled(true)
                 .sort(pluginEnum.getCode())
@@ -244,14 +250,15 @@ public class IngressReconciler implements Reconciler {
         shenyuCacheRepository.saveOrUpdatePluginData(pluginData);
     }
 
-    private String getPluginConfig(final PluginEnum pluginEnum) {
+    private String getPluginConfig(final PluginEnum pluginEnum, final Map<String, String> annotations) {
+        String zookeeperUrl = annotations.get(IngressConstants.ZOOKEEPER_REGISTER_ADDRESS);
         switch (pluginEnum) {
             case DIVIDE:
                 return "{multiSelectorHandle: 1, multiRuleHandle:0}";
             case DUBBO:
-                return "{\"multiSelectorHandle\":\"1\",\"threadpool\":\"shared\",\"corethreads\":\"0\",\"threads\":2147483647,\"queues\":\"0\",\"register\":\"zookeeper://123.60.144.138:2181\"}";
+                return "{multiSelectorHandle: 1,threadpool:shared,corethreads:0,threads:2147483647,queues:0,register: " + zookeeperUrl + "}";
             case MOTAN:
-                return "{\"register\":\"123.60.144.138:2181\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"shared\"}";
+                return "{register: " + zookeeperUrl + ",corethreads: 0, threads :2147483647,queues:0,threadpool:shared}";
             case WEB_SOCKET:
                 return "{multiSelectorHandle: 1}";
             default:
