@@ -72,7 +72,6 @@ public class ShenyuSpringMvcClientConfigurationTest {
                 "shenyu.register.props.username=admin",
                 "shenyu.register.props.password=123456",
                 "spring.application.name=test-for-http",
-                "server.servlet.context-path=/test-http",
                 "shenyu.client.http.props[port]=8189"
             );
     }
@@ -95,7 +94,7 @@ public class ShenyuSpringMvcClientConfigurationTest {
         applicationContextRunner.run(context -> {
             SpringMvcClientEventListener processor = context.getBean("springHttpClientEventListener", SpringMvcClientEventListener.class);
             assertEquals("default-appName", "test-for-http", processor.getAppName());
-            assertEquals("default-contextPath", "/test-http", processor.getContextPath());
+            assertEquals("default-contextPath", "/test-for-http", processor.getContextPath());
         });
         registerUtilsMockedStatic.close();
     }

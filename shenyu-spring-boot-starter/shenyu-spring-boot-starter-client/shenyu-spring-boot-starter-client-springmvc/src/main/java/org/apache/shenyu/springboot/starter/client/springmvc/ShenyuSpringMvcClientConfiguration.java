@@ -27,12 +27,12 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 import java.util.Properties;
 
@@ -53,20 +53,17 @@ public class ShenyuSpringMvcClientConfiguration {
      *
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
-     * @param applicationName the shenyu client default appName
-     * @param serverContextPath the shenyu client default serverContextPath
-     * @param serverServletPath the shenyu client default serverServletPath
+     * @param env                            the env
      * @return the spring mvc client bean post processor
      */
     @Bean
     @ConditionalOnMissingBean(ClientRegisterConfiguration.class)
     public SpringMvcClientEventListener springHttpClientEventListener(final ShenyuClientConfig clientConfig,
                                                                           final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
-                                                                          final @Value("${spring.application.name:}") String applicationName,
-                                                                          final @Value("${server.servlet.context-path:}") String serverContextPath,
-                                                                          final @Value("${spring.mvc.servlet.path:}") String serverServletPath) {
+                                                                          final Environment env) {
         ClientPropertiesConfig clientPropertiesConfig = clientConfig.getClient().get(RpcTypeEnum.HTTP.getName());
         Properties props = clientPropertiesConfig == null ? null : clientPropertiesConfig.getProps();
+        String applicationName = env.getProperty("spring.application.name");
         if (props != null) {
             String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
             if (StringUtils.isBlank(appName)) {
@@ -74,9 +71,9 @@ public class ShenyuSpringMvcClientConfiguration {
             }
             String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
             if (StringUtils.isBlank(contextPath)) {
-                props.setProperty(ShenyuClientConstants.CONTEXT_PATH, String.format("%s/%s", serverContextPath, serverServletPath).replaceAll("/+", "/").replaceFirst("/$", ""));
+                props.setProperty(ShenyuClientConstants.CONTEXT_PATH, String.format("/%s", applicationName));
             }
         }
-        return new SpringMvcClientEventListener(clientPropertiesConfig, shenyuClientRegisterRepository);
+        return new SpringMvcClientEventListener(clientPropertiesConfig, shenyuClientRegisterRepository, env);
     }
 }
