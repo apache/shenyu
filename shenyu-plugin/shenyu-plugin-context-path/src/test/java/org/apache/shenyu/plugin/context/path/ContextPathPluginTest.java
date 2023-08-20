@@ -92,6 +92,14 @@ public final class ContextPathPluginTest {
         contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData);
         assertEquals("/order/findById", shenyuContext.getRealUrl());
 
+        contextMappingRuleHandle.setAddPrefixed(true);
+        contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData);
+        assertEquals("/http/context/order/findById", shenyuContext.getRealUrl());
+
+        contextMappingRuleHandle.setAddPrefix("/preTest");
+        contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData);
+        assertEquals("/preTest/http/context/order/findById", shenyuContext.getRealUrl());
+
         Assertions.assertDoesNotThrow(() -> contextPathPlugin.doExecute(exchange, chain, selectorData, RuleData.builder().name("RuleData").build()));
         contextMappingRuleHandle.setAddPrefix("/addPrefix");
         Assertions.assertDoesNotThrow(() -> contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData));

@@ -40,9 +40,9 @@ import java.util.Objects;
  * ContextPath Plugin.
  */
 public class ContextPathPlugin extends AbstractShenyuPlugin {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ContextPathPlugin.class);
-    
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
@@ -52,20 +52,22 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
             LOG.error("context path rule configuration is null ：{}", rule);
             return chain.execute(exchange);
         }
+        shenyuContext.setContextPath(ruleHandle.getContextPath());
+        shenyuContext.setModule(ruleHandle.getContextPath());
         buildRealURI(shenyuContext, ruleHandle);
         return chain.execute(exchange);
     }
-    
+
     @Override
     public int getOrder() {
         return PluginEnum.CONTEXT_PATH.getCode();
     }
-    
+
     @Override
     public String named() {
         return PluginEnum.CONTEXT_PATH.getName();
     }
-    
+
     @Override
     public boolean skip(final ServerWebExchange exchange) {
         return skip(exchange,
@@ -76,11 +78,11 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
                 RpcTypeEnum.SOFA,
                 RpcTypeEnum.BRPC);
     }
-    
+
     private ContextMappingRuleHandle buildRuleHandle(final RuleData rule) {
         return ContextPathPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
-    
+
     /**
      * Build the realUrl.
      *
@@ -88,14 +90,16 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
      * @param handle  handle
      */
     private void buildRealURI(final ShenyuContext context, final ContextMappingRuleHandle handle) {
-        String contextPath = handle.getContextPath();
-        if (StringUtils.isNoneBlank(contextPath)) {
-            context.setRealUrl(context.getPath().substring(contextPath.length()));
+        String realURI = "";
+        if (!handle.getAddPrefixed() && StringUtils.isNoneBlank(handle.getContextPath())) {
+            realURI = context.getPath().substring(handle.getContextPath().length());
         } else {
-            String addPrefix = handle.getAddPrefix();
-            if (StringUtils.isNoneBlank(addPrefix)) {
-                context.setRealUrl(addPrefix + context.getPath());
-            }
+            realURI = context.getPath();
         }
+        String addPrefix = handle.getAddPrefix();
+        if (StringUtils.isNoneBlank(addPrefix)) {
+            realURI = addPrefix + realURI;
+        }
+        context.setRealUrl(realURI);
     }
 }
