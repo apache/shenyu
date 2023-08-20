@@ -44,7 +44,7 @@ shenyu:
 motan:
   registry:
     protocol: zk
-    address: 123.60.144.138:2181
+    address: 127.0.0.1:2181
 
 logging:
   level:
