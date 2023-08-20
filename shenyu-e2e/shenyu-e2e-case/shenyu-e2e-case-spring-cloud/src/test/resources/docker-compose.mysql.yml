@@ -46,6 +46,12 @@ services:
       retries: 3
       start_period: 30s
 
+  etcd:
+    image: quay.io/coreos/etcd:latest
+    expose:
+      - 2379
+      - 2380
+
   eureka:
     image: shenyu-examples-eureka:latest
     restart: always
@@ -106,7 +112,7 @@ services:
       start_period: 8s
 
   gateway:
-    image: shenyu/bootstrap:latest
+    image: apache/shenyu-bootstrap:latest
     environment:
       - eureka.client.serviceUrl.defaultZone=http://eureka:8761/eureka/
     expose:

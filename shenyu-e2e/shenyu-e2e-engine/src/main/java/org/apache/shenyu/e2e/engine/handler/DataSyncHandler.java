@@ -44,7 +44,9 @@ public class DataSyncHandler {
     private static final Map<String, Object> NACOS_MAP = new HashMap<>();
     
     private static final Map<String, Object> ACM_MAP = new HashMap<>();
-    
+
+    private static final Map<String, Object> ETCD_MAP = new HashMap<>();
+
     /**
      * init data sync handler.
      */
@@ -57,6 +59,7 @@ public class DataSyncHandler {
         DATA_SYNC_MAP.put("admin_http", ADMIN_HTTP_MAP);
         DATA_SYNC_MAP.put("gateway_http", GATEWAY_HTTP_MAP);
         DATA_SYNC_MAP.put("nacos", NACOS_MAP);
+        DATA_SYNC_MAP.put("etcd", ETCD_MAP);
 
         ADMIN_WEBSOCKET_MAP.put("enabled", "true");
         GATEWAY_WEBSOCKET_MAP.put("urls", "ws://admin:9095/websocket");
@@ -93,6 +96,8 @@ public class DataSyncHandler {
         GATEWAY_APOLLO_MAP.put("env", "dev");
         GATEWAY_APOLLO_MAP.put("clusterName", "test");
         GATEWAY_APOLLO_MAP.put("namespace", "application");
+
+        ETCD_MAP.put("url", "http://etdc:2379");
     }
     
     /**
