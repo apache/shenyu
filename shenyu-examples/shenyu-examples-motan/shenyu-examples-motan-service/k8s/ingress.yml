@@ -104,12 +104,12 @@ spec:
                 name: motan-testtimeout
                 port:
                   number: 20880
-            path: /motan/
+            path: /motan
             pathType: Prefix
           - backend:
               service:
                 name: motan-hello
                 port:
-                  number: 20880
-            path: /motan/
+                  number: 20881
+            path: /motan
             pathType: Prefix

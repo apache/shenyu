@@ -56,7 +56,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
-    private static final Logger LOG = LoggerFactory.getLogger(IngressParser.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MotanIngressParser.class);
 
     private final Lister<V1Service> serviceLister;
 
@@ -225,6 +225,7 @@ public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
         return MetaData.builder()
                 .appName(annotations.get(IngressConstants.PLUGIN_MOTAN_APP_NAME))
                 .path(annotations.get(IngressConstants.PLUGIN_MOTAN_PATH))
+                .contextPath("/motan")
                 .rpcType(annotations.get(IngressConstants.PLUGIN_MOTAN_RPC_TYPE))
                 .rpcExt(annotations.getOrDefault(IngressConstants.PLUGIN_MOTAN_RPC_EXPAND, ""))
                 .serviceName(annotations.get(IngressConstants.PLUGIN_MOTAN_SREVICE_NAME))

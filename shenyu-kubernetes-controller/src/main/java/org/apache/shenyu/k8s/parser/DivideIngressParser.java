@@ -65,7 +65,7 @@ import java.util.Objects;
  */
 public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(IngressParser.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DivideIngressParser.class);
 
     private final Lister<V1Service> serviceLister;
 

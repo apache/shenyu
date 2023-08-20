@@ -46,7 +46,7 @@ spec:
             timeoutSeconds: 2
           env:
             - name: shenyu.register.serverLists
-              value: http://shenyu-admin:9095
+              value: http://192.168.133.1:9095
             - name: motan.registry.address
               value: 123.60.144.138:2181
           ports:
