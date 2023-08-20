@@ -54,7 +54,7 @@ spec:
   selector:
     app: shenyu-examples-dubbo
   ports:
-    - port: 20881  # Assuming this is the Dubbo service port
+    - port: 20880  # Assuming this is the Dubbo service port
 
 ---
 
