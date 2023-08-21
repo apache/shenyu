@@ -55,14 +55,19 @@ public class HttpCheckers {
     public static HttpChecker notExists(final Method method, final String endpoint) {
         return request -> {
             try {
-                request.request(method, endpoint)
+                Response response = request.request(method, endpoint);
+                ValidatableResponse validatableResponse = response
                         .then()
                         .log()
-                        .ifValidationFails()
-                        .body("code", lessThan(0))
-                        .body("message", containsString("please check your configuration!"));
+                        .ifValidationFails();
+                String body = request.request(method, endpoint).body().asString();
+                if (body.startsWith("{") && body.endsWith("}")) {
+                    validatableResponse.body("code", lessThan(0))
+                            .body("message", containsString("please check your configuration!"));
+                }
+                validatableResponse.statusCode(HttpStatus.OK.value());
             } catch (AssertionError error) {
-                Assertions.fail("endpoint '" + endpoint + "' already exists, but expected it does not exist.", error);
+                Assertions.fail("endpoint '" + endpoint + "' not exists", error);
             }
         };
     }

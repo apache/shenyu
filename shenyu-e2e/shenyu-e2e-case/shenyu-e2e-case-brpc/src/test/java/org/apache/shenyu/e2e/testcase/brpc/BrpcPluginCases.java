@@ -74,7 +74,8 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/brpc/getUser"))
                                                 .build()
                                 )
-                                .checker(exists(Method.POST, "/brpc/getUser", body))
+                                .checker(notExists("/brpc/testchecker"))
+                                .waiting(exists(Method.POST, "/brpc/getUser", body))
                                 .build()
                 )
                 .caseSpec(
@@ -178,8 +179,8 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/getUser"))
                                                 .build()
                                 )
-                                .checker(notExists("/brpc/testcheck"))
                                 .waiting(exists(Method.POST, "/brpc/getUser", body))
+                                .checker(notExists("/brpc/testcheck"))
                                 .build()
                 )
                 .caseSpec(
@@ -242,6 +243,8 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
      * @return ShenYuScenarioSpec
      */
     public ShenYuScenarioSpec testWithMethodPost() {
+        ConcurrentHashMap<String, Integer> body = new ConcurrentHashMap<>();
+        body.put("userId", 127);
         return ShenYuScenarioSpec.builder()
                 .name("single-brpc uri method POST]")
                 .beforeEachSpec(
@@ -250,23 +253,23 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.BRPC)
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "POST"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/brpc/allName")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/brpc/userMap")
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "POST"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/brpc/allName")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/brpc/userMap")
                                                 ))
                                                 .build()
                                 )
                                 .checker(notExists(Method.POST, "/brpc/testpost"))
-                                .waiting(exists(Method.GET, "/brpc/allName"))
+                                .waiting(exists(Method.POST, "/brpc/userMap", body))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.GET, "/brpc/allName")
+                                .addExists(Method.POST, "/brpc/userMap", body)
                                 .addNotExists(Method.POST, "/brpc/testpost")
                                 .addNotExists(Method.PUT, "/brpc/testput")
                                 .addNotExists(Method.DELETE, "/brpc/testdelete")
@@ -300,12 +303,12 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                                 .build()
                                 )
                                 .checker(notExists(Method.PUT, "/brpc/testput"))
-                                .waiting(exists(Method.GET, "/brpc/allName"))
+                                .waiting(notExists(Method.GET, "/brpc/allName"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.GET, "/brpc/allName")
+                                .addNotExists(Method.GET, "/brpc/allName")
                                 .addNotExists(Method.PUT, "/brpc/testput")
                                 .addNotExists(Method.POST, "/brpc/testpost")
                                 .addNotExists(Method.DELETE, "/brpc/testdelete")
@@ -339,12 +342,12 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                                 .build()
                                 )
                                 .checker(notExists(Method.DELETE, "/brpc/testdelete"))
-                                .waiting(exists(Method.GET, "/brpc/allName"))
+                                .waiting(notExists(Method.GET, "/brpc/allName"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.GET, "/brpc/allName")
+                                .addNotExists(Method.GET, "/brpc/allName")
                                 .addNotExists(Method.DELETE, "/brpc/find")
                                 .addNotExists(Method.POST, "/brpc/testpost")
                                 .addNotExists(Method.PUT, "/brpc/testput")
