@@ -281,15 +281,16 @@ public class DockerServiceCompose implements ServiceCompose {
             Map<String, Object> shenyuParameter = (Map<String, Object>) yamlData.get("shenyu");
             Map<String, Object> parameter = (Map<String, Object>) shenyuParameter.get("sync");
             Map<String, Object> subParameters = DataSyncHandler.getDataSynMap(dockerServiceConfigure.getProperties().getProperty("dataSyn"));
+            log.info("----" + parameter.toString() + "----");
+            log.info("----" + subParameters.toString() + "----");
+            log.info("----" + dockerServiceConfigure.getProperties().getProperty("dataSyn") + "----");
             String synMethod = "";
             if (dockerServiceConfigure.getProperties().getProperty("dataSyn").contains("_")) {
                 synMethod = dockerServiceConfigure.getProperties().getProperty("dataSyn").split("_")[1];
             } else {
                 synMethod = dockerServiceConfigure.getProperties().getProperty("dataSyn");
             }
-            log.info("----" + dockerServiceConfigure.getProperties().getProperty("dataSyn") + "----");
             log.info("----" + synMethod + "----");
-            log.info("----" + subParameters.toString() + "----");
             parameter.put(synMethod, subParameters);
             String finalSynMethod = synMethod;
             parameter.keySet().removeIf(key -> !key.equals(finalSynMethod));
