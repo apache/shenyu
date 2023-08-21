@@ -157,7 +157,8 @@ public class PolarisDataChangedListenerTest {
         when(configFile.getContent()).thenReturn(null);
         when(polarisConfigFileService.getConfigFile(any())).thenReturn(configFile);
         RuleData ruleData = RuleData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).selectorId(MOCK_SELECTOR_ID).build();
-        when(polarisConfigFileService.getConfigFile(any(), any(), any())).thenReturn(configFile);polarisDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.DELETE);
+        when(polarisConfigFileService.getConfigFile(any(), any(), any())).thenReturn(configFile);
+        polarisDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.DELETE);
         polarisDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.REFRESH);
         polarisDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.MYSELF);
         polarisDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.CREATE);
