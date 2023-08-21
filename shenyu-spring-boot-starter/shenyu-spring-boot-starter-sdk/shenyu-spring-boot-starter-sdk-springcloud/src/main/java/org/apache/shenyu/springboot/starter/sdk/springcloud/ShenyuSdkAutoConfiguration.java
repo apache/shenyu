@@ -21,7 +21,6 @@ import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
-import org.apache.shenyu.sdk.springcloud.ShenyuClientCapability;
 import org.apache.shenyu.sdk.springcloud.ShenyuDiscoveryClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -84,16 +83,6 @@ public class ShenyuSdkAutoConfiguration {
     @ConditionalOnBean(ShenyuInstanceRegisterRepository.class)
     public ShenyuDiscoveryClient shenyuDiscoveryClient(final ShenyuInstanceRegisterRepository registerRepository, final RegisterConfig registerConfig) {
         return new ShenyuDiscoveryClient(registerRepository, registerConfig);
-    }
-
-    /**
-     * shenyu capability to enrich feign client.
-     * @param shenyuDiscoveryClient shenyuDiscoveryClient
-     * @return ShenyuClientCapability
-     */
-    @Bean
-    public ShenyuClientCapability shenyuDiscoveryClient(final ShenyuDiscoveryClient shenyuDiscoveryClient) {
-        return new ShenyuClientCapability(shenyuDiscoveryClient);
     }
 
 }

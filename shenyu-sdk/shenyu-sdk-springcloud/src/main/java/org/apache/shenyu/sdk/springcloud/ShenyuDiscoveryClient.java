@@ -17,7 +17,12 @@
 
 package org.apache.shenyu.sdk.springcloud;
 
-import java.util.Collections;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shenyu.common.constant.Constants;
@@ -28,22 +33,12 @@ import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
-import static org.apache.shenyu.sdk.springcloud.ShenyuClientCapability.SHENYU_SERVICE_ID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-public class ShenyuDiscoveryClient implements DiscoveryClient {
+public class ShenyuDiscoveryClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuDiscoveryClient.class);
 
@@ -68,21 +63,11 @@ public class ShenyuDiscoveryClient implements DiscoveryClient {
     }
 
     /**
-     * A human-readable description of the implementation, used in HealthIndicator.
-     * @return The description.
-     */
-    @Override
-    public String description() {
-        return "shenyu gateway sdk client discovery client";
-    }
-
-    /**
      * Gets all ServiceInstances associated with a particular serviceId.
      * @param serviceId The serviceId to query.
      * @return A List of ServiceInstance.
      */
-    @Override
-    public List<ServiceInstance> getInstances(final String serviceId) {
+    public ServiceInstance getInstance(final String serviceId) {
         final List<Upstream> upstreams;
         if (Objects.isNull(registerRepository)) {
             List<String> serverList = Arrays.asList(registerConfig.getServerLists().split(","));
@@ -102,28 +87,18 @@ public class ShenyuDiscoveryClient implements DiscoveryClient {
         }
         // loadBalancer upstreams
         if (CollectionUtils.isEmpty(upstreams)) {
-            LOG.error("The serviceId that named " + SHENYU_SERVICE_ID + " could not load balanced to at least one upsteam.");
+            LOG.error("The serviceId that named " + serviceId + " could not load balanced to at least one upstream.");
         }
         Upstream upstream = upstreams.get(0);
         if (CollectionUtils.isNotEmpty(upstreams) && upstreams.size() > 1) {
             upstream = LoadBalancerFactory.selector(upstreams, algorithm, "");
         }
 
-        return Stream.of(upstream)
-                   .map(stream -> {
-                       final URI uri = UriUtils.createUri(stream.getUrl());
-                       return new DefaultServiceInstance(stream.getUrl(), serviceId, uri.getHost(), uri.getPort(), "https".equals(scheme));
-                   })
-                   .collect(Collectors.toList());
-    }
-
-    /**
-     * get discovery client support serviceIds.
-     * @return All known service IDs.
-     */
-    @Override
-    public List<String> getServices() {
-        return Collections.singletonList(SHENYU_SERVICE_ID);
+        final URI uri = UriUtils.createUri(upstream.getUrl());
+        if (Objects.isNull(uri)) {
+            throw new ShenyuException("Gateway address uri is not invalid.");
+        }
+        return new DefaultServiceInstance(upstream.getUrl(), serviceId, uri.getHost(), uri.getPort(), "https".equals(scheme));
     }
 
 }

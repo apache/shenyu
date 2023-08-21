@@ -89,7 +89,6 @@ public class ShenyuClientsRegistrarTest {
         when(config.getServerLists()).thenReturn("localhost:1234");
         final ShenyuDiscoveryClient shenyuDiscoveryClient = spy(new ShenyuDiscoveryClient(config));
         context.registerBean(ShenyuDiscoveryClient.class, () -> shenyuDiscoveryClient);
-        context.register(ShenyuClientCapability.class);
         context.refresh();
 
         final ShenyuClientsRegistrarTest.ShenyuApiClient apiClient = context.getBean(ShenyuClientsRegistrarTest.ShenyuApiClient.class);
@@ -98,8 +97,8 @@ public class ShenyuClientsRegistrarTest {
         assertNotNull(invocationHandler);
         Target.HardCodedTarget factoryBean = (Target.HardCodedTarget) ReflectionTestUtils.getField(invocationHandler, "target");
         assertNotNull(factoryBean);
-        assertEquals(factoryBean.name(), "shenyu-gateway");
-        assertEquals(factoryBean.url(), "http://shenyu-gateway/dev/api");
+        assertEquals(factoryBean.name(), "shenyuApiClient");
+        assertEquals(factoryBean.url(), "http://shenyuApiClient/dev/api");
         assertEquals(factoryBean.type(), ShenyuApiClient.class);
 
         final Response respSpy = spy(Response.builder()
@@ -110,7 +109,7 @@ public class ShenyuClientsRegistrarTest {
         when(delegate.execute(any(), any())).thenReturn(respSpy);
         assertThrowsExactly(DecodeException.class, () -> apiClient.del("id"));
         verify(delegate, times(1)).execute(any(), any());
-        verify(shenyuDiscoveryClient, times(1)).getInstances(anyString());
+        verify(shenyuDiscoveryClient, times(1)).getInstance(anyString());
     }
 
     @Configuration

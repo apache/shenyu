@@ -34,8 +34,6 @@ import org.springframework.util.Assert;
  */
 public class ShenyuClientCapability implements Capability {
 
-    public static final String SHENYU_SERVICE_ID = "shenyu-gateway";
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuClientCapability.class);
 
     private final ShenyuDiscoveryClient shenyuDiscoveryClient;
@@ -51,19 +49,16 @@ public class ShenyuClientCapability implements Capability {
             final URI originalUri = URI.create(request.url());
             String serviceId = originalUri.getHost();
             Assert.state(serviceId != null, "Request URI does not contain a valid hostname: " + originalUri);
-            if (SHENYU_SERVICE_ID.equals(serviceId)) {
-                if (finalDelegate instanceof FeignBlockingLoadBalancerClient) {
-                    delegate = ((FeignBlockingLoadBalancerClient) finalDelegate).getDelegate();
-                } else if (finalDelegate instanceof RetryableFeignBlockingLoadBalancerClient) {
-                    delegate = ((RetryableFeignBlockingLoadBalancerClient) finalDelegate).getDelegate();
-                }
-                final ServiceInstance serviceInstance = shenyuDiscoveryClient.getInstances(SHENYU_SERVICE_ID).get(0);
-                String reconstructedUrl = LoadBalancerUriTools.reconstructURI(serviceInstance, originalUri).toString();
-                Request newRequest = buildRequest(request, reconstructedUrl);
-                LOGGER.info("shenyuClientCapability enrich client execute Uri {} to {}", originalUri, reconstructedUrl);
-                return delegate.execute(newRequest, options);
+            if (finalDelegate instanceof FeignBlockingLoadBalancerClient) {
+                delegate = ((FeignBlockingLoadBalancerClient) finalDelegate).getDelegate();
+            } else if (finalDelegate instanceof RetryableFeignBlockingLoadBalancerClient) {
+                delegate = ((RetryableFeignBlockingLoadBalancerClient) finalDelegate).getDelegate();
             }
-            return delegate.execute(request, options);
+            final ServiceInstance serviceInstance = shenyuDiscoveryClient.getInstance(serviceId);
+            String reconstructedUrl = LoadBalancerUriTools.reconstructURI(serviceInstance, originalUri).toString();
+            Request newRequest = buildRequest(request, reconstructedUrl);
+            LOGGER.info("shenyuClientCapability enrich client execute Uri {} to {}", originalUri, reconstructedUrl);
+            return delegate.execute(newRequest, options);
         };
     }
 

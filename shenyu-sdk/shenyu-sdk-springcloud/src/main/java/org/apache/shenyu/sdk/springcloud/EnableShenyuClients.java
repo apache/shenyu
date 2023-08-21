@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.sdk.springcloud;
 
+import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.Documented;
@@ -35,7 +36,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@Import(ShenyuClientsRegistrar.class)
+@Import({ShenyuClientsRegistrar.class, ShenyuClientCapability.class})
 public @interface EnableShenyuClients {
 
     /**
@@ -66,5 +67,15 @@ public @interface EnableShenyuClients {
      * @return the array of 'basePackageClasses'.
      */
     Class<?>[] basePackageClasses() default {};
+
+    /**
+     * A custom <code>@Configuration</code> for all feign clients. Can contain override
+     * <code>@Bean</code> definition for the pieces that make up the client, for instance
+     * {@link feign.codec.Decoder}, {@link feign.codec.Encoder}, {@link feign.Contract}.
+     *
+     * @see FeignClientsConfiguration for the defaults
+     * @return list of default configurations
+     */
+    Class<?>[] defaultConfiguration() default {};
 
 }

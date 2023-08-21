@@ -17,8 +17,12 @@
 
 package org.apache.shenyu.sdk.springcloud;
 
+import com.google.common.collect.Lists;
+import java.util.Objects;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.BeanExpressionContext;
@@ -28,7 +32,10 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.FeignClientFactoryBean;
+import org.springframework.cloud.openfeign.FeignClientSpecification;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -94,7 +101,22 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
     @Override
     public void registerBeanDefinitions(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
+        registerDefaultConfiguration(metadata, registry);
         registerShenyuClients(metadata, registry);
+    }
+
+    private void registerDefaultConfiguration(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
+        Map<String, Object> defaultAttrs = metadata.getAnnotationAttributes(EnableShenyuClients.class.getName(), true);
+
+        if (defaultAttrs != null && defaultAttrs.containsKey("defaultConfiguration")) {
+            String name;
+            if (metadata.hasEnclosingClass()) {
+                name = "default." + metadata.getEnclosingClassName();
+            } else {
+                name = "default." + metadata.getClassName();
+            }
+            registerClientConfiguration(registry, name, defaultAttrs.get("defaultConfiguration"));
+        }
     }
 
     /**
@@ -104,13 +126,22 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
      */
     public void registerShenyuClients(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
         Set<BeanDefinition> candidateComponents = new LinkedHashSet<>();
-        ClassPathScanningCandidateComponentProvider scanner = getScanner();
-        scanner.setResourceLoader(this.resourceLoader);
-        scanner.addIncludeFilter(new AnnotationTypeFilter(ShenyuClient.class));
-        Set<String> basePackages = getBasePackages(metadata);
-        for (String basePackage : basePackages) {
-            candidateComponents.addAll(scanner.findCandidateComponents(basePackage));
+        Map<String, Object> attrs = metadata.getAnnotationAttributes(EnableFeignClients.class.getName());
+        final Class<?>[] clients = attrs == null ? null : (Class<?>[]) attrs.get("clients");
+        if (clients == null || clients.length == 0) {
+            ClassPathScanningCandidateComponentProvider scanner = getScanner();
+            scanner.setResourceLoader(this.resourceLoader);
+            scanner.addIncludeFilter(new AnnotationTypeFilter(ShenyuClient.class));
+            Set<String> basePackages = getBasePackages(metadata);
+            for (String basePackage : basePackages) {
+                candidateComponents.addAll(scanner.findCandidateComponents(basePackage));
+            }
+        } else {
+            for (Class<?> clazz : clients) {
+                candidateComponents.add(new AnnotatedGenericBeanDefinition(clazz));
+            }
         }
+
         for (BeanDefinition candidateComponent : candidateComponents) {
             if (candidateComponent instanceof AnnotatedBeanDefinition) {
                 // verify annotated class is an interface
@@ -118,8 +149,16 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
                 AnnotationMetadata annotationMetadata = beanDefinition.getMetadata();
                 Assert.isTrue(annotationMetadata.isInterface(), "@ShenyuClient can only be specified on an interface " + candidateComponent.getBeanClassName());
 
-                Map<String, Object> attributes = annotationMetadata.getAnnotationAttributes(ShenyuClient.class.getCanonicalName());
+                Map<String, Object> attributes = annotationMetadata
+                                                     .getAnnotationAttributes(ShenyuClient.class.getCanonicalName());
 
+                String name = getClientName(attributes);
+                final List<Class<?>> list = Lists.newArrayList(ShenyuClientConfiguration.class);
+                final Class<?>[] configurations = (Class<?>[]) attributes.get("configuration");
+                if (Objects.nonNull(configurations)) {
+                    CollectionUtils.addAll(list, configurations);
+                }
+                registerClientConfiguration(registry, name, list.toArray(new Class<?>[list.size()]));
                 registerShenyuClient(registry, annotationMetadata, attributes);
             }
         }
@@ -130,8 +169,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         Class clazz = ClassUtils.resolveClassName(className, null);
         ConfigurableBeanFactory beanFactory = registry instanceof ConfigurableBeanFactory ? (ConfigurableBeanFactory) registry : null;
 
-        // init to loadBalance serviceId.
-        String name = ShenyuClientCapability.SHENYU_SERVICE_ID;
+        String name = getName(attributes);
         String contextId = getContextId(beanFactory, attributes);
 
         FeignClientFactoryBean factoryBean = new FeignClientFactoryBean();
@@ -390,6 +428,36 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
             }
         }
         return resultPath;
+    }
+
+    private String getClientName(final Map<String, Object> client) {
+        if (client == null) {
+            return null;
+        }
+        String value = (String) client.get("contextId");
+        if (!StringUtils.hasText(value)) {
+            value = (String) client.get("value");
+        }
+        if (!StringUtils.hasText(value)) {
+            value = (String) client.get("name");
+        }
+        if (!StringUtils.hasText(value)) {
+            value = (String) client.get("serviceId");
+        }
+        if (StringUtils.hasText(value)) {
+            return value;
+        }
+
+        throw new IllegalStateException(
+            "Either 'name' or 'value' must be provided in @" + FeignClient.class.getSimpleName());
+    }
+
+    private void registerClientConfiguration(final BeanDefinitionRegistry registry, final Object name, final Object configuration) {
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FeignClientSpecification.class);
+        builder.addConstructorArgValue(name);
+        builder.addConstructorArgValue(configuration);
+        registry.registerBeanDefinition(name + "." + FeignClientSpecification.class.getSimpleName(),
+            builder.getBeanDefinition());
     }
 
     private boolean isClientRefreshEnabled() {
