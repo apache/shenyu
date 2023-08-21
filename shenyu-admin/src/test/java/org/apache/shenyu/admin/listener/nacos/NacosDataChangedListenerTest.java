@@ -71,9 +71,8 @@ public class NacosDataChangedListenerTest {
 
     @Test
     public void testOnAppAuthChanged() throws NacosException {
-        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
-
         when(configService.getConfig(anyString(), anyString(), anyLong())).thenReturn(null);
+        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
         nacosDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.REFRESH);
         nacosDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.MYSELF);
@@ -83,9 +82,8 @@ public class NacosDataChangedListenerTest {
 
     @Test
     public void testOnPluginChanged() throws NacosException {
-        PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).config(MOCK_CONFIG).build();
-
         when(configService.getConfig(anyString(), anyString(), anyLong())).thenReturn(null);
+        PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).config(MOCK_CONFIG).build();
         nacosDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.REFRESH);
         nacosDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.MYSELF);
@@ -95,9 +93,8 @@ public class NacosDataChangedListenerTest {
 
     @Test
     public void testOnSelectorChanged() throws NacosException {
-        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
-
         when(configService.getConfig(anyString(), anyString(), anyLong())).thenReturn(null);
+        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
         nacosDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.REFRESH);
         nacosDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.MYSELF);
@@ -107,9 +104,8 @@ public class NacosDataChangedListenerTest {
 
     @Test
     public void testOnMetaDataChanged() throws NacosException {
-        MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
-
         when(configService.getConfig(anyString(), anyString(), anyLong())).thenReturn(null);
+        MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
         nacosDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.REFRESH);
         nacosDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.MYSELF);
@@ -119,14 +115,14 @@ public class NacosDataChangedListenerTest {
 
     @Test
     public void testOnRuleChanged() throws NacosException {
+        when(configService.getConfig(anyString(), anyString(), anyLong())).thenReturn(null);
+
         RuleData ruleData = RuleData.builder()
                 .id(MOCK_ID)
                 .name(MOCK_NAME)
                 .pluginName(MOCK_PLUGIN_NAME)
                 .selectorId(MOCK_SELECTOR_ID)
                 .build();
-
-        when(configService.getConfig(anyString(), anyString(), anyLong())).thenReturn(null);
         nacosDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.REFRESH);
         nacosDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.MYSELF);
