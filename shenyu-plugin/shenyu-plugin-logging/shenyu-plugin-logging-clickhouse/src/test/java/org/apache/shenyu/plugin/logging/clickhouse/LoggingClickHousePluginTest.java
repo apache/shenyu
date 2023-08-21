@@ -87,6 +87,9 @@ public class LoggingClickHousePluginTest {
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
     }
 
+    /**
+     * test doExecute.
+     */
     @Test
     public void testDoExecute() {
         Mockito.when(chain.execute(ArgumentMatchers.any())).thenReturn(Mono.empty());

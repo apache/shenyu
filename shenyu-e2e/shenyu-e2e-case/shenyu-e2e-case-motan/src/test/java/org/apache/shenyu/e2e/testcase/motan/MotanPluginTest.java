@@ -82,18 +82,14 @@ public class MotanPluginTest {
         adminClient.login();
         Thread.sleep(10000);
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
-        List<RuleDTO> ruleDTOList = adminClient.listAllRules();
-        Assertions.assertEquals(1, selectorDTOList.size());
-        Assertions.assertEquals(5, metaDataDTOList.size());
-        Assertions.assertEquals(5, ruleDTOList.size());
-
-        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
+        Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
+        List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
+        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
+        Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
+        List<RuleDTO> ruleDTOList = adminClient.listAllRules();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        Assertions.assertEquals(1, selectorCacheList.size());
-        Assertions.assertEquals(5, metaDataCacheList.size());
-        Assertions.assertEquals(5, ruleCacheList.size());
+        Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "17");

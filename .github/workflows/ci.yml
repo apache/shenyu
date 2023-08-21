@@ -38,13 +38,15 @@ jobs:
             os: ubuntu-latest
           - java: 16
             os: ubuntu-latest
+          - java: 17
+            os: ubuntu-latest
     runs-on: ${{ matrix.os }}
     if: (github.repository == 'apache/shenyu')
     steps:
       - name: Support longpaths
         if: ${{ matrix.os == 'windows-latest'}}
         run: git config --system core.longpaths true
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - uses: dorny/paths-filter@v2
@@ -54,7 +56,7 @@ jobs:
           list-files: json
       - name: Cache Maven Repos
         if: steps.filter.outputs.changed == 'true'
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -64,6 +66,8 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
         with:
           java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+          cache: maven
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease
@@ -75,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - name: Check License Header
