@@ -64,8 +64,9 @@ public class HttpCheckers {
                 if (body.startsWith("{") && body.endsWith("}")) {
                     validatableResponse.body("code", lessThan(0))
                             .body("message", containsString("please check your configuration!"));
+                } else {
+                    validatableResponse.statusCode(HttpStatus.OK.value());
                 }
-                validatableResponse.statusCode(HttpStatus.OK.value());
             } catch (AssertionError error) {
                 Assertions.fail("endpoint '" + endpoint + "' not exists", error);
             }
@@ -100,8 +101,9 @@ public class HttpCheckers {
                 if (body.startsWith("{") && body.endsWith("}")) {
                     validatableResponse.body("code", nullValue())
                             .body("message", not(containsString("please check your configuration!")));
+                } else {
+                    validatableResponse.statusCode(HttpStatus.OK.value());
                 }
-                validatableResponse.statusCode(HttpStatus.OK.value());
             } catch (AssertionError error) {
                 Assertions.fail("endpoint '" + endpoint + "' not exists", error);
             }
