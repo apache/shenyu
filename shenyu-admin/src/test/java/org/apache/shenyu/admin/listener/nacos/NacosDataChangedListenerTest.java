@@ -107,7 +107,6 @@ public class NacosDataChangedListenerTest {
 
     @Test
     public void testOnMetaDataChanged() throws NacosException {
-        String config = "{\"divide\":{\"id\":\"id\",\"appName\":\"appName\",\"enabled\":true}}";
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
 
         when(configService.getConfig(anyString(), anyString(), anyLong())).thenReturn(null);

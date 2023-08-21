@@ -83,10 +83,8 @@ public class PolarisDataChangedListenerTest {
 
     @Test
     public void testOnAppAuthChanged() throws PolarisException {
-
         when(polarisProperties.getNamespace()).thenReturn(PolarisPathConstants.NAMESPACE);
         when(polarisProperties.getFileGroup()).thenReturn(PolarisPathConstants.FILE_GROUP);
-
         AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
         when(configFile.hasContent()).thenReturn(false);
         when(configFile.getContent()).thenReturn(null);
@@ -102,12 +100,9 @@ public class PolarisDataChangedListenerTest {
 
     @Test
     public void testOnPluginChanged() throws PolarisException {
-
         when(polarisProperties.getNamespace()).thenReturn(PolarisPathConstants.NAMESPACE);
         when(polarisProperties.getFileGroup()).thenReturn(PolarisPathConstants.FILE_GROUP);
-
         PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).config(MOCK_CONFIG).build();
-
         when(configFile.hasContent()).thenReturn(false);
         when(configFile.getContent()).thenReturn(null);
         when(polarisConfigFileService.getConfigFile(any())).thenReturn(configFile);
@@ -122,12 +117,9 @@ public class PolarisDataChangedListenerTest {
 
     @Test
     public void testOnSelectorChanged() throws PolarisException {
-
         when(polarisProperties.getNamespace()).thenReturn(PolarisPathConstants.NAMESPACE);
         when(polarisProperties.getFileGroup()).thenReturn(PolarisPathConstants.FILE_GROUP);
-
         SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
-
         when(configFile.hasContent()).thenReturn(false);
         when(configFile.getContent()).thenReturn(null);
         when(polarisConfigFileService.getConfigFile(any())).thenReturn(configFile);
@@ -142,12 +134,9 @@ public class PolarisDataChangedListenerTest {
 
     @Test
     public void testOnMetaDataChanged() throws PolarisException {
-
         when(polarisProperties.getNamespace()).thenReturn(PolarisPathConstants.NAMESPACE);
         when(polarisProperties.getFileGroup()).thenReturn(PolarisPathConstants.FILE_GROUP);
-
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
-
         when(configFile.hasContent()).thenReturn(false);
         when(configFile.getContent()).thenReturn(null);
         when(polarisConfigFileService.getConfigFile(any())).thenReturn(configFile);
@@ -162,13 +151,9 @@ public class PolarisDataChangedListenerTest {
 
     @Test
     public void testOnRuleChanged() throws PolarisException {
-
         when(polarisProperties.getNamespace()).thenReturn(PolarisPathConstants.NAMESPACE);
         when(polarisProperties.getFileGroup()).thenReturn(PolarisPathConstants.FILE_GROUP);
-
         RuleData ruleData = RuleData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).selectorId(MOCK_SELECTOR_ID).build();
-
-
         when(configFile.hasContent()).thenReturn(false);
         when(configFile.getContent()).thenReturn(null);
         when(polarisConfigFileService.getConfigFile(any())).thenReturn(configFile);
@@ -178,6 +163,5 @@ public class PolarisDataChangedListenerTest {
         polarisDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.CREATE);
         verify(polarisConfigFilePublishService, times(8)).createConfigFile(any(DefaultConfigFileMetadata.class), any(String.class));
         verify(polarisConfigFilePublishService, times(8)).releaseConfigFile(any(DefaultConfigFileMetadata.class));
-
     }
 }
