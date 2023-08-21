@@ -74,7 +74,7 @@ services:
       start_period: 10s
 
   brpc:
-    image: shenyu-examples-brpc:latest
+    image: shenyu-examples-brpc-service:latest
     restart: always
     environment:
       - shenyu.register.serverLists=http://admin:9095
