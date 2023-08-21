@@ -28,6 +28,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okhttp3.logging.HttpLoggingInterceptor;
+import okhttp3.logging.HttpLoggingInterceptor.Level;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
@@ -156,7 +158,14 @@ public class HttpUtils {
     }
 
     protected void initHttpClient(final HttpToolConfig httpToolConfig) {
+        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(s -> {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(s);
+            }
+        });
+        httpLoggingInterceptor.setLevel(Level.BODY);
         httpClient = new OkHttpClient.Builder()
+            .addInterceptor(httpLoggingInterceptor)
             .connectTimeout(httpToolConfig.connectTimeoutSeconds, TimeUnit.SECONDS)
             .readTimeout(httpToolConfig.readTimeoutSeconds, TimeUnit.SECONDS)
             .writeTimeout(httpToolConfig.writeTimeoutSeconds, TimeUnit.SECONDS)
