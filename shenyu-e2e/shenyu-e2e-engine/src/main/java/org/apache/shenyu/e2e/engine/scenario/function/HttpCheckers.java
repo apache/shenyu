@@ -29,6 +29,7 @@ import java.util.Map;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 
 /**
@@ -65,7 +66,7 @@ public class HttpCheckers {
                     validatableResponse.body("code", lessThan(0))
                             .body("message", containsString("please check your configuration!"));
                 } else {
-                    validatableResponse.statusCode(HttpStatus.OK.value());
+                    validatableResponse.statusCode(not(equalTo(HttpStatus.OK.value())));
                 }
             } catch (AssertionError error) {
                 Assertions.fail("endpoint '" + endpoint + "' not exists", error);

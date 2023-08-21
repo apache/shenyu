@@ -82,6 +82,8 @@ services:
         condition: service_healthy
       zookeeper:
         condition: service_healthy
+      eureka:
+        condition: service_healthy
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
@@ -97,7 +99,7 @@ services:
     ports:
       - "8884:8884"
     depends_on:
-      eureka:
+      admin:
         condition: service_healthy
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://springcloud:8884/actuator/health | grep UP || exit 1" ]
@@ -114,7 +116,7 @@ services:
     ports:
       - "9195:9195"
     depends_on:
-      admin:
+      springcloud:
         condition: service_healthy
     volumes:
       - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
