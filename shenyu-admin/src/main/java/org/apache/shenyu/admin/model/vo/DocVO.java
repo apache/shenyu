@@ -33,7 +33,7 @@ public class DocVO {
 
     private List<EnvConfig> envProps;
 
-    private Collection<MenuProject> menuProjects;
+    private Collection<MenuProjectVO> menuProjects;
 
     /**
      * getGatewayUrl.
@@ -111,7 +111,7 @@ public class DocVO {
      *
      * @return Collection
      */
-    public Collection<MenuProject> getMenuProjects() {
+    public Collection<MenuProjectVO> getMenuProjects() {
         return menuProjects;
     }
 
@@ -120,7 +120,7 @@ public class DocVO {
      *
      * @param menuProjects menuProjects
      */
-    public void setMenuProjects(final Collection<MenuProject> menuProjects) {
+    public void setMenuProjects(final Collection<MenuProjectVO> menuProjects) {
         this.menuProjects = menuProjects;
     }
 
