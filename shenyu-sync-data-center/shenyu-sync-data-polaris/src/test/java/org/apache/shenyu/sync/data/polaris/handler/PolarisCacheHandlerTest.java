@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.tencent.polaris.api.exception.PolarisException;
+import com.tencent.polaris.configuration.api.core.ConfigFileMetadata;
 import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -92,12 +93,12 @@ public class PolarisCacheHandlerTest {
 
     private ConfigFilePublishService configFilePublishService;
 
-    private final Map<String, String> store = new HashMap<>();
+    private final Map<ConfigFileMetadata, String> store = new HashMap<>();
 
     @BeforeEach
     public void setUp() {
-        configFileService = new PolarisMockConfigFileService(store);
-        configFilePublishService = new PolarisMockConfigFilePublishService(store);
+        configFileService = new PolarisMockConfigService(store);
+        configFilePublishService = new PolarisMockConfigService(store);
     }
 
     @Test
@@ -133,7 +134,7 @@ public class PolarisCacheHandlerTest {
         assertEquals(2, onSubscribeList.size());
         assertEquals(2, unsubscribeList.size());
         assertEquals(
-                configFileService.getConfigFile(PLUGIN_DATA_FILE_NAME, NAMESPACE, "1").getContent(),
+                configFileService.getConfigFile(NAMESPACE, FILE_GROUP, PLUGIN_DATA_FILE_NAME).getContent(),
                 ImmutableMap.of(pluginName2, pluginData2, pluginName1, pluginData1).toString());
 
     }
@@ -179,7 +180,7 @@ public class PolarisCacheHandlerTest {
         assertEquals(2, subscribeList.size());
         assertEquals(2, unsubscribeList.size());
         assertEquals(
-                configFileService.getConfigFile(SELECTOR_DATA_FILE_NAME, NAMESPACE, "1").getContent(),
+                configFileService.getConfigFile(NAMESPACE, FILE_GROUP, SELECTOR_DATA_FILE_NAME).getContent(),
                 ImmutableMap.of(
                         selectorDataPluginName2,
                         ImmutableList.of(selectorData2),
@@ -223,7 +224,7 @@ public class PolarisCacheHandlerTest {
         assertEquals(2, subscribeList.size());
         assertEquals(2, unsubscribeList.size());
         assertEquals(
-                configFileService.getConfigFile(RULE_DATA_FILE_NAME, NAMESPACE, "1").getContent(),
+                configFileService.getConfigFile(NAMESPACE, FILE_GROUP, RULE_DATA_FILE_NAME).getContent(),
                 ImmutableMap.of(
                         selectorId2,
                         ImmutableList.of(ruleData2),
@@ -263,7 +264,7 @@ public class PolarisCacheHandlerTest {
         assertEquals(2, subscribeList.size());
         assertEquals(2, unsubscribeList.size());
         assertEquals(
-                configFileService.getConfigFile(META_DATA_FILE_NAME, NAMESPACE, "1").getContent(),
+                configFileService.getConfigFile(NAMESPACE, FILE_GROUP, META_DATA_FILE_NAME).getContent(),
                 ImmutableMap.of(metadataPath1, metaData1, metadataPath2, metaData2).toString());
     }
 
@@ -304,7 +305,7 @@ public class PolarisCacheHandlerTest {
         assertEquals(2, subscribeList.size());
         assertEquals(2, unsubscribeList.size());
         assertEquals(
-                configFileService.getConfigFile(AUTH_DATA_ID_FILE_NAME, NAMESPACE, "1").getContent(),
+                configFileService.getConfigFile(NAMESPACE, FILE_GROUP, AUTH_DATA_ID_FILE_NAME).getContent(),
                 ImmutableMap.of(mockAppKey2, appAuthData2, mockAppKey, appAuthData).toString());
     }
 
@@ -460,10 +461,10 @@ public class PolarisCacheHandlerTest {
     }
 
     private String getConfig(final String fileName) throws PolarisException {
-        return configFileService.getConfigFile(fileName, NAMESPACE, FILE_GROUP).getContent();
+        return configFileService.getConfigFile(NAMESPACE, FILE_GROUP, fileName).getContent();
     }
 
     private void publishConfig(final String fileName, final Object data) throws PolarisException {
-        configFilePublishService.createConfigFile(fileName, NAMESPACE, FILE_GROUP, data.toString());
+        configFilePublishService.createConfigFile(NAMESPACE, FILE_GROUP, fileName, data.toString());
     }
 }

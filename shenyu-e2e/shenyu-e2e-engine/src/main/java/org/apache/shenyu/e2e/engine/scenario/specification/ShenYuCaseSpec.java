@@ -24,6 +24,7 @@ import org.apache.shenyu.e2e.engine.scenario.function.Verifier;
 import org.hamcrest.Matcher;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExists;
@@ -153,7 +154,20 @@ public class ShenYuCaseSpec implements CaseSpec {
         public ShenYuTestCaseSpecBuilder addExists(final Method method, final String endpoint) {
             return add(exists(method, endpoint));
         }
-        
+
+
+        /**
+         * add exist method endpoint case spec.
+         * @param method method
+         * @param endpoint endpoint
+         * @param body body
+         * @return ShenYuTestCaseSpecBuilder
+         */
+        public ShenYuTestCaseSpecBuilder addExists(final Method method, final String endpoint, final Map<String, ?> body) {
+            return add(exists(method, endpoint, body));
+        }
+
+
         /**
          * add not exist endpoint case spec.
          * @param endpoint endpoint
