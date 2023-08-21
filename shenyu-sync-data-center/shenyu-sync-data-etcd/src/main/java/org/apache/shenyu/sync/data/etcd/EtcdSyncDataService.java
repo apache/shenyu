@@ -73,8 +73,8 @@ public class EtcdSyncDataService extends AbstractPathDataSyncService {
     private void watcherData0(final String registerPath) {
         etcdClient.watchChildChange(
                 registerPath,
-                (updatePath, updateValue) -> super.event(updatePath, updateValue, registerPath, EventType.PUT),
-                deletePath -> super.event(deletePath, null, registerPath, EventType.DELETE));
+            (updatePath, updateValue) -> super.event(updatePath, updateValue, registerPath, EventType.PUT),
+            deletePath -> super.event(deletePath, null, registerPath, EventType.DELETE));
         try {
             // load all key
             final List<String> childrenKeys = etcdClient.getChildrenKeys(registerPath, "/");
