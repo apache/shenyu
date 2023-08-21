@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.sdk.springcloud;
 
-import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.Documented;

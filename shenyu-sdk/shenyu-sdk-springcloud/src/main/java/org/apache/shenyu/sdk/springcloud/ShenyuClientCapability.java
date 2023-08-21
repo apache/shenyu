@@ -32,14 +32,16 @@ import org.springframework.util.Assert;
 /**
  * custom a shenyu client capability to enrich clients.
  */
-public class ShenyuClientCapability implements Capability {
+public final class ShenyuClientCapability implements Capability {
+
+    public static final ShenyuClientCapability INSTANCE = new ShenyuClientCapability();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuClientCapability.class);
 
-    private final ShenyuDiscoveryClient shenyuDiscoveryClient;
+    private ShenyuDiscoveryClient shenyuDiscoveryClient;
 
-    public ShenyuClientCapability(final ShenyuDiscoveryClient shenyuDiscoveryClient) {
-        this.shenyuDiscoveryClient = shenyuDiscoveryClient;
+    private ShenyuClientCapability() {
+
     }
 
     @Override
@@ -60,6 +62,14 @@ public class ShenyuClientCapability implements Capability {
             LOGGER.info("shenyuClientCapability enrich client execute Uri {} to {}", originalUri, reconstructedUrl);
             return delegate.execute(newRequest, options);
         };
+    }
+
+    /**
+     * set ShenyuDiscoveryClient.
+     * @param shenyuDiscoveryClient shenyuDiscoveryClient
+     */
+    public void setShenyuDiscoveryClient(final ShenyuDiscoveryClient shenyuDiscoveryClient) {
+        this.shenyuDiscoveryClient = shenyuDiscoveryClient;
     }
 
     private Request buildRequest(final Request request, final String reconstructedUrl) {
