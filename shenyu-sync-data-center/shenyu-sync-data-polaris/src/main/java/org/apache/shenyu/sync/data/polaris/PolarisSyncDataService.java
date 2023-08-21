@@ -86,7 +86,7 @@ public class PolarisSyncDataService extends AbstractNodeDataSyncService implemen
                         updateHandler.accept(event.getNewValue());
                     }
                 } catch (Exception e) {
-                    LOG.error("nacos sync listener receiveConfigInfo error", e);
+                    LOG.error("Polaris sync listener receiveConfigInfo error", e);
                 }
             };
             final ConfigFile configFile = configFileService.getConfigFile(polarisConfig.getNamespace(), polarisConfig.getFileGroup(), key);
