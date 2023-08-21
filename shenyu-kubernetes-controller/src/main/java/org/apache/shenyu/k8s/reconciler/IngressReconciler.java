@@ -129,8 +129,6 @@ public class IngressReconciler implements Reconciler {
             enablePlugin(shenyuCacheRepository, PluginEnum.SPRING_CLOUD, annotations);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
             enablePlugin(shenyuCacheRepository, PluginEnum.WEB_SOCKET, annotations);
-        } else {
-            enablePlugin(shenyuCacheRepository, PluginEnum.DIVIDE, annotations);
         }
         if (Objects.isNull(v1Ingress)) {
             if (Objects.nonNull(oldIngress)) {
@@ -237,6 +235,7 @@ public class IngressReconciler implements Reconciler {
         enablePlugin(shenyuCacheRepository, PluginEnum.GLOBAL, new HashMap<>());
         enablePlugin(shenyuCacheRepository, PluginEnum.URI, new HashMap<>());
         enablePlugin(shenyuCacheRepository, PluginEnum.NETTY_HTTP_CLIENT, new HashMap<>());
+        enablePlugin(shenyuCacheRepository, PluginEnum.DIVIDE, new HashMap<>());
     }
 
     private void enablePlugin(final ShenyuCacheRepository shenyuCacheRepository, final PluginEnum pluginEnum, final Map<String, String> annotations) {
