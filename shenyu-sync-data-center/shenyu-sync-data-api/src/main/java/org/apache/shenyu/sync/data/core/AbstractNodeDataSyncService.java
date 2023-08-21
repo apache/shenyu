@@ -179,10 +179,10 @@ public abstract class AbstractNodeDataSyncService {
 
             final List<String> ruleIds = getConfigListOnWatch(changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT
                             + pluginName + DefaultNodeConstants.JOIN_POINT + selectorId + DefaultNodeConstants.POINT_LIST,
-                    updateData -> {
-                        List<String> upSelectorIds = GsonUtils.getInstance().fromList(updateData, String.class);
-                        watcherRule(selectorId, upSelectorIds, pluginName);
-                    });
+                updateData -> {
+                    List<String> upSelectorIds = GsonUtils.getInstance().fromList(updateData, String.class);
+                    watcherRule(selectorId, upSelectorIds, pluginName);
+                });
 
             watcherRule(selectorId, ruleIds, pluginName);
         });
