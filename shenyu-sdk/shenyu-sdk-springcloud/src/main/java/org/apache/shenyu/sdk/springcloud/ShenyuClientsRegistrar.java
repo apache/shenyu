@@ -17,9 +17,18 @@
 
 package org.apache.shenyu.sdk.springcloud;
 
-import com.google.common.collect.Lists;
-import java.util.Objects;
-import org.apache.commons.collections4.CollectionUtils;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
@@ -49,19 +58,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * ShenyuClientsRegistrar.
@@ -153,12 +149,8 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
                                                      .getAnnotationAttributes(ShenyuClient.class.getCanonicalName());
 
                 String name = getClientName(attributes);
-                final List<Class<?>> list = Lists.newArrayList(ShenyuClientConfiguration.class);
-                final Class<?>[] configurations = (Class<?>[]) attributes.get("configuration");
-                if (Objects.nonNull(configurations)) {
-                    CollectionUtils.addAll(list, configurations);
-                }
-                registerClientConfiguration(registry, name, list.toArray(new Class<?>[list.size()]));
+
+                registerClientConfiguration(registry, name, attributes.get("configuration"));
                 registerShenyuClient(registry, annotationMetadata, attributes);
             }
         }
@@ -192,6 +184,10 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
                 factoryBean.setFallbackFactory(fallbackFactory instanceof Class ? (Class<?>) fallbackFactory
                                                    : ClassUtils.resolveClassName(fallbackFactory.toString(), null));
             }
+            factoryBean.addCustomizer(builder -> {
+                final ShenyuDiscoveryClient shenyuDiscoveryClient = beanFactory.getBean(ShenyuDiscoveryClient.class);
+                builder.addCapability(new ShenyuClientCapability(shenyuDiscoveryClient));
+            });
             return factoryBean.getObject();
         });
         definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);

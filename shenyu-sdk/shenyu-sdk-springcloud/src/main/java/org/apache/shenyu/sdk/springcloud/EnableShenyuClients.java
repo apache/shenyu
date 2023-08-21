@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@Import({ShenyuClientsRegistrar.class, ShenyuClientCapability.class})
+@Import(ShenyuClientsRegistrar.class)
 public @interface EnableShenyuClients {
 
     /**
