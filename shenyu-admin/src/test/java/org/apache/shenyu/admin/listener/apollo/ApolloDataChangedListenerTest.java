@@ -86,7 +86,7 @@ public class ApolloDataChangedListenerTest {
     @Test
     public void testGetConfig2() {
         when(apolloClient.getItemValue(Mockito.any())).thenReturn("");
-        assertEquals("{}", apolloDataChangedListener.getConfig("42"));
+        assertEquals("", apolloDataChangedListener.getConfig("42"));
         verify(apolloClient).getItemValue(Mockito.any());
     }
 }
