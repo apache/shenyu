@@ -68,14 +68,4 @@ public @interface EnableShenyuClients {
      */
     Class<?>[] basePackageClasses() default {};
 
-    /**
-     * A custom <code>@Configuration</code> for all feign clients. Can contain override
-     * <code>@Bean</code> definition for the pieces that make up the client, for instance
-     * {@link feign.codec.Decoder}, {@link feign.codec.Encoder}, {@link feign.Contract}.
-     *
-     * @see FeignClientsConfiguration for the defaults
-     * @return list of default configurations
-     */
-    Class<?>[] defaultConfiguration() default {};
-
 }
