@@ -17,11 +17,6 @@
 
 package org.apache.shenyu.admin.listener.apollo;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import org.apache.shenyu.admin.config.properties.ApolloProperties;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ContextConfiguration(classes = {ApolloDataChangedListener.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -58,14 +58,14 @@ public class ApolloDataChangedListenerTest {
     }
 
     /**
-     * Method under test: {@link ApolloDataChangedListener#publishConfig(String, Object)}.
+     * Method under test: {@link ApolloDataChangedListener#doPublishConfig(String, Object)}.
      */
     @Test
     public void testPublishConfig() {
         doNothing().when(apolloClient)
                 .createOrUpdateItem(Mockito.any(), Mockito.<Object>any(), Mockito.any());
         doNothing().when(apolloClient).publishNamespace(Mockito.any(), Mockito.any());
-        apolloDataChangedListener.publishConfig("42", "Data");
+        apolloDataChangedListener.doPublishConfig("42", "Data");
         verify(apolloClient).createOrUpdateItem(Mockito.any(), Mockito.<Object>any(), Mockito.any());
         verify(apolloClient).publishNamespace(Mockito.any(), Mockito.any());
     }
