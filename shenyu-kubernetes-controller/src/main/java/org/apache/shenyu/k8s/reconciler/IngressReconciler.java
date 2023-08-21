@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -120,9 +121,6 @@ public class IngressReconciler implements Reconciler {
         final V1Ingress v1Ingress = this.ingressLister.namespace(request.getNamespace()).get(request.getName());
         final V1Ingress oldIngress = IngressCache.getInstance().get(request.getNamespace(), request.getName());
         Map<String, String> annotations = v1Ingress.getMetadata().getAnnotations();
-        enablePlugin(shenyuCacheRepository, PluginEnum.GLOBAL, annotations);
-        enablePlugin(shenyuCacheRepository, PluginEnum.URI, annotations);
-        enablePlugin(shenyuCacheRepository, PluginEnum.NETTY_HTTP_CLIENT, annotations);
         if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
             enablePlugin(shenyuCacheRepository, PluginEnum.DUBBO, annotations);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
@@ -236,6 +234,9 @@ public class IngressReconciler implements Reconciler {
     }
 
     private void initPlugins(final ShenyuCacheRepository shenyuCacheRepository) {
+        enablePlugin(shenyuCacheRepository, PluginEnum.GLOBAL, new HashMap<>());
+        enablePlugin(shenyuCacheRepository, PluginEnum.URI, new HashMap<>());
+        enablePlugin(shenyuCacheRepository, PluginEnum.NETTY_HTTP_CLIENT, new HashMap<>());
     }
 
     private void enablePlugin(final ShenyuCacheRepository shenyuCacheRepository, final PluginEnum pluginEnum, final Map<String, String> annotations) {
