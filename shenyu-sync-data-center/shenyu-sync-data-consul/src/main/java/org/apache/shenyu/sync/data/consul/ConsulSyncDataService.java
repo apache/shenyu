@@ -33,7 +33,7 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.consul.config.ConsulConfig;
-import org.apache.shenyu.sync.data.core.AbstractPathDataSyncService;
+import org.apache.shenyu.sync.data.core.AbstractNodeDataSyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 /**
  * Consul sync data service.
  */
-public class ConsulSyncDataService extends AbstractPathDataSyncService {
+public class ConsulSyncDataService extends AbstractNodeDataSyncService {
     /**
      * logger.
      */
@@ -152,10 +152,10 @@ public class ConsulSyncDataService extends AbstractPathDataSyncService {
                         //data has not changed
                         return;
                     }
-                    if (lastDatas != null) {
+                    if (!Objects.isNull(lastDatas)) {
                         final ConsulData consulData = lastDatas.stream()
                                 .filter(lastData -> data.getKey().equals(lastData.getConsulKey())).findFirst().orElse(null);
-                        if (consulData != null && !StringUtils.isBlank(consulData.getConsulDataMd5())
+                        if (!Objects.isNull(consulData) && !StringUtils.isBlank(consulData.getConsulDataMd5())
                                 && consulData.getConsulDataMd5().equals(DigestUtils.md5Hex(data.getValue()))) {
                             return;
                         }

@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     if: (github.repository == 'apache/shenyu')
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - uses: dorny/paths-filter@v2
@@ -52,16 +52,18 @@ jobs:
           list-files: json
       - name: Cache Maven Repos
         if: steps.filter.outputs.changed == 'true'
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - uses: actions/setup-java@v1
+      - uses: actions/setup-java@v3
         if: steps.filter.outputs.changed == 'true'
         with:
           java-version: 8
+          distribution: 'temurin'
+          cache: maven
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true

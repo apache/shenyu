@@ -178,11 +178,11 @@ public abstract class AbstractNodeDataSyncService {
             cacheSelectorData(selectorData);
 
             final List<String> ruleIds = getConfigListOnWatch(changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT
-                    + pluginName + DefaultNodeConstants.JOIN_POINT + selectorId + DefaultNodeConstants.POINT_LIST,
-                updateData -> {
-                    List<String> upSelectorIds = GsonUtils.getInstance().fromList(updateData, String.class);
-                    watcherRule(selectorId, upSelectorIds, pluginName);
-                });
+                            + pluginName + DefaultNodeConstants.JOIN_POINT + selectorId + DefaultNodeConstants.POINT_LIST,
+                    updateData -> {
+                        List<String> upSelectorIds = GsonUtils.getInstance().fromList(updateData, String.class);
+                        watcherRule(selectorId, upSelectorIds, pluginName);
+                    });
 
             watcherRule(selectorId, ruleIds, pluginName);
         });
@@ -193,7 +193,7 @@ public abstract class AbstractNodeDataSyncService {
             return;
         }
         ruleIds.forEach(ruleId -> {
-            final String ruleDataStr = this.getConfigOnWatch(changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT + pluginName 
+            final String ruleDataStr = this.getConfigOnWatch(changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT + pluginName
                             + DefaultNodeConstants.JOIN_POINT + selectorId + DefaultNodeConstants.JOIN_POINT + ruleId,
                     this::cacheRuleData, this::unCacheRuleData);
             cacheRuleData(ruleDataStr);
