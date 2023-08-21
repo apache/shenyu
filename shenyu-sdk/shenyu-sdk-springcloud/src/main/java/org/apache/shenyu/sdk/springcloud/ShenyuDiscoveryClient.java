@@ -49,19 +49,18 @@ public class ShenyuDiscoveryClient implements DiscoveryClient {
 
     private ShenyuInstanceRegisterRepository registerRepository;
 
-    private RegisterConfig registerConfig;
+    private final RegisterConfig registerConfig;
 
     private final String algorithm;
 
     private final String scheme;
 
-    public ShenyuDiscoveryClient(final ShenyuInstanceRegisterRepository registerRepository) {
-        this.registerRepository = registerRepository;
-        this.algorithm = "roundRobin";
-        this.scheme = "http";
+    public ShenyuDiscoveryClient(final RegisterConfig registerConfig) {
+        this(null, registerConfig);
     }
 
-    public ShenyuDiscoveryClient(final RegisterConfig registerConfig) {
+    public ShenyuDiscoveryClient(final ShenyuInstanceRegisterRepository registerRepository, final RegisterConfig registerConfig) {
+        this.registerRepository = registerRepository;
         this.registerConfig = registerConfig;
         Properties props = registerConfig.getProps();
         this.algorithm = props.getProperty("algorithm", "roundRobin");

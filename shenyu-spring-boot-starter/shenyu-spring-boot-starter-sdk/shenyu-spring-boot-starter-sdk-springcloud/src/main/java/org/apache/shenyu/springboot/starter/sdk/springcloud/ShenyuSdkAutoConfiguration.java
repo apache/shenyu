@@ -25,6 +25,7 @@ import org.apache.shenyu.sdk.springcloud.ShenyuClientCapability;
 import org.apache.shenyu.sdk.springcloud.ShenyuDiscoveryClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -68,6 +69,7 @@ public class ShenyuSdkAutoConfiguration {
      * @return ShenyuDiscoveryClient
      */
     @Bean
+    @ConditionalOnMissingBean(ShenyuInstanceRegisterRepository.class)
     public ShenyuDiscoveryClient shenyuDiscoveryClient(final RegisterConfig registerConfig) {
         return new ShenyuDiscoveryClient(registerConfig);
     }
@@ -75,12 +77,13 @@ public class ShenyuSdkAutoConfiguration {
     /**
      * shenyu custom discovery client with register center type.
      * @param registerRepository registerRepository
+     * @param registerConfig registerConfig
      * @return ShenyuDiscoveryClient
      */
     @Bean
     @ConditionalOnBean(ShenyuInstanceRegisterRepository.class)
-    public ShenyuDiscoveryClient shenyuDiscoveryClient(final ShenyuInstanceRegisterRepository registerRepository) {
-        return new ShenyuDiscoveryClient(registerRepository);
+    public ShenyuDiscoveryClient shenyuDiscoveryClient(final ShenyuInstanceRegisterRepository registerRepository, final RegisterConfig registerConfig) {
+        return new ShenyuDiscoveryClient(registerRepository, registerConfig);
     }
 
     /**
