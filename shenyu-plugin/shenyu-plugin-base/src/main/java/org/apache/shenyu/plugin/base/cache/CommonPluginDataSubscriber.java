@@ -39,6 +39,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -349,5 +350,15 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         } else {
             eventPublisher.publishEvent(new TrieEvent(TrieEventEnum.REMOVE, TrieCacheTypeEnum.RULE, ruleData));
         }
+    }
+
+    /**
+     * remove obsolete rule data which has be deleted.
+     *
+     * @param configRuleIdMap the current ruleId map collect by selectorId
+     */
+    @Override
+    public void removeObsoleteRuleData(final Map<String, Set<String>> configRuleIdMap) {
+        BaseDataCache.getInstance().removeObsoleteRuleData(configRuleIdMap);
     }
 }
