@@ -59,6 +59,7 @@ public class PolarisSyncDataConfiguration {
      * @param metaSubscribers  the meta subscribers
      * @param authSubscribers  the auth subscribers
      * @param proxySelectorSubscribers   the auth subscribers
+     * @param discoveryUpstreamDataSubscribers discoveryUpstreamDataSubscribers
      * @return the sync data service
      */
     @Bean
