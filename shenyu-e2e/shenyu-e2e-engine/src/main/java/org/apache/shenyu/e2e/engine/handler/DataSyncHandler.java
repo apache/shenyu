@@ -54,9 +54,10 @@ public class DataSyncHandler {
         ADMIN_WEBSOCKET_MAP.put("enabled", "true");
         GATEWAY_WEBSOCKET_MAP.put("urls", "ws://admin:9095/websocket");
 
-        ZOOKEEPER_MAP.put("url", "zookeeper:2181");
-        ZOOKEEPER_MAP.put("sessionTimeout", "5000");
-        ZOOKEEPER_MAP.put("connectionTimeout", "2000");
+        ZOOKEEPER_MAP.put("url", "http://etcd:2379");
+//        ZOOKEEPER_MAP.put("url", "zookeeper:2181");
+//        ZOOKEEPER_MAP.put("sessionTimeout", "5000");
+//        ZOOKEEPER_MAP.put("connectionTimeout", "2000");
 
         ADMIN_HTTP_MAP.put("enabled", "true");
         GATEWAY_HTTP_MAP.put("url", "http://admin:9095");
@@ -92,13 +93,13 @@ public class DataSyncHandler {
 
         DATA_SYNC_MAP.put("admin_websocket", ADMIN_WEBSOCKET_MAP);
         DATA_SYNC_MAP.put("gateway_websocket", GATEWAY_WEBSOCKET_MAP);
-        DATA_SYNC_MAP.put("zookeeper", ZOOKEEPER_MAP);
+        DATA_SYNC_MAP.put("etcd", ZOOKEEPER_MAP);
         DATA_SYNC_MAP.put("admin_apollo", ADMIN_APOLLO_MAP);
         DATA_SYNC_MAP.put("gateway_apollo", GATEWAY_APOLLO_MAP);
         DATA_SYNC_MAP.put("admin_http", ADMIN_HTTP_MAP);
         DATA_SYNC_MAP.put("gateway_http", GATEWAY_HTTP_MAP);
         DATA_SYNC_MAP.put("nacos", NACOS_MAP);
-        DATA_SYNC_MAP.put("etcd", ETCD_MAP);
+//        DATA_SYNC_MAP.put("etcd", ETCD_MAP);
     }
     
     /**
