@@ -55,6 +55,12 @@ services:
     expose:
       - 2379
       - 2380
+#    healthcheck:
+#      test: [ "CMD", "curl", "-f", "http://localhost:2379/version" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 3
+#      start_period: 30s
 
   eureka:
     image: shenyu-examples-eureka:latest
@@ -71,30 +77,33 @@ services:
 
   admin:
     image: shenyu/admin:latest
+#    image: apache/shenyu-admin:latest
     expose:
       - 9095
     ports:
       - "9095:9095"
-    environment:
-      - SPRING_PROFILES_ACTIVE=mysql
-      - spring.datasource.username=shenyue2e
-      - spring.datasource.password=123456
-      - spring.datasource.url=jdbc:mysql://mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=mysql
+#      - spring.datasource.username=shenyue2e
+#      - spring.datasource.password=123456
+#      - spring.datasource.url=jdbc:mysql://mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://admin:9095/actuator/health | grep UP || exit 1" ]
       timeout: 5s
       retries: 3
       start_period: 20s
     depends_on:
-      mysql:
-        condition: service_healthy
+#      mysql:
+#        condition: service_healthy
       nacos:
         condition: service_healthy
       zookeeper:
         condition: service_healthy
+#      etcd:
+#        condition: service_healthy
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
-      - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
+#      - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
 
   springcloud:
     image: shenyu-examples-springcloud:latest
@@ -117,6 +126,7 @@ services:
 
   gateway:
     image: shenyu/bootstrap:latest
+#    image: apache/shenyu-bootstrap:latest
     environment:
       - eureka.client.serviceUrl.defaultZone=http://eureka:8761/eureka/
     expose:
@@ -129,17 +139,17 @@ services:
     volumes:
       - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
 
-  mysql:
-    image: mysql:8
-    environment:
-      - MYSQL_ROOT_PASSWORD=123123
-      - MYSQL_USER=shenyue2e
-      - MYSQL_PASSWORD=123456
-    healthcheck:
-      test: "/usr/bin/mysql --user=root --password=123123 --execute \"SHOW DATABASES;\""
-      interval: 5s
-      timeout: 40s
-      retries: 10
-      start_period: 60s
-    volumes:
-      - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+#  mysql:
+#    image: mysql:8
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=123123
+#      - MYSQL_USER=shenyue2e
+#      - MYSQL_PASSWORD=123456
+#    healthcheck:
+#      test: "/usr/bin/mysql --user=root --password=123123 --execute \"SHOW DATABASES;\""
+#      interval: 5s
+#      timeout: 40s
+#      retries: 10
+#      start_period: 60s
+#    volumes:
+#      - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql

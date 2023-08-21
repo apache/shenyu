@@ -287,6 +287,9 @@ public class DockerServiceCompose implements ServiceCompose {
             } else {
                 synMethod = dockerServiceConfigure.getProperties().getProperty("dataSyn");
             }
+            log.info("----" + dockerServiceConfigure.getProperties().getProperty("dataSyn") + "----");
+            log.info("----" + synMethod + "----");
+            log.info("----" + subParameters.toString() + "----");
             parameter.put(synMethod, subParameters);
             String finalSynMethod = synMethod;
             parameter.keySet().removeIf(key -> !key.equals(finalSynMethod));

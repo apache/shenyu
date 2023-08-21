@@ -88,6 +88,7 @@ public class DataSyncHandler {
         GATEWAY_APOLLO_MAP.put("namespace", "application");
 
         ETCD_MAP.put("url", "http://etcd:2379");
+        ETCD_MAP.put("name", "test");
 
         DATA_SYNC_MAP.put("admin_websocket", ADMIN_WEBSOCKET_MAP);
         DATA_SYNC_MAP.put("gateway_websocket", GATEWAY_WEBSOCKET_MAP);
