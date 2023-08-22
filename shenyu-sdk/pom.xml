@@ -30,6 +30,6 @@
         <module>shenyu-sdk-httpclient</module>
         <module>shenyu-sdk-okhttp</module>
         <module>shenyu-sdk-spring</module>
-        <module>shenyu-sdk-springcloud</module>
+        <module>shenyu-sdk-feign</module>
     </modules>
 </project>
