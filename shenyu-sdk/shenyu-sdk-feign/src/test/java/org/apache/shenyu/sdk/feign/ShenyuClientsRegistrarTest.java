@@ -77,9 +77,8 @@ public class ShenyuClientsRegistrarTest {
         context.register(ShenyuTestConfig.class);
         context.register(HttpMessageConvertersAutoConfiguration.class);
 
-        final FeignBlockingLoadBalancerClient clientMock = spy(feignBlockingLoadBalancerClient);
-        when(clientMock.getDelegate()).thenReturn(delegate);
-        context.registerBean(FeignBlockingLoadBalancerClient.class, () -> clientMock);
+        when(feignBlockingLoadBalancerClient.getDelegate()).thenReturn(delegate);
+        context.registerBean(FeignBlockingLoadBalancerClient.class, () -> feignBlockingLoadBalancerClient);
 
         final RegisterConfig config = spy(RegisterConfig.class);
         when(config.getServerLists()).thenReturn("localhost:1234");
