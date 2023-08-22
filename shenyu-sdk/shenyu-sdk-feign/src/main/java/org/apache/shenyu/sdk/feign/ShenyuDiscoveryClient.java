@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.HttpSchemeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
@@ -42,7 +43,7 @@ public class ShenyuDiscoveryClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuDiscoveryClient.class);
 
-    private ShenyuInstanceRegisterRepository registerRepository;
+    private final ShenyuInstanceRegisterRepository registerRepository;
 
     private final RegisterConfig registerConfig;
 
@@ -59,7 +60,7 @@ public class ShenyuDiscoveryClient {
         this.registerConfig = registerConfig;
         Properties props = registerConfig.getProps();
         this.algorithm = props.getProperty("algorithm", "roundRobin");
-        this.scheme = props.getProperty("scheme", "http");
+        this.scheme = props.getProperty("scheme", HttpSchemeEnum.HTTP.getScheme());
     }
 
     /**
@@ -98,7 +99,7 @@ public class ShenyuDiscoveryClient {
         if (Objects.isNull(uri)) {
             throw new ShenyuException("Gateway address uri is not invalid.");
         }
-        return new DefaultServiceInstance(upstream.getUrl(), serviceId, uri.getHost(), uri.getPort(), "https".equals(scheme));
+        return new DefaultServiceInstance(upstream.getUrl(), serviceId, uri.getHost(), uri.getPort(), HttpSchemeEnum.HTTPS.getScheme().equals(scheme));
     }
 
 }

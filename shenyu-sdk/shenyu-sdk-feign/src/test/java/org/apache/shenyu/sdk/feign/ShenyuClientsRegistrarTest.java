@@ -42,8 +42,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.cloud.commons.httpclient.HttpClientConfiguration;
 import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.cloud.openfeign.loadbalancer.FeignBlockingLoadBalancerClient;
@@ -66,10 +64,7 @@ public class ShenyuClientsRegistrarTest {
 
     private final Client delegate = mock(Client.class);
 
-    private final LoadBalancerClient loadBalancerClient = mock(LoadBalancerClient.class);
-
-    private final FeignBlockingLoadBalancerClient feignBlockingLoadBalancerClient = new FeignBlockingLoadBalancerClient(
-        delegate, loadBalancerClient, null);
+    private final FeignBlockingLoadBalancerClient feignBlockingLoadBalancerClient = mock(FeignBlockingLoadBalancerClient.class);
 
     @Test
     @DisabledForJreRange(min = JRE.JAVA_16)
@@ -78,15 +73,17 @@ public class ShenyuClientsRegistrarTest {
         ((DefaultListableBeanFactory) context.getBeanFactory()).setAllowBeanDefinitionOverriding(false);
         context.register(FeignAutoConfiguration.class);
         context.register(FeignClientsConfiguration.class);
-        context.register(HttpClientConfiguration.class);
+        //context.register(HttpClientConfiguration.class);
         context.register(ShenyuTestConfig.class);
         context.register(HttpMessageConvertersAutoConfiguration.class);
 
         final FeignBlockingLoadBalancerClient clientMock = spy(feignBlockingLoadBalancerClient);
+        when(clientMock.getDelegate()).thenReturn(delegate);
         context.registerBean(FeignBlockingLoadBalancerClient.class, () -> clientMock);
 
         final RegisterConfig config = spy(RegisterConfig.class);
         when(config.getServerLists()).thenReturn("localhost:1234");
+
         final ShenyuDiscoveryClient shenyuDiscoveryClient = spy(new ShenyuDiscoveryClient(config));
         context.registerBean(ShenyuDiscoveryClient.class, () -> shenyuDiscoveryClient);
         context.refresh();
