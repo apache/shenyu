@@ -94,7 +94,7 @@ public class DividePluginTest {
         selectorIds = Lists.newArrayList();
     }
     
-    @ShenYuScenario(provider = org.apache.shenyu.e2e.testcase.divide.DividePluginCases.class)
+    @ShenYuScenario(provider = DividePluginCases.class)
     void testDivide(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
