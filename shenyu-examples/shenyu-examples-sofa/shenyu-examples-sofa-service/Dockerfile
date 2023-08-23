@@ -21,7 +21,7 @@ ENV LOCAL_PATH /opt/${APP_NAME}
 
 RUN mkdir -p ${LOCAL_PATH}
 
-ADD target/${APP_NAME}*.jar ${LOCAL_PATH}/${APP_NAME}.jar
+ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 
 WORKDIR ${LOCAL_PATH}
 EXPOSE 28011
