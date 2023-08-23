@@ -124,9 +124,6 @@ jobs:
         run: |
           df --human-readable
           docker image ls --all
-      - name: Build integrated tests
-        if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
       - name: Disk space info
         run: |
           df --human-readable
