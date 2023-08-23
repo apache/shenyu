@@ -140,7 +140,7 @@ jobs:
           storage: ${{ matrix.storage }}
         run: |
           bash ./shenyu-e2e/script/storage_init.sh
-          ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -Dstorage=${{ matrix.storage }} test
+          ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -Dstorage=${{ matrix.storage }} test     
 
   e2e-case:
     runs-on: ubuntu-latest
@@ -151,6 +151,7 @@ jobs:
     strategy:
       matrix:
         case: [ "shenyu-e2e-case-spring-cloud", "shenyu-e2e-case-apache-dubbo", "shenyu-e2e-case-sofa", "shenyu-e2e-case-motan", "shenyu-e2e-case-grpc", "shenyu-e2e-case-brpc"]
+        images: ["shenyu-examples-apache-dubbo-service:latest", "shenyu-examples-spring-cloud-service:latest", "shenyu-examples-sofa-service:latest", "shenyu-examples-motan-service:latest", "shenyu-examples-grpc-service:latest", "shenyu-examples-brpc-service:latest"]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -194,6 +195,15 @@ jobs:
         run: |
           bash ./shenyu-e2e/script/storage_init.sh
           ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/${{ matrix.case }} -Dstorage=mysql test
+      - name: Stop and Remove Docker Containers
+        run: |
+          docker ps -a | grep ${{ matrix.images }} | awk '{print $1}' | xargs -I {} docker stop {}
+          docker ps -a | grep ${{ matrix.images }} | awk '{print $1}' | xargs -I {} docker rm {}
+
+      - name: Remove Docker Image
+        run: |
+          docker rmi ${{ matrix.images }} || true
+  
 
   e2e-alibaba-dubbo:
     runs-on: ubuntu-latest
@@ -252,6 +262,15 @@ jobs:
         run: |
           bash ./shenyu-e2e/script/storage_init.sh
           ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-alibaba-dubbo -Dstorage=mysql test
+
+      - name: Stop and Remove Docker Containers
+        run: |
+          docker ps -a | grep shenyu-examples-alibaba-dubbo-service:latest | awk '{print $1}' | xargs -I {} docker stop {}
+          docker ps -a | grep shenyu-examples-alibaba-dubbo-service:latest | awk '{print $1}' | xargs -I {} docker rm {}
+
+      - name: Remove Docker Image
+        run: |
+          docker rmi shenyu-examples-alibaba-dubbo-service:latest || true
 
   requirement:
     name: e2e
