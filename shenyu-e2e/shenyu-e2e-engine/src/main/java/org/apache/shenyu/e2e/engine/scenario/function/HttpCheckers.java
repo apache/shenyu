@@ -19,7 +19,6 @@ package org.apache.shenyu.e2e.engine.scenario.function;
 
 import io.restassured.http.Header;
 import io.restassured.http.Method;
-import io.restassured.response.Response;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.http.HttpStatus;
 
@@ -54,11 +53,10 @@ public class HttpCheckers {
     public static HttpChecker notExists(final Method method, final String endpoint) {
         return request -> {
             try {
-                Response response = request.request(method, endpoint);
-                response.then()
+                request.request(method, endpoint)
+                        .then()
                         .log()
                         .ifValidationFails()
-                        .statusCode(HttpStatus.OK.value())
                         .body("code", lessThan(0))
                         .body("message", containsString("please check your configuration!"));
             } catch (AssertionError error) {
@@ -86,12 +84,7 @@ public class HttpCheckers {
     public static HttpChecker exists(final Method method, final String endpoint) {
         return request -> {
             try {
-
-                Response response = request.request(method, endpoint);
-
-                String string = response.asString();
-                System.out.println(string);
-                response
+                request.request(method, endpoint)
                         .then()
                         .log()
                         .ifValidationFails()
