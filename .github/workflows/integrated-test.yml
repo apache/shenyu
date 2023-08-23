@@ -74,7 +74,19 @@ jobs:
           docker image ls --all
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+        run: ./mvnw -B clean install -Prelease -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Build
+        uses: docker/build-push-action@v4
+        with:
+          context: ./shenyu-integrated-test/${{ matrix.case }}
+          load: true
+          tags: ${{ matrix.case }}:latest
+      - name: Disk space info
+        run: |
+          df --human-readable
+          docker image ls --all
       - name: Disk space info
         run: |
           docker images | grep none | awk '{print $3}' | xargs docker rmi
