@@ -144,7 +144,7 @@ jobs:
       - name: Run test
         id: test
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+        run: ./mvnw test -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
         continue-on-error: true
       - name: Check test result
         if: steps.filter.outputs.changed == 'true'
