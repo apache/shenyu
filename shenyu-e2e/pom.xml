@@ -272,6 +272,7 @@
                     <consoleOutputReporter>
                         <disable>false</disable>
                     </consoleOutputReporter>
+                    <reuseForks>false</reuseForks>
                     <statelessTestsetInfoReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporter"/>
                 </configuration>
             </plugin>
