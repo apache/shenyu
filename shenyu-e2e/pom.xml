@@ -272,7 +272,7 @@
                     <consoleOutputReporter>
                         <disable>false</disable>
                     </consoleOutputReporter>
-                    <forkCount>C</forkCount>
+                    <forkCount>1.5C</forkCount>
                     <statelessTestsetInfoReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporter"/>
                 </configuration>
             </plugin>
