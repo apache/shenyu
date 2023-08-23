@@ -50,6 +50,9 @@ jobs:
         with:
           filters: '.github/filters.yml'
           list-files: json
+      - name: Disk space info
+        run: |
+          df --human-readable
       - name: Cache Maven Repos
         if: steps.filter.outputs.changed == 'true'
         uses: actions/cache@v3
@@ -63,6 +66,10 @@ jobs:
         with:
           java-version: 8
           distribution: 'temurin'
+          cache: maven
+      - name: Disk space info
+        run: |
+          df --human-readable
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
