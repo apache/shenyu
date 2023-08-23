@@ -101,7 +101,7 @@ jobs:
         with:
           context: ./shenyu-integrated-test/${{ matrix.case }}
           file: ./shenyu-integrated-test/${{ matrix.case }}/Dockerfile
-          tags: shenyu/${{ matrix.case }}:latest
+          tags: ${{ matrix.case }}:latest
           outputs: type=docker,dest=/tmp/${{ matrix.case }}.tar
       - name: Load ShenYu Docker Images
         run: |
