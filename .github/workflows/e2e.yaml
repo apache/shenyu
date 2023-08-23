@@ -194,16 +194,20 @@ jobs:
           storage: mysql
         run: |
           bash ./shenyu-e2e/script/storage_init.sh
-          ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/${{ matrix.case }} -Dstorage=mysql test
+          for case in "${{ matrix.case }}"; do
+              ./mvnw -B -f ./shenyu-e2e/pom.xml -pl "shenyu-e2e-case/$case" -Dstorage=mysql test
+          done
       - name: Stop and Remove Docker Containers
         run: |
-          docker ps -a | grep ${{ matrix.images }} | awk '{print $1}' | xargs -I {} docker stop {}
-          docker ps -a | grep ${{ matrix.images }} | awk '{print $1}' | xargs -I {} docker rm {}
-
+          for image in "${{ matrix.images }}"; do
+            docker ps -a | grep $image | awk '{print $1}' | xargs -I {} docker stop {}
+            docker ps -a | grep $image | awk '{print $1}' | xargs -I {} docker rm {}
+          done
       - name: Remove Docker Image
         run: |
-          docker rmi ${{ matrix.images }} || true
-  
+          for image in "${{ matrix.images }}"; do
+            docker rmi $image || true
+          done
 
   e2e-alibaba-dubbo:
     runs-on: ubuntu-latest
