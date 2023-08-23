@@ -77,6 +77,7 @@ jobs:
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - name: Disk space info
         run: |
+          docker images | grep none | awk '{print $3}' | xargs docker rmi
           df --human-readable
           docker image ls --all
       - name: Build examples
@@ -84,15 +85,15 @@ jobs:
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
       - name: Disk space info
         run: |
-          docker images|sed "1 d"|grep |awk '{print $3}'|sort|uniq|xargs docker rmi
+          docker images | grep none | awk '{print $3}' | xargs docker rmi
           df --human-readable
           docker image ls --all
       - name: Build integrated tests
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+        run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
       - name: Disk space info
         run: |
-          docker images|sed "1 d"|grep |awk '{print $3}'|sort|uniq|xargs docker rmi
+          docker images | grep none | awk '{print $3}' | xargs docker rmi
           df --human-readable
           docker image ls --all
       - name: Start docker compose
@@ -100,7 +101,6 @@ jobs:
         run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
       - name: Disk space info
         run: |
-          docker images|sed "1 d"|grep |awk '{print $3}'|sort|uniq|xargs docker rmi
           df --human-readable
           docker image ls --all
       - name: Wait for docker compose start up completely
