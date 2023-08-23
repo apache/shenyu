@@ -71,15 +71,21 @@ jobs:
       - name: Disk space info
         run: |
           df --human-readable
+          docker image ls --all
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - name: Disk space info
         run: |
           df --human-readable
+          docker image ls --all
       - name: Build examples
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
+      - name: Disk space info
+        run: |
+          df --human-readable
+          docker image ls --all
       - name: Build integrated tests
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
