@@ -20,7 +20,6 @@ package org.apache.shenyu.e2e.engine.scenario.function;
 import io.restassured.http.Header;
 import io.restassured.http.Method;
 import io.restassured.response.Response;
-import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.http.HttpStatus;
 
@@ -29,7 +28,6 @@ import java.util.Map;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 
 /**
@@ -57,19 +55,14 @@ public class HttpCheckers {
         return request -> {
             try {
                 Response response = request.request(method, endpoint);
-                ValidatableResponse validatableResponse = response
-                        .then()
+                response.then()
                         .log()
-                        .ifValidationFails();
-                String body = request.request(method, endpoint).body().asString();
-                if (body.startsWith("{") && body.endsWith("}")) {
-                    validatableResponse.body("code", lessThan(0))
-                            .body("message", containsString("please check your configuration!"));
-                } else {
-                    validatableResponse.statusCode(not(equalTo(HttpStatus.OK.value())));
-                }
+                        .ifValidationFails()
+                        .statusCode(HttpStatus.OK.value())
+                        .body("code", lessThan(0))
+                        .body("message", containsString("please check your configuration!"));
             } catch (AssertionError error) {
-                Assertions.fail("endpoint '" + endpoint + "' not exists", error);
+                Assertions.fail("endpoint '" + endpoint + "' already exists, but expected it does not exist.", error);
             }
         };
     }
@@ -93,18 +86,17 @@ public class HttpCheckers {
     public static HttpChecker exists(final Method method, final String endpoint) {
         return request -> {
             try {
+
                 Response response = request.request(method, endpoint);
-                ValidatableResponse validatableResponse = response
+
+                String string = response.asString();
+                System.out.println(string);
+                response
                         .then()
                         .log()
-                        .ifValidationFails();
-                String body = request.request(method, endpoint).body().asString();
-                if (body.startsWith("{") && body.endsWith("}")) {
-                    validatableResponse.body("code", nullValue())
-                            .body("message", not(containsString("please check your configuration!")));
-                } else {
-                    validatableResponse.statusCode(HttpStatus.OK.value());
-                }
+                        .ifValidationFails()
+                        .body("code", nullValue())
+                        .body("message", not(containsString("please check your configuration!")));
             } catch (AssertionError error) {
                 Assertions.fail("endpoint '" + endpoint + "' not exists", error);
             }

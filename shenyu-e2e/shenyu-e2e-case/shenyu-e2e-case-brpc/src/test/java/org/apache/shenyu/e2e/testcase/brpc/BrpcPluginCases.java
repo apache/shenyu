@@ -211,23 +211,23 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.BRPC)
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "GET"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/brpc/allName")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/brpc/bigObject0")
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "GET"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/brpc/allName")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/brpc/bigObject0")
                                                 ))
                                                 .build()
                                 )
                                 .checker(notExists(Method.GET, "/brpc/tesget"))
-                                .waiting(exists(Method.GET, "/brpc/allName"))
+                                .waiting(exists(Method.GET, "/brpc/bigObject0"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.GET, "/brpc/allName")
+                                .addExists(Method.GET, "/brpc/bigObject0")
                                 .addNotExists(Method.GET, "/brpc/testget")
                                 .addNotExists(Method.POST, "/brpc/testpod")
                                 .addNotExists(Method.PUT, "/brpc/testput")
