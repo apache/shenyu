@@ -88,7 +88,6 @@ jobs:
           build-args: APP_NAME=apache-shenyu-*-admin-bin
           tags: shenyu/admin:latest
           outputs: type=docker,dest=/tmp/apache-shenyu-admin.tar
-
       - name: Build and Export Bootstrap Image
         uses: docker/build-push-action@v3
         with:
