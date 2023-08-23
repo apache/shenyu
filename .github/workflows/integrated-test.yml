@@ -75,6 +75,9 @@ jobs:
       - name: Build Apache ShenYu with Maven
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+      - name: Build Apache ShenYu Integrated with Maven
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/pom.xml
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Build and Export Admin Image
