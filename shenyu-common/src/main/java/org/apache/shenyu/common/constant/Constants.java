@@ -233,6 +233,11 @@ public interface Constants {
     String REWRITE_URI = "rewrite_uri";
     
     /**
+     * The constant REWRITE_URI_INCLUDE_CONTEXT_PATH.
+     */
+    String REWRITE_URI_INCLUDE_CONTEXT_PATH = "rewrite_uri_include_context_path";
+    
+    /**
      * The constant URI.
      */
     String URI = "uri";

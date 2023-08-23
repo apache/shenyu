@@ -35,6 +35,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Rewrite Plugin.
@@ -52,12 +54,18 @@ public class RewritePlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
         String rewriteUri = exchange.getRequest().getURI().getPath();
-        if (StringUtils.isNoneBlank(rewriteHandle.getRegex(), rewriteHandle.getReplace())) {
+        // the default percentage compatible with older versions is 100
+        final Integer percentage = Optional.ofNullable(rewriteHandle.getPercentage()).orElse(100);
+        if (StringUtils.isNoneBlank(rewriteHandle.getRegex(), rewriteHandle.getReplace())
+                && ThreadLocalRandom.current().nextInt(100) <= percentage) {
             rewriteUri = rewriteHandle.getReplace().contains("{")
                     ? PathMatchUtils.replaceAll(rewriteHandle.getReplace(), rewriteHandle.getRegex().substring(rewriteHandle.getRegex().indexOf("{")),
                             rewriteUri.substring(rewriteHandle.getRegex().indexOf("{") + 1))
                     : rewriteUri.replaceAll(rewriteHandle.getRegex(), rewriteHandle.getReplace());
             exchange.getAttributes().put(Constants.REWRITE_URI, rewriteUri);
+            // the default includeContextPath compatible with older versions is false
+            final Boolean includeContextPath = Optional.ofNullable(rewriteHandle.getIncludeContextPath()).orElse(false);
+            exchange.getAttributes().put(Constants.REWRITE_URI_INCLUDE_CONTEXT_PATH, includeContextPath);
         }
         return chain.execute(exchange);
     }

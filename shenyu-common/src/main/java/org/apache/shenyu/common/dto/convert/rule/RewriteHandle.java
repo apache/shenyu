@@ -35,6 +35,17 @@ public class RewriteHandle {
     private String replace;
 
     /**
+     * the replace string include contextPath, default false
+     * to be compatible with older versions.
+     */
+    private Boolean includeContextPath;
+
+    /**
+     * percentage of rewritten traffic.
+     */
+    private Integer percentage;
+
+    /**
      * get regex.
      *
      * @return regex
@@ -70,6 +81,42 @@ public class RewriteHandle {
         this.replace = replace;
     }
 
+    /**
+     * get includeContextPath.
+     *
+     * @return includeContextPath
+     */
+    public Boolean getIncludeContextPath() {
+        return includeContextPath;
+    }
+
+    /**
+     * set includeContextPath.
+     *
+     * @param includeContextPath includeContextPath
+     */
+    public void setIncludeContextPath(final Boolean includeContextPath) {
+        this.includeContextPath = includeContextPath;
+    }
+
+    /**
+     * get percentage.
+     *
+     * @return percentage
+     */
+    public Integer getPercentage() {
+        return percentage;
+    }
+
+    /**
+     * set percentage.
+     *
+     * @param percentage percentage
+     */
+    public void setPercentage(final Integer percentage) {
+        this.percentage = percentage;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -79,12 +126,13 @@ public class RewriteHandle {
             return false;
         }
         RewriteHandle that = (RewriteHandle) o;
-        return Objects.equals(regex, that.regex) && Objects.equals(replace, that.replace);
+        return Objects.equals(regex, that.regex) && Objects.equals(replace, that.replace)
+                && Objects.equals(includeContextPath, that.includeContextPath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(regex, replace);
+        return Objects.hash(regex, replace, includeContextPath);
     }
 
     @Override
@@ -95,6 +143,12 @@ public class RewriteHandle {
                 + '\''
                 + ", replace='"
                 + replace
+                + '\''
+                + ", includeContextPath='"
+                + includeContextPath
+                + '\''
+                + ", percentage='"
+                + percentage
                 + '\''
                 + '}';
     }

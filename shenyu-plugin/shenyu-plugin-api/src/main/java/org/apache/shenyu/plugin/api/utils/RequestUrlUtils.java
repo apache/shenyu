@@ -41,20 +41,28 @@ public final class RequestUrlUtils {
      */
     public static URI buildRequestUri(final ServerWebExchange exchange, final String domain) {
         String path = domain;
-        final String rewriteUri = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
-        if (StringUtils.isNoneBlank(rewriteUri)) {
-            path = path + rewriteUri;
-        } else {
-            ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-            assert shenyuContext != null;
-            String realUrl = shenyuContext.getRealUrl();
-            if (StringUtils.isNoneBlank(realUrl)) {
-                path = path + realUrl;
-            }
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        String realUrl = shenyuContext.getRealUrl();
+        if (StringUtils.isNoneBlank(realUrl)) {
+            path = path + realUrl;
         }
         if (StringUtils.isNoneBlank(exchange.getRequest().getURI().getQuery())) {
             path = String.join("?", path, RequestQueryCodecUtil.getCodecQuery(exchange));
         }
         return URI.create(path);
+    }
+
+    /**
+     * If the uri is rewritten, the uri will be got from exchange attribute.
+     *
+     * @param exchange the exchange
+     * @return uri
+     */
+    public static String getUri(final ServerWebExchange exchange) {
+        if (exchange.getAttributeOrDefault(Constants.REWRITE_URI_INCLUDE_CONTEXT_PATH, false)) {
+            return exchange.getAttributeOrDefault(Constants.REWRITE_URI, exchange.getRequest().getURI().getPath());
+        }
+        return exchange.getRequest().getURI().getPath();
     }
 }
