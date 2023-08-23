@@ -136,14 +136,14 @@
                                 </image>
                             </images>
                         </configuration>
-                        <!--                        <executions>-->
-<!--                            <execution>-->
-<!--                                <id>start</id>-->
-<!--                                <goals>-->
-<!--                                    <goal>build</goal>-->
-<!--                                </goals>-->
-<!--                            </execution>-->
-<!--                        </executions>-->
+                        <executions>
+                            <execution>
+                                <id>start</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                        </executions>
                     </plugin>
                 </plugins>
             </build>
