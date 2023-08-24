@@ -2409,3 +2409,45 @@ COMMENT ON COLUMN "public"."alert_template"."content" IS 'alert template content
 COMMENT ON COLUMN "public"."alert_template"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."alert_template"."date_updated" IS 'update time';
 
+-- ----------------------------
+-- Table structure for alert_receiver
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."alert_receiver";
+CREATE TABLE "public"."alert_receiver"
+(
+    "id"                   varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name"                 varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "enable"               int4     NOT NULL,
+    "type"                 int4     NOT NULL,
+    "phone"                varchar(255) COLLATE "pg_catalog"."default",
+    "email"                varchar(255) COLLATE "pg_catalog"."default",
+    "hook_url"             varchar(255) COLLATE "pg_catalog"."default",
+    "wechat_id"            varchar(255) COLLATE "pg_catalog"."default",
+    "access_token"         varchar(255) COLLATE "pg_catalog"."default",
+    "tg_bot_token"         varchar(255) COLLATE "pg_catalog"."default",
+    "tg_user_id"           varchar(255) COLLATE "pg_catalog"."default",
+    "slack_web_hook_url"   varchar(255) COLLATE "pg_catalog"."default",
+    "corp_id"              varchar(255) COLLATE "pg_catalog"."default",
+    "agent_id"             varchar(255) COLLATE "pg_catalog"."default",
+    "app_secret"           varchar(255) COLLATE "pg_catalog"."default",
+    "discord_channel_id"   varchar(255) COLLATE "pg_catalog"."default",
+    "discord_bot_token"    varchar(255) COLLATE "pg_catalog"."default",
+    "smn_ak"               varchar(255) COLLATE "pg_catalog"."default",
+    "smn_sk"               varchar(255) COLLATE "pg_catalog"."default",
+    "smn_project_id"       varchar(255) COLLATE "pg_catalog"."default",
+    "smn_region"           varchar(255) COLLATE "pg_catalog"."default",
+    "smn_topic_urn"        varchar(255) COLLATE "pg_catalog"."default",
+    "match_all"            int4      NOT NULL,
+    "labels"               varchar(255) COLLATE "pg_catalog"."default",
+    "levels"               varchar(255) COLLATE "pg_catalog"."default",
+    "date_created"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."alert_receiver"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."alert_receiver"."name" IS 'alarm receiver name';
+COMMENT ON COLUMN "public"."alert_receiver"."enable" IS 'enable or not';
+COMMENT ON COLUMN "public"."alert_receiver"."type" IS 'notice type 0-SMS 1-Email 2-webhook 3-WeChat Official Account 4-Enterprise WeChat Robot 5-DingTalk Robot 6-FeiShu Robot 7-Telegram Bot 8-SlackWebHook 9-Discord Bot 10-Enterprise WeChat';
+COMMENT ON COLUMN "public"."alert_receiver"."match_all" IS 'match all or not';
+COMMENT ON COLUMN "public"."alert_receiver"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."alert_receiver"."date_updated" IS 'update time';
