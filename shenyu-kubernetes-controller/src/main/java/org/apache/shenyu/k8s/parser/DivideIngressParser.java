@@ -285,6 +285,9 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
             V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
             Map<String, String> annotations = v1Service.getMetadata().getAnnotations();
             String[] protocols = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
+            if (protocols.length == 0) {
+                protocols = new String[]{"http://"};
+            }
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
             } else {
