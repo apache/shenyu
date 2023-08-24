@@ -290,7 +290,7 @@ public class DockerServiceCompose implements ServiceCompose {
             parameter.put(synMethod, subParameters);
             shenyuParameter.put("sync", parameter);
             log.info("--- " + subParameters.toString() + " ---");
-            log.info("--- " + synMethod.toString() + " ---");
+            log.info("--- " + synMethod + " ---");
             DumperOptions options = new DumperOptions();
             options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
             options.setExplicitStart(true);
