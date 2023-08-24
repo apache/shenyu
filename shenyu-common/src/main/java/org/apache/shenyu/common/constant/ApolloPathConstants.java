@@ -34,37 +34,37 @@ public class ApolloPathConstants {
     /**
      * plugin data id.
      */
-    public static final String PLUGIN_DATA_ID = "shenyu.plugin.json";
+    public static final String PLUGIN_DATA_ID = "plugin";
 
     /**
      * selector data id.
      */
-    public static final String SELECTOR_DATA_ID = "shenyu.selector.json";
+    public static final String SELECTOR_DATA_ID = "selector";
 
     /**
      * rule data id.
      */
-    public static final String RULE_DATA_ID = "shenyu.rule.json";
+    public static final String RULE_DATA_ID = "rule";
 
     /**
      * auth data id.
      */
-    public static final String AUTH_DATA_ID = "shenyu.auth.json";
+    public static final String AUTH_DATA_ID = "auth";
 
     /**
      * meta data id.
      */
-    public static final String META_DATA_ID = "shenyu.meta.json";
+    public static final String META_DATA_ID = "meta";
 
     /**
      * proxy selector data id.
      */
-    public static final String PROXY_SELECTOR_DATA_ID = "shenyu.proxy.selector.json";
+    public static final String PROXY_SELECTOR_DATA_ID = "proxy.selector";
 
     /**
      * proxy selector data id.
      */
-    public static final String DISCOVERY_DATA_ID = "shenyu.discovery.data.json";
+    public static final String DISCOVERY_DATA_ID = "discovery";
 
     /**
      * register metadata id.
@@ -92,7 +92,8 @@ public class ApolloPathConstants {
      * @return path key set
      */
     public static Set<String> pathKeySet() {
-        return new HashSet<>(Arrays.asList(PLUGIN_DATA_ID, SELECTOR_DATA_ID, RULE_DATA_ID, AUTH_DATA_ID, META_DATA_ID));
+        return new HashSet<>(Arrays.asList(PLUGIN_DATA_ID, SELECTOR_DATA_ID, RULE_DATA_ID, AUTH_DATA_ID,
+                META_DATA_ID, PROXY_SELECTOR_DATA_ID, DISCOVERY_DATA_ID));
     }
 }
 
