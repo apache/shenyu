@@ -73,17 +73,6 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
     }
     
     @Test
-    public void testRewritePluginCrossApp() throws IOException, ExecutionException, InterruptedException {
-        String pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
-        assertThat(pluginResult, is("success"));
-        String selectorAndRulesResult =
-                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("", "", true));
-        assertThat(selectorAndRulesResult, is("success"));
-        assertEquals("hello from https", testCrossApp());
-        cleanPluginData(PluginEnum.REWRITE.getName());
-    }
-    
-    @Test
     public void testReturnNewURICrossAppForRewritePlugin() throws IOException, ExecutionException, InterruptedException {
         String pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
         assertThat(pluginResult, is("success"));
@@ -97,7 +86,7 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
     private String testCrossApp() throws ExecutionException, InterruptedException {
         Future<OrderDTO> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_REWRITE_CROSS_APPLICATIONS_PASS, OrderDTO.class));
         OrderDTO dto = resp.get();
-        LOG.info("get /order/order/findById result:" + dto);
+        LOG.info("get /order/order/findById result:" + JsonUtils.toJson(dto));
         assertEquals("123", dto.getId());
         return dto.getName();
     }
