@@ -42,6 +42,21 @@
 
     </dependencies>
 
+    <build>
+        <finalName>shenyu-integrated-test-sdk-http</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <configuration>
+                    <mainClass>org.apache.shenyu.integrated.test.sdk.http.SdkHttpIntegratedBootstrap</mainClass>
+                    <executable>true</executable>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <profiles>
         <profile>
             <id>it</id>

@@ -43,7 +43,22 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
-    
+
+    <build>
+        <finalName>shenyu-integrated-test-grpc</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <configuration>
+                    <mainClass>org.apache.shenyu.integrated.test.grpc.GrpcIntegratedBootstrap</mainClass>
+                    <executable>true</executable>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <profiles>
         <profile>
             <id>it</id>
@@ -53,25 +68,7 @@
                 <docker.image.tag.tagName>latest</docker.image.tag.tagName>
             </properties>
             <build>
-                <finalName>shenyu-integrated-test-grpc</finalName>
                 <plugins>
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                        <version>${spring-boot.version}</version>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>repackage</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <mainClass>org.apache.shenyu.integrated.test.grpc.GrpcIntegratedBootstrap</mainClass>
-                            <executable>true</executable>
-                        </configuration>
-                    </plugin>
                     <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>

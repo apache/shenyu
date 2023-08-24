@@ -19,7 +19,7 @@ ENV APP_NAME shenyu-integrated-test-upload-plugin-case
 ENV LOCAL_PATH /opt/${APP_NAME}
 RUN mkdir -p ${LOCAL_PATH}
 
-ADD target/${APP_NAME}*.jar ${LOCAL_PATH}/${APP_NAME}.jar
+ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 
 COPY --from=apache/shenyu-integrated-test-custom /opt/shenyu-custom-plugin.jar  ${LOCAL_PATH}
 RUN chmod 755 ${LOCAL_PATH}/shenyu-custom-plugin.jar
