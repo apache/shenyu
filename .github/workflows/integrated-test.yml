@@ -72,7 +72,6 @@ jobs:
         with:
           java-version: 8
           distribution: 'temurin'
-          cache: maven
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
