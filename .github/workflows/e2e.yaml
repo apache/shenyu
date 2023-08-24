@@ -108,7 +108,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Build shenyu-e2e-engine with Maven
-        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -am -pl shenyu-e2e-engine clean install
+        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-engine -am clean install
 
       - name: Upload Docker Image Artifacts
         uses: actions/upload-artifact@v3
@@ -161,7 +161,7 @@ jobs:
           storage: ${{ matrix.storage }}
         run: |
           bash ./shenyu-e2e/script/storage_init.sh
-          ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -Dstorage=${{ matrix.storage }} test
+          ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -am -Dstorage=${{ matrix.storage }} test
 
   e2e-case:
     runs-on: ubuntu-latest
@@ -221,7 +221,7 @@ jobs:
           storage: mysql
         run: |
           bash ./shenyu-e2e/script/storage_init.sh
-          ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/${{ matrix.case }} -Dstorage=mysql test
+          ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/${{ matrix.case }} -am -Dstorage=mysql test
 
   e2e-alibaba-dubbo:
     runs-on: ubuntu-latest
@@ -285,7 +285,7 @@ jobs:
           storage: mysql
         run: |
           bash ./shenyu-e2e/script/storage_init.sh
-          ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-alibaba-dubbo -Dstorage=mysql test
+          ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-alibaba-dubbo -am -Dstorage=mysql test
 
   requirement:
     name: e2e
