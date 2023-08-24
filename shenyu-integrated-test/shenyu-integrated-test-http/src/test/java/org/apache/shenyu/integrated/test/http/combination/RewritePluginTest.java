@@ -24,6 +24,7 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
+import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
@@ -42,13 +43,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public final class RewritePluginTest extends AbstractPluginDataInit {
 
     private static final String TEST_REWRITE_PASS = "/http/test/waf/pass";
+    
+    private static final String TEST_REWRITE_CROSS_APPLICATIONS_PASS = "/order/order/findById";
 
     @Test
     public void testRewritePlugin() throws IOException, ExecutionException, InterruptedException {
         String pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult =
-                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("", ""));
+                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("", "", false));
         assertThat(selectorAndRulesResult, is("success"));
         assertEquals(200, test());
         cleanPluginData(PluginEnum.REWRITE.getName());
@@ -59,10 +62,37 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         String pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult =
-                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("/http/test/waf/pass", "/test/waf/deny"));
+                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("/http/test/waf/pass", "/test/waf/deny", false));
         assertThat(selectorAndRulesResult, is("success"));
         assertEquals(403, test());
         cleanPluginData(PluginEnum.REWRITE.getName());
+    }
+    
+    @Test
+    public void testRewritePluginCrossApp() throws IOException, ExecutionException, InterruptedException {
+        String pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
+        assertThat(pluginResult, is("success"));
+        String selectorAndRulesResult =
+                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("", "", true));
+        assertThat(selectorAndRulesResult, is("success"));
+        assertEquals("hello from https", testCrossApp());
+        cleanPluginData(PluginEnum.REWRITE.getName());
+    }
+    
+    @Test
+    public void testReturnNewURICrossAppForRewritePlugin() throws IOException, ExecutionException, InterruptedException {
+        String pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
+        assertThat(pluginResult, is("success"));
+        String selectorAndRulesResult =
+                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("/order/order/findById", "/http/order/findById", true));
+        assertThat(selectorAndRulesResult, is("success"));
+        assertEquals("hello world findById", testCrossApp());
+        cleanPluginData(PluginEnum.REWRITE.getName());
+    }
+    
+    private String testCrossApp() throws ExecutionException, InterruptedException {
+        Future<OrderDTO> resp = this.getService().submit(() -> HttpHelper.INSTANCE.postGateway(TEST_REWRITE_CROSS_APPLICATIONS_PASS, OrderDTO.class));
+        return resp.get().getName();
     }
 
     private Integer test() throws ExecutionException, InterruptedException {
@@ -79,7 +109,7 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(conditionData);
     }
 
-    private static List<RuleLocalData> buildRuleLocalDataList(final String regex, final String replace) {
+    private static List<RuleLocalData> buildRuleLocalDataList(final String regex, final String replace, final Boolean includeContextPath) {
         final RuleLocalData ruleLocalData = new RuleLocalData();
 
         ConditionData conditionData = new ConditionData();
@@ -93,6 +123,7 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         RewriteHandle rewriteHandle = new RewriteHandle();
         rewriteHandle.setRegex(regex);
         rewriteHandle.setReplace(replace);
+        rewriteHandle.setIncludeContextPath(includeContextPath);
 
         ruleLocalData.setRuleHandler(JsonUtils.toJson(rewriteHandle));
         return Collections.singletonList(ruleLocalData);

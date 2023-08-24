@@ -47,6 +47,7 @@ public class OrderController {
     public OrderDTO findById(@RequestParam("id") final String id) {
         OrderDTO dto = new OrderDTO();
         dto.setId(id);
+        dto.setName("hello from https");
         return dto;
     }
 }
