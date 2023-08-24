@@ -17,16 +17,15 @@
 
 package org.apache.shenyu.admin.listener.apollo;
 
-import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
+import org.apache.shenyu.admin.listener.AbstractNodeDataChangedListener;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
-import org.springframework.util.StringUtils;
 
 /**
  * use apollo to push data changes.
  *
  * @since 2.6.0
  */
-public class ApolloDataChangedListener extends AbstractListDataChangedListener {
+public class ApolloDataChangedListener extends AbstractNodeDataChangedListener {
     private final ApolloClient apolloClient;
 
     /**
@@ -46,14 +45,19 @@ public class ApolloDataChangedListener extends AbstractListDataChangedListener {
     }
 
     @Override
-    public void publishConfig(final String dataId, final Object data) {
+    public void doPublishConfig(final String dataId, final Object data) {
         this.apolloClient.createOrUpdateItem(dataId, data, "create config data");
         this.apolloClient.publishNamespace("publish config data", "");
     }
 
     @Override
     public String getConfig(final String dataId) {
-        String config = this.apolloClient.getItemValue(dataId);
-        return StringUtils.hasLength(config) ? config : ApolloPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
+        return this.apolloClient.getItemValue(dataId);
+    }
+
+    @Override
+    public void doDelConfig(final String dataId) {
+        this.apolloClient.removeItemKey(dataId);
+        this.apolloClient.publishNamespace("delete config data", "");
     }
 }
