@@ -66,7 +66,6 @@ jobs:
         with:
           java-version: 8
           distribution: 'temurin'
-          cache: maven
 
       - name: Build with Maven
         run: ./mvnw -B clean -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package
