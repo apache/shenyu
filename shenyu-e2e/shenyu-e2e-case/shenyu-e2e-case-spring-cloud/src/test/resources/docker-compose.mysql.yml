@@ -59,6 +59,22 @@ services:
       retries: 5
       start_period: 60s
 
+  etcd:
+    image: bitnami/etcd:3.5
+    environment:
+      - TZ=Asia/Shanghai
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    expose:
+      - 2379
+      - 2380
+    healthcheck:
+      test: [ "CMD", "etcdctl", "endpoint", "health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
   admin:
     image: shenyu/admin:latest
     expose:
@@ -81,6 +97,8 @@ services:
       nacos:
         condition: service_healthy
       zookeeper:
+        condition: service_healthy
+      etcd:
         condition: service_healthy
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
