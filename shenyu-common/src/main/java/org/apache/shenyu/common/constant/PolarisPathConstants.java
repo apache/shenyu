@@ -35,32 +35,32 @@ public final class PolarisPathConstants {
     /**
      * auth data id.
      */
-    public static final String AUTH_DATA_ID_FILE_NAME = "shenyu/auth.json";
+    public static final String AUTH_DATA_ID_FILE_NAME = "auth";
 
     /**
      * plugin data id.
      */
-    public static final String PLUGIN_DATA_FILE_NAME = "shenyu/plugin.json";
+    public static final String PLUGIN_DATA_FILE_NAME = "plugin";
 
     /**
      * selector data id.
      */
-    public static final String SELECTOR_DATA_FILE_NAME = "shenyu/selector.json";
+    public static final String SELECTOR_DATA_FILE_NAME = "selector";
 
     /**
      * rule data id.
      */
-    public static final String RULE_DATA_FILE_NAME = "shenyu/rule.json";
+    public static final String RULE_DATA_FILE_NAME = "rule";
 
     /**
      * meta data id.
      */
-    public static final String META_DATA_FILE_NAME = "shenyu/meta.json";
+    public static final String META_DATA_FILE_NAME = "meta";
 
     /**
      * proxy selector data id.
      */
-    public static final String PROXY_SELECTOR_FILE_NAME = "shenyu/proxy/selector.json";
+    public static final String PROXY_SELECTOR_FILE_NAME = "proxy.selector";
 
     /**
      * default value of get config.

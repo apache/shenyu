@@ -13,23 +13,23 @@ There are two key points:
 Run those steps under this project's root directory 
 
 1. Build `dist` from source, run this command under root directory:
-```shell
-./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
-```
+   ```shell
+   ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+   ```
 2. Build integrated tests:
-```shell
-./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
-```
-4. Start the docker compose:
-```shell
-docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
-```
-> You need to replace ${{ matrix.case }} with the exact directory, such as shenyu-integrated-test-http.
-> On mac, you could `docker compose`, but if you are using ubuntu, you'd better using `docker-compose`.
-5. Run the integrated test:
-```shell
-./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
-```
+   ```shell
+   ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+   ```
+3. Start the docker compose:
+   ```shell
+   docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
+   ```
+   > You need to replace ${{ matrix.case }} with the exact directory, such as shenyu-integrated-test-http.
+   > On mac, you could `docker compose`, but if you are using ubuntu, you'd better using `docker-compose`.
+4. Run the integrated test:
+   ```shell
+   ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+   ```
 
 ## How to write a new integrated tests?
 

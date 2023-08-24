@@ -24,7 +24,7 @@ services:
     expose:
       - 2181
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/commands/stat"]
+      test: ["CMD-SHELL", "echo srvr | nc localhost 2181"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -59,6 +59,22 @@ services:
       retries: 5
       start_period: 60s
 
+  etcd:
+    image: bitnami/etcd:3.5
+    environment:
+      - TZ=Asia/Shanghai
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    expose:
+      - 2379
+      - 2380
+    healthcheck:
+      test: [ "CMD", "etcdctl", "endpoint", "health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
   admin:
     image: shenyu/admin:latest
     expose:
@@ -77,11 +93,13 @@ services:
       start_period: 20s
     depends_on:
       mysql:
-        condition: service_started
+        condition: service_healthy
       nacos:
-        condition: service_started
+        condition: service_healthy
       zookeeper:
-        condition: service_started
+        condition: service_healthy
+      etcd:
+        condition: service_healthy
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
