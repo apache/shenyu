@@ -53,23 +53,23 @@ services:
     networks:
       - shenyu
 
-  shenyu-examples-https:
+  shenyu-examples-http2:
     deploy:
       resources:
         limits:
           memory: 2048M
-    container_name: shenyu-examples-https
-    image: shenyu-examples-https:latest
+    container_name: shenyu-examples-http2
+    image: shenyu-examples-http:latest
     restart: always
     environment:
-      - shenyu_register_serverLists=http://shenyu-admin:9095
+      - shenyu.register.serverLists=http://shenyu-admin:9095
+      - shenyu.client.http.props.contextPath=/order
     healthcheck:
-      test: [ "CMD", "wget", "http://shenyu-examples-https:8080/order/findById?id=3" ]
+      test: [ "CMD", "wget", "http://shenyu-examples-http:8199/test/path/123?name=tom" ]
       timeout: 2s
       retries: 30
     ports:
-      - "8080:8080"
-      - "8190:8190"
+      - "8189:8199"
     depends_on:
       shenyu-integrated-test-http:
         condition: service_healthy
