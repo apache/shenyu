@@ -288,6 +288,8 @@ public class DockerServiceCompose implements ServiceCompose {
                 synMethod = dockerServiceConfigure.getProperties().getProperty("dataSyn");
             }
             parameter.put(synMethod, subParameters);
+            log.info("--- " + subParameters.toString() + " ---");
+            log.info("--- " + synMethod.toString() + " ---");
             String finalSynMethod = synMethod;
             parameter.keySet().removeIf(key -> !key.equals(finalSynMethod));
             DumperOptions options = new DumperOptions();
