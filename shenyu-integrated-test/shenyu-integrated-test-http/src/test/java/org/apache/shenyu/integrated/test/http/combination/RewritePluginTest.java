@@ -55,7 +55,7 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         String pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult =
-                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("", "", false));
+                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("", ""));
         assertThat(selectorAndRulesResult, is("success"));
         assertEquals(200, test());
         cleanPluginData(PluginEnum.REWRITE.getName());
@@ -66,7 +66,7 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         String pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult =
-                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("/http/test/waf/pass", "/test/waf/deny", false));
+                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("/http/test/waf/pass", "/test/waf/deny"));
         assertThat(selectorAndRulesResult, is("success"));
         assertEquals(403, test());
         cleanPluginData(PluginEnum.REWRITE.getName());
@@ -77,7 +77,7 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         String pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult =
-                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("/order/order/findById", "/http/order/findById", true));
+                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataListCrossApp("/order/order/findById", "/http/order/findById"));
         assertThat(selectorAndRulesResult, is("success"));
         assertEquals("hello world findById", testCrossApp());
         cleanPluginData(PluginEnum.REWRITE.getName());
@@ -89,6 +89,26 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         LOG.info("get /order/order/findById result:" + JsonUtils.toJson(dto));
         assertEquals("123", dto.getId());
         return dto.getName();
+    }
+    
+    private static List<RuleLocalData> buildRuleLocalDataListCrossApp(final String regex, final String replace) {
+        final RuleLocalData ruleLocalData = new RuleLocalData();
+        
+        ConditionData conditionData = new ConditionData();
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData.setParamName("/");
+        conditionData.setParamValue("/order/order/**");
+        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
+        ruleLocalData.setRuleName("testRewriteCrossApp");
+        
+        RewriteHandle rewriteHandle = new RewriteHandle();
+        rewriteHandle.setRegex(regex);
+        rewriteHandle.setReplace(replace);
+        rewriteHandle.setIncludeContextPath(true);
+        
+        ruleLocalData.setRuleHandler(JsonUtils.toJson(rewriteHandle));
+        return Collections.singletonList(ruleLocalData);
     }
 
     private Integer test() throws ExecutionException, InterruptedException {
@@ -105,7 +125,7 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(conditionData);
     }
 
-    private static List<RuleLocalData> buildRuleLocalDataList(final String regex, final String replace, final Boolean includeContextPath) {
+    private static List<RuleLocalData> buildRuleLocalDataList(final String regex, final String replace) {
         final RuleLocalData ruleLocalData = new RuleLocalData();
 
         ConditionData conditionData = new ConditionData();
@@ -119,7 +139,6 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         RewriteHandle rewriteHandle = new RewriteHandle();
         rewriteHandle.setRegex(regex);
         rewriteHandle.setReplace(replace);
-        rewriteHandle.setIncludeContextPath(includeContextPath);
 
         ruleLocalData.setRuleHandler(JsonUtils.toJson(rewriteHandle));
         return Collections.singletonList(ruleLocalData);
