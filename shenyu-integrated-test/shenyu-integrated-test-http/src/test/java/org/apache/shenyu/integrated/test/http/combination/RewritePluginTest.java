@@ -97,7 +97,7 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
     private String testCrossApp() throws ExecutionException, InterruptedException {
         Future<OrderDTO> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_REWRITE_CROSS_APPLICATIONS_PASS, OrderDTO.class));
         OrderDTO dto = resp.get();
-        LOG.into("get /order/order/findById result:" + dto);
+        LOG.info("get /order/order/findById result:" + dto);
         assertEquals("123", dto.getId());
         return dto.getName();
     }
