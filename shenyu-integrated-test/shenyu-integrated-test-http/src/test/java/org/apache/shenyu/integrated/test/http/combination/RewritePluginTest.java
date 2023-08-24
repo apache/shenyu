@@ -29,6 +29,8 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -41,7 +43,9 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public final class RewritePluginTest extends AbstractPluginDataInit {
-
+    
+    private static final Logger LOG = LoggerFactory.getLogger(RewritePluginTest.class);
+    
     private static final String TEST_REWRITE_PASS = "/http/test/waf/pass";
     
     private static final String TEST_REWRITE_CROSS_APPLICATIONS_PASS = "/order/order/findById?id=123";
@@ -92,7 +96,10 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
     
     private String testCrossApp() throws ExecutionException, InterruptedException {
         Future<OrderDTO> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_REWRITE_CROSS_APPLICATIONS_PASS, OrderDTO.class));
-        return resp.get().getName();
+        OrderDTO dto = resp.get();
+        LOG.into("get /order/order/findById result:" + dto);
+        assertEquals("123", dto.getId());
+        return dto.getName();
     }
 
     private Integer test() throws ExecutionException, InterruptedException {
