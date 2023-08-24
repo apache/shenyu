@@ -15,28 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sync.data.apollo;
+package org.apache.shenyu.common.constant;
 
-import com.ctrip.framework.apollo.Config;
-import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.junit.Test;
-
-import java.util.Collections;
-import java.util.List;
-
-import static org.mockito.Mockito.mock;
-
-public class ApolloDataServiceTest {
+/**
+ * DefaultNodeConstants.
+ */
+public final class DefaultNodeConstants implements Constants {
 
     /**
-     * Method under test: {@link ApolloDataService#ApolloDataService(Config, PluginDataSubscriber, List, List, List, List)}.
+     * JOIN_POINT.
      */
-    @Test
-    public void testClose() {
-        Config configService = mock(Config.class);
-        ApolloDataService apolloDataService = new ApolloDataService(configService, null,
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-        apolloDataService.close();
-    }
-}
+    public static final String JOIN_POINT = ".";
 
+    /**
+     * POINT_LIST.
+     */
+    public static final String POINT_LIST = ".list";
+
+    /**
+     * LIST_STR.
+     */
+    public static final String LIST_STR = "list";
+
+    /**
+     * EMPTY_ARRAY_STR.
+     */
+    public static final String EMPTY_ARRAY_STR = "[]";
+
+}
