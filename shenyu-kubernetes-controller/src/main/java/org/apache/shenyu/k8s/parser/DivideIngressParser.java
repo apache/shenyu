@@ -234,7 +234,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                             .logged(false)
                             .continued(true)
                             .conditionList(conditionList).build();
-                    List<DivideUpstream> upstreamList = parseUpstream(path.getBackend(), namespace);
+                    List<DivideUpstream> upstreamList = parseUpstream(path.getBackend(), namespace, path);
                     if (upstreamList.isEmpty()) {
                         upstreamList = defaultUpstream;
                     }
@@ -275,16 +275,15 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
         return null;
     }
 
-    private List<DivideUpstream> parseUpstream(final V1IngressBackend backend, final String namespace) {
+    private List<DivideUpstream> parseUpstream(final V1IngressBackend backend, final String namespace, V1HTTPIngressPath path) {
         List<DivideUpstream> upstreamList = new ArrayList<>();
         if (Objects.nonNull(backend) && Objects.nonNull(backend.getService()) && Objects.nonNull(backend.getService().getName())) {
             String serviceName = backend.getService().getName();
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
-            Map<String, String> annotations = v1Service.getMetadata().getAnnotations();
-            String protocol = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY);
+            Map<String, String> annotations = v1Endpoints.getMetadata().getAnnotations() != null ? v1Endpoints.getMetadata().getAnnotations() : null;
+            String protocol = Objects.isNull(annotations) ? null : annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY);
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
             } else {
