@@ -42,7 +42,7 @@ jobs:
 
   build-docker-images:
     needs: changes
-    if: ${{ needs.changes.outputs.e2e == 'true' }}
+#    if: ${{ needs.changes.outputs.e2e == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
