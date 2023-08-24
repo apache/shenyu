@@ -103,7 +103,7 @@ CREATE TABLE `app_auth`  (
   `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
   `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `uk_app_key` (`app_key`),
+  UNIQUE KEY `uk_app_key` (`app_key`) USING BTREE,
   INDEX `idx_phone` (`phone`)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -182,7 +182,9 @@ CREATE TABLE `data_permission`  (
   `data_type` int(0) NOT NULL COMMENT '0 selector type , 1 rule type',
   `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
   `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `uk_data_id` (`data_id`,`user_id`,`data_type`) USING BTREE,
+  INDEX `idx_user_id` (`user_id`)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'data permission table' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
