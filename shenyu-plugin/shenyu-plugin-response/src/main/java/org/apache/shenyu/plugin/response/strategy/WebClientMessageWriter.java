@@ -40,6 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 /**
  * The type Web client message writer.
@@ -49,7 +50,7 @@ public class WebClientMessageWriter implements MessageWriter {
     /**
      * the common binary media type regex.
      */
-    private static final String COMMON_BIN_MEDIA_TYPE_REGEX;
+    private static final Pattern COMMON_BIN_MEDIA_TYPE_PATTERN;
 
     /**
      * the cross headers.
@@ -76,7 +77,7 @@ public class WebClientMessageWriter implements MessageWriter {
             // image, pdf or stream does not do format processing.
             if (clientResponse.headers().contentType().isPresent()) {
                 final String media = clientResponse.headers().contentType().get().toString().toLowerCase();
-                if (media.matches(COMMON_BIN_MEDIA_TYPE_REGEX)) {
+                if (COMMON_BIN_MEDIA_TYPE_PATTERN.matcher(media).matches()) {
                     return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()))
                             .doOnCancel(() -> clean(exchange));
                 }
@@ -167,6 +168,6 @@ public class WebClientMessageWriter implements MessageWriter {
         };
         StringJoiner regexBuilder = new StringJoiner("|");
         commonBinaryTypes.forEach(t -> regexBuilder.add(String.format(".*%s.*", t)));
-        COMMON_BIN_MEDIA_TYPE_REGEX = regexBuilder.toString();
+        COMMON_BIN_MEDIA_TYPE_PATTERN = Pattern.compile(regexBuilder.toString());
     }
 }

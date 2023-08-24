@@ -107,16 +107,32 @@ public class ShenyuMotanClientConfiguration implements ApplicationListener<Conte
     /**
      * Define a bean with name of ProtocolConfigBean.
      *
-     * <p>The Default motan service name is "motan2"
+     * <p>The protocol id、name are "motan2",service export like this "motan2:8001".
      *
-     * @param shenyuMotanConfig shenyu motan shenyuMotanConfig
+     * @param shenyuMotanConfig shenyu motan config
      * @return ProtocolConfigBean
      */
     @Bean("motan2")
     public ProtocolConfigBean protocolConfig(final ShenyuMotanConfig shenyuMotanConfig) {
         ProtocolConfigBean config = new ProtocolConfigBean();
         config.setDefault(shenyuMotanConfig.getProtocol().isDefault());
-        config.setName(shenyuMotanConfig.getProtocol().getName());
+        config.setName("motan2");
+        config.setMaxContentLength(shenyuMotanConfig.getProtocol().getMaxContentLength());
+        return config;
+    }
+
+    /**
+     * Define a bean with name of ProtocolConfigBean.
+     *
+     * <p>The protocol id、name are "motan",service export like this "motan:8001".
+     * @param shenyuMotanConfig shenyu motan config
+     * @return ProtocolConfigBean
+     */
+    @Bean("motan")
+    public ProtocolConfigBean motanProtocolConfig(final ShenyuMotanConfig shenyuMotanConfig) {
+        ProtocolConfigBean config = new ProtocolConfigBean();
+        config.setDefault(shenyuMotanConfig.getProtocol().isDefault());
+        config.setName("motan");
         config.setMaxContentLength(shenyuMotanConfig.getProtocol().getMaxContentLength());
         return config;
     }

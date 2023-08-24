@@ -272,6 +272,7 @@ The text of each license is the standard Apache 2.0 license.
     listenablefuture 9999.0-empty-to-avoid-conflict-with-guava: https://github.com/google/guava, Apache 2.0
     log4j-api 2.17.2: https://logging.apache.org/log4j/2.x/log4j-api, Apache 2.0
     log4j-to-slf4j 2.17.2: https://logging.apache.org/log4j/2.x/log4j-to-slf4j, Apache 2.0
+    logging-interceptor 4.9.3: https://github.com/square/okhttp, Apache 2.0
     mapstruct 1.2.0.Final: https://github.com/mapstruct/mapstruct, Apache 2.0
     micrometer-core 1.9.12: https://github.com/micrometer-metrics/micrometer, Apache 2.0
     micrometer-registry-prometheus 1.9.12: https://github.com/micrometer-metrics/micrometer, Apache 2.0
