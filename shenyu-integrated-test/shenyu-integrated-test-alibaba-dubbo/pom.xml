@@ -70,29 +70,6 @@
         </dependency>
         <!--shenyu alibaba dubbo plugin end-->
     </dependencies>
-
-    <build>
-        <finalName>shenyu-integrated-test-alibaba-dubbo</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <mainClass>org.apache.shenyu.integrated.test.alibaba.dubbo.AlibabaDubboIntegrationBootstrap</mainClass>
-                    <executable>true</executable>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     
     <profiles>
         <profile>
@@ -103,7 +80,26 @@
                 <docker.image.tag.tagName>latest</docker.image.tag.tagName>
             </properties>
             <build>
+                <finalName>shenyu-integrated-test-alibaba-dubbo</finalName>
                 <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>${spring-boot.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>repackage</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <mainClass>org.apache.shenyu.integrated.test.alibaba.dubbo.AlibabaDubboIntegrationBootstrap
+                            </mainClass>
+                            <executable>true</executable>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>

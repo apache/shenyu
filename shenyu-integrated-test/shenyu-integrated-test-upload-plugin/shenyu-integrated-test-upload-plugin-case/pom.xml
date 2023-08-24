@@ -46,36 +46,32 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
-
-    <build>
-        <finalName>shenyu-integrated-test-upload-plugin-case</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <mainClass>org.apache.shenyu.integrated.test.upload.plugin.ShenyuUploadPluginIntegratedApplication</mainClass>
-                    <outputDirectory>${project.basedir}/target</outputDirectory>
-                    <executable>true</executable>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
     <profiles>
         <profile>
             <id>it</id>
             <build>
+                <finalName>shenyu-integrated-test-upload-plugin-case</finalName>
                 <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>${spring-boot.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>repackage</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <mainClass>
+                                org.apache.shenyu.integrated.test.upload.plugin.ShenyuUploadPluginIntegratedApplication
+                            </mainClass>
+                            <executable>true</executable>
+                            <outputDirectory>${project.basedir}/target</outputDirectory>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
