@@ -44,7 +44,7 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
 
     private static final String TEST_REWRITE_PASS = "/http/test/waf/pass";
     
-    private static final String TEST_REWRITE_CROSS_APPLICATIONS_PASS = "/order/order/findById";
+    private static final String TEST_REWRITE_CROSS_APPLICATIONS_PASS = "/order/order/findById?id=123";
 
     @Test
     public void testRewritePlugin() throws IOException, ExecutionException, InterruptedException {
@@ -91,7 +91,7 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
     }
     
     private String testCrossApp() throws ExecutionException, InterruptedException {
-        Future<OrderDTO> resp = this.getService().submit(() -> HttpHelper.INSTANCE.postGateway(TEST_REWRITE_CROSS_APPLICATIONS_PASS, OrderDTO.class));
+        Future<OrderDTO> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_REWRITE_CROSS_APPLICATIONS_PASS, OrderDTO.class));
         return resp.get().getName();
     }
 
