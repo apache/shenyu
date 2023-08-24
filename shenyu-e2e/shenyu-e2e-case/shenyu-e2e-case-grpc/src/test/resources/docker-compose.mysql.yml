@@ -46,6 +46,22 @@ services:
       retries: 3
       start_period: 30s
 
+  etcd:
+    image: bitnami/etcd:3.5
+    environment:
+      - TZ=Asia/Shanghai
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    expose:
+      - 2379
+      - 2380
+    healthcheck:
+      test: [ "CMD", "etcdctl", "endpoint", "health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
   admin:
     image: shenyu/admin:latest
     expose:
@@ -59,6 +75,8 @@ services:
         condition: service_started
       mysql:
         condition: service_started
+      etcd:
+        condition: service_healthy
     volumes:
       - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
       - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
