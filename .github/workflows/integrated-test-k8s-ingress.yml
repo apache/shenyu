@@ -70,7 +70,19 @@ jobs:
 
       - name: Build integrated tests
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+        run: ./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/pom.xml
+
+      - name: Build Integrated Images
+        uses: docker/build-push-action@v4
+        with:
+          context: ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress
+          file: ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/Dockerfile
+          tags: apache/shenyu-integrated-test-k8s-ingress:latest
+          outputs: type=docker,dest=/tmp/shenyu-integrated-test-k8s-ingress.tar
+
+      - name: Load ShenYu Docker Images
+        run: |
+          docker load --input /tmp/shenyu-integrated-test-k8s-ingress.tar
 
       - name: Build examples
         if: steps.filter.outputs.changed == 'true'
@@ -93,7 +105,7 @@ jobs:
       - name: Run test
         id: test
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw test -Pit -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/pom.xml
+        run: ./mvnw test -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/pom.xml
         continue-on-error: true
 
       - name: Cluster Test after Healthcheck
