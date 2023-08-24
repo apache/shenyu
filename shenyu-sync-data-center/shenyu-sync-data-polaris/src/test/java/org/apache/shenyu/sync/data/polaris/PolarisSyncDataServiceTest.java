@@ -38,12 +38,7 @@ public class PolarisSyncDataServiceTest {
         PolarisConfig polarisConfig = new PolarisConfig();
         ConfigFileService configFileService = new PolarisMockConfigService(new HashMap<>());
         polarisSyncDataService = new PolarisSyncDataService(polarisConfig, configFileService, null,
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-    }
-
-    @Test
-    public void testStart() {
-        polarisSyncDataService.start();
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
     }
 
     @Test

@@ -70,7 +70,7 @@ public class ShenyuSdkAutoConfiguration {
     public Contract springMvcContract() {
         return new SpringMvcContract();
     }
-    
+
     /**
      * okHttpShenyuSdkClient.
      *
@@ -89,7 +89,7 @@ public class ShenyuSdkAutoConfiguration {
         shenyuSdkClient.init(config, requestInterceptorsProvider.getIfAvailable(), instanceRegisterRepositoryProvider.getIfAvailable());
         return shenyuSdkClient;
     }
-    
+
     /**
      * ShenYu Instance Register Repository.
      *
@@ -104,7 +104,7 @@ public class ShenyuSdkAutoConfiguration {
         }
         return ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config);
     }
-    
+
     /**
      * shenyu config.
      *
@@ -115,7 +115,7 @@ public class ShenyuSdkAutoConfiguration {
     public RegisterConfig shenyuConfig() {
         return new RegisterConfig();
     }
-    
+
     /**
      * The type Parameter processor registry post processor.
      */
