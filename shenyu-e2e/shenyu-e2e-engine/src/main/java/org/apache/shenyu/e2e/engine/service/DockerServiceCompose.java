@@ -19,6 +19,7 @@ package org.apache.shenyu.e2e.engine.service;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import java.util.HashMap;
 import junit.framework.AssertionFailedError;
 import org.apache.shenyu.e2e.client.ExternalServiceClient;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
@@ -278,19 +279,18 @@ public class DockerServiceCompose implements ServiceCompose {
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
             Map<String, Object> shenyuParameter = (Map<String, Object>) yamlData.get("shenyu");
-            Map<String, Object> parameter = (Map<String, Object>) shenyuParameter.get("sync");
-            Map<String, Object> subParameters = DataSyncHandler.getDataSynMap(dockerServiceConfigure.getProperties().getProperty("dataSyn"));
+            Map<String, Object> subParameters = DataSyncHandler.getDataSynMap(value);
             String synMethod = "";
-            if (dockerServiceConfigure.getProperties().getProperty("dataSyn").contains("_")) {
-                synMethod = dockerServiceConfigure.getProperties().getProperty("dataSyn").split("_")[1];
+            if (value.contains("_")) {
+                synMethod = value.split("_")[1];
             } else {
-                synMethod = dockerServiceConfigure.getProperties().getProperty("dataSyn");
+                synMethod = value;
             }
+            Map<String, Object> parameter = new HashMap<>(1);
             parameter.put(synMethod, subParameters);
+            shenyuParameter.put("sync", parameter);
             log.info("--- " + subParameters.toString() + " ---");
             log.info("--- " + synMethod.toString() + " ---");
-            String finalSynMethod = synMethod;
-            parameter.keySet().removeIf(key -> !key.equals(finalSynMethod));
             DumperOptions options = new DumperOptions();
             options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
             options.setExplicitStart(true);
