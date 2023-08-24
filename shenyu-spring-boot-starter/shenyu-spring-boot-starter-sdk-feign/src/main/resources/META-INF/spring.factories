@@ -15,38 +15,5 @@
 # limitations under the License.
 #
 
-
-### shengyu getway proxy orderSave
-POST http://localhost:8899/save
-Accept: application/json
-Content-Type: application/json
-
-{
-  "id": 123,
-  "name": "order"
-}
-
-
-### shengyu getway proxy findById
-GET http://localhost:8899/findById?id=123
-Accept: application/json
-Content-Type: application/json
-
-### shengyu getway proxy path
-GET http://localhost:8899/path/123/hahah
-Accept: application/json
-Content-Type: application/json
-
-### shengyu getway proxy path
-GET http://localhost:8899/path/123/name
-Accept: application/json
-Content-Type: application/json
-
-
-
---WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="1.txt";
-Content-Type: multipart/form-data
-
-< ../../../../shenyu-examples-common/src/main/resources/1.txt
---WebAppBoundary--
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+org.apache.shenyu.springboot.starter.sdk.feign.ShenyuSdkAutoConfiguration
