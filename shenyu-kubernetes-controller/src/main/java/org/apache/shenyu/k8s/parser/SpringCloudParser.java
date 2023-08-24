@@ -158,7 +158,7 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
         }
         if (Objects.nonNull(ingressRule.getHttp())) {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
-            if (paths != null) {
+            if (Objects.nonNull(paths)) {
                 for (V1HTTPIngressPath path : paths) {
                     if (path.getPath() == null) {
                         continue;
@@ -189,8 +189,8 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
                     springCloudSelectorHandle.setServiceId(annotations.getOrDefault(IngressConstants.PLUGIN_SPRING_CLOUD_SERVICE_ID, "springCloud-test"));
                     springCloudSelectorHandle.setGray(Boolean.parseBoolean(annotations.getOrDefault(IngressConstants.PLUGIN_SPRING_CLOUD_GRAY, "false")));
                     if (Objects.equals(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_DIVIDE_UPSTREAM), "true")) {
-                        List<DivideUpstream> divideUpstreas = parseDivideUpstream(path.getBackend(), namespace);
-                        springCloudSelectorHandle.setDivideUpstreams(divideUpstreas);
+                        List<DivideUpstream> divideUpstreams = parseDivideUpstream(path.getBackend(), namespace);
+                        springCloudSelectorHandle.setDivideUpstreams(divideUpstreams);
                     }
                     SelectorData selectorData = SelectorData.builder()
                             .pluginId(String.valueOf(PluginEnum.SPRING_CLOUD.getCode()))
@@ -245,6 +245,9 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
+            V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
+            Map<String, String> annotations = v1Service.getMetadata().getAnnotations();
+            String[] protocols = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
             } else {
@@ -253,6 +256,7 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
                     if (Objects.isNull(addresses) || addresses.isEmpty()) {
                         continue;
                     }
+                    int i = 0;
                     for (V1EndpointAddress address : addresses) {
                         String upstreamIp = address.getIp();
                         String defaultPort = parsePort(backend.getService());
@@ -260,8 +264,7 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
                             DivideUpstream upstream = new DivideUpstream();
                             upstream.setUpstreamUrl(upstreamIp + ":" + defaultPort);
                             upstream.setWeight(100);
-                            // TODO support config protocol in annotation
-                            upstream.setProtocol("http://");
+                            upstream.setProtocol(Objects.isNull(protocols[i++]) ? "http" : protocols[i++]);
                             upstream.setWarmup(0);
                             upstream.setStatus(true);
                             upstream.setUpstreamHost("");

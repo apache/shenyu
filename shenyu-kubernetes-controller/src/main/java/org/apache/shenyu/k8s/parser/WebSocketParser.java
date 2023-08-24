@@ -149,6 +149,9 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
+            V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
+            Map<String, String> annotations = v1Service.getMetadata().getAnnotations();
+            String[] protocols = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
             } else {
@@ -157,6 +160,7 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
                     if (Objects.isNull(addresses) || CollectionUtils.isEmpty(addresses)) {
                         continue;
                     }
+                    int i = 0;
                     for (V1EndpointAddress address : addresses) {
                         String upstreamIp = address.getIp();
                         String defaultPort = parsePort(defaultBackend.getService());
@@ -164,7 +168,7 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
                             WebSocketUpstream upstream = WebSocketUpstream.builder()
                                     .upstreamUrl(upstreamIp + ":" + defaultPort)
                                     .weight(50)
-                                    .protocol("ws://")
+                                    .protocol(Objects.isNull(protocols[i++]) ? "ws://" : protocols[i++])
                                     .warmup(0)
                                     .status(true)
                                     .host("").build();
@@ -192,7 +196,7 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
         }
         if (Objects.nonNull(ingressRule.getHttp())) {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
-            if (paths != null) {
+            if (Objects.nonNull(paths)) {
                 for (V1HTTPIngressPath path : paths) {
                     if (path.getPath() == null) {
                         continue;

@@ -149,7 +149,7 @@ public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
         }
         if (Objects.nonNull(ingressRule.getHttp())) {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
-            if (paths != null) {
+            if (Objects.nonNull(paths)) {
                 for (V1HTTPIngressPath path : paths) {
                     if (path.getPath() == null) {
                         continue;

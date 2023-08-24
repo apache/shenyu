@@ -440,13 +440,13 @@ public class IngressReconciler implements Reconciler {
         String pluginMotanEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED);
         String pluginSpringCloudEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED);
         String pluginWebSocketEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
-        if ("true".equals(pluginDubboEnabled)) {
+        if ((Boolean.TRUE.toString()).equals(pluginDubboEnabled)) {
             pluginName = PluginEnum.DUBBO.getName();
-        } else if ("true".equals(pluginMotanEnabled)) {
+        } else if ((Boolean.TRUE.toString()).equals(pluginMotanEnabled)) {
             pluginName = PluginEnum.MOTAN.getName();
-        } else if ("true".equals(pluginSpringCloudEnabled)) {
+        } else if ((Boolean.TRUE.toString()).equals(pluginSpringCloudEnabled)) {
             pluginName = PluginEnum.SPRING_CLOUD.getName();
-        } else if ("true".equals(pluginWebSocketEnabled)) {
+        } else if ((Boolean.TRUE.toString()).equals(pluginWebSocketEnabled)) {
             pluginName = PluginEnum.WEB_SOCKET.getName();
         } else {
             pluginName = PluginEnum.DIVIDE.getName();

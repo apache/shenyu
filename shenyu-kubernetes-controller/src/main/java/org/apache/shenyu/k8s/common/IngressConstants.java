@@ -135,4 +135,7 @@ public class IngressConstants {
     // // Determining whether to use the WebSocket plugin, in String
     public static final String PLUGIN_WEB_SOCKET_ENABLED = "shenyu.apache.org/plugin-web-socket-enabled";
 
+    // Upstream protocol, in string
+    public static final String UPSTREAMS_PROTOCOL_ANNOTATION_KEY = "shenyu.apache.org/upstreams-protocol";
+
 }
