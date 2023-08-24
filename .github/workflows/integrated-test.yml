@@ -50,10 +50,6 @@ jobs:
         with:
           filters: '.github/filters.yml'
           list-files: json
-      - name: Disk space info
-        run: |
-          df --human-readable
-          docker image ls --all
       - name: Cache Maven Repos
         if: steps.filter.outputs.changed == 'true'
         uses: actions/cache@v3
@@ -68,10 +64,6 @@ jobs:
           java-version: 8
           distribution: 'temurin'
           cache: maven
-      - name: Disk space info
-        run: |
-          df --human-readable
-          docker image ls --all
       - name: Build Apache ShenYu with Maven
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
@@ -108,33 +100,22 @@ jobs:
           docker load --input /tmp/apache-shenyu-admin.tar
           docker load --input /tmp/apache-shenyu-bootstrap.tar
           docker load --input /tmp/${{ matrix.case }}.tar
+          df --human-readable
           docker image ls -a
-      - name: Disk space info
-        run: |
-          df --human-readable
-          docker image ls --all
-      - name: Disk space info
-        run: |
-          df --human-readable
-          docker image ls --all
-      - name: Build examples
+      - name: Load ShenYu Examples Images
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
-      - name: Disk space info
-        run: |
-          df --human-readable
-          docker image ls --all
-      - name: Disk space info
+      - name: Examples Images Space Info
         run: |
           df --human-readable
           docker image ls --all
       - name: Start docker compose
         if: steps.filter.outputs.changed == 'true'
         run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
-      - name: Disk space info
+      - name: Docker Container Info
         run: |
           df --human-readable
-          docker image ls --all
+          docker ps -q
       - name: Wait for docker compose start up completely
         if: steps.filter.outputs.changed == 'true'
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
