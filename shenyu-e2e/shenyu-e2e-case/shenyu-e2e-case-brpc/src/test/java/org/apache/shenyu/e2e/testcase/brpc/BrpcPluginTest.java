@@ -45,7 +45,7 @@ import org.testcontainers.shaded.com.google.common.collect.Lists;
 import java.util.List;
 
 @ShenYuTest(
-        mode = ShenYuEngineConfigure.Mode.HOST,
+        mode = ShenYuEngineConfigure.Mode.DOCKER,
         services = {
                 @ShenYuTest.ServiceConfigure(
                         serviceName = "admin",
