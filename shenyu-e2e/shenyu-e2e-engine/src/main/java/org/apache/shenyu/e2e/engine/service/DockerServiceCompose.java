@@ -67,7 +67,7 @@ public class DockerServiceCompose implements ServiceCompose {
     private final DockerComposeContainer<?> container;
 
     private final DockerConfigure configure;
-    
+
     private final DockerServiceConfigure adminConfigure;
 
     private final DockerServiceConfigure gatewayConfigure;
@@ -79,7 +79,6 @@ public class DockerServiceCompose implements ServiceCompose {
         this.adminConfigure = configure.getAdmin();
         this.gatewayConfigure = configure.getGateway();
         modifyGatewayConfiguration(this.gatewayConfigure);
-        DataSyncHandler.init();
         chooseDataSyn(GATEWAY_YML_LOCATION, this.gatewayConfigure);
         chooseDataSyn(ADMIN_YML_LOCATION, this.adminConfigure);
         DockerComposeFile parsedDockerComposeFile = DockerComposeFile.parse(configure.getDockerComposeFile());
@@ -87,7 +86,7 @@ public class DockerServiceCompose implements ServiceCompose {
         List<String> services = parsedDockerComposeFile.getServices();
         services.forEach(name -> container.withLogConsumer(name, new ShenYuLogConsumer(name)));
     }
-    
+
     /**
      * start.
      */
@@ -95,13 +94,13 @@ public class DockerServiceCompose implements ServiceCompose {
     public void start() {
         exposedServices();
         waitingForAvailable();
-        
+
         container.start();
-    
+
         NamingResolver.INSTANCE.ofDockerConfigure(container);
         printServices();
     }
-    
+
     private void exposedServices() {
         Builder<DockerServiceConfigure> builder = ImmutableList.<DockerServiceConfigure>builder()
                 .addAll(configure.getExternalServices());
@@ -112,12 +111,12 @@ public class DockerServiceCompose implements ServiceCompose {
             builder.add(gatewayConfigure);
         }
         externalServiceConfigurations = builder.build();
-        
+
         externalServiceConfigurations.stream()
                 .filter(conf -> conf.getPort() > 1024)
                 .forEach(conf -> container.withExposedService(conf.getServiceName(), conf.getPort()));
     }
-    
+
     private void waitingForAvailable() {
         if (Objects.nonNull(adminConfigure)) {
             container.waitingFor(
@@ -131,9 +130,9 @@ public class DockerServiceCompose implements ServiceCompose {
                     WaitingForStrategies.newGatewayStrategy(gatewayConfigure.getPort())
             );
         }
-    
+
     }
-    
+
     private void printServices() {
         TableView tableView = new TableView("service name", "container port", "mapped host port");
         for (DockerServiceConfigure serviceConfigure : externalServiceConfigurations) {
@@ -145,44 +144,44 @@ public class DockerServiceCompose implements ServiceCompose {
                     tableView.addRow(serviceConfigure.getServiceName(), binding.split(":"));
                 }
             }
-            
+
             if (serviceConfigure.getPort() > 1024) {
                 Integer hostPort = container.getServicePort(serviceConfigure.getServiceName(), serviceConfigure.getPort());
                 tableView.addRow(serviceConfigure.getServiceName(), serviceConfigure.getPort(), hostPort);
             }
         }
         log.info(System.lineSeparator() + tableView.printAsString() + System.lineSeparator());
-        
+
         if (Objects.isNull(adminConfigure) && Objects.isNull(gatewayConfigure)) {
             log.warn("configure of shenyu-admin or shenyu-bootstrap(gateway) has not seen");
         }
     }
-    
+
     private String getAdminBaseUrl() {
         return getBaseUrlByService(adminConfigure);
     }
-    
+
     private String getGatewayBaseUrl() {
         return getBaseUrlByService(gatewayConfigure);
     }
-    
+
     private String getBaseUrlByService(final DockerServiceConfigure configure) {
         return configure.getSchema() + "://"
                 + container.getServiceHost(configure.getServiceName(), configure.getPort())
                 + ":"
                 + container.getServicePort(configure.getServiceName(), configure.getPort());
     }
-    
+
     @Override
     public GatewayClient newGatewayClient(final String scenarioId) {
         return new GatewayClient(scenarioId, getGatewayBaseUrl(), gatewayConfigure.getProperties());
     }
-    
+
     @Override
     public AdminClient newAdminClient(final String scenarioId) {
         return new AdminClient(scenarioId, getAdminBaseUrl(), adminConfigure.getProperties());
     }
-    
+
     @Override
     public ExternalServiceClient newExternalServiceClient(final String externalServiceName) {
         DockerServiceConfigure dockerServiceConfigure = configure.getExternalServices().stream()
@@ -192,7 +191,7 @@ public class DockerServiceCompose implements ServiceCompose {
         String url = getBaseUrlByService(dockerServiceConfigure);
         return new ExternalServiceClient(url, dockerServiceConfigure.getProperties());
     }
-    
+
     /**
      * stop.
      */
