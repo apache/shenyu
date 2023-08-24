@@ -95,14 +95,3 @@ jobs:
             echo "Test Successful"
             exit 0
           fi
-
-      - name: Stop and Remove Docker Containers
-        if: steps.filter.outputs.changed == 'true'
-        run: |
-          docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml down
-          docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml rm -f
-
-      - name: Remove Docker Images
-        if: steps.filter.outputs.changed == 'true'
-        run: |
-          docker rmi $(docker images -q) -f || true          
