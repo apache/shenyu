@@ -17,7 +17,8 @@
 
 package org.apache.shenyu.e2e.engine.handler;
 
-import java.util.HashMap;
+import com.google.common.collect.Maps;
+
 import java.util.Map;
 
 /**
@@ -25,27 +26,27 @@ import java.util.Map;
  */
 public class DataSyncHandler {
     
-    private static final Map<String, Map<String, Object>> DATA_SYNC_MAP = new HashMap<>();
+    private static final Map<String, Map<String, Object>> DATA_SYNC_MAP = Maps.newConcurrentMap();
     
-    private static final Map<String, Object> ADMIN_WEBSOCKET_MAP = new HashMap<>();
+    private static final Map<String, Object> ADMIN_WEBSOCKET_MAP = Maps.newConcurrentMap();
     
-    private static final Map<String, Object> GATEWAY_WEBSOCKET_MAP = new HashMap<>();
+    private static final Map<String, Object> GATEWAY_WEBSOCKET_MAP = Maps.newConcurrentMap();
     
-    private static final Map<String, Object> ZOOKEEPER_MAP = new HashMap<>();
+    private static final Map<String, Object> ZOOKEEPER_MAP = Maps.newConcurrentMap();
     
-    private static final Map<String, Object> ADMIN_APOLLO_MAP = new HashMap<>();
+    private static final Map<String, Object> ADMIN_APOLLO_MAP = Maps.newConcurrentMap();
     
-    private static final Map<String, Object> GATEWAY_APOLLO_MAP = new HashMap<>();
+    private static final Map<String, Object> GATEWAY_APOLLO_MAP = Maps.newConcurrentMap();
     
-    private static final Map<String, Object> ADMIN_HTTP_MAP = new HashMap<>();
+    private static final Map<String, Object> ADMIN_HTTP_MAP = Maps.newConcurrentMap();
     
-    private static final Map<String, Object> GATEWAY_HTTP_MAP = new HashMap<>();
+    private static final Map<String, Object> GATEWAY_HTTP_MAP = Maps.newConcurrentMap();
     
-    private static final Map<String, Object> NACOS_MAP = new HashMap<>();
+    private static final Map<String, Object> NACOS_MAP = Maps.newConcurrentMap();
     
-    private static final Map<String, Object> ACM_MAP = new HashMap<>();
+    private static final Map<String, Object> ACM_MAP = Maps.newConcurrentMap();
 
-    private static final Map<String, Object> ETCD_MAP = new HashMap<>();
+    private static final Map<String, Object> ETCD_MAP = Maps.newConcurrentMap();
 
     /**
      * init data sync handler.
@@ -97,7 +98,7 @@ public class DataSyncHandler {
         GATEWAY_APOLLO_MAP.put("clusterName", "test");
         GATEWAY_APOLLO_MAP.put("namespace", "application");
 
-        ETCD_MAP.put("url", "http://etcd:2379");
+        ETCD_MAP.put("url", "'http://etcd:2379'");
     }
     
     /**
