@@ -94,7 +94,7 @@ jobs:
           cache: maven
 
       - name: Build shenyu-e2e-engine with Maven
-        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -amd -pl shenyu-e2e-engine clean install
+        run: ./mvnw -B -f ./shenyu-e2e/pom.xml clean install -am -pl shenyu-e2e-engine
 
       - name: Upload Docker Image Artifacts
         uses: actions/upload-artifact@v3
