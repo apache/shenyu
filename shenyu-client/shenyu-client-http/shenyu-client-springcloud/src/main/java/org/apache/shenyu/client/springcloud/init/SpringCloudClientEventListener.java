@@ -127,7 +127,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
             getPublisher().publishEvent(MetaDataRegisterDTO.builder()
                     .contextPath(getContextPath())
                     .appName(getAppName())
-                    .path(PathUtils.decoratorPathWithSlash(getContextPath()))
+                    .path(PathUtils.decoratorPathWithSlash(getContextPath()) + EVERY_PATH)
                     .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                     .enabled(true)
                     .ruleName(getContextPath())
