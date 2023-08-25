@@ -143,8 +143,8 @@ services:
       timeout: 20s
       retries: 10
     volumes:
-      - ./apolloconfigdb.sql:/docker-entrypoint-initdb.d/apolloconfigdb.sql
-      - ./apolloportaldb.sql:/docker-entrypoint-initdb.d/apolloportaldb.sql
+      -  /tmp/shenyu-e2e/mysql/apolloconfigdb.sql:/docker-entrypoint-initdb.d/apolloconfigdb.sql
+      -  /tmp/shenyu-e2e/mysql/apolloportaldb.sql:/docker-entrypoint-initdb.d/apolloportaldb.sql
       - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
 
   apollo-configservice:
