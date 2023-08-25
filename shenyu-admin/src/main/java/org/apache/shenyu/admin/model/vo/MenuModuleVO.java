@@ -20,14 +20,13 @@ package org.apache.shenyu.admin.model.vo;
 import java.util.List;
 
 /**
- * MenuModule.
- * MenuModule
+ * MenuModuleVO.
  */
-public class MenuModule {
+public class MenuModuleVO {
 
     private String label;
 
-    private List<MenuDocItem> children;
+    private List<MenuDocItemVO> children;
 
     /**
      * getLabel.
@@ -52,7 +51,7 @@ public class MenuModule {
      *
      * @return List
      */
-    public List<MenuDocItem> getChildren() {
+    public List<MenuDocItemVO> getChildren() {
         return children;
     }
 
@@ -61,7 +60,7 @@ public class MenuModule {
      *
      * @param children children
      */
-    public void setChildren(final List<MenuDocItem> children) {
+    public void setChildren(final List<MenuDocItemVO> children) {
         this.children = children;
     }
 }
