@@ -74,6 +74,6 @@ public class ShenyuSpringMvcClientConfiguration {
                 props.setProperty(ShenyuClientConstants.CONTEXT_PATH, String.format("/%s", applicationName));
             }
         }
-        return new SpringMvcClientEventListener(clientPropertiesConfig, shenyuClientRegisterRepository, env);
+        return new SpringMvcClientEventListener(clientPropertiesConfig, shenyuClientRegisterRepository);
     }
 }
