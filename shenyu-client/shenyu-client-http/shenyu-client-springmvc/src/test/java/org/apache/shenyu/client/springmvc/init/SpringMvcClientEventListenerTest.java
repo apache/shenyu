@@ -183,6 +183,7 @@ public class SpringMvcClientEventListenerTest {
         when(env.getProperty("server.servlet.context-path")).thenReturn("/servlet-context-path");
         Assert.assertEquals("super-path", "/servlet-context-path/servlet-path/order", springMvcClientEventListener.buildApiSuperPath(
             SpringMvcClientTestBean.class, AnnotatedElementUtils.findMergedAnnotation(SpringMvcClientTestBean.class, ShenyuSpringMvcClient.class)));
+        registerUtilsMockedStatic.close();
     }
 
     @RestController
