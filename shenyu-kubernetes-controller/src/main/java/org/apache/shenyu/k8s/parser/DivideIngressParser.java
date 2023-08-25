@@ -282,7 +282,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            String protocol = Objects.isNull(annotations) ? null : annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY);
+            String[] protocol = Objects.isNull(annotations) ? null : annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
             } else {
@@ -299,7 +299,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                             DivideUpstream upstream = new DivideUpstream();
                             upstream.setUpstreamUrl(upstreamIp + ":" + defaultPort);
                             upstream.setWeight(100);
-                            upstream.setProtocol(Objects.isNull(protocol) ? "http://" : protocol.split(",")[i++]);
+                            upstream.setProtocol(Objects.isNull(protocol) ? "http://" : protocol[i++]);
                             upstream.setWarmup(0);
                             upstream.setStatus(true);
                             upstream.setUpstreamHost("");
