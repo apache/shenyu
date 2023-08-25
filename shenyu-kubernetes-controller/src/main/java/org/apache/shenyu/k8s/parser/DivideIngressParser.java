@@ -283,7 +283,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             String[] protocol = null;
-            if (annotations != null && annotations.containsKey(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY)) {
+            if (Objects.isNull(annotations) && annotations.containsKey(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY)) {
                 protocol = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
             }
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
