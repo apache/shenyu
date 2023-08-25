@@ -29,6 +29,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * The type shenyu spring mvc client configuration.
@@ -47,12 +48,14 @@ public class ShenyuSpringMvcClientConfiguration {
      *
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
+     * @param env                            the env
      * @return the spring mvc client bean post processor
      */
     @Bean
     @ConditionalOnMissingBean(ClientRegisterConfiguration.class)
     public SpringMvcClientEventListener springHttpClientEventListener(final ShenyuClientConfig clientConfig,
-                                                                          final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new SpringMvcClientEventListener(clientConfig.getClient().get(RpcTypeEnum.HTTP.getName()), shenyuClientRegisterRepository);
+                                                                          final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
+                                                                          final Environment env) {
+        return new SpringMvcClientEventListener(clientConfig.getClient().get(RpcTypeEnum.HTTP.getName()), shenyuClientRegisterRepository, env);
     }
 }
