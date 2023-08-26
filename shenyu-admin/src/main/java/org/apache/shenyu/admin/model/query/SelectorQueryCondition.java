@@ -40,9 +40,9 @@ public class SelectorQueryCondition extends BaseExcludedSearchCondition implemen
     private Boolean switchStatus;
     
     /**
-     * selector from plugin.
+     * selector from plugin id.
      */
-    private List<String> plugin;
+    private List<String> pluginIds;
     
     /**
      * user id.
@@ -113,16 +113,16 @@ public class SelectorQueryCondition extends BaseExcludedSearchCondition implemen
      *
      * @return plugin ids
      */
-    public List<String> getPlugin() {
-        return plugin;
+    public List<String> getPluginIds() {
+        return pluginIds;
     }
     
     /**
      * set plugin.
      *
-     * @param plugin plugin ids
+     * @param pluginIds plugin ids
      */
-    public void setPlugin(final List<String> plugin) {
-        this.plugin = plugin;
+    public void setPluginIds(final List<String> pluginIds) {
+        this.pluginIds = pluginIds;
     }
 }
