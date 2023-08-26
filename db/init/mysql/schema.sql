@@ -1640,6 +1640,7 @@ INSERT INTO `resource` VALUES ('1676471945124278279', '1676471945048780800', 'SH
 INSERT INTO `resource` VALUES ('1676471945124278280', '1676471945048780800', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLts:modify', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
 
 INSERT INTO `resource` VALUES ('1572525965625266176', '1346777449787125760', 'SHENYU.BUTTON.SYSTEM.RESOURCE', '', '', '',2, 6, '', 1, 0, 'system:plugin:resource', 1, '2022-09-28 11:50:58', '2022-09-28 11:50:58');
+
 -- ----------------------------
 -- Table structure for role
 -- ----------------------------
@@ -1650,7 +1651,8 @@ CREATE TABLE `role`  (
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'role describe',
   `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
   `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
-  PRIMARY KEY (`id`, `role_name`) USING BTREE
+  PRIMARY KEY (`id`, `role_name`) USING BTREE,
+  UNIQUE KEY `uk_role_name` (`role_name`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'role table' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
