@@ -788,6 +788,7 @@ INSERT INTO `permission` VALUES ('1572525965658820617', '1346358560427216896', '
 INSERT INTO `permission` VALUES ('1572525965658820618', '1346358560427216896', '1676471945124278280', '2023-07-07 23:26:37.388', '2023-07-07 23:26:37.388');
 
 INSERT INTO `permission` VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176', '2022-09-28 11:50:58', '2022-09-28 11:50:58');
+
 -- ----------------------------
 -- Table structure for plugin
 -- ----------------------------
@@ -802,7 +803,9 @@ CREATE TABLE `plugin`  (
   `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
   `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
   `plugin_jar` mediumblob  DEFAULT NULL COMMENT 'plugin jar',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `uk_name` (`name`) USING BTREE,
+  INDEX `idx_sort` (`sort`)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
