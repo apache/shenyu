@@ -17,14 +17,14 @@
 
 package org.apache.shenyu.admin.listener.zookeeper;
 
-import org.apache.shenyu.admin.listener.AbstractNodeDataChangedListener;
+import org.apache.shenyu.admin.listener.AbstractPathDataChangedListener;
 import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
 import org.apache.zookeeper.CreateMode;
 
 /**
  * Use zookeeper to push data changes.
  */
-public class ZookeeperDataChangedListener extends AbstractNodeDataChangedListener {
+public class ZookeeperDataChangedListener extends AbstractPathDataChangedListener {
 
     private final ZookeeperClient zkClient;
 

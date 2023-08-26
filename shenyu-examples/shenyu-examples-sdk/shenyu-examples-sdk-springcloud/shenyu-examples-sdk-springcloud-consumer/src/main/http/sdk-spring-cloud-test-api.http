@@ -27,7 +27,7 @@ Content-Type: application/json
 }
 
 
-### shengyu getway proxy orderSave
+### shengyu getway proxy findById
 GET http://localhost:8899/findById?id=123
 Accept: application/json
 Content-Type: application/json

@@ -15,53 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.vo;
-
-import java.util.List;
+package org.apache.shenyu.common.enums;
 
 /**
- * MenuModule.
- * MenuModule
+ * The http scheme enum.
  */
-public class MenuModule {
-
-    private String label;
-
-    private List<MenuDocItem> children;
+public enum HttpSchemeEnum {
 
     /**
-     * getLabel.
-     *
+     * The http schema enum.
+     */
+    HTTP("http"),
+
+    /**
+     * The https schema enum.
+     */
+    HTTPS("https");
+
+    private final String scheme;
+
+    HttpSchemeEnum(final String scheme) {
+        this.scheme = scheme;
+    }
+
+    /**
+     * get schema.
      * @return String
      */
-    public String getLabel() {
-        return label;
-    }
-
-    /**
-     * setLabel.
-     *
-     * @param label label
-     */
-    public void setLabel(final String label) {
-        this.label = label;
-    }
-
-    /**
-     * getChildren.
-     *
-     * @return List
-     */
-    public List<MenuDocItem> getChildren() {
-        return children;
-    }
-
-    /**
-     * setChildren.
-     *
-     * @param children children
-     */
-    public void setChildren(final List<MenuDocItem> children) {
-        this.children = children;
+    public String getScheme() {
+        return scheme;
     }
 }
