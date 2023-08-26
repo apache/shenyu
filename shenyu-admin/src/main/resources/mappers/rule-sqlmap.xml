@@ -64,9 +64,8 @@
         SELECT
                <include refid="Base_Column_List"/>
           FROM rule
-         WHERE 1=1
+         WHERE selector_id = #{selectorId, jdbcType=VARCHAR}
            AND name = #{name, jdbcType=VARCHAR}
-           AND selector_id = #{selectorId, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.RuleQuery" resultMap="BaseResultMap">

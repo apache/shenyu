@@ -90,7 +90,10 @@ public interface RuleMapper extends ExistProvider {
      * @param name       the name
      * @return the rule do
      */
-    RuleDO findBySelectorIdAndName(@Param("selectorId") String selectorId, @Param("name") String name);
+    RuleDO findBySelectorIdAndName(
+            @Param("selectorId") String selectorId,
+            @Param("name") String name
+    );
     
     /**
      * count rule by query.
