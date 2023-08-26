@@ -20,14 +20,11 @@ package org.apache.shenyu.k8s.parser;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1EndpointAddress;
-import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1IngressBackend;
 import io.kubernetes.client.openapi.models.V1IngressRule;
-import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1IngressTLS;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
@@ -35,17 +32,15 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyStream;
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
-import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
-import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.k8s.common.IngressConfiguration;
 import org.apache.shenyu.k8s.common.IngressConstants;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
@@ -60,12 +55,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Parser of Ingress Divide Annotations.
- */
-public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(DivideIngressParser.class);
+public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
+    private static final Logger LOG = LoggerFactory.getLogger(MotanIngressParser.class);
 
     private final Lister<V1Service> serviceLister;
 
@@ -74,10 +65,10 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
     /**
      * IngressParser Constructor.
      *
-     * @param serviceLister serviceLister
+     * @param serviceLister   serviceLister
      * @param endpointsLister endpointsLister
      */
-    public DivideIngressParser(final Lister<V1Service> serviceLister, final Lister<V1Endpoints> endpointsLister) {
+    public MotanIngressParser(final Lister<V1Service> serviceLister, final Lister<V1Endpoints> endpointsLister) {
         this.serviceLister = serviceLister;
         this.endpointsLister = endpointsLister;
     }
@@ -85,7 +76,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
     /**
      * Parse ingress to ShenyuMemoryConfig.
      *
-     * @param ingress ingress resource
+     * @param ingress   ingress resource
      * @param coreV1Api coreV1Api
      * @return ShenyuMemoryConfig
      */
@@ -100,12 +91,11 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
             List<V1IngressTLS> tlsList = ingress.getSpec().getTls();
 
             String namespace = Objects.requireNonNull(ingress.getMetadata()).getNamespace();
-            List<DivideUpstream> defaultUpstreamList = parseDefaultService(defaultBackend, namespace);
 
             if (Objects.isNull(rules) || CollectionUtils.isEmpty(rules)) {
                 // if rules is null, defaultBackend become global default
                 if (Objects.nonNull(defaultBackend) && Objects.nonNull(defaultBackend.getService())) {
-                    IngressConfiguration defaultRouteConfig = getDefaultRouteConfig(defaultUpstreamList, ingress.getMetadata().getAnnotations());
+                    IngressConfiguration defaultRouteConfig = getDefaultRouteConfig(ingress.getMetadata().getAnnotations());
                     res.setGlobalDefaultBackend(Pair.of(Pair.of(namespace + "/" + ingress.getMetadata().getName(), defaultBackend.getService().getName()),
                             defaultRouteConfig));
                 }
@@ -113,7 +103,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                 // if rules is not null, defaultBackend is default in this ingress
                 List<IngressConfiguration> routeList = new ArrayList<>(rules.size());
                 for (V1IngressRule ingressRule : rules) {
-                    List<IngressConfiguration> routes = parseIngressRule(ingressRule, defaultUpstreamList,
+                    List<IngressConfiguration> routes = parseIngressRule(ingressRule,
                             Objects.requireNonNull(ingress.getMetadata()).getNamespace(), ingress.getMetadata().getAnnotations());
                     routeList.addAll(routes);
                 }
@@ -145,52 +135,15 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
         return res;
     }
 
-    private List<DivideUpstream> parseDefaultService(final V1IngressBackend defaultBackend, final String namespace) {
-        List<DivideUpstream> defaultUpstreamList = new ArrayList<>();
-        if (Objects.nonNull(defaultBackend) && Objects.nonNull(defaultBackend.getService())) {
-            String serviceName = defaultBackend.getService().getName();
-            // shenyu routes directly to the container
-            V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
-            List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
-                LOG.info("Endpoints {} do not have subsets", serviceName);
-            } else {
-                for (V1EndpointSubset subset : subsets) {
-                    List<V1EndpointAddress> addresses = subset.getAddresses();
-                    if (Objects.isNull(addresses) || CollectionUtils.isEmpty(addresses)) {
-                        continue;
-                    }
-                    for (V1EndpointAddress address : addresses) {
-                        String upstreamIp = address.getIp();
-                        String defaultPort = parsePort(defaultBackend.getService());
-                        if (Objects.nonNull(defaultPort)) {
-                            DivideUpstream upstream = new DivideUpstream();
-                            upstream.setUpstreamUrl(upstreamIp + ":" + defaultPort);
-                            upstream.setWeight(100);
-                            // TODO support config protocol in annotation
-                            upstream.setProtocol("http://");
-                            upstream.setWarmup(0);
-                            upstream.setStatus(true);
-                            upstream.setUpstreamHost("");
-                            defaultUpstreamList.add(upstream);
-                        }
-                    }
-                }
-            }
-        }
-        return defaultUpstreamList;
-    }
-
     private List<IngressConfiguration> parseIngressRule(final V1IngressRule ingressRule,
-                                                                final List<DivideUpstream> defaultUpstream,
-                                                                final String namespace,
-                                                                final Map<String, String> annotations) {
+                                                        final String namespace,
+                                                        final Map<String, String> annotations) {
         List<IngressConfiguration> res = new ArrayList<>();
 
         ConditionData hostCondition = null;
         if (Objects.nonNull(ingressRule.getHost())) {
             hostCondition = new ConditionData();
-            hostCondition.setParamType(ParamTypeEnum.DOMAIN.getName());
+            hostCondition.setParamType(ParamTypeEnum.URI.getName());
             hostCondition.setOperator(OperatorEnum.EQ.getAlias());
             hostCondition.setParamValue(ingressRule.getHost());
         }
@@ -223,10 +176,16 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                         conditionList.add(hostCondition);
                     }
                     conditionList.add(pathCondition);
+                    ConditionData ruleConditionData = new ConditionData();
+                    ruleConditionData.setParamType(ParamTypeEnum.URI.getName());
+                    ruleConditionData.setOperator(OperatorEnum.EQ.getAlias());
+                    ruleConditionData.setParamName(annotations.getOrDefault(IngressConstants.PLUGIN_MOTAN_PATH, path.getPath()));
+                    List<ConditionData> ruleConditionDataList = new ArrayList<>();
+                    ruleConditionDataList.add(ruleConditionData);
 
                     SelectorData selectorData = SelectorData.builder()
-                            .pluginId(String.valueOf(PluginEnum.DIVIDE.getCode()))
-                            .pluginName(PluginEnum.DIVIDE.getName())
+                            .pluginId(String.valueOf(PluginEnum.MOTAN.getCode()))
+                            .pluginName(PluginEnum.MOTAN.getName())
                             .name(path.getPath())
                             .matchMode(MatchModeEnum.AND.getCode())
                             .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
@@ -234,88 +193,49 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                             .logged(false)
                             .continued(true)
                             .conditionList(conditionList).build();
-                    List<DivideUpstream> upstreamList = parseUpstream(path.getBackend(), namespace, annotations);
-                    if (upstreamList.isEmpty()) {
-                        upstreamList = defaultUpstream;
-                    }
-                    selectorData.setHandle(GsonUtils.getInstance().toJson(upstreamList));
 
-                    DivideRuleHandle divideRuleHandle = new DivideRuleHandle();
-                    if (Objects.nonNull(annotations)) {
-                        divideRuleHandle.setLoadBalance(annotations.getOrDefault(IngressConstants.LOADBALANCER_ANNOTATION_KEY, LoadBalanceEnum.RANDOM.getName()));
-                        divideRuleHandle.setRetry(Integer.parseInt(annotations.getOrDefault(IngressConstants.RETRY_ANNOTATION_KEY, "3")));
-                        divideRuleHandle.setTimeout(Long.parseLong(annotations.getOrDefault(IngressConstants.TIMEOUT_ANNOTATION_KEY, "3000")));
-                        divideRuleHandle.setHeaderMaxSize(Long.parseLong(annotations.getOrDefault(IngressConstants.HEADER_MAX_SIZE_ANNOTATION_KEY, "10240")));
-                        divideRuleHandle.setRequestMaxSize(Long.parseLong(annotations.getOrDefault(IngressConstants.REQUEST_MAX_SIZE_ANNOTATION_KEY, "102400")));
-                    }
                     RuleData ruleData = RuleData.builder()
                             .name(path.getPath())
-                            .pluginName(PluginEnum.DIVIDE.getName())
+                            .pluginName(PluginEnum.MOTAN.getName())
                             .matchMode(MatchModeEnum.AND.getCode())
-                            .conditionDataList(conditionList)
-                            .handle(GsonUtils.getInstance().toJson(divideRuleHandle))
+                            .conditionDataList(ruleConditionDataList)
                             .loged(false)
                             .enabled(true).build();
 
-                    res.add(new IngressConfiguration(selectorData, ruleData, null));
+                    MetaData metaData = parseMetaData(path, namespace);
+                    res.add(new IngressConfiguration(selectorData, ruleData, metaData));
                 }
             }
         }
         return res;
     }
 
-    private String parsePort(final V1IngressServiceBackend service) {
-        if (Objects.nonNull(service.getPort())) {
-            if (service.getPort().getNumber() != null && service.getPort().getNumber() > 0) {
-                return String.valueOf(service.getPort().getNumber());
-            } else if (service.getPort().getName() != null && !"".equals(service.getPort().getName().trim())) {
-                return service.getPort().getName().trim();
-            }
+    private MetaData parseMetaData(final V1HTTPIngressPath path, final String namespace) {
+        String serviceName = path.getBackend().getService().getName();
+        V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
+        Map<String, String> annotations = v1Service.getMetadata().getAnnotations();
+        if (!annotations.containsKey(IngressConstants.PLUGIN_MOTAN_APP_NAME)
+            || !annotations.containsKey(IngressConstants.PLUGIN_MOTAN_METHOD_NAME)
+            || !annotations.containsKey(IngressConstants.PLUGIN_MOTAN_PATH)
+            || !annotations.containsKey(IngressConstants.PLUGIN_MOTAN_SREVICE_NAME)
+            || !annotations.containsKey(IngressConstants.PLUGIN_MOTAN_RPC_TYPE)) {
+            LOG.error("motan metadata is error, please check motan service. MetaData: [{}]", v1Service.getMetadata());
+            throw new ShenyuException(annotations + " is is missing.");
         }
-        return null;
+        return MetaData.builder()
+                .appName(annotations.get(IngressConstants.PLUGIN_MOTAN_APP_NAME))
+                .path(annotations.get(IngressConstants.PLUGIN_MOTAN_PATH))
+                .contextPath("/motan")
+                .rpcType(annotations.get(IngressConstants.PLUGIN_MOTAN_RPC_TYPE))
+                .rpcExt(annotations.getOrDefault(IngressConstants.PLUGIN_MOTAN_RPC_EXPAND, ""))
+                .serviceName(annotations.get(IngressConstants.PLUGIN_MOTAN_SREVICE_NAME))
+                .methodName(annotations.get(IngressConstants.PLUGIN_MOTAN_METHOD_NAME))
+                .parameterTypes(annotations.getOrDefault(IngressConstants.PLUGIN_MOTAN_PARAMS_TYPE, ""))
+                .enabled(true)
+                .build();
     }
 
-    private List<DivideUpstream> parseUpstream(final V1IngressBackend backend, final String namespace, final Map<String, String> annotations) {
-        List<DivideUpstream> upstreamList = new ArrayList<>();
-        if (Objects.nonNull(backend) && Objects.nonNull(backend.getService()) && Objects.nonNull(backend.getService().getName())) {
-            String serviceName = backend.getService().getName();
-            // shenyu routes directly to the container
-            V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
-            List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            String[] protocol = null;
-            if (Objects.nonNull(annotations) && annotations.containsKey(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY)) {
-                protocol = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
-            }
-            if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
-                LOG.info("Endpoints {} do not have subsets", serviceName);
-            } else {
-                for (V1EndpointSubset subset : subsets) {
-                    List<V1EndpointAddress> addresses = subset.getAddresses();
-                    if (Objects.isNull(addresses) || addresses.isEmpty()) {
-                        continue;
-                    }
-                    int i = 0;
-                    for (V1EndpointAddress address : addresses) {
-                        String upstreamIp = address.getIp();
-                        String defaultPort = parsePort(backend.getService());
-                        if (Objects.nonNull(defaultPort)) {
-                            DivideUpstream upstream = new DivideUpstream();
-                            upstream.setUpstreamUrl(upstreamIp + ":" + defaultPort);
-                            upstream.setWeight(100);
-                            upstream.setProtocol(Objects.isNull(protocol) ? "http://" : protocol[i++]);
-                            upstream.setWarmup(0);
-                            upstream.setStatus(true);
-                            upstream.setUpstreamHost("");
-                            upstreamList.add(upstream);
-                        }
-                    }
-                }
-            }
-        }
-        return upstreamList;
-    }
-
-    private IngressConfiguration getDefaultRouteConfig(final List<DivideUpstream> divideUpstream, final Map<String, String> annotations) {
+    private IngressConfiguration getDefaultRouteConfig(final Map<String, String> annotations) {
         final ConditionData conditionData = new ConditionData();
         conditionData.setParamName("default");
         conditionData.setParamType(ParamTypeEnum.URI.getName());
@@ -326,35 +246,43 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                 .name("default-selector")
                 .sort(Integer.MAX_VALUE)
                 .conditionList(Collections.singletonList(conditionData))
-                .handle(GsonUtils.getInstance().toJson(divideUpstream))
                 .enabled(true)
                 .id(IngressConstants.ID)
-                .pluginName(PluginEnum.DIVIDE.getName())
-                .pluginId(String.valueOf(PluginEnum.DIVIDE.getCode()))
+                .pluginName(PluginEnum.MOTAN.getName())
+                .pluginId(String.valueOf(PluginEnum.MOTAN.getCode()))
                 .logged(false)
                 .continued(true)
                 .matchMode(MatchModeEnum.AND.getCode())
                 .type(SelectorTypeEnum.FULL_FLOW.getCode()).build();
 
-        DivideRuleHandle divideRuleHandle = new DivideRuleHandle();
-        if (Objects.nonNull(annotations)) {
-            divideRuleHandle.setLoadBalance(annotations.getOrDefault(IngressConstants.LOADBALANCER_ANNOTATION_KEY, LoadBalanceEnum.RANDOM.getName()));
-            divideRuleHandle.setRetry(Integer.parseInt(annotations.getOrDefault(IngressConstants.RETRY_ANNOTATION_KEY, "3")));
-            divideRuleHandle.setTimeout(Long.parseLong(annotations.getOrDefault(IngressConstants.TIMEOUT_ANNOTATION_KEY, "3000")));
-            divideRuleHandle.setHeaderMaxSize(Long.parseLong(annotations.getOrDefault(IngressConstants.HEADER_MAX_SIZE_ANNOTATION_KEY, "10240")));
-            divideRuleHandle.setRequestMaxSize(Long.parseLong(annotations.getOrDefault(IngressConstants.REQUEST_MAX_SIZE_ANNOTATION_KEY, "102400")));
-        }
         final RuleData ruleData = RuleData.builder()
                 .selectorId(IngressConstants.ID)
-                .pluginName(PluginEnum.DIVIDE.getName())
+                .pluginName(PluginEnum.MOTAN.getName())
                 .name("default-rule")
                 .matchMode(MatchModeEnum.AND.getCode())
                 .conditionDataList(Collections.singletonList(conditionData))
-                .handle(GsonUtils.getInstance().toJson(divideRuleHandle))
                 .loged(false)
                 .enabled(true)
                 .sort(Integer.MAX_VALUE).build();
 
-        return new IngressConfiguration(selectorData, ruleData, null);
+        if (Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_APP_NAME))
+                || Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_METHOD_NAME))
+                || Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_PATH))
+                || Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_SREVICE_NAME))
+                || Objects.isNull(annotations.get(IngressConstants.PLUGIN_MOTAN_RPC_TYPE))) {
+            LOG.error("motan metadata is error, please check motan service. MetaData: [{}]", annotations);
+            throw new ShenyuException(annotations + " is is missing.");
+        }
+        MetaData metaData = MetaData.builder()
+                .appName(annotations.get(IngressConstants.PLUGIN_MOTAN_APP_NAME))
+                .path(annotations.get(IngressConstants.PLUGIN_MOTAN_PATH))
+                .rpcType(annotations.get(IngressConstants.PLUGIN_MOTAN_RPC_TYPE))
+                .rpcExt(annotations.getOrDefault(IngressConstants.PLUGIN_MOTAN_RPC_EXPAND, ""))
+                .serviceName(annotations.get(IngressConstants.PLUGIN_MOTAN_SREVICE_NAME))
+                .methodName(annotations.get(IngressConstants.PLUGIN_MOTAN_METHOD_NAME))
+                .parameterTypes(annotations.getOrDefault(IngressConstants.PLUGIN_MOTAN_PARAMS_TYPE, ""))
+                .enabled(true)
+                .build();
+        return new IngressConfiguration(selectorData, ruleData, metaData);
     }
 }
