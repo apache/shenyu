@@ -55,7 +55,8 @@
     <select id="selectByDiscoveryHandlerId" resultType="org.apache.shenyu.admin.model.entity.DiscoveryRelDO">
         select
         <include refid="Base_Column_List"/>
-        from discovery_rel where discovery_handler_id = #{discoveryHandlerId}
+        FROM discovery_rel
+        WHERE discovery_handler_id = #{discoveryHandlerId}
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryRelDO">

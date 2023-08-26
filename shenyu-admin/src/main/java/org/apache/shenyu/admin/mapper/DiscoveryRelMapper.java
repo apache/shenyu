@@ -41,7 +41,9 @@ public interface DiscoveryRelMapper {
      * @param proxySelectorId proxy selector id.
      * @return {@linkplain DiscoveryRelDO}
      */
-    DiscoveryRelDO selectByProxySelectorId(String proxySelectorId);
+    DiscoveryRelDO selectByProxySelectorId(
+            @Param("proxySelectorId") String proxySelectorId
+    );
 
     /**
      * insert discoveryRelDO.
@@ -89,7 +91,9 @@ public interface DiscoveryRelMapper {
      * @param discoveryHandlerId discoveryHandlerId
      * @return DiscoveryRelDO
      */
-    DiscoveryRelDO selectByDiscoveryHandlerId(@Param("discoveryHandlerId") String discoveryHandlerId);
+    DiscoveryRelDO selectByDiscoveryHandlerId(
+            @Param("discoveryHandlerId") String discoveryHandlerId
+    );
 
     /**
      * deleteByDiscoveryHandlerId.
@@ -97,5 +101,8 @@ public interface DiscoveryRelMapper {
      * @param discoveryHandlerId discoveryHandlerId
      * @return rows
      */
-    int deleteByDiscoveryHandlerId(@Param("discoveryHandlerId") String discoveryHandlerId);
+    int deleteByDiscoveryHandlerId(
+            @Param("discoveryHandlerId") String discoveryHandlerId
+    );
+
 }
