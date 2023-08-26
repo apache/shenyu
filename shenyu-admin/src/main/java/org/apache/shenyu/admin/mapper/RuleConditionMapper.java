@@ -59,7 +59,10 @@ public interface RuleConditionMapper {
      */
     default List<RuleConditionDO> selectByRuleIdSet(@Param("ruleIdSet") Set<String> ruleIdSet) {
         final List<List<String>> ruleIdSetPartition = Lists.partition(new ArrayList<>(ruleIdSet), 500);
-        return ruleIdSetPartition.stream().map(this::selectByRuleIdSet0).flatMap(Collection::stream).collect(Collectors.toList());
+        return ruleIdSetPartition.stream()
+                .map(this::selectByRuleIdSet0)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -125,4 +128,5 @@ public interface RuleConditionMapper {
      * @return rows
      */
     int deleteByQuery(RuleConditionQuery ruleConditionQuery);
+
 }
