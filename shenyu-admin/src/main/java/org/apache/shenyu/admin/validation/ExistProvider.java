@@ -23,9 +23,7 @@ import java.io.Serializable;
  * ExistProvider.
  */
 public interface ExistProvider {
-    
-    
-    
+
     /**
      * existed.
      *
