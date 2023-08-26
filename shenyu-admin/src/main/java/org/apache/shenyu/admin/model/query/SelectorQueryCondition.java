@@ -25,7 +25,7 @@ import org.apache.shenyu.admin.model.page.condition.SwitchCondition;
 import java.util.List;
 
 /**
- * this is rule query condition.
+ * this is selector query condition.
  */
 public class SelectorQueryCondition extends BaseExcludedSearchCondition implements SearchCondition, SwitchCondition {
     
