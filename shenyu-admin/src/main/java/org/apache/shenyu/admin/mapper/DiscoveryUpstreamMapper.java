@@ -52,7 +52,9 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      * @param proxySelectorId proxySelectorId
      * @return DiscoveryUpstreamDO list
      */
-    List<DiscoveryUpstreamDO> selectByProxySelectorId(@Param("proxySelectorId") String proxySelectorId);
+    List<DiscoveryUpstreamDO> selectByProxySelectorId(
+            @Param("proxySelectorId") String proxySelectorId
+    );
 
     /**
      * selectByDiscoveryHandlerId.
@@ -60,7 +62,9 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      * @param discoveryHandlerId discovery handler id
      * @return discoveryUpstreamDO list
      */
-    List<DiscoveryUpstreamDO> selectByDiscoveryHandlerId(@Param("discoveryHandlerId") String discoveryHandlerId);
+    List<DiscoveryUpstreamDO> selectByDiscoveryHandlerId(
+            @Param("discoveryHandlerId") String discoveryHandlerId
+    );
 
     /**
      * insert.
@@ -108,7 +112,9 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      * @param discoveryHandlerId discovery handler id
      * @return result
      */
-    int deleteByDiscoveryHandlerId(@Param("discoveryHandlerId") String discoveryHandlerId);
+    int deleteByDiscoveryHandlerId(
+            @Param("discoveryHandlerId") String discoveryHandlerId
+    );
 
     /**
      * deleteByUrl.
@@ -117,7 +123,10 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      * @param url                url
      * @return rows int
      */
-    int deleteByUrl(@Param("discoveryHandlerId") String discoveryHandlerId, @Param("url") String url);
+    int deleteByUrl(
+            @Param("discoveryHandlerId") String discoveryHandlerId,
+            @Param("url") String url
+    );
 
     /**
      * selectByDiscoveryHandlerIdAndUrl.
@@ -126,7 +135,10 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      * @param url                url
      * @return DiscoveryUpstreamDO
      */
-    DiscoveryUpstreamDO selectByDiscoveryHandlerIdAndUrl(@Param("discoveryHandlerId") String discoveryHandlerId, @Param("url") String url);
+    DiscoveryUpstreamDO selectByDiscoveryHandlerIdAndUrl(
+            @Param("discoveryHandlerId") String discoveryHandlerId,
+            @Param("url") String url
+    );
 
     /**
      * updateDiscoveryHandlerIdAndUrl.
@@ -135,4 +147,5 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      * @return rows
      */
     int updateDiscoveryHandlerIdAndUrl(DiscoveryUpstreamDO discoveryUpstreamDO);
+
 }
