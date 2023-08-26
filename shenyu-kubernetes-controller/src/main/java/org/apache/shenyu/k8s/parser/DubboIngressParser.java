@@ -169,7 +169,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                             DubboUpstream upstream = DubboUpstream.builder()
                                     .upstreamUrl(upstreamIp + ":" + defaultPort)
                                     .weight(100)
-                                    .protocol("http://")
+                                    .protocol("dubbo://")
                                     .warmup(0)
                                     .status(true)
                                     .upstreamHost("")
@@ -209,7 +209,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
         }
         if (Objects.nonNull(ingressRule.getHttp())) {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
-            if (paths != null) {
+            if (Objects.nonNull(paths)) {
                 for (V1HTTPIngressPath path : paths) {
                     if (path.getPath() == null) {
                         continue;
@@ -283,16 +283,19 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
             // shenyu routes directly to the container
             V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
             List<String> clusterIPs = v1Service.getSpec().getClusterIPs();
+            Map<String, String> annotations = v1Service.getMetadata().getAnnotations();
+            String[] protocols = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
             if (Objects.isNull(clusterIPs) || CollectionUtils.isEmpty(clusterIPs)) {
                 LOG.info("Endpoints {} do not have clusterIPs", serviceName);
             } else {
+                int i = 0;
                 for (String clusterIP : clusterIPs) {
                     String defaultPort = parsePort(backend.getService());
                     if (Objects.nonNull(defaultPort)) {
                         DubboUpstream upstream = DubboUpstream.builder()
                                 .upstreamUrl(clusterIP + ":" + defaultPort)
                                 .weight(100)
-                                .protocol("http://")
+                                .protocol(Objects.isNull(protocols[i++]) ? "dubbo" : protocols[i++])
                                 .warmup(0)
                                 .status(true)
                                 .upstreamHost("")
