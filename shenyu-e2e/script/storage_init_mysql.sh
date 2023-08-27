@@ -17,6 +17,7 @@
 # limitations under the License.
 
 mkdir -p /tmp/shenyu-e2e/mysql
+mkdir -p /tmp/shenyu-e2e/apollo
 
 wget -O /tmp/shenyu-e2e/mysql/mysql-connector.jar \
   https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar || \
@@ -24,5 +25,9 @@ wget -O /tmp/shenyu-e2e/mysql/mysql-connector.jar \
     https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar
 
 cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema.sql
+cp db/init/apollo/apolloconfigdb.sql /tmp/shenyu-e2e/apollo/apolloconfigdb.sql
+cp db/init/apollo/apolloportaldb.sql /tmp/shenyu-e2e/apollo/apolloportaldb.sql
 
 echo "GRANT ALL PRIVILEGES ON shenyu.* TO 'shenyue2e'@'%';" >> /tmp/shenyu-e2e/mysql/schema.sql
+echo "GRANT ALL PRIVILEGES ON shenyu.* TO 'shenyue2e'@'%';" >> /tmp/shenyu-e2e/apollo/apolloconfigdb.sql
+echo "GRANT ALL PRIVILEGES ON shenyu.* TO 'shenyue2e'@'%';" >> /tmp/shenyu-e2e/apollo/apolloportaldb.sql
