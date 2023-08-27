@@ -160,7 +160,7 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
     }
 
     /**
-     * test with uri end with.
+     * test case with uri end with.
      *
      * @return ShenYuScenarioSpec
      */
