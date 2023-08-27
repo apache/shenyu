@@ -60,6 +60,11 @@ public class ApolloProperties {
     private String token;
 
     /**
+     * operatorUser.
+     */
+    private String operatorUser;
+
+    /**
      * get appId.
      * @return appId
      */
@@ -169,5 +174,23 @@ public class ApolloProperties {
      */
     public void setToken(final String token) {
         this.token = token;
+    }
+
+    /**
+     * operatorUser.
+     *
+     * @return OperatorUser
+     */
+    public String getOperatorUser() {
+        return operatorUser;
+    }
+
+    /**
+     * set operatorUser.
+     *
+     * @param operatorUser operatorUser
+     */
+    public void setOperatorUser(final String operatorUser) {
+        this.operatorUser = operatorUser;
     }
 }
