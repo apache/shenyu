@@ -124,7 +124,7 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
     }
 
     /**
-     * test with uri start with.
+     * test case with uri start with.
      *
      * @return ShenYuScenarioSpec
      */
