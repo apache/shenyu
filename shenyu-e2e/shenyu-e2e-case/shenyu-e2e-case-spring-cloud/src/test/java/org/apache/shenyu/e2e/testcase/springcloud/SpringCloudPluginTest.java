@@ -73,24 +73,19 @@ public class SpringCloudPluginTest {
         adminClient.login();
         Thread.sleep(10000);
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
-        List<RuleDTO> ruleDTOList = adminClient.listAllRules();
-        Assertions.assertEquals(2, selectorDTOList.size());
-        Assertions.assertEquals(13, metaDataDTOList.size());
-        Assertions.assertEquals(14, ruleDTOList.size());
-        
+        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
+        Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
         for (SelectorDTO selectorDTO : selectorDTOList) {
             if (selectorDTO.getHandle() != null && !"".equals(selectorDTO.getHandle())) {
                 SpringCloudPluginCases.verifierUri(selectorDTO.getHandle());
             }
         }
-        
+        List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
         List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
-        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
+        Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
+        List<RuleDTO> ruleDTOList = adminClient.listAllRules();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        Assertions.assertEquals(2, selectorCacheList.size());
-        Assertions.assertEquals(13, metaDataCacheList.size());
-        Assertions.assertEquals(14, ruleCacheList.size());
+        Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "8");

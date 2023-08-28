@@ -593,6 +593,12 @@
                 <artifactId>client-java-spring-integration</artifactId>
                 <version>${k8s-client.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>${kafka-clients.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

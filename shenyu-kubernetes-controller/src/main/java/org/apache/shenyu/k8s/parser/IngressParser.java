@@ -44,7 +44,7 @@ public class IngressParser implements K8sResourceParser<V1Ingress> {
     /**
      * IngressParser Constructor.
      *
-     * @param serviceInformer serviceInformer
+     * @param serviceInformer   serviceInformer
      * @param endpointsInformer endpointsInformer
      */
     public IngressParser(final SharedIndexInformer<V1Service> serviceInformer, final SharedIndexInformer<V1Endpoints> endpointsInformer) {
@@ -55,7 +55,7 @@ public class IngressParser implements K8sResourceParser<V1Ingress> {
     /**
      * Parse ingress to ShenyuMemoryConfig.
      *
-     * @param ingress ingress resource
+     * @param ingress   ingress resource
      * @param coreV1Api coreV1Api
      * @return ShenyuMemoryConfig
      */
@@ -64,6 +64,15 @@ public class IngressParser implements K8sResourceParser<V1Ingress> {
         if (Objects.equals(ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
             DubboIngressParser dubboIngressParser = new DubboIngressParser(serviceLister, endpointsLister);
             return dubboIngressParser.parse(ingress, coreV1Api);
+        } else if (Objects.equals(ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
+            MotanIngressParser motanIngressParser = new MotanIngressParser(serviceLister, endpointsLister);
+            return motanIngressParser.parse(ingress, coreV1Api);
+        } else if (Objects.equals(ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
+            SpringCloudParser springCloudParser = new SpringCloudParser(serviceLister, endpointsLister);
+            return springCloudParser.parse(ingress, coreV1Api);
+        } else if (Objects.equals(ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
+            WebSocketParser webSocketParser = new WebSocketParser(serviceLister, endpointsLister);
+            return webSocketParser.parse(ingress, coreV1Api);
         } else {
             DivideIngressParser divideIngressParser = new DivideIngressParser(serviceLister, endpointsLister);
             return divideIngressParser.parse(ingress, coreV1Api);
