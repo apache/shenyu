@@ -50,7 +50,7 @@ jobs:
           submodules: true
 
       - name: get docker-compose version
-        run: docker-compose --version
+        run: docker-compose up ./shenyu-e2e/script/
 
       - name: Cache Maven Repos
         uses: actions/cache@v3
@@ -212,7 +212,7 @@ jobs:
         run: |
           bash ./shenyu-e2e/script/storage_init_mysql.sh
           ls ./shenyu-e2e/script/
-          docker-compose up ./shenyu-e2e/script/docker-compose.yml
+          docker-compose up ./shenyu-e2e/script/
 
       - uses: actions/checkout@v3
         with:
