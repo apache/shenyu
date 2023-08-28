@@ -208,6 +208,7 @@ jobs:
       - name: View docker log
         run: |
           bash ./shenyu-e2e/script/storage_init_mysql.sh
+          ls ./shenyu-e2e/script/
           docker-compose up ./shenyu-e2e/script/docker-compose.yml
 
       - uses: actions/checkout@v3
