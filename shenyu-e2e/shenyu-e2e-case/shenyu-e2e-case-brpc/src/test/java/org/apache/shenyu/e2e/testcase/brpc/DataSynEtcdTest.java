@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.motan;
+package org.apache.shenyu.e2e.testcase.brpc;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
