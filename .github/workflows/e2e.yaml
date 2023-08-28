@@ -50,7 +50,9 @@ jobs:
           submodules: true
 
       - name: get docker-compose version
-        run: docker-compose up ./shenyu-e2e/script/
+        run: |
+          cd ./shenyu-e2e/script/ 
+          docker-compose up 
 
       - name: Cache Maven Repos
         uses: actions/cache@v3
