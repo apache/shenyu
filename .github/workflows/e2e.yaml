@@ -49,6 +49,9 @@ jobs:
         with:
           submodules: true
 
+      - name: get docker-compose version
+        run: docker-compose --version
+
       - name: Cache Maven Repos
         uses: actions/cache@v3
         with:
