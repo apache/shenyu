@@ -45,9 +45,9 @@ jobs:
           mkdir -p ~/.kube
           cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
       -
-        name: Cache Maven Repos
+        name: Restore ShenYu Maven Repos
         if: steps.filter.outputs.changed == 'true'
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
