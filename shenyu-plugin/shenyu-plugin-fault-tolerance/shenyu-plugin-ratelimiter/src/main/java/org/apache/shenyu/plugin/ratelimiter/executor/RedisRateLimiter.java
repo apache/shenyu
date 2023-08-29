@@ -56,7 +56,7 @@ public class RedisRateLimiter {
         RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance(limiterHandle.getAlgorithmName());
         RedisScript<?> script = rateLimiterAlgorithm.getScript();
         List<String> keys = rateLimiterAlgorithm.getKeys(id);
-        List<String> scriptArgs = Arrays.asList(doubleToString(replenishRate), doubleToString(burstCapacity), doubleToString(Instant.now().getEpochSecond()), doubleToString(requestCount));
+        List<?> scriptArgs = Arrays.asList(replenishRate, burstCapacity, Instant.now().getEpochSecond(), requestCount);
         Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(script, keys, scriptArgs);
         return resultFlux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
                 .reduce(new ArrayList<Long>(), (longs, l) -> {
@@ -72,8 +72,6 @@ public class RedisRateLimiter {
                     LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter:{}", throwable.getMessage());
                 });
     }
-    
-    private String doubleToString(final double param) {
-        return String.valueOf(param);
-    }
+
 }
+
