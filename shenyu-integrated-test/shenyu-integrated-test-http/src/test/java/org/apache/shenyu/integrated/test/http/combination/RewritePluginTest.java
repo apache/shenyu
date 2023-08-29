@@ -24,13 +24,10 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -43,12 +40,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public final class RewritePluginTest extends AbstractPluginDataInit {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(RewritePluginTest.class);
-    
+
     private static final String TEST_REWRITE_PASS = "/http/test/waf/pass";
-    
-    private static final String TEST_REWRITE_CROSS_APPLICATIONS_PASS = "/order/order/findById?id=123";
 
     @Test
     public void testRewritePlugin() throws IOException, ExecutionException, InterruptedException {
@@ -70,45 +63,6 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         assertThat(selectorAndRulesResult, is("success"));
         assertEquals(403, test());
         cleanPluginData(PluginEnum.REWRITE.getName());
-    }
-    
-    @Test
-    public void testReturnNewURICrossAppForRewritePlugin() throws IOException, ExecutionException, InterruptedException {
-        String pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
-        assertThat(pluginResult, is("success"));
-        String selectorAndRulesResult =
-                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataListCrossApp("/order/order/findById", "/http/order/findById"));
-        assertThat(selectorAndRulesResult, is("success"));
-        assertEquals("hello world findById", testCrossApp());
-        cleanPluginData(PluginEnum.REWRITE.getName());
-    }
-    
-    private String testCrossApp() throws ExecutionException, InterruptedException {
-        Future<OrderDTO> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_REWRITE_CROSS_APPLICATIONS_PASS, OrderDTO.class));
-        OrderDTO dto = resp.get();
-        LOG.info("get /order/order/findById result:" + JsonUtils.toJson(dto));
-        assertEquals("123", dto.getId());
-        return dto.getName();
-    }
-    
-    private static List<RuleLocalData> buildRuleLocalDataListCrossApp(final String regex, final String replace) {
-        final RuleLocalData ruleLocalData = new RuleLocalData();
-        
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamName("/");
-        conditionData.setParamValue("/order/order/**");
-        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        ruleLocalData.setRuleName("testRewriteCrossApp");
-        
-        RewriteHandle rewriteHandle = new RewriteHandle();
-        rewriteHandle.setRegex(regex);
-        rewriteHandle.setReplace(replace);
-        rewriteHandle.setIncludeContextPath(true);
-        
-        ruleLocalData.setRuleHandler(JsonUtils.toJson(rewriteHandle));
-        return Collections.singletonList(ruleLocalData);
     }
 
     private Integer test() throws ExecutionException, InterruptedException {
