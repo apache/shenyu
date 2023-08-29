@@ -91,13 +91,13 @@ services:
       retries: 3
       start_period: 10s
 
-  grpc:
-    image: shenyu-examples-grpc:latest
+  brpc:
+    image: shenyu-examples-brpc-service:latest
     restart: always
     environment:
       - shenyu.register.serverLists=http://admin:9095
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "55290"]
+      test: ["CMD", "nc", "-z", "localhost", "8005"]
       timeout: 2s
       retries: 3
       start_period: 10s
@@ -105,10 +105,10 @@ services:
       - 55290
       - 8080
     ports:
-      - "55290:55290"
-      - "8080:8080"
+      - "8011:8011"
+      - "8005:8005"
     depends_on:
-      gateway:
+      admin:
         condition: service_healthy
 
   gateway:
@@ -118,7 +118,7 @@ services:
     ports:
       - "9195:9195"
     depends_on:
-      admin:
+      brpc:
         condition: service_healthy
     volumes:
       - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
