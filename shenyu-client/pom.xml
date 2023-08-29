@@ -40,7 +40,6 @@
         <module>shenyu-client-autoconfig</module>
     </modules>
 
-
     <dependencies>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
@@ -48,14 +47,14 @@
             <version>${okhttp.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.javatuples</groupId>
-            <artifactId>javatuples</artifactId>
-            <version>${javatuples.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.javatuples</groupId>
+            <artifactId>javatuples</artifactId>
+            <version>${javatuples.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
