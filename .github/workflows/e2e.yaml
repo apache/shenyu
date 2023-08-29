@@ -104,7 +104,7 @@ jobs:
         run: ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-engine -am clean install
 
       - name: Save ShenYu E2E Maven Repos
-        id: restore-e2e-maven-cache
+        if: steps.restore-e2e-maven-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v3
         with:
           path: ~/.m2/repository
