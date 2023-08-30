@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.motan;
+package org.apache.shenyu.e2e.testcase.brpc;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
@@ -25,16 +25,13 @@ import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
 import org.apache.shenyu.e2e.model.data.MetaData;
 import org.apache.shenyu.e2e.model.data.RuleCacheData;
 import org.apache.shenyu.e2e.model.data.SelectorCacheData;
-import org.apache.shenyu.e2e.model.response.MetaDataDTO;
-import org.apache.shenyu.e2e.model.response.RuleDTO;
-import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 /**
- * Testing the correctness of etcd data synchronization method.
+ * Testing the correctness of Http data synchronization method.
  */
 @ShenYuTest(
         mode = ShenYuEngineConfigure.Mode.DOCKER,
@@ -46,7 +43,7 @@ import java.util.List;
                         parameters = {
                                 @ShenYuTest.Parameter(key = "username", value = "admin"),
                                 @ShenYuTest.Parameter(key = "password", value = "123456"),
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "etcd")
+                                @ShenYuTest.Parameter(key = "dataSyn", value = "admin_http")
                         }
                 ),
                 @ShenYuTest.ServiceConfigure(
@@ -55,25 +52,23 @@ import java.util.List;
                         baseUrl = "http://{hostname:localhost}:9195",
                         type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
                         parameters = {
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "etcd")
+                                @ShenYuTest.Parameter(key = "dataSyn", value = "gateway_http")
                         }
                 )
         },
         dockerComposeFile = "classpath:./docker-compose.mysql.yml"
 )
-public class DataSynEtcdTest {
+public class DataSynHttpTest {
+
     @Test
     void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
         Thread.sleep(10000);
-        List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
-        Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
-        List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
         List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
-        Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
-        List<RuleDTO> ruleDTOList = adminClient.listAllRules();
+        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
+        Assertions.assertEquals(1, selectorCacheList.size());
+        Assertions.assertEquals(11, metaDataCacheList.size());
+        Assertions.assertEquals(11, ruleCacheList.size());
     }
 }
