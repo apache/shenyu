@@ -18,16 +18,13 @@
 package org.apache.shenyu.examples.sdk.feign.config;
 
 import feign.RequestInterceptor;
-import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 /**
  * SdkConfig.
  */
 @Configuration
-@Import(FeignClientsConfiguration.class)
 public class SdkConfig {
 
     /**

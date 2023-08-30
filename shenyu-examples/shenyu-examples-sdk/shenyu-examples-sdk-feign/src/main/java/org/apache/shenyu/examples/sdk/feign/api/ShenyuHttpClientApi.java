@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * ShenyuHttpClientApi.
  * request local HttpServiceController.
  */
-@ShenyuClient(value = "shenyu-gateway", path = "/feign/shenyu/client")
+@ShenyuClient(value = "shenyu-bootstrap", path = "/feign/shenyu/client")
 public interface ShenyuHttpClientApi {
 
     /**
