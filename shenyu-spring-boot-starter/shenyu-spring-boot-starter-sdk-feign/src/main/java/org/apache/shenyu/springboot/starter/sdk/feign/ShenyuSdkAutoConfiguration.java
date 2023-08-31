@@ -17,14 +17,13 @@
 
 package org.apache.shenyu.springboot.starter.sdk.feign;
 
+import java.util.Objects;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.apache.shenyu.sdk.feign.ShenyuDiscoveryClient;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -47,8 +46,11 @@ public class ShenyuSdkAutoConfiguration {
      * @return ShenYu Instance Register Repository
      */
     @Bean
-    @ConditionalOnExpression("!\"local\".equals(\"${shenyu.sdk.registerType}\")")
     public ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository(final RegisterConfig config) {
+        final String registerType = config.getRegisterType();
+        if ("local".equals(registerType)) {
+            return null;
+        }
         return ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config);
     }
 
@@ -63,26 +65,17 @@ public class ShenyuSdkAutoConfiguration {
     }
 
     /**
-     * shenyu custom discovery client with local type.
-     * @param registerConfig registerConfig
-     * @return ShenyuDiscoveryClient
-     */
-    @Bean
-    @ConditionalOnMissingBean(ShenyuInstanceRegisterRepository.class)
-    public ShenyuDiscoveryClient shenyuDiscoveryClient(final RegisterConfig registerConfig) {
-        return new ShenyuDiscoveryClient(registerConfig);
-    }
-
-    /**
      * shenyu custom discovery client with register center type.
      * @param registerRepository registerRepository
      * @param registerConfig registerConfig
      * @return ShenyuDiscoveryClient
      */
     @Bean
-    @ConditionalOnBean(ShenyuInstanceRegisterRepository.class)
-    public ShenyuDiscoveryClient shenyuDiscoveryClient(final ShenyuInstanceRegisterRepository registerRepository, final RegisterConfig registerConfig) {
-        return new ShenyuDiscoveryClient(registerRepository, registerConfig);
+    public ShenyuDiscoveryClient shenyuDiscoveryClient(final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepository, final RegisterConfig registerConfig) {
+        if (Objects.isNull(registerRepository.getIfAvailable())) {
+            return new ShenyuDiscoveryClient(registerConfig);
+        }
+        return new ShenyuDiscoveryClient(registerRepository.getIfAvailable(), registerConfig);
     }
 
 }

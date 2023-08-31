@@ -68,6 +68,30 @@ services:
     depends_on:
       shenyu-integrated-test-sdk-http:
         condition: service_healthy
+  shenyu-examples-sdk-feign:
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    container_name: shenyu-examples-sdk-feign
+    image: shenyu-examples-sdk-feign:latest
+    restart: always
+    environment:
+      - shenyu.register.serverLists=http://shenyu-admin:9095
+      - shenyu.sdk.registerType=zookeeper
+      - shenyu.sdk.serverLists=shenyu-zk:2181
+    healthcheck:
+      test: [ "CMD", "wget", "http://shenyu-examples-sdk-feign:8898/actuator/health | grep UP || exit 1" ]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    ports:
+      - "8898:8898"
+    networks:
+      - shenyu
+    depends_on:
+      shenyu-integrated-test-sdk-http:
+        condition: service_healthy
 
   shenyu-integrated-test-sdk-http:
     container_name: shenyu-integrated-test-sdk-http
