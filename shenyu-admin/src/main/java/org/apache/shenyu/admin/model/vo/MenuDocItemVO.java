@@ -19,9 +19,9 @@ package org.apache.shenyu.admin.model.vo;
 
 
 /**
- * MenuDocItem.
+ * MenuDocItemVO.
  */
-public class MenuDocItem {
+public class MenuDocItemVO {
 
     private String id;
 
