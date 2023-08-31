@@ -55,9 +55,9 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
                     || Objects.isNull(Singleton.INST.get(RedisConfigProperties.class))
                     || !redisConfigProperties.equals(Singleton.INST.get(RedisConfigProperties.class))) {
                 final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(redisConfigProperties);
-                ReactiveRedisTemplate<String, Object> reactiveRedisTemplate = new ShenyuReactiveRedisTemplate<>(
+                ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new ShenyuReactiveRedisTemplate<>(
                         redisConnectionFactory.getLettuceConnectionFactory(),
-                        ShenyuRedisSerializationContext.objectSerializationContext());
+                        ShenyuRedisSerializationContext.stringSerializationContext());
                 Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
                 Singleton.INST.single(RedisConfigProperties.class, redisConfigProperties);
             }

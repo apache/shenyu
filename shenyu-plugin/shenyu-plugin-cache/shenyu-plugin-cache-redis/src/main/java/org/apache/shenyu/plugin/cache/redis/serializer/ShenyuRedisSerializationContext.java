@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.cache.redis.serializer;
 
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -38,21 +37,6 @@ public final class ShenyuRedisSerializationContext {
         RedisSerializer<String> serializer = new StringRedisSerializer();
         return RedisSerializationContext.<String, String>newSerializationContext().key(serializer).value(serializer)
                    .hashKey(serializer).hashValue(serializer).build();
-    }
-
-    /**
-     * object serializer context.
-     * @return the string serializer context.
-     */
-    public static RedisSerializationContext<String, Object> objectSerializationContext() {
-        RedisSerializer<String> stringRedisSerializer = new StringRedisSerializer();
-        JdkSerializationRedisSerializer jdkSerializer = new JdkSerializationRedisSerializer();
-        return RedisSerializationContext.<String, Object>newSerializationContext()
-                   .key(stringRedisSerializer)
-                   .value(jdkSerializer)
-                   .hashKey(stringRedisSerializer)
-                   .hashValue(jdkSerializer)
-                   .build();
     }
 
     /**
