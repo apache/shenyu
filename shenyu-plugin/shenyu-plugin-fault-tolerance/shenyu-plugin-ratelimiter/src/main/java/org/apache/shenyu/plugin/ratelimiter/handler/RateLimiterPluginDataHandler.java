@@ -55,27 +55,27 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
                     || Objects.isNull(Singleton.INST.get(RedisConfigProperties.class))
                     || !redisConfigProperties.equals(Singleton.INST.get(RedisConfigProperties.class))) {
                 final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(redisConfigProperties);
-                ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new ShenyuReactiveRedisTemplate<>(
+                ReactiveRedisTemplate<Object, Object> reactiveRedisTemplate = new ShenyuReactiveRedisTemplate<>(
                         redisConnectionFactory.getLettuceConnectionFactory(),
-                        ShenyuRedisSerializationContext.stringSerializationContext());
+                        ShenyuRedisSerializationContext.objectSerializationContext());
                 Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
                 Singleton.INST.single(RedisConfigProperties.class, redisConfigProperties);
             }
         }
     }
-    
+
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         if (!selectorData.getContinued()) {
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), RateLimiterHandle.newDefaultInstance());
         }
     }
-    
+
     @Override
     public void removeSelector(final SelectorData selectorData) {
         CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
     }
-    
+
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
