@@ -30,4 +30,7 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) *
 VALUES ('1572621976689762311', 'engine', 'engine', 'ReplicatedMergeTree', 'ReplicatedMergeTree', '', 3, 1);
 ---- clickhouse plugin end
 
-
+--elasticsearch plugin
+update plugin_handle set plugin_id = '32', field = 'indexName', label = 'indexName', data_type = 2, type = 3, sort = 10, ext_obj = '{\"required\":\"0\",\"defaultValue\":\"shenyu-access-logging\"}'
+where plugin_id = '32' and field = 'index';
+--elasticsearch plugin end
