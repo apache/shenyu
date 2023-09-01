@@ -64,9 +64,6 @@ public abstract class AbstractRateLimiterAlgorithm implements RateLimiterAlgorit
 
     @Override
     public List<String> getKeys(final String id) {
-        String prefix = getKeyName() + ".{" + id;
-        String tokenKey = prefix + "}.tokens";
-        String timestampKey = prefix + "}.timestamp";
-        return Arrays.asList(tokenKey, timestampKey);
+        return Arrays.asList((getKeyName() + ".{" + id) + "}.tokens", (getKeyName() + ".{" + id) + "}.timestamp");
     }
 }

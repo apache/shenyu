@@ -15,32 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ratelimiter.algorithm;
-
-import org.apache.shenyu.common.enums.RateLimitEnum;
-import org.apache.shenyu.common.utils.UUIDUtils;
-import org.apache.shenyu.spi.Join;
-
-import java.util.Arrays;
-import java.util.List;
+package org.apache.shenyu.examples.sdk.feign.dto;
 
 /**
- * The type Sliding window rate limiter algorithm.
+ * SdkTestDto.
  */
-@Join
-public class SlidingWindowRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
+public class SdkTestDto {
 
-    public SlidingWindowRateLimiterAlgorithm() {
-        super(RateLimitEnum.SLIDING_WINDOW.getScriptName());
+    private String id;
+
+    private String name;
+
+    /**
+     * getId.
+     *
+     * @return id
+     */
+    public String getId() {
+        return id;
     }
 
-    @Override
-    protected String getKeyName() {
-        return RateLimitEnum.SLIDING_WINDOW.getKeyName();
+    /**
+     * setId.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
     }
 
-    @Override
-    public List<String> getKeys(final String id) {
-        return Arrays.asList((getKeyName() + ".{" + id) + "}.tokens", UUIDUtils.getInstance().generateShortUuid());
+    /**
+     * getName.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * setName.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
     }
 }

@@ -15,32 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ratelimiter.algorithm;
+package org.apache.shenyu.examples.sdk.feign.config;
 
-import org.apache.shenyu.common.enums.RateLimitEnum;
-import org.apache.shenyu.common.utils.UUIDUtils;
-import org.apache.shenyu.spi.Join;
-
-import java.util.Arrays;
-import java.util.List;
+import feign.RequestInterceptor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * The type Sliding window rate limiter algorithm.
+ * SdkConfig.
  */
-@Join
-public class SlidingWindowRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
+@Configuration
+public class SdkConfig {
 
-    public SlidingWindowRateLimiterAlgorithm() {
-        super(RateLimitEnum.SLIDING_WINDOW.getScriptName());
-    }
-
-    @Override
-    protected String getKeyName() {
-        return RateLimitEnum.SLIDING_WINDOW.getKeyName();
-    }
-
-    @Override
-    public List<String> getKeys(final String id) {
-        return Arrays.asList((getKeyName() + ".{" + id) + "}.tokens", UUIDUtils.getInstance().generateShortUuid());
+    /**
+     * getShenyuSdkRequestInterceptor.
+     *
+     * @return ShenyuSdkRequestInterceptor
+     */
+    @Bean
+    public RequestInterceptor getShenyuSdkRequestInterceptor() {
+        return requestTemplate -> requestTemplate.header("X-Auth", "currentToken");
     }
 }

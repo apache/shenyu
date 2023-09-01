@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
@@ -42,7 +43,6 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.FeignClientFactoryBean;
 import org.springframework.cloud.openfeign.FeignClientSpecification;
@@ -123,7 +123,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
      */
     public void registerShenyuClients(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
         Set<BeanDefinition> candidateComponents = new LinkedHashSet<>();
-        Map<String, Object> attrs = metadata.getAnnotationAttributes(EnableFeignClients.class.getName());
+        Map<String, Object> attrs = metadata.getAnnotationAttributes(EnableShenyuClients.class.getName());
         final Class<?>[] clients = attrs == null ? null : (Class<?>[]) attrs.get("clients");
         if (clients == null || clients.length == 0) {
             ClassPathScanningCandidateComponentProvider scanner = getScanner();
@@ -160,10 +160,6 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     private void registerShenyuClient(final BeanDefinitionRegistry registry, final AnnotationMetadata annotationMetadata, final Map<String, Object> attributes) {
         String className = annotationMetadata.getClassName();
         ConfigurableBeanFactory beanFactory = registry instanceof ConfigurableBeanFactory ? (ConfigurableBeanFactory) registry : null;
-        if (Objects.nonNull(beanFactory)) {
-            final ShenyuDiscoveryClient shenyuDiscoveryClient = beanFactory.getBean(ShenyuDiscoveryClient.class);
-            ShenyuClientCapability.INSTANCE.setShenyuDiscoveryClient(shenyuDiscoveryClient);
-        }
 
         String name = getName(attributes);
         String contextId = getContextId(beanFactory, attributes);
@@ -176,7 +172,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         factoryBean.setType(clazz);
         factoryBean.setRefreshableClient(isClientRefreshEnabled());
         BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(clazz, () -> {
-            factoryBean.setUrl(getUrl(beanFactory, attributes));
+            factoryBean.setUrl(name);
             factoryBean.setPath(getPath(beanFactory, attributes));
             factoryBean.setDecode404(Boolean.parseBoolean(String.valueOf(attributes.get("decode404"))));
             Object fallback = attributes.get("fallback");
@@ -190,10 +186,11 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
                                                    : ClassUtils.resolveClassName(fallbackFactory.toString(), null));
             }
             factoryBean.addCustomizer(builder -> {
-                if (Objects.isNull(beanFactory) && Objects.nonNull(factoryBean.getApplicationContext())) {
-                    final ShenyuDiscoveryClient client = factoryBean.getApplicationContext().getBean(ShenyuDiscoveryClient.class);
-                    ShenyuClientCapability.INSTANCE.setShenyuDiscoveryClient(client);
+                BeanFactory factory = beanFactory;
+                if (Objects.isNull(beanFactory)) {
+                    factory = factoryBean.getApplicationContext();
                 }
+                ShenyuClientCapability.INSTANCE.setBeanFactory(factory);
                 builder.addCapability(ShenyuClientCapability.INSTANCE);
             });
             return factoryBean.getObject();
