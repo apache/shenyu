@@ -26,6 +26,12 @@ import com.weibo.api.motan.transport.async.MotanAsync;
 public interface MotanDemoService {
 
     /**
+     * hi demo for Motan.
+     * @return  response
+     */
+    String hi();
+
+    /**
      * hello demo for Motan.
      * @param name  the name to hello
      * @return  response
