@@ -205,11 +205,6 @@ jobs:
       - name: Build examples with Maven
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
 
-      - name: View docker log
-        run: |
-          bash ./shenyu-e2e/script/storage_init_mysql.sh
-          cd ./shenyu-e2e/script/ 
-          docker-compose up 
 
       - uses: actions/checkout@v3
         with:
@@ -226,6 +221,7 @@ jobs:
           storage: mysql
         run: |
           bash ./shenyu-e2e/script/storage_init.sh
+          ls /tmp/shenyu-e2e/apollo/
           ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/${{ matrix.case }} -am -Dstorage=mysql test
 
   e2e-alibaba-dubbo:
