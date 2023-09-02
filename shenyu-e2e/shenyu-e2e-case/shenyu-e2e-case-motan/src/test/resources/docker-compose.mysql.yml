@@ -177,7 +177,7 @@ services:
     ports:
       - "8090:8090"
     depends_on:
-      apollo-configservice:
+      mysql:
         condition: service_healthy
     environment:
       - TZ='Asia/Shanghai'
