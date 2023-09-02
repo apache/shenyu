@@ -37,8 +37,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Alert Receiver Controller.
@@ -74,16 +77,16 @@ public class AlertReceiverController {
         alertReceiverService.updateReceiver(alertReceiverDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS);
     }
-    
+
     /**
      * delete alert receiver.
      *
-     * @param id alertReceiver ID
+     * @param ids primary key.
      * @return result
      */
-    @DeleteMapping("/{id}")
-    public ShenyuAdminResult deleteReceiver(@PathVariable("id") final String id) {
-        alertReceiverService.deleteReceiver(Collections.singletonList(id));
+    @DeleteMapping("/batch")
+    public ShenyuAdminResult deleteReceiver(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
+        alertReceiverService.deleteReceiver(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS);
     }
     

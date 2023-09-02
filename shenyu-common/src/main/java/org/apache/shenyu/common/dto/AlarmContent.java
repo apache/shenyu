@@ -62,6 +62,9 @@ public final class AlarmContent {
      * update time.
      */
     private Date dateUpdated;
+
+    private AlarmContent(){
+    }
     
     private AlarmContent(final Builder builder) {
         setTitle(builder.title);
