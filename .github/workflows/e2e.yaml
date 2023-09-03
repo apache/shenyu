@@ -221,7 +221,6 @@ jobs:
           storage: mysql
         run: |
           bash ./shenyu-e2e/script/storage_init.sh
-          ls /tmp/shenyu-e2e/apollo/
           ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/${{ matrix.case }} -am -Dstorage=mysql test
 
   e2e-alibaba-dubbo:
