@@ -18,116 +18,116 @@
 version: '2.3'
 
 services:
-  zookeeper:
-    image: zookeeper:3.8.0
-    restart: always
-    expose:
-      - 2181
-    healthcheck:
-      test: ["CMD-SHELL", "echo srvr | nc localhost 2181"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 40s
+#  zookeeper:
+#    image: zookeeper:3.8.0
+#    restart: always
+#    expose:
+#      - 2181
+#    healthcheck:
+#      test: ["CMD-SHELL", "echo srvr | nc localhost 2181"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 3
+#      start_period: 40s
 
-  nacos:
-    image: nacos/nacos-server:v2.2.3
-    environment:
-      - TZ=Asia/Shanghai
-      - MODE=standalone
-    expose:
-      - 8848
-      - 9848
-      - 9849
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8848/nacos/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
+#  nacos:
+#    image: nacos/nacos-server:v2.2.3
+#    environment:
+#      - TZ=Asia/Shanghai
+#      - MODE=standalone
+#    expose:
+#      - 8848
+#      - 9848
+#      - 9849
+#    healthcheck:
+#      test: [ "CMD", "curl", "-f", "http://localhost:8848/nacos/actuator/health" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 3
+#      start_period: 30s
 
-  etcd:
-    image: bitnami/etcd:3.5
-    environment:
-      - TZ=Asia/Shanghai
-      - ALLOW_NONE_AUTHENTICATION=yes
-      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
-    expose:
-      - 2379
-      - 2380
-    healthcheck:
-      test: ["CMD", "etcdctl", "endpoint", "health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
+#  etcd:
+#    image: bitnami/etcd:3.5
+#    environment:
+#      - TZ=Asia/Shanghai
+#      - ALLOW_NONE_AUTHENTICATION=yes
+#      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+#    expose:
+#      - 2379
+#      - 2380
+#    healthcheck:
+#      test: ["CMD", "etcdctl", "endpoint", "health"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 3
+#      start_period: 30s
 
-  admin:
-    image: shenyu/admin:latest
-    #    image: apache/shenyu-admin:latest
-    expose:
-      - 9095
-    ports:
-      - "9095:9095"
-    depends_on:
-      zookeeper:
-        condition: service_healthy
-      nacos:
-        condition: service_healthy
-#      mysql:
+#  admin:
+#    image: shenyu/admin:latest
+#    #    image: apache/shenyu-admin:latest
+#    expose:
+#      - 9095
+#    ports:
+#      - "9095:9095"
+#    depends_on:
+#      zookeeper:
 #        condition: service_healthy
-      etcd:
-        condition: service_healthy
-    volumes:
-      - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
-      - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
-    environment:
-      - SPRING_PROFILES_ACTIVE=mysql
-      - spring.datasource.username=shenyue2e
-      - spring.datasource.password=123456
-      - spring.datasource.url=jdbc:mysql://mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://admin:9095/actuator/health | grep UP || exit 1" ]
-      timeout: 2s
-      retries: 3
-      start_period: 10s
+#      nacos:
+#        condition: service_healthy
+##      mysql:
+##        condition: service_healthy
+#      etcd:
+#        condition: service_healthy
+#    volumes:
+#      - ../../target/test-classes/admin-application.yml:/opt/shenyu-admin/conf/application.yml
+#      - /tmp/shenyu-e2e/mysql/mysql-connector.jar:/opt/shenyu-admin/ext-lib/mysql-connector.jar
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=mysql
+#      - spring.datasource.username=shenyue2e
+#      - spring.datasource.password=123456
+#      - spring.datasource.url=jdbc:mysql://mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+#    healthcheck:
+#      test: [ "CMD-SHELL", "wget -q -O - http://admin:9095/actuator/health | grep UP || exit 1" ]
+#      timeout: 2s
+#      retries: 3
+#      start_period: 10s
 
-  motan:
-    image: shenyu-examples-motan:latest
-    restart: always
-    environment:
-      - motan.registry.protocol=zookeeper
-      - motan.registry.address=zookeeper:2181
-      - shenyu.register.serverLists=http://admin:9095
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://localhost:8081/actuator/health | grep UP || exit 1" ]
-      timeout: 2s
-      retries: 3
-      start_period: 5s
-    ports:
-      - "8081:8081"
-      - "8002:8002"
-    depends_on:
-      admin:
-        condition: service_healthy
+#  motan:
+#    image: shenyu-examples-motan:latest
+#    restart: always
+#    environment:
+#      - motan.registry.protocol=zookeeper
+#      - motan.registry.address=zookeeper:2181
+#      - shenyu.register.serverLists=http://admin:9095
+#    healthcheck:
+#      test: [ "CMD-SHELL", "wget -q -O - http://localhost:8081/actuator/health | grep UP || exit 1" ]
+#      timeout: 2s
+#      retries: 3
+#      start_period: 5s
+#    ports:
+#      - "8081:8081"
+#      - "8002:8002"
+#    depends_on:
+#      admin:
+#        condition: service_healthy
 
-  gateway:
-    image: shenyu/bootstrap:latest
-    #    image: apache/shenyu-bootstrap:latest
-    expose:
-      - 9195
-    ports:
-      - "9195:9195"
-    depends_on:
-      motan:
-        condition: service_healthy
-    volumes:
-      - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
-    healthcheck:
-      test: [ "CMD", "wget", "-q", "-O", "-", "http://gateway:9195/actuator/health" ]
-      timeout: 2s
-      retries: 3
-      start_period: 5s
+#  gateway:
+#    image: shenyu/bootstrap:latest
+#    #    image: apache/shenyu-bootstrap:latest
+#    expose:
+#      - 9195
+#    ports:
+#      - "9195:9195"
+#    depends_on:
+#      motan:
+#        condition: service_healthy
+#    volumes:
+#      - ../../target/test-classes/bootstrap-application.yml:/opt/shenyu-bootstrap/conf/application.yml
+#    healthcheck:
+#      test: [ "CMD", "wget", "-q", "-O", "-", "http://gateway:9195/actuator/health" ]
+#      timeout: 2s
+#      retries: 3
+#      start_period: 5s
 
   mysql:
     image: mysql:8
@@ -141,78 +141,78 @@ services:
       timeout: 20s
       retries: 10
     volumes:
-      -  /tmp/shenyu-e2e/apollo/apolloconfigdb.sql:/docker-entrypoint-initdb.d/apolloconfigdb.sql
-      -  /tmp/shenyu-e2e/apollo/apolloportaldb.sql:/docker-entrypoint-initdb.d/apolloportaldb.sql
+      - /tmp/shenyu-e2e/apollo/apolloconfigdb.sql:/docker-entrypoint-initdb.d/apolloconfigdb.sql
+      - /tmp/shenyu-e2e/apollo/apolloportaldb.sql:/docker-entrypoint-initdb.d/apolloportaldb.sql
       - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
 
-  apollo-configservice:
-    image: apolloconfig/apollo-configservice:2.1.0
-    restart: always
-    ports:
-      - "8080:8080"
-    environment:
-      - TZ='Asia/Shanghai'
-      - SERVER_PORT=8080
-      - EUREKA_INSTANCE_IP_ADDRESS=localhost
-      - EUREKA_INSTANCE_HOME_PAGE_URL=http://apollo-configservice:8080
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=shenyue2e
-      - SPRING_DATASOURCE_PASSWORD=123456
-    #      - - SPRING_DATASOURCE_USERNAME=root
-    #      - SPRING_DATASOURCE_PASSWORD=123123
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://apollo-configservice:8080/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    depends_on:
-      mysql:
-        condition: service_healthy
+#  apollo-configservice:
+#    image: apolloconfig/apollo-configservice:2.1.0
+#    restart: always
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      - TZ='Asia/Shanghai'
+#      - SERVER_PORT=8080
+#      - EUREKA_INSTANCE_IP_ADDRESS=localhost
+#      - EUREKA_INSTANCE_HOME_PAGE_URL=http://apollo-configservice:8080
+#      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
+#      - SPRING_DATASOURCE_USERNAME=shenyue2e
+#      - SPRING_DATASOURCE_PASSWORD=123456
+#    #      - - SPRING_DATASOURCE_USERNAME=root
+#    #      - SPRING_DATASOURCE_PASSWORD=123123
+#    healthcheck:
+#      test: [ "CMD", "curl", "-f", "http://apollo-configservice:8080/health" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 10
+#    depends_on:
+#      mysql:
+#        condition: service_healthy
 
-  apollo-adminservice:
-    image: apolloconfig/apollo-adminservice:2.1.0
-    restart: always
-    ports:
-      - "8090:8090"
-    depends_on:
-      mysql:
-        condition: service_healthy
-    environment:
-      - TZ='Asia/Shanghai'
-      - SERVER_PORT=8090
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=shenyue2e
-      - SPRING_DATASOURCE_PASSWORD=123456
-    #      - SPRING_DATASOURCE_USERNAME=root
-    #      - SPRING_DATASOURCE_PASSWORD=123123
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8090/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+#  apollo-adminservice:
+#    image: apolloconfig/apollo-adminservice:2.1.0
+#    restart: always
+#    ports:
+#      - "8090:8090"
+#    depends_on:
+#      mysql:
+#        condition: service_healthy
+#    environment:
+#      - TZ='Asia/Shanghai'
+#      - SERVER_PORT=8090
+#      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
+#      - SPRING_DATASOURCE_USERNAME=shenyue2e
+#      - SPRING_DATASOURCE_PASSWORD=123456
+#    #      - SPRING_DATASOURCE_USERNAME=root
+#    #      - SPRING_DATASOURCE_PASSWORD=123123
+#    healthcheck:
+#      test: [ "CMD", "curl", "-f", "http://localhost:8090/health" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 10
 
-  apollo-portal:
-    image: apolloconfig/apollo-portal:2.1.0
-    restart: always
-    ports:
-      - "8070:8070"
-    depends_on:
-      mysql:
-        condition: service_healthy
-    environment:
-      - TZ='Asia/Shanghai'
-      - SERVER_PORT=8070
-      - EUREKA_INSTANCE_IP_ADDRESS=apollo-configservice
-      - APOLLO_PORTAL_ENVS=dev
-      - DEV_META=http://apollo-configservice:8080
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloPortalDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=shenyue2e
-      - SPRING_DATASOURCE_PASSWORD=123456
-    #      - SPRING_DATASOURCE_USERNAME=root
-    #      - SPRING_DATASOURCE_PASSWORD=123123
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8070/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 90s
+#  apollo-portal:
+#    image: apolloconfig/apollo-portal:2.1.0
+#    restart: always
+#    ports:
+#      - "8070:8070"
+#    depends_on:
+#      mysql:
+#        condition: service_healthy
+#    environment:
+#      - TZ='Asia/Shanghai'
+#      - SERVER_PORT=8070
+#      - EUREKA_INSTANCE_IP_ADDRESS=apollo-configservice
+#      - APOLLO_PORTAL_ENVS=dev
+#      - DEV_META=http://apollo-configservice:8080
+#      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloPortalDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
+#      - SPRING_DATASOURCE_USERNAME=shenyue2e
+#      - SPRING_DATASOURCE_PASSWORD=123456
+#    #      - SPRING_DATASOURCE_USERNAME=root
+#    #      - SPRING_DATASOURCE_PASSWORD=123123
+#    healthcheck:
+#      test: [ "CMD", "curl", "-f", "http://localhost:8070/health" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 10
+#      start_period: 90s
