@@ -14,39 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: v1
-kind: Service
-metadata:
-  name: shenyu-admin
-  labels:
-    app: shenyu-admin
-    all: shenyu-examples-dubbo
-spec:
-  type: NodePort
-  selector:
-    app: shenyu-admin
-    all: shenyu-examples-dubbo
-  ports:
-  - name: "9095"
-    port: 9095
-    targetPort: 9095
-    nodePort: 31095
+FROM openjdk:8-jre-alpine
 
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: shenyu-bootstrap
-  labels:
-    app: shenyu-bootstrap
-    all: shenyu-examples-dubbo
-spec:
-  type: NodePort
-  selector:
-    app: shenyu-bootstrap
-    all: shenyu-examples-dubbo
-  ports:
-  - name: "9195"
-    port: 9195
-    targetPort: 9195
-    nodePort: 31195
+ENV APP_NAME shenyu-examples-sdk-feign
+ENV LOCAL_PATH /opt/${APP_NAME}
+
+RUN mkdir -p ${LOCAL_PATH}
+
+ADD target/${APP_NAME}.jar ${LOCAL_PATH}
+
+WORKDIR ${LOCAL_PATH}
+EXPOSE 8898
+
+CMD java -jar ${APP_NAME}.jar

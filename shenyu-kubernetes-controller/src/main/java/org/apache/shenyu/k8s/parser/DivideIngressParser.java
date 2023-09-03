@@ -65,7 +65,7 @@ import java.util.Objects;
  */
 public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(IngressParser.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DivideIngressParser.class);
 
     private final Lister<V1Service> serviceLister;
 
@@ -196,7 +196,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
         }
         if (Objects.nonNull(ingressRule.getHttp())) {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
-            if (paths != null) {
+            if (Objects.nonNull(paths)) {
                 for (V1HTTPIngressPath path : paths) {
                     if (path.getPath() == null) {
                         continue;
@@ -234,7 +234,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                             .logged(false)
                             .continued(true)
                             .conditionList(conditionList).build();
-                    List<DivideUpstream> upstreamList = parseUpstream(path.getBackend(), namespace);
+                    List<DivideUpstream> upstreamList = parseUpstream(path.getBackend(), namespace, annotations);
                     if (upstreamList.isEmpty()) {
                         upstreamList = defaultUpstream;
                     }
@@ -275,13 +275,17 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
         return null;
     }
 
-    private List<DivideUpstream> parseUpstream(final V1IngressBackend backend, final String namespace) {
+    private List<DivideUpstream> parseUpstream(final V1IngressBackend backend, final String namespace, final Map<String, String> annotations) {
         List<DivideUpstream> upstreamList = new ArrayList<>();
         if (Objects.nonNull(backend) && Objects.nonNull(backend.getService()) && Objects.nonNull(backend.getService().getName())) {
             String serviceName = backend.getService().getName();
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
+            String[] protocol = null;
+            if (Objects.nonNull(annotations) && annotations.containsKey(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY)) {
+                protocol = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
+            }
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
             } else {
@@ -290,6 +294,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                     if (Objects.isNull(addresses) || addresses.isEmpty()) {
                         continue;
                     }
+                    int i = 0;
                     for (V1EndpointAddress address : addresses) {
                         String upstreamIp = address.getIp();
                         String defaultPort = parsePort(backend.getService());
@@ -297,8 +302,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                             DivideUpstream upstream = new DivideUpstream();
                             upstream.setUpstreamUrl(upstreamIp + ":" + defaultPort);
                             upstream.setWeight(100);
-                            // TODO support config protocol in annotation
-                            upstream.setProtocol("http://");
+                            upstream.setProtocol(Objects.isNull(protocol) ? "http://" : protocol[i++]);
                             upstream.setWarmup(0);
                             upstream.setStatus(true);
                             upstream.setUpstreamHost("");

@@ -36,7 +36,7 @@ public final class ShenyuRedisSerializationContext {
     public static RedisSerializationContext<String, String> stringSerializationContext() {
         RedisSerializer<String> serializer = new StringRedisSerializer();
         return RedisSerializationContext.<String, String>newSerializationContext().key(serializer).value(serializer)
-                .hashKey(serializer).hashValue(serializer).build();
+                   .hashKey(serializer).hashValue(serializer).build();
     }
 
     /**
@@ -47,10 +47,10 @@ public final class ShenyuRedisSerializationContext {
         RedisSerializer<String> serializer = new StringRedisSerializer();
         final ByteArrayRedisSerializer bytesRedisSerializer = new ByteArrayRedisSerializer();
         return RedisSerializationContext.<String, byte[]>newSerializationContext()
-                .key(serializer)
-                .value(bytesRedisSerializer)
-                .hashKey(serializer)
-                .hashValue(bytesRedisSerializer)
-                .build();
+                   .key(serializer)
+                   .value(bytesRedisSerializer)
+                   .hashKey(serializer)
+                   .hashValue(bytesRedisSerializer)
+                   .build();
     }
 }

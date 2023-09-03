@@ -250,7 +250,7 @@
                 AND type = #{type, jdbcType=INTEGER}
             </if>
         </where>
-      ORDER BY plugin_id,sort
+      ORDER BY plugin_id, sort, id ASC
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
