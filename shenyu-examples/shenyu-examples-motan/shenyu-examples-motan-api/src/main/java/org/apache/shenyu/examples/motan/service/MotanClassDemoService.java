@@ -42,14 +42,15 @@ public interface MotanClassDemoService {
     String testTimeOut(long seconds);
 
     /**
-     * pojo for test.
+     * pojo as a parameter for test generalized call.
      * @param motanTest pojo
      * @return the motanTest
      */
     MotanTest save(MotanTest motanTest);
 
     /**
-     * pojo for test.
+     * List pojo as a parameter for test generalized call.
+     * Unfortunately, motan doesn't support this right now.
      * @param motanTestList pojo list
      * @return the motanTest
      */
