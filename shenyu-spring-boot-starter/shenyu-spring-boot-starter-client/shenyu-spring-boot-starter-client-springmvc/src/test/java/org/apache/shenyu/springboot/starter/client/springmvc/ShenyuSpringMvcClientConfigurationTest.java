@@ -32,6 +32,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.springframework.test.util.AssertionErrors.assertEquals;
 
 /**
  * Test case for {@link ShenyuSpringMvcClientConfiguration}.
@@ -59,6 +60,22 @@ public class ShenyuSpringMvcClientConfigurationTest {
             );
     }
 
+    @BeforeEach
+    public void beforeWithDefault() {
+        applicationContextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(ShenyuSpringMvcClientConfiguration.class))
+            .withBean(ShenyuSpringMvcClientConfigurationTest.class)
+            .withPropertyValues(
+                "debug=true",
+                "shenyu.register.registerType=http",
+                "shenyu.register.serverLists=http://localhost:9095",
+                "shenyu.register.props.username=admin",
+                "shenyu.register.props.password=123456",
+                "spring.application.name=test-for-http",
+                "shenyu.client.http.props[port]=8189"
+            );
+    }
+
     @Test
     public void testSpringMvcClientEventListener() {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
@@ -66,6 +83,18 @@ public class ShenyuSpringMvcClientConfigurationTest {
         applicationContextRunner.run(context -> {
             SpringMvcClientEventListener processor = context.getBean("springHttpClientEventListener", SpringMvcClientEventListener.class);
             assertNotNull(processor);
+        });
+        registerUtilsMockedStatic.close();
+    }
+
+    @Test
+    public void testSpringMvcClientEventListenerWithDefault() {
+        MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
+        applicationContextRunner.run(context -> {
+            SpringMvcClientEventListener processor = context.getBean("springHttpClientEventListener", SpringMvcClientEventListener.class);
+            assertEquals("default-appName", "test-for-http", processor.getAppName());
+            assertEquals("default-contextPath", "/test-for-http", processor.getContextPath());
         });
         registerUtilsMockedStatic.close();
     }

@@ -1672,7 +1672,7 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ 
 values ('1518229897214468173', '32', 'compressAlg', 'compressAlg', 3, 3, 9, '{"required":"0","defaultValue":"none"}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
-values ('1518229897214468174', '32', 'index', 'index', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"optional"}');
+values ('1518229897214468174', '32', 'indexName', 'indexName', 2, 3, 10, '{"required":"1","defaultValue":"shenyu-access-logging"}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468175', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}');

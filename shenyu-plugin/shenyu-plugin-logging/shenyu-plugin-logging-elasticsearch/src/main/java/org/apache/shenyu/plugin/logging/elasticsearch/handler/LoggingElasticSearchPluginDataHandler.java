@@ -51,6 +51,10 @@ public class LoggingElasticSearchPluginDataHandler extends AbstractLogPluginData
         ELASTICSEARCH_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
     }
 
+    /**
+     * plugin named.
+     * @return plugin named.
+     */
     @Override
     public String pluginNamed() {
         return PluginEnum.LOGGING_ELASTIC_SEARCH.getName();

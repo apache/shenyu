@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +120,16 @@ public class IngressReconciler implements Reconciler {
         // Do not modify current ingress object directly
         final V1Ingress v1Ingress = this.ingressLister.namespace(request.getNamespace()).get(request.getName());
         final V1Ingress oldIngress = IngressCache.getInstance().get(request.getNamespace(), request.getName());
+        Map<String, String> annotations = v1Ingress.getMetadata().getAnnotations();
+        if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+            enablePlugin(shenyuCacheRepository, PluginEnum.DUBBO, annotations);
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
+            enablePlugin(shenyuCacheRepository, PluginEnum.MOTAN, annotations);
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
+            enablePlugin(shenyuCacheRepository, PluginEnum.SPRING_CLOUD, annotations);
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
+            enablePlugin(shenyuCacheRepository, PluginEnum.WEB_SOCKET, annotations);
+        }
         if (Objects.isNull(v1Ingress)) {
             if (Objects.nonNull(oldIngress)) {
                 // Delete ingress binding selectors
@@ -183,12 +194,25 @@ public class IngressReconciler implements Reconciler {
         if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName(),
                     oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_CONTEXT_PATH));
+        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
+            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.MOTAN.getName(), 
+            oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_CONTEXT_PATH));
+        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
+            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.SPRING_CLOUD.getName(), "");
+        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
+            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName(), "");
         } else {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName(), "");
         }
         if (Objects.nonNull(selectorList) && !selectorList.isEmpty()) {
             if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName());
+            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
+                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.MOTAN.getName());
+            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
+                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.SPRING_CLOUD.getName());
+            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
+                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName());
             } else {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName());
             }
@@ -208,66 +232,38 @@ public class IngressReconciler implements Reconciler {
     }
 
     private void initPlugins(final ShenyuCacheRepository shenyuCacheRepository) {
-        //GLOBAL
-        PluginData globalPlugin = PluginData.builder()
-                .id(String.valueOf(PluginEnum.GLOBAL.getCode()))
-                .name(PluginEnum.GLOBAL.getName())
-                .config("")
+        enablePlugin(shenyuCacheRepository, PluginEnum.GLOBAL, new HashMap<>());
+        enablePlugin(shenyuCacheRepository, PluginEnum.URI, new HashMap<>());
+        enablePlugin(shenyuCacheRepository, PluginEnum.NETTY_HTTP_CLIENT, new HashMap<>());
+        enablePlugin(shenyuCacheRepository, PluginEnum.DIVIDE, new HashMap<>());
+    }
+
+    private void enablePlugin(final ShenyuCacheRepository shenyuCacheRepository, final PluginEnum pluginEnum, final Map<String, String> annotations) {
+        PluginData pluginData = PluginData.builder()
+                .id(String.valueOf(pluginEnum.getCode()))
+                .name(pluginEnum.getName())
+                .config(getPluginConfig(pluginEnum, annotations))
                 .role(PluginRoleEnum.SYS.getName())
                 .enabled(true)
-                .sort(PluginEnum.GLOBAL.getCode())
+                .sort(pluginEnum.getCode())
                 .build();
-        shenyuCacheRepository.saveOrUpdatePluginData(globalPlugin);
-        //uri
-        PluginData uriPlugin = PluginData.builder()
-                .id(String.valueOf(PluginEnum.URI.getCode()))
-                .name(PluginEnum.URI.getName())
-                .config("")
-                .role(PluginRoleEnum.SYS.getName())
-                .enabled(true)
-                .sort(PluginEnum.URI.getCode())
-                .build();
-        shenyuCacheRepository.saveOrUpdatePluginData(uriPlugin);
-        //nettyHttpClient
-        PluginData webclientPlugin = PluginData.builder()
-                .id(String.valueOf(PluginEnum.NETTY_HTTP_CLIENT.getCode()))
-                .config("")
-                .name(PluginEnum.NETTY_HTTP_CLIENT.getName())
-                .role(PluginRoleEnum.SYS.getName())
-                .enabled(true)
-                .sort(PluginEnum.NETTY_HTTP_CLIENT.getCode())
-                .build();
-        shenyuCacheRepository.saveOrUpdatePluginData(webclientPlugin);
-        //divide
-        PluginData dividePlugin = PluginData.builder()
-                .id(String.valueOf(PluginEnum.DIVIDE.getCode()))
-                .name(PluginEnum.DIVIDE.getName())
-                .config("{multiSelectorHandle: 1, multiRuleHandle:0}")
-                .role(PluginRoleEnum.SYS.getName())
-                .enabled(true)
-                .sort(PluginEnum.DIVIDE.getCode())
-                .build();
-        shenyuCacheRepository.saveOrUpdatePluginData(dividePlugin);
-        //GeneralContextPlugin
-        PluginData generalContextPlugin = PluginData.builder()
-                .id(String.valueOf(PluginEnum.GENERAL_CONTEXT.getCode()))
-                .config("")
-                .name(PluginEnum.GENERAL_CONTEXT.getName())
-                .role(PluginRoleEnum.SYS.getName())
-                .enabled(true)
-                .sort(PluginEnum.GENERAL_CONTEXT.getCode())
-                .build();
-        shenyuCacheRepository.saveOrUpdatePluginData(generalContextPlugin);
-        //duubo
-        PluginData dubboPlugin = PluginData.builder()
-                .id(String.valueOf(PluginEnum.DUBBO.getCode()))
-                .name(PluginEnum.DUBBO.getName())
-                .config("")
-                .role(PluginRoleEnum.SYS.getName())
-                .enabled(true)
-                .sort(PluginEnum.DUBBO.getCode())
-                .build();
-        shenyuCacheRepository.saveOrUpdatePluginData(dubboPlugin);
+        shenyuCacheRepository.saveOrUpdatePluginData(pluginData);
+    }
+
+    private String getPluginConfig(final PluginEnum pluginEnum, final Map<String, String> annotations) {
+        String zookeeperUrl = annotations.get(IngressConstants.ZOOKEEPER_REGISTER_ADDRESS);
+        switch (pluginEnum) {
+            case DIVIDE:
+                return "{multiSelectorHandle: 1, multiRuleHandle:0}";
+            case DUBBO:
+                return "{multiSelectorHandle: 1,threadpool:shared,corethreads:0,threads:2147483647,queues:0,register: " + zookeeperUrl + "}";
+            case MOTAN:
+                return "{register: " + zookeeperUrl + ",corethreads: 0, threads :2147483647,queues:0,threadpool:shared}";
+            case WEB_SOCKET:
+                return "{multiSelectorHandle: 1}";
+            default:
+                return "";
+        }
     }
 
     /**
@@ -365,8 +361,7 @@ public class IngressReconciler implements Reconciler {
     private void addNewIngressConfigToShenyu(final V1Ingress v1Ingress, final CoreV1Api apiClient) throws IOException {
         V1Ingress ingressCopy = new V1IngressBuilder(v1Ingress).build();
         ShenyuMemoryConfig shenyuMemoryConfig = ingressParser.parse(ingressCopy, apiClient);
-        String pluginName = Objects.equals(ingressCopy.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")
-                ? PluginEnum.DUBBO.getName() : PluginEnum.DIVIDE.getName();
+        String pluginName = getPluginName(ingressCopy);
         if (Objects.nonNull(shenyuMemoryConfig)) {
             List<IngressConfiguration> routeConfigList = shenyuMemoryConfig.getRouteConfigList();
             if (Objects.isNull(routeConfigList)) {
@@ -385,7 +380,6 @@ public class IngressReconciler implements Reconciler {
                     shenyuCacheRepository.deleteSelectorData(selectorData.getPluginName(), selectorData.getId());
                     return;
                 }
-
                 ruleData.setId(selectorData.getId());
                 ruleData.setSelectorId(selectorData.getId());
                 ruleData.setSort(100);
@@ -399,13 +393,13 @@ public class IngressReconciler implements Reconciler {
                     shenyuCacheRepository.saveOrUpdateMetaData(metaData);
                 }
             });
-
             if (Objects.nonNull(shenyuMemoryConfig.getGlobalDefaultBackend())) {
                 synchronized (IngressReconciler.class) {
                     if (globalDefaultBackend == null) {
                         // Add a default backend
                         shenyuCacheRepository.saveOrUpdateSelectorData(shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getSelectorData());
                         shenyuCacheRepository.saveOrUpdateRuleData(shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getRuleData());
+                        shenyuCacheRepository.saveOrUpdateMetaData(shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getMetaData());
                         globalDefaultBackend = shenyuMemoryConfig.getGlobalDefaultBackend();
                         IngressSelectorCache.getInstance().put(Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace(),
                                 v1Ingress.getMetadata().getName(), pluginName, shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getSelectorData().getId());
@@ -438,5 +432,25 @@ public class IngressReconciler implements Reconciler {
                 IngressSecretCache.getInstance().putDomainByIngress(namespace, ingressName, newDomainSet);
             }
         }
+    }
+
+    private String getPluginName(final V1Ingress ingress) {
+        String pluginName;
+        String pluginDubboEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED);
+        String pluginMotanEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED);
+        String pluginSpringCloudEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED);
+        String pluginWebSocketEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
+        if ((Boolean.TRUE.toString()).equals(pluginDubboEnabled)) {
+            pluginName = PluginEnum.DUBBO.getName();
+        } else if ((Boolean.TRUE.toString()).equals(pluginMotanEnabled)) {
+            pluginName = PluginEnum.MOTAN.getName();
+        } else if ((Boolean.TRUE.toString()).equals(pluginSpringCloudEnabled)) {
+            pluginName = PluginEnum.SPRING_CLOUD.getName();
+        } else if ((Boolean.TRUE.toString()).equals(pluginWebSocketEnabled)) {
+            pluginName = PluginEnum.WEB_SOCKET.getName();
+        } else {
+            pluginName = PluginEnum.DIVIDE.getName();
+        }
+        return pluginName;
     }
 }
