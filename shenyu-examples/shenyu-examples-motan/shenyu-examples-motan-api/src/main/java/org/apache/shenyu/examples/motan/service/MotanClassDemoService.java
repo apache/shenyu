@@ -19,6 +19,8 @@ package org.apache.shenyu.examples.motan.service;
 
 import com.weibo.api.motan.transport.async.MotanAsync;
 
+import java.util.List;
+
 /**
  * Motan class demo interface.
  */
@@ -38,4 +40,18 @@ public interface MotanClassDemoService {
      * @return  response
      */
     String testTimeOut(long seconds);
+
+    /**
+     * pojo for test.
+     * @param motanTest pojo
+     * @return the motanTest
+     */
+    MotanTest save(MotanTest motanTest);
+
+    /**
+     * pojo for test.
+     * @param motanTestList pojo list
+     * @return the motanTest
+     */
+    MotanTest batchSave(List<MotanTest> motanTestList);
 }

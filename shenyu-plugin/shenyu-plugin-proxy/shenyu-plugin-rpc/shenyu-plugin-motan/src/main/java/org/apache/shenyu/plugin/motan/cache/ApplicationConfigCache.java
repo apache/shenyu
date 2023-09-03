@@ -51,39 +51,31 @@ import java.util.concurrent.ExecutionException;
  */
 public final class ApplicationConfigCache {
 
-    /**
-     * The constant PARAM_MAP.
-     */
-    public static final ConcurrentMap<String, MotanParamInfo> PARAM_MAP = new ConcurrentHashMap<>();
-
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
 
     private RegistryConfig registryConfig;
 
     private ProtocolConfig protocolConfig;
 
-    private final LoadingCache<String, RefererConfig<CommonClient>> cache = CacheBuilder.newBuilder()
-            .maximumSize(Constants.CACHE_MAX_COUNT)
-            .removalListener(notification -> {
-                RefererConfig<?> config = (RefererConfig<?>) notification.getValue();
-                if (Objects.nonNull(config)) {
-                    try {
-                        Field field = FieldUtils.getDeclaredField(config.getClass(), "ref", true);
-                        field.set(config, null);
-                        // After the configuration change, motan destroys the instance, but does not empty it. If it is not handled,
-                        // it will get NULL when reinitializing and cause a NULL pointer problem.
-                    } catch (NullPointerException | IllegalAccessException e) {
-                        LOG.error("modify ref have exception", e);
-                    }
-                }
-            })
-            .build(new CacheLoader<String, RefererConfig<CommonClient>>() {
-                @Override
-                @NonNull
-                public RefererConfig<CommonClient> load(@NonNull final String key) {
-                    return new RefererConfig<>();
-                }
-            });
+    private final LoadingCache<String, RefererConfig<CommonClient>> cache = CacheBuilder.newBuilder().maximumSize(Constants.CACHE_MAX_COUNT).removalListener(notification -> {
+        RefererConfig<?> config = (RefererConfig<?>) notification.getValue();
+        if (Objects.nonNull(config)) {
+            try {
+                Field field = FieldUtils.getDeclaredField(config.getClass(), "ref", true);
+                field.set(config, null);
+                // After the configuration change, motan destroys the instance, but does not empty it. If it is not handled,
+                // it will get NULL when reinitializing and cause a NULL pointer problem.
+            } catch (NullPointerException | IllegalAccessException e) {
+                LOG.error("modify ref have exception", e);
+            }
+        }
+    }).build(new CacheLoader<String, RefererConfig<CommonClient>>() {
+        @Override
+        @NonNull
+        public RefererConfig<CommonClient> load(@NonNull final String key) {
+            return new RefererConfig<>();
+        }
+    });
 
     private ApplicationConfigCache() {
     }
@@ -112,7 +104,7 @@ public final class ApplicationConfigCache {
         }
         if (Objects.isNull(protocolConfig)) {
             protocolConfig = new ProtocolConfig();
-            protocolConfig.setId("motan2-breeze");
+            protocolConfig.setId("motan2");
             protocolConfig.setName("motan2");
         }
     }
@@ -166,30 +158,14 @@ public final class ApplicationConfigCache {
         reference.setInterface(CommonClient.class);
         reference.setServiceInterface(metaData.getServiceName());
         // the group of motan rpc call
-        MotanParamExtInfo motanParamExtInfo =
-                GsonUtils.getInstance().fromJson(metaData.getRpcExt(), MotanParamExtInfo.class);
-        motanParamExtInfo.getMethodInfo().forEach(methodInfo -> {
-            if (CollectionUtils.isNotEmpty(methodInfo.getParams())) {
-                try {
-                    Class<?>[] paramTypes = new Class[methodInfo.getParams().size()];
-                    String[] paramNames = new String[methodInfo.getParams().size()];
-                    for (int i = 0; i < methodInfo.getParams().size(); i++) {
-                        Pair<String, String> pair = methodInfo.getParams().get(i);
-                        paramTypes[i] = PrxInfoUtil.getParamClass(pair.getKey());
-                        paramNames[i] = pair.getValue();
-                        PARAM_MAP.put(methodInfo.getMethodName(), new MotanParamInfo(paramTypes, paramNames));
-                    }
-                } catch (Exception e) {
-                    LOG.error("failed to init motan, {}", e.getMessage());
-                }
-            }
-        });
+        MotanParamExtInfo motanParamExtInfo = GsonUtils.getInstance().fromJson(metaData.getRpcExt(), MotanParamExtInfo.class);
         reference.setGroup(motanParamExtInfo.getGroup());
         reference.setVersion("1.0");
         reference.setRequestTimeout(Optional.ofNullable(motanParamExtInfo.getTimeout()).orElse(1000));
         reference.setRegistry(registryConfig);
         if (StringUtils.isNotEmpty(motanParamExtInfo.getRpcProtocol())) {
             protocolConfig.setName(motanParamExtInfo.getRpcProtocol());
+            protocolConfig.setId(motanParamExtInfo.getRpcProtocol());
         }
         reference.setProtocol(protocolConfig);
         CommonClient obj = reference.getRef();
@@ -340,67 +316,11 @@ public final class ApplicationConfigCache {
 
         /**
          * Sets rpc protocol.
+         *
          * @param rpcProtocol the rpc protocol
          */
         public void setRpcProtocol(final String rpcProtocol) {
             this.rpcProtocol = rpcProtocol;
-        }
-    }
-
-    /**
-     * The type Motan param ext info.
-     */
-    public static class MotanParamInfo {
-
-        private Class<?>[] paramTypes;
-
-        private String[] paramNames;
-
-        /**
-         * Instantiates a new Motan param info.
-         *
-         * @param paramTypes the param types
-         * @param paramNames the param names
-         */
-        public MotanParamInfo(final Class<?>[] paramTypes, final String[] paramNames) {
-            this.paramTypes = paramTypes;
-            this.paramNames = paramNames;
-        }
-
-        /**
-         * Get param types class [ ].
-         *
-         * @return the class [ ]
-         */
-        public Class<?>[] getParamTypes() {
-            return paramTypes;
-        }
-
-        /**
-         * Sets param types.
-         *
-         * @param paramTypes the param types
-         */
-        public void setParamTypes(final Class<?>[] paramTypes) {
-            this.paramTypes = paramTypes;
-        }
-
-        /**
-         * Get param names string [ ].
-         *
-         * @return the string [ ]
-         */
-        public String[] getParamNames() {
-            return paramNames;
-        }
-
-        /**
-         * Sets param names.
-         *
-         * @param paramNames the param names
-         */
-        public void setParamNames(final String[] paramNames) {
-            this.paramNames = paramNames;
         }
     }
 }
