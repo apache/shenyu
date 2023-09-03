@@ -69,5 +69,11 @@ public interface AlertReceiverService {
      * @return {@link AlertReceiverDTO}
      */
     AlertReceiverDTO detail(String id);
-
+    
+    /**
+     * send test message.
+     * @param alertReceiverDTO receiver
+     * @return send success or failed
+     */
+    boolean sendTestMsg(AlertReceiverDTO alertReceiverDTO);
 }

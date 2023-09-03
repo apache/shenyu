@@ -26,12 +26,14 @@ import org.apache.shenyu.admin.model.query.AlertReceiverQuery;
 import org.apache.shenyu.admin.service.AlertDispatchService;
 import org.apache.shenyu.admin.service.AlertReceiverService;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
+import org.apache.shenyu.common.dto.AlarmContent;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,11 @@ import java.util.stream.Collectors;
  */
 @Service
 public class AlertReceiverServiceImpl implements AlertReceiverService {
+    
+    private static final String ALERT_TEST_TITLE = "Alarm Test";
+    
+    private static final String ALERT_TEST_CONTENT = "test send msg! \n This is the test data. It is proved that it can be received successfully";
+    
     
     @Autowired
     private AlertReceiverMapper alertReceiverMapper;
@@ -102,5 +109,17 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
         } else {
             return null;
         }
+    }
+    
+    @Override
+    public boolean sendTestMsg(AlertReceiverDTO alertReceiverDTO) {
+        AlarmContent content = new AlarmContent.Builder()
+                                       .title(ALERT_TEST_TITLE)
+                                       .content(ALERT_TEST_CONTENT)
+                                       .level((byte) 2)
+                                       .dateCreated(new Date())
+                                       .dateUpdated(new Date())
+                                       .build();
+        return alertDispatchService.sendNoticeMsg(alertReceiverDTO, content);
     }
 }

@@ -40,7 +40,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -113,6 +112,25 @@ public class AlertReceiverController {
                                             @RequestParam @NotNull final Integer pageSize) {
         CommonPager<AlertReceiverDTO> commonPager = alertReceiverService.listByPage(new AlertReceiverQuery(new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(commonPager);
+    }
+    
+    /**
+     * send test message to receiver.
+     * @param alertReceiverDTO receiver 
+     * @return send result
+     */
+    @PostMapping(path = "/test")
+    public ShenyuAdminResult sendTestMsg(@Valid @RequestBody final AlertReceiverDTO alertReceiverDTO) {
+        try {
+            boolean sendFlag = alertReceiverService.sendTestMsg(alertReceiverDTO);
+            if (sendFlag) {
+                return ShenyuAdminResult.success();
+            } else {
+                return ShenyuAdminResult.error("Notify service not available, please check config!");
+            }   
+        } catch (Exception e) {
+            return ShenyuAdminResult.error("Notify service error: " + e.getMessage());
+        }
     }
     
 }

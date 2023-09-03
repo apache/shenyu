@@ -100,6 +100,20 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Initializ
         this.alertReceiverReference.set(null);
     }
     
+    @Override
+    public boolean sendNoticeMsg(final AlertReceiverDTO receiver, final AlarmContent alert) {
+        if (receiver == null || receiver.getType() == null) {
+            log.warn("DispatcherAlarm-sendNoticeMsg params is empty alert:[{}], receiver:[{}]", alert, receiver);
+            return false;
+        }
+        byte type = receiver.getType();
+        if (alertNotifyHandlerMap.containsKey(type)) {
+            alertNotifyHandlerMap.get(type).send(receiver, alert);
+            return true;
+        }
+        return false;
+    }
+    
     private class DispatchTask implements Runnable {
         @Override
         public void run() {
@@ -158,17 +172,6 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Initializ
                     return false;
                 }
             }).collect(Collectors.toList());
-        }
-        
-        private void sendNoticeMsg(final AlertReceiverDTO receiver, final AlarmContent alert) {
-            if (receiver == null || receiver.getType() == null) {
-                log.warn("DispatcherAlarm-sendNoticeMsg params is empty alert:[{}], receiver:[{}]", alert, receiver);
-                return;
-            }
-            byte type = receiver.getType();
-            if (alertNotifyHandlerMap.containsKey(type)) {
-                alertNotifyHandlerMap.get(type).send(receiver, alert);
-            }
         }
     }
 }

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.apache.shenyu.common.dto.AlarmContent;
 
 /**
@@ -36,4 +37,13 @@ public interface AlertDispatchService {
      * clear cache.
      */
     void clearCache();
+    
+    /**
+     * send alert msg to receiver.
+     *
+     * @param receiver receiver
+     * @param alert    alert msg
+     * @return send success or failed
+     */
+    boolean sendNoticeMsg(final AlertReceiverDTO receiver, final AlarmContent alert);
 }
