@@ -32,7 +32,6 @@ public interface AlertDispatchService {
      */
     void dispatchAlert(AlarmContent alarmContent);
     
-    
     /**
      * clear cache.
      */

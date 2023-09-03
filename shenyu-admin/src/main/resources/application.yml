@@ -129,6 +129,7 @@ shenyu:
       - /swagger-resources/**
       - /v2/api-docs
       - /csrf
+      - /alert/report
   swagger:
     enable: true
   dashboard:
