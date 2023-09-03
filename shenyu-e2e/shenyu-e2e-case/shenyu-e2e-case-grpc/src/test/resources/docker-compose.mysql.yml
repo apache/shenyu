@@ -105,10 +105,10 @@ services:
       start_period: 10s
     expose:
       - 55290
-      - 8080
+      - 8081
     ports:
       - "55290:55290"
-      - "8080:8080"
+      - "8081:8081"
     depends_on:
       gateway:
         condition: service_healthy
