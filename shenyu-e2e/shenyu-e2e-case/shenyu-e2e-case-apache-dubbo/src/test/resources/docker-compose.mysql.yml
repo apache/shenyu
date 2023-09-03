@@ -160,8 +160,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=123456
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://apollo-configservice:8080/health" ]
-      interval: 10s
-      timeout: 5s
+      interval: 30s
+      timeout: 1s
       retries: 10
     depends_on:
       mysql:
@@ -183,8 +183,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=123456
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8090/health" ]
-      interval: 10s
-      timeout: 5s
+      interval: 30s
+      timeout: 1s
       retries: 10
 
   apollo-portal:
@@ -206,7 +206,6 @@ services:
       - SPRING_DATASOURCE_PASSWORD=123456
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8070/health" ]
-      interval: 10s
-      timeout: 5s
+      interval: 30s
+      timeout: 1s
       retries: 10
-      start_period: 90s
