@@ -74,8 +74,8 @@ services:
         condition: service_healthy
       nacos:
         condition: service_healthy
-      mysql:
-        condition: service_healthy
+#      mysql:
+#        condition: service_healthy
       etcd:
         condition: service_healthy
     volumes:
