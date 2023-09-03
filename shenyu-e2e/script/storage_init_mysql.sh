@@ -25,8 +25,8 @@ wget -O /tmp/shenyu-e2e/mysql/mysql-connector.jar \
     https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar
 
 cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema.sql
-cp shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-motan/src/test/resources/apolloconfigdb.sql /tmp/shenyu-e2e/apollo/apolloconfigdb.sql
-cp shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-motan/src/test/resources/apolloportaldb.sql /tmp/shenyu-e2e/apollo/apolloportaldb.sql
+cp db/init/apollo/apolloconfigdb.sql /tmp/shenyu-e2e/apollo/apolloconfigdb.sql
+cp db/init/apollo/apolloportaldb.sql /tmp/shenyu-e2e/apollo/apolloportaldb.sql
 
 echo "GRANT ALL PRIVILEGES ON shenyu.* TO 'shenyue2e'@'%';" >> /tmp/shenyu-e2e/mysql/schema.sql
 echo "GRANT ALL PRIVILEGES ON ApolloConfigDB.* TO 'shenyue2e'@'%';" >> /tmp/shenyu-e2e/apollo/apolloconfigdb.sql

@@ -64,7 +64,6 @@ services:
 
   admin:
     image: shenyu/admin:latest
-    #    image: apache/shenyu-admin:latest
     expose:
       - 9095
     ports:
@@ -115,7 +114,6 @@ services:
 
   gateway:
     image: shenyu/bootstrap:latest
-    #    image: apache/shenyu-bootstrap:latest
     expose:
       - 9195
     ports:
@@ -160,8 +158,6 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
       - SPRING_DATASOURCE_USERNAME=shenyue2e
       - SPRING_DATASOURCE_PASSWORD=123456
-    #      - - SPRING_DATASOURCE_USERNAME=root
-    #      - SPRING_DATASOURCE_PASSWORD=123123
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://apollo-configservice:8080/health" ]
       interval: 10s
@@ -185,8 +181,6 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
       - SPRING_DATASOURCE_USERNAME=shenyue2e
       - SPRING_DATASOURCE_PASSWORD=123456
-    #      - SPRING_DATASOURCE_USERNAME=root
-    #      - SPRING_DATASOURCE_PASSWORD=123123
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8090/health" ]
       interval: 10s
@@ -210,8 +204,6 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ApolloPortalDB?characterEncoding=utf8&serverTimezone=Asia/Shanghai
       - SPRING_DATASOURCE_USERNAME=shenyue2e
       - SPRING_DATASOURCE_PASSWORD=123456
-    #      - SPRING_DATASOURCE_USERNAME=root
-    #      - SPRING_DATASOURCE_PASSWORD=123123
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8070/health" ]
       interval: 10s
