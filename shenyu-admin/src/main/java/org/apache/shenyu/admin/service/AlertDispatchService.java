@@ -45,5 +45,5 @@ public interface AlertDispatchService {
      * @param alert    alert msg
      * @return send success or failed
      */
-    boolean sendNoticeMsg(final AlertReceiverDTO receiver, final AlarmContent alert);
+    boolean sendNoticeMsg(AlertReceiverDTO receiver, AlarmContent alert);
 }

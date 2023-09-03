@@ -63,7 +63,7 @@ public final class AlarmContent {
      */
     private Date dateUpdated;
 
-    private AlarmContent(){
+    private AlarmContent() {
     }
     
     private AlarmContent(final Builder builder) {

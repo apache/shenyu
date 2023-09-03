@@ -47,7 +47,6 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     
     private static final String ALERT_TEST_CONTENT = "test send msg! \n This is the test data. It is proved that it can be received successfully";
     
-    
     @Autowired
     private AlertReceiverMapper alertReceiverMapper;
     
@@ -112,7 +111,7 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     }
     
     @Override
-    public boolean sendTestMsg(AlertReceiverDTO alertReceiverDTO) {
+    public boolean sendTestMsg(final AlertReceiverDTO alertReceiverDTO) {
         AlarmContent content = new AlarmContent.Builder()
                                        .title(ALERT_TEST_TITLE)
                                        .content(ALERT_TEST_CONTENT)
