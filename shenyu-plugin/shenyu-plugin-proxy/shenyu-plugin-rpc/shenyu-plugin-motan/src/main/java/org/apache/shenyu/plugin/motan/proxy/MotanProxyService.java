@@ -100,8 +100,6 @@ public class MotanProxyService {
         try {
             Request request = MotanClientUtil.buildRequest(reference.getServiceInterface(), metaData.getMethodName(), metaData.getParameterTypes(), pair.getRight(), null);
             responseFuture = (ResponseFuture)commonClient.asyncCall(request, Object.class);
-            //responseFuture = (ResponseFuture) commonClient.asyncCall(metaData.getMethodName(), params, Object.class);
-
         } catch (Throwable e) {
             LOG.error("Exception caught in MotanProxyService#genericInvoker.", e);
             return null;
