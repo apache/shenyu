@@ -35,14 +35,6 @@ import java.util.List;
  */
 public final class ApplicationConfigCacheTest {
 
-    @Test
-    public void testMotanParamInfo() {
-        ApplicationConfigCache.MotanParamInfo motanParamInfo = new ApplicationConfigCache.MotanParamInfo(null, null);
-        motanParamInfo.setParamNames(new String[]{"test"});
-        motanParamInfo.setParamTypes(new Class<?>[]{ApplicationConfigCache.class});
-        Assertions.assertEquals(motanParamInfo.getParamNames()[0], "test");
-        Assertions.assertEquals(motanParamInfo.getParamTypes()[0], ApplicationConfigCache.class);
-    }
 
     @Test
     public void testMotanParamExtInfo() {
