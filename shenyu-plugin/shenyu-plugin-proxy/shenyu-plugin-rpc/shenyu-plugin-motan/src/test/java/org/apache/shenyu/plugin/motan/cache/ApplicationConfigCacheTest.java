@@ -35,7 +35,6 @@ import java.util.List;
  */
 public final class ApplicationConfigCacheTest {
 
-
     @Test
     public void testMotanParamExtInfo() {
         ApplicationConfigCache.MotanParamExtInfo motanParamExtInfo = new ApplicationConfigCache.MotanParamExtInfo();
