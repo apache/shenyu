@@ -101,7 +101,6 @@
 
         <!-- dependency version start -->
         <jasypt.version>1.9.2</jasypt.version>
-        <springfox.version>2.6.1</springfox.version>
         <mybatis.starter.version>2.2.2</mybatis.starter.version>
         <mysql.version>8.0.29</mysql.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
