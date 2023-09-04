@@ -54,7 +54,7 @@ public final class SpringCloudPluginDataHandlerTest {
 
     private SelectorData selectorData = new SelectorData();
 
-    private RuleData ruleData = new RuleData();
+    private final RuleData ruleData = new RuleData();
 
     @BeforeEach
     public void setUp() {

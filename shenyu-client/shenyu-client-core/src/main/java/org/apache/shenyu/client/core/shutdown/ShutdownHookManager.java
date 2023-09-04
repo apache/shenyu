@@ -37,10 +37,10 @@ public final class ShutdownHookManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShutdownHookManager.class);
 
-    private Set<HookEntry> hooks =
+    private final Set<HookEntry> hooks =
             Collections.synchronizedSet(new HashSet<HookEntry>());
 
-    private AtomicBoolean shutdownInProgress = new AtomicBoolean(false);
+    private final AtomicBoolean shutdownInProgress = new AtomicBoolean(false);
 
     private ShutdownHookManager() {
 
@@ -167,9 +167,9 @@ public final class ShutdownHookManager {
      */
     private static class HookEntry {
 
-        private Runnable hook;
+        private final Runnable hook;
 
-        private int priority;
+        private final int priority;
 
         HookEntry(final Runnable hook, final int priority) {
             this.hook = hook;

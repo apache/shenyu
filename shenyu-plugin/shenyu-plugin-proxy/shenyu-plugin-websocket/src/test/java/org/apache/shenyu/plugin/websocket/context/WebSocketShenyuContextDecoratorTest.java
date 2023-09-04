@@ -40,7 +40,7 @@ public final class WebSocketShenyuContextDecoratorTest {
         MetaData metaData = null;
         ShenyuContext shenyuContext = new ShenyuContext();
         webSocketShenyuContextDecorator.decorator(shenyuContext, metaData);
-        Assertions.assertEquals(shenyuContext.getMethod(), null);
+        Assertions.assertNull(shenyuContext.getMethod());
         Assertions.assertEquals(shenyuContext.getRpcType(), "websocket");
         Assertions.assertEquals(shenyuContext.getModule(), "websocket-websocket");
     }

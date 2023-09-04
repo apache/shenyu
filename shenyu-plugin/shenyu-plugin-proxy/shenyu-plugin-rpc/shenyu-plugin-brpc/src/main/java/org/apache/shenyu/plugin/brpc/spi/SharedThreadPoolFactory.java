@@ -57,7 +57,7 @@ public class SharedThreadPoolFactory implements ThreadPoolFactory {
         if (Objects.isNull(rpcService)) {
             return this.defaultThreadPool;
         } else if (Objects.nonNull(this.threadPoolMap.get(rpcService))) {
-            return (ThreadPoolExecutor) this.threadPoolMap.get(rpcService);
+            return this.threadPoolMap.get(rpcService);
         } else {
             ServiceConfig serviceConfig = rpcService.getServiceConfig();
             if (serviceConfig == null) {
@@ -72,7 +72,7 @@ public class SharedThreadPoolFactory implements ThreadPoolFactory {
                     ThreadPoolExecutor threadPool;
                     synchronized (this) {
                         if (this.threadPoolMap.get(rpcService) != null) {
-                            return (ThreadPoolExecutor) this.threadPoolMap.get(rpcService);
+                            return this.threadPoolMap.get(rpcService);
                         }
 
                         threadPool = new ThreadPoolExecutor(corePoolSize, maxThreadPoolSize, (long) keepAliveTime,

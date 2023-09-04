@@ -30,9 +30,9 @@ import java.util.function.Supplier;
  */
 public final class Resilience4JHandlerTest {
 
-    private Resilience4JHandler resilience4JHandler = new Resilience4JHandler();
+    private final Resilience4JHandler resilience4JHandler = new Resilience4JHandler();
 
-    private RuleData ruleData = new RuleData();
+    private final RuleData ruleData = new RuleData();
 
     @Test
     public void testHandlerRule() {
@@ -40,7 +40,7 @@ public final class Resilience4JHandlerTest {
         ruleData.setHandle("{\"urlPath\":\"test\"}");
         ruleData.setId("test");
         resilience4JHandler.handlerRule(ruleData);
-        Supplier<CommonHandleCache<String, Resilience4JHandle>> cache = resilience4JHandler.CACHED_HANDLE;
+        Supplier<CommonHandleCache<String, Resilience4JHandle>> cache = Resilience4JHandler.CACHED_HANDLE;
         Assertions.assertNotNull(cache.get().obtainHandle("1_test"));
     }
 
@@ -49,7 +49,7 @@ public final class Resilience4JHandlerTest {
         ruleData.setSelectorId("1");
         ruleData.setHandle("{\"urlPath\":\"test\"}");
         ruleData.setId("test");
-        Supplier<CommonHandleCache<String, Resilience4JHandle>> cache = resilience4JHandler.CACHED_HANDLE;
+        Supplier<CommonHandleCache<String, Resilience4JHandle>> cache = Resilience4JHandler.CACHED_HANDLE;
         cache.get().cachedHandle("1_test", new Resilience4JHandle());
         Assertions.assertNotNull(cache.get().obtainHandle("1_test"));
         resilience4JHandler.removeRule(ruleData);

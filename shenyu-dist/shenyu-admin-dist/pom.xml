@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-dist</artifactId>
-        <version>2.6.0-SNAPSHOT</version>
+        <version>2.6.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-admin-dist</artifactId>
@@ -86,6 +86,10 @@
                             </descriptors>
                             <tarLongFileMode>posix</tarLongFileMode>
                         </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>net.nicoulaj.maven.plugins</groupId>
+                        <artifactId>checksum-maven-plugin</artifactId>
                     </plugin>
                 </plugins>
             </build>

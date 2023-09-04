@@ -160,6 +160,7 @@ ALTER TABLE shenyu_dict MODIFY COLUMN dict_value varchar(2048) CHARACTER SET utf
 
 INSERT INTO `shenyu_dict` VALUES ('1679002911061737472', 'discoveryMode', 'DISCOVERY_MODE', 'zookeeper', '{"baseSleepTimeMilliseconds":"1000","maxRetries":"3","maxSleepTimeMilliseconds":"1000","connectionTimeoutMilliseconds":"1000","sessionTimeoutMilliseconds":"1000","namespace":"","digest":null}', 'discoery mode to link zookeeper', 0, 1,'2023-03-01 10:48:49', '2023-03-01 10:48:49');
 
+INSERT INTO `plugin_handle` VALUES ('1678997037438107647', '42', 'discoveryHandler', 'discoveryHandler', 2, 1, 0, '{"required":"0","defaultValue":"url,protocol,status,weight","rule":""}', '2023-07-10 14:41:27', '2023-08-17 16:58:25.259000000');
 INSERT INTO `plugin_handle` VALUES ('1678997037438107648', '42', 'bossGroupThreadCount', 'bossGroupThreadCount', 2, 1, 1, '{\"required\":\"0\",\"defaultValue\":\"1\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 INSERT INTO `plugin_handle` VALUES ('1678997142656417792', '42', 'workerGroupThreadCount', 'workerGroupThreadCount', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"12\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 INSERT INTO `plugin_handle` VALUES ('1678997399104552960', '42', 'clientMaxIdleTimeMs', 'clientMaxIdleTimeMs', 2, 1, 7, '{\"required\":\"0\",\"defaultValue\":\"30000\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
@@ -170,11 +171,11 @@ INSERT INTO `plugin_handle` VALUES ('1678997277012557824', '42', 'clientMaxConne
 INSERT INTO `plugin_handle` VALUES ('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{\"required\":\"0\",\"defaultValue\":\"5\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 
 /* motan rpc */
-UPDATE `plugin` set config = '{\"registerProtocol\":\"direct\",\"registerAddress\":\"127.0.0.1:8002\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"shared\"}' WHERE id = '17';
+UPDATE `plugin` set config = '{\"registerProtocol\":\"zk\",\"registerAddress\":\"127.0.0.1:8002\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"shared\"}' WHERE id = '17';
 UPDATE `plugin_handle` set field = 'registerProtocol', label = 'registerProtocol', sort = 0, ext_obj = '{\"required\":\"0\",\"defaultValue\":\"direct\",\"placeholder\":\"registerProtocol\",\"rule\":\"\"}' WHERE id = '1529402613204172834';
 UPDATE `plugin_handle` set sort = 2 where id = '1529402613204172835';
 UPDATE `plugin_handle` set sort = 3 where id = '1529402613204172836';
 UPDATE `plugin_handle` set sort = 4 where id = '1529402613204172837';
 UPDATE `plugin_handle` set sort = 5 where id = '1529402613204172838';
 
-INSERT INTO `plugin_handle` VALUES ('1678997557628272641', '17', 'registerAddress', 'registerAddress', 2, 3, 1, '{\"required\":\"0\",\"defaultValue\":\"127.0.0.1:8002\",\"placeholder\":\"registerAddress\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158'));
+INSERT INTO `plugin_handle` VALUES ('1678997557628272641', '17', 'registerAddress', 'registerAddress', 2, 3, 1, '{\"required\":\"0\",\"defaultValue\":\"127.0.0.1:8002\",\"placeholder\":\"registerAddress\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');

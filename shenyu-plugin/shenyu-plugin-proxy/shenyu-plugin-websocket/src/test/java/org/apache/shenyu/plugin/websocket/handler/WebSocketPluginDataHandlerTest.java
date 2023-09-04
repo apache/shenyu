@@ -41,9 +41,9 @@ public class WebSocketPluginDataHandlerTest {
 
     private WebSocketPluginDataHandler webSocketPluginDataHandler;
 
-    private SelectorData selectorData = new SelectorData();
+    private final SelectorData selectorData = new SelectorData();
 
-    private RuleData ruleData = new RuleData();
+    private final RuleData ruleData = new RuleData();
 
     private List<Upstream> upstreamList;
 
@@ -70,7 +70,7 @@ public class WebSocketPluginDataHandlerTest {
         Map<String, List<Upstream>> map = (Map<String, List<Upstream>>) field.get(instance);
         Assertions.assertNotEquals(map.get("1"), null);
         webSocketPluginDataHandler.removeSelector(selectorData);
-        Assertions.assertEquals(map.get("1"), null);
+        Assertions.assertNull(map.get("1"));
     }
 
     @Test
@@ -79,7 +79,7 @@ public class WebSocketPluginDataHandlerTest {
         cache.get().cachedHandle("1_test", new WebSocketRuleHandle());
         Assertions.assertNotEquals(cache.get().obtainHandle("1_test"), null);
         webSocketPluginDataHandler.removeRule(ruleData);
-        Assertions.assertEquals(cache.get().obtainHandle("1_test"), null);
+        Assertions.assertNull(cache.get().obtainHandle("1_test"));
     }
 
     @Test

@@ -28,6 +28,7 @@ import java.util.Map;
 public class WindowTinyLFUMapTest {
     
     @Test
+    @SuppressWarnings("all")
     public void weakKeyCache() {
         Map<String, String> map = new WindowTinyLFUMap<>(100, 100, Boolean.TRUE);
         String key1 = new String("abc");
@@ -40,6 +41,7 @@ public class WindowTinyLFUMapTest {
     }
     
     @Test
+    @SuppressWarnings("all")
     public void strongKeyCache() {
         Map<String, String> map = new WindowTinyLFUMap<>(100, 100, Boolean.FALSE);
         String key1 = new String("abc");

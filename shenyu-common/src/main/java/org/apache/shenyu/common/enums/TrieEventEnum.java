@@ -35,5 +35,5 @@ public enum TrieEventEnum {
     /**
      * Shenyu Trie remove event.
      */
-    REMOVE;
+    REMOVE
 }

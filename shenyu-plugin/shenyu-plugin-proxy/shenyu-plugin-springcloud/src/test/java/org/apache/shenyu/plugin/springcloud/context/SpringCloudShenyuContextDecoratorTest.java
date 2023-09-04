@@ -39,8 +39,8 @@ public final class SpringCloudShenyuContextDecoratorTest {
         MetaData metaData = null;
         ShenyuContext shenyuContext = new ShenyuContext();
         springCloudShenyuContextDecorator.decorator(shenyuContext, metaData);
-        Assertions.assertEquals(shenyuContext.getMethod(), null);
-        Assertions.assertEquals(shenyuContext.getRealUrl(), null);
+        Assertions.assertNull(shenyuContext.getMethod());
+        Assertions.assertNull(shenyuContext.getRealUrl());
         Assertions.assertEquals(shenyuContext.getRpcType(), "springCloud");
         Assertions.assertEquals(shenyuContext.getModule(), "divide-springCloud");
     }

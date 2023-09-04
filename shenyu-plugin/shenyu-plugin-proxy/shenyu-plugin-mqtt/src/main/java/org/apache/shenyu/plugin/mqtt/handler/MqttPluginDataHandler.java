@@ -62,9 +62,7 @@ public class MqttPluginDataHandler implements PluginDataHandler {
      */
     private boolean isPortUsing(final int port) {
         boolean flag = false;
-        try {
-            InetAddress address = InetAddress.getByName("127.0.0.1");
-            new Socket(address, port);
+        try (Socket socket = new Socket(InetAddress.getByName("127.0.0.1"), port)) {
             flag = true;
         } catch (Exception ignored) {
 

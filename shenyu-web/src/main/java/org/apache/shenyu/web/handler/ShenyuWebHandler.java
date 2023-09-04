@@ -62,7 +62,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     private final List<ShenyuPlugin> sourcePlugins;
 
-    private ShenyuLoaderService shenyuLoaderService;
+    private final ShenyuLoaderService shenyuLoaderService;
 
     private final boolean scheduled;
 
@@ -258,7 +258,10 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                     if (skip) {
                         return this.execute(exchange);
                     }
-                    return plugin.execute(exchange, this);
+                    plugin.before(exchange);
+                    Mono<Void> execute = plugin.execute(exchange, this);
+                    plugin.after(exchange);
+                    return execute;
                 }
                 return Mono.empty();
             });

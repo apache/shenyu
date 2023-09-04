@@ -38,7 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -172,11 +172,11 @@ public class ZookeeperClientServerRegisterRepository implements ShenyuClientServ
             switch (type) {
                 case NODE_ADDED:
                     uriRegisterDTO.setEventType(EventType.REGISTER);
-                    publishRegisterURI(Arrays.asList(uriRegisterDTO));
+                    publishRegisterURI(Collections.singletonList(uriRegisterDTO));
                     break;
                 case NODE_REMOVED:
                     uriRegisterDTO.setEventType(EventType.OFFLINE);
-                    publishRegisterURI(Arrays.asList(uriRegisterDTO));
+                    publishRegisterURI(Collections.singletonList(uriRegisterDTO));
                     break;
                 default:
                     break;

@@ -44,7 +44,7 @@ public class P2cLoadBalancer extends AbstractLoadBalancer {
      */
     private static final int PICK_TIMES = 3;
 
-    private Random random = new Random();
+    private final Random random = new Random();
 
     /**
      * pick of 2 choices to select upstream.

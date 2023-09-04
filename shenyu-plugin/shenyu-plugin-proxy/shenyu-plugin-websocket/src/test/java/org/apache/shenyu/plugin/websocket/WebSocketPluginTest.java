@@ -161,7 +161,7 @@ public class WebSocketPluginTest {
         declaredConstructor.setAccessible(true);
         Object obj = declaredConstructor.newInstance(null, null, null, null);
         List<String> list = (List<String>) method.invoke(obj);
-        assertEquals(list.isEmpty(), true);
+        assertTrue(list.isEmpty());
     }
 
     /**

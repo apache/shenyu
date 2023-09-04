@@ -41,7 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -116,7 +116,7 @@ class DiscoveryUpstreamServiceTest {
     @Test
     void delete() {
 
-        given(discoveryUpstreamMapper.deleteByIds(Arrays.asList("1"))).willReturn(1);
-        assertEquals(ShenyuResultMessage.DELETE_SUCCESS, discoveryUpstreamService.delete(Arrays.asList("1")));
+        given(discoveryUpstreamMapper.deleteByIds(Collections.singletonList("1"))).willReturn(1);
+        assertEquals(ShenyuResultMessage.DELETE_SUCCESS, discoveryUpstreamService.delete(Collections.singletonList("1")));
     }
 }

@@ -78,7 +78,7 @@ public class RedisRateLimiterScriptsTest {
         RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("leakyBucket");
         RedisScript<?> script = rateLimiterAlgorithm.getScript();
         List<String> keys = Stream.of("test-leakyBucket").collect(Collectors.toList());
-        List<String> scriptArgs = Arrays.asList(10 + "", 100 + "", Instant.now().getEpochSecond() + "", "1");
+        List<String> scriptArgs = Arrays.asList(10 + "", 100 + "", String.valueOf(Instant.now().getEpochSecond()), "1");
         Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(script, keys, scriptArgs);
         StepVerifier
                 .create(resultFlux)
@@ -94,7 +94,7 @@ public class RedisRateLimiterScriptsTest {
         RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("concurrent");
         RedisScript<?> script = rateLimiterAlgorithm.getScript();
         List<String> keys = Stream.of("test-concurrent", "cd849432").collect(Collectors.toList());
-        List<String> scriptArgs = Arrays.asList(10 + "", 100 + "", Instant.now().getEpochSecond() + "", "1");
+        List<String> scriptArgs = Arrays.asList(10 + "", 100 + "", String.valueOf(Instant.now().getEpochSecond()), "1");
         Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(script, keys, scriptArgs);
         StepVerifier
                 .create(resultFlux)
@@ -110,7 +110,7 @@ public class RedisRateLimiterScriptsTest {
         RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("tokenBucket");
         RedisScript<?> script = rateLimiterAlgorithm.getScript();
         List<String> keys = Stream.of("test-tokenBucket").collect(Collectors.toList());
-        List<String> scriptArgs = Arrays.asList(10 + "", 100 + "", Instant.now().getEpochSecond() + "", "1");
+        List<String> scriptArgs = Arrays.asList(10 + "", 100 + "", String.valueOf(Instant.now().getEpochSecond()), "1");
         Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(script, keys, scriptArgs);
         StepVerifier
                 .create(resultFlux)
@@ -126,7 +126,7 @@ public class RedisRateLimiterScriptsTest {
         RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("slidingWindow");
         RedisScript<?> script = rateLimiterAlgorithm.getScript();
         List<String> keys = Stream.of("test-slidingWindow").collect(Collectors.toList());
-        List<String> scriptArgs = Arrays.asList(10 + "", 100 + "", Instant.now().getEpochSecond() + "", "1");
+        List<String> scriptArgs = Arrays.asList(10 + "", 100 + "", String.valueOf(Instant.now().getEpochSecond()), "1");
         Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(script, keys, scriptArgs);
         StepVerifier
                 .create(resultFlux)

@@ -84,7 +84,7 @@ public class ShenyuServerEndpointerExporter extends WebApplicationObjectSupport 
         ServerEndpointConfig.Configurator configurator = null;
         if (!configuratorClazz.equals(ServerEndpointConfig.Configurator.class)) {
             try {
-                configurator = (ServerEndpointConfig.Configurator) annotation.configurator().getConstructor().newInstance();
+                configurator = annotation.configurator().getConstructor().newInstance();
             } catch (ReflectiveOperationException ex) {
                 LOG.error("ShenyuServerEndpoint configurator init fail! Class name: {}, configurator name: {}", pojo.getName(), annotation.configurator().getName());
                 throw new ShenyuException(ex);
