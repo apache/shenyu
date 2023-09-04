@@ -54,9 +54,10 @@ jobs:
         with:
           filters: '.github/filters.yml'
           list-files: json
-      - name: Cache Maven Repos
+      - name: Restore ShenYu Maven Repos
         if: steps.filter.outputs.changed == 'true'
-        uses: actions/cache@v3
+        id: restore-maven-cache
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -71,6 +72,12 @@ jobs:
         run: ./mvnw -B clean install -Prelease
       - uses: codecov/codecov-action@v1
         if: steps.filter.outputs.changed == 'true'
+      - name: Save ShenYu Maven Repos
+        if: steps.filter.outputs.changed == 'true' && steps.restore-maven-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
   check-license-header:
     name: check-license-header
