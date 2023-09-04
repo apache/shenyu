@@ -205,7 +205,6 @@ jobs:
       - name: Build examples with Maven
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
 
-
       - uses: actions/checkout@v3
         with:
           submodules: true
