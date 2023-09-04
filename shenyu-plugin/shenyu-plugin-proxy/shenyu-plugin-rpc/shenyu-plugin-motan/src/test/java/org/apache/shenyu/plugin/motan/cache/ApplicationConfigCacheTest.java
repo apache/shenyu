@@ -81,7 +81,7 @@ public final class ApplicationConfigCacheTest {
         Field field2 = applicationConfigCache.getClass().getDeclaredField("protocolConfig");
         field2.setAccessible(true);
         ProtocolConfig protocolConfig = (ProtocolConfig) field2.get(applicationConfigCache);
-        Assertions.assertEquals(protocolConfig.getId(), "motan2-breeze");
+        Assertions.assertEquals(protocolConfig.getId(), "motan2");
     }
 
     @Test
