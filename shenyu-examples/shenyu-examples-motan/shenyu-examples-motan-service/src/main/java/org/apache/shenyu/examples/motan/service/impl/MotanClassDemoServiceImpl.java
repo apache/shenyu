@@ -52,12 +52,12 @@ public class MotanClassDemoServiceImpl implements MotanClassDemoService {
     }
 
     @Override
-    public MotanTest save(MotanTest motanTest) {
+    public MotanTest save(final MotanTest motanTest) {
         return motanTest;
     }
 
     @Override
-    public MotanTest batchSave(List<MotanTest> motanTestList) {
+    public MotanTest batchSave(final List<MotanTest> motanTestList) {
         return new MotanTest(join(motanTestList, MotanTest::getId), "hello world shenyu motan param batchSave :" + join(motanTestList, MotanTest::getName));
     }
 
