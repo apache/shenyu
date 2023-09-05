@@ -69,7 +69,7 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Prelease
+        run: ./mvnw -B clean verify -Prelease
       - uses: codecov/codecov-action@v1
         if: steps.filter.outputs.changed == 'true'
       - name: Save ShenYu Maven Repos
