@@ -48,9 +48,9 @@ jobs:
           curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.24.14/bin/linux/amd64/kubectl && sudo install kubectl /usr/local/bin/kubectl
           kind create cluster --image=kindest/node:v1.21.1 --config=./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/deploy/kind-config.yaml
 
-      - name: Cache Maven Repos
+      - name: Restore ShenYu Maven Repos
         if: steps.filter.outputs.changed == 'true'
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
