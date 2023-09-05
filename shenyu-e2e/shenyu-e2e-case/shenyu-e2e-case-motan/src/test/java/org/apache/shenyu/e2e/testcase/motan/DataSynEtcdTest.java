@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 /**
- * Testing the correctness of Nacos data synchronization method.
+ * Testing the correctness of etcd data synchronization method.
  */
 @ShenYuTest(
         mode = ShenYuEngineConfigure.Mode.DOCKER,
