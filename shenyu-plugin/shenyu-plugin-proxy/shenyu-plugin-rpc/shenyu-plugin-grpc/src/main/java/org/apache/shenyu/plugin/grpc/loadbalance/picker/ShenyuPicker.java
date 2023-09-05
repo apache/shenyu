@@ -52,7 +52,7 @@ public class ShenyuPicker extends AbstractReadyPicker {
         final GrpcRuleHandle cacheRuleHandle = ApplicationConfigCache.getInstance().getCacheRuleHandle(grpcRuleId);
         List<GrpcUpstream> grpcUpstreams = ApplicationConfigCache.getInstance().getGrpcUpstreamListCache(selectorId);
         if (CollectionUtils.isNotEmpty(grpcUpstreams)) {
-            Upstream upstream = LoadBalancerFactory.selector(convertUpstreamList(grpcUpstreams), cacheRuleHandle.getLoadbalance(), remoteAddressIp);
+            Upstream upstream = LoadBalancerFactory.selector(convertUpstreamList(grpcUpstreams), cacheRuleHandle.getLoadBalance(), remoteAddressIp);
             if (StringUtils.isBlank(upstream.getUrl()) && StringUtils.isBlank(upstream.getGroup()) && StringUtils.isBlank(upstream.getVersion())) {
                 return randomPicker.pick(list);
             }

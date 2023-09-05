@@ -28,10 +28,10 @@ import java.util.Objects;
 public class GrpcRuleHandle implements RuleHandle {
 
     /**
-     * the loadbalance.
+     * the loadBalance.
      * {@linkplain LoadBalanceEnum}
      */
-    private String loadbalance = LoadBalanceEnum.RANDOM.getName();
+    private String loadBalance = LoadBalanceEnum.RANDOM.getName();
     
     /**
      * New instance Grpc rule handle.
@@ -43,21 +43,21 @@ public class GrpcRuleHandle implements RuleHandle {
     }
     
     /**
-     * Gets the value of loadbalance.
+     * Gets the value of loadBalance.
      *
-     * @return the value of loadbalance
+     * @return the value of loadBalance
      */
-    public String getLoadbalance() {
-        return loadbalance;
+    public String getLoadBalance() {
+        return loadBalance;
     }
     
     /**
-     * Sets the loadbalance.
+     * Sets the loadBalance.
      *
-     * @param loadbalance loadbalance
+     * @param loadBalance loadBalance
      */
-    public void setLoadbalance(final String loadbalance) {
-        this.loadbalance = loadbalance;
+    public void setLoadBalance(final String loadBalance) {
+        this.loadBalance = loadBalance;
     }
 
     @Override
@@ -69,18 +69,18 @@ public class GrpcRuleHandle implements RuleHandle {
             return false;
         }
         GrpcRuleHandle that = (GrpcRuleHandle) o;
-        return Objects.equals(loadbalance, that.loadbalance);
+        return Objects.equals(loadBalance, that.loadBalance);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(loadbalance);
+        return Objects.hash(loadBalance);
     }
 
     @Override
     public String toString() {
         return "GrpcRuleHandle{"
-                + "loadbalance='" + loadbalance + '\''
+                + "loadBalance='" + loadBalance + '\''
                 + '}';
     }
 }

@@ -1162,6 +1162,7 @@ INSERT INTO `plugin_handle` VALUES ('1678997557628272640', '42', 'clientPendingA
 
 INSERT INTO `plugin_handle` VALUES ('1678997557628272641', '17', 'registerAddress', 'registerAddress', 2, 3, 1, '{\"required\":\"0\",\"defaultValue\":\"127.0.0.1:2181\",\"placeholder\":\"registerAddress\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 
+INSERT INTO `plugin_handle` VALUES ('1678997557628272642', '15', 'loadBalance', 'loadBalance', 3, 2, 3, '{\"required\":\"0\",\"defaultValue\":\"random\",\"rule\":\"\"}', '2023-09-05 18:02:53', '2023-09-05 18:02:53');
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
