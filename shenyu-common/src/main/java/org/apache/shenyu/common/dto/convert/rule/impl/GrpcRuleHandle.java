@@ -23,19 +23,9 @@ import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import java.util.Objects;
 
 /**
- * The type Dubbo rule handle.
+ * The type Grpc rule handle.
  */
 public class GrpcRuleHandle implements RuleHandle {
-
-    /**
-     * version.
-     */
-    private String version;
-
-    /**
-     * group.
-     */
-    private String group;
 
     /**
      * the loadbalance.
@@ -44,48 +34,12 @@ public class GrpcRuleHandle implements RuleHandle {
     private String loadbalance = LoadBalanceEnum.RANDOM.getName();
     
     /**
-     * New instance dubbo rule handle.
+     * New instance Grpc rule handle.
      *
-     * @return the dubbo rule handle
+     * @return the Grpc rule handle
      */
     public static GrpcRuleHandle newInstance() {
         return new GrpcRuleHandle();
-    }
-    
-    /**
-     * get version.
-     *
-     * @return version version
-     */
-    public String getVersion() {
-        return version;
-    }
-    
-    /**
-     * set version.
-     *
-     * @param version version
-     */
-    public void setVersion(final String version) {
-        this.version = version;
-    }
-    
-    /**
-     * get group.
-     *
-     * @return group group
-     */
-    public String getGroup() {
-        return group;
-    }
-    
-    /**
-     * set group.
-     *
-     * @param group group
-     */
-    public void setGroup(final String group) {
-        this.group = group;
     }
     
     /**
@@ -115,22 +69,18 @@ public class GrpcRuleHandle implements RuleHandle {
             return false;
         }
         GrpcRuleHandle that = (GrpcRuleHandle) o;
-        return Objects.equals(version, that.version)
-                && Objects.equals(group, that.group)
-                && Objects.equals(loadbalance, that.loadbalance);
+        return Objects.equals(loadbalance, that.loadbalance);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(version, group, loadbalance);
+        return Objects.hash(loadbalance);
     }
 
     @Override
     public String toString() {
-        return "DubboRuleHandle{"
-                + "version='" + version + '\''
-                + ", group='" + group + '\''
-                + ", loadbalance='" + loadbalance + '\''
+        return "GrpcRuleHandle{"
+                + "loadbalance='" + loadbalance + '\''
                 + '}';
     }
 }
