@@ -39,7 +39,7 @@ public final class ShenyuResolverHelper {
      * @return EquivalentAddressGroup
      */
     public static EquivalentAddressGroup convertToEquivalentAddressGroup(final GrpcUpstream instance) {
-        String[] ipAndPort = instance.getUpstreamHost().split(":");
+        String[] ipAndPort = instance.getUpstreamUrl().split(":");
         return new EquivalentAddressGroup(new InetSocketAddress(ipAndPort[0], Integer.parseInt(ipAndPort[1])), createAttributes(instance));
     }
     

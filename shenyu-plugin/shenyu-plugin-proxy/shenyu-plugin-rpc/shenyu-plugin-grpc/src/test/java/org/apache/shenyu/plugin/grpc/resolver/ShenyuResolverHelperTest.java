@@ -35,7 +35,7 @@ public class ShenyuResolverHelperTest {
 
     @BeforeEach
     public void setUp() {
-        grpcUpstream = GrpcUpstream.builder().upstreamHost("localhost:38888").status(true).build();
+        grpcUpstream = GrpcUpstream.builder().upstreamHost("localhost:38888").upstreamUrl("localhost:38888").status(true).build();
     }
 
     @Test
