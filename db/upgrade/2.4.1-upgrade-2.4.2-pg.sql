@@ -16,7 +16,7 @@
 
 -- this file works for PostgreSQL, can not use "`" syntax.
 
--- upgrade plguin
+-- upgrade plugin
 -- name & role
 UPDATE plugin SET role = 'Authentication' WHERE name = 'sign';
 UPDATE plugin SET role = 'FaultTolerance' WHERE name = 'sentinel';

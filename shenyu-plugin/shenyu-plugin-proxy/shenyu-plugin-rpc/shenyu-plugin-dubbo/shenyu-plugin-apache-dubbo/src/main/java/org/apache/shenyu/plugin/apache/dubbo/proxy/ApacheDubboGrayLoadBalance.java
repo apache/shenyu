@@ -20,11 +20,12 @@ package org.apache.shenyu.plugin.apache.dubbo.proxy;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.URL;
-import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.cluster.LoadBalance;
+import org.apache.dubbo.rpc.model.ApplicationModel;
+import org.apache.dubbo.rpc.model.ScopeModelUtil;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
@@ -52,7 +53,7 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
         if (CollectionUtils.isNotEmpty(dubboUpstreams)) {
             Upstream upstream = LoadBalancerFactory.selector(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(shenyuSelectorId), dubboRuleHandle.getLoadbalance(), remoteAddressIp);
             if (StringUtils.isBlank(upstream.getUrl()) && StringUtils.isBlank(upstream.getGroup()) && StringUtils.isBlank(upstream.getVersion())) {
-                return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(dubboRuleHandle.getLoadbalance()).select(invokers, url, invocation);
+                return select(invokers, url, invocation, dubboRuleHandle.getLoadbalance());
             }
             // url is the first level, then is group, the version is the lowest.
             final List<Invoker<T>> invokerGrays = invokers.stream().filter(each -> {
@@ -83,6 +84,7 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
     }
     
     private <T> Invoker<T> select(final List<Invoker<T>> invokers, final URL url, final Invocation invocation, final String loadbalance) {
-        return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(loadbalance).select(invokers, url, invocation);
+        ApplicationModel applicationModel = ScopeModelUtil.getApplicationModel(invocation.getModuleModel());
+        return applicationModel.getExtensionLoader(LoadBalance.class).getExtension(loadbalance).select(invokers, url, invocation);
     }
 }
