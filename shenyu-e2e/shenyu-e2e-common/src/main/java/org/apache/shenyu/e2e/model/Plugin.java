@@ -70,8 +70,9 @@ public enum Plugin {
     LOGGING_ALIYUN_SLS("loggingAliyunSls", 34),
     LOGGING_TENCENT_CLS("loggingTencentCls", 36),
     LOGGING_PULSAR("loggingPulsar", 35),
-    LOGGING_CLICK_HOUSE("loggingClickHouse", 38);
-    
+    LOGGING_CLICK_HOUSE("loggingClickHouse", 38),
+    BRPC("brpc", 41);
+
     private static final Logger log = LoggerFactory.getLogger(Plugin.class);
     private final String id;
     private final String alias;
