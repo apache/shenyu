@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.ratelimiter.executor;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
@@ -40,9 +42,9 @@ import java.util.List;
 public class RedisRateLimiter {
 
     private static final Logger LOG = LoggerFactory.getLogger(RedisRateLimiter.class);
-    
+
     /**
-     * Verify using different current limiting algorithm scripts. 
+     * Verify using different current limiting algorithm scripts.
      *
      * @param id is rule id
      * @param limiterHandle the limiter handle
@@ -56,7 +58,7 @@ public class RedisRateLimiter {
         RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance(limiterHandle.getAlgorithmName());
         RedisScript<?> script = rateLimiterAlgorithm.getScript();
         List<String> keys = rateLimiterAlgorithm.getKeys(id);
-        List<String> scriptArgs = Arrays.asList(doubleToString(replenishRate), doubleToString(burstCapacity), doubleToString(Instant.now().getEpochSecond()), doubleToString(requestCount));
+        List<String> scriptArgs = Stream.of(replenishRate, burstCapacity, Instant.now().getEpochSecond(), requestCount).map(String::valueOf).collect(Collectors.toList());
         Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(script, keys, scriptArgs);
         return resultFlux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
                 .reduce(new ArrayList<Long>(), (longs, l) -> {
@@ -72,8 +74,6 @@ public class RedisRateLimiter {
                     LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter:{}", throwable.getMessage());
                 });
     }
-    
-    private String doubleToString(final double param) {
-        return String.valueOf(param);
-    }
+
 }
+
