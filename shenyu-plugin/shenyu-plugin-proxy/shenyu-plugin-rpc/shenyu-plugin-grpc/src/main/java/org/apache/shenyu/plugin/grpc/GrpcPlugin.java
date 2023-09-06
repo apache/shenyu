@@ -38,6 +38,7 @@ import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
 import org.apache.shenyu.plugin.grpc.client.ShenyuGrpcClient;
+import org.apache.shenyu.plugin.grpc.context.GrpcConstants;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,12 +81,17 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
 
-        final ShenyuGrpcClient client = GrpcClientCache.getGrpcClient(selector.getName());
+        final ShenyuGrpcClient client = GrpcClientCache.getGrpcClient(selector.getId());
         if (Objects.isNull(client)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.GRPC_CLIENT_NULL);
             return WebFluxResultUtils.result(exchange, error);
         }
+        // load balance context
+        Context.current().withValue(GrpcConstants.GRPC_SELECTOR_ID, selector.getId()).attach();
+        Context.current().withValue(GrpcConstants.GRPC_RULE_ID, rule.getId()).attach();
+        Context.current().withValue(GrpcConstants.GRPC_REMOTE_ADDRESS,
+                Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress()).attach();
 
         GrpcExtInfo extInfo = GsonUtils.getGson().fromJson(metaData.getRpcExt(), GrpcExtInfo.class);
         CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.timeout, TimeUnit.MILLISECONDS);

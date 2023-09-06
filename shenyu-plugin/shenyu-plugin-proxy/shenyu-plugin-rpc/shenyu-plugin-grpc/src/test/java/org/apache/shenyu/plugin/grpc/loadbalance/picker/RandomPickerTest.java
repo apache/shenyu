@@ -49,7 +49,7 @@ public class RandomPickerTest {
     
     @BeforeEach
     public void setUp() {
-        Attributes attributes = SubChannels.createAttributes(1, "ok");
+        Attributes attributes = SubChannels.createAttributes(1, "ok", "127.0.0.1:3888");
         LoadBalancer.Subchannel subchannel =
                 SubChannels.createSubChannel(new UnitTestReadHelper(), mock(EquivalentAddressGroup.class), attributes);
         List<LoadBalancer.Subchannel> list = new LinkedList<>();
