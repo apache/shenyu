@@ -29,7 +29,7 @@ public class AlarmSender {
     private static AlarmService alarmService;
     
     /**
-     * Send alarm content to shenyu admin.
+     * Send alarm content.
      * @param alarmContent alarm content
      */
     public static void alarm(final AlarmContent alarmContent) {
@@ -42,7 +42,7 @@ public class AlarmSender {
     }
     
     /**
-     * Send alarm content to shenyu admin.
+     * Send alarm content.
      * @param level Alarm level. 0: high-emergency-critical 1: medium-critical-critical 2: low-warning-warning
      * @param title Alarm title
      * @param content Alarm content
@@ -56,7 +56,7 @@ public class AlarmSender {
     }
     
     /**
-     * Send alarm content to shenyu admin.
+     * Send alarm content.
      * @param level Alarm level. 0: high-emergency-critical 1: medium-critical-critical 2: low-warning-warning
      * @param title Alarm title
      * @param content Alarm content
@@ -65,6 +65,45 @@ public class AlarmSender {
         AlarmContent alarmContent = new AlarmContent.Builder()
                                             .level(level).title(title)
                                             .content(content).build();
+        alarm(alarmContent);
+    }
+    
+    /**
+     * Send high emergency level alarm content.
+     * @param title Alarm title
+     * @param content Alarm content
+     * @param labels Alarm labels
+     */
+    public static void alarmHighEmergency(final String title, final String content, final Map<String, String> labels) {
+        AlarmContent alarmContent = new AlarmContent.Builder()
+                                            .level((byte) 0).title(title).content(content)
+                                            .labels(labels).build();
+        alarm(alarmContent);
+    }
+    
+    /**
+     * Send medium critical level alarm content.
+     * @param title Alarm title
+     * @param content Alarm content
+     * @param labels Alarm labels
+     */
+    public static void alarmMediumCritical(final String title, final String content, final Map<String, String> labels) {
+        AlarmContent alarmContent = new AlarmContent.Builder()
+                                            .level((byte) 1).title(title).content(content)
+                                            .labels(labels).build();
+        alarm(alarmContent);
+    }
+    
+    /**
+     * Send low warning level alarm content.
+     * @param title Alarm title
+     * @param content Alarm content
+     * @param labels Alarm labels
+     */
+    public static void alarmLowWarning(final String title, final String content, final Map<String, String> labels) {
+        AlarmContent alarmContent = new AlarmContent.Builder()
+                                            .level((byte) 2).title(title).content(content)
+                                            .labels(labels).build();
         alarm(alarmContent);
     }
 }
