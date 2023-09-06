@@ -41,5 +41,10 @@
             <artifactId>grpc-netty</artifactId>
             <groupId>io.grpc</groupId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-loadbalancer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

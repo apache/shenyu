@@ -1312,6 +1312,7 @@ INSERT INTO "public"."plugin_handle" VALUES ('1678997769998467072', '42', 'clien
 INSERT INTO "public"."plugin_handle" VALUES ('1678997277012557824', '42', 'clientMaxConnections', 'clientMaxConnections', 2, 1, 6, '{"required":"0","defaultValue":"20","rule":""}');
 INSERT INTO "public"."plugin_handle" VALUES ('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{"required":"0","defaultValue":"5","rule":""}');
 
+INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312085', '6', 'loadBalance', 'loadBalance', 3, 2, 3, '{"required":"0","defaultValue":"random","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
