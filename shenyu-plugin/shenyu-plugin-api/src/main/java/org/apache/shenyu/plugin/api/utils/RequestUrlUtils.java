@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 
@@ -52,9 +53,18 @@ public final class RequestUrlUtils {
                 path = path + realUrl;
             }
         }
-        if (StringUtils.isNoneBlank(exchange.getRequest().getURI().getQuery())) {
-            path = String.join("?", path, RequestQueryCodecUtil.getCodecQuery(exchange));
+        URI realURI;
+        URI uri = exchange.getRequest().getURI();
+        if (StringUtils.isNotEmpty(uri.getRawQuery()) && uri.getRawQuery().contains("%")) {
+            path = path + "?" + uri.getRawQuery();
+            realURI = UriComponentsBuilder.fromHttpUrl(path).build(true).toUri();
+        } else {
+            if (StringUtils.isNotEmpty(uri.getQuery())) {
+                path = path + "?" + uri.getQuery();
+            }
+            assert path != null;
+            realURI = UriComponentsBuilder.fromHttpUrl(path).build(false).toUri();
         }
-        return URI.create(path);
+        return realURI;
     }
 }
