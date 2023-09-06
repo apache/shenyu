@@ -241,4 +241,10 @@ public final class HttpTestControllerTest extends AbstractTest {
         BigObject response = HttpHelper.INSTANCE.postGateway("/http/test/bigObject", BigObject.class);
         assertNotNull(response);
     }
+    
+    @Test
+    public void testBlankQuery() throws IOException {
+        ResultBean resultBean = HttpHelper.INSTANCE.postGateway("/http/test/ /query", ResultBean.class);
+        assertNotNull(resultBean);
+    }
 }
