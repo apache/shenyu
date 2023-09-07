@@ -33,3 +33,17 @@ Content-Type: application/json
 {
   "timeout": "1"
 }
+
+
+### shengyu getway proxy save
+POST http://localhost:9195/motan/demoTest/save
+Accept: application/json
+Content-Type: application/json
+
+{
+    "motanTest":
+        {
+            "id": "999",
+            "name": "dinglang"
+        }
+}
