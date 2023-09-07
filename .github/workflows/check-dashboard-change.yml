@@ -45,8 +45,7 @@ jobs:
           git add .
           git commit -m 'shenyu-dashboard change'
       -
-        name: Git Pull Shenyu Dashboard
-        id: cpr
+        name: Git Pull Shenyu Dashboard2
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
