@@ -67,7 +67,7 @@ public class DataSynNacosTest {
     @Test
     void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
-        Thread.sleep(20000);
+        Thread.sleep(10000);
         final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
