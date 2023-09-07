@@ -1,0 +1,63 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: k8s-examples-http
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  check-dashboard-change:
+    runs-on: ubuntu-latest
+    if: (github.repository == 'apache/shenyu')
+    steps:
+      -
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      -
+        name: Git Pull Shenyu Dashboard
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          git checkout -b shenyu-dashboard 
+          git clone https://github.com/apache/shenyu-dashboard.git
+          cd shenyu-dashboard
+          git checkout dist
+          cd ..
+          rm -rf shenyu-admin/src/main/resources/static/**
+          mv shenyu-dashboard/** shenyu-admin/src/main/resources/static/
+          rm -rf shenyu-dashboard
+          git add .
+          git commit -m 'shenyu-dashboard change'
+      -
+        name: Git Pull Shenyu Dashboard
+        id: cpr
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.PAT }}
+          commit-message: Shenyu dashboard is changed
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          base: master
+          branch: shenyu-dashboard
+          title: '[type:admin] Update Dashboard'
+          body: |
+            Update Dashboard
+          labels: |
+            shenyu-dashboard-change
+            admin
