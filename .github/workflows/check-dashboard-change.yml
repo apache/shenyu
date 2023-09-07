@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: k8s-examples-http
+name: check-dashboard-change
 
 on:
   pull_request:
@@ -32,7 +32,6 @@ jobs:
           submodules: true
       -
         name: Git Pull Shenyu Dashboard
-        if: steps.filter.outputs.changed == 'true'
         run: |
           git checkout -b shenyu-dashboard 
           git clone https://github.com/apache/shenyu-dashboard.git
@@ -45,7 +44,7 @@ jobs:
           git add .
           git commit -m 'shenyu-dashboard change'
       -
-        name: Git Pull Shenyu Dashboard2
+        name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
