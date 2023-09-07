@@ -33,6 +33,8 @@ jobs:
       -
         name: Git Pull Shenyu Dashboard
         run: |
+          git config --global user.email "noreply@github.com"
+          git config --global user.name "noreply"
           git checkout -b shenyu-dashboard 
           git clone https://github.com/apache/shenyu-dashboard.git
           cd shenyu-dashboard
