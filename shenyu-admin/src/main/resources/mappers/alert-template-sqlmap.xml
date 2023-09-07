@@ -23,13 +23,12 @@
     <!--@Table alert_template-->
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="name" jdbcType="VARCHAR" property="name" />
-    <result column="strategy_name" jdbcType="VARCHAR" property="strategyName" />
     <result column="content" jdbcType="VARCHAR" property="content" />
     <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated" />
     <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, `name`, strategy_name, content, date_created, date_updated
+    id, `name`, content, date_created, date_updated
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select
@@ -50,9 +49,6 @@
       <if test="name != null">
         `name`,
       </if>
-      <if test="strategyName != null">
-        strategy_name,
-      </if>
       <if test="content != null">
         content,
       </if>
@@ -60,9 +56,6 @@
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="name != null">
         #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="strategyName != null">
-        #{strategyName,jdbcType=VARCHAR},
       </if>
       <if test="content != null">
         #{content,jdbcType=VARCHAR},
@@ -74,9 +67,6 @@
     <set>
       <if test="name != null">
         `name` = #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="strategyName != null">
-        strategy_name = #{strategyName,jdbcType=VARCHAR},
       </if>
       <if test="content != null">
         content = #{content,jdbcType=VARCHAR},

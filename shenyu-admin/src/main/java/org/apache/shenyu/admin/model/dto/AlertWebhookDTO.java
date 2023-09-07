@@ -17,72 +17,83 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import javax.validation.constraints.NotBlank;
-
-public class AlertTemplateDTO {
+public class AlertWebhookDTO {
 
     /**
-     * alert template id.
+     * primary key id
      */
-    private Long id;
+    private String id;
 
     /**
-     * alert template name.
+     * webhook type
      */
-    @NotBlank
+    private Byte type;
+
+    /**
+     * webhook name
+     */
     private String name;
 
     /**
-     * alert template content.
+     * webhook describe
      */
-    @NotBlank
-    private String content;
+    private String describe;
 
     /**
-     * get id.
-     * @return id
+     * key
      */
-    public Long getId() {
+    private String key;
+
+    /**
+     * alert template primary id
+     */
+    private Long alertTemplateId;
+
+    public String getId() {
         return id;
     }
 
-    /**
-     * set id.
-     * @param id id
-     */
-    public void setId(final Long id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
-    /**
-     * get alert template name.
-     * @return name
-     */
+    public Byte getType() {
+        return type;
+    }
+
+    public void setType(final Byte type) {
+        this.type = type;
+    }
+
     public String getName() {
         return name;
     }
 
-    /**
-     * set alert template name.
-     * @param name name
-     */
     public void setName(final String name) {
         this.name = name;
     }
 
-    /**
-     * get content.
-     * @return content
-     */
-    public String getContent() {
-        return content;
+    public String getDescribe() {
+        return describe;
     }
 
-    /**
-     * set content.
-     * @param content content
-     */
-    public void setContent(final String content) {
-        this.content = content;
+    public void setDescribe(final String describe) {
+        this.describe = describe;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(final String key) {
+        this.key = key;
+    }
+
+    public Long getAlertTemplateId() {
+        return alertTemplateId;
+    }
+
+    public void setAlertTemplateId(final Long alertTemplateId) {
+        this.alertTemplateId = alertTemplateId;
     }
 }
