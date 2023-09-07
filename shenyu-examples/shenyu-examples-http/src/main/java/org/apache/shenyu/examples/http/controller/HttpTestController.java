@@ -474,4 +474,18 @@ public class HttpTestController {
         resultBean.setData("test blank query");
         return resultBean;
     }
+    
+    /**
+     * test blank query with params.
+     *
+     * @param param params
+     * @return response body
+     */
+    @PostMapping("/query")
+    public ResultBean blankQueryWithParams(@RequestParam("param") final String param) {
+        ResultBean resultBean = new ResultBean();
+        resultBean.setCode(200);
+        resultBean.setData(param);
+        return resultBean;
+    }
 }

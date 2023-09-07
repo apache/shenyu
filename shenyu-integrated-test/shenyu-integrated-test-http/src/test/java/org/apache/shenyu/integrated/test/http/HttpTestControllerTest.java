@@ -247,4 +247,10 @@ public final class HttpTestControllerTest extends AbstractTest {
         ResultBean resultBean = HttpHelper.INSTANCE.postGateway("/http/test/ /query", ResultBean.class);
         assertNotNull(resultBean);
     }
+    
+    @Test
+    public void testBlankQueryWithParams() throws IOException {
+        ResultBean resultBean = HttpHelper.INSTANCE.postGateway("/http/test/query?param=a%2Bb=", ResultBean.class);
+        assertEquals("a+b=", resultBean.getData());
+    }
 }
