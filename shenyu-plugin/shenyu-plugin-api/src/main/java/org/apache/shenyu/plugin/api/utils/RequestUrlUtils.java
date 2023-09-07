@@ -22,10 +22,8 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriUtils;
 
 import java.net.URI;
-import java.nio.charset.Charset;
 
 /**
  * RequestUrlUtils.
@@ -51,9 +49,6 @@ public final class RequestUrlUtils {
             ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
             assert shenyuContext != null;
             String realUrl = shenyuContext.getRealUrl();
-            if (StringUtils.containsWhitespace(realUrl)) {
-                realUrl = UriUtils.encodePath(realUrl, Charset.forName(Constants.DECODE));
-            }
             if (StringUtils.isNoneBlank(realUrl)) {
                 path = path + realUrl;
             }
