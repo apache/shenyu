@@ -36,6 +36,8 @@ import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -72,9 +74,12 @@ public class SpringMvcClientEventListenerTest {
 
     @Mock
     private ApplicationContext applicationContext;
-    
+
     @Mock
     private AutowireCapableBeanFactory beanFactory;
+
+    @Mock
+    private Environment env;
 
     private ContextRefreshedEvent contextRefreshedEvent;
 
@@ -90,7 +95,7 @@ public class SpringMvcClientEventListenerTest {
 
         PropertiesConfig clientConfig = mock(PropertiesConfig.class);
         when(clientConfig.getProps()).thenReturn(properties);
-        Assert.assertThrows(ShenyuClientIllegalArgumentException.class, () -> new SpringMvcClientEventListener(clientConfig, mock(ShenyuClientRegisterRepository.class)));
+        Assert.assertThrows(ShenyuClientIllegalArgumentException.class, () -> new SpringMvcClientEventListener(clientConfig, mock(ShenyuClientRegisterRepository.class), env));
     }
 
     @Test
@@ -141,9 +146,9 @@ public class SpringMvcClientEventListenerTest {
         mockRegisterCenter.setServerLists("http://127.0.0.1:9095");
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
-        return new SpringMvcClientEventListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
+        return new SpringMvcClientEventListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env);
     }
-    
+
     @Test
     public void testOnApplicationEvent() {
         init();
@@ -152,13 +157,13 @@ public class SpringMvcClientEventListenerTest {
         MockedStatic<PortUtils> portUtilsMockedStatic = mockStatic(PortUtils.class);
         portUtilsMockedStatic.when(() -> PortUtils.findPort(beanFactory)).thenReturn(8080);
         springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
-    
+
         // hit `!registered.compareAndSet(false, true)`
         springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
         portUtilsMockedStatic.close();
         registerUtilsMockedStatic.close();
     }
-    
+
     @Test
     public void testOnApplicationEventError() {
         init();
@@ -166,7 +171,21 @@ public class SpringMvcClientEventListenerTest {
         Assert.assertThrows(ShenyuException.class, () -> springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent));
         registerUtilsMockedStatic.close();
     }
-    
+
+    @Test
+    public void testOnBuildApiSuperPath() {
+        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, false);
+
+        Assert.assertEquals("super-path", "/order", springMvcClientEventListener.buildApiSuperPath(
+            SpringMvcClientTestBean.class, AnnotatedElementUtils.findMergedAnnotation(SpringMvcClientTestBean.class, ShenyuSpringMvcClient.class)));
+
+        when(env.getProperty("spring.mvc.servlet.path")).thenReturn("/servlet-path");
+        when(env.getProperty("server.servlet.context-path")).thenReturn("/servlet-context-path");
+        Assert.assertEquals("super-path", "/servlet-context-path/servlet-path/order", springMvcClientEventListener.buildApiSuperPath(
+            SpringMvcClientTestBean.class, AnnotatedElementUtils.findMergedAnnotation(SpringMvcClientTestBean.class, ShenyuSpringMvcClient.class)));
+        registerUtilsMockedStatic.close();
+    }
+
     @RestController
     @RequestMapping("/order")
     @ShenyuSpringMvcClient(path = "/order")
