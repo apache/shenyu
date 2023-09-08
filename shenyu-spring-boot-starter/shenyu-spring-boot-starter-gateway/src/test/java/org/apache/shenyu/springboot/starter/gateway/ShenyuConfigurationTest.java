@@ -26,6 +26,7 @@ import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
@@ -55,6 +56,7 @@ public class ShenyuConfigurationTest {
             .withBean(ShenyuConfigurationTest.class)
             .withBean(DefaultServerCodecConfigurer.class)
             .withBean(DefaultErrorAttributes.class)
+            .withBean(ServerProperties.class)
             .withPropertyValues(
                 "debug=true",
                 "shenyu.cross.enabled=true",
