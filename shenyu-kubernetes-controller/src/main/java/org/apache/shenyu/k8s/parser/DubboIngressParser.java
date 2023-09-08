@@ -255,7 +255,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
 
                     DubboRuleHandle dubboRuleHandle = new DubboRuleHandle();
                     if (Objects.nonNull(annotations)) {
-                        dubboRuleHandle.setLoadbalance(annotations.getOrDefault(IngressConstants.LOADBALANCER_ANNOTATION_KEY, LoadBalanceEnum.RANDOM.getName()));
+                        dubboRuleHandle.setLoadBalance(annotations.getOrDefault(IngressConstants.LOADBALANCER_ANNOTATION_KEY, LoadBalanceEnum.RANDOM.getName()));
                     }
                     RuleData ruleData = RuleData.builder()
                             .name(path.getPath())
