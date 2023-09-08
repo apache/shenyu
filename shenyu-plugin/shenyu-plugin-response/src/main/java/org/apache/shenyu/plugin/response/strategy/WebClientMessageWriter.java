@@ -97,7 +97,7 @@ public class WebClientMessageWriter implements MessageWriter {
 
     @Override
     public List<String> supportTypes() {
-        return Lists.newArrayList(RpcTypeEnum.HTTP.getName(), RpcTypeEnum.SPRING_CLOUD.getName());
+        return Lists.newArrayList(RpcTypeEnum.HTTP.getName(), RpcTypeEnum.SPRING_CLOUD.getName(), RpcTypeEnum.WEB_SOCKET.getName());
     }
 
     private void redrawResponseHeaders(final ServerHttpResponse response,
