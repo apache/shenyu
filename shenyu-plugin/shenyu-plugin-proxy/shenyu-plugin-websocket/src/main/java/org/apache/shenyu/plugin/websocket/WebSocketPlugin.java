@@ -115,7 +115,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         if (!StringUtils.hasLength(protocol)) {
             protocol = "ws://";
         }
-        final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
+        final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain(protocol));
         String path = newUri.getRawPath();
         return protocol + upstream.getUrl() + path;
     }
