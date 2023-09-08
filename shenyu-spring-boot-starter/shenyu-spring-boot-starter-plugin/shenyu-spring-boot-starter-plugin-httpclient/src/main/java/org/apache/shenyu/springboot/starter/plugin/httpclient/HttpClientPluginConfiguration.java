@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -71,13 +72,15 @@ public class HttpClientPluginConfiguration {
      *
      * @param properties the properties
      * @param provider   the loop resources bean provider
+     * @param serverProperties the server properties
      * @return the http client
      */
     @Bean
     @ConditionalOnMissingBean({HttpClient.class, HttpClientFactory.class})
     public HttpClientFactory httpClient(final HttpClientProperties properties,
-                                 final ObjectProvider<LoopResources> provider) {
-        return new HttpClientFactory(properties, provider.getIfAvailable());
+                                        final ObjectProvider<LoopResources> provider,
+                                        final ServerProperties serverProperties) {
+        return new HttpClientFactory(properties, provider.getIfAvailable(), serverProperties);
     }
 
 
