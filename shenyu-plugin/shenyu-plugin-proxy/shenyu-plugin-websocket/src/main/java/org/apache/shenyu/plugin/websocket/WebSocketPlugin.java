@@ -140,6 +140,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
                         .startsWith("sec-websocket"))
                 .forEach(header -> filtered.addAll(header.getKey(),
                         header.getValue()));
+        filtered.remove(HttpHeaders.HOST);
         return filtered;
     }
 
