@@ -390,7 +390,7 @@ public final class Upstream {
     }
     
     /**
-     * Build with protocol.
+     * Build request with protocol.
      *
      * @param protocol protocol
      * @return domain
