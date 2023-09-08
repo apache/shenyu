@@ -19,9 +19,13 @@ package org.apache.shenyu.plugin.motan.proxy;
 
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.proxy.CommonClient;
+import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.ResponseFuture;
 import com.weibo.api.motan.rpc.RpcContext;
+import com.weibo.api.motan.util.MotanClientUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
@@ -30,9 +34,9 @@ import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.api.utils.BodyParamUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.motan.cache.ApplicationConfigCache;
 import org.slf4j.Logger;
@@ -46,11 +50,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.LinkedBlockingQueue;
+
 
 /**
  * Motan proxy service.
@@ -84,24 +89,17 @@ public class MotanProxyService {
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
         }
         CommonClient commonClient = reference.getRef();
-        ApplicationConfigCache.MotanParamInfo motanParamInfo = ApplicationConfigCache.PARAM_MAP.get(metaData.getMethodName());
-        Object[] params;
-        if (Objects.isNull(motanParamInfo)) {
-            params = new Object[0];
+        Pair<String[], Object[]> pair;
+        if (StringUtils.isBlank(metaData.getParameterTypes()) || ParamCheckUtils.bodyIsEmpty(body)) {
+            pair = new ImmutablePair<>(new String[]{}, new Object[]{});
         } else {
-            int num = motanParamInfo.getParamTypes().length;
-            params = new Object[num];
-            Map<String, Object> bodyMap = GsonUtils.getInstance().convertToMap(body);
-            ParamCheckUtils.checkParamsLength(bodyMap.size(), motanParamInfo.getParamNames().length);
-            for (int i = 0; i < num; i++) {
-                //Fix the bug by dylan,Use primitive type。Otherwise, the generalization call will fail
-                params[i] = bodyMap.get(motanParamInfo.getParamNames()[i]);
-            }
+            pair = BodyParamUtils.buildParameters(body, metaData.getParameterTypes());
         }
         ResponseFuture responseFuture;
         //CHECKSTYLE:OFF IllegalCatch
         try {
-            responseFuture = (ResponseFuture) commonClient.asyncCall(metaData.getMethodName(), params, Object.class);
+            Request request = MotanClientUtil.buildRequest(reference.getServiceInterface(), metaData.getMethodName(), metaData.getParameterTypes(), pair.getRight(), null);
+            responseFuture = (ResponseFuture)commonClient.asyncCall(request, Object.class);
         } catch (Throwable e) {
             LOG.error("Exception caught in MotanProxyService#genericInvoker.", e);
             return null;

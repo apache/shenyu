@@ -28,10 +28,10 @@ import java.util.Objects;
  * Predicate judge factory.
  */
 public final class PredicateJudgeFactory {
-    
+
     private PredicateJudgeFactory() {
     }
-    
+
     /**
      * New instance predicate judge.
      *
@@ -41,7 +41,7 @@ public final class PredicateJudgeFactory {
     public static PredicateJudge newInstance(final String operator) {
         return ExtensionLoader.getExtensionLoader(PredicateJudge.class).getJoin(processSpecialOperator(operator));
     }
-    
+
     /**
      * judge request realData has by pass.
      *
@@ -50,10 +50,14 @@ public final class PredicateJudgeFactory {
      * @return is true pass   is false not pass
      */
     public static Boolean judge(final ConditionData conditionData, final String realData) {
-        if (Objects.isNull(conditionData) || StringUtils.isBlank(realData)) {
+        if (Objects.isNull(conditionData) || StringUtils.isBlank(conditionData.getOperator())) {
             return false;
         }
-        return newInstance(conditionData.getOperator()).judge(conditionData, realData);
+        PredicateJudge predicateJudge = newInstance(conditionData.getOperator());
+        if (!(predicateJudge instanceof BlankPredicateJudge) && StringUtils.isBlank(realData)) {
+            return false;
+        }
+        return predicateJudge.judge(conditionData, realData);
     }
 
     /**

@@ -17,10 +17,13 @@
 
 package org.apache.shenyu.k8s.repository;
 
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.cache.CommonMetaDataSubscriber;
+import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 
 import java.util.List;
@@ -37,13 +40,16 @@ public class ShenyuCacheRepository {
 
     private final PluginDataSubscriber subscriber;
 
+    private final CommonMetaDataSubscriber metaDataSubscriber;
+
     /**
      * Shenyu Cache Repository Constructor.
      *
      * @param subscriber PluginDataSubscriber
      */
-    public ShenyuCacheRepository(final PluginDataSubscriber subscriber) {
+    public ShenyuCacheRepository(final PluginDataSubscriber subscriber, final CommonMetaDataSubscriber metaDataSubscriber) {
         this.subscriber = subscriber;
+        this.metaDataSubscriber = metaDataSubscriber;
     }
 
     /**
@@ -131,5 +137,30 @@ public class ShenyuCacheRepository {
      */
     public void deleteRuleData(final String pluginName, final String selectorId, final String ruleId) {
         subscriber.unRuleSubscribe(RuleData.builder().pluginName(pluginName).selectorId(selectorId).id(ruleId).build());
+    }
+
+    /**
+     * Find MetaData by path.
+     * @param path path
+     * @return MetaData
+     */
+    public MetaData findMetaData(final String path) {
+        return MetaDataCache.getInstance().obtain(path);
+    }
+
+    /**
+     * Save or update MetaData by MetaData.
+     * @param metaData MetaData
+     */
+    public void saveOrUpdateMetaData(final MetaData metaData) {
+        metaDataSubscriber.onSubscribe(metaData);
+    }
+
+    /**
+     * Delete MetaData by MetaData.
+     * @param metaData MetaData
+     */
+    public void deleteMetaData(final MetaData metaData) {
+        metaDataSubscriber.unSubscribe(metaData);
     }
 }

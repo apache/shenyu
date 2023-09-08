@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.grpc.resolver;
 
 import io.grpc.Attributes;
 import io.grpc.EquivalentAddressGroup;
+import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannels;
 
 import java.net.InetSocketAddress;
@@ -37,8 +38,9 @@ public final class ShenyuResolverHelper {
      * @param instance instance
      * @return EquivalentAddressGroup
      */
-    public static EquivalentAddressGroup convertToEquivalentAddressGroup(final ShenyuServiceInstance instance) {
-        return new EquivalentAddressGroup(new InetSocketAddress(instance.getHost(), instance.getPort()), createAttributes(instance));
+    public static EquivalentAddressGroup convertToEquivalentAddressGroup(final GrpcUpstream instance) {
+        String[] ipAndPort = instance.getUpstreamUrl().split(":");
+        return new EquivalentAddressGroup(new InetSocketAddress(ipAndPort[0], Integer.parseInt(ipAndPort[1])), createAttributes(instance));
     }
     
     /**
@@ -47,7 +49,8 @@ public final class ShenyuResolverHelper {
      * @param instance instance
      * @return Attributes
      */
-    private static Attributes createAttributes(final ShenyuServiceInstance instance) {
-        return SubChannels.createAttributes(instance.getWeight(), instance.getStatus());
+    private static Attributes createAttributes(final GrpcUpstream instance) {
+        return SubChannels.createAttributes(instance.getWeight(), String.valueOf(instance.isStatus()),
+                instance.getUpstreamUrl());
     }
 }
