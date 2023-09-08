@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.time.Duration;
 
-import io.netty.handler.ssl.SslProvider;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.junit.jupiter.api.BeforeEach;
