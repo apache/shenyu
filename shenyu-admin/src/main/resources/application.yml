@@ -34,7 +34,11 @@ spring:
   messages:
     basename: message/i18n
 
+
 management:
+  health:
+    mail:
+      enabled: off
   endpoints:
     web:
       exposure:
@@ -46,6 +50,7 @@ management:
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
   mapper-locations: classpath:/mappers/*.xml
+  type-handlers-package: org.apache.shenyu.admin.mybatis.handler
 
 shenyu:
   register:
@@ -124,6 +129,7 @@ shenyu:
       - /swagger-resources/**
       - /v2/api-docs
       - /csrf
+      - /alert/report
   swagger:
     enable: true
   dashboard:

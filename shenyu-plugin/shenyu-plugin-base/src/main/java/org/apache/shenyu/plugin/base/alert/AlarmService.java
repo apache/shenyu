@@ -15,21 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.alert.strategy;
+package org.apache.shenyu.plugin.base.alert;
 
-import org.apache.shenyu.spi.SPI;
+import org.apache.shenyu.common.dto.AlarmContent;
 
 /**
- * alert strategy.
+ * Alarm service.
  */
-@SPI
-public interface AlertStrategy {
-
+public interface AlarmService {
+    
     /**
-     * Alert executor.
-     *
-     * @param handle json handle
-     * @throws Exception Exception
+     * Send alarm content.
+     * @param content alarm
      */
-    void execute(String handle) throws Exception;
+    void alarm(AlarmContent content);
 }

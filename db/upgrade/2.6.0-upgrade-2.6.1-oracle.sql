@@ -34,3 +34,14 @@ VALUES ('1572621976689762311', 'engine', 'engine', 'ReplicatedMergeTree', 'Repli
 update plugin_handle set plugin_id = '32', field = 'indexName', label = 'indexName', data_type = 2, type = 3, sort = 10, ext_obj = '{\"required\":\"0\",\"defaultValue\":\"shenyu-access-logging\"}'
 where plugin_id = '32' and field = 'index';
 --elasticsearch plugin end
+
+--dubbo plugin
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1529402613204173923', '6', 'timeout', 'timeout', 3, 2, 0, null);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1529402613204173924', '6', 'retries', 'retries', 3, 2, 0, null);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1529402613204173925', '6', 'loadBalance', 'loadStrategy', 3, 2, 0, null);
+--dubbo plugin end
