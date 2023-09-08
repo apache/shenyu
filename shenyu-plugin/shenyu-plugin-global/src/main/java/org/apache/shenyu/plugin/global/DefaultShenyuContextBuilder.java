@@ -30,6 +30,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
@@ -83,8 +84,8 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
 
     private ShenyuContext buildDefaultContext(final ServerHttpRequest request) {
         ShenyuContext shenyuContext = new ShenyuContext();
-        String path = request.getURI().getPath();
-        shenyuContext.setPath(path);
+        URI requestURI = request.getURI();
+        shenyuContext.setPath(requestURI.getRawPath());
         shenyuContext.setStartDateTime(LocalDateTime.now());
         Optional.ofNullable(request.getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
         return shenyuContext;
