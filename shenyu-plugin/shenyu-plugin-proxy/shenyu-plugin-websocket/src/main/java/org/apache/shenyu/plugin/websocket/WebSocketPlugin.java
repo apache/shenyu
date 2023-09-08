@@ -32,7 +32,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.apache.shenyu.plugin.api.utils.RequestQueryCodecUtil;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -115,10 +115,8 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         if (!StringUtils.hasLength(protocol)) {
             protocol = "ws://";
         }
-        String path = StringUtils.hasLength(shenyuContext.getRealUrl()) ? shenyuContext.getRealUrl() : shenyuContext.getMethod();
-        if (StringUtils.hasText(exchange.getRequest().getURI().getQuery())) {
-            path = String.join("?", path, RequestQueryCodecUtil.getCodecQuery(exchange));
-        }
+        final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
+        String path = newUri.getRawPath();
         return protocol + upstream.getUrl() + path;
     }
 
