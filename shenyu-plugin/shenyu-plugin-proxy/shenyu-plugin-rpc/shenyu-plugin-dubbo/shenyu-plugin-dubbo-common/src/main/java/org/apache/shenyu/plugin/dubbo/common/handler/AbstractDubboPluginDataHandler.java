@@ -102,7 +102,8 @@ public abstract class AbstractDubboPluginDataHandler implements PluginDataHandle
 
     @Override
     public void handlerRule(final RuleData ruleData) {
-        RULE_CACHED_HANDLE.get().cachedHandle(ruleData.getId(), GsonUtils.getInstance().fromJson(ruleData.getHandle(), DubboRuleHandle.class));
+        DubboRuleHandle dubboRuleHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), DubboRuleHandle.class);
+        RULE_CACHED_HANDLE.get().cachedHandle(ruleData.getId(), dubboRuleHandle);
     }
 
     @Override

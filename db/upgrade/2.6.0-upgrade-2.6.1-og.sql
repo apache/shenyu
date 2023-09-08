@@ -27,3 +27,9 @@ INSERT INTO  "public"."shenyu_dict" VALUES ('1572621976689762311', 'engine', 'en
 --elasticsearch plugin
 UPDATE "public"."plugin_handle" SET plugin_id = '32', field = 'indexName', label = 'indexName', data_type = 2, type = 3, sort = 10, ext_obj = '{"required":"0","defaultValue":"shenyu-access-logging"}', date_created = '2022-06-19 22:00:00.000', date_updated = '2023-08-31 22:28:28.353' WHERE plugin_id = '32' AND field = 'index';
 --elasticsearch plugin end
+
+--dubbo plugin
+UPDATE "public"."plugin_handle" SET plugin_id = '6', field = 'loadBalance', label = 'loadStrategy', data_type = 3, type = 2, sort = 0, ext_obj = NULL, date_created = '2022-06-19 22:00:00.000', date_updated = '2023-08-31 22:28:28.353' WHERE plugin_id = '6' AND field = 'loadbalance';
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204173923', '6', 'timeout', 'timeout', 3, 2, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204173924', '6', 'retries', 'retries', 3, 2, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+--dubbo plugin end
