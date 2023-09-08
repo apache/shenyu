@@ -49,7 +49,6 @@ import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
@@ -99,7 +98,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(exchange, upstream, shenyuContext))).build().toUri();
+        URI wsRequestUrl = buildWsRealPath(exchange, upstream, shenyuContext);
         LOG.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
         HttpHeaders headers = exchange.getRequest().getHeaders();
         return this.webSocketService.handleRequest(exchange, new ShenyuWebSocketHandler(
@@ -110,14 +109,12 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         return WebSocketPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
 
-    private String buildWsRealPath(final ServerWebExchange exchange, final Upstream upstream, final ShenyuContext shenyuContext) {
+    private URI buildWsRealPath(final ServerWebExchange exchange, final Upstream upstream, final ShenyuContext shenyuContext) {
         String protocol = upstream.getProtocol();
         if (!StringUtils.hasLength(protocol)) {
             protocol = "ws://";
         }
-        final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain(protocol));
-        String path = newUri.getRawPath();
-        return protocol + upstream.getUrl() + path;
+        return RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain(protocol));
     }
 
     private List<String> buildWsProtocols(final HttpHeaders headers) {
