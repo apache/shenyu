@@ -41,9 +41,6 @@ public final class RequestQueryCodecUtil {
      * @return codec query string
      */
     public static String getCodecQuery(final ServerWebExchange exchange) {
-        if (!exchange.getRequest().getURI().getRawQuery().contains("%")) {
-            return exchange.getRequest().getURI().getQuery();
-        }
         MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();
         return queryParams.keySet().stream()
                 .map(key -> queryParams.get(key).stream()
