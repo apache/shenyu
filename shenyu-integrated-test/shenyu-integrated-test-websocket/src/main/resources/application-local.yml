@@ -35,7 +35,7 @@ shenyu:
     enabled: true
   sync:
     websocket:
-      urls: ws://localhost:9095/websocket
+      urls: ws://shenyu-admin:9095/websocket
       allowOrigin: ws://localhost:9195
   exclude:
     enabled: true
@@ -45,18 +45,15 @@ shenyu:
   local:
     enabled: true
     sha512Key: "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548BAEAE6956DF346EC8C17F5EA10F35EE3CBC514797ED7DDD3145464E2A0BAB413"
-  httpclient:
-    ssl:
-      use-insecure-trust-manager: true
 
 logging:
   level:
-#    root: info
-#    org.springframework.boot: info
-#    org.apache.ibatis: info
-#    org.apache.shenyu.bonuspoint: info
-#    org.apache.shenyu.lottery: info
-#    org.apache.shenyu: info
+    root: info
+    org.springframework.boot: info
+    org.apache.ibatis: info
+    org.apache.shenyu.bonuspoint: info
+    org.apache.shenyu.lottery: info
+    org.apache.shenyu: info
     org.springframework.http.server.reactive: DEBUG
     org.springframework.web.reactive: DEBUG
     reactor.ipc.netty: DEBUG
