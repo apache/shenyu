@@ -30,6 +30,7 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import reactor.netty.http.Http11SslContextSpec;
 import reactor.netty.http.Http2SslContextSpec;
+import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.resources.LoopResources;
@@ -95,7 +96,6 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
                 sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
             }
             sslContextBuilder.keyManager(ssl.getKeyManagerFactory());
-            sslContextBuilder.sslProvider(ssl.getDefaultConfigurationType());
         });
         sslContextSpec.sslContext(clientSslContext)
                 .handshakeTimeout(ssl.getHandshakeTimeout())
@@ -110,6 +110,9 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         ConnectionProvider connectionProvider = buildConnectionProvider(pool);
         HttpClient httpClient = HttpClient.create(connectionProvider)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
+        if (serverProperties.getHttp2().isEnabled()) {
+            httpClient = httpClient.protocol(HttpProtocol.HTTP11, HttpProtocol.H2);
+        }
         HttpClientProperties.Proxy proxy = properties.getProxy();
         if (StringUtils.isNotEmpty(proxy.getHost())) {
             httpClient = setHttpClientProxy(httpClient, proxy);
