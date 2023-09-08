@@ -47,7 +47,7 @@ public class AlibabaDubboPlugin extends AbstractDubboPlugin {
     private final AlibabaDubboProxyService alibabaDubboProxyService;
 
     /**
-     * Instantiates a new Dubbo plugin.
+     * Instantiates a new dubbo plugin.
      *
      * @param alibabaDubboProxyService the dubbo proxy service
      */
