@@ -113,7 +113,7 @@ public final class ApacheDubboConfigCacheTest {
         DubboParam dubboParamExtInfo = new DubboParam();
         dubboParamExtInfo.setVersion("2.7.5");
         dubboParamExtInfo.setGroup("Group");
-        dubboParamExtInfo.setLoadbalance("Balance");
+        dubboParamExtInfo.setLoadBalance("Balance");
         dubboParamExtInfo.setUrl("http://192.168.55.113/dubbo");
         MetaData metaData = new MetaData();
         metaData.setRpcExt(GsonUtils.getInstance().toJson(dubboParamExtInfo));

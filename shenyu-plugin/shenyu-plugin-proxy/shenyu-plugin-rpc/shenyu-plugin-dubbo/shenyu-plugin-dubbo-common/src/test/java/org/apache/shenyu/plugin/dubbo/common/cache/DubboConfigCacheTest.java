@@ -45,7 +45,7 @@ public class DubboConfigCacheTest {
         assertEquals(dubboParam.getUrl(), "http://192.168.55.113/dubbo");
         assertEquals(dubboParam.getVersion(), "2.6.5");
         assertEquals(dubboParam.getGroup(), "Group");
-        assertEquals(dubboParam.getLoadbalance(), "random");
+        assertEquals(dubboParam.getLoadBalance(), "random");
         assertEquals(dubboParam.getSent(), true);
     }
 
@@ -59,14 +59,14 @@ public class DubboConfigCacheTest {
         dubboParam.setVersion("2.6.5");
         dubboParam.setGroup("Group");
         dubboParam.setSent(true);
-        dubboParam.setLoadbalance("random");
+        dubboParam.setLoadBalance("random");
         assertEquals(dubboParam.getCluster(), "failover");
         assertEquals(dubboParam.getTimeout(), 3000);
         assertEquals(dubboParam.getRetries(), 1);
         assertEquals(dubboParam.getUrl(), "http://192.168.55.113/dubbo");
         assertEquals(dubboParam.getVersion(), "2.6.5");
         assertEquals(dubboParam.getGroup(), "Group");
-        assertEquals(dubboParam.getLoadbalance(), "random");
+        assertEquals(dubboParam.getLoadBalance(), "random");
         assertEquals(dubboParam.getSent(), true);
     }
 }

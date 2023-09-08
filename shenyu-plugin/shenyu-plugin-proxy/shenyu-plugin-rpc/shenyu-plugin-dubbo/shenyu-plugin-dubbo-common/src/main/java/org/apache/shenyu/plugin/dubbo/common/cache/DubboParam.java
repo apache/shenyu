@@ -33,9 +33,9 @@ public class DubboParam {
     private String version;
 
     /**
-     * the loadbalance.
+     * the loadBalance.
      */
-    private String loadbalance;
+    private String loadBalance;
 
     /**
      * the retries.
@@ -108,17 +108,17 @@ public class DubboParam {
      *
      * @return the loadbalance
      */
-    public String getLoadbalance() {
-        return loadbalance;
+    public String getLoadBalance() {
+        return loadBalance;
     }
 
     /**
      * Sets loadbalance.
      *
-     * @param loadbalance the loadbalance
+     * @param loadBalance the loadbalance
      */
-    public void setLoadbalance(final String loadbalance) {
-        this.loadbalance = loadbalance;
+    public void setLoadBalance(final String loadBalance) {
+        this.loadBalance = loadBalance;
     }
 
     /**

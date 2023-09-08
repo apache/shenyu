@@ -44,7 +44,7 @@ public class DubboRuleHandle implements RuleHandle {
     private Integer retries = 0;
 
     /**
-     * the loadbalance.
+     * the loadBalance.
      * {@linkplain LoadBalanceEnum}
      */
     private String loadBalance = LoadBalanceEnum.RANDOM.getName();
