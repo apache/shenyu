@@ -37,7 +37,9 @@ import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
+import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -131,6 +133,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         if (!registered.compareAndSet(false, true)) {
             return;
         }
+        ShenyuDiscoveryConfig shenyuDiscoveryConfig = context.getBean(ShenyuDiscoveryConfig.class);
+        publisher.publishEvent(buildDiscoveryConfigRegisterDTO(shenyuDiscoveryConfig));
         publisher.publishEvent(buildURIRegisterDTO(context, beans));
         beans.forEach(this::handle);
         Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiModule.class);
@@ -319,6 +323,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
                                                             String path,
                                                             Class<?> clazz,
                                                             Method method);
+
+    protected abstract DiscoveryConfigRegisterDTO buildDiscoveryConfigRegisterDTO(ShenyuDiscoveryConfig shenyuDiscoveryConfig);
 
     /**
      * Get the event publisher.

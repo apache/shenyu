@@ -30,6 +30,7 @@ import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.client.http.utils.RuntimeUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
+import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -137,6 +138,11 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     @Override
     public void doPersistInterface(final MetaDataRegisterDTO metadata) {
         doRegister(metadata, Constants.META_PATH, Constants.META_TYPE);
+    }
+
+    @Override
+    protected void doPersistDiscoveryConfig(final DiscoveryConfigRegisterDTO discoveryConfig) {
+        doRegister(discoveryConfig, Constants.DISCOVERY_CONFIG_PATH, Constants.DISCOVERY_CONFIG_TYPE);
     }
 
     @Override

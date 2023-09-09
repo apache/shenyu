@@ -19,6 +19,7 @@ package org.apache.shenyu.register.client.api;
 
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
+import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.spi.SPI;
@@ -36,7 +37,7 @@ public interface ShenyuClientRegisterRepository {
      */
     default void init(ShenyuRegisterCenterConfig config) {
     }
-    
+
     /**
      * Persist metadata.
      *
@@ -58,6 +59,13 @@ public interface ShenyuClientRegisterRepository {
      * @param offlineDTO the offline dto
      */
     default void offline(URIRegisterDTO offlineDTO) {
+    }
+
+    /**
+     * persistDiscoveryConfig.
+     * @param discoveryConfigRegisterDTO discoveryConfigRegisterDTO
+     */
+    default void persistDiscoveryConfig(DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
     }
 
     /**

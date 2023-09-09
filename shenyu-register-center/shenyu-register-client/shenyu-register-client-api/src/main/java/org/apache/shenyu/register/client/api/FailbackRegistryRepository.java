@@ -22,6 +22,7 @@ import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.register.client.api.retry.FailureRegistryTask;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
+import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
@@ -95,6 +96,22 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     /**
+     * Persist discoveryConfig.
+     *
+     * @param discoveryConfigRegisterDTO discoveryConfigRegisterDTO
+     */
+    @Override
+    public void persistDiscoveryConfig(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
+        try {
+            this.doPersistDiscoveryConfig(discoveryConfigRegisterDTO);
+        } catch (Exception ex) {
+            //If a failure occurs, it needs to be added to the retry list.
+            logger.warn("Failed to persistDiscoveryConfig {}, cause:{}", discoveryConfigRegisterDTO, ex.getMessage());
+            this.addFailureDiscoveryConfigRegister(discoveryConfigRegisterDTO);
+        }
+    }
+
+    /**
      * doPersistApiDoc.
      * @param apiDocRegisterDTO apiDocRegisterDTO
      */
@@ -125,6 +142,20 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
             URIRegisterDTO dto = (URIRegisterDTO) t;
             String address = String.join(":", dto.getHost(), String.valueOf(dto.getPort()), dto.getRpcType());
             addToFail(new Holder(t, address, Constants.URI));
+        }
+    }
+
+    /**
+     * Add failure discovery config register.
+     *
+     * @param <T> the type parameter
+     * @param t   the t
+     */
+    protected <T> void addFailureDiscoveryConfigRegister(final T t) {
+        if (t instanceof DiscoveryConfigRegisterDTO) {
+            DiscoveryConfigRegisterDTO dto = (DiscoveryConfigRegisterDTO) t;
+            String address = String.join(":", dto.getName(), dto.getServerList());
+            addToFail(new Holder(t, address, Constants.DISCOVERY_CONFIG_TYPE));
         }
     }
     
@@ -166,6 +197,9 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
             case Constants.META_TYPE:
                 this.doPersistInterface((MetaDataRegisterDTO) holder.getObj());
                 break;
+            case Constants.DISCOVERY_CONFIG_TYPE:
+                this.doPersistDiscoveryConfig((DiscoveryConfigRegisterDTO) holder.getObj());
+                break;
             default:
                 break;
         }
@@ -184,6 +218,13 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
      * @param registerDTO the register dto
      */
     protected abstract void doPersistInterface(MetaDataRegisterDTO registerDTO);
+
+    /**
+     * Do persist discoveryConfig.
+     *
+     * @param discoveryConfigRegisterDTO the discoveryConfigRegister  dto
+     */
+    protected abstract void doPersistDiscoveryConfig(DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO);
     
     private static class Holder {
         
