@@ -15,24 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.alert;
+package org.apache.shenyu.admin.mybatis.handler;
 
-import org.apache.shenyu.alert.strategy.AlertStrategy;
-import org.apache.shenyu.spi.ExtensionLoader;
+import java.util.Map;
 
 /**
- * The type alert strategy factory.
+ * mybatis type handler for map.
  */
-public class AlertStrategyFactory {
-
-    /**
-     * New instance alert strategy.
-     *
-     * @param strategyName the strategy name
-     * @return the alert strategy
-     */
-    public static AlertStrategy newInstance(final String strategyName) {
-        return ExtensionLoader.getExtensionLoader(AlertStrategy.class).getJoin(strategyName);
-    }
-
+public class MapStringTypeHandler extends AbstractObjectTypeHandler<Map<String, String>> {
+    
 }
