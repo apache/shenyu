@@ -46,6 +46,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -124,7 +125,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                     .contextPath(getContextPath())
                     .addPrefixed(addPrefixed)
                     .appName(getAppName())
-                    .path(PathUtils.decoratorPathWithSlash(getContextPath()))
+                    .path(UriComponentsBuilder.fromUriString(PathUtils.decoratorPathWithSlash(getContextPath())).build().encode().toUriString())
                     .rpcType(RpcTypeEnum.HTTP.getName())
                     .enabled(true)
                     .ruleName(getContextPath())
@@ -246,7 +247,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                 .appName(getAppName())
                 .serviceName(clazz.getName())
                 .methodName(Optional.ofNullable(method).map(Method::getName).orElse(null))
-                .path(path)
+                .path(UriComponentsBuilder.fromUriString(path).build().encode().toUriString())
                 .pathDesc(shenyuClient.desc())
                 .parameterTypes(Optional.ofNullable(method)
                         .map(m -> Arrays.stream(m.getParameterTypes())
