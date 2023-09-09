@@ -279,6 +279,9 @@ shenyu:
     paths:
       - /actuator
       - /health_check
+  alert:
+    enabled: true
+    reportUrl: http://localhost:9095/alert/report
   extPlugin:
     path:
     enabled: true
@@ -334,3 +337,7 @@ logging:
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
+    org.springframework.http.server.reactive: info
+    org.springframework.web.reactive: info
+    reactor.ipc.netty: info
+    reactor.netty: info

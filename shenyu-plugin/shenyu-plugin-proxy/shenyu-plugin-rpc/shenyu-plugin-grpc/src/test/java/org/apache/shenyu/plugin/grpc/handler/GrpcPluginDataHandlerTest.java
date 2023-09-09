@@ -62,20 +62,20 @@ public class GrpcPluginDataHandlerTest {
     
     @Test
     public void testHandlerSelector() {
-        when(selectorData.getName()).thenReturn(null);
+        when(selectorData.getId()).thenReturn(null);
         grpcPluginDataHandler.handlerSelector(selectorData);
-        when(selectorData.getName()).thenReturn("/grpc");
+        when(selectorData.getId()).thenReturn("selectorId");
         grpcPluginDataHandler.handlerSelector(selectorData);
-        assertNotNull(GrpcClientCache.getGrpcClient(selectorData.getName()));
+        assertNotNull(GrpcClientCache.getGrpcClient(selectorData.getId()));
     }
     
     @Test
     public void testRemoveSelector() {
-        when(selectorData.getName()).thenReturn(null);
+        when(selectorData.getId()).thenReturn(null);
         grpcPluginDataHandler.removeSelector(selectorData);
-        when(selectorData.getName()).thenReturn("/grpc");
+        when(selectorData.getId()).thenReturn("selectorId");
         grpcPluginDataHandler.removeSelector(selectorData);
-        final List<ShenyuServiceInstance> shenyuServiceInstances = ApplicationConfigCache.getInstance().get(selectorData.getName()).getShenyuServiceInstances();
+        final List<ShenyuServiceInstance> shenyuServiceInstances = ApplicationConfigCache.getInstance().get(selectorData.getId()).getShenyuServiceInstances();
         assertTrue(CollectionUtils.isEmpty(shenyuServiceInstances), "shenyuServiceInstances mast is empty");
     }
     

@@ -81,7 +81,7 @@ public class AlibabaDubboGrayLoadBalanceTest {
         AlibabaDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get()
                 .cachedHandle(Constants.DUBBO_SELECTOR_ID, dubboUpstreams);
 
-        when(dubboRuleHandle.getLoadbalance()).thenReturn("random");
+        when(dubboRuleHandle.getLoadBalance()).thenReturn("random");
         mockInvoker = new MockInvoker<>(URL.valueOf("localhost"));
         invokers = Collections.singletonList(mockInvoker);
         MockedStatic<LoadBalancerFactory> loadBalancerFactoryMockedStatic = mockStatic(LoadBalancerFactory.class);

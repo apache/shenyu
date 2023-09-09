@@ -15,21 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.alert.strategy;
+package org.apache.shenyu.admin.mybatis.handler;
 
-import org.apache.shenyu.spi.SPI;
+import java.util.Map;
 
 /**
- * alert strategy.
+ * mybatis type handler for map.
  */
-@SPI
-public interface AlertStrategy {
-
-    /**
-     * Alert executor.
-     *
-     * @param handle json handle
-     * @throws Exception Exception
-     */
-    void execute(String handle) throws Exception;
+public class MapStringTypeHandler extends AbstractObjectTypeHandler<Map<String, String>> {
+    
 }

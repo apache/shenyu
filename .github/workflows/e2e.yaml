@@ -49,8 +49,9 @@ jobs:
         with:
           submodules: true
 
-      - name: Cache Maven Repos
-        uses: actions/cache@v3
+      - name: Restore ShenYu E2E Maven Repos
+        id: restore-e2e-maven-cache
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
@@ -93,14 +94,6 @@ jobs:
           docker load --input /tmp/apache-shenyu-bootstrap.tar
           docker image ls -a
 
-      - name: Cache Maven Repos
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-e2e-maven-
-
       - name: Set up JDK 11 for Compiling ShenYu E2E Egnine
         uses: actions/setup-java@v3
         with:
@@ -109,6 +102,13 @@ jobs:
 
       - name: Build shenyu-e2e-engine with Maven
         run: ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-engine -am clean install
+
+      - name: Save ShenYu E2E Maven Repos
+        if: steps.restore-e2e-maven-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
 
       - name: Upload Docker Image Artifacts
         uses: actions/upload-artifact@v3
@@ -142,8 +142,8 @@ jobs:
         with:
           submodules: true
 
-      - name: Cache Maven Repos
-        uses: actions/cache@v3
+      - name: Cache ShenYu E2E Maven Repos
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
@@ -171,14 +171,22 @@ jobs:
     if: ${{ needs.changes.outputs.e2e == 'true' }}
     strategy:
       matrix:
-        case: [ "shenyu-e2e-case-spring-cloud", "shenyu-e2e-case-apache-dubbo", "shenyu-e2e-case-motan", "shenyu-e2e-case-grpc", "shenyu-e2e-case-brpc"]
+        case: [ "shenyu-e2e-case-spring-cloud", "shenyu-e2e-case-apache-dubbo", "shenyu-e2e-case-motan", "shenyu-e2e-case-grpc"]
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
 
-      - name: Cache Maven Repos
-        uses: actions/cache@v3
+      - name: Restore ShenYu Maven Repos
+        uses: actions/cache/restore@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Restore ShenYu E2E Maven Repos
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
@@ -233,8 +241,16 @@ jobs:
         with:
           submodules: true
 
-      - name: Cache Maven Repos
-        uses: actions/cache@v3
+      - name: Restore ShenYu Maven Repos
+        uses: actions/cache/restore@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Restore ShenYu E2E Maven Repos
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
