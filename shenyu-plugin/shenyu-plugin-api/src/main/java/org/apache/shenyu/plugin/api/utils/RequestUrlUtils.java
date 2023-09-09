@@ -57,13 +57,13 @@ public final class RequestUrlUtils {
         if ((StringUtils.isNotEmpty(uri.getRawQuery()) && uri.getRawQuery().contains("%"))
                 || (StringUtils.isNotEmpty(uri.getRawPath()) && uri.getRawPath().contains("%"))) {
             path = path + "?" + RequestQueryCodecUtil.getCodecQuery(exchange);
-            return UriComponentsBuilder.fromHttpUrl(path).build(true).toUri();
+            return UriComponentsBuilder.fromUriString(path).build(true).toUri();
         } else {
             if (StringUtils.isNotEmpty(uri.getQuery())) {
                 path = path + "?" + uri.getQuery();
             }
             assert path != null;
-            return UriComponentsBuilder.fromHttpUrl(path).build(false).toUri();
+            return UriComponentsBuilder.fromUriString(path).build(false).toUri();
         }
     }
 }

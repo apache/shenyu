@@ -32,7 +32,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.apache.shenyu.plugin.api.utils.RequestQueryCodecUtil;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -49,7 +49,6 @@ import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
@@ -99,7 +98,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(exchange, upstream, shenyuContext))).build().toUri();
+        URI wsRequestUrl = buildWsRealPath(exchange, upstream, shenyuContext);
         LOG.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
         HttpHeaders headers = exchange.getRequest().getHeaders();
         return this.webSocketService.handleRequest(exchange, new ShenyuWebSocketHandler(
@@ -110,16 +109,12 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         return WebSocketPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
 
-    private String buildWsRealPath(final ServerWebExchange exchange, final Upstream upstream, final ShenyuContext shenyuContext) {
+    private URI buildWsRealPath(final ServerWebExchange exchange, final Upstream upstream, final ShenyuContext shenyuContext) {
         String protocol = upstream.getProtocol();
         if (!StringUtils.hasLength(protocol)) {
             protocol = "ws://";
         }
-        String path = StringUtils.hasLength(shenyuContext.getRealUrl()) ? shenyuContext.getRealUrl() : shenyuContext.getMethod();
-        if (StringUtils.hasText(exchange.getRequest().getURI().getQuery())) {
-            path = String.join("?", path, RequestQueryCodecUtil.getCodecQuery(exchange));
-        }
-        return protocol + upstream.getUrl() + path;
+        return RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain(protocol));
     }
 
     private List<String> buildWsProtocols(final HttpHeaders headers) {
@@ -140,6 +135,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
                         .startsWith("sec-websocket"))
                 .forEach(header -> filtered.addAll(header.getKey(),
                         header.getValue()));
+        filtered.remove(HttpHeaders.HOST);
         return filtered;
     }
 
