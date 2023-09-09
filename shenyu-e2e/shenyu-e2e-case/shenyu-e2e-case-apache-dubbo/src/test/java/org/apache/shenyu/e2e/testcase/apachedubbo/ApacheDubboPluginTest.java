@@ -80,6 +80,7 @@ public class ApacheDubboPluginTest {
         adminClient.login();
         adminClient.syncPluginAll();
         Thread.sleep(10000);
+        adminClient.syncPluginAll();
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());

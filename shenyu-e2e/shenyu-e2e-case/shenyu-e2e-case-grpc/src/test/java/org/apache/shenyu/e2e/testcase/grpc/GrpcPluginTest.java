@@ -84,6 +84,7 @@ public class GrpcPluginTest {
         adminClient.login();
         adminClient.syncPluginAll();
         Thread.sleep(10000);
+        adminClient.syncPluginAll();
         final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());

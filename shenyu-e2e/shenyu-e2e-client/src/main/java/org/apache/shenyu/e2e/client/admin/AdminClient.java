@@ -505,9 +505,12 @@ public class AdminClient {
         basicAuth.remove("Content-Type");
     }
 
+    /**
+     * sync all plugin.
+     */
     public void syncPluginAll() {
         HttpEntity<SearchCondition> entity = new HttpEntity<>(basicAuth);
-        template.postForEntity(baseURL + "/plugin/syncPluginAll" , entity, ShenYuResult.class);
+        template.postForEntity(baseURL + "/plugin/syncPluginAll", entity, ShenYuResult.class);
     }
 
     @FunctionalInterface

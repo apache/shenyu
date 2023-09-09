@@ -66,6 +66,7 @@ public class DataSynNacosTest {
         adminClient.login();
         adminClient.syncPluginAll();
         Thread.sleep(10000);
+        adminClient.syncPluginAll();
         List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
