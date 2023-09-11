@@ -36,6 +36,16 @@ jobs:
           filters: '.github/filters.yml'
           list-files: json
 
+      - uses: jlumbroso/free-disk-space@main
+        id: free-space
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+
       - name: Install Go
         uses: actions/setup-go@v3
         with:
