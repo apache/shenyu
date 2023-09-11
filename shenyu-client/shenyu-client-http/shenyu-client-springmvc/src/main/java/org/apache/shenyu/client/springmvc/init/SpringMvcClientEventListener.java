@@ -125,7 +125,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                     .contextPath(getContextPath())
                     .addPrefixed(addPrefixed)
                     .appName(getAppName())
-                    .path(UriComponentsBuilder.fromUriString(PathUtils.decoratorPathWithSlash(getContextPath())).build().encode().toUriString())
+                    .path(UriComponentsBuilder.fromUriString(PathUtils.decoratorPathWithSlash(getContextPath()) + EVERY_PATH).build().encode().toUriString())
                     .rpcType(RpcTypeEnum.HTTP.getName())
                     .enabled(true)
                     .ruleName(getContextPath())
