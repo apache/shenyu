@@ -764,7 +764,7 @@ public class HttpClientProperties {
          * Installs the netty InsecureTrustManagerFactory. This is insecure and not
          * suitable for production.
          */
-        private boolean useInsecureTrustManager;
+        private boolean useInsecureTrustManager = Boolean.FALSE;
 
         /**
          * Trusted certificates for verifying the remote endpoint's certificate.
@@ -812,7 +812,7 @@ public class HttpClientProperties {
         /**
          * The default ssl configuration type. Defaults to JDK Provider.
          */
-        private SslProvider defaultConfigurationType = SslProvider.JDK;
+        private SslProvider defaultConfigurationType;
     
         /**
          * Is use insecure trust manager boolean.

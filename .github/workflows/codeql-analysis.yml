@@ -47,8 +47,9 @@ jobs:
           java-version: 8
           distribution: 'temurin'
 
-      - name: Cache local Maven repository
-        uses: actions/cache@v3
+      - name: Restore ShenYu Maven Repos
+        id: restore-maven-cache
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
