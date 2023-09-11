@@ -67,7 +67,7 @@ public class DataSynHttpTest {
     void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
         adminClient.syncPluginAll();
-        Thread.sleep(20000);
+        Thread.sleep(10000);
         final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
@@ -77,5 +77,6 @@ public class DataSynHttpTest {
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
         final List<RuleDTO> ruleDTOList = adminClient.listAllRules();
         Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
+        Thread.sleep(10000);
     }
 }
