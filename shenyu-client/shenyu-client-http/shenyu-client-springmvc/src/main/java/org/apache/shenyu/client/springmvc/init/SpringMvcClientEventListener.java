@@ -30,9 +30,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
-import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
-import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -260,20 +258,6 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                 .ruleName(StringUtils.defaultIfBlank(shenyuClient.ruleName(), path))
                 .registerMetaData(shenyuClient.registerMetaData())
                 .build();
-    }
-
-    @Override
-    protected DiscoveryConfigRegisterDTO buildDiscoveryConfigRegisterDTO(final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
-        try {
-            return DiscoveryConfigRegisterDTO.builder()
-                    .name(shenyuDiscoveryConfig.getName())
-                    .serverList(shenyuDiscoveryConfig.getServerList())
-                    .props(shenyuDiscoveryConfig.getProps())
-                    .type(shenyuDiscoveryConfig.getType())
-                    .build();
-        } catch (ShenyuException e) {
-            throw new ShenyuException(e.getMessage() + "please config ${shenyu.discovery} in xml/yml !");
-        }
     }
 
     @Override
