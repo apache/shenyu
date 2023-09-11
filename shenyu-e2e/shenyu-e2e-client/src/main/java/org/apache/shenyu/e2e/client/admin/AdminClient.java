@@ -509,9 +509,11 @@ public class AdminClient {
      * sync all plugin.
      */
     public void syncPluginAll() {
-        HttpEntity<SearchCondition> entity = new HttpEntity<>(basicAuth);
-        ResponseEntity<ShenYuResult> result = template.postForEntity(baseURL + "/plugin/syncPluginAll", entity, ShenYuResult.class);
-        Assertions.assertEquals(HttpStatus.OK, result.getStatusCode(), "checking http status");
+        for (int i = 0; i < 3; i++) {
+            HttpEntity<SearchCondition> entity = new HttpEntity<>(basicAuth);
+            ResponseEntity<ShenYuResult> result = template.postForEntity(baseURL + "/plugin/syncPluginAll", entity, ShenYuResult.class);
+            Assertions.assertEquals(HttpStatus.OK, result.getStatusCode(), "checking http status");
+        }
     }
 
     @FunctionalInterface
