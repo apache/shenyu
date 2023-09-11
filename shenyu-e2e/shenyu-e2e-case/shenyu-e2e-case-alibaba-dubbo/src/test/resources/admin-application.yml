@@ -96,7 +96,7 @@ shenyu:
       - /csrf
       - /alert/report
   swagger:
-    enable: true
+    enable: false
   dashboard:
     core:
       onlySuperAdminPermission:
