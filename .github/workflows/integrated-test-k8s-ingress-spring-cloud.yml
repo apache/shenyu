@@ -36,6 +36,14 @@ jobs:
           filters: '.github/filters.yml'
           list-files: json
 
+      - name: Clean Space
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
       - name: Cache Maven Repos
         if: steps.filter.outputs.changed == 'true'
         uses: actions/cache@v3

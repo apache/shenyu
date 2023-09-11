@@ -36,6 +36,14 @@ jobs:
           filters: '.github/filters.yml'
           list-files: json
 
+      - name: Clean Space
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
 
       - name: Cache Maven Repos
         if: steps.filter.outputs.changed == 'true'
@@ -63,21 +71,6 @@ jobs:
           go install sigs.k8s.io/kind@v0.14.0
           curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.24.14/bin/linux/amd64/kubectl && sudo install kubectl /usr/local/bin/kubectl
           kind create cluster --image=kindest/node:v1.21.1 --config=./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/deploy/kind-config.yaml
-
-      - name: Cache Maven Repos
-        if: steps.filter.outputs.changed == 'true'
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - uses: actions/setup-java@v3
-        if: steps.filter.outputs.changed == 'true'
-        with:
-          java-version: 8
-          distribution: 'temurin'
 
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
