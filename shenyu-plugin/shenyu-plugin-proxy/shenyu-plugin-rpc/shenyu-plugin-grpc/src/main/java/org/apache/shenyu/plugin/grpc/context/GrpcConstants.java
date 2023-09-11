@@ -15,24 +15,38 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.alert;
+package org.apache.shenyu.plugin.grpc.context;
 
-import org.apache.shenyu.alert.strategy.AlertStrategy;
-import org.apache.shenyu.spi.ExtensionLoader;
+import io.grpc.Context;
 
 /**
- * The type alert strategy factory.
+ * GrpcConstants.
  */
-public class AlertStrategyFactory {
+public interface GrpcConstants {
 
     /**
-     * New instance alert strategy.
-     *
-     * @param strategyName the strategy name
-     * @return the alert strategy
+     * grpc gray release selector id.
      */
-    public static AlertStrategy newInstance(final String strategyName) {
-        return ExtensionLoader.getExtensionLoader(AlertStrategy.class).getJoin(strategyName);
-    }
+    Context.Key<String> GRPC_SELECTOR_ID = Context.key("grpcSelectorId");
 
+    /**
+     * grpc gray release rule id.
+     */
+    Context.Key<String> GRPC_RULE_ID = Context.key("grpcRuleId");
+
+    /**
+     * grpc remote address.
+     */
+    Context.Key<String> GRPC_REMOTE_ADDRESS = Context.key("grpcRemoteAddress");
+
+    /**
+     * selectorCachedHandle.
+     */
+    Context.Key<String> SELECTOR_CACHED_HANDLE = Context.key("selectorCachedHandle");
+
+    /**
+     * GrpcConstants.
+     */
+    default void findGrpcConstants() {
+    }
 }

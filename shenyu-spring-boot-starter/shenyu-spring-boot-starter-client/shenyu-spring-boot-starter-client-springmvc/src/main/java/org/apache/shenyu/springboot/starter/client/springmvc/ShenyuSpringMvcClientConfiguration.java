@@ -33,7 +33,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-
 import java.util.Properties;
 
 /**
@@ -74,6 +73,6 @@ public class ShenyuSpringMvcClientConfiguration {
                 props.setProperty(ShenyuClientConstants.CONTEXT_PATH, String.format("/%s", applicationName));
             }
         }
-        return new SpringMvcClientEventListener(clientPropertiesConfig, shenyuClientRegisterRepository);
+        return new SpringMvcClientEventListener(clientPropertiesConfig, shenyuClientRegisterRepository, env);
     }
 }

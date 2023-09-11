@@ -116,6 +116,45 @@ public class URIPluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
         assertEquals("http://localhost:8090/query?queryParam=Hello%2C%20World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
+        
+        request = MockServerHttpRequest
+                .get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .queryParam("queryParam", "Hello, World")
+                .build();
+        this.exchange = spy(MockServerWebExchange.from(request));
+        shenyuContext = mock(ShenyuContext.class);
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090/%20/query");
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
+        assertEquals("http://localhost:8090/%20/query?queryParam=Hello%2C%20World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
+        
+        request = MockServerHttpRequest
+                .get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .queryParam("queryParam", "Hello,  World")
+                .build();
+        this.exchange = spy(MockServerWebExchange.from(request));
+        shenyuContext = mock(ShenyuContext.class);
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090/%20/query");
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
+        assertEquals("http://localhost:8090/%20/query?queryParam=Hello%2C%20%20World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
+        
+        request = MockServerHttpRequest
+                .get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .queryParam("p", "a%2Bb=")
+                .build();
+        this.exchange = spy(MockServerWebExchange.from(request));
+        shenyuContext = mock(ShenyuContext.class);
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090/query");
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
+        assertEquals("http://localhost:8090/query?p=a%252Bb%3D", exchange.getAttributes().get(Constants.HTTP_URI).toString());
     }
 
     @Test

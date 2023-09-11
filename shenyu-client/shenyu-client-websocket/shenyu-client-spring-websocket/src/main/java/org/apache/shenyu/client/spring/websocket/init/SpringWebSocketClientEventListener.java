@@ -45,6 +45,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -206,7 +207,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
         return MetaDataRegisterDTO.builder()
                 .contextPath(getContextPath())
                 .appName(getAppName())
-                .path(PathUtils.decoratorPathWithSlash(getContextPath()))
+                .path(UriComponentsBuilder.fromUriString(PathUtils.decoratorPathWithSlash(getContextPath())).build().encode().toUriString())
                 .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
                 .enabled(true)
                 .ruleName(StringUtils.defaultIfBlank(webSocketClient.ruleName(), getContextPath()))

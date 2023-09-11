@@ -54,7 +54,7 @@ public final class HealthFilter extends AbstractWebFilter {
     
     @Override
     protected Mono<Boolean> doMatcher(final ServerWebExchange exchange, final WebFilterChain chain) {
-        return Mono.just(paths.stream().anyMatch(path -> exchange.getRequest().getURI().getPath().startsWith(path)));
+        return Mono.just(paths.stream().anyMatch(path -> exchange.getRequest().getURI().getRawPath().startsWith(path)));
     }
     
     @Override

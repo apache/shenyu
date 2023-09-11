@@ -949,7 +949,7 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172806', '25', 'way', 'way', 3
 INSERT INTO `plugin_handle` VALUES ('1630768384280514560', '25', 'mapType', 'mapType', 3, 2, 4, '{\"required\":\"0\",\"defaultValue\":\"all\",\"rule\":\"\"}', '2023-03-01 11:14:15', '2023-03-01 11:15:14');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172807', '6', 'gray', 'gray', 3, 1, 9, '{\"required\":\"0\",\"defaultValue\":\"false\",\"placeholder\":\"gray\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172808', '6', 'group', 'group', 2, 1, 3, '{\"required\":\"0\",\"placeholder\":\"group\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172809', '6', 'loadbalance', 'loadbalance', 3, 2, 0, '{\"required\":\"0\",\"placeholder\":\"loadbalance\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172809', '6', 'loadBalance', 'loadStrategy', 3, 2, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172810', '6', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172811', '6', 'protocol', 'protocol', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"http://\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172812', '6', 'status', 'status', 3, 1, 8, '{\"defaultValue\":\"true\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -963,6 +963,8 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172819', '6', 'threadpool', 't
 INSERT INTO `plugin_handle` VALUES ('1529402613204172820', '6', 'corethreads', 'corethreads', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"0\",\"placeholder\":\"corethreads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172821', '6', 'threads', 'threads', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"2147483647\",\"placeholder\":\"threads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172822', '6', 'queues', 'queues', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"0\",\"placeholder\":\"queues\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204173923', '6', 'retries', 'retries', 3, 2, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204173924', '6', 'timeout', 'timeout', 3, 2, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172823', '26', 'host', 'host', 2, 1, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172824', '26', 'protocol', 'protocol', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"ws://\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172825', '26', 'url', 'ip:port', 2, 1, 1, '{\"required\":\"1\",\"placeholder\":\"\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -1162,6 +1164,7 @@ INSERT INTO `plugin_handle` VALUES ('1678997557628272640', '42', 'clientPendingA
 
 INSERT INTO `plugin_handle` VALUES ('1678997557628272641', '17', 'registerAddress', 'registerAddress', 2, 3, 1, '{\"required\":\"0\",\"defaultValue\":\"127.0.0.1:2181\",\"placeholder\":\"registerAddress\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 
+INSERT INTO `plugin_handle` VALUES ('1678997557628272642', '15', 'loadBalance', 'loadBalance', 3, 2, 3, '{\"required\":\"0\",\"defaultValue\":\"random\",\"rule\":\"\"}', '2023-09-05 18:02:53', '2023-09-05 18:02:53');
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
@@ -1986,4 +1989,38 @@ CREATE TABLE `tag_relation`
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 
-
+-- ----------------------------
+-- Table structure for alert_receiver
+-- ----------------------------
+DROP TABLE IF EXISTS `alert_receiver`;
+CREATE TABLE IF NOT EXISTS `alert_receiver`
+(
+    `id`                   varchar(128)   NOT NULL COMMENT 'primary key id',
+    `name`                 varchar(255)   NOT NULL COMMENT 'name',
+    `enable`               tinyint(4)     NOT NULL COMMENT 'enable or not',
+    `type`                 tinyint(4)     NOT NULL COMMENT 'notice type 0-SMS 1-Email 2-webhook 3-WeChat Official Account 4-Enterprise WeChat Robot 5-DingTalk Robot 6-FeiShu Robot 7-Telegram Bot 8-SlackWebHook 9-Discord Bot 10-Enterprise WeChat',
+    `phone`                varchar(255)   COMMENT 'phone',
+    `email`                varchar(255)   COMMENT 'email',
+    `hook_url`             varchar(255)   COMMENT 'hook url',
+    `wechat_id`            varchar(255)   COMMENT 'wechat id',
+    `access_token`         varchar(255)   COMMENT 'access token',
+    `tg_bot_token`         varchar(255)   COMMENT 'tg bot token',
+    `tg_user_id`           varchar(255)   COMMENT 'tg user id',
+    `slack_web_hook_url`   varchar(255)   COMMENT 'slack web hook url',
+    `corp_id`              varchar(255)   COMMENT 'corp id',
+    `agent_id`             varchar(255)   COMMENT 'agent id',
+    `app_secret`           varchar(255)   COMMENT 'app secret',
+    `discord_channel_id`   varchar(255)   COMMENT 'discord channel id',
+    `discord_bot_token`    varchar(255)   COMMENT 'discord bot token',
+    `smn_ak`               varchar(255)   COMMENT 'smn ak',
+    `smn_sk`               varchar(255)   COMMENT 'smn sk',
+    `smn_project_id`       varchar(255)   COMMENT 'smn project id',
+    `smn_region`           varchar(255)   COMMENT 'smn region',
+    `smn_topic_urn`        varchar(255)   COMMENT 'smn topic urn',
+    `match_all`            tinyint(4)     NOT NULL COMMENT 'match all or not',
+    `labels`               varchar(255)   COMMENT 'labels',
+    `levels`               varchar(255)   COMMENT 'levels',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;

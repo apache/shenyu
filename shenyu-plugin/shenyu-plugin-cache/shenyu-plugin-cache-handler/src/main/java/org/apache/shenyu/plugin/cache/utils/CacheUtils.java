@@ -45,7 +45,7 @@ public final class CacheUtils {
     public static String dataKey(final ServerWebExchange exchange) {
         //// todo 2022/3/16 current use the request path, maybe use the key from admin config.
         URI uri = exchange.getRequest().getURI();
-        return DigestUtils.md5Hex(String.join(KEY_JOIN_RULE, uri.getQuery(), uri.getPath()));
+        return DigestUtils.md5Hex(String.join(KEY_JOIN_RULE, uri.getQuery(), uri.getRawPath()));
     }
 
     /**
