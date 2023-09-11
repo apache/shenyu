@@ -21,7 +21,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * The type Alibaba dubbo integrated bootstrap.
+ * The type Apache dubbo integrated bootstrap.
  */
 @SpringBootApplication
 public class ApacheDubboIntegratedBootstrap {
