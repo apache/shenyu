@@ -36,15 +36,20 @@ jobs:
           filters: '.github/filters.yml'
           list-files: json
 
-      - uses: jlumbroso/free-disk-space@main
-        id: free-space
+      - name: Cache Maven Repos
+        if: steps.filter.outputs.changed == 'true'
+        uses: actions/cache@v3
         with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          swap-storage: true
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - uses: actions/setup-java@v3
+        if: steps.filter.outputs.changed == 'true'
+        with:
+          java-version: 8
+          distribution: 'temurin'
 
       - name: Install Go
         uses: actions/setup-go@v3
