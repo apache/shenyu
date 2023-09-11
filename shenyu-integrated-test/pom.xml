@@ -46,6 +46,7 @@
         <module>shenyu-integrated-test-sdk-http</module>
         <module>shenyu-integrated-test-upload-plugin</module>
         <module>shenyu-integrated-test-k8s-ingress</module>
+        <module>shenyu-integrated-test-k8s-ingress-spring-cloud</module>
     </modules>
 
     <properties>

@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -203,7 +204,7 @@ public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
                             .enabled(true).build();
 
                     MetaData metaData = parseMetaData(path, namespace);
-                    res.add(new IngressConfiguration(selectorData, ruleData, metaData));
+                    res.add(new IngressConfiguration(selectorData, Arrays.asList(ruleData), Arrays.asList(metaData)));
                 }
             }
         }
@@ -283,6 +284,6 @@ public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
                 .parameterTypes(annotations.getOrDefault(IngressConstants.PLUGIN_MOTAN_PARAMS_TYPE, ""))
                 .enabled(true)
                 .build();
-        return new IngressConfiguration(selectorData, ruleData, metaData);
+        return new IngressConfiguration(selectorData, Arrays.asList(ruleData), Arrays.asList(metaData));
     }
 }
