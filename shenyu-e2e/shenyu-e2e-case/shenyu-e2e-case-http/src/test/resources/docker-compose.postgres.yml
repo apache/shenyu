@@ -25,7 +25,7 @@ services:
     volumes:
       - /tmp/shenyu-e2e/pg/postgresql.jar:/opt/shenyu-admin/ext-lib/postgresql.jar
     environment:
-      - SPRING_PROFILES_ACTIVE=pg
+      - spring.profiles.active=pg
       - spring.datasource.username=shenyue2e
       - spring.datasource.password=123456
       - spring.datasource.url=jdbc:postgresql://postgres:5432/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
