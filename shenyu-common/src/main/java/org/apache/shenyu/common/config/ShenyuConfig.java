@@ -1549,7 +1549,12 @@ public class ShenyuConfig {
          * max frame pay load size mb.
          */
         private Integer maxFramePayloadSize = 10;
-    
+
+        /**
+         *
+         */
+        private Boolean enablePing;
+
         /**
          * Get max frame payload size.
          *
@@ -1558,7 +1563,7 @@ public class ShenyuConfig {
         public Integer getMaxFramePayloadSize() {
             return maxFramePayloadSize;
         }
-    
+
         /**
          * Set max frame payload size.
          *
@@ -1566,6 +1571,22 @@ public class ShenyuConfig {
          */
         public void setMaxFramePayloadSize(final Integer maxFramePayloadSize) {
             this.maxFramePayloadSize = maxFramePayloadSize;
+        }
+
+        /**
+         * Get whether enable ping
+         * @return whether ping is enabled
+         */
+        public Boolean getEnablePing() {
+            return enablePing;
+        }
+
+        /**
+         * enable ping or disable ping
+         * @param enablePing enable ping or disable ping
+         */
+        public void setEnablePing(boolean enablePing) {
+            this.enablePing = enablePing;
         }
     }
     
