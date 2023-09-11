@@ -22,7 +22,7 @@ on:
       - master
 
 jobs:
-  spring-cloud-ingress-controller:
+  ingress-controller-spring-cloud:
     runs-on: ubuntu-latest
     if: (github.repository == 'apache/shenyu')
     steps:
