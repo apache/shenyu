@@ -23,6 +23,7 @@ import feign.Request;
 import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
 import org.springframework.cloud.openfeign.loadbalancer.FeignBlockingLoadBalancerClient;
@@ -38,7 +39,7 @@ public final class ShenyuClientCapability implements Capability {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuClientCapability.class);
 
-    private ShenyuDiscoveryClient shenyuDiscoveryClient;
+    private BeanFactory beanFactory;
 
     private ShenyuClientCapability() {
 
@@ -56,6 +57,7 @@ public final class ShenyuClientCapability implements Capability {
             } else if (finalDelegate instanceof RetryableFeignBlockingLoadBalancerClient) {
                 delegate = ((RetryableFeignBlockingLoadBalancerClient) finalDelegate).getDelegate();
             }
+            final ShenyuDiscoveryClient shenyuDiscoveryClient = beanFactory.getBean(ShenyuDiscoveryClient.class);
             final ServiceInstance serviceInstance = shenyuDiscoveryClient.getInstance(serviceId);
             String reconstructedUrl = LoadBalancerUriTools.reconstructURI(serviceInstance, originalUri).toString();
             Request newRequest = buildRequest(request, reconstructedUrl);
@@ -65,11 +67,11 @@ public final class ShenyuClientCapability implements Capability {
     }
 
     /**
-     * set ShenyuDiscoveryClient.
-     * @param shenyuDiscoveryClient shenyuDiscoveryClient
+     * set bean factory.
+     * @param beanFactory beanFactory
      */
-    public void setShenyuDiscoveryClient(final ShenyuDiscoveryClient shenyuDiscoveryClient) {
-        this.shenyuDiscoveryClient = shenyuDiscoveryClient;
+    public void setBeanFactory(final BeanFactory beanFactory) {
+        this.beanFactory = beanFactory;
     }
 
     private Request buildRequest(final Request request, final String reconstructedUrl) {

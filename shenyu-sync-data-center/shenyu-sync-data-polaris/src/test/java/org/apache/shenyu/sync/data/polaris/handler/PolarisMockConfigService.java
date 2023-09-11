@@ -106,6 +106,6 @@ public class PolarisMockConfigService implements ConfigFilePublishService, Confi
 
     @Override
     public com.tencent.polaris.configuration.api.core.ConfigFile getConfigFile(final ConfigFileMetadata configFileMetadata) {
-        return new PolarisMockConfigFile(configFileMetadata, store.getOrDefault(configFileMetadata, "{}"));
+        return new PolarisMockConfigFile(configFileMetadata, store.getOrDefault(configFileMetadata, null));
     }
 }

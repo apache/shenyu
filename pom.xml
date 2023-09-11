@@ -94,7 +94,7 @@
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
         <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
-        <apache-rat-plugin.version>0.13</apache-rat-plugin.version>
+        <apache-rat-plugin.version>0.15</apache-rat-plugin.version>
         <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
         <frontend-maven-plugin.node.version>v12.14.1</frontend-maven-plugin.node.version>
         <!-- maven plugin version end -->
@@ -152,7 +152,7 @@
         <jackson-databind.version>2.12.3</jackson-databind.version>
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
-        <kafka-clients.version>3.2.0</kafka-clients.version>
+        <kafka-clients.version>3.4.0</kafka-clients.version>
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>1.10.17</eureka.version>
         <javatuples.version>1.2</javatuples.version>
@@ -592,6 +592,12 @@
                 <groupId>io.kubernetes</groupId>
                 <artifactId>client-java-spring-integration</artifactId>
                 <version>${k8s-client.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>${kafka-clients.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

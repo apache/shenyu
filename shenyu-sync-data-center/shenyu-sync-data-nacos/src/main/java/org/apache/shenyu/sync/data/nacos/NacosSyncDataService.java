@@ -18,20 +18,36 @@
 package org.apache.shenyu.sync.data.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.config.listener.Listener;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.NacosPathConstants;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
-import org.apache.shenyu.sync.data.nacos.handler.NacosCacheHandler;
+import org.apache.shenyu.sync.data.core.AbstractNodeDataSyncService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 /**
  * The type Nacos sync data service.
  */
-public class NacosSyncDataService extends NacosCacheHandler implements SyncDataService {
+public class NacosSyncDataService extends AbstractNodeDataSyncService implements SyncDataService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(NacosSyncDataService.class);
+
+    private final ConcurrentHashMap<String, Listener> watchCache = new ConcurrentHashMap<>();
+
+    private final ConfigService configService;
 
     /**
      * Instantiates a new Nacos sync data service.
@@ -44,30 +60,64 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
     public NacosSyncDataService(final ConfigService configService, final PluginDataSubscriber pluginDataSubscriber,
                                 final List<MetaDataSubscriber> metaDataSubscribers,
                                 final List<AuthDataSubscriber> authDataSubscribers,
-                                final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers) {
-
-        super(configService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers);
-        start();
+                                final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
+                                final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
+        super(new ChangeData(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.SELECTOR_DATA_ID,
+                NacosPathConstants.RULE_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID,
+                NacosPathConstants.PROXY_SELECTOR_DATA_ID, NacosPathConstants.DISCOVERY_DATA_ID),
+                pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+        this.configService = configService;
+        startWatch();
     }
 
-    /**
-     * Start.
-     */
-    public void start() {
-        watcherData(NacosPathConstants.PLUGIN_DATA_ID, this::updatePluginMap);
-        watcherData(NacosPathConstants.SELECTOR_DATA_ID, this::updateSelectorMap);
-        watcherData(NacosPathConstants.RULE_DATA_ID, this::updateRuleMap);
-        watcherData(NacosPathConstants.META_DATA_ID, this::updateMetaDataMap);
-        watcherData(NacosPathConstants.AUTH_DATA_ID, this::updateAuthMap);
-        watcherData(NacosPathConstants.PROXY_SELECTOR_DATA_ID, this::updateProxySelectorMap);
+    @Override
+    protected void doRemoveListener(final String key) {
+        final Listener listener = watchCache.get(key);
+        if (!ObjectUtils.isEmpty(listener)) {
+            configService.removeListener(key, NacosPathConstants.GROUP, listener);
+            watchCache.remove(key);
+        }
+    }
+
+    @Override
+    protected String getServiceConfig(final String key, final Consumer<String> updateHandler, final Consumer<String> deleteHandler) {
+        try {
+            if (watchCache.containsKey(key)) {
+                return null;
+            }
+            final Listener listener = new Listener() {
+                @Override
+                public Executor getExecutor() {
+                    return null;
+                }
+
+                @Override
+                public void receiveConfigInfo(final String configInfo) {
+                    try {
+                        if (StringUtils.isBlank(configInfo) && deleteHandler != null) {
+                            deleteHandler.accept(key);
+                        } else {
+                            updateHandler.accept(configInfo);
+                        }
+                    } catch (Exception e) {
+                        LOG.error("nacos sync listener receiveConfigInfo error", e);
+                    }
+                }
+            };
+            final String serviceConfig = configService.getConfigAndSignListener(key, NacosPathConstants.GROUP, 3000, listener);
+            watchCache.put(key, listener);
+            return serviceConfig;
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
     }
 
     @Override
     public void close() {
-        LISTENERS.forEach((dataId, lss) -> {
-            lss.forEach(listener -> getConfigService().removeListener(dataId, NacosPathConstants.GROUP, listener));
-            lss.clear();
+        watchCache.forEach((dataId, lss) -> {
+            configService.removeListener(dataId, NacosPathConstants.GROUP, lss);
+            watchCache.remove(dataId);
+            LOG.info("nacos sync remove listener key:{}", dataId);
         });
-        LISTENERS.clear();
     }
 }

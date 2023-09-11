@@ -1194,6 +1194,15 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ 
 values ('1518229897214468130', '6', 'queues', 'queues', 1, 3, 0, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1529402613204173923', '6', 'timeout', 'timeout', 3, 2, 0, null);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1529402613204173924', '6', 'retries', 'retries', 3, 2, 0, null);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1529402613204173925', '6', 'loadBalance', 'loadStrategy', 3, 2, 0, null);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468131', '26', 'host', 'host', 2, 1, 0, null);
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
@@ -1672,7 +1681,7 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ 
 values ('1518229897214468173', '32', 'compressAlg', 'compressAlg', 3, 3, 9, '{"required":"0","defaultValue":"none"}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
-values ('1518229897214468174', '32', 'index', 'index', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"optional"}');
+values ('1518229897214468174', '32', 'indexName', 'indexName', 2, 3, 10, '{"required":"1","defaultValue":"shenyu-access-logging"}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468175', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}');
@@ -2066,6 +2075,9 @@ VALUES ('1678997277012557824', '42', 'clientMaxConnections', 'clientMaxConnectio
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 VALUES ('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{"required":"0","defaultValue":"5","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1529402613204172883', '15', 'loadBalance', 'loadBalance', 3, 2, 3, '{"required":"0","defaultValue":"random","rule":""}');
 
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
@@ -2500,4 +2512,68 @@ on column ALTER_TEMPLATE.date_created
   is 'create time';
 comment
 on column ALTER_TEMPLATE.date_updated
+  is 'update time';
+
+-- ----------------------------
+-- Table structure for alert_receiver
+-- ----------------------------
+create table alert_receiver
+(
+    id                   varchar(128)   not null,
+    name                 varchar(255)   not null,
+    enable               NUMBER(10)     not null,
+    type                 NUMBER(10)     not null,
+    phone                varchar(255),
+    email                varchar(255),
+    hook_url             varchar(255),
+    wechat_id            varchar(255),
+    access_token         varchar(255),
+    tg_bot_token         varchar(255),
+    tg_user_id           varchar(255),
+    slack_web_hook_url   varchar(255),
+    corp_id              varchar(255),
+    agent_id             varchar(255),
+    app_secret           varchar(255),
+    discord_channel_id   varchar(255),
+    discord_bot_token    varchar(255),
+    smn_ak               varchar(255),
+    smn_sk               varchar(255),
+    smn_project_id       varchar(255),
+    smn_region           varchar(255),
+    smn_topic_urn        varchar(255),
+    match_all            NUMBER(10),
+    labels               varchar(255),
+    levels               varchar(255),
+    date_created      timestamp(3) default SYSDATE not null,
+    date_updated      timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+)
+;
+-- Add comments to the columns
+comment
+on column alert_receiver.id
+  is 'primary key id';
+comment
+on column alert_receiver.name
+  is 'alert receiver name';
+comment
+on column alert_receiver.enable
+  is 'enable or not';
+comment
+on column alert_receiver.type
+  is 'notice type 0-SMS 1-Email 2-webhook 3-WeChat Official Account 4-Enterprise WeChat Robot 5-DingTalk Robot 6-FeiShu Robot 7-Telegram Bot 8-SlackWebHook 9-Discord Bot 10-Enterprise WeChat';
+comment
+on column alert_receiver.match_all
+  is 'enable or not';
+comment
+on column alert_receiver.labels
+  is 'alarm labels';
+comment
+on column alert_receiver.levels
+  is 'alarm levels';
+comment
+on column alert_receiver.date_created
+  is 'create time';
+comment
+on column alert_receiver.date_updated
   is 'update time';
