@@ -23,12 +23,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.time.Duration;
 
-import io.netty.handler.ssl.SslProvider;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
@@ -49,7 +49,8 @@ public class HttpClientPluginConfigurationTest {
     public void before() {
         applicationContextRunner = new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(HttpClientPluginConfiguration.class))
-                .withBean(HttpClientPluginConfigurationTest.class);
+                .withBean(HttpClientPluginConfigurationTest.class)
+                .withBean(ServerProperties.class);
     }
 
     @Test
@@ -71,8 +72,7 @@ public class HttpClientPluginConfigurationTest {
                         "shenyu.httpclient.ssl.X509Certificate[]=[]",
                         "shenyu.httpclient.ssl.handshakeTimeout=10000",
                         "shenyu.httpclient.ssl.closeNotifyFlushTimeout=3000",
-                        "shenyu.httpclient.ssl.closeNotifyReadTimeout=0",
-                        "shenyu.httpclient.ssl.SslProvider.DefaultConfigurationType=1"
+                        "shenyu.httpclient.ssl.closeNotifyReadTimeout=0"
                 )
                 .run(context -> {
                     HttpClientProperties properties = context.getBean("httpClientProperties", HttpClientProperties.class);
@@ -92,7 +92,6 @@ public class HttpClientPluginConfigurationTest {
                     assertNotNull(properties.getSsl().getTrustedX509Certificates());
                     assertThat(properties.getSsl().getCloseNotifyFlushTimeout(), is(Duration.ofMillis(3000)));
                     assertThat(properties.getSsl().getCloseNotifyReadTimeout(), is(Duration.ZERO));
-                    assertThat(properties.getSsl().getDefaultConfigurationType(), is(SslProvider.JDK));
                 });
     }
 

@@ -22,9 +22,10 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
-import org.apache.shenyu.plugin.base.cache.CommonMetaDataSubscriber;
+import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
-import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.plugin.global.subsciber.MetaDataCacheSubscriber;
+import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 
 import java.util.List;
 
@@ -38,18 +39,21 @@ import java.util.List;
  */
 public class ShenyuCacheRepository {
 
-    private final PluginDataSubscriber subscriber;
+    private final CommonPluginDataSubscriber subscriber;
 
-    private final CommonMetaDataSubscriber metaDataSubscriber;
+    private final MetaDataSubscriber metaDataSubscriber;
+
+    private final MetaDataCacheSubscriber metaDataCacheSubscriber;
 
     /**
      * Shenyu Cache Repository Constructor.
      *
      * @param subscriber PluginDataSubscriber
      */
-    public ShenyuCacheRepository(final PluginDataSubscriber subscriber, final CommonMetaDataSubscriber metaDataSubscriber) {
+    public ShenyuCacheRepository(final CommonPluginDataSubscriber subscriber, final MetaDataSubscriber metaDataSubscriber, final MetaDataCacheSubscriber metaDataCacheSubscriber) {
         this.subscriber = subscriber;
         this.metaDataSubscriber = metaDataSubscriber;
+        this.metaDataCacheSubscriber = metaDataCacheSubscriber;
     }
 
     /**
@@ -154,6 +158,7 @@ public class ShenyuCacheRepository {
      */
     public void saveOrUpdateMetaData(final MetaData metaData) {
         metaDataSubscriber.onSubscribe(metaData);
+        metaDataCacheSubscriber.onSubscribe(metaData);
     }
 
     /**
@@ -162,5 +167,6 @@ public class ShenyuCacheRepository {
      */
     public void deleteMetaData(final MetaData metaData) {
         metaDataSubscriber.unSubscribe(metaData);
+        metaDataCacheSubscriber.unSubscribe(metaData);
     }
 }

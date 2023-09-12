@@ -26,11 +26,14 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
+import reactor.netty.http.Http11SslContextSpec;
+import reactor.netty.http.Http2SslContextSpec;
+import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.resources.LoopResources;
-import reactor.netty.tcp.DefaultSslContextSpec;
 import reactor.netty.tcp.SslProvider;
 import reactor.netty.transport.ProxyProvider;
 
@@ -44,10 +47,15 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
     private final HttpClientProperties properties;
 
     private final LoopResources loopResources;
+    
+    private final ServerProperties serverProperties;
 
-    public HttpClientFactory(final HttpClientProperties httpClientProperties, final LoopResources loopResources) {
+    public HttpClientFactory(final HttpClientProperties httpClientProperties,
+                             final LoopResources loopResources,
+                             final ServerProperties serverProperties) {
         this.properties = httpClientProperties;
         this.loopResources = loopResources;
+        this.serverProperties = serverProperties;
     }
 
     @Override
@@ -78,18 +86,18 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
     }
 
     private void setSsl(final SslProvider.SslContextSpec sslContextSpec, final HttpClientProperties.Ssl ssl) {
-        SslProvider.ProtocolSslContextSpec spec = DefaultSslContextSpec.forClient()
-                .configure(sslContextBuilder -> {
-                    X509Certificate[] trustedX509Certificates = ssl.getTrustedX509CertificatesForTrustManager();
-                    if (ArrayUtils.isNotEmpty(trustedX509Certificates)) {
-                        sslContextBuilder.trustManager(trustedX509Certificates);
-                    } else if (ssl.isUseInsecureTrustManager()) {
-                        sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
-                    }
-                    sslContextBuilder.keyManager(ssl.getKeyManagerFactory());
-                    sslContextBuilder.sslProvider(ssl.getDefaultConfigurationType());
-                });
-        sslContextSpec.sslContext(spec)
+        SslProvider.ProtocolSslContextSpec clientSslContext = (serverProperties.getHttp2().isEnabled())
+                ? Http2SslContextSpec.forClient() : Http11SslContextSpec.forClient();
+        clientSslContext.configure(sslContextBuilder -> {
+            X509Certificate[] trustedX509Certificates = ssl.getTrustedX509CertificatesForTrustManager();
+            if (ArrayUtils.isNotEmpty(trustedX509Certificates)) {
+                sslContextBuilder.trustManager(trustedX509Certificates);
+            } else if (ssl.isUseInsecureTrustManager()) {
+                sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
+            }
+            sslContextBuilder.keyManager(ssl.getKeyManagerFactory());
+        });
+        sslContextSpec.sslContext(clientSslContext)
                 .handshakeTimeout(ssl.getHandshakeTimeout())
                 .closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
                 .closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
@@ -102,6 +110,9 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         ConnectionProvider connectionProvider = buildConnectionProvider(pool);
         HttpClient httpClient = HttpClient.create(connectionProvider)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
+        if (serverProperties.getHttp2().isEnabled()) {
+            httpClient = httpClient.protocol(HttpProtocol.HTTP11, HttpProtocol.H2);
+        }
         HttpClientProperties.Proxy proxy = properties.getProxy();
         if (StringUtils.isNotEmpty(proxy.getHost())) {
             httpClient = setHttpClientProxy(httpClient, proxy);

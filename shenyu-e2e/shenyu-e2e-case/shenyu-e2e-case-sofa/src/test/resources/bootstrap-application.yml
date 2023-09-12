@@ -275,6 +275,9 @@ shenyu:
     paths:
       - /actuator
       - /health_check
+  alert:
+    enabled: true
+    reportUrl: http://admin:9095/alert/report
   extPlugin:
     path:
     enabled: true
