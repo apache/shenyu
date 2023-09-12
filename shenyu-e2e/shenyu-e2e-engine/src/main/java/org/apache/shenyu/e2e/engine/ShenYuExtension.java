@@ -76,9 +76,9 @@ public class ShenYuExtension implements BeforeAllCallback, ExecutionCondition, A
             store.put(KEY_ENGINE_CONFIGURE, configure);
         }
         
-        if (configure.isRunOnDocker() && !isDockerAvailable()) {
-            return ConditionEvaluationResult.disabled("Docker is not available");
-        }
+//        if (configure.isRunOnDocker() && !isDockerAvailable()) {
+//            return ConditionEvaluationResult.disabled("Docker is not available");
+//        }
         
         return ConditionEvaluationResult.enabled("ShenYu test engine is available");
     }
