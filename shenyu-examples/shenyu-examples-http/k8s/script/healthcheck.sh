@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-sleep 180
+sleep 300
 
 kubectl get pod -o wide
 
