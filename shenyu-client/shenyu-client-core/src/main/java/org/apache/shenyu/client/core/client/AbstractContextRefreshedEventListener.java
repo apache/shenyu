@@ -81,6 +81,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      */
     protected static final String PATH_SEPARATOR = "/";
 
+    protected static final String EVERY_PATH = "**";
+
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
