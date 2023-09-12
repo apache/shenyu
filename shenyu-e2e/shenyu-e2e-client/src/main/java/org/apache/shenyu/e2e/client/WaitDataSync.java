@@ -23,6 +23,8 @@ import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.model.data.RuleCacheData;
 import org.apache.shenyu.e2e.model.response.RuleDTO;
 import org.junit.jupiter.api.Assertions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -30,6 +32,8 @@ import java.util.List;
  * WaitDataSync.
  */
 public class WaitDataSync {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WaitDataSync.class);
 
     /**
      * waitAdmin2GatewayDataSync.
@@ -54,6 +58,7 @@ public class WaitDataSync {
             }
             retryNum++;
         }
+        LOGGER.info("waitAdmin2GatewayDataSync admin rule size = {} , gateway rule size = {}", ruleDTOList.size(), ruleCacheList.size());
         Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
     }
 }
