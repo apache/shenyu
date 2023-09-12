@@ -137,7 +137,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
             return;
         }
         ShenyuDiscoveryConfig shenyuDiscoveryConfig = context.getBean(ShenyuDiscoveryConfig.class);
-        if (StringUtils.isNotEmpty(shenyuDiscoveryConfig.getServerList())) {
+        if (null != shenyuDiscoveryConfig && StringUtils.isNotEmpty(shenyuDiscoveryConfig.getServerList())) {
             publisher.publishEvent(buildDiscoveryConfigRegisterDTO(shenyuDiscoveryConfig));
         }
         publisher.publishEvent(buildURIRegisterDTO(context, beans));
