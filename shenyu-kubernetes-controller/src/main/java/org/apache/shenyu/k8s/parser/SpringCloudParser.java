@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -113,7 +114,7 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
                 List<IngressConfiguration> routeList = new ArrayList<>(rules.size());
                 for (V1IngressRule ingressRule : rules) {
                     List<IngressConfiguration> routes = parseIngressRule(ingressRule,
-                            Objects.requireNonNull(ingress.getMetadata()).getNamespace(), ingress.getMetadata().getAnnotations());
+                            Objects.requireNonNull(ingress.getMetadata()).getNamespace(), ingress.getMetadata().getAnnotations(), ingress.getMetadata().getLabels());
                     routeList.addAll(routes);
                 }
                 res.setRouteConfigList(routeList);
@@ -144,18 +145,9 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
         return res;
     }
 
-    private List<IngressConfiguration> parseIngressRule(final V1IngressRule ingressRule,
-                                                        final String namespace,
-                                                        final Map<String, String> annotations) {
+    private List<IngressConfiguration> parseIngressRule(final V1IngressRule ingressRule, final String namespace, final Map<String, String> annotations, final Map<String, String> labels) {
         List<IngressConfiguration> res = new ArrayList<>();
-
-        ConditionData hostCondition = null;
-        if (Objects.nonNull(ingressRule.getHost())) {
-            hostCondition = new ConditionData();
-            hostCondition.setParamType(ParamTypeEnum.DOMAIN.getName());
-            hostCondition.setOperator(OperatorEnum.EQ.getAlias());
-            hostCondition.setParamValue(ingressRule.getHost());
-        }
+        ConditionData hostCondition = Objects.nonNull(ingressRule.getHost()) ? createHostCondition(ingressRule.getHost()) : null;
         if (Objects.nonNull(ingressRule.getHttp())) {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
             if (Objects.nonNull(paths)) {
@@ -163,68 +155,114 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
                     if (path.getPath() == null) {
                         continue;
                     }
-
-                    OperatorEnum operator;
-                    if ("ImplementationSpecific".equals(path.getPathType())) {
-                        operator = OperatorEnum.MATCH;
-                    } else if ("Prefix".equals(path.getPathType())) {
-                        operator = OperatorEnum.STARTS_WITH;
-                    } else if ("Exact".equals(path.getPathType())) {
-                        operator = OperatorEnum.EQ;
-                    } else {
-                        LOG.info("Invalid path type, set it with match operator");
-                        operator = OperatorEnum.MATCH;
-                    }
-
-                    ConditionData pathCondition = new ConditionData();
-                    pathCondition.setOperator(operator.getAlias());
-                    pathCondition.setParamType(ParamTypeEnum.URI.getName());
-                    pathCondition.setParamValue(path.getPath());
+                    OperatorEnum operator = getOperator(path.getPathType());
+                    ConditionData pathCondition = createPathCondition(path.getPath(), operator);
                     List<ConditionData> conditionList = new ArrayList<>(2);
                     if (Objects.nonNull(hostCondition)) {
                         conditionList.add(hostCondition);
                     }
                     conditionList.add(pathCondition);
-                    SpringCloudSelectorHandle springCloudSelectorHandle = new SpringCloudSelectorHandle();
-                    springCloudSelectorHandle.setServiceId(annotations.getOrDefault(IngressConstants.PLUGIN_SPRING_CLOUD_SERVICE_ID, "springCloud-test"));
-                    springCloudSelectorHandle.setGray(Boolean.parseBoolean(annotations.getOrDefault(IngressConstants.PLUGIN_SPRING_CLOUD_GRAY, "false")));
-                    if (Objects.equals(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_DIVIDE_UPSTREAM), "true")) {
-                        List<DivideUpstream> divideUpstreams = parseDivideUpstream(path.getBackend(), namespace);
-                        springCloudSelectorHandle.setDivideUpstreams(divideUpstreams);
-                    }
-                    SelectorData selectorData = SelectorData.builder()
-                            .pluginId(String.valueOf(PluginEnum.SPRING_CLOUD.getCode()))
-                            .pluginName(PluginEnum.SPRING_CLOUD.getName())
-                            .name(path.getPath())
-                            .matchMode(MatchModeEnum.AND.getCode())
-                            .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
-                            .enabled(true)
-                            .logged(false)
-                            .continued(true)
-                            .conditionList(conditionList).build();
-                    selectorData.setHandle(GsonUtils.getInstance().toJson(springCloudSelectorHandle));
 
-                    SpringCloudRuleHandle ruleHandle = new SpringCloudRuleHandle();
-                    if (Objects.nonNull(annotations)) {
-                        ruleHandle.setPath(annotations.getOrDefault(IngressConstants.PATH_ANNOTATION_KEY, ""));
-                        ruleHandle.setTimeout(Long.parseLong(annotations.getOrDefault(IngressConstants.TIMEOUT_ANNOTATION_KEY, "3000")));
-                        ruleHandle.setLoadBalance(annotations.getOrDefault(IngressConstants.LOADBALANCER_ANNOTATION_KEY, LoadBalanceEnum.RANDOM.getName()));
+                    SpringCloudSelectorHandle springCloudSelectorHandle = createSpringCloudSelectorHandle(annotations, path, namespace);
+                    SelectorData selectorData = createSelectorData(path.getPath(), conditionList, springCloudSelectorHandle);
+                    SpringCloudRuleHandle ruleHandle = createSpringCloudRuleHandle(annotations);
+                    List<RuleData> ruleDataList = new ArrayList<>();
+                    List<MetaData> metaDataList = new ArrayList<>();
+                    for (String label : labels.keySet()) {
+                        Map<String, String> metadataAnnotations = serviceLister.namespace(namespace).get(labels.get(label)).getMetadata().getAnnotations();
+                        List<ConditionData> ruleConditionList = getRuleConditionList(metadataAnnotations);
+                        RuleData ruleData = createRuleData(metadataAnnotations, ruleHandle, ruleConditionList);
+                        MetaData metaData = parseMetaData(metadataAnnotations);
+                        ruleDataList.add(ruleData);
+                        metaDataList.add(metaData);
                     }
-                    RuleData ruleData = RuleData.builder()
-                            .name(path.getPath())
-                            .pluginName(PluginEnum.SPRING_CLOUD.getName())
-                            .matchMode(MatchModeEnum.AND.getCode())
-                            .conditionDataList(conditionList)
-                            .handle(GsonUtils.getInstance().toJson(ruleHandle))
-                            .loged(false)
-                            .enabled(true).build();
-
-                    MetaData metaData = parseMetaData(path, namespace);
-                    res.add(new IngressConfiguration(selectorData, ruleData, metaData));
+                    res.add(new IngressConfiguration(selectorData, ruleDataList, metaDataList));
                 }
             }
         }
         return res;
+    }
+
+    private ConditionData createHostCondition(final String host) {
+        ConditionData hostCondition = new ConditionData();
+        hostCondition.setParamType(ParamTypeEnum.DOMAIN.getName());
+        hostCondition.setOperator(OperatorEnum.EQ.getAlias());
+        hostCondition.setParamValue(host);
+        return hostCondition;
+    }
+
+    private OperatorEnum getOperator(final String pathType) {
+        if ("ImplementationSpecific".equals(pathType)) {
+            return OperatorEnum.MATCH;
+        } else if ("Prefix".equals(pathType)) {
+            return OperatorEnum.STARTS_WITH;
+        } else if ("Exact".equals(pathType)) {
+            return OperatorEnum.EQ;
+        } else {
+            LOG.info("Invalid path type, set it with match operator");
+            return OperatorEnum.MATCH;
+        }
+    }
+
+    private ConditionData createPathCondition(final String path, final OperatorEnum operator) {
+        ConditionData pathCondition = new ConditionData();
+        pathCondition.setOperator(operator.getAlias());
+        pathCondition.setParamType(ParamTypeEnum.URI.getName());
+        pathCondition.setParamValue(path);
+        return pathCondition;
+    }
+
+    private SpringCloudSelectorHandle createSpringCloudSelectorHandle(final Map<String, String> annotations, final V1HTTPIngressPath path, final String namespace) {
+        SpringCloudSelectorHandle springCloudSelectorHandle = new SpringCloudSelectorHandle();
+        springCloudSelectorHandle.setServiceId(annotations.getOrDefault(IngressConstants.PLUGIN_SPRING_CLOUD_SERVICE_ID, "springCloud-test"));
+        springCloudSelectorHandle.setGray(Boolean.parseBoolean(annotations.getOrDefault(IngressConstants.PLUGIN_SPRING_CLOUD_GRAY, "false")));
+        springCloudSelectorHandle.setDivideUpstreams(parseDivideUpstream(path, namespace, annotations));
+        return springCloudSelectorHandle;
+    }
+
+    private SelectorData createSelectorData(final String path, final List<ConditionData> conditionList, final SpringCloudSelectorHandle springCloudSelectorHandle) {
+        return SelectorData.builder()
+                .pluginId(String.valueOf(PluginEnum.SPRING_CLOUD.getCode()))
+                .pluginName(PluginEnum.SPRING_CLOUD.getName())
+                .name(path)
+                .matchMode(MatchModeEnum.AND.getCode())
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .enabled(true)
+                .logged(false)
+                .continued(true)
+                .conditionList(conditionList)
+                .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
+                .build();
+    }
+
+    private SpringCloudRuleHandle createSpringCloudRuleHandle(final Map<String, String> annotations) {
+        SpringCloudRuleHandle ruleHandle = new SpringCloudRuleHandle();
+        ruleHandle.setPath(annotations.get(IngressConstants.PATH_ANNOTATION_KEY));
+        ruleHandle.setTimeout(Long.parseLong(annotations.getOrDefault(IngressConstants.TIMEOUT_ANNOTATION_KEY, "3000")));
+        ruleHandle.setLoadBalance(annotations.getOrDefault(IngressConstants.LOADBALANCER_ANNOTATION_KEY, LoadBalanceEnum.ROUND_ROBIN.getName()));
+        return ruleHandle;
+    }
+
+    private RuleData createRuleData(final Map<String, String> metadataAnnotations, final SpringCloudRuleHandle ruleHandle, final List<ConditionData> ruleConditionList) {
+        return RuleData.builder()
+                .name(metadataAnnotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_PATH))
+                .pluginName(PluginEnum.SPRING_CLOUD.getName())
+                .matchMode(MatchModeEnum.AND.getCode())
+                .conditionDataList(ruleConditionList)
+                .handle(GsonUtils.getInstance().toJson(ruleHandle))
+                .loged(true)
+                .enabled(true)
+                .build();
+    }
+
+    private List<ConditionData> getRuleConditionList(final Map<String, String> annotations) {
+        final List<ConditionData> ruleConditionList = new ArrayList<>();
+        ConditionData ruleCondition = new ConditionData();
+        ruleCondition.setOperator(OperatorEnum.EQ.getAlias());
+        ruleCondition.setParamType(ParamTypeEnum.URI.getName());
+        ruleCondition.setParamValue(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_PATH));
+        ruleConditionList.add(ruleCondition);
+        return ruleConditionList;
     }
 
     private String parsePort(final V1IngressServiceBackend service) {
@@ -238,15 +276,16 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
         return null;
     }
 
-    private List<DivideUpstream> parseDivideUpstream(final V1IngressBackend backend, final String namespace) {
+    private List<DivideUpstream> parseDivideUpstream(final V1HTTPIngressPath path, final String namespace, final Map<String, String> annotations) {
         List<DivideUpstream> upstreamList = new ArrayList<>();
-        if (Objects.nonNull(backend) && Objects.nonNull(backend.getService()) && Objects.nonNull(backend.getService().getName())) {
-            String serviceName = backend.getService().getName();
+        if (Objects.nonNull(path) && Objects.nonNull(path.getBackend().getService()) && Objects.nonNull(path.getBackend().getService().getName())) {
             // shenyu routes directly to the container
+            String serviceName = path.getBackend().getService().getName();
+//            V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
+//            List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
+            V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
-            Map<String, String> annotations = v1Service.getMetadata().getAnnotations();
             String[] protocols = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
@@ -259,12 +298,12 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
                     int i = 0;
                     for (V1EndpointAddress address : addresses) {
                         String upstreamIp = address.getIp();
-                        String defaultPort = parsePort(backend.getService());
+                        String defaultPort = parsePort(path.getBackend().getService());
                         if (Objects.nonNull(defaultPort)) {
                             DivideUpstream upstream = new DivideUpstream();
                             upstream.setUpstreamUrl(upstreamIp + ":" + defaultPort);
                             upstream.setWeight(100);
-                            upstream.setProtocol(Objects.isNull(protocols[i++]) ? "http" : protocols[i++]);
+                            upstream.setProtocol(Objects.isNull(protocols[i++]) ? "http://" : protocols[i++]);
                             upstream.setWarmup(0);
                             upstream.setStatus(true);
                             upstream.setUpstreamHost("");
@@ -277,26 +316,16 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
         return upstreamList;
     }
 
-    private MetaData parseMetaData(final V1HTTPIngressPath path, final String namespace) {
-        String serviceName = path.getBackend().getService().getName();
-        V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
-        Map<String, String> annotations = v1Service.getMetadata().getAnnotations();
-        if (Objects.isNull(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_APP_NAME))
-                || Objects.isNull(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_PATH))
-                || Objects.isNull(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_RPC_TYPE))
-                || Objects.isNull(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_SERVICE_NAME))
-                || Objects.isNull(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_METHOD_NAME))) {
-            LOG.error("spring cloud metadata is error, please check motan service. MetaData: [{}]", v1Service.getMetadata());
-            throw new ShenyuException(annotations + " is is missing.");
-        }
+    private MetaData parseMetaData(final Map<String, String> annotations) {
         return MetaData.builder()
                 .appName(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_APP_NAME))
+                .contextPath(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_CONTEXT_PATH))
                 .path(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_PATH))
                 .rpcType(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_RPC_TYPE))
                 .serviceName(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_SERVICE_NAME))
                 .methodName(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_METHOD_NAME))
-                .rpcExt(annotations.getOrDefault(IngressConstants.PLUGIN_SPRING_CLOUD_RPC_EXT, ""))
-                .parameterTypes(annotations.getOrDefault(IngressConstants.PLUGIN_SPRING_CLOUD_PARAMENT_TYPE, ""))
+                .rpcExt(annotations.getOrDefault(IngressConstants.PLUGIN_SPRING_CLOUD_RPC_EXT, null))
+                .parameterTypes(annotations.getOrDefault(IngressConstants.PLUGIN_SPRING_CLOUD_PARAMENT_TYPE, null))
                 .enabled(true)
                 .build();
     }
@@ -306,10 +335,10 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
         conditionData.setParamName("/springCloud");
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.STARTS_WITH.getAlias());
-        conditionData.setParamValue("/springcloud/");
+        conditionData.setParamValue("/springcloud");
 
         final SelectorData selectorData = SelectorData.builder()
-                .name("/springCloud")
+                .name("/springcloud")
                 .sort(1)
                 .conditionList(Collections.singletonList(conditionData))
                 .enabled(true)
@@ -329,15 +358,21 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
         if (Objects.nonNull(annotations)) {
             springCloudRuleHandle.setPath(annotations.getOrDefault(IngressConstants.PATH_ANNOTATION_KEY, ""));
             springCloudRuleHandle.setTimeout(Long.parseLong(annotations.getOrDefault(IngressConstants.TIMEOUT_ANNOTATION_KEY, "3000")));
-            springCloudRuleHandle.setLoadBalance(annotations.getOrDefault(IngressConstants.LOADBALANCER_ANNOTATION_KEY, LoadBalanceEnum.RANDOM.getName()));
+            springCloudRuleHandle.setLoadBalance(annotations.getOrDefault(IngressConstants.LOADBALANCER_ANNOTATION_KEY, LoadBalanceEnum.ROUND_ROBIN.getName()));
         }
+
+        final ConditionData ruleConditionData = new ConditionData();
+        conditionData.setParamName(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_PATH));
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setOperator(OperatorEnum.EQ.getAlias());
+        conditionData.setParamValue(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_PATH));
 
         final RuleData ruleData = RuleData.builder()
                 .selectorId(IngressConstants.ID)
                 .pluginName(PluginEnum.SPRING_CLOUD.getName())
                 .name("spring-cloud-rule")
                 .matchMode(MatchModeEnum.AND.getCode())
-                .conditionDataList(Collections.singletonList(conditionData))
+                .conditionDataList(Collections.singletonList(ruleConditionData))
                 .loged(false)
                 .enabled(true)
                 .sort(Integer.MAX_VALUE).build();
@@ -361,6 +396,6 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
                 .parameterTypes(annotations.getOrDefault(IngressConstants.PLUGIN_SPRING_CLOUD_PARAMENT_TYPE, ""))
                 .enabled(true)
                 .build();
-        return new IngressConfiguration(selectorData, ruleData, metaData);
+        return new IngressConfiguration(selectorData, Arrays.asList(ruleData), Arrays.asList(metaData));
     }
 }

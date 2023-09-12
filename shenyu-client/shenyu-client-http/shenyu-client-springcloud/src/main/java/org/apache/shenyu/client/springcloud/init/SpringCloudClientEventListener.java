@@ -46,6 +46,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -127,7 +128,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
             getPublisher().publishEvent(MetaDataRegisterDTO.builder()
                     .contextPath(getContextPath())
                     .appName(getAppName())
-                    .path(PathUtils.decoratorPathWithSlash(getContextPath()))
+                    .path(UriComponentsBuilder.fromUriString(PathUtils.decoratorPathWithSlash(getContextPath()) + EVERY_PATH).build().encode().toUriString())
                     .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                     .enabled(true)
                     .ruleName(getContextPath())

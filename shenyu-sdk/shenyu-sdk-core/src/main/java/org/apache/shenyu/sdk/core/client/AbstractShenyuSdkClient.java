@@ -178,9 +178,9 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
     private String replaceUrl(final String url, final String sourceUrl) {
         final URI uri = URI.create(sourceUrl);
         if (StringUtils.isEmpty(uri.getQuery())) {
-            return url + uri.getPath();
+            return url + uri.getRawPath();
         } else {
-            return String.format("%s%s?%s", url, uri.getPath(), uri.getQuery());
+            return String.format("%s%s?%s", url, uri.getRawPath(), uri.getQuery());
         }
     }
 
