@@ -44,10 +44,10 @@ public class WaitDataSync {
         int retryNum = 0;
         List<RuleCacheData> ruleCacheList = null;
         List<RuleDTO> ruleDTOList = null;
-        while (retryNum < 6) {
+        while (retryNum < 10) {
             ruleCacheList = gatewayClient.getRuleCache();
             ruleDTOList = adminClient.listAllRules();
-            if (gatewayClient.getRuleCache().size() != adminClient.listAllRules().size()) {
+            if (ruleCacheList.size() != ruleDTOList.size()) {
                 Thread.sleep(5000);
             } else {
                 break;
