@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -255,7 +256,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
 
                     DubboRuleHandle dubboRuleHandle = new DubboRuleHandle();
                     if (Objects.nonNull(annotations)) {
-                        dubboRuleHandle.setLoadbalance(annotations.getOrDefault(IngressConstants.LOADBALANCER_ANNOTATION_KEY, LoadBalanceEnum.RANDOM.getName()));
+                        dubboRuleHandle.setLoadBalance(annotations.getOrDefault(IngressConstants.LOADBALANCER_ANNOTATION_KEY, LoadBalanceEnum.RANDOM.getName()));
                     }
                     RuleData ruleData = RuleData.builder()
                             .name(path.getPath())
@@ -267,9 +268,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                             .enabled(true).build();
 
                     List<MetaData> metaDataList = parseMetaData(paths, namespace);
-                    for (MetaData metaData : metaDataList) {
-                        res.add(new IngressConfiguration(selectorData, ruleData, metaData));
-                    }
+                    res.add(new IngressConfiguration(selectorData, Arrays.asList(ruleData), metaDataList));
                 }
             }
         }
@@ -373,6 +372,6 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
             metaData.setParameterTypes(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_PARAMENT_TYPE, ""));
             metaData.setEnabled(Boolean.parseBoolean(annotations.getOrDefault(IngressConstants.PLUGIN_DUBBO_ENABLED, "true")));
         }
-        return new IngressConfiguration(selectorData, ruleData, metaData);
+        return new IngressConfiguration(selectorData, Arrays.asList(ruleData), Arrays.asList(metaData));
     }
 }
