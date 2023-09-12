@@ -61,6 +61,7 @@ public class WaitDataSync {
             Thread.sleep(3000);
             retryNum++;
         }
+        Assertions.assertNotEquals(adminRuleList.size(), 0);
         Assertions.assertEquals(adminRuleList.size(), gatewayRuleList.size());
     }
 }
