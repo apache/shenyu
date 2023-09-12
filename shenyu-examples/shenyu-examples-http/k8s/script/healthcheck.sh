@@ -22,7 +22,7 @@ do
     for loop in `seq 1 30`
     do
         status=`curl -o /dev/null -s -w %{http_code} $service`
-        echo -e "curl $service response $status"
+        echo -e "curl $service response" $status
 
         if [ $status -eq 200  ]; then
             break
@@ -34,15 +34,15 @@ done
 
 sleep 5
 
-status=`curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type:application/json" http://localhost:31195/http/order/save --data '{"name":"test", "id": 123}'`
+status=`curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type:application/json" http://shenyu-bootstrap:31195/http/order/save --data '{"name":"test", "id": 123}'`
 
 sleep 20
 
 if [ $status -eq 200 ]; then
-    echo -e "Success to send request: $status"
+    echo -e "Success to send request: " $status
     echo -e "\n-------------------"
     exit 0
 fi
-echo -e "Failed to send request from shenyu-bootstrap to http example: $status"
+echo -e "Failed to send request from shenyu-bootstrap to http example:" $status
 echo -e "\n-------------------"
 exit 1
