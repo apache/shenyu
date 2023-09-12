@@ -22,7 +22,7 @@ on:
       - master
 
 jobs:
-  ingress-controller:
+  ingress-controller-http:
     runs-on: ubuntu-latest
     if: (github.repository == 'apache/shenyu')
     steps:
@@ -36,17 +36,14 @@ jobs:
           filters: '.github/filters.yml'
           list-files: json
 
-      - name: Install Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.17.x
-
-      - name: Install k8s
+      - name: Clean Space
         if: steps.filter.outputs.changed == 'true'
         run: |
-          go install sigs.k8s.io/kind@v0.14.0
-          curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.24.14/bin/linux/amd64/kubectl && sudo install kubectl /usr/local/bin/kubectl
-          kind create cluster --image=kindest/node:v1.21.1 --config=./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/deploy/kind-config.yaml
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
 
       - name: Restore ShenYu Maven Repos
         if: steps.filter.outputs.changed == 'true'
@@ -62,6 +59,18 @@ jobs:
         with:
           java-version: 8
           distribution: 'temurin'
+
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.17.x
+
+      - name: Install k8s
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          go install sigs.k8s.io/kind@v0.14.0
+          curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.24.14/bin/linux/amd64/kubectl && sudo install kubectl /usr/local/bin/kubectl
+          kind create cluster --image=kindest/node:v1.21.1 --config=./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-http/deploy/kind-config.yaml
 
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
@@ -79,20 +88,20 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
         run: |
           kind load docker-image "shenyu-examples-http:latest"
-          kind load docker-image "apache/shenyu-integrated-test-k8s-ingress:latest"
+          kind load docker-image "apache/shenyu-integrated-test-k8s-ingress-http:latest"
           kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http.yml
-          kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/deploy/deploy-shenyu.yaml
+          kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-http/deploy/deploy-shenyu.yaml
           kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/ingress.yml
 
       - name: Wait for k8s Cluster Start up
         if: steps.filter.outputs.changed == 'true'
         run: |
-          bash ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/script/healthcheck.sh
+          bash ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-http/script/healthcheck.sh
 
       - name: Run test
         id: test
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw test -Pit -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress/pom.xml
+        run: ./mvnw test -Pit -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-http/pom.xml
         continue-on-error: true
 
       - name: Cluster Test after Healthcheck
