@@ -68,6 +68,7 @@ public class DataSynHttpTest {
         adminClient.login();
         adminClient.syncPluginAll();
         final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
+        Assertions.assertNotEquals(0, selectorDTOList.size());
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
         final List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
@@ -75,6 +76,7 @@ public class DataSynHttpTest {
         Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
         List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
         final List<RuleDTO> ruleDTOList = adminClient.listAllRules();
+        Assertions.assertNotEquals(0, ruleDTOList.size());
         Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
     }
 }
