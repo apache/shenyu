@@ -67,7 +67,7 @@ public class DataSynEtcdTest {
     void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
         WaitDataSync.waitAdmin2GatewayDataSync(adminClient, gatewayClient);
-        adminClient.syncPluginAll();
+
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
