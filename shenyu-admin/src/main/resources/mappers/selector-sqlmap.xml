@@ -78,8 +78,8 @@
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector
-         WHERE name = #{name, jdbcType=VARCHAR}
-           AND plugin_id = #{pluginId, jdbcType=VARCHAR}
+         WHERE plugin_id = #{pluginId, jdbcType=VARCHAR}
+           AND name = #{name, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
@@ -178,9 +178,9 @@
             <if test="condition.switchStatus != null">
                 AND enabled = #{condition.switchStatus, jdbcType=BOOLEAN}
             </if>
-            <if test="condition.plugin != null and condition.plugin.size > 0">
+            <if test="condition.pluginIds != null and condition.pluginIds.size > 0">
                 AND plugin_id IN
-                <foreach item="id" collection="condition.plugin" open="(" separator="," close=")">
+                <foreach item="id" collection="condition.pluginIds" open="(" separator="," close=")">
                     #{id, jdbcType=VARCHAR}
                 </foreach>
             </if>

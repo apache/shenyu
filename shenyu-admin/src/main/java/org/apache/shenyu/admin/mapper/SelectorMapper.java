@@ -85,7 +85,7 @@ public interface SelectorMapper extends ExistProvider {
     List<SelectorDO> findByPluginIds(List<String> pluginIds);
     
     /**
-     * select select by name.
+     * select by name.
      *
      * @param name the name
      * @return selector do list
@@ -99,7 +99,10 @@ public interface SelectorMapper extends ExistProvider {
      * @param pluginId the plugin id
      * @return the selector do
      */
-    SelectorDO findByNameAndPluginId(@Param("name") String name, @Param("pluginId") String pluginId);
+    SelectorDO findByNameAndPluginId(
+            @Param("name") String name,
+            @Param("pluginId") String pluginId
+    );
     
     /**
      * count selector by query.
@@ -178,5 +181,8 @@ public interface SelectorMapper extends ExistProvider {
      * @param condition condition
      * @return view data list
      */
-    List<SelectorVO> selectByCondition(@Param("condition") SelectorQueryCondition condition);
+    List<SelectorVO> selectByCondition(
+            @Param("condition") SelectorQueryCondition condition
+    );
+
 }

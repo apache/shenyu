@@ -94,7 +94,9 @@ public interface DiscoveryHandlerMapper extends ExistProvider {
      * @param proxySelectorId proxySelectorId
      * @return DiscoveryHandlerDO
      */
-    DiscoveryHandlerDO selectByProxySelectorId(@Param("proxySelectorId") String proxySelectorId);
+    DiscoveryHandlerDO selectByProxySelectorId(
+            @Param("proxySelectorId") String proxySelectorId
+    );
 
     /**
      * DiscoveryHandlerDOList.
@@ -109,6 +111,8 @@ public interface DiscoveryHandlerMapper extends ExistProvider {
      * @param discoveryId discoveryId
      * @return DiscoveryHandlerDO list
      */
-    List<DiscoveryHandlerDO> selectByDiscoveryId(@Param("discoveryId")String discoveryId);
+    List<DiscoveryHandlerDO> selectByDiscoveryId(
+            @Param("discoveryId")String discoveryId
+    );
 
 }

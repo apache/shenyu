@@ -119,7 +119,8 @@
         weight=#{weight,jdbcType=INTEGER},
         props=#{props,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
-        WHERE discovery_handler_id=#{id, jdbcType=VARCHAR} and url =#{url}
+        WHERE discovery_handler_id=#{id, jdbcType=VARCHAR}
+          AND url =#{url}
     </update>
 
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
@@ -159,8 +160,10 @@
 
     <select id="selectByDiscoveryHandlerIdAndUrl"
             resultType="org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO">
-        SELECT <include refid="Base_Column_List"/> from discovery_upstream where discovery_handler_id = #{discoveryHandlerId} and url = #{url}
-
+        SELECT <include refid="Base_Column_List"/>
+        FROM discovery_upstream
+        WHERE discovery_handler_id = #{discoveryHandlerId}
+          AND url = #{url}
     </select>
 
     <delete id="deleteByIds" parameterType="java.util.List">
@@ -201,6 +204,8 @@
     </delete>
 
     <delete id="deleteByUrl">
-        DELETE FROM discovery_upstream WHERE discovery_handler_id = #{discoveryHandlerId} and url = #{url}
+        DELETE FROM discovery_upstream
+        WHERE discovery_handler_id = #{discoveryHandlerId}
+          AND url = #{url}
     </delete>
 </mapper>

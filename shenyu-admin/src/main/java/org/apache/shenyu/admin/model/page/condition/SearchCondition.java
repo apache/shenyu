@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.model.page.condition;
 
 
 /**
- * search condition.For general fuzzy search.
+ * search condition. For general fuzzy search.
  */
 public interface SearchCondition {
     

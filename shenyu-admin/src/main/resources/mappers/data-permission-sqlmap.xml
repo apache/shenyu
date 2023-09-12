@@ -92,12 +92,12 @@
     <select id="selectDataIds" resultType="java.lang.String">
         SELECT data_id 
           FROM data_permission 
-         WHERE user_id = #{userId,jdbcType=VARCHAR} 
-           AND data_type = #{dataType,jdbcType=INTEGER}
-           AND data_id IN
+         WHERE data_id IN
                <foreach item="id" collection="list" open="(" separator="," close=")">
                  #{id,jdbcType=VARCHAR}
                </foreach>
+           AND user_id = #{userId,jdbcType=VARCHAR}
+           AND data_type = #{dataType,jdbcType=INTEGER}
     </select>
 
     <select id="findOneByUniqueKey" resultMap="BaseResultMap">
