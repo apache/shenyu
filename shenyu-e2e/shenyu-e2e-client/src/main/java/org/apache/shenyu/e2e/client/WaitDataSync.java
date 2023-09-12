@@ -46,18 +46,21 @@ public class WaitDataSync {
     public static void waitAdmin2GatewayDataSync(final AdminClient adminClient,
                                                  final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         int retryNum = 0;
-        List<RuleCacheData> ruleCacheList = null;
-        List<RuleDTO> ruleDTOList = null;
-        while (retryNum < 10) {
+        List<RuleCacheData> gatewayRuleList = null;
+        List<RuleDTO> adminRuleList = adminClient.listAllRules();
+        if (adminRuleList != null && adminRuleList.isEmpty()) {
             Thread.sleep(10000);
-            ruleCacheList = gatewayClient.getRuleCache();
-            ruleDTOList = adminClient.listAllRules();
-            LOGGER.info("waitAdmin2GatewayDataSync debug admin rule size = {} , gateway rule size = {}", ruleDTOList.size(), ruleCacheList.size());
-            if (ruleCacheList.size() == ruleDTOList.size()) {
+        }
+        while (retryNum < 10) {
+            adminRuleList = adminClient.listAllRules();
+            gatewayRuleList = gatewayClient.getRuleCache();
+            LOGGER.info("waitAdmin2GatewayDataSync debug admin rule size = {} , gateway rule size = {}", adminRuleList.size(), gatewayRuleList.size());
+            if (gatewayRuleList.size() == adminRuleList.size()) {
                 break;
             }
+            Thread.sleep(3000);
             retryNum++;
         }
-        Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
+        Assertions.assertEquals(adminRuleList.size(), gatewayRuleList.size());
     }
 }
