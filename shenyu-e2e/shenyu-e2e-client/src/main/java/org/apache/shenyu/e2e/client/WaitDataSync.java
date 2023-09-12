@@ -49,13 +49,13 @@ public class WaitDataSync {
         List<RuleCacheData> ruleCacheList = null;
         List<RuleDTO> ruleDTOList = null;
         while (retryNum < 10) {
-            Thread.sleep(5000);
+            Thread.sleep(10000);
             ruleCacheList = gatewayClient.getRuleCache();
             ruleDTOList = adminClient.listAllRules();
+            LOGGER.info("waitAdmin2GatewayDataSync debug admin rule size = {} , gateway rule size = {}", ruleDTOList.size(), ruleCacheList.size());
             if (ruleCacheList.size() == ruleDTOList.size()) {
                 break;
             }
-            LOGGER.info("waitAdmin2GatewayDataSync debug admin rule size = {} , gateway rule size = {}", ruleDTOList.size(), ruleCacheList.size());
             retryNum++;
         }
         Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
