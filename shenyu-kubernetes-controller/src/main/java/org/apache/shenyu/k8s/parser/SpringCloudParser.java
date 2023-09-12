@@ -281,9 +281,6 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
         if (Objects.nonNull(path) && Objects.nonNull(path.getBackend().getService()) && Objects.nonNull(path.getBackend().getService().getName())) {
             // shenyu routes directly to the container
             String serviceName = path.getBackend().getService().getName();
-//            V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
-//            List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             String[] protocols = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
