@@ -21,24 +21,26 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 
+import java.util.List;
+
 public class IngressConfiguration {
 
     private final SelectorData selectorData;
 
-    private final RuleData ruleData;
+    private final List<RuleData> ruleDataList;
 
-    private final MetaData metaData;
+    private final List<MetaData> metaDataList;
 
     /**
      * constructor.
      * @param selectorData selectorData
-     * @param ruleData ruleData
-     * @param metaData metaData
+     * @param ruleDataList ruleData
+     * @param metaDataList metaData
      */
-    public IngressConfiguration(final SelectorData selectorData, final RuleData ruleData, final MetaData metaData) {
+    public IngressConfiguration(final SelectorData selectorData, final List<RuleData> ruleDataList, final List<MetaData> metaDataList) {
         this.selectorData = selectorData;
-        this.ruleData = ruleData;
-        this.metaData = metaData;
+        this.ruleDataList = ruleDataList;
+        this.metaDataList = metaDataList;
     }
 
     /**
@@ -50,18 +52,18 @@ public class IngressConfiguration {
     }
 
     /**
-     * get ruleData.
-     * @return ruleData
+     * get RuleDataList.
+     * @return ruleDataList
      */
-    public RuleData getRuleData() {
-        return ruleData;
+    public List<RuleData> getRuleDataList() {
+        return ruleDataList;
     }
 
     /**
-     * get metaData.
-     * @return metaData
+     * get metaDataList.
+     * @return metaDataList
      */
-    public MetaData getMetaData() {
-        return metaData;
+    public List<MetaData> getMetaDataList() {
+        return metaDataList;
     }
 }
