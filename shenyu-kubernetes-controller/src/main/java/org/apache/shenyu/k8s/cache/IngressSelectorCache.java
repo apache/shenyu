@@ -117,6 +117,24 @@ public final class IngressSelectorCache implements SelectorCache {
         return String.valueOf(GROWING_ID.getAndIncrement());
     }
 
+    /**
+     * Get auto-incremented rule id.
+     *
+     * @return rule id
+     */
+    public String generateRuleId() {
+        return String.valueOf(GROWING_ID.getAndIncrement());
+    }
+
+    /**
+     * Get auto-incremented metadata id.
+     *
+     * @return metadata id
+     */
+    public String generateMetaDataId() {
+        return String.valueOf(GROWING_ID.getAndIncrement());
+    }
+
     private String getKey(final String namespace, final String name, final String pluginName) {
         return String.format("%s-%s-%s", namespace, name, pluginName);
     }

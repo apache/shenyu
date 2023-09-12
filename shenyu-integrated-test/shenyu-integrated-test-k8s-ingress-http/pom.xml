@@ -25,8 +25,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>shenyu-integrated-test-k8s-ingress</artifactId>
-    <name>shenyu-integrated-test-k8s-ingress</name>
+    <artifactId>shenyu-integrated-test-k8s-ingress-http</artifactId>
+    <name>shenyu-integrated-test-k8s-ingress-http</name>
     <url>https://shenyu.apache.org</url>
 
     <dependencies>
@@ -82,12 +82,12 @@
         <profile>
             <id>it</id>
             <properties>
-                <docker.buildArg.APP_NAME>shenyu-integrated-test-k8s-ingress</docker.buildArg.APP_NAME>
-                <docker.image.tag.repo>apache/shenyu-integrated-test-k8s-ingress</docker.image.tag.repo>
+                <docker.buildArg.APP_NAME>shenyu-integrated-test-k8s-ingress-http</docker.buildArg.APP_NAME>
+                <docker.image.tag.repo>apache/shenyu-integrated-test-k8s-ingress-http</docker.image.tag.repo>
                 <docker.image.tag.tagName>latest</docker.image.tag.tagName>
             </properties>
             <build>
-                <finalName>shenyu-integrated-test-k8s-ingress</finalName>
+                <finalName>shenyu-integrated-test-k8s-ingress-http</finalName>
                 <plugins>
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
@@ -113,7 +113,7 @@
                         <configuration>
                             <images>
                                 <image>
-                                    <name>apache/shenyu-integrated-test-k8s-ingress</name>
+                                    <name>apache/shenyu-integrated-test-k8s-ingress-http</name>
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                     </build>
