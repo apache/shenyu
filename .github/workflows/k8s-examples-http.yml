@@ -76,6 +76,7 @@ jobs:
           kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-service.yml
           kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-zookeeper.yml
           kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http.yml
+          kubectl get pod -o wide
       -
         name: Wait for k8s Cluster Start up
         if: steps.filter.outputs.changed == 'true'
