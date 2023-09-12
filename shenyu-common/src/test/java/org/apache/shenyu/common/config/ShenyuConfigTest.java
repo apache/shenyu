@@ -96,9 +96,9 @@ public class ShenyuConfigTest {
     public void testWebsocketConfig() {
         ShenyuConfig.WebsocketConfig websocket = config.getWebsocket();
         websocket.setMaxFramePayloadSize(5);
-        websocket.setEnablePing(true);
+        websocket.setEnableProxyPing(true);
         assertEquals(5, (int) websocket.getMaxFramePayloadSize());
-        assertEquals(true, websocket.getEnablePing());
+        assertEquals(true, websocket.getEnableProxyPing());
     }
 
     @Test
