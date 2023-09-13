@@ -22,6 +22,8 @@ kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -
 
 kubectl get pod -o wide
 
+kubectl logs -f -c `kubectl get pod -o wide | grep shenyu-admin | awk '{print$1}'` -n kube-system
+
 PRGDIR=`dirname "$0"`
 for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
 do
