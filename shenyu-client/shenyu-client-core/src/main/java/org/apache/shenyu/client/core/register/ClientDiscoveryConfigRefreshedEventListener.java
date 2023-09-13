@@ -37,7 +37,7 @@ public final class ClientDiscoveryConfigRefreshedEventListener implements Applic
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
-         httpClientRegisterRepository.doPersistDiscoveryConfig(buildDiscoveryConfigRegisterDTO(shenyuDiscoveryConfig));
+        httpClientRegisterRepository.doPersistDiscoveryConfig(buildDiscoveryConfigRegisterDTO(shenyuDiscoveryConfig));
     }
 
     protected DiscoveryConfigRegisterDTO buildDiscoveryConfigRegisterDTO(final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
