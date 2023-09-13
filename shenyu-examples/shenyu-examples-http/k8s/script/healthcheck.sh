@@ -17,10 +17,10 @@
 #
 
 #sleep 150
-#
-#kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
-#
-#kubectl get pod -o wide
+
+kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
+
+kubectl get pod -o wide
 
 
 PRGDIR=`dirname "$0"`
