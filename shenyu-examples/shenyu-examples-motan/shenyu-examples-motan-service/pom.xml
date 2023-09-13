@@ -25,6 +25,10 @@
         <version>2.6.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
+    <properties>
+        <motan.version>1.2.1</motan.version>
+    </properties>
+
 
     <artifactId>shenyu-examples-motan-service</artifactId>
 
@@ -60,7 +64,7 @@
         <dependency>
             <groupId>com.weibo</groupId>
             <artifactId>motan-registry-zookeeper</artifactId>
-            <version>1.2.1</version>
+            <version>${motan.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>log4j</groupId>
@@ -72,6 +76,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
     </dependencies>
 
     <build>
