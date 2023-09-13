@@ -59,6 +59,13 @@ jobs:
         with:
           java-version: 8
           distribution: 'temurin'
+      - name: Free disk space
+        run: |
+          df --human-readable
+          sudo apt clean
+          docker rmi $(docker image ls --all --quiet)
+          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
+          df --human-readable
       -
         name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
