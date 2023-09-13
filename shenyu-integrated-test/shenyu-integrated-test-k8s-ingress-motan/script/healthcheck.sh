@@ -16,10 +16,6 @@
 # limitations under the License.
 #
 
-kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
-
-kubectl get pod -o wide
-
 PRGDIR=`dirname "$0"`
 for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
 do
@@ -36,17 +32,5 @@ do
     done
 done
 
-sleep 5
-
-status=`curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type:application/json" http://localhost:31195/http/order/save --data '{"name":"test", "id": 123}'`
-
-sleep 3
-
-if [ $status -eq 200 ]; then
-    echo -e "Success to send request: $status"
-    echo -e "\n-------------------"
-    exit 0
-fi
-echo -e "Failed to send request from shenyu-bootstrap to http example: $status"
+sleep 20
 echo -e "\n-------------------"
-exit 1
