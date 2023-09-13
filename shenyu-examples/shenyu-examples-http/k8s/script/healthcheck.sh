@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+df --human-readable
 kubectl logs -l all=shenyu-examples-http
 PRGDIR=`dirname "$0"`
 for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
