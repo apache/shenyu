@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-sleep 60
+sleep 200
 
 kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
 
