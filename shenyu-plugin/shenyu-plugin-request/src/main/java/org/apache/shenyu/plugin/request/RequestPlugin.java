@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RequestHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.AbstractShenyuClassIsolation;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.request.handler.RequestPluginHandler;
@@ -39,6 +40,9 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -48,13 +52,18 @@ import java.util.stream.Collectors;
 /**
  * The RequestPlugin.
  */
-public class RequestPlugin extends AbstractShenyuPlugin {
+public class RequestPlugin extends AbstractShenyuClassIsolation<RequestPlugin> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RequestPlugin.class);
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
             final RuleData rule) {
+        return isolationExecute(exchange, chain, selector, rule);
+    }
+
+    private Mono<Void> actualExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
+                                     final RuleData rule) {
         RequestHandle requestHandle = RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(requestHandle) || requestHandle.isEmptyConfig()) {
             LOG.error("request handler can not configuration：{}", requestHandle);
@@ -63,16 +72,18 @@ public class RequestPlugin extends AbstractShenyuPlugin {
         ServerHttpRequest request = exchange.getRequest();
         ServerWebExchange modifiedExchange = exchange.mutate()
                 .request(originalRequest -> originalRequest.uri(
-                        UriComponentsBuilder.fromUri(exchange.getRequest()
-                                .getURI())
-                                .replaceQueryParams(getQueryParams(request, requestHandle))
-                                .build()
-                                .encode()
-                                .toUri()
+                                UriComponentsBuilder.fromUri(exchange.getRequest()
+                                                .getURI())
+                                        .replaceQueryParams(getQueryParams(request, requestHandle))
+                                        .build()
+                                        .encode()
+                                        .toUri()
                         ).headers(httpHeaders -> setHeaders(httpHeaders, request, requestHandle))
                 ).build();
         return chain.execute(modifiedExchange);
     }
+
+
 
     @Override
     public int getOrder() {
@@ -212,5 +223,19 @@ public class RequestPlugin extends AbstractShenyuPlugin {
 
     private void fillHeader(final Map.Entry<String, String> shenyuHeader, final HttpHeaders headers) {
         headers.set(shenyuHeader.getKey(), shenyuHeader.getValue());
+    }
+
+    @Override
+    public String getPath() {
+        try {
+            return new File(RequestPlugin.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public String name() {
+        return "RequestPlugin";
     }
 }
