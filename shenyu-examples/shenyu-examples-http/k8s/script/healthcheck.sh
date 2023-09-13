@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+kubectl logs -l all=shenyu-examples-http
 PRGDIR=`dirname "$0"`
 for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
 do
@@ -27,7 +27,7 @@ do
         if [ $status -eq 200  ]; then
             break
         fi
-
+        kubectl logs -l all=shenyu-examples-http
         sleep 2
     done
 done
