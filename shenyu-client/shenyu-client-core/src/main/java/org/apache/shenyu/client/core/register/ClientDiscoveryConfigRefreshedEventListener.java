@@ -17,56 +17,39 @@
 
 package org.apache.shenyu.client.core.register;
 
-import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
-import org.apache.shenyu.client.core.register.ClientRegisterConfig;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.common.enums.EventType;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.register.client.http.HttpClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
+import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
 public final class ClientDiscoveryConfigRefreshedEventListener implements ApplicationListener<ContextRefreshedEvent> {
 
-    private final String contextPath;
+    private final ShenyuDiscoveryConfig clientRegisterConfig;
 
-    private final String appName;
+    private final HttpClientRegisterRepository httpClientRegisterRepository;
 
-    private final RpcTypeEnum rpcTypeEnum;
-
-    private final String host;
-
-    private final Integer port;
-
-    private final ShenyuClientRegisterEventPublisher publisher;
-
-    public ClientDiscoveryConfigRefreshedEventListener(final ClientRegisterConfig clientRegisterConfig,
-                                                       final ShenyuClientRegisterEventPublisher publisher) {
-
-        this.contextPath = clientRegisterConfig.getContextPath();
-
-        this.appName = clientRegisterConfig.getAppName();
-
-        this.rpcTypeEnum = clientRegisterConfig.getRpcTypeEnum();
-
-        this.host = clientRegisterConfig.getHost();
-
-        this.port = clientRegisterConfig.getPort();
-
-        this.publisher = publisher;
+    public ClientDiscoveryConfigRefreshedEventListener(final ShenyuDiscoveryConfig shenyuDiscoveryConfig, final HttpClientRegisterRepository httpClientRegisterRepository) {
+        this.clientRegisterConfig = shenyuDiscoveryConfig;
+        this.httpClientRegisterRepository = httpClientRegisterRepository;
     }
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
 
-        URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
-                .contextPath(contextPath)
-                .appName(appName)
-                .rpcType(rpcTypeEnum.getName())
-                .host(host)
-                .port(port)
-                .eventType(EventType.REGISTER)
-                .build();
+    }
 
-        publisher.publishEvent(uriRegisterDTO);
+    protected DiscoveryConfigRegisterDTO buildDiscoveryConfigRegisterDTO(final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
+        try {
+            return DiscoveryConfigRegisterDTO.builder()
+                    .name(shenyuDiscoveryConfig.getName())
+                    .serverList(shenyuDiscoveryConfig.getServerList())
+                    .props(shenyuDiscoveryConfig.getProps())
+                    .type(shenyuDiscoveryConfig.getType())
+                    .build();
+        } catch (ShenyuException e) {
+            throw new ShenyuException(e.getMessage() + "please config ${shenyu.discovery} in xml/yml !");
+        }
     }
 }

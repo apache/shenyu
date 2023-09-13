@@ -67,7 +67,11 @@ public class ShenyuClientCommonBeanConfiguration {
         return new ShenyuClientConfig();
     }
 
-
+    /**
+     * Shenyu discovery config.
+     *
+     * @return the shenyu discovery config
+     */
     @Bean
     @ConfigurationProperties(prefix = "shenyu.discovery")
     public ShenyuDiscoveryConfig shenyuDiscoveryConfig() {
