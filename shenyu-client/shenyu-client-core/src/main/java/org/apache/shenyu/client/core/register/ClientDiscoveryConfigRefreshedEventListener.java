@@ -26,18 +26,18 @@ import org.springframework.context.event.ContextRefreshedEvent;
 
 public final class ClientDiscoveryConfigRefreshedEventListener implements ApplicationListener<ContextRefreshedEvent> {
 
-    private final ShenyuDiscoveryConfig clientRegisterConfig;
+    private final ShenyuDiscoveryConfig shenyuDiscoveryConfig;
 
     private final HttpClientRegisterRepository httpClientRegisterRepository;
 
     public ClientDiscoveryConfigRefreshedEventListener(final ShenyuDiscoveryConfig shenyuDiscoveryConfig, final HttpClientRegisterRepository httpClientRegisterRepository) {
-        this.clientRegisterConfig = shenyuDiscoveryConfig;
+        this.shenyuDiscoveryConfig = shenyuDiscoveryConfig;
         this.httpClientRegisterRepository = httpClientRegisterRepository;
     }
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
-
+         httpClientRegisterRepository.doPersistDiscoveryConfig(buildDiscoveryConfigRegisterDTO(shenyuDiscoveryConfig));
     }
 
     protected DiscoveryConfigRegisterDTO buildDiscoveryConfigRegisterDTO(final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
