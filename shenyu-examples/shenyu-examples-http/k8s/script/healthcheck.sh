@@ -16,13 +16,15 @@
 # limitations under the License.
 #
 
-sleep 200
+sleep 150
 
 kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
 
 kubectl get pod -o wide
 
-kubectl logs -f -c `kubectl get pod -o wide | grep shenyu-admin | awk '{print$1}'` -n kube-system
+kubectl logs -f `kubectl get pod -o wide | grep shenyu-admin | awk '{print$1}'` -n kube-system
+
+kubectl logs -f `kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print$1}'` -n kube-system
 
 PRGDIR=`dirname "$0"`
 for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
