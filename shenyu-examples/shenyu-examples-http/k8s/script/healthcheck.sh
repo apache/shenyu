@@ -15,8 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-df --human-readable
-kubectl logs -l all=shenyu-examples-http
+
+kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
+
+kubectl get pod -o wide
+
 PRGDIR=`dirname "$0"`
 for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
 do
@@ -28,7 +31,7 @@ do
         if [ $status -eq 200  ]; then
             break
         fi
-        kubectl logs -l all=shenyu-examples-http
+
         sleep 2
     done
 done
