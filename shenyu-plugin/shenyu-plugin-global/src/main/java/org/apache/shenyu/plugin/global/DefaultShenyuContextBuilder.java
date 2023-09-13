@@ -73,7 +73,7 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
             return Pair.of(RpcTypeEnum.WEB_SOCKET.getName(), new MetaData());
         }
-        MetaData metaData = MetaDataCache.getInstance().obtain(request.getURI().getPath());
+        MetaData metaData = MetaDataCache.getInstance().obtain(request.getURI().getRawPath());
         if (Objects.nonNull(metaData) && Boolean.TRUE.equals(metaData.getEnabled())) {
             exchange.getAttributes().put(Constants.META_DATA, metaData);
             return Pair.of(metaData.getRpcType(), metaData);
