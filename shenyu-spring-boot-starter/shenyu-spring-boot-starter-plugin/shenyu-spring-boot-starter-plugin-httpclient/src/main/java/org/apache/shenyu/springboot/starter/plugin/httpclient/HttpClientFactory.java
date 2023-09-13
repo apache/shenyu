@@ -42,7 +42,6 @@ import reactor.netty.transport.ProxyProvider;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
@@ -158,7 +157,6 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
                 // reason: https://github.com/reactor/reactor-netty/issues/1499 and https://github.com/reactor/reactor-netty/issues/1960
                 this.buildElasticConnectionPool(builder);
             }
-            //Optional.ofNullable(pool.getMaxIdleTime()).ifPresent(builder::maxIdleTime);
             if (Objects.nonNull(pool.getMaxIdleTime())) {
                 builder.maxIdleTime(pool.getMaxIdleTime());
             }
