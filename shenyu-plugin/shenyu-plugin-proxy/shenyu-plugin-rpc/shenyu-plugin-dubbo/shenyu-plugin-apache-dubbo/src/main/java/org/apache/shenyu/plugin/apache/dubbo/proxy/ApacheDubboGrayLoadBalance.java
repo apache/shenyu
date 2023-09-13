@@ -20,12 +20,11 @@ package org.apache.shenyu.plugin.apache.dubbo.proxy;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.cluster.LoadBalance;
-import org.apache.dubbo.rpc.model.ApplicationModel;
-import org.apache.dubbo.rpc.model.ScopeModelUtil;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
@@ -83,8 +82,7 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
         return select(invokers, url, invocation, dubboRuleHandle.getLoadBalance());
     }
     
-    private <T> Invoker<T> select(final List<Invoker<T>> invokers, final URL url, final Invocation invocation, final String loadbalance) {
-        ApplicationModel applicationModel = ScopeModelUtil.getApplicationModel(invocation.getModuleModel());
-        return applicationModel.getExtensionLoader(LoadBalance.class).getExtension(loadbalance).select(invokers, url, invocation);
+    private <T> Invoker<T> select(final List<Invoker<T>> invokers, final URL url, final Invocation invocation, final String loadBalance) {
+        return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(loadBalance).select(invokers, url, invocation);
     }
 }
