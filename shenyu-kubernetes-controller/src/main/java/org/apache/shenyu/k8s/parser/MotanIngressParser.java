@@ -105,7 +105,7 @@ public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
                 List<IngressConfiguration> routeList = new ArrayList<>(rules.size());
                 for (V1IngressRule ingressRule : rules) {
                     List<IngressConfiguration> routes = parseIngressRule(ingressRule,
-                            Objects.requireNonNull(ingress.getMetadata()).getNamespace(), ingress.getMetadata().getAnnotations());
+                            Objects.requireNonNull(ingress.getMetadata()).getNamespace(), ingress.getMetadata().getAnnotations(), ingress.getMetadata().getLabels());
                     routeList.addAll(routes);
                 }
                 res.setRouteConfigList(routeList);
@@ -138,7 +138,8 @@ public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
 
     private List<IngressConfiguration> parseIngressRule(final V1IngressRule ingressRule,
                                                         final String namespace,
-                                                        final Map<String, String> annotations) {
+                                                        final Map<String, String> annotations,
+                                                        final Map<String, String> labels) {
         List<IngressConfiguration> res = new ArrayList<>();
 
         ConditionData hostCondition = null;
@@ -195,43 +196,54 @@ public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
                             .continued(true)
                             .conditionList(conditionList).build();
 
-                    RuleData ruleData = RuleData.builder()
-                            .name(path.getPath())
-                            .pluginName(PluginEnum.MOTAN.getName())
-                            .matchMode(MatchModeEnum.AND.getCode())
-                            .conditionDataList(ruleConditionDataList)
-                            .loged(false)
-                            .enabled(true).build();
+                    List<RuleData> ruleDataList = new ArrayList<>();
+                    List<MetaData> metaDataList = new ArrayList<>();
+                    for (String label : labels.keySet()) {
+                        Map<String, String> metadataAnnotations = serviceLister.namespace(namespace).get(labels.get(label)).getMetadata().getAnnotations();
+                        List<ConditionData> ruleConditionList = getRuleConditionList(metadataAnnotations);
+                        RuleData ruleData = createRuleData(metadataAnnotations, ruleConditionList);
+                        MetaData metaData = parseMetaData(metadataAnnotations);
+                        ruleDataList.add(ruleData);
+                        metaDataList.add(metaData);
+                    }
 
-                    MetaData metaData = parseMetaData(path, namespace);
-                    res.add(new IngressConfiguration(selectorData, Arrays.asList(ruleData), Arrays.asList(metaData)));
+                    res.add(new IngressConfiguration(selectorData, ruleDataList, metaDataList));
                 }
             }
         }
         return res;
     }
 
-    private MetaData parseMetaData(final V1HTTPIngressPath path, final String namespace) {
-        String serviceName = path.getBackend().getService().getName();
-        V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
-        Map<String, String> annotations = v1Service.getMetadata().getAnnotations();
-        if (!annotations.containsKey(IngressConstants.PLUGIN_MOTAN_APP_NAME)
-            || !annotations.containsKey(IngressConstants.PLUGIN_MOTAN_METHOD_NAME)
-            || !annotations.containsKey(IngressConstants.PLUGIN_MOTAN_PATH)
-            || !annotations.containsKey(IngressConstants.PLUGIN_MOTAN_SREVICE_NAME)
-            || !annotations.containsKey(IngressConstants.PLUGIN_MOTAN_RPC_TYPE)) {
-            LOG.error("motan metadata is error, please check motan service. MetaData: [{}]", v1Service.getMetadata());
-            throw new ShenyuException(annotations + " is is missing.");
-        }
+    private List<ConditionData> getRuleConditionList(final Map<String, String> annotations) {
+        final List<ConditionData> ruleConditionList = new ArrayList<>();
+        ConditionData ruleCondition = new ConditionData();
+        ruleCondition.setOperator(OperatorEnum.EQ.getAlias());
+        ruleCondition.setParamType(ParamTypeEnum.URI.getName());
+        ruleCondition.setParamValue(annotations.get(IngressConstants.PLUGIN_MOTAN_PATH));
+        ruleConditionList.add(ruleCondition);
+        return ruleConditionList;
+    }
+
+    private RuleData createRuleData(final Map<String, String> metadataAnnotations, final List<ConditionData> ruleConditionList) {
+        return RuleData.builder()
+                .name(metadataAnnotations.get(IngressConstants.PLUGIN_MOTAN_PATH))
+                .pluginName(PluginEnum.MOTAN.getName())
+                .matchMode(MatchModeEnum.AND.getCode())
+                .conditionDataList(ruleConditionList)
+                .loged(true)
+                .enabled(true)
+                .build();
+    }
+
+    private MetaData parseMetaData(final Map<String, String> annotations) {
         return MetaData.builder()
                 .appName(annotations.get(IngressConstants.PLUGIN_MOTAN_APP_NAME))
                 .path(annotations.get(IngressConstants.PLUGIN_MOTAN_PATH))
-                .contextPath("/motan")
                 .rpcType(annotations.get(IngressConstants.PLUGIN_MOTAN_RPC_TYPE))
-                .rpcExt(annotations.getOrDefault(IngressConstants.PLUGIN_MOTAN_RPC_EXPAND, ""))
+                .rpcExt(annotations.get(IngressConstants.PLUGIN_MOTAN_RPC_EXPAND))
                 .serviceName(annotations.get(IngressConstants.PLUGIN_MOTAN_SREVICE_NAME))
                 .methodName(annotations.get(IngressConstants.PLUGIN_MOTAN_METHOD_NAME))
-                .parameterTypes(annotations.getOrDefault(IngressConstants.PLUGIN_MOTAN_PARAMS_TYPE, ""))
+                .parameterTypes(annotations.get(IngressConstants.PLUGIN_MOTAN_PARAMS_TYPE))
                 .enabled(true)
                 .build();
     }
