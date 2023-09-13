@@ -387,18 +387,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.apache.zookeeper</groupId>
-                <artifactId>zookeeper</artifactId>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>log4j</artifactId>
-                        <groupId>log4j</groupId>
-                    </exclusion>
-                </exclusions>
-                <version>${zookeeper.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>com.ctrip.framework.apollo</groupId>
                 <artifactId>apollo-client</artifactId>
                 <version>${apollo.version}</version>

@@ -424,21 +424,7 @@
             <artifactId>motan-transport-netty4</artifactId>
             <version>${motan.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.weibo</groupId>
-            <artifactId>motan-registry-zookeeper</artifactId>
-            <version>${motan.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+
         <dependency>
             <groupId>com.weibo</groupId>
             <artifactId>motan-springsupport</artifactId>
