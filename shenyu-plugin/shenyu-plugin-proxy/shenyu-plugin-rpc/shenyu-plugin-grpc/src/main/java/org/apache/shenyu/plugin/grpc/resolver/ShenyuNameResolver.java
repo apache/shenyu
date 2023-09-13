@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -153,7 +154,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
 
         private List<GrpcUpstream> resolveInternal() {
             final String name = ShenyuNameResolver.this.appName;
-            List<GrpcUpstream> grpcUpstreamList = ApplicationConfigCache.getInstance().getGrpcUpstreamListCache(name);
+            List<GrpcUpstream> grpcUpstreamList = Optional.ofNullable(ApplicationConfigCache.getInstance().getGrpcUpstreamListCache(name)).orElse(Collections.emptyList());
             LOG.info("Got {} candidate servers for {}", grpcUpstreamList.size(), name);
 
             if (CollectionUtils.isEmpty(grpcUpstreamList)) {
