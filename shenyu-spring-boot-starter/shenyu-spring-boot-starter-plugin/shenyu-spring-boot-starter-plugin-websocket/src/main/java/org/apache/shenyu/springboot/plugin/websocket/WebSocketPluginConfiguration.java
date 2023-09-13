@@ -76,7 +76,8 @@ public class WebSocketPluginConfiguration {
     public ReactorNettyWebSocketClient reactorNettyWebSocketClient(final ShenyuConfig shenyuConfig,
                                                                    final ObjectProvider<HttpClient> httpClient) {
         Supplier<WebsocketClientSpec.Builder> builder = WebsocketClientSpec.builder()
-                .maxFramePayloadLength(shenyuConfig.getWebsocket().getMaxFramePayloadSize() * 1024 * 1024);
+                .maxFramePayloadLength(shenyuConfig.getWebsocket().getMaxFramePayloadSize() * 1024 * 1024)
+                .handlePing(shenyuConfig.getWebsocket().getEnableProxyPing());
         return new ReactorNettyWebSocketClient(httpClient.getIfAvailable(HttpClient::create), builder);
     }
 
