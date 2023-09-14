@@ -20,6 +20,8 @@ package org.apache.shenyu.common.utils;
 import java.io.Serializable;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.net.SocketException;
 import java.net.NetworkInterface;
@@ -245,6 +247,48 @@ public final class IpUtils {
             return Integer.parseInt(matcher.group());
         }
         return -1;
+    }
+
+    /**
+     * get Zookeeper Url.
+     * @param zookeeperUrl zookeeperUrl.
+     * @return ip form zookeeperUrl
+     */
+    public static String getZookeeperHost(final String zookeeperUrl) {
+        if (Objects.isNull(zookeeperUrl) || zookeeperUrl.isEmpty()) {
+            return null;
+        }
+        try {
+            URI uri = new URI(zookeeperUrl);
+            String scheme = uri.getScheme();
+            if (Objects.nonNull(scheme) && ("zookeeper".equals(scheme) || "zk".equals(scheme))) {
+                return uri.getHost();
+            }
+        } catch (URISyntaxException ignored) {
+        }
+
+        String[] parts = zookeeperUrl.split(":");
+        if (parts.length >= 1) {
+            return parts[0];
+        }
+        return null;
+    }
+
+    /**
+     * replace Zookeeper Url.
+     * @param zookeeperUrl String zookeeper address
+     * @param replacement ip form zookeeper address
+     * @return full zookeeper address
+     */
+    public static String replaceZookeeperHost(final String zookeeperUrl, final String replacement) {
+        String extractedHost = getZookeeperHost(zookeeperUrl);
+        if (Objects.nonNull(extractedHost)) {
+            if (isCompleteHost(extractedHost)) {
+                return zookeeperUrl;
+            }
+            return zookeeperUrl.replaceFirst(extractedHost, replacement);
+        }
+        return zookeeperUrl;
     }
 
     private static class NetCard implements Serializable {
