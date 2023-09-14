@@ -18,6 +18,7 @@
 package org.apache.shenyu.e2e.testcase.apachedubbo;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
@@ -67,8 +68,9 @@ public class DataSynNacosTest {
     @Test
     void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
         adminClient.login();
-        Thread.sleep(10000);
+        WaitDataSync.waitAdmin2GatewayDataSync(adminClient, gatewayClient);
         adminClient.syncPluginAll();
+        WaitDataSync.waitAdmin2GatewayDataSync(adminClient, gatewayClient);
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
         Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
