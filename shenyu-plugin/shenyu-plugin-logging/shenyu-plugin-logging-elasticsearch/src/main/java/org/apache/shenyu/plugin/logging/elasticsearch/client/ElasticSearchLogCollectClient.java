@@ -86,7 +86,7 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
         restClient = builder.build();
         transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         client = new ElasticsearchClient(transport);
-        this.indexName = config.getIndexName();
+        indexName = config.getIndexName();
         LogUtils.info(LOG, "init ElasticSearchLogCollectClient success");
         // Determine whether the index exists, and create it if it does not exist
         if (!existsIndex(indexName)) {
