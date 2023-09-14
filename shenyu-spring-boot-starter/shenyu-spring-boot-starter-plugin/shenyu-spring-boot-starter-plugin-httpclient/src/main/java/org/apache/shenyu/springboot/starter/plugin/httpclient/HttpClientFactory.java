@@ -42,6 +42,7 @@ import reactor.netty.transport.ProxyProvider;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
@@ -142,7 +143,6 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
     }
 
     private ConnectionProvider buildConnectionProvider(final HttpClientProperties.Pool pool) {
-        ConnectionProvider connectionProvider;
         if (pool.getType() == HttpClientProperties.Pool.PoolType.DISABLED) {
             return ConnectionProvider.newConnection();
         } else {
@@ -157,15 +157,9 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
                 // reason: https://github.com/reactor/reactor-netty/issues/1499 and https://github.com/reactor/reactor-netty/issues/1960
                 this.buildElasticConnectionPool(builder);
             }
-            if (Objects.nonNull(pool.getMaxIdleTime())) {
-                builder.maxIdleTime(pool.getMaxIdleTime());
-            }
-            if (Objects.nonNull(pool.getMaxLifeTime())) {
-                builder.maxLifeTime(Duration.ofMillis(pool.getMaxLifeTime()));
-            }
-            if (Objects.nonNull(pool.getEvictionInterval())) {
-                builder.evictInBackground(Duration.ofMillis(pool.getEvictionInterval()));
-            }
+            Optional.ofNullable(pool.getMaxIdleTime()).map(Duration::ofMillis).ifPresent(builder::maxIdleTime);
+            Optional.ofNullable(pool.getMaxLifeTime()).map(Duration::ofMillis).ifPresent(builder::maxLifeTime);
+            Optional.ofNullable(pool.getEvictionInterval()).map(Duration::ofMillis).ifPresent(builder::evictInBackground);
             builder.metrics(pool.getMetrics());
             return builder.build();
         }

@@ -514,9 +514,8 @@ public class HttpClientProperties {
          *
          * @return the maxIdleTime timeout
          */
-        public Duration getMaxIdleTime() {
-            return Optional.ofNullable(maxIdleTime)
-                    .map(it -> Duration.ofMillis(maxIdleTime)).orElse(Duration.ofMillis(3000L));
+        public Long getMaxIdleTime() {
+            return maxIdleTime;
         }
 
         /**
