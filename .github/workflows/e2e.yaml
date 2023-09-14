@@ -54,6 +54,13 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - name: Free disk space
+        run: |
+          df --human-readable
+          sudo apt clean
+          docker rmi $(docker image ls --all --quiet)
+          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
+          df --human-readable
 
       - name: Restore ShenYu E2E Maven Repos
         id: restore-e2e-maven-cache
