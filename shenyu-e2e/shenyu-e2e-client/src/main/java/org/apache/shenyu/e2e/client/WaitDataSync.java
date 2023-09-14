@@ -17,11 +17,6 @@
 
 package org.apache.shenyu.e2e.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.shenyu.e2e.client.admin.AdminClient;
-import org.apache.shenyu.e2e.client.gateway.GatewayClient;
-import org.apache.shenyu.e2e.model.data.RuleCacheData;
-import org.apache.shenyu.e2e.model.response.RuleDTO;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
