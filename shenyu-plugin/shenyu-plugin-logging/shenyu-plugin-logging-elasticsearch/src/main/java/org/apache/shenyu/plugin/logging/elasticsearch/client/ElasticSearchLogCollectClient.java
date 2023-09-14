@@ -58,6 +58,8 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
 
     private ElasticsearchClient client;
 
+    private String indexName = GenericLoggingConstant.INDEX;
+
     /**
      * init elasticsearch client.
      *
@@ -84,10 +86,11 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
         restClient = builder.build();
         transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         client = new ElasticsearchClient(transport);
+        this.indexName = config.getIndexName();
         LogUtils.info(LOG, "init ElasticSearchLogCollectClient success");
         // Determine whether the index exists, and create it if it does not exist
-        if (!existsIndex(config.getIndexName())) {
-            createIndex(config.getIndexName());
+        if (!existsIndex(indexName)) {
+            createIndex(indexName);
             LogUtils.info(LOG, "create index success");
         }
     }
@@ -97,14 +100,14 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
         List<BulkOperation> bulkOperations = new ArrayList<>();
         logs.forEach(log -> {
             try {
-                bulkOperations.add(new BulkOperation.Builder().create(d -> d.document(log).index(GenericLoggingConstant.INDEX)).build());
+                bulkOperations.add(new BulkOperation.Builder().create(d -> d.document(log).index(indexName)).build());
             } catch (Exception e) {
                 LogUtils.error(LOG, "add logs error: ", e);
             }
         });
         // Bulk storage
         try {
-            client.bulk(e -> e.index(GenericLoggingConstant.INDEX).operations(bulkOperations));
+            client.bulk(e -> e.index(indexName).operations(bulkOperations));
         } catch (Exception e) {
             LogUtils.error(LOG, "elasticsearch store logs error:", e);
         }
