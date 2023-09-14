@@ -65,10 +65,10 @@ shenyu:
       scheduledTime: 10
       nacosNameSpace: ShenyuRegisterCenter
   sync:
-    websocket:
-      enabled: true
-      messageMaxSize: 10240
-      allowOrigins: ws://localhost:9095;ws://localhost:9195;
+#    websocket:
+#      enabled: true
+#      messageMaxSize: 10240
+#      allowOrigins: ws://localhost:9095;ws://localhost:9195;
 #    apollo:
 #      meta: http://localhost:8080
 #      appId: shenyu
@@ -98,8 +98,8 @@ shenyu:
 #      url: 127.0.0.1:8093
 #      namespace:
 #      fileGroup:
-#    etcd:
-#      url: http://localhost:2379
+    etcd:
+      url: http://localhost:2379
 #    consul:
 #      url: http://localhost:8500
   ldap:

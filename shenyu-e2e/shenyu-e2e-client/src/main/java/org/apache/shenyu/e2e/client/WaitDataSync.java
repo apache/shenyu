@@ -38,30 +38,43 @@ public class WaitDataSync {
     /**
      * waitAdmin2GatewayDataSync.
      *
-     * @param adminClient adminClient
-     * @param gatewayClient gatewayClient
-     * @throws InterruptedException InterruptedException
-     * @throws JsonProcessingException JsonProcessingException
+     * @param adminSupplier adminSupplier
+     * @param gatewaySupplier gatewaySupplier
+     * @param <T> List
+     * @param <U> List
+     * @throws Exception Exception
      */
-    public static void waitAdmin2GatewayDataSync(final AdminClient adminClient,
-                                                 final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
+    public static <T extends List<?>, U extends List<?>> void waitAdmin2GatewayDataSyncEquals(final ShenyuE2ESupplier<T> adminSupplier,
+                                                 final ShenyuE2ESupplier<U> gatewaySupplier) throws Exception {
         int retryNum = 0;
-        List<RuleCacheData> gatewayRuleList = null;
-        List<RuleDTO> adminRuleList = adminClient.listAllRules();
-        if (adminRuleList != null && adminRuleList.isEmpty()) {
+        List<?> gatewayDataList = null;
+        List<?> adminDataList = adminSupplier.get();
+        if (adminDataList != null && adminDataList.isEmpty()) {
             Thread.sleep(10000);
         }
         while (retryNum < 10) {
-            adminRuleList = adminClient.listAllRules();
-            gatewayRuleList = gatewayClient.getRuleCache();
-            LOGGER.info("waitAdmin2GatewayDataSync debug admin rule size = {} , gateway rule size = {}", adminRuleList.size(), gatewayRuleList.size());
-            if (gatewayRuleList.size() == adminRuleList.size()) {
+            adminDataList = adminSupplier.get();
+            gatewayDataList = gatewaySupplier.get();
+            LOGGER.warn("waitAdmin2GatewayDataSyncEquals debug admin rule size = {} , gateway rule size = {}", adminDataList.size(), gatewayDataList.size());
+            if (gatewayDataList.size() == adminDataList.size()) {
                 break;
             }
             Thread.sleep(3000);
             retryNum++;
         }
-        Assertions.assertNotEquals(adminRuleList.size(), 0);
-        Assertions.assertEquals(adminRuleList.size(), gatewayRuleList.size());
+        Assertions.assertNotEquals(adminDataList.size(), 0);
+        Assertions.assertEquals(adminDataList.size(), gatewayDataList.size());
+    }
+
+    @FunctionalInterface
+    public interface ShenyuE2ESupplier<T> {
+
+        /**
+         * get.
+         *
+         * @return {@link T}
+         * @throws Exception Exception
+         */
+        T get() throws Exception;
     }
 }
