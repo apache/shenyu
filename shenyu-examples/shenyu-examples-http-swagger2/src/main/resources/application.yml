@@ -18,6 +18,8 @@ server:
   address: 0.0.0.0
   tomcat:
     max-http-form-post-size: 100MB
+  servlet:
+    context-path: /http-swagger2
 
 shenyu:
   register:
