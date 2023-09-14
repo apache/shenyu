@@ -31,6 +31,8 @@ import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.LogUtils;
+import org.apache.shenyu.isolation.Module;
+import org.apache.shenyu.isolation.ModuleManager;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -44,22 +46,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URLClassLoader;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * abstract shenyu plugin please extends.
  */
-public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
+public abstract class AbstractShenyuPlugin<T extends AbstractShenyuPlugin> implements ShenyuPlugin, Module {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
 
     private static final String URI_CONDITION_TYPE = "uri";
+
+    private static final String PLUGIN_PATH = "./plugins/%s";
     
     private ShenyuTrie selectorTrie;
     
@@ -68,6 +71,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private ShenyuConfig.SelectorMatchCache selectorMatchConfig;
     
     private ShenyuConfig.RuleMatchCache ruleMatchConfig;
+
+    private URLClassLoader pluginClassLoader;
+
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -119,7 +125,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         printLog(selectorData, pluginName);
         if (!selectorData.getContinued()) {
             // if continued， not match rules
-            return doExecute(exchange, chain, selectorData, defaultRuleData(selectorData));
+            return isolationExecute(exchange, chain, selectorData, defaultRuleData(selectorData));
         }
         List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
         if (CollectionUtils.isEmpty(rules)) {
@@ -129,7 +135,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             //get last
             RuleData rule = rules.get(rules.size() - 1);
             printLog(rule, pluginName);
-            return doExecute(exchange, chain, selectorData, rule);
+            return isolationExecute(exchange, chain, selectorData, rule);
         }
         // lru map as L1 cache,the cache is enabled by default.
         // if the L1 cache fails to hit, using L2 cache based on trie cache.
@@ -150,7 +156,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             }
         }
         printLog(ruleData, pluginName);
-        return doExecute(exchange, chain, selectorData, ruleData);
+        return isolationExecute(exchange, chain, selectorData, ruleData);
     }
 
     private void initCacheConfig() {
@@ -163,6 +169,54 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
             ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
         }
+    }
+
+    @PostConstruct
+    private void initPluginClassLoader() {
+        try {
+            String pluginJarDir = String.format(PLUGIN_PATH, named());
+            URLClassLoader classLoader = ModuleManager.initClassLoader(new File(pluginJarDir));
+            if (Objects.nonNull(classLoader)) {
+                LOG.info("init {} plugin success, path:{}", named(), pluginJarDir);
+            }
+        } catch (MalformedURLException e) {
+            LOG.error("init {} plugin classloader failed.", named());
+            e.printStackTrace();
+        }
+    }
+
+    private Mono<Void> isolationExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        if (Objects.isNull(pluginClassLoader)) {
+            return doExecute(exchange, chain, selector, rule);
+        }
+
+        ClassLoader current = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(pluginClassLoader);
+            ServiceLoader<Module> loader = ServiceLoader.load(Module.class, pluginClassLoader);
+            Iterator<Module> it = loader.iterator();
+            T plugin = null;
+            while (it.hasNext()) {
+                T module = (T) it.next();
+                // 注意：name()方法返回的值可能不匹配
+                if (module.named().equals(this.named())) {
+                    plugin = module;
+                    break;
+                }
+            }
+
+            if (plugin == null) {
+                LOG.error("failed to find plugin: {}", plugin);
+                return chain.execute(exchange);
+            }
+            return plugin.doExecute(exchange, chain, selector, rule);
+
+        } catch (Throwable e) {
+            e.printStackTrace();
+        } finally {
+            Thread.currentThread().setContextClassLoader(current);
+        }
+        return chain.execute(exchange);
     }
     
     private SelectorData obtainSelectorDataCacheIfEnabled(final String path) {

@@ -8,9 +8,7 @@ import java.net.URLClassLoader;
 
 public interface Module {
 
-    String getPath();
-
-    String name();
+//    String getPath();
 //
 //    Configuration[] getConfigurations();
 //

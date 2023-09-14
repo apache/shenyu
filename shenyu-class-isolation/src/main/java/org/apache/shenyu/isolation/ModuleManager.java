@@ -7,10 +7,7 @@ import java.io.FilenameFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ServiceLoader;
+import java.util.*;
 
 public class ModuleManager {
 
@@ -22,7 +19,7 @@ public class ModuleManager {
             }
         });
 
-        if (jars.length == 0) {
+        if (Objects.isNull(jars) || jars.length == 0) {
             return null;
         }
 
