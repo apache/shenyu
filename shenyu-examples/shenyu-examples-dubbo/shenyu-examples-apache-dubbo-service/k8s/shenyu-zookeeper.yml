@@ -14,46 +14,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shenyu-ingress
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shenyu-examples-dubbo-deployment
   namespace: shenyu-ingress
   labels:
-    app: shenyu-examples-dubbo
+    app: shenyu-zk
     all: shenyu-examples-dubbo
+  name: shenyu-zk
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: shenyu-examples-dubbo
+      app: shenyu-zk
       all: shenyu-examples-dubbo
   strategy: {}
   template:
     metadata:
+      namespace: shenyu-ingress
       labels:
-        app: shenyu-examples-dubbo
+        app: shenyu-zk
         all: shenyu-examples-dubbo
     spec:
       containers:
-        - image: shenyu-examples-apache-dubbo-service
-          name: shenyu-examples-dubbo
-          livenessProbe:
-            exec:
-              command:
-                - wget -q -O - http://localhost:8081/actuator/health | grep UP || exit 1
-            initialDelaySeconds: 10
-            failureThreshold: 3
-            timeoutSeconds: 2
-          env:
-            - name: shenyu.register.serverLists
-              value: http://shenyu-admin:9095
-            - name: dubbo.registry.address
-              value: zookeeper://shenyu-zk:2181
+        - image: zookeeper:latest
+          name: shenyu-zk
+          resources: {}
           ports:
-            - containerPort: 8011
-            - containerPort: 20888
-          imagePullPolicy: IfNotPresent
+            - containerPort: 2181
+              name: client
+            - containerPort: 2888
+              name: server
+            - containerPort: 3888
+              name: leader-election
+            - containerPort: 8080
+              name: website
       restartPolicy: Always
 status: {}
 
@@ -61,20 +62,26 @@ status: {}
 apiVersion: v1
 kind: Service
 metadata:
-  name: shenyu-examples-apache-dubbo-service
+  name: shenyu-zk
   namespace: shenyu-ingress
   labels:
-    app: shenyu-examples-dubbo
+    app: shenyu-zk
     all: shenyu-examples-dubbo
 spec:
-  selector:
-    app: shenyu-examples-dubbo
-    all: shenyu-examples-dubbo
   type: NodePort
+  selector:
+    app: shenyu-zk
+    all: shenyu-examples-dubbo
   ports:
-    - name: "8011"
-      port: 8011
-      targetPort: 8011
-      nodePort: 31190
-status:
-  loadBalancer: {}
+    - name: "client"
+      port: 2181
+      targetPort: 2181
+    - name: "server"
+      port: 2888
+      targetPort: 2888
+    - name: "election"
+      port: 3888
+      targetPort: 3888
+    - name: "website"
+      port: 8080
+      targetPort: 8080

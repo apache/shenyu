@@ -63,6 +63,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The Reconciler of Ingress.
@@ -262,7 +264,7 @@ public class IngressReconciler implements Reconciler {
             case DIVIDE:
                 return "{multiSelectorHandle: 1, multiRuleHandle:0}";
             case DUBBO:
-                return "{multiSelectorHandle: 1,threadpool:shared,corethreads:0,threads:2147483647,queues:0,register: " + zookeeperUrl + "}";
+                return "{\"register\":\"" + zookeeperUrl + "\",\"multiSelectorHandle\":\"1\",\"threadpool\":\"shared\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0}";
             case MOTAN:
                 return "{\"registerProtocol\":\"zk\",\"registerAddress\":\"" + zookeeperUrl + "\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"shared\"}";
             case WEB_SOCKET:
@@ -273,13 +275,14 @@ public class IngressReconciler implements Reconciler {
     }
 
     private String getZookeeperUrl(final Map<String, String> annotations, final Request request) {
-        String[] zookeeperPartUrl = annotations.get(IngressConstants.ZOOKEEPER_REGISTER_ADDRESS).split(":");
+        String zookeeperK8sUrl = annotations.get(IngressConstants.ZOOKEEPER_REGISTER_ADDRESS);
         String zookeeperUrl = null;
-        if (isCorrectIp(zookeeperPartUrl[0])) {
+        String zookeeperK8sIpUrl = extractTarget(zookeeperK8sUrl);
+        if (isCorrectIp(zookeeperK8sIpUrl)) {
             zookeeperUrl = annotations.get(IngressConstants.ZOOKEEPER_REGISTER_ADDRESS);
         } else {
             Lister<V1Endpoints> endpointsLister = ingressParser.getEndpointsLister();
-            V1Endpoints v1Endpoints = endpointsLister.namespace(request.getNamespace()).get(zookeeperPartUrl[0]);
+            V1Endpoints v1Endpoints = endpointsLister.namespace(request.getNamespace()).get(zookeeperK8sIpUrl);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", v1Endpoints);
@@ -299,8 +302,32 @@ public class IngressReconciler implements Reconciler {
             LOG.info("Please enter the correct zookeeperUrl address");
             throw new ShenyuException("zookeeper url:" + zookeeperUrl + " is is error.");
         }
-        zookeeperUrl = zookeeperUrl + ":" + zookeeperPartUrl[1];
+        zookeeperUrl = replaceAndCombine(zookeeperK8sUrl, zookeeperUrl);
         return zookeeperUrl;
+    }
+
+    private String extractTarget(final String inputString) {
+        Pattern pattern = Pattern.compile("://(.*?)(:|$)");
+        Matcher matcher = pattern.matcher(inputString);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            return null;
+        }
+    }
+
+    private String replaceAndCombine(final String inputString, final String targetHost) {
+        Pattern pattern = Pattern.compile("://(.*?)(:|$)");
+        Matcher matcher = pattern.matcher(inputString);
+
+        if (matcher.find()) {
+            String originalHost = matcher.group(1);
+            String replacedString = inputString.replace(originalHost, targetHost);
+            return replacedString;
+        } else {
+            return inputString;
+        }
     }
 
     private boolean isCorrectIp(final String ipString) {
