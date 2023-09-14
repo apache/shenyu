@@ -14,16 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:8-jre-alpine
-
-ENV APP_NAME shenyu-integrated-test-k8s-ingress
-ENV LOCAL_PATH /opt/${APP_NAME}
-
-RUN mkdir -p ${LOCAL_PATH}
-
-ADD target/${APP_NAME}.jar ${LOCAL_PATH}
-
-WORKDIR ${LOCAL_PATH}
-EXPOSE 9195
-
-CMD java -jar ${APP_NAME}.jar
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+      - containerPort: 30095
+        hostPort: 30095
+        protocol: TCP
