@@ -76,6 +76,7 @@ public class ShenyuSpringMvcClientConfigurationTest {
             );
     }
 
+
     @Test
     public void testSpringMvcClientEventListener() {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
