@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.register.common.config;
 
-import java.util.Properties;
-
 /**
  * The type Discovery config.
  */
@@ -28,8 +26,6 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
     private String type;
 
     private String serverList;
-
-    private Properties props = new Properties();
 
     /**
      * Gets name.
@@ -85,21 +81,4 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
         this.serverList = serverList;
     }
 
-    /**
-     * Gets props.
-     *
-     * @return the props
-     */
-    public Properties getProps() {
-        return props;
-    }
-
-    /**
-     * Sets props.
-     *
-     * @param props the props
-     */
-    public void setProps(final Properties props) {
-        this.props = props;
-    }
 }
