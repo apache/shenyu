@@ -78,4 +78,12 @@ public class IngressParser implements K8sResourceParser<V1Ingress> {
             return divideIngressParser.parse(ingress, coreV1Api);
         }
     }
+
+    /**
+     * get endpointsLister.
+     * @return endpointsLister
+     */
+    public Lister<V1Endpoints> getEndpointsLister() {
+        return endpointsLister;
+    }
 }
