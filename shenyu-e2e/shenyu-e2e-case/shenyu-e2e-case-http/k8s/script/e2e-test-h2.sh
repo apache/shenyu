@@ -21,22 +21,24 @@ pwd
 curPath=$(readlink -f "$(dirname "$0")")
 echo $curPath
 
-curPath=$(dirname $(readlink -f "$0"))
-echo $curPath
+#curPath=$(dirname $(readlink -f "$0"))
+#echo $curPath
 #PRGDIR=`dirname "./shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/k8s/shenyu-app-service-h2.yml"`
-PRGDIR=$(cd $(dirname $0); pwd)
+PRGDIR=`dirname "$curPath"`
+echo $PRGDIR
 kubectl apply -f ${PRGDIR}/shenyu-deployment-h2.yml
 kubectl apply -f ${PRGDIR}/shenyu-app-service-h2.yml
 
-## check kubernetes for h2
-#kubectl get pod -n kube-system | grep shenyu-admin
-#kubectl get pod -n kube-system | grep shenyu-bootstrap
+
+kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
+kubectl get pod -o wide
+
 
 sleep 10s
 
 # execute healthcheck.sh
 chmod +x ${PRGDIR}/script/healthcheck.sh
-bash ${PRGDIR}/script/healthcheck.sh h2
+sh ${PRGDIR}/script/healthcheck.sh h2
 
 ### wait shenyu-admin and shenyu-bootstrap start
 
