@@ -166,7 +166,6 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
 
     private String getSwaggerRequestUrl(final UpstreamInstance instance) {
         return "http://" + instance.getIp() + ":" + instance.getPort() + Optional.ofNullable(instance.getContextPath()).orElse("") + SWAGGER_V2_PATH;
-
     }
 
 }
