@@ -48,6 +48,7 @@ public class WaitDataSync {
         List<?> gatewayDataList = null;
         List<?> adminDataList = adminSupplier.get();
         if (adminDataList != null && adminDataList.isEmpty()) {
+            LOGGER.warn("dataSyncEquals test {} adminDataList size is zero sleep 10s... ", testClassName);
             Thread.sleep(10000);
         }
         while (retryNum < 10) {
