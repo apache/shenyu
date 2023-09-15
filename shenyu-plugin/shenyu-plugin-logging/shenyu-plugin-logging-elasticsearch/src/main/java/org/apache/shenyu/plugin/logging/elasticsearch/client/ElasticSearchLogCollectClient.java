@@ -95,6 +95,10 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
         }
     }
 
+    /**
+     * consume logs.
+     * @param logs logs
+     */
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
         List<BulkOperation> bulkOperations = new ArrayList<>();
