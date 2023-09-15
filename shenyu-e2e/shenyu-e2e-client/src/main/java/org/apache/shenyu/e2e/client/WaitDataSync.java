@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.e2e.client;
 
+import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +36,13 @@ public class WaitDataSync {
      *
      * @param adminSupplier adminSupplier
      * @param gatewaySupplier gatewaySupplier
+     * @param adminClient adminClient
      * @param <T> List
      * @param <U> List
      * @throws Exception Exception
      */
     public static <T extends List<?>, U extends List<?>> void waitAdmin2GatewayDataSyncEquals(final ShenyuE2ESupplier<T> adminSupplier,
-                                                 final ShenyuE2ESupplier<U> gatewaySupplier) throws Exception {
+                                                 final ShenyuE2ESupplier<U> gatewaySupplier, final AdminClient adminClient) throws Exception {
         int retryNum = 0;
         List<?> gatewayDataList = null;
         List<?> adminDataList = adminSupplier.get();
@@ -54,6 +56,7 @@ public class WaitDataSync {
             if (gatewayDataList.size() == adminDataList.size()) {
                 break;
             }
+            adminClient.syncPluginAll();
             Thread.sleep(3000);
             retryNum++;
         }
