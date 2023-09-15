@@ -17,8 +17,9 @@
 #
 
 ## init kubernetes for h2
-kubectl apply -f ../shenyu-app-service-h2.yml
-kubectl apply -f ../k8s/shenyu-app-service-h2.yml
+kubectl apply -f ./shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/k8s/shenyu-deployment-h2.yml
+kubectl apply -f ./shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/k8s/shenyu-app-service-h2.yml
+#cat ../shenyu-deployment-h2.yml
 
 ## check kubernetes for h2
 kubectl get pod -n kube-system | grep shenyu-admin
@@ -27,8 +28,8 @@ kubectl get pod -n kube-system | grep shenyu-bootstrap
 sleep 10s
 
 # execute healthcheck.sh
-chmod +x healthcheck.sh
-sh healthcheck.sh h2
+chmod +x ./shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/k8s/script/healthcheck.sh
+sh ./shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/k8s/script/healthcheck.sh h2
 
 ### wait shenyu-admin and shenyu-bootstrap start
 
