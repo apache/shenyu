@@ -18,7 +18,13 @@
 
 ## init kubernetes for h2
 pwd
-PRGDIR=`dirname "./shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/k8s/shenyu-app-service-h2.yml"`
+curPath=$(readlink -f "$(dirname "$0")")
+echo $curPath
+
+curPath=$(dirname $(readlink -f "$0"))
+echo $curPath
+#PRGDIR=`dirname "./shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/k8s/shenyu-app-service-h2.yml"`
+PRGDIR=$(cd $(dirname $0); pwd)
 kubectl apply -f ${PRGDIR}/shenyu-deployment-h2.yml
 kubectl apply -f ${PRGDIR}/shenyu-app-service-h2.yml
 
