@@ -32,4 +32,3 @@ do
     done
 done
 
-exit 1

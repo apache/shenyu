@@ -35,6 +35,10 @@ kubectl get pod -o wide
 chmod +x ${curPath}/healthcheck.sh
 sh ${curPath}/healthcheck.sh h2
 
+## run e2e-test
+
+curl http://localhost:31195/acuator/shenyu/pluginData
+
 ### wait shenyu-admin and shenyu-bootstrap start
 
 # get shenyu-admin pod name

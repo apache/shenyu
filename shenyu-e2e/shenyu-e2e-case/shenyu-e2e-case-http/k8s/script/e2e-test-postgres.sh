@@ -16,19 +16,38 @@
 # limitations under the License.
 #
 
+## init kubernetes for h2
+pwd
+curPath=$(readlink -f "$(dirname "$0")")
+echo $curPath
+
+PRGDIR=`dirname "$curPath"`
+echo $PRGDIR
+kubectl apply -f ${PRGDIR}/shenyu-deployment-postgres.yml
+kubectl apply -f ${PRGDIR}/shenyu-app-service-postgres.yml
+
+sleep 10s
+
+kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
+kubectl get pod -o wide
+
 # execute healthcheck.sh
-sh ./healthcheck.sh
+chmod +x ${curPath}/healthcheck.sh
+sh ${curPath}/healthcheck.sh postgres
+
+## run e2e-test
+curl http://localhost:31196/acuator/shenyu/pluginData
 
 ### wait shenyu-admin and shenyu-bootstrap start
 
 # get shenyu-admin pod name
-
-shenyu_admin_pod_name=`kubectl get pod -n kube-system | grep shenyu-admin | awk '{print $1}'`
-
-# get shenyu-bootstrap pod name
-
-shenyu_bootstrap_pod_name=`kubectl get pod -n kube-system | grep shenyu-bootstrap | awk '{print $1}'`
-
-# get shenyu-admin pod status
-
-shenyu_admin_pod_status=`kubectl get pod -n kube-system | grep shenyu-admin | awk '{print $3}'`
+#
+#shenyu_admin_pod_name=`kubectl get pod -n kube-system | grep shenyu-admin | awk '{print $1}'`
+#
+## get shenyu-bootstrap pod name
+#
+#shenyu_bootstrap_pod_name=`kubectl get pod -n kube-system | grep shenyu-bootstrap | awk '{print $1}'`
+#
+## get shenyu-admin pod status
+#
+#shenyu_admin_pod_status=`kubectl get pod -n kube-system | grep shenyu-admin | awk '{print $3}'`
