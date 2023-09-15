@@ -17,7 +17,7 @@
 #
 
 ## init kubernetes for h2
-PRGDIR=`dirname ./shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/k8s/shenyu-app-service-h2.yml`
+PRGDIR=`dirname "$PWD"`
 kubectl apply -f ${PRGDIR}/shenyu-deployment-h2.yml
 kubectl apply -f ${PRGDIR}/shenyu-app-service-h2.yml
 
@@ -28,8 +28,8 @@ kubectl apply -f ${PRGDIR}/shenyu-app-service-h2.yml
 sleep 10s
 
 # execute healthcheck.sh
-chmod +x ${PRGDIR}/healthcheck.sh
-bash ${PRGDIR}/healthcheck.sh h2
+chmod +x ${PRGDIR}/script/healthcheck.sh
+bash ${PRGDIR}/script/healthcheck.sh h2
 
 ### wait shenyu-admin and shenyu-bootstrap start
 
