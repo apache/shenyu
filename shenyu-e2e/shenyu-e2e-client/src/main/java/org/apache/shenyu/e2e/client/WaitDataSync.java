@@ -21,6 +21,7 @@ import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
@@ -47,7 +48,7 @@ public class WaitDataSync {
         int retryNum = 0;
         List<?> gatewayDataList = null;
         List<?> adminDataList = adminSupplier.get();
-        if (adminDataList != null && adminDataList.isEmpty()) {
+        if (CollectionUtils.isEmpty(adminDataList)) {
             LOGGER.warn("dataSyncEquals test {} adminDataList size is zero sleep 10s... ", testClassName);
             Thread.sleep(10000);
         }
@@ -55,7 +56,7 @@ public class WaitDataSync {
             adminDataList = adminSupplier.get();
             gatewayDataList = gatewaySupplier.get();
             LOGGER.warn("dataSyncEquals test {} admin size = {} gateway size = {}", testClassName, adminDataList.size(), gatewayDataList.size());
-            if (!adminDataList.isEmpty() && gatewayDataList.size() == adminDataList.size()) {
+            if (!CollectionUtils.isEmpty(adminDataList) && gatewayDataList.size() == adminDataList.size()) {
                 break;
             }
             if (retryNum % 3 == 0) {
