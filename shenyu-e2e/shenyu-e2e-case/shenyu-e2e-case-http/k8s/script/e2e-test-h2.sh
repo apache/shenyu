@@ -22,8 +22,8 @@ kubectl apply -f ${PRGDIR}/shenyu-deployment-h2.yml
 kubectl apply -f ${PRGDIR}/shenyu-app-service-h2.yml
 
 ## check kubernetes for h2
-kubectl get pod -n kube-system | grep shenyu-admin
-kubectl get pod -n kube-system | grep shenyu-bootstrap
+#kubectl get pod -n kube-system | grep shenyu-admin
+#kubectl get pod -n kube-system | grep shenyu-bootstrap
 
 sleep 10s
 
