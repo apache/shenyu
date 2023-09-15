@@ -17,7 +17,7 @@
 #
 
 PRGDIR=`dirname "$0"`
-for service in `grep -v -E "^$|^#" ${PRGDIR}/services-"${env}".list`
+for service in `grep -v -E "^$|^#" ${PRGDIR}/services-"${1}".list`
 do
     for loop in `seq 1 30`
     do

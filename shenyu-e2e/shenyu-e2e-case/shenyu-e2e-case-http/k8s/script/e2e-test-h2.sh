@@ -37,8 +37,8 @@ kubectl get pod -o wide
 sleep 10s
 
 # execute healthcheck.sh
-chmod +x ${PRGDIR}/script/healthcheck.sh
-sh ${PRGDIR}/script/healthcheck.sh h2
+chmod +x ${curPath}/healthcheck.sh
+sh ${curPath}/healthcheck.sh h2
 
 ### wait shenyu-admin and shenyu-bootstrap start
 
