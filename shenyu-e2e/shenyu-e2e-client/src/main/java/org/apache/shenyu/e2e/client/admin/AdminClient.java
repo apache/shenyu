@@ -511,6 +511,7 @@ public class AdminClient {
     public void syncPluginAll() {
         HttpEntity<SearchCondition> entity = new HttpEntity<>(basicAuth);
         template.postForEntity(baseURL + "/plugin/syncPluginAll", entity, ShenYuResult.class);
+        log.warn("admin syncPluginAll");
     }
 
     @FunctionalInterface
