@@ -24,7 +24,7 @@ on:
 jobs:
   k8s-shenyu-e2e:
     runs-on: ubuntu-latest
-    if: (github.repository == 'apache/shenyu')
+    if: (github.repository == 'moremind/shenyu')
     steps:
       - uses: actions/checkout@v2
         with:
