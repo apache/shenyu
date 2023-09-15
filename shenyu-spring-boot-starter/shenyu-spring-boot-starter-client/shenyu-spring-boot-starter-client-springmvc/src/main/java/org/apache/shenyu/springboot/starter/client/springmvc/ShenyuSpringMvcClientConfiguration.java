@@ -89,7 +89,7 @@ public class ShenyuSpringMvcClientConfiguration {
      * @return ClientDiscoveryConfigRefreshedEventListener
      */
     @Bean
-    @ConditionalOnProperty(prefix = "shenyu.discovery", name = "type", matchIfMissing = false)
+    @ConditionalOnProperty(prefix = "shenyu.discovery", name = "serverList", matchIfMissing = false)
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     public ClientDiscoveryConfigRefreshedEventListener clientDiscoveryConfigRefreshedEventListener(final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
                                                                                                    final HttpClientRegisterRepository httpClientRegisterRepository) {
