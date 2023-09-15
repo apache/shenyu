@@ -55,7 +55,7 @@ public class IngressConstants {
     public static final String PLUGIN_DUBBO_METHOD_NAME = "shenyu.apache.org/plugin-dubbo-method-name";
 
     // The configuration key to specify the Dubbo path for the plugin, in string
-    public static final String PLUGIN_DUBBO_PATH = "shenyu.apache.org/plugin-dubbo-PATH";
+    public static final String PLUGIN_DUBBO_PATH = "shenyu.apache.org/plugin-dubbo-path";
 
     // The configuration key to specify the Dubbo RPC type for the plugin, in string
     public static final String PLUGIN_DUBBO_RPC_TYPE = "shenyu.apache.org/plugin-dubbo-rpc-type";
@@ -65,6 +65,15 @@ public class IngressConstants {
 
     // The configuration key to specify the context path for the Dubbo service, in string
     public static final String PLUGIN_DUBBO_CONTEXT_PATH = "shenyu.apache.org/plugin-dubbo-context-path";
+
+    //The configuration key to specify the context path for the Dubbo rpc expand, in string
+    public static final String PLUGIN_DUBBO_RPC_EXPAND = "shenyu.apache.org/plugin-dubbo-rpc-expand";
+
+    //The configuration key to specify the context path for the Dubbo service name, in string
+    public static final String PLUGIN_DUBBO_SREVICE_NAME = "shenyu.apache.org/plugin-dubbo-service-name";
+
+    //The configuration key to specify the context path for the Dubbo service name, in string
+    public static final String PLUGIN_DUBBO_PARAMS_TYPE = "shenyu.apache.org/plugin-dubbo-params-type";
 
     // The configuration key to specify additional RPC extension for the Dubbo plugin, in string
     public static final String PLUGIN_DUBBO_RPC_EXT = "shenyu.apache.org/plugin-dubbo-rpc-ext";

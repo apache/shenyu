@@ -24,11 +24,15 @@ import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointSubset;
+import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1IngressBuilder;
 import io.kubernetes.client.openapi.models.V1IngressRule;
 import io.kubernetes.client.openapi.models.V1Secret;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyStream;
@@ -38,6 +42,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.PluginRoleEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.k8s.cache.IngressCache;
 import org.apache.shenyu.k8s.cache.IngressSecretCache;
 import org.apache.shenyu.k8s.cache.IngressSelectorCache;
@@ -52,13 +57,16 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+
+import static org.apache.shenyu.common.utils.IpUtils.getZookeeperHost;
+import static org.apache.shenyu.common.utils.IpUtils.isCompleteHost;
+import static org.apache.shenyu.common.utils.IpUtils.replaceZookeeperHost;
 
 /**
  * The Reconciler of Ingress.
@@ -122,13 +130,15 @@ public class IngressReconciler implements Reconciler {
         final V1Ingress oldIngress = IngressCache.getInstance().get(request.getNamespace(), request.getName());
         Map<String, String> annotations = v1Ingress.getMetadata().getAnnotations();
         if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
-            enablePlugin(shenyuCacheRepository, PluginEnum.DUBBO, annotations);
+            String zookeeperUrl = getZookeeperUrl(annotations, request);
+            enablePlugin(shenyuCacheRepository, PluginEnum.DUBBO, zookeeperUrl);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
-            enablePlugin(shenyuCacheRepository, PluginEnum.MOTAN, annotations);
+            String zookeeperUrl = getZookeeperUrl(annotations, request);
+            enablePlugin(shenyuCacheRepository, PluginEnum.MOTAN, zookeeperUrl);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
-            enablePlugin(shenyuCacheRepository, PluginEnum.SPRING_CLOUD, annotations);
+            enablePlugin(shenyuCacheRepository, PluginEnum.SPRING_CLOUD, null);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
-            enablePlugin(shenyuCacheRepository, PluginEnum.WEB_SOCKET, annotations);
+            enablePlugin(shenyuCacheRepository, PluginEnum.WEB_SOCKET, null);
         }
         if (Objects.isNull(v1Ingress)) {
             if (Objects.nonNull(oldIngress)) {
@@ -195,8 +205,8 @@ public class IngressReconciler implements Reconciler {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName(),
                     oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_CONTEXT_PATH));
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
-            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.MOTAN.getName(), 
-            oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_CONTEXT_PATH));
+            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.MOTAN.getName(),
+                    oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_CONTEXT_PATH));
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.SPRING_CLOUD.getName(), "");
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
@@ -232,18 +242,18 @@ public class IngressReconciler implements Reconciler {
     }
 
     private void initPlugins(final ShenyuCacheRepository shenyuCacheRepository) {
-        enablePlugin(shenyuCacheRepository, PluginEnum.GLOBAL, new HashMap<>());
-        enablePlugin(shenyuCacheRepository, PluginEnum.URI, new HashMap<>());
-        enablePlugin(shenyuCacheRepository, PluginEnum.NETTY_HTTP_CLIENT, new HashMap<>());
-        enablePlugin(shenyuCacheRepository, PluginEnum.DIVIDE, new HashMap<>());
-        enablePlugin(shenyuCacheRepository, PluginEnum.GENERAL_CONTEXT, new HashMap<>());
+        enablePlugin(shenyuCacheRepository, PluginEnum.GLOBAL, null);
+        enablePlugin(shenyuCacheRepository, PluginEnum.URI, null);
+        enablePlugin(shenyuCacheRepository, PluginEnum.NETTY_HTTP_CLIENT, null);
+        enablePlugin(shenyuCacheRepository, PluginEnum.DIVIDE, null);
+        enablePlugin(shenyuCacheRepository, PluginEnum.GENERAL_CONTEXT, null);
     }
 
-    private void enablePlugin(final ShenyuCacheRepository shenyuCacheRepository, final PluginEnum pluginEnum, final Map<String, String> annotations) {
+    private void enablePlugin(final ShenyuCacheRepository shenyuCacheRepository, final PluginEnum pluginEnum, final String zookeeperUrl) {
         PluginData pluginData = PluginData.builder()
                 .id(String.valueOf(pluginEnum.getCode()))
                 .name(pluginEnum.getName())
-                .config(getPluginConfig(pluginEnum, annotations))
+                .config(getPluginConfig(pluginEnum, zookeeperUrl))
                 .role(PluginRoleEnum.SYS.getName())
                 .enabled(true)
                 .sort(pluginEnum.getCode())
@@ -251,20 +261,57 @@ public class IngressReconciler implements Reconciler {
         shenyuCacheRepository.saveOrUpdatePluginData(pluginData);
     }
 
-    private String getPluginConfig(final PluginEnum pluginEnum, final Map<String, String> annotations) {
-        String zookeeperUrl = annotations.get(IngressConstants.ZOOKEEPER_REGISTER_ADDRESS);
+    private String getPluginConfig(final PluginEnum pluginEnum, final String zookeeperUrl) {
         switch (pluginEnum) {
             case DIVIDE:
                 return "{multiSelectorHandle: 1, multiRuleHandle:0}";
             case DUBBO:
-                return "{multiSelectorHandle: 1,threadpool:shared,corethreads:0,threads:2147483647,queues:0,register: " + zookeeperUrl + "}";
+                return "{\"register\":\"" + zookeeperUrl + "\",\"multiSelectorHandle\":\"1\",\"threadpool\":\"shared\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0}";
             case MOTAN:
-                return "{register: " + zookeeperUrl + ",corethreads: 0, threads :2147483647,queues:0,threadpool:shared}";
+                return "{\"registerProtocol\":\"zk\",\"registerAddress\":\"" + zookeeperUrl + "\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"shared\"}";
             case WEB_SOCKET:
                 return "{multiSelectorHandle: 1}";
             default:
                 return null;
         }
+    }
+
+    /**
+     *  get zookeeper Url.
+     * @param annotations annotations from k8s
+     * @param request request
+     * @return ip form of zookeeper Url
+     */
+    private String getZookeeperUrl(final Map<String, String> annotations, final Request request) {
+        String zookeeperK8sUrl = annotations.get(IngressConstants.ZOOKEEPER_REGISTER_ADDRESS);
+        String zookeeperUrl = null;
+        String zookeeperK8sIpUrl = getZookeeperHost(zookeeperK8sUrl);
+        if (isCompleteHost(zookeeperK8sIpUrl)) {
+            zookeeperUrl = annotations.get(IngressConstants.ZOOKEEPER_REGISTER_ADDRESS);
+        } else {
+            Lister<V1Endpoints> endpointsLister = ingressParser.getEndpointsLister();
+            V1Endpoints v1Endpoints = endpointsLister.namespace(request.getNamespace()).get(zookeeperK8sIpUrl);
+            List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
+            if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
+                LOG.info("Endpoints do not have subsets");
+            } else {
+                for (V1EndpointSubset subset : subsets) {
+                    List<V1EndpointAddress> addresses = subset.getAddresses();
+                    if (Objects.isNull(addresses) || addresses.isEmpty()) {
+                        continue;
+                    }
+                    for (V1EndpointAddress address : addresses) {
+                        zookeeperUrl = address.getIp();
+                    }
+                }
+            }
+        }
+        if (!isCompleteHost(zookeeperUrl)) {
+            LOG.info("Please enter the correct zookeeperUrl address");
+            throw new ShenyuException("zookeeper url:" + zookeeperUrl + " is is error.");
+        }
+        zookeeperUrl = replaceZookeeperHost(zookeeperK8sUrl, zookeeperUrl);
+        return zookeeperUrl;
     }
 
     /**

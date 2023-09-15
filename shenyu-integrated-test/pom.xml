@@ -47,6 +47,8 @@
         <module>shenyu-integrated-test-upload-plugin</module>
         <module>shenyu-integrated-test-k8s-ingress-http</module>
         <module>shenyu-integrated-test-k8s-ingress-spring-cloud</module>
+        <module>shenyu-integrated-test-k8s-ingress-motan</module>
+        <module>shenyu-integrated-test-k8s-ingress-apache-dubbo</module>
     </modules>
 
     <properties>
