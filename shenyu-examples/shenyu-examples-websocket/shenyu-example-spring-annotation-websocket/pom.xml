@@ -61,10 +61,15 @@
     </dependencies>
 
     <build>
+        <finalName>shenyu-example-spring-annotation-websocket</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>org.apache.shenyu.examples.websocket.TestAnnotationWebsocketApplication</mainClass>
+                    <executable>true</executable>
+                </configuration>
             </plugin>
         </plugins>
     </build>
