@@ -16,7 +16,10 @@
 # limitations under the License.
 #
 
-## init kubernetes for h2
+## prepare mysql
+bash ./shenyu-e2e/script/storage_init_mysql.sh
+
+## init kubernetes for mysql
 pwd
 curPath=$(readlink -f "$(dirname "$0")")
 echo $curPath
@@ -36,7 +39,7 @@ chmod +x ${curPath}/healthcheck.sh
 sh ${curPath}/healthcheck.sh mysql
 
 ## run e2e-test
-curl http://localhost:31196/acuator/shenyu/pluginData
+curl http://localhost:31196/actuator/shenyu/pluginData
 
 ### wait shenyu-admin and shenyu-bootstrap start
 

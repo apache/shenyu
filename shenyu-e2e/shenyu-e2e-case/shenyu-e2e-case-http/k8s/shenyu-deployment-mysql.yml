@@ -46,6 +46,13 @@ spec:
           ports:
             - containerPort: 9096
           imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: mysql-driver
+              mountPath: /opt/shenyu-admin/ext-lib/mysql-connector.jar
+      volumes:
+        - name: mysql-driver
+          hostPath:
+            path: /tmp/shenyu-e2e/mysql/mysql-connector.jar
       restartPolicy: Always
 
 ---
@@ -108,10 +115,10 @@ spec:
               value: shenyue2e
           volumeMounts:
             - name: mysql-data
-              mountPath: /tmp/shenyu-e2e/mysql/schema.sql
+              mountPath: /docker-entrypoint-initdb.d/schema.sql
       volumes:
         - name: mysql-data
-          persistentVolumeClaim:
-            claimName: mysql-data
+          hostPath:
+            path: /tmp/shenyu-e2e/mysql/schema.sql
       restartPolicy: Always
 
