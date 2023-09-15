@@ -51,11 +51,11 @@ public class WaitDataSync {
             LOGGER.warn("dataSyncEquals test {} adminDataList size is zero sleep 10s... ", testClassName);
             Thread.sleep(10000);
         }
-        while (retryNum < 10) {
+        while (retryNum < 12) {
             adminDataList = adminSupplier.get();
             gatewayDataList = gatewaySupplier.get();
             LOGGER.warn("dataSyncEquals test {} admin size = {} gateway size = {}", testClassName, adminDataList.size(), gatewayDataList.size());
-            if (gatewayDataList.size() == adminDataList.size()) {
+            if (!adminDataList.isEmpty() && gatewayDataList.size() == adminDataList.size()) {
                 break;
             }
             if (retryNum % 3 == 0) {
