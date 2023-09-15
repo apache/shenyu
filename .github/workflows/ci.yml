@@ -20,7 +20,6 @@ on:
   push:
     branches:
       - master
-      - issue_5068_dubbo
 
 jobs:
   build:
