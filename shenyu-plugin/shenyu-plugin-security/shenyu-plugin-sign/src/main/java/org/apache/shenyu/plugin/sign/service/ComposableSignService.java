@@ -144,9 +144,9 @@ public class ComposableSignService implements SignService {
         }
 
         boolean match = pathDataList.stream().filter(AuthPathData::getEnabled)
-                .anyMatch(e -> PathMatchUtils.match(e.getPath(), signParameters.getUri().getPath()));
+                .anyMatch(e -> PathMatchUtils.match(e.getPath(), signParameters.getUri().getRawPath()));
         if (!match) {
-            LOG.error("You have not configured the sign path:{},{}", signParameters.getAppKey(), signParameters.getUri().getPath());
+            LOG.error("You have not configured the sign path:{},{}", signParameters.getAppKey(), signParameters.getUri().getRawPath());
             return VerifyResult.fail(Constants.SIGN_PATH_NOT_EXIST);
         }
         return VerifyResult.success();

@@ -53,7 +53,7 @@ public class RewritePlugin extends AbstractShenyuPlugin {
             LOG.error("uri rewrite rule can not configuration：{}", handle);
             return chain.execute(exchange);
         }
-        String rewriteUri = exchange.getRequest().getURI().getPath();
+        String rewriteUri = exchange.getRequest().getURI().getRawPath();
         // the default percentage compatible with older versions is 100
         final Integer percentage = Optional.ofNullable(rewriteHandle.getPercentage()).orElse(100);
         if (StringUtils.isNoneBlank(rewriteHandle.getRegex(), rewriteHandle.getReplace())
