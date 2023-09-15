@@ -43,6 +43,7 @@ public class WaitDataSync {
      */
     public static <T extends List<?>, U extends List<?>> void waitAdmin2GatewayDataSyncEquals(final ShenyuE2ESupplier<T> adminSupplier,
                                                  final ShenyuE2ESupplier<U> gatewaySupplier, final AdminClient adminClient) throws Exception {
+        final String testClassName = Thread.currentThread().getStackTrace()[2].getClassName();
         int retryNum = 0;
         List<?> gatewayDataList = null;
         List<?> adminDataList = adminSupplier.get();
@@ -52,11 +53,13 @@ public class WaitDataSync {
         while (retryNum < 10) {
             adminDataList = adminSupplier.get();
             gatewayDataList = gatewaySupplier.get();
-            LOGGER.warn("waitAdmin2GatewayDataSyncEquals debug admin rule size = {} , gateway rule size = {}", adminDataList.size(), gatewayDataList.size());
+            LOGGER.warn("dataSyncEquals test {} admin size = {} gateway size = {}", testClassName, adminDataList.size(), gatewayDataList.size());
             if (gatewayDataList.size() == adminDataList.size()) {
                 break;
             }
-            adminClient.syncPluginAll();
+            if (retryNum % 3 == 0) {
+                adminClient.syncPluginAll();
+            }
             Thread.sleep(3000);
             retryNum++;
         }
