@@ -47,16 +47,16 @@ public final class ClientDiscoveryConfigRefreshedEventListener implements Applic
 
     protected DiscoveryConfigRegisterDTO buildDiscoveryConfigRegisterDTO(final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
         if (StringUtils.isEmpty(shenyuDiscoveryConfig.getName())) {
-            LOG.error("config shenyu.discovery.name in xml/yml must not null");
-            throw new ShenyuException("config shenyu.discovery.name in xml/yml must not null");
+            LOG.error("If using service discovery. The configuration shenyu.discovery.name in xml/yml cannot be null");
+            throw new ShenyuException("The configuration shenyu.discovery.name in xml/yml cannot be null");
         }
         if (StringUtils.isEmpty(shenyuDiscoveryConfig.getServerList())) {
-            LOG.error("config shenyu.discovery.serverList in xml/yml must not null");
-            throw new ShenyuException("config shenyu.discovery.serverList in xml/yml must not null");
+            LOG.error("If using service discovery. The configuration shenyu.discovery.name in xml/yml cannot be null");
+            throw new ShenyuException("The configuration shenyu.discovery.name in xml/yml cannot be null");
         }
         if (StringUtils.isEmpty(shenyuDiscoveryConfig.getType())) {
-            LOG.error("config shenyu.discovery.type in xml/yml must not null");
-            throw new ShenyuException("config shenyu.discovery.type in xml/yml must not null");
+            LOG.error("If using service discovery. The configuration shenyu.discovery.name in xml/yml cannot be null");
+            throw new ShenyuException("The configuration shenyu.discovery.name in xml/yml cannot be null");
         }
         return DiscoveryConfigRegisterDTO.builder()
                 .name(shenyuDiscoveryConfig.getName())
