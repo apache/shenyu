@@ -1,0 +1,113 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shenyu-admin-postgres
+  labels:
+    app: shenyu-admin-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shenyu-admin-postgres
+  template:
+    metadata:
+      labels:
+        app: shenyu-admin
+    spec:
+      containers:
+        - name: shenyu-admin
+          image: apache/shenyu-admin:latest
+          resources: { }
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: pg
+            - name: spring.datasource.username
+              value: shenyue2e
+            - name: spring.datasource.password
+              value: shenyue2e
+            - name: spring.datasource.url
+              value: jdbc:postgresql://shenyu-postgres:5432/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
+          ports:
+            - containerPort: 9097
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+status: { }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shenyu-bootstrap-postgres
+  labels:
+    app: shenyu-bootstrap-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shenyu-bootstrap-postgres
+  template:
+    metadata:
+      labels:
+        app: shenyu-bootstrap-postgres
+    spec:
+      containers:
+        - name: shenyu-bootstrap-postgres
+          image: apache/shenyu-bootstrap:latest
+          resources: { }
+          env:
+            - name: shenyu.sync.websocket.urls
+              value: ws://shenyu-admin-postgres:9097/websocket
+          ports:
+            - containerPort: 9197
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+status: { }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shenyu-postgres
+  labels:
+    app: shenyu-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shenyu-postgres
+  template:
+    metadata:
+      labels:
+        app: shenyu-postgres
+    spec:
+      containers:
+        - name: shenyu-postgres
+          image: postgres:14
+          resources: { }
+          env:
+            - name: POSTGRES_USER
+              value: shenyue2e
+            - name: POSTGRES_PASSWORD
+              value: shenyue2e
+            - name: POSTGRES_DB
+              value: shenyu
+          ports:
+            - containerPort: 5432
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
