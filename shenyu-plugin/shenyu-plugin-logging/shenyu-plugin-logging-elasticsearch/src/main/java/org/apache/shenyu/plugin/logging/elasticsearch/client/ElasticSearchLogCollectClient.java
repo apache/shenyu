@@ -109,7 +109,7 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
         try {
             client.bulk(e -> e.index(indexName).operations(bulkOperations));
         } catch (Exception e) {
-            LogUtils.error(LOG, "elasticsearch store logs error:", e);
+            LogUtils.error(LOG, "elasticsearch store logs error: ", e);
         }
     }
 
