@@ -109,6 +109,7 @@ public class ApacheDubboPluginTest {
         adminClient.deleteAllSelectors();
         selectorDTOList = adminClient.listAllSelectors();
         Assertions.assertEquals(0, selectorDTOList.size());
+        Thread.sleep(5000);
     }
 
     @BeforeEach
