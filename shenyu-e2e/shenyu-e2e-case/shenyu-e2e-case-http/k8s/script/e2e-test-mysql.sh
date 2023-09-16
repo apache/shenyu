@@ -17,11 +17,12 @@
 #
 
 ## prepare mysql
-bash ./shenyu-e2e/script/storage_init_mysql.sh
+mkdir -p /tmp/shenyu-e2e/mysql
 
-ls /
+cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema.sql
 
-ls ~
+ls /tmp/shenyu-e2e/mysql
+
 
 ## init kubernetes for mysql
 curPath=$(readlink -f "$(dirname "$0")")
