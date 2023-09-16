@@ -64,9 +64,8 @@ spec:
     spec:
       initContainers:
         - name: shenyu-bootstrap-h2-init
-          image: appropriate/curl
-          command: [ "sh" ]
-          args: [ "-c", "curl -X GET http://localhost:31095/actuator/health" ]
+          image: busybox
+          command: ['sh', '-c', 'until nslookup shenyu-admin-h2; do echo waiting for mysql; sleep 2; done;']
       containers:
         - name: shenyu-bootstrap-h2
           image: apache/shenyu-bootstrap:latest

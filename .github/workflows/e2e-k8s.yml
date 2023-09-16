@@ -82,3 +82,10 @@ jobs:
         run: |
           bash ./shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/k8s/script/e2e-test-h2.sh
           bash ./shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/k8s/script/e2e-test-mysql.sh
+
+      - name: Cluster Test after Healthcheck
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          kubectl get all
+          kubectl get events --all-namespaces
+          kubectl logs -l all=shenyu-admin-mysql
