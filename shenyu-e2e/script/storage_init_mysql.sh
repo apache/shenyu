@@ -18,10 +18,10 @@
 
 mkdir -p /tmp/shenyu-e2e/mysql
 
-wget -O /tmp/shenyu-e2e/mysql/mysql-connector.jar \
-  https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar || \
-  wget -O /tmp/shenyu-e2e/mysql/mysql-connector.jar \
-    https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar
+#wget -O /tmp/shenyu-e2e/mysql/mysql-connector.jar \
+#  https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar || \
+#  wget -O /tmp/shenyu-e2e/mysql/mysql-connector.jar \
+#    https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar
 
 cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema.sql
 
