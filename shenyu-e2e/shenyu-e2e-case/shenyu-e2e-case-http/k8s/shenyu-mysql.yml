@@ -55,7 +55,7 @@ spec:
 #              mountPath: /docker-entrypoint-initdb.d
       containers:
         - name: shenyu-mysql
-          image: mysql:8
+          image: mysql:8.0
           ports:
             - containerPort: 3306
           env:
