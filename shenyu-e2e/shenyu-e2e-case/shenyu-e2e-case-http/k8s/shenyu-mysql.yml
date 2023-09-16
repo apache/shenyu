@@ -43,7 +43,7 @@ spec:
             - |
               set -ex
               rm -fr /var/lib/mysql/lost+found
-              cp db/init/mysql/schema.sql /docker-entrypoint-initdb.d/schema.sql
+              cp /tmp/shenyu-e2e/mysql/schema.sql /docker-entrypoint-initdb.d/schema.sql
               cat > /docker-entrypoint-initdb.d/schema.sql <<EOF
               create database shenyu default character set utf8mb4;
               grant all on shenyu.* to 'shenyue2e'@'%' identified by '$MYSQL_ROOT_PASSWORD';
