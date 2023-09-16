@@ -132,6 +132,21 @@ spec:
       labels:
         app: shenyu-mysql
     spec:
+      initContainers:
+        - name: init-sql
+          image: busybox:1.35.0
+          command: [ "sh","-c" ]
+          args: [ "wget https://raw.githubusercontent.com/apache/incubator-shenyu/master/shenyu-admin/src/main/resources/schema.sql;
+                  wget https://raw.githubusercontent.com/apache/incubator-shenyu/master/shenyu-admin/src/main/resources/schema.sql.md5;
+                  if [ $(md5sum schema.sql | cut -d ' ' -f1) = $(cat schema.sql.md5) ];
+                  then echo success;
+                  else echo failed;
+                  exit 1;
+                  fi;
+                  mv /schema.sql /tmp/shenyu-e2e/mysql/schema.sql" ]
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /tmp/shenyu-e2e/mysql
       containers:
         - name: shenyu-mysql
           image: mysql:8
@@ -160,6 +175,8 @@ spec:
             failureThreshold: 3
             exec:
               command: [ "mysqladmin", "-uroot", "-p${MYSQL_ROOT_PASSWORD}", "ping" ]
+          command:
+            - "sh"
           volumeMounts:
             - name: mysql-data
               mountPath: /docker-entrypoint-initdb.d/schema.sql
