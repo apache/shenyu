@@ -45,6 +45,24 @@ spec:
               value: jdbc:postgresql://shenyu-postgres:5432/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
           ports:
             - containerPort: 9097
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 9097
+              path: /actuator/health
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 9097
+              path: /actuator/health
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
 status: { }
@@ -75,6 +93,24 @@ spec:
               value: ws://shenyu-admin-postgres:9097/websocket
           ports:
             - containerPort: 9197
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 9197
+              path: /actuator/health
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 9197
+              path: /actuator/health
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
 status: { }
