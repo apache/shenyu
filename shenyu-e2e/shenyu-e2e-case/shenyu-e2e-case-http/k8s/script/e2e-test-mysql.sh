@@ -34,8 +34,10 @@ sleep 10s
 
 kubectl get pod -o wide
 
-#kubectl apply -f ${PRGDIR}/shenyu-deployment-mysql.yml
-#kubectl apply -f ${PRGDIR}/shenyu-app-service-mysql.yml
+kubectl apply -f ${PRGDIR}/shenyu-deployment-mysql.yml
+kubectl apply -f ${PRGDIR}/shenyu-app-service-mysql.yml
+
+kubectl get pod -o wide
 #
 #kubectl logs -l app=shenyu-admin-mysql
 #

@@ -45,6 +45,15 @@ spec:
           volumeMounts:
             - name: mysql-connector-volume
               mountPath: /opt/shenyu-admin/ext-lib
+        - name: wait-mysql
+          image: busybox:1.35.0
+          command: [ "sh","-c" ]
+          args: [ "until nc -z -v -w30 shenyu-mysql 33306;
+                    do
+                    echo \"Waiting for database connection...\";
+                    sleep 5;
+                    done;
+                    echo \"Database is ready!\"" ]
       containers:
         - name: shenyu-admin-mysql
           image: apache/shenyu-admin:latest
@@ -57,7 +66,7 @@ spec:
             - name: spring.datasource.password
               value: shenyue2e
             - name: spring.datasource.url
-              value: jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+              value: jdbc:mysql://shenyu-mysql:33306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
