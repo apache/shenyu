@@ -32,7 +32,7 @@ echo $PRGDIR
 kubectl apply -f ${PRGDIR}/shenyu-mysql.yml
 sleep 10s
 
-kubectl logs -f deployment/shenyu-mysql
+kubectl get pod -o wide
 
 #kubectl apply -f ${PRGDIR}/shenyu-deployment-mysql.yml
 #kubectl apply -f ${PRGDIR}/shenyu-app-service-mysql.yml
