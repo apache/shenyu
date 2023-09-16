@@ -18,6 +18,7 @@
 
 ## prepare mysql
 bash ./shenyu-e2e/script/storage_init_mysql.sh
+mv /tmp/shenyu-e2e/mysql/mysql-connector.jar /opt/shenyu-admin/ext-lib/mysql-connector.jar
 
 ## init kubernetes for mysql
 pwd

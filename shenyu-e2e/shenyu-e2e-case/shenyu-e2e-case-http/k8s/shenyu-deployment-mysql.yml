@@ -30,6 +30,21 @@ spec:
       labels:
         app: shenyu-admin-mysql
     spec:
+      initContainers:
+        - name: download-mysql-jar
+          image: busybox:1.35.0
+          command: [ "sh","-c" ]
+          args: [ "wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar;
+                  wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar.md5;
+                  if [ $(md5sum mysql-connector-java-8.0.29.jar | cut -d ' ' -f1) = $(cat mysql-connector-java-8.0.29.jar.md5) ];
+                  then echo success;
+                  else echo failed;
+                  exit 1;
+                  fi;
+                  mv /mysql-connector-java-8.0.29.jar /opt/shenyu-admin/ext-lib/mysql-connector-java.jar" ]
+          volumeMounts:
+            - name: mysql-connector-volume
+              mountPath: /opt/shenyu-admin/ext-lib
       containers:
         - name: shenyu-admin-mysql
           image: apache/shenyu-admin:latest
@@ -63,12 +78,12 @@ spec:
             - containerPort: 9096
           imagePullPolicy: IfNotPresent
           volumeMounts:
-            - name: mysql-driver
-              mountPath: /opt/shenyu-admin/ext-lib/mysql-connector.jar
+            - name: mysql-connector-volume
+              mountPath: /opt/shenyu-admin/ext-lib
       volumes:
-        - name: mysql-driver
+        - name: mysql-connector-volume
           hostPath:
-            path: /tmp/shenyu-e2e/mysql/mysql-connector.jar
+            path: /opt/shenyu-admin/ext-lib
       restartPolicy: Always
 
 ---

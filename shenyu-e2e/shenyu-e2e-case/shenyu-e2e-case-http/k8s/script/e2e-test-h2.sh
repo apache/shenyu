@@ -37,7 +37,7 @@ sh ${curPath}/healthcheck.sh h2
 
 ## run e2e-test
 
-curl http://localhost:31195/actuator/pluginData
+echo -e "curl http://localhost:31195/actuator/pluginData"
 
 ### wait shenyu-admin and shenyu-bootstrap start
 
