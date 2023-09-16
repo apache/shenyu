@@ -85,9 +85,14 @@ spec:
             exec:
               command: [ "mysqladmin", "-uroot", "-p${MYSQL_ROOT_PASSWORD}", "ping" ]
           volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
             - name: mysql-initdb
               mountPath: /docker-entrypoint-initdb.d
       volumes:
+        - name: mysql-data
+          hostPath:
+            path: /var/lib/mysql
         - name: mysql-initdb
           emptyDir: { }
       restartPolicy: Always
