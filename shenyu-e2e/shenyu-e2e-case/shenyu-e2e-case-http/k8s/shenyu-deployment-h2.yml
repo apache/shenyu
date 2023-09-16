@@ -62,6 +62,20 @@ spec:
       labels:
         app: shenyu-bootstrap-h2
     spec:
+      initContainers:
+        - name: shenyu-bootstrap-h2-init
+          image: busybox
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - "-c"
+            - |
+              set -ex
+              until wget -O /dev/null -q http://shenyu-admin-h2:31095/actuator/health; do
+                echo "waiting for shenyu-admin-h2"
+                sleep 5
+              done
+              echo "shenyu-admin-h2 is ready"
       containers:
         - name: shenyu-bootstrap-h2
           image: apache/shenyu-bootstrap:latest

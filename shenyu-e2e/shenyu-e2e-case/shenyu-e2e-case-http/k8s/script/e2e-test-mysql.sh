@@ -18,7 +18,6 @@
 
 ## prepare mysql
 mkdir -p /tmp/shenyu-e2e/mysql
-
 cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema.sql
 
 ls /tmp/shenyu-e2e/mysql
@@ -33,7 +32,7 @@ echo $PRGDIR
 kubectl apply -f ${PRGDIR}/shenyu-mysql.yml
 sleep 10s
 
-kubectl logs -l app=shenyu-mysql
+kubectl logs -f deployment/shenyu-mysql
 
 #kubectl apply -f ${PRGDIR}/shenyu-deployment-mysql.yml
 #kubectl apply -f ${PRGDIR}/shenyu-app-service-mysql.yml
