@@ -65,7 +65,7 @@ spec:
       initContainers:
         - name: shenyu-bootstrap-h2-init
           image: busybox
-          command: ['sh', '-c', 'until nslookup shenyu-admin-h2; do echo waiting for mysql; sleep 2; done;']
+          command: ['sh', '-c', 'until nslookup localhost:31095; do echo waiting for mysql; sleep 2; done;']
       containers:
         - name: shenyu-bootstrap-h2
           image: apache/shenyu-bootstrap:latest
