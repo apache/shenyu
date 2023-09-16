@@ -163,6 +163,10 @@ spec:
           volumeMounts:
             - name: mysql-data
               mountPath: /docker-entrypoint-initdb.d/schema.sql
+          lifecycle:
+            postStart:
+              exec:
+                command: [ "sh", "-c", "mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e 'CREATE DATABASE IF NOT EXISTS shenyu;'" ]
       volumes:
         - name: mysql-data
           hostPath:
