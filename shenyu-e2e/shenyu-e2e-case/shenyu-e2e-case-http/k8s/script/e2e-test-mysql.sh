@@ -18,7 +18,6 @@
 
 ## prepare mysql
 bash ./shenyu-e2e/script/storage_init_mysql.sh
-mv /tmp/shenyu-e2e/mysql/mysql-connector.jar /opt/shenyu-admin/ext-lib/mysql-connector.jar
 
 ## init kubernetes for mysql
 pwd
@@ -27,13 +26,20 @@ echo $curPath
 
 PRGDIR=`dirname "$curPath"`
 echo $PRGDIR
+kubectl apply -f ${PRGDIR}/shenyu-mysql.yml
+sleep 10s
+
+kubectl logs -l app=shenyu-mysql
+
 kubectl apply -f ${PRGDIR}/shenyu-deployment-mysql.yml
 kubectl apply -f ${PRGDIR}/shenyu-app-service-mysql.yml
+
+kubectl logs -l app=shenyu-admin-mysql
 
 sleep 10s
 
 kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
-kubectl get pod -o wide
+kubectl get pod -o wide --show-labels
 
 # execute healthcheck.sh
 chmod +x ${curPath}/healthcheck.sh

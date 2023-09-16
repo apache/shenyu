@@ -53,7 +53,7 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: mysql
             - name: spring.datasource.username
-              value: shenyue2e
+              value: root
             - name: spring.datasource.password
               value: shenyue2e
             - name: spring.datasource.url
@@ -77,13 +77,15 @@ spec:
           ports:
             - containerPort: 9096
           imagePullPolicy: IfNotPresent
-          volumeMounts:
-            - name: mysql-connector-volume
-              mountPath: /opt/shenyu-admin/ext-lib
+#          volumeMounts:
+#            - name: mysql-connector-volume
+#              mountPath: /opt/shenyu-admin/ext-lib
       volumes:
         - name: mysql-connector-volume
-          hostPath:
-            path: /opt/shenyu-admin/ext-lib
+          emptyDir: { }
+#        - name: mysql-connector-volume
+#          hostPath:
+#            path: /opt/shenyu-admin/ext-lib
       restartPolicy: Always
 
 ---
@@ -113,73 +115,5 @@ spec:
           ports:
             - containerPort: 9196
           imagePullPolicy: IfNotPresent
-      restartPolicy: Always
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: shenyu-mysql
-  labels:
-    app: shenyu-mysql
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: shenyu-mysql
-  template:
-    metadata:
-      labels:
-        app: shenyu-mysql
-    spec:
-      initContainers:
-        - name: init-sql
-          image: busybox:1.35.0
-          command: [ "sh","-c" ]
-          args: [ "mv /tmp/shenyu-e2e/mysql/schema.sql /docker-entrypoint-initdb.d/schema.sql"
-                  "/docker-entrypoint-initdb.d/schema.sql"]
-          volumeMounts:
-            - name: mysql-data
-              mountPath: /tmp/shenyu-e2e/mysql
-            - name: dump
-              mountPath: /docker-entrypoint-initdb.d
-      containers:
-        - name: shenyu-mysql
-          image: mysql:8
-          ports:
-            - containerPort: 3306
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: shenyue2e
-            - name: MYSQL_USER
-              value: shenyue2e
-            - name: MYSQL_PASSWORD
-              value: shenyue2e
-          livenessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-            exec:
-              command: [ "mysqladmin", "-uroot", "-p${MYSQL_ROOT_PASSWORD}", "ping" ]
-          readinessProbe:
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-            exec:
-              command: [ "mysqladmin", "-uroot", "-p${MYSQL_ROOT_PASSWORD}", "ping" ]
-          volumeMounts:
-            - name: mysql-data
-              mountPath: /docker-entrypoint-initdb.d/schema.sql
-          imagePullPolicy: IfNotPresent
-      volumes:
-        - name: mysql-data
-          hostPath:
-            path: /tmp/shenyu-e2e/mysql/schema.sql
-        - name: dump
-          emptyDir: {}
       restartPolicy: Always
 
