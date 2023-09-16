@@ -34,13 +34,10 @@ spec:
         - name: init-sql
           image: busybox:1.35.0
           command: [ "sh","-c" ]
-          args: [ "mv /tmp/shenyu-e2e/mysql/schema.sql /docker-entrypoint-initdb.d/schema.sql",
-                  "/docker-entrypoint-initdb.d/schema.sql" ]
+          args: [ "mv /tmp/shenyu-e2e/mysql/schema.sql /docker-entrypoint-initdb.d/schema.sql"]
           volumeMounts:
             - name: mysql-data
               mountPath: /tmp/shenyu-e2e/mysql
-            - name: dump
-              mountPath: /docker-entrypoint-initdb.d
       containers:
         - name: shenyu-mysql
           image: mysql:8
@@ -69,9 +66,16 @@ spec:
             failureThreshold: 3
             exec:
               command: [ "mysqladmin", "-uroot", "-p${MYSQL_ROOT_PASSWORD}", "ping" ]
+          command:
+            - /bin/sh
+            - -c
+            - |
+              mysqlimport -uroot -p${MYSQL_ROOT_PASSWORD} --local shenyu /docker-entrypoint-initdb.d/schema.sql
           volumeMounts:
             - name: mysql-data
               mountPath: /docker-entrypoint-initdb.d/schema.sql
+            - name: dump
+              mountPath: /docker-entrypoint-initdb.d
           imagePullPolicy: IfNotPresent
       volumes:
         - name: mysql-data
@@ -95,3 +99,4 @@ spec:
   ports:
     - name: "3306"
       port: 3306
+      targetPort: 3306
