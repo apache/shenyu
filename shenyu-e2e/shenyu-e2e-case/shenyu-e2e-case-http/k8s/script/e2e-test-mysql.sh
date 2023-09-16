@@ -38,7 +38,7 @@ kubectl logs -l app=shenyu-admin-mysql
 sleep 10s
 
 kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
-kubectl get pod -o wide --show-labels
+kubectl get pod -o wide
 
 # execute healthcheck.sh
 chmod +x ${curPath}/healthcheck.sh
