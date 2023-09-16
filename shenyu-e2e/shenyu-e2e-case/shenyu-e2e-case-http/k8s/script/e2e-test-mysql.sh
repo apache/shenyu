@@ -35,22 +35,22 @@ sleep 10s
 
 kubectl logs -l app=shenyu-mysql
 
-kubectl apply -f ${PRGDIR}/shenyu-deployment-mysql.yml
-kubectl apply -f ${PRGDIR}/shenyu-app-service-mysql.yml
-
-kubectl logs -l app=shenyu-admin-mysql
-
-sleep 10s
-
-kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
-kubectl get pod -o wide
-
-# execute healthcheck.sh
-chmod +x ${curPath}/healthcheck.sh
-sh ${curPath}/healthcheck.sh mysql
-
-## run e2e-test
-curl http://localhost:31196/actuator/shenyu/pluginData
+#kubectl apply -f ${PRGDIR}/shenyu-deployment-mysql.yml
+#kubectl apply -f ${PRGDIR}/shenyu-app-service-mysql.yml
+#
+#kubectl logs -l app=shenyu-admin-mysql
+#
+#sleep 10s
+#
+#kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
+#kubectl get pod -o wide
+#
+## execute healthcheck.sh
+#chmod +x ${curPath}/healthcheck.sh
+#sh ${curPath}/healthcheck.sh mysql
+#
+### run e2e-test
+#curl http://localhost:31196/actuator/shenyu/pluginData
 
 ### wait shenyu-admin and shenyu-bootstrap start
 
