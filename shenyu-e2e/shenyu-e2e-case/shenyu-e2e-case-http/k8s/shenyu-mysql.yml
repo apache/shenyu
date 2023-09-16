@@ -65,18 +65,14 @@ spec:
               value: shenyue2e
             - name: MYSQL_PASSWORD
               value: shenyue2e
-#          livenessProbe:
-#            initialDelaySeconds: 30
-#            periodSeconds: 10
-#            timeoutSeconds: 5
-#            successThreshold: 1
-#            failureThreshold: 3
-#            exec:
-#              command:
-#                - /bin/sh
-#                - "-c"
-#                - MYSQL_PWD="${MYSQL_ROOT_PASSWORD}"
-#                - mysql -h 127.0.0.1 -u root -e "SELECT 1"
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            exec:
+              command: [ "mysqladmin", "-uroot", "-p${MYSQL_ROOT_PASSWORD}", "ping" ]
           readinessProbe:
             initialDelaySeconds: 10
             periodSeconds: 10
