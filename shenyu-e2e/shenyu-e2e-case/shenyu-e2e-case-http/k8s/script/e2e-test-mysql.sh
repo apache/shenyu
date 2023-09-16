@@ -20,7 +20,6 @@
 bash ./shenyu-e2e/script/storage_init_mysql.sh
 
 ## init kubernetes for mysql
-pwd
 curPath=$(readlink -f "$(dirname "$0")")
 echo $curPath
 

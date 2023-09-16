@@ -34,7 +34,7 @@ spec:
         - name: init-sql
           image: busybox:1.35.0
           command: [ "sh","-c" ]
-          args: [ "mv /tmp/shenyu-e2e/mysql/schema.sql /docker-entrypoint-initdb.d/schema.sql"
+          args: [ "mv /tmp/shenyu-e2e/mysql/schema.sql /docker-entrypoint-initdb.d/schema.sql",
                   "/docker-entrypoint-initdb.d/schema.sql" ]
           volumeMounts:
             - name: mysql-data
