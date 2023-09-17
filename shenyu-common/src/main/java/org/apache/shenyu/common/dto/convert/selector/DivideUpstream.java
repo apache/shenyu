@@ -35,10 +35,16 @@ public class DivideUpstream extends CommonUpstream {
     private int warmup;
 
     /**
+     * servletContextPath.
+     */
+    private String servletContextPath;
+
+    /**
      * no args constructor.
      */
     public DivideUpstream() {
     }
+
 
     /**
      * builder constructor.
@@ -52,11 +58,12 @@ public class DivideUpstream extends CommonUpstream {
         }
         setUpstreamHost(builder.upstreamHost);
         setProtocol(builder.protocol);
-        setUpstreamUrl(builder.upstreamUrl); 
+        setUpstreamUrl(builder.upstreamUrl);
         this.weight = builder.weight;
         setStatus(statusValue);
         setTimestamp(builder.timestamp);
         this.warmup = builder.warmup;
+        this.servletContextPath = builder.servletContextPath;
     }
 
     /**
@@ -67,7 +74,7 @@ public class DivideUpstream extends CommonUpstream {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     /**
      * get weight.
      *
@@ -85,7 +92,7 @@ public class DivideUpstream extends CommonUpstream {
     public void setWeight(final int weight) {
         this.weight = weight;
     }
-    
+
     /**
      * get warmup.
      *
@@ -93,6 +100,24 @@ public class DivideUpstream extends CommonUpstream {
      */
     public int getWarmup() {
         return warmup;
+    }
+
+    /**
+     * set warmup.
+     *
+     * @param servletContextPath servletContextPath
+     */
+    public void setServletContextPath(final String servletContextPath) {
+        this.servletContextPath = servletContextPath;
+    }
+
+    /**
+     * get getServletContextPath.
+     *
+     * @return warmup
+     */
+    public String getServletContextPath() {
+        return servletContextPath;
     }
 
     /**
@@ -188,7 +213,12 @@ public class DivideUpstream extends CommonUpstream {
          * warmup.
          */
         private int warmup;
-        
+
+        /**
+         * servletContextPath.
+         */
+        private String servletContextPath;
+
         /**
          * no args constructor.
          */
@@ -268,6 +298,17 @@ public class DivideUpstream extends CommonUpstream {
          */
         public Builder timestamp(final long timestamp) {
             this.timestamp = timestamp;
+            return this;
+        }
+
+        /**
+         * build warmup.
+         *
+         * @param servletContextPath servletContextPath
+         * @return this
+         */
+        public Builder servletContextPath(final String servletContextPath) {
+            this.servletContextPath = servletContextPath;
             return this;
         }
 

@@ -79,6 +79,8 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     private final boolean addPrefixed;
 
     private final Environment env;
+    
+    private final String servletContextPath;
 
     /**
      * Instantiates a new context refreshed event listener.
@@ -97,6 +99,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         this.protocol = props.getProperty(ShenyuClientConstants.PROTOCOL, ShenyuClientConstants.HTTP);
         this.addPrefixed = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.ADD_PREFIXED,
                 Boolean.FALSE.toString()));
+        this.servletContextPath = StringUtils.defaultString(this.env.getProperty("server.servlet.context-path"), "");
         mappingAnnotation.add(ShenyuSpringMvcClient.class);
         mappingAnnotation.add(RequestMapping.class);
     }
@@ -149,6 +152,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                     .port(Integer.valueOf(getPort()))
                     .rpcType(RpcTypeEnum.HTTP.getName())
                     .eventType(EventType.REGISTER)
+                    .servletContextPath(servletContextPath)
                     .build();
         } catch (ShenyuException e) {
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
@@ -158,7 +162,6 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     @Override
     protected String buildApiSuperPath(final Class<?> clazz, @Nullable final ShenyuSpringMvcClient beanShenyuClient) {
         final String servletPath = StringUtils.defaultString(this.env.getProperty("spring.mvc.servlet.path"), "");
-        final String servletContextPath = StringUtils.defaultString(this.env.getProperty("server.servlet.context-path"), "");
         final String rootPath = String.format("/%s/%s/", servletContextPath, servletPath);
         if (Objects.nonNull(beanShenyuClient) && StringUtils.isNotBlank(beanShenyuClient.path())) {
             return formatPath(String.format("%s/%s", rootPath, beanShenyuClient.path()));

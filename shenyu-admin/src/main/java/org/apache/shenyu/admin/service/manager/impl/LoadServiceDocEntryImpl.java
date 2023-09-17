@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.cache.ServletContextPathCache;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.entity.PluginDO;
@@ -210,6 +211,8 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                     instance.setPort(upstreamUrlArr.length == 1 ? 80 : Integer.parseInt(upstreamUrlArr[1]));
                     instance.setEnabled(enabled);
                     instance.setHealthy(true);
+                    String servletContextPath = ServletContextPathCache.getInstance().obtainServletContextPath(contextPath);
+                    instance.setServletContextPath(servletContextPath);
                     instance.setStartupTime(upstream.getTimestamp());
                     allInstances.add(instance);
                 }

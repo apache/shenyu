@@ -108,7 +108,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
                 body,
                 tagExt.getApiDocMd5(),
                 callback -> {
-                    LOG.info("save api document successful，clusterName={}, ipPort={}", instance.getClusterName(), instance.getIp() + ":" + instance.getPort());
+                    LOG.info("save api document successful，clusterName={}, ipPort={}", instance.getClusterName(), url);
                     tagExt.setApiDocMd5(callback.getDocMd5());
                 }
             );
@@ -180,7 +180,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
         uriComponentsBuilder.scheme("http");
         uriComponentsBuilder.host(instance.getIp());
         uriComponentsBuilder.port(instance.getPort());
-        uriComponentsBuilder.path(Optional.ofNullable(instance.getContextPath()).orElse(""));
+        uriComponentsBuilder.path(Optional.ofNullable(instance.getServletContextPath()).orElse(""));
         uriComponentsBuilder.path(SWAGGER_V2_PATH);
         return uriComponentsBuilder.build().toUriString();
     }

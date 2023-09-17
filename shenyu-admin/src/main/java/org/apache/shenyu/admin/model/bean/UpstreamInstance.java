@@ -44,6 +44,8 @@ public class UpstreamInstance {
      */
     private boolean enabled = true;
 
+    private String servletContextPath;
+
     /**
      * getClusterName.
      * @return String
@@ -157,6 +159,24 @@ public class UpstreamInstance {
      */
     public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
+    }
+
+    /**
+     * getServletContextPath.
+     *
+     * @return String
+     */
+    public String getServletContextPath() {
+        return servletContextPath;
+    }
+
+    /**
+     * setServletContextPath.
+     *
+     * @param servletContextPath servletContextPath
+     */
+    public void setServletContextPath(final String servletContextPath) {
+        this.servletContextPath = servletContextPath;
     }
 
     @Override

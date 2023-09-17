@@ -18,9 +18,7 @@ server:
   address: 0.0.0.0
   tomcat:
     max-http-form-post-size: 100MB
-  servlet:
-    context-path: /http-swagger2 # should be the same as shenyu.client.http.contextPath
-
+    
 shenyu:
   register:
     registerType: http #zookeeper #etcd #nacos #consul

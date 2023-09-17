@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.cache.ServletContextPathCache;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -112,12 +113,17 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
 
     private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
-                .map(dto -> CommonUpstreamUtils.buildDivideUpstream(dto.getProtocol(), dto.getHost(), dto.getPort()))
+                .map(dto -> {
+                    DivideUpstream divideUpstream = CommonUpstreamUtils.buildDivideUpstream(dto.getProtocol(), dto.getHost(), dto.getPort());
+                    divideUpstream.setServletContextPath(dto.getServletContextPath());
+                    return divideUpstream;
+                })
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
-    
+
     @Override
     public String offline(final String selectorName, final List<URIRegisterDTO> uriList) {
+        uriList.stream().filter(dto -> Objects.nonNull(dto.getContextPath())).forEach(dto -> ServletContextPathCache.getInstance().removePath(dto.getContextPath()));
         final SelectorService selectorService = getSelectorService();
         SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
         if (Objects.isNull(selectorDO)) {

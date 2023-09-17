@@ -146,6 +146,7 @@ public class SpringMvcClientEventListenerTest {
         mockRegisterCenter.setServerLists("http://127.0.0.1:9095");
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
+        when(env.getProperty("server.servlet.context-path")).thenReturn("/servlet-context-path");
         return new SpringMvcClientEventListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env);
     }
 
@@ -175,12 +176,9 @@ public class SpringMvcClientEventListenerTest {
     @Test
     public void testOnBuildApiSuperPath() {
         SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, false);
-
-        Assert.assertEquals("super-path", "/order", springMvcClientEventListener.buildApiSuperPath(
+        Assert.assertEquals("super-path", "/servlet-context-path/order", springMvcClientEventListener.buildApiSuperPath(
             SpringMvcClientTestBean.class, AnnotatedElementUtils.findMergedAnnotation(SpringMvcClientTestBean.class, ShenyuSpringMvcClient.class)));
-
         when(env.getProperty("spring.mvc.servlet.path")).thenReturn("/servlet-path");
-        when(env.getProperty("server.servlet.context-path")).thenReturn("/servlet-context-path");
         Assert.assertEquals("super-path", "/servlet-context-path/servlet-path/order", springMvcClientEventListener.buildApiSuperPath(
             SpringMvcClientTestBean.class, AnnotatedElementUtils.findMergedAnnotation(SpringMvcClientTestBean.class, ShenyuSpringMvcClient.class)));
         registerUtilsMockedStatic.close();
