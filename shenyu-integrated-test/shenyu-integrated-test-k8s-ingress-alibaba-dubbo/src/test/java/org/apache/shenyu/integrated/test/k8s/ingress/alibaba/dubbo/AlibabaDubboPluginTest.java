@@ -37,7 +37,6 @@ public class AlibabaDubboPluginTest extends AbstractPluginDataInit {
         HTTP_HELPER.setGatewayEndpoint("http://localhost:30095");
     }
 
-
     @Test
     public void testFindById() throws IOException {
         DubboTest dubboTest = HttpHelper.INSTANCE.getFromGateway("/findById?id=1", new TypeToken<DubboTest>() {
