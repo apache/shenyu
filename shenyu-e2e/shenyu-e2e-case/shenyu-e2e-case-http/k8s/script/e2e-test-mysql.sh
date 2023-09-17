@@ -45,7 +45,7 @@ kubectl get pod -o wide
 
 sleep 60s
 
-kubectl run -it --rm --image=mysql:8.0 --restart=Never mysql-client -- mysql -h shenyu-mysql -pshenyue2e -e "show databases;"
+kubectl run -it --rm --image=mysql:8.0 --restart=Never mysql-client -- mysql -h shenyu-mysql -uroot -pshenyue2e -e "show databases;"
 kubectl get pod -o wide
 
 chmod +x ${curPath}/healthcheck.sh
