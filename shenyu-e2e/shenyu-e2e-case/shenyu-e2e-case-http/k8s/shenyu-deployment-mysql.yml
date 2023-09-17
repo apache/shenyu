@@ -30,16 +30,16 @@ spec:
       labels:
         app: shenyu-admin-mysql
     spec:
-      initContainers:
-        - name: wait-mysql
-          image: busybox:latest
-          command: [ "sh","-c" ]
-          args: [ "until nc -z -v -w30 localhost 30306;
-                    do
-                    echo \"Waiting for database connection...\";
-                    sleep 2;
-                    done;
-                    echo \"Database is ready!\"" ]
+#      initContainers:
+#        - name: wait-mysql
+#          image: busybox:latest
+#          command: [ "sh","-c" ]
+#          args: [ "until nc -z -v -w30 localhost 30306;
+#                    do
+#                    echo \"Waiting for database connection...\";
+#                    sleep 2;
+#                    done;
+#                    echo \"Database is ready!\"" ]
       containers:
         - name: shenyu-admin-mysql
           image: apache/shenyu-admin:latest
