@@ -1,14 +1,24 @@
 package org.apache.shenyu.isolation;
 
-import jdk.jfr.Configuration;
-
-import java.net.URI;
-import java.net.URL;
 import java.net.URLClassLoader;
 
 public interface Module {
 
-//    String getPath();
+    String name();
+
+    /**
+     * Set classLoader.
+     * @param classLoader
+     */
+    void setClassLoader(URLClassLoader classLoader);
+
+    /**
+     * Module init.
+     * @throws Throwable
+     */
+    void init() throws Throwable;
+
+    //    String getPath();
 //
 //    Configuration[] getConfigurations();
 //
@@ -17,6 +27,5 @@ public interface Module {
 //    int order();
 //
 //    URL[] getResource();
-//
-//    void start() throws Throwable;
+
 }

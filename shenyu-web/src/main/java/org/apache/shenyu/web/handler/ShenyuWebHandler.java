@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
+import org.apache.shenyu.isolation.Module;
+import org.apache.shenyu.isolation.ModuleManager;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
@@ -37,12 +39,10 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URLClassLoader;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -51,6 +51,8 @@ import java.util.stream.Collectors;
 public final class ShenyuWebHandler implements WebHandler, ApplicationListener<PluginHandlerEvent> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebHandler.class);
+
+    private static final String PLUGIN_PATH = "./plugins/%s";
 
     /**
      * this filed can not set to be final, because we should copyOnWrite to update plugins.
@@ -203,6 +205,11 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     private synchronized void onPluginEnabled(final PluginData pluginData) {
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
+        // init plugin, 暂时先初始化request插件
+        if (pluginData.getName().equals("request")) {
+            initPluginClassLoader(pluginData.getName());
+        }
+
         if (StringUtils.isNoneBlank(pluginData.getPluginJar())) {
             LOG.info("shenyu start load plugin [{}] from upload plugin jar", pluginData.getName());
             shenyuLoaderService.loadUploadedJarPlugins(pluginData);
@@ -214,6 +221,40 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         List<ShenyuPlugin> newPluginList = new ArrayList<>(this.plugins);
         newPluginList.addAll(enabledPlugins);
         this.plugins = sortPlugins(newPluginList);
+    }
+
+    private void initPluginClassLoader(String pluginName) {
+        try {
+            // load plugin
+            String pluginJarDir = String.format(PLUGIN_PATH, pluginName);
+            URLClassLoader pluginClassLoader = ModuleManager.initClassLoader(new File(pluginJarDir));
+            if (Objects.isNull(pluginClassLoader)) {
+                LOG.info("fail to find the plugin path: {}, plugin: {}", pluginJarDir, pluginName);
+            }
+
+            // init plugin
+            ServiceLoader<Module> loader = ServiceLoader.load(Module.class, pluginClassLoader);
+            Iterator<Module> it = loader.iterator();
+            Module plugin = null;
+            while (it.hasNext()) {
+                Module module = it.next();
+                if (module.name().equals(pluginName)) {
+                    plugin = module;
+                    break;
+                }
+            }
+
+            if (plugin == null) {
+                LOG.error("failed to find plugin: {}", pluginName);
+                return;
+            }
+            plugin.setClassLoader(pluginClassLoader);
+            plugin.init();
+            LOG.info("load {} plugin success, path: {}", pluginName, pluginJarDir);
+        } catch (Throwable e) {
+            LOG.error("load {} plugin classloader failed.", pluginName);
+            e.printStackTrace();
+        }
     }
 
     /**

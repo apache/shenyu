@@ -32,4 +32,17 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
+
+<!--    <build>-->
+<!--        <plugins>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-jar-plugin</artifactId>-->
+<!--                <configuration>-->
+<!--                    <outputDirectory>../../../plugins/request</outputDirectory>-->
+<!--                    <finalName>shenyu-spring-boot-plugin-request-${project.version}</finalName>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+<!--        </plugins>-->
+<!--    </build>-->
 </project>

@@ -56,14 +56,12 @@ import java.util.stream.Collectors;
 /**
  * abstract shenyu plugin please extends.
  */
-public abstract class AbstractShenyuPlugin<T extends AbstractShenyuPlugin> implements ShenyuPlugin, Module {
+public abstract class AbstractShenyuPlugin implements ShenyuPlugin, Module {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
 
     private static final String URI_CONDITION_TYPE = "uri";
 
-    private static final String PLUGIN_PATH = "./plugins/%s";
-    
     private ShenyuTrie selectorTrie;
     
     private ShenyuTrie ruleTrie;
@@ -73,7 +71,6 @@ public abstract class AbstractShenyuPlugin<T extends AbstractShenyuPlugin> imple
     private ShenyuConfig.RuleMatchCache ruleMatchConfig;
 
     private URLClassLoader pluginClassLoader;
-
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -171,46 +168,14 @@ public abstract class AbstractShenyuPlugin<T extends AbstractShenyuPlugin> imple
         }
     }
 
-    @PostConstruct
-    private void initPluginClassLoader() {
-        try {
-            String pluginJarDir = String.format(PLUGIN_PATH, named());
-            URLClassLoader classLoader = ModuleManager.initClassLoader(new File(pluginJarDir));
-            if (Objects.nonNull(classLoader)) {
-                LOG.info("init {} plugin success, path:{}", named(), pluginJarDir);
-            }
-        } catch (MalformedURLException e) {
-            LOG.error("init {} plugin classloader failed.", named());
-            e.printStackTrace();
-        }
-    }
-
     private Mono<Void> isolationExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         if (Objects.isNull(pluginClassLoader)) {
             return doExecute(exchange, chain, selector, rule);
         }
-
         ClassLoader current = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(pluginClassLoader);
-            ServiceLoader<Module> loader = ServiceLoader.load(Module.class, pluginClassLoader);
-            Iterator<Module> it = loader.iterator();
-            T plugin = null;
-            while (it.hasNext()) {
-                T module = (T) it.next();
-                // 注意：name()方法返回的值可能不匹配
-                if (module.named().equals(this.named())) {
-                    plugin = module;
-                    break;
-                }
-            }
-
-            if (plugin == null) {
-                LOG.error("failed to find plugin: {}", plugin);
-                return chain.execute(exchange);
-            }
-            return plugin.doExecute(exchange, chain, selector, rule);
-
+            return doExecute(exchange, chain, selector, rule);
         } catch (Throwable e) {
             e.printStackTrace();
         } finally {
@@ -492,5 +457,24 @@ public abstract class AbstractShenyuPlugin<T extends AbstractShenyuPlugin> imple
             LOG.info("{} rule success match , rule name :{}", pluginName, ruleData.getName());
         }
     }
-    
+
+    @Override
+    public String name() {
+        return named();
+    }
+
+
+    @Override
+    public void setClassLoader(URLClassLoader classLoader) {
+        this.pluginClassLoader = classLoader;
+        LOG.info(pluginClassLoader.toString());
+    }
+
+    /**
+     * Module init.
+     * @throws Throwable
+     */
+    @Override
+    public void init() throws Throwable {};
+
 }
