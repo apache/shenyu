@@ -17,6 +17,7 @@
 # limitations under the License.
 
 mkdir -p /tmp/shenyu-e2e/mysql
+mkdir -p /tmp/shenyu-e2e/driver/mysql
 
 wget -O /tmp/shenyu-e2e/driver/mysql/mysql-connector.jar \
   https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar || \

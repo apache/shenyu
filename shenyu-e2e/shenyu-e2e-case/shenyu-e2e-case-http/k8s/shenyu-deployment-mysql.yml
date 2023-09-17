@@ -51,7 +51,7 @@ spec:
           args: [ "until nc -z -v -w30 shenyu-mysql 30306;
                     do
                     echo \"Waiting for database connection...\";
-                    sleep 5;
+                    sleep 2;
                     done;
                     echo \"Database is ready!\"" ]
       containers:

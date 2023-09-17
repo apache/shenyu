@@ -40,6 +40,8 @@ sleep 60s
 
 kubectl get pod -o wide
 
+echo -e `nc -z -v -w30 shenyu-mysql 30306`
+
 kubectl apply -f ${PRGDIR}/shenyu-deployment-mysql.yml
 kubectl apply -f ${PRGDIR}/shenyu-app-service-mysql.yml
 
