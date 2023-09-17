@@ -88,4 +88,4 @@ jobs:
         run: |
           kubectl get all
           kubectl get events --all-namespaces
-          kubectl logs -l all=shenyu-admin-mysql
+          kubectl logs -l app=shenyu-admin-mysql
