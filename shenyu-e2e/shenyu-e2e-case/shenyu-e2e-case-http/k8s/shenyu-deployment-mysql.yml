@@ -31,29 +31,15 @@ spec:
         app: shenyu-admin-mysql
     spec:
       initContainers:
-#        - name: download-mysql-jar
-#          image: busybox:1.35.0
-#          command: [ "sh","-c" ]
-#          args: [ "wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar;
-#                  wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar.md5;
-#                  if [ $(md5sum mysql-connector-java-8.0.29.jar | cut -d ' ' -f1) = $(cat mysql-connector-java-8.0.29.jar.md5) ];
-#                  then echo success;
-#                  else echo failed;
-#                  exit 1;
-#                  fi;
-#                  mv /mysql-connector-java-8.0.29.jar /opt/shenyu-admin/ext-lib/mysql-connector-java.jar" ]
-#          volumeMounts:
-#            - name: mysql-connector-volume
-#              mountPath: /opt/shenyu-admin/ext-lib
-#        - name: wait-mysql
-#          image: busybox:1.35.0
-#          command: [ "sh","-c" ]
-#          args: [ "until nc -z -v -w30 localhost 30306;
-#                    do
-#                    echo \"Waiting for database connection...\";
-#                    sleep 2;
-#                    done;
-#                    echo \"Database is ready!\"" ]
+        - name: wait-mysql
+          image: busybox:latest
+          command: [ "sh","-c" ]
+          args: [ "until nc -z -v -w30 localhost 30306;
+                    do
+                    echo \"Waiting for database connection...\";
+                    sleep 2;
+                    done;
+                    echo \"Database is ready!\"" ]
       containers:
         - name: shenyu-admin-mysql
           image: apache/shenyu-admin:latest
