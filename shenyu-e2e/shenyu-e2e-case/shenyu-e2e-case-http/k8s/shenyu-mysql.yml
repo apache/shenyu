@@ -94,7 +94,7 @@ spec:
               mountPath: /var/lib/mysql
             - name: mysql-initdb
               mountPath: /docker-entrypoint-initdb.d
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
       volumes:
         - name: mysql-data
           hostPath:
