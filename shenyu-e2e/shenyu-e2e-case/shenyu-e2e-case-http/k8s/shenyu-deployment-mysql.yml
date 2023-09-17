@@ -48,7 +48,7 @@ spec:
         - name: wait-mysql
           image: busybox:1.35.0
           command: [ "sh","-c" ]
-          args: [ "until nc -z -v -w30 shenyu-mysql 30306;
+          args: [ "until nc -z -v -w30 localhost 30306;
                     do
                     echo \"Waiting for database connection...\";
                     sleep 2;
