@@ -22,7 +22,7 @@ on:
       - master
 
 jobs:
-  ingress-controller-apche-dubbo:
+  ingress-controller-alibaba-dubbo:
     runs-on: ubuntu-latest
     if: (github.repository == 'apache/shenyu')
     steps:
