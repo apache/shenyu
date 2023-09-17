@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.cache.ServletContextPathCache;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
@@ -159,9 +158,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         if (CollectionUtils.isEmpty(uriList)) {
             return "";
         }
-        uriList.stream()
-                .filter(dto -> StringUtils.isNotEmpty(dto.getContextPath()) && StringUtils.isNotEmpty(dto.getServletContextPath()))
-                .forEach(e -> ServletContextPathCache.getInstance().cachePath(e.getContextPath(), e.getServletContextPath()));
         SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
         if (Objects.isNull(selectorDO)) {
             throw new ShenyuException("doRegister Failed to execute,wait to retry.");

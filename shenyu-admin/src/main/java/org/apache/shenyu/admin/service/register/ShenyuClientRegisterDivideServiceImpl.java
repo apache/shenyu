@@ -104,10 +104,12 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
                 canAddList.addAll(diffStatusList);
             }
         }
-
         if (doSubmit(selectorDO.getId(), canAddList)) {
             return null;
         }
+        uriList.stream()
+                .filter(dto -> StringUtils.isNotEmpty(dto.getContextPath()) && StringUtils.isNotEmpty(dto.getServletContextPath()))
+                .forEach(e -> ServletContextPathCache.getInstance().cachePath(e.getContextPath(), e.getServletContextPath()));
         return GsonUtils.getInstance().toJson(CollectionUtils.isEmpty(existList) ? canAddList : existList);
     }
 

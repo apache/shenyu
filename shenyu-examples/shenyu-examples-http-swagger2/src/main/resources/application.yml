@@ -18,7 +18,8 @@ server:
   address: 0.0.0.0
   tomcat:
     max-http-form-post-size: 100MB
-    
+  servlet:
+    context-path: /test
 shenyu:
   register:
     registerType: http #zookeeper #etcd #nacos #consul
