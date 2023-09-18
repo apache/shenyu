@@ -22,14 +22,12 @@ bash ./shenyu-e2e/k8s/script/storage/storage_init_mysql.sh
 ## todo: for test
 ls /tmp/shenyu-e2e/mysql/schema
 ls /tmp/shenyu-e2e/mysql/driver
-
-hostPath = `dirname "$(dirname "$0")"`
-ehco $hostPath
+## todo: for test
 
 # init kubernetes for mysql
 curPath=$(readlink -f "$(dirname "$0")")
-echo $curPath
-
 PRGDIR=`dirname "$(dirname "$curPath")"`
 echo $PRGDIR
 kubectl apply -f ${PRGDIR}/shenyu-mysql.yml
+sleep 30s
+kubectl get pod -o wide
