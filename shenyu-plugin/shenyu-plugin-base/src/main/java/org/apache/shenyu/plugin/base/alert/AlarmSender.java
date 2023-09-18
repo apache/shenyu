@@ -23,6 +23,25 @@ import java.util.Map;
 
 /**
  * The alarm data sender.
+ * We can use <code>AlarmSender.alarm</code> to send alarm message.
+ * <pre>{@code 
+ * AlarmSender.alarm((byte) 0, "alarm-title", "alarm-content");
+ *
+ * Map<String, String> labels = new HashMap<>(8);
+ * labels.put("plugin", "http-redirect");
+ * labels.put("component", "http");
+ * labels.put("env", "prod");
+ * AlarmSender.alarmHighEmergency("alarm-title", "alarm-content", labels);
+ * AlarmSender.alarmMediumCritical("alarm-title", "alarm-content", labels);
+ * AlarmSender.alarmLowWarning("alarm-title", "alarm-content", labels);
+ * 
+ * Map<String, String> labels = new HashMap<>(8);
+ * labels.put("plugin", "cache");
+ * labels.put("component", "cache");
+ * labels.put("env", "test");
+ * AlarmSender.alarm((byte) 0, "alarm-title", "alarm-content", labels);
+ * }</pre>
+ * 
  */
 public class AlarmSender {
     

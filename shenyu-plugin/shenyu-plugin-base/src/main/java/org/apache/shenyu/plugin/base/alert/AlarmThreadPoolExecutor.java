@@ -46,10 +46,10 @@ public final class AlarmThreadPoolExecutor {
      * Init work executor.
      */
     private void initWorkExecutor() {
-        threadPoolExecutor = new ShenyuThreadPoolExecutor(10, 100, 60000L,
-                TimeUnit.MILLISECONDS, new MemorySafeTaskQueue<>(Constants.THE_256_MB),
+        threadPoolExecutor = new ShenyuThreadPoolExecutor(3, 3, 10L,
+                TimeUnit.SECONDS, new MemorySafeTaskQueue<>(Constants.THE_256_MB),
                 ShenyuThreadFactory.create("alarm-sender", true),
-                new ThreadPoolExecutor.AbortPolicy());
+                new ThreadPoolExecutor.CallerRunsPolicy());
     }
     
     /**
