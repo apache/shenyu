@@ -119,7 +119,8 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Initializ
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    AlarmContent alert = alertDataQueue.poll();
+                    // blocking
+                    AlarmContent alert = alertDataQueue.take();
                     if (alert != null) {
                         sendNotify(alert);
                     }
