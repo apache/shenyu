@@ -18,6 +18,7 @@
 package org.apache.shenyu.springboot.starter.client.springmvc;
 
 import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ClientInfoRefreshedEventListener;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
@@ -30,6 +31,7 @@ import org.apache.shenyu.client.core.register.registrar.HttpApiDocRegistrar;
 import org.apache.shenyu.client.springmvc.proceeor.register.ShenyuSpringMvcClientProcessorImpl;
 import org.apache.shenyu.client.springmvc.register.SpringMvcApiBeansExtractor;
 import org.apache.shenyu.client.springmvc.register.SpringMvcApiMetaRegister;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
@@ -133,17 +135,19 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     }
 
     /**
-     * instanceRegister.
      *
      * @param clientRegisterConfig clientRegisterConfig
-     * @return InstanceRegister
+     * @param discoveryConfig  discoveryConfig
+     * @param path path
+     * @return
      */
     @Bean
-    public InstanceRegisterListener instanceRegister(final ClientRegisterConfig clientRegisterConfig) {
-        DiscoveryConfig discoveryConfig = new DiscoveryConfig();
-        discoveryConfig.setServerList("127.0.0.1:2181");
-        discoveryConfig.setType("zookeeper");
-        return new InstanceRegisterListener(clientRegisterConfig, discoveryConfig, "/shenyu/discovery");
+    public InstanceRegisterListener instanceRegister(final ClientRegisterConfig clientRegisterConfig, DiscoveryConfig discoveryConfig, String path) {
+        DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
+        discoveryUpstreamData.setUrl(clientRegisterConfig.getIpAndPort());
+        discoveryUpstreamData.setStatus(0);
+        discoveryUpstreamData.setProtocol(ShenyuClientConstants.HTTP);
+        return new InstanceRegisterListener(discoveryUpstreamData, discoveryConfig, path);
     }
 
 }

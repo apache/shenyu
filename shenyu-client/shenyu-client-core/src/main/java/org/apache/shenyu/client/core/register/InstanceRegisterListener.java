@@ -19,27 +19,31 @@ package org.apache.shenyu.client.core.register;
 
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.spi.ExtensionLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
+/**
+ * InstanceRegisterListener.
+ */
 public class InstanceRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(InstanceRegisterListener.class);
+
     private final DiscoveryUpstreamData currentInstanceUpstream;
 
     private final DiscoveryConfig discoveryConfig;
 
     private final String path;
 
-    public InstanceRegisterListener(final ClientRegisterConfig clientRegisterConfig, final DiscoveryConfig discoveryConfig,
-                            final String path) {
-        DiscoveryUpstreamData discoveryUpstream = new DiscoveryUpstreamData();
-        RpcTypeEnum rpcTypeEnum = clientRegisterConfig.getRpcTypeEnum();
-        discoveryUpstream.setProtocol(rpcTypeEnum.getName());
-        discoveryUpstream.setUrl(clientRegisterConfig.getIpAndPort());
-        discoveryUpstream.setStatus(0);
+    public InstanceRegisterListener(final DiscoveryUpstreamData discoveryUpstream, final DiscoveryConfig discoveryConfig,
+                                    final String path) {
         this.currentInstanceUpstream = discoveryUpstream;
         this.discoveryConfig = discoveryConfig;
         this.path = path;
@@ -47,9 +51,14 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
-        ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin("zookeeper");
-        discoveryService.init(discoveryConfig);
-        discoveryService.register(path, GsonUtils.getInstance().toJson(currentInstanceUpstream));
+        try {
+            ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin("zookeeper");
+            discoveryService.init(discoveryConfig);
+            discoveryService.register(path, GsonUtils.getInstance().toJson(currentInstanceUpstream));
+        } catch (Exception e) {
+            LOGGER.error("shenyu register into ShenyuDiscoveryService  {} type find error", discoveryConfig.getType(), e);
+            throw new ShenyuException(String.format("shenyu register into ShenyuDiscoveryService %s type find error", discoveryConfig.getType()));
+        }
     }
 
 }
