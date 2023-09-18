@@ -23,6 +23,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
+import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,9 @@ import org.springframework.context.event.ContextRefreshedEvent;
 
 /**
  * InstanceRegisterListener.
+ * <p>
+ * instance register into discovery.
+ * </p>
  */
 public class InstanceRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
 
@@ -42,11 +46,14 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
 
     private final String path;
 
-    public InstanceRegisterListener(final DiscoveryUpstreamData discoveryUpstream, final DiscoveryConfig discoveryConfig,
-                                    final String path) {
+    public InstanceRegisterListener(final DiscoveryUpstreamData discoveryUpstream, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
         this.currentInstanceUpstream = discoveryUpstream;
-        this.discoveryConfig = discoveryConfig;
-        this.path = path;
+        this.discoveryConfig = new DiscoveryConfig();
+        this.discoveryConfig.setServerList(shenyuDiscoveryConfig.getServerList());
+        this.discoveryConfig.setType(shenyuDiscoveryConfig.getType());
+        this.discoveryConfig.setProps(shenyuDiscoveryConfig.getProps());
+        this.discoveryConfig.setName(shenyuDiscoveryConfig.getName());
+        this.path = shenyuDiscoveryConfig.getRegisterPath();
     }
 
     @Override

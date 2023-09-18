@@ -27,11 +27,13 @@ import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
+import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -65,20 +67,18 @@ public class ShenyuSpringWebSocketClientConfiguration {
     /**
      * InstanceRegisterListener.
      *
-     * @param eventListener   eventListener
-     * @param weight          weight
-     * @param discoveryConfig discoveryConfig
+     * @param eventListener         eventListener
+     * @param shenyuDiscoveryConfig discoveryConfig
      * @return InstanceRegisterListener
      */
     @Bean
-    public InstanceRegisterListener instanceRegister(final SpringWebSocketClientEventListener eventListener, @Value("${}") String weight, DiscoveryConfig discoveryConfig) {
-        discoveryConfig.setServerList("127.0.0.1:2181");
-        discoveryConfig.setType("zookeeper");
+    @ConditionalOnBean(ShenyuDiscoveryConfig.class)
+    public InstanceRegisterListener instanceRegisterListener(final SpringWebSocketClientEventListener eventListener, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setProtocol(ShenyuClientConstants.WS);
         discoveryUpstreamData.setStatus(0);
-        discoveryUpstreamData.setWeight(Integer.parseInt(weight));
+        discoveryUpstreamData.setWeight(Integer.parseInt(shenyuDiscoveryConfig.getWeight()));
         discoveryUpstreamData.setUrl(eventListener.getIpAndPort());
-        return new InstanceRegisterListener(discoveryUpstreamData, discoveryConfig, "/shenyu/discovery");
+        return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 }

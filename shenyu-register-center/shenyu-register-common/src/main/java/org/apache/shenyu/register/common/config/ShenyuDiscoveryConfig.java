@@ -27,6 +27,10 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
 
     private String serverList;
 
+    private String weight;
+
+    private String registerPath;
+
     /**
      * Gets name.
      *
@@ -81,4 +85,39 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
         this.serverList = serverList;
     }
 
+    /**
+     * getWeight.
+     *
+     * @return weight
+     */
+    public String getWeight() {
+        return weight;
+    }
+
+    /**
+     * setWeight.
+     *
+     * @param weight weight
+     */
+    public void setWeight(final String weight) {
+        this.weight = weight;
+    }
+
+    /**
+     * getRegisterPath.
+     *
+     * @return registerPath
+     */
+    public String getRegisterPath() {
+        return registerPath;
+    }
+
+    /**
+     * setRegisterPath.
+     *
+     * @param registerPath registerPath
+     */
+    public void setRegisterPath(final String registerPath) {
+        this.registerPath = registerPath;
+    }
 }

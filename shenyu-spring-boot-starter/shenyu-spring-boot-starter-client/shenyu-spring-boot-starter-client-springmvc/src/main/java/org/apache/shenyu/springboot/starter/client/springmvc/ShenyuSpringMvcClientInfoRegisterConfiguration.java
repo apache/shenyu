@@ -35,6 +35,7 @@ import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
+import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
@@ -135,19 +136,21 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     }
 
     /**
+     * instanceRegisterListener.
      *
-     * @param clientRegisterConfig clientRegisterConfig
-     * @param discoveryConfig  discoveryConfig
-     * @param path path
-     * @return
+     * @param clientRegisterConfig  clientRegisterConfig
+     * @param shenyuDiscoveryConfig shenyuDiscoveryConfig
+     * @return InstanceRegisterListener
      */
     @Bean
-    public InstanceRegisterListener instanceRegister(final ClientRegisterConfig clientRegisterConfig, DiscoveryConfig discoveryConfig, String path) {
+    @ConditionalOnBean(ShenyuDiscoveryConfig.class)
+    public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setUrl(clientRegisterConfig.getIpAndPort());
         discoveryUpstreamData.setStatus(0);
+        discoveryUpstreamData.setWeight(Integer.parseInt(shenyuDiscoveryConfig.getWeight()));
         discoveryUpstreamData.setProtocol(ShenyuClientConstants.HTTP);
-        return new InstanceRegisterListener(discoveryUpstreamData, discoveryConfig, path);
+        return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 
 }
