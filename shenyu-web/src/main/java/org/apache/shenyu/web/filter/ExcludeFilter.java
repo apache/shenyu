@@ -45,7 +45,7 @@ public class ExcludeFilter extends AbstractWebFilter {
     
     @Override
     protected Mono<Boolean> doMatcher(final ServerWebExchange exchange, final WebFilterChain chain) {
-        String path = exchange.getRequest().getURI().getPath();
+        String path = exchange.getRequest().getURI().getRawPath();
         return Mono.just(paths.contains(path));
     }
     

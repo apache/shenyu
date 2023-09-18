@@ -48,29 +48,29 @@ public final class GrpcClientCache {
     /**
      * Init client.
      *
-     * @param contextPath contextPath
+     * @param selectorId selectorId
      */
-    public static void initGrpcClient(final String contextPath) {
-        MapUtils.computeIfAbsent(CLIENT_CACHE, contextPath, s -> GrpcClientBuilder.buildClient(contextPath));
+    public static void initGrpcClient(final String selectorId) {
+        MapUtils.computeIfAbsent(CLIENT_CACHE, selectorId, s -> GrpcClientBuilder.buildClient(selectorId));
     }
     
     /**
      * Get the client.
      *
-     * @param contextPath contextPath
+     * @param selectorId selectorId
      * @return ShenyuGrpcClient shenyuGrpcClient
      */
-    public static ShenyuGrpcClient getGrpcClient(final String contextPath) {
-        return CLIENT_CACHE.get(contextPath);
+    public static ShenyuGrpcClient getGrpcClient(final String selectorId) {
+        return CLIENT_CACHE.get(selectorId);
     }
     
     /**
      * Remove client.
      *
-     * @param contextPath contextPath
+     * @param selectorId selectorId
      */
-    public static void removeClient(final String contextPath) {
-        ShenyuGrpcClient grpcClient = CLIENT_CACHE.remove(contextPath);
+    public static void removeClient(final String selectorId) {
+        ShenyuGrpcClient grpcClient = CLIENT_CACHE.remove(selectorId);
         if (Objects.nonNull(grpcClient)) {
             grpcClient.close();
         }

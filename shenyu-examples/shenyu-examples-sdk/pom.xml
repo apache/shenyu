@@ -32,6 +32,7 @@
         <module>shenyu-examples-sdk-dubbo</module>
         <module>shenyu-examples-sdk-springcloud</module>
         <module>shenyu-examples-sdk-grpc</module>
+        <module>shenyu-examples-sdk-feign</module>
     </modules>
 
     <properties>

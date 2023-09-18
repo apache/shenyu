@@ -17,18 +17,28 @@
 
 package org.apache.shenyu.springboot.starter.client.springmvc;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.register.ClientDiscoveryConfigRefreshedEventListener;
 import org.apache.shenyu.client.springmvc.init.SpringMvcClientEventListener;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.client.http.HttpClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+
+import java.util.Properties;
 
 /**
  * The type shenyu spring mvc client configuration.
@@ -47,12 +57,42 @@ public class ShenyuSpringMvcClientConfiguration {
      *
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
+     * @param env                            the env
      * @return the spring mvc client bean post processor
      */
     @Bean
     @ConditionalOnMissingBean(ClientRegisterConfiguration.class)
     public SpringMvcClientEventListener springHttpClientEventListener(final ShenyuClientConfig clientConfig,
-                                                                          final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new SpringMvcClientEventListener(clientConfig.getClient().get(RpcTypeEnum.HTTP.getName()), shenyuClientRegisterRepository);
+                                                                          final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
+                                                                          final Environment env) {
+        ClientPropertiesConfig clientPropertiesConfig = clientConfig.getClient().get(RpcTypeEnum.HTTP.getName());
+        Properties props = clientPropertiesConfig == null ? null : clientPropertiesConfig.getProps();
+        String applicationName = env.getProperty("spring.application.name");
+        if (props != null) {
+            String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
+            if (StringUtils.isBlank(appName)) {
+                props.setProperty(ShenyuClientConstants.APP_NAME, applicationName);
+            }
+            String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+            if (StringUtils.isBlank(contextPath)) {
+                props.setProperty(ShenyuClientConstants.CONTEXT_PATH, String.format("/%s", applicationName));
+            }
+        }
+        return new SpringMvcClientEventListener(clientPropertiesConfig, shenyuClientRegisterRepository, env);
+    }
+
+    /**
+     * clientDiscoveryConfigRefreshedEventListener Bean.
+     *
+     * @param shenyuDiscoveryConfig shenyuDiscoveryConfig
+     * @param httpClientRegisterRepository httpClientRegisterRepository
+     * @return ClientDiscoveryConfigRefreshedEventListener
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "shenyu.discovery", name = "serverList", matchIfMissing = false)
+    @ConditionalOnBean(ShenyuDiscoveryConfig.class)
+    public ClientDiscoveryConfigRefreshedEventListener clientDiscoveryConfigRefreshedEventListener(final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
+                                                                                                   final HttpClientRegisterRepository httpClientRegisterRepository) {
+        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository);
     }
 }

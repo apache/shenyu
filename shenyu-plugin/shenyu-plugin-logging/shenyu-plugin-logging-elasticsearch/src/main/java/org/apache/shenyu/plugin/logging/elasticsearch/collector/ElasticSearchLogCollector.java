@@ -45,6 +45,12 @@ public class ElasticSearchLogCollector extends AbstractLogCollector<ElasticSearc
         return LoggingElasticSearchPluginDataHandler.getElasticSearchLogCollectClient();
     }
 
+    /**
+     * desensitize log.
+     * @param log log entity
+     * @param keyWordMatch keyWordMatch
+     * @param desensitizeAlg data desensitize algorithm
+     */
     @Override
     protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
     }
