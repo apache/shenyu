@@ -30,29 +30,6 @@ spec:
       labels:
         app: shenyu-mysql
     spec:
-#      initContainers:
-#        - name: mysql-init
-#          image: busybox
-#          imagePullPolicy: IfNotPresent
-#          env:
-#            - name: MYSQL_ROOT_PASSWORD
-#              value: shenyue2e
-#          command:
-#            - sh
-#            - "-c"
-#            - |
-#              set -ex
-#              rm -fr /var/lib/mysql/lost+found
-#              cat > /docker-entrypoint-initdb.d/schema.sql <<EOF
-#              create database shenyu default character set utf8mb4;
-#              grant all on shenyu.* to 'shenyue2e'@'%' identified by '$MYSQL_ROOT_PASSWORD';
-#              flush privileges;
-#              EOF
-#          volumeMounts:
-#            - name: mysql-data
-#              mountPath: /var/lib/mysql
-#            - name: mysql-initdb
-#              mountPath: /docker-entrypoint-initdb.d
       containers:
         - name: shenyu-mysql
           image: mysql:8.0
@@ -101,7 +78,7 @@ spec:
             path: /var/lib/mysql
         - name: mysql-initdb
           hostPath:
-            path: /tmp/shenyu-e2e/mysql
+            path: /tmp/shenyu-e2e/mysql/schema
       restartPolicy: Always
 
 ---
