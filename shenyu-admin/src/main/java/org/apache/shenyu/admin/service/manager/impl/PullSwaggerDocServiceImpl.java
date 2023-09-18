@@ -37,12 +37,14 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -100,7 +102,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
             if (response.code() != HttpStatus.SC_OK) {
                 throw new IOException(response.toString());
             }
-            final String body = response.body().toString();
+            final String body = response.body().string();
             docManager.addDocInfo(
                 instance,
                 body,
@@ -174,8 +176,13 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
     }
 
     private String getSwaggerRequestUrl(final UpstreamInstance instance) {
-        return "http://" + instance.getIp() + ":" + instance.getPort() + SWAGGER_V2_PATH;
-
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance();
+        uriComponentsBuilder.scheme("http");
+        uriComponentsBuilder.host(instance.getIp());
+        uriComponentsBuilder.port(instance.getPort());
+        uriComponentsBuilder.path(Optional.ofNullable(instance.getContextPath()).orElse(""));
+        uriComponentsBuilder.path(SWAGGER_V2_PATH);
+        return uriComponentsBuilder.build().toUriString();
     }
 
 }
