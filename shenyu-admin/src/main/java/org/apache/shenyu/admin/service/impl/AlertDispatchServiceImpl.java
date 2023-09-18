@@ -27,14 +27,13 @@ import org.apache.shenyu.admin.service.AlertDispatchService;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -45,54 +44,44 @@ import java.util.stream.Collectors;
  * Implementation of the {@link org.apache.shenyu.admin.service.AlertDispatchService}.
  */
 @Service
-public class AlertDispatchServiceImpl implements AlertDispatchService, InitializingBean {
+public class AlertDispatchServiceImpl implements AlertDispatchService, DisposableBean {
     
     private static final Logger log = LoggerFactory.getLogger(AlertDispatchServiceImpl.class);
-    
-    private static final int DISPATCH_THREADS = 3;
-    
-    private final LinkedBlockingQueue<AlarmContent> alertDataQueue;
     
     private final Map<Byte, AlertNotifyHandler> alertNotifyHandlerMap;
     
     private final AlertReceiverMapper alertReceiverMapper;
     
     private final AtomicReference<List<AlertReceiverDTO>> alertReceiverReference;
+
+    private final ThreadPoolExecutor workerExecutor;
     
     public AlertDispatchServiceImpl(final List<AlertNotifyHandler> alertNotifyHandlerList, final AlertReceiverMapper alertReceiverMapper) {
-        this.alertDataQueue = new LinkedBlockingQueue<>();
         this.alertReceiverMapper = alertReceiverMapper;
         this.alertReceiverReference = new AtomicReference<>();
         alertNotifyHandlerMap = Maps.newHashMapWithExpectedSize(alertNotifyHandlerList.size());
+        ThreadFactory threadFactory = new ThreadFactoryBuilder()
+                .setUncaughtExceptionHandler((thread, throwable) -> {
+                    log.error("workerExecutor has uncaughtException.");
+                    log.error(throwable.getMessage(), throwable);
+                })
+                .setDaemon(true)
+                .setNameFormat("alerter-worker-%d")
+                .build();
+        workerExecutor = new ThreadPoolExecutor(3,
+                3,
+                10,
+                TimeUnit.SECONDS, 
+                new LinkedBlockingQueue<>(1 << 16), 
+                threadFactory, 
+                new ThreadPoolExecutor.CallerRunsPolicy());
         alertNotifyHandlerList.forEach(r -> alertNotifyHandlerMap.put(r.type(), r));
     }
     
     @Override
-    public void afterPropertiesSet() throws Exception {
-        ThreadFactory threadFactory = new ThreadFactoryBuilder()
-                                              .setUncaughtExceptionHandler((thread, throwable) -> {
-                                                  log.error("workerExecutor has uncaughtException.");
-                                                  log.error(throwable.getMessage(), throwable);
-                                              })
-                                              .setDaemon(true)
-                                              .setNameFormat("alerter-worker-%d")
-                                              .build();
-        ThreadPoolExecutor workerExecutor = new ThreadPoolExecutor(3,
-                3,
-                10,
-                TimeUnit.SECONDS,
-                new SynchronousQueue<>(),
-                threadFactory,
-                new ThreadPoolExecutor.AbortPolicy());
-        DispatchTask dispatchTask = new DispatchTask();
-        for (int i = 0; i < DISPATCH_THREADS; i++) {
-            workerExecutor.execute(dispatchTask);
-        }
-    }
-    
-    @Override
     public void dispatchAlert(final AlarmContent alarmContent) {
-        alertDataQueue.offer(alarmContent);
+        DispatchTask task = new DispatchTask(alarmContent);
+        this.workerExecutor.submit(task);
     }
     
     @Override
@@ -114,19 +103,31 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Initializ
         return false;
     }
     
+    @Override
+    public void destroy() throws Exception {
+        if (this.workerExecutor != null) {
+            workerExecutor.shutdownNow();
+        }
+    }
+
+    /**
+     * Dispatch alert message task.
+     */
     private class DispatchTask implements Runnable {
+
+        /**
+         * alert message content.
+         */
+        private final AlarmContent alert;
+
+        public DispatchTask(AlarmContent alert) {
+            this.alert = alert;
+        }
+
         @Override
         public void run() {
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    // blocking
-                    AlarmContent alert = alertDataQueue.take();
-                    if (alert != null) {
-                        sendNotify(alert);
-                    }
-                } catch (Exception e) {
-                    log.error(e.getMessage());
-                }
+            if (alert != null) {
+                sendNotify(alert);
             }
         }
         
