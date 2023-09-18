@@ -113,14 +113,14 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
     /**
      * Dispatch alert message task.
      */
-    private class DispatchTask implements Runnable {
+    private final class DispatchTask implements Runnable {
 
         /**
          * alert message content.
          */
         private final AlarmContent alert;
 
-        public DispatchTask(AlarmContent alert) {
+        private DispatchTask(final AlarmContent alert) {
             this.alert = alert;
         }
 
