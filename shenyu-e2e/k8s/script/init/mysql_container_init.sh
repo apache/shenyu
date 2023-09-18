@@ -23,7 +23,7 @@ bash ./shenyu-e2e/k8s/script/storage/storage_init_mysql.sh
 ls /tmp/shenyu-e2e/mysql/schema
 ls /tmp/shenyu-e2e/mysql/driver
 
-hostPath = `dirname "$0"`
+hostPath = `dirname "$(dirname "$0")"`
 ehco $hostPath
 
 # init kubernetes for mysql
