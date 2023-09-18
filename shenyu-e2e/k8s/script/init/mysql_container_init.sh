@@ -27,6 +27,6 @@ ls /tmp/shenyu-e2e/mysql/driver
 curPath=$(readlink -f "$(dirname "$0")")
 echo $curPath
 
-PRGDIR=`dirname $(dirname "$curPath")`
+PRGDIR=`dirname "$(dirname "$curPath")"`
 echo $PRGDIR
 kubectl apply -f ${PRGDIR}/shenyu-mysql.yml
