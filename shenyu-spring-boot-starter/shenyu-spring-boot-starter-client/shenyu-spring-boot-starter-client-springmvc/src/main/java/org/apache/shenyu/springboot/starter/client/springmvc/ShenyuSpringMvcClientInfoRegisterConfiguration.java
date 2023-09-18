@@ -146,7 +146,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
-        discoveryUpstreamData.setUrl(clientRegisterConfig.getIpAndPort());
+        discoveryUpstreamData.setUrl(clientRegisterConfig.getHost() + ":" + clientRegisterConfig.getPort());
         discoveryUpstreamData.setStatus(0);
         discoveryUpstreamData.setWeight(Integer.parseInt(shenyuDiscoveryConfig.getWeight()));
         discoveryUpstreamData.setProtocol(ShenyuClientConstants.HTTP);

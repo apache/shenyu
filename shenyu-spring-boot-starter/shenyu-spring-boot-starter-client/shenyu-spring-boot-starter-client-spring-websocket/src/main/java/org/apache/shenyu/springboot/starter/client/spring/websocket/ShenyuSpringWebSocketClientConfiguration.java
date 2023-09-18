@@ -78,7 +78,7 @@ public class ShenyuSpringWebSocketClientConfiguration {
         discoveryUpstreamData.setProtocol(ShenyuClientConstants.WS);
         discoveryUpstreamData.setStatus(0);
         discoveryUpstreamData.setWeight(Integer.parseInt(shenyuDiscoveryConfig.getWeight()));
-        discoveryUpstreamData.setUrl(eventListener.getIpAndPort());
+        discoveryUpstreamData.setUrl(eventListener.getHost() + ":" + eventListener.getPort());
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 }
