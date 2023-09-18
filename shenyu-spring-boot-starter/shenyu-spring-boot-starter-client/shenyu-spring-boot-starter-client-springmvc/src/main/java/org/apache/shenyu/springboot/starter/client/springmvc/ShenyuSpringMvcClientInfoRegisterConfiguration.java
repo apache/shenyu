@@ -22,6 +22,7 @@ import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublishe
 import org.apache.shenyu.client.core.register.ClientInfoRefreshedEventListener;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
+import org.apache.shenyu.client.core.register.InstanceRegisterListener;
 import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
 import org.apache.shenyu.client.core.register.registrar.AbstractApiDocRegistrar;
 import org.apache.shenyu.client.core.register.registrar.AbstractApiMetaRegistrar;
@@ -30,6 +31,7 @@ import org.apache.shenyu.client.springmvc.proceeor.register.ShenyuSpringMvcClien
 import org.apache.shenyu.client.springmvc.register.SpringMvcApiBeansExtractor;
 import org.apache.shenyu.client.springmvc.register.SpringMvcApiMetaRegister;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -43,10 +45,10 @@ import java.util.List;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnBean(ClientRegisterConfiguration.class)
 public class ShenyuSpringMvcClientInfoRegisterConfiguration {
-    
+
     public ShenyuSpringMvcClientInfoRegisterConfiguration() {
     }
-    
+
     /**
      * ClientInfoRefreshedEventListener Bean.
      *
@@ -59,7 +61,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
                                                                     final ShenyuClientRegisterEventPublisher publisher) {
         return new ClientInfoRefreshedEventListener(clientRegisterConfig, publisher);
     }
-    
+
     /**
      * ApiBeansExtractor Bean.
      *
@@ -75,7 +77,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
         }
         return extractor;
     }
-    
+
     /**
      * shenyuSpringMvcClientProcessor.
      *
@@ -85,7 +87,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     public ShenyuSpringMvcClientProcessorImpl shenyuSpringMvcClientProcessor() {
         return new ShenyuSpringMvcClientProcessorImpl();
     }
-    
+
     /**
      * Builds ApiMetaRegistrar Bean.
      *
@@ -97,10 +99,10 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
 //    @ConditionalOnProperty(value = "shenyu.register.api.meta.enabled", matchIfMissing = true, havingValue = "true")
     public AbstractApiMetaRegistrar buildApiMetaRegistrar(final ShenyuClientRegisterEventPublisher publisher,
                                                           final ClientRegisterConfig clientRegisterConfig) {
-        
+
         return new SpringMvcApiMetaRegister(publisher, clientRegisterConfig);
     }
-    
+
     /**
      * Builds ApiDocRegistrar  Bean.
      *
@@ -114,7 +116,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
                                                         final ClientRegisterConfig clientRegisterConfig) {
         return new HttpApiDocRegistrar(publisher, clientRegisterConfig);
     }
-    
+
     /**
      * ClientRegisterConfig Bean.
      *
@@ -129,4 +131,19 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
                                                      final Environment env) {
         return new ClientRegisterConfigImpl(shenyuClientConfig, RpcTypeEnum.HTTP, applicationContext, env);
     }
+
+    /**
+     * instanceRegister.
+     *
+     * @param clientRegisterConfig clientRegisterConfig
+     * @return InstanceRegister
+     */
+    @Bean
+    public InstanceRegisterListener instanceRegister(final ClientRegisterConfig clientRegisterConfig) {
+        DiscoveryConfig discoveryConfig = new DiscoveryConfig();
+        discoveryConfig.setServerList("127.0.0.1:2181");
+        discoveryConfig.setType("zookeeper");
+        return new InstanceRegisterListener(clientRegisterConfig, discoveryConfig, "/shenyu/discovery");
+    }
+
 }
