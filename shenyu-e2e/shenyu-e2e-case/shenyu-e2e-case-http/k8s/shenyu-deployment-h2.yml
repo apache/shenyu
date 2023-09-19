@@ -43,7 +43,7 @@ spec:
             - containerPort: 9095
           livenessProbe:
             initialDelaySeconds: 30
-            periodSeconds: 5
+            periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 3
@@ -52,7 +52,7 @@ spec:
               path: /actuator/health
           readinessProbe:
             initialDelaySeconds: 30
-            periodSeconds: 5
+            periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 3
@@ -95,7 +95,7 @@ spec:
           imagePullPolicy: IfNotPresent
           livenessProbe:
             initialDelaySeconds: 30
-            periodSeconds: 5
+            periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 3
@@ -104,11 +104,11 @@ spec:
               path: /actuator/health
           readinessProbe:
             initialDelaySeconds: 30
-            periodSeconds: 5
+            periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 3
             httpGet:
               port: 9195
-              path: /actuator/plugins
+              path: /actuator/health
       restartPolicy: Always
