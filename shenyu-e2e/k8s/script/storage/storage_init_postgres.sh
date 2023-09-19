@@ -20,8 +20,8 @@ mkdir -p /tmp/shenyu-e2e/postgres/schema
 mkdir -p /tmp/shenyu-e2e/postgres/driver
 
 wget -O /tmp/shenyu-e2e/postgres/driver/postgresql.jar \
-  https://jdbc.postgresql.org/download/postgresql-42.5.0.jar || \
+  https://jdbc.postgresql.org/download/postgresql-42.5.0.jar --no-check-certificate || \
   wget -O /tmp/shenyu-e2e/postgres/driver/postgresql.jar \
-  https://jdbc.postgresql.org/download/postgresql-42.5.0.jar
+  https://jdbc.postgresql.org/download/postgresql-42.5.0.jar --no-check-certificate
 
 cp db/init/pg/create-table.sql /tmp/shenyu-e2e/postgres/schema/create-table.sql

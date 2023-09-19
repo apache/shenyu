@@ -65,15 +65,10 @@ spec:
 #                - "-c"
 #                - cat < /dev/null > /dev/tcp/127.0.0.1/5432
           volumeMounts:
-            - name: pg-data
-              mountPath: /var/lib/postgresql/data
             - name: postgres-initdb
               mountPath: /docker-entrypoint-initdb.d
           imagePullPolicy: Always
       volumes:
-        - name: pg-data
-          hostPath:
-            path: /var/lib/postgresql/data
         - name: postgres-initdb
           hostPath:
             path: /tmp/shenyu-e2e/postgres/schema

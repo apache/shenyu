@@ -52,8 +52,7 @@ spec:
               command:
                 - /bin/sh
                 - "-c"
-                - MYSQL_PWD="${MYSQL_ROOT_PASSWORD}"
-                - mysql -h 127.0.0.1 -u root -e "SELECT 1"
+                - mysql -h 127.0.0.1 -u root -pshenyue2e -e "SELECT 1"
           readinessProbe:
             initialDelaySeconds: 10
             periodSeconds: 10
@@ -64,18 +63,12 @@ spec:
               command:
                 - /bin/sh
                 - "-c"
-                - MYSQL_PWD="${MYSQL_ROOT_PASSWORD}"
-                - mysql -h 127.0.0.1 -u root -e "SELECT 1"
+                - mysql -h 127.0.0.1 -u root -pshenyue2e -e "SELECT 1"
           volumeMounts:
-            - name: mysql-data
-              mountPath: /var/lib/mysql
             - name: mysql-initdb
               mountPath: /docker-entrypoint-initdb.d
           imagePullPolicy: Always
       volumes:
-        - name: mysql-data
-          hostPath:
-            path: /var/lib/mysql
         - name: mysql-initdb
           hostPath:
             path: /tmp/shenyu-e2e/mysql/schema
