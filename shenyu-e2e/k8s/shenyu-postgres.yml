@@ -42,33 +42,33 @@ spec:
               value: shenyue2e
             - name: POSTGRES_DB
               value: shenyu
-          livenessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-            exec:
-              command:
-                - /bin/sh
-                - "-c"
-                - cat < /dev/null > /dev/tcp/127.0.0.1/5432
-          readinessProbe:
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-            exec:
-              command:
-                - /bin/sh
-                - "-c"
-                - cat < /dev/null > /dev/tcp/127.0.0.1/5432
+#          livenessProbe:
+#            initialDelaySeconds: 30
+#            periodSeconds: 10
+#            timeoutSeconds: 5
+#            successThreshold: 1
+#            failureThreshold: 3
+#            exec:
+#              command:
+#                - /bin/sh
+#                - "-c"
+#                - cat < /dev/null > /dev/tcp/127.0.0.1/5432
+#          readinessProbe:
+#            initialDelaySeconds: 10
+#            periodSeconds: 10
+#            timeoutSeconds: 5
+#            successThreshold: 1
+#            failureThreshold: 3
+#            exec:
+#              command:
+#                - /bin/sh
+#                - "-c"
+#                - cat < /dev/null > /dev/tcp/127.0.0.1/5432
           volumeMounts:
             - name: pg-data
               mountPath: /var/lib/postgresql/data
             - name: postgres-initdb
-              mountPath: /docker-entrypoint-initdb.d/initdb.sql
+              mountPath: /docker-entrypoint-initdb.d
           imagePullPolicy: Always
       volumes:
         - name: pg-data
@@ -76,8 +76,7 @@ spec:
             path: /var/lib/postgresql/data
         - name: postgres-initdb
           hostPath:
-            type: FileOrCreate
-            path: /tmp/shenyu-e2e/postgres/schema/create-table.sql
+            path: /tmp/shenyu-e2e/postgres/schema
       restartPolicy: Always
 
 ---
