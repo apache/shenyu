@@ -86,7 +86,7 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
         run: |
           bash ./shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/k8s/script/e2e-test-h2.sh
-#          bash ./shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/k8s/script/e2e-test-mysql.sh
+          bash ./shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/k8s/script/e2e-test-mysql.sh
 
       - name: Cluster Test after Healthcheck
         if: steps.filter.outputs.changed == 'true'

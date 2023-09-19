@@ -80,7 +80,7 @@ spec:
       volumes:
         - name: mysql-connector-volume
           hostPath:
-            path: /tmp/shenyu-e2e/driver/mysql
+            path: /tmp/shenyu-e2e/mysql/driver
       restartPolicy: Always
 
 ---
