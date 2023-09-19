@@ -468,7 +468,7 @@ public class AdminClient {
      * @param formData formData
      */
     public void changePluginStatus(final String id, final MultiValueMap<String, String> formData) {
-        putResource("/plugin", id, SelectorDTO.class, formData);
+        putResource("/plugin", id, PluginDTO.class, formData);
     }
     
     private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final MultiValueMap<String, String> formData) {
