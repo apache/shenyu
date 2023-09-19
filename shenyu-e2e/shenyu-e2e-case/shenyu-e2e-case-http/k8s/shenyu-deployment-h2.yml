@@ -41,18 +41,20 @@ spec:
               value: sql-script/h2/schema.sql
           ports:
             - containerPort: 9095
-          livenessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 10
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 5
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 3
-            httpGet:
+            tcpSocket:
               port: 9095
-              path: /actuator/health
-          readinessProbe:
+#            httpGet:
+#              port: 9095
+#              path: /actuator/health
+          livenessProbe:
             initialDelaySeconds: 10
-            periodSeconds: 10
+            periodSeconds: 5
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 3

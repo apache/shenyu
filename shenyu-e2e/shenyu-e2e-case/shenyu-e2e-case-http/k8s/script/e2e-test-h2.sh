@@ -16,15 +16,11 @@
 # limitations under the License.
 #
 
-## init kubernetes for h2
-pwd
+# init kubernetes for h2
 curPath=$(readlink -f "$(dirname "$0")")
-echo $curPath
-
 PRGDIR=`dirname "$curPath"`
 echo $PRGDIR
 kubectl apply -f ${PRGDIR}/shenyu-deployment-h2.yml
-sleep 5s
 kubectl apply -f ${PRGDIR}/shenyu-app-service-h2.yml
 
 sleep 10s

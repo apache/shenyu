@@ -16,19 +16,8 @@
 # limitations under the License.
 #
 
-## prepare mysql
-#mkdir -p /tmp/shenyu-e2e/mysql
-#cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema.sql
-bash ./shenyu-e2e/script/storage_init_mysql.sh
-
-ls /tmp/shenyu-e2e/mysql
-ls /tmp/shenyu-e2e/driver/mysql
-
-
 ## init kubernetes for mysql
 curPath=$(readlink -f "$(dirname "$0")")
-echo $curPath
-
 PRGDIR=`dirname "$curPath"`
 echo $PRGDIR
 kubectl apply -f ${PRGDIR}/shenyu-mysql.yml
