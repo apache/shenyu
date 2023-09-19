@@ -28,7 +28,7 @@ ls /tmp/shenyu-e2e/postgres/driver
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=`dirname "$(dirname "$curPath")"`
 echo $PRGDIR
-kubectl apply -f ${PRGDIR}/shenyu-deployment-postgres.yml
+kubectl apply -f ${PRGDIR}/shenyu-postgres.yml
 sleep 30s
 kubectl get pod -o wide
 
