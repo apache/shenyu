@@ -18,7 +18,6 @@
 package org.apache.shenyu.client.core.register;
 
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
@@ -40,13 +39,13 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceRegisterListener.class);
 
+    private static final String SEQ_PRE = "seq_";
+
     private final DiscoveryUpstreamData currentInstanceUpstream;
 
     private final DiscoveryConfig discoveryConfig;
 
     private final String path;
-
-    private static final String SEQ_PRE = "seq_";
 
     public InstanceRegisterListener(final DiscoveryUpstreamData discoveryUpstream, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
         this.currentInstanceUpstream = discoveryUpstream;

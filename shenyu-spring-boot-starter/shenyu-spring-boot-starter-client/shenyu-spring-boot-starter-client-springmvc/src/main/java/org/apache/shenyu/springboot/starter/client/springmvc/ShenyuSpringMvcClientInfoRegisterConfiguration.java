@@ -33,7 +33,6 @@ import org.apache.shenyu.client.springmvc.register.SpringMvcApiBeansExtractor;
 import org.apache.shenyu.client.springmvc.register.SpringMvcApiMetaRegister;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
