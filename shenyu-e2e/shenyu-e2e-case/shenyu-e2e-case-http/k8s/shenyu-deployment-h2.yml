@@ -61,7 +61,6 @@ spec:
               path: /actuator/health
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
-status: {}
 
 ---
 apiVersion: apps/v1
@@ -113,4 +112,3 @@ spec:
               port: 9195
               path: /actuator/plugins
       restartPolicy: Always
-status: {}

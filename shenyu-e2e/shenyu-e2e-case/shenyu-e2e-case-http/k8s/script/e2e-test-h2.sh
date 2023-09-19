@@ -24,6 +24,7 @@ echo $curPath
 PRGDIR=`dirname "$curPath"`
 echo $PRGDIR
 kubectl apply -f ${PRGDIR}/shenyu-deployment-h2.yml
+sleep 5s
 kubectl apply -f ${PRGDIR}/shenyu-app-service-h2.yml
 
 sleep 10s
