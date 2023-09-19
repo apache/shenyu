@@ -18,12 +18,14 @@
 package org.apache.shenyu.e2e.client;
 
 import org.apache.shenyu.e2e.client.admin.AdminClient;
+import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * WaitDataSync.
@@ -67,6 +69,30 @@ public class WaitDataSync {
         }
         Assertions.assertNotEquals(adminDataList.size(), 0);
         Assertions.assertEquals(adminDataList.size(), gatewayDataList.size());
+    }
+
+    /**
+     * waitGatewayPluginUse.
+     *
+     * @param gatewayClient gatewayClient
+     * @param pluginClass AbstractShenyuPlugin implement class
+     * @throws Exception Exception
+     */
+    public static void waitGatewayPluginUse(final GatewayClient gatewayClient, final String pluginClass) throws Exception {
+        Map<String, Integer> pluginMap = gatewayClient.getPlugins();
+        int retryNum = 0;
+        boolean existPlugin = false;
+        while (!existPlugin && retryNum < 5) {
+            for (String plugin : pluginMap.keySet()) {
+                if (plugin.startsWith(pluginClass)) {
+                    existPlugin = true;
+                    break;
+                }
+            }
+            Thread.sleep(3000);
+            retryNum++;
+            pluginMap = gatewayClient.getPlugins();
+        }
     }
 
     @FunctionalInterface
