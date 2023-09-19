@@ -158,4 +158,14 @@ public class GatewayClient {
         }
         return ruleDataList;
     }
+
+    /**
+     * get enable plugins.
+     * @return Map Map
+     */
+    public Map<String, Integer> getPlugins() {
+        ResponseEntity<List> response = TEMPLATE.exchange(baseUrl + "/actuator/plugins", HttpMethod.GET, null, List.class);
+        List body = response.getBody();
+        return (Map<String, Integer>) body.get(0);
+    }
 }

@@ -93,6 +93,7 @@ public class AlibabaDubboPluginTest {
         formData.add("sort", "310");
         formData.add("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\",\"threadpool\":\"shared\",\"threads\":2147483647,\"register\":\"zookeeper://zookeeper:2181\"}");
         adminClient.changePluginStatus("6", formData);
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.alibaba.dubbo.AlibabaDubboPlugin");
         adminClient.deleteAllSelectors();
         selectorDTOList = adminClient.listAllSelectors();
         Assertions.assertEquals(0, selectorDTOList.size());
