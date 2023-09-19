@@ -39,7 +39,8 @@ admin_status=`curl -X GET "http://localhost:31095/actuator/health" -H "accept: *
 bootstrap_status=`curl -X GET "http://localhost:31195/actuator/health" -H "accept: */*"`
 
 if [ $admin_status -eq 200 && $bootstrap_status -eq 200 ]; then
-    echo -e "Success to send request: $status"
+    echo -e "Success to send request: $admin_status"
+    echo -e "Success to send request: $bootstrap_status"
     echo -e "\n-------------------"
     exit 0
 fi
