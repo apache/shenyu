@@ -36,4 +36,9 @@ public enum DataType {
      * Api doc type enum.
      */
     API_DOC,
+
+    /**
+     * Discovery config type enum.
+     */
+    DISCOVERY_CONFIG,
 }

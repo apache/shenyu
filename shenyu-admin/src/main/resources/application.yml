@@ -125,13 +125,11 @@ shenyu:
       - /actuator/health/** # /actuator/health/readiness /actuator/health/liveness
       - /actuator/prometheus
       - /swagger-ui.html
+      - /swagger-ui/**
       - /webjars/**
-      - /swagger-resources/**
-      - /v2/api-docs
+      - /v3/api-docs/**
       - /csrf
       - /alert/report
-  swagger:
-    enable: true
   dashboard:
     core:
       onlySuperAdminPermission:
@@ -147,6 +145,15 @@ shenyu:
         - system:resource:editMenu
         - system:resource:deleteButton
         - system:resource:deleteMenu
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    tags-sorter: alpha
+  packages-to-scan: org.apache.shenyu.admin.controller
+  paths-to-match: /**
 
 logging:
   level:

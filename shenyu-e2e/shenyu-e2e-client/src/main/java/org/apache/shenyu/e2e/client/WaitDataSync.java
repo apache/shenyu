@@ -17,16 +17,15 @@
 
 package org.apache.shenyu.e2e.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
-import org.apache.shenyu.e2e.model.data.RuleCacheData;
-import org.apache.shenyu.e2e.model.response.RuleDTO;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * WaitDataSync.
@@ -38,30 +37,73 @@ public class WaitDataSync {
     /**
      * waitAdmin2GatewayDataSync.
      *
+     * @param adminSupplier adminSupplier
+     * @param gatewaySupplier gatewaySupplier
      * @param adminClient adminClient
-     * @param gatewayClient gatewayClient
-     * @throws InterruptedException InterruptedException
-     * @throws JsonProcessingException JsonProcessingException
+     * @param <T> List
+     * @param <U> List
+     * @throws Exception Exception
      */
-    public static void waitAdmin2GatewayDataSync(final AdminClient adminClient,
-                                                 final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
+    public static <T extends List<?>, U extends List<?>> void waitAdmin2GatewayDataSyncEquals(final ShenyuE2ESupplier<T> adminSupplier,
+                                                 final ShenyuE2ESupplier<U> gatewaySupplier, final AdminClient adminClient) throws Exception {
+        final String testClassName = Thread.currentThread().getStackTrace()[2].getClassName();
         int retryNum = 0;
-        List<RuleCacheData> gatewayRuleList = null;
-        List<RuleDTO> adminRuleList = adminClient.listAllRules();
-        if (adminRuleList != null && adminRuleList.isEmpty()) {
+        List<?> gatewayDataList = null;
+        List<?> adminDataList = adminSupplier.get();
+        if (CollectionUtils.isEmpty(adminDataList)) {
+            LOGGER.warn("dataSyncEquals test {} adminDataList size is zero sleep 10s... ", testClassName);
             Thread.sleep(10000);
         }
-        while (retryNum < 10) {
-            adminRuleList = adminClient.listAllRules();
-            gatewayRuleList = gatewayClient.getRuleCache();
-            LOGGER.info("waitAdmin2GatewayDataSync debug admin rule size = {} , gateway rule size = {}", adminRuleList.size(), gatewayRuleList.size());
-            if (gatewayRuleList.size() == adminRuleList.size()) {
+        while (retryNum < 12) {
+            adminDataList = adminSupplier.get();
+            gatewayDataList = gatewaySupplier.get();
+            LOGGER.warn("dataSyncEquals test {} admin size = {} gateway size = {}", testClassName, adminDataList.size(), gatewayDataList.size());
+            if (!CollectionUtils.isEmpty(adminDataList) && gatewayDataList.size() == adminDataList.size()) {
                 break;
+            }
+            if (retryNum % 3 == 0) {
+                adminClient.syncPluginAll();
             }
             Thread.sleep(3000);
             retryNum++;
         }
-        Assertions.assertNotEquals(adminRuleList.size(), 0);
-        Assertions.assertEquals(adminRuleList.size(), gatewayRuleList.size());
+        Assertions.assertNotEquals(adminDataList.size(), 0);
+        Assertions.assertEquals(adminDataList.size(), gatewayDataList.size());
+    }
+
+    /**
+     * waitGatewayPluginUse.
+     *
+     * @param gatewayClient gatewayClient
+     * @param pluginClass AbstractShenyuPlugin implement class
+     * @throws Exception Exception
+     */
+    public static void waitGatewayPluginUse(final GatewayClient gatewayClient, final String pluginClass) throws Exception {
+        Map<String, Integer> pluginMap = gatewayClient.getPlugins();
+        int retryNum = 0;
+        boolean existPlugin = false;
+        while (!existPlugin && retryNum < 5) {
+            for (String plugin : pluginMap.keySet()) {
+                if (plugin.startsWith(pluginClass)) {
+                    existPlugin = true;
+                    break;
+                }
+            }
+            Thread.sleep(3000);
+            retryNum++;
+            pluginMap = gatewayClient.getPlugins();
+        }
+    }
+
+    @FunctionalInterface
+    public interface ShenyuE2ESupplier<T> {
+
+        /**
+         * get.
+         *
+         * @return {@link T}
+         * @throws Exception Exception
+         */
+        T get() throws Exception;
     }
 }
