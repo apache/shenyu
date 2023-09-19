@@ -34,7 +34,7 @@
         <module>shenyu-plugin-motan</module>
         <module>shenyu-plugin-sofa</module>
         <module>shenyu-plugin-tars</module>
-        <module>shenyu-plguin-transform</module>
+        <module>shenyu-plugin-transform</module>
     </modules>
     
 </project>
