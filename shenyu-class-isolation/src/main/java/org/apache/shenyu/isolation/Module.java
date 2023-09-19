@@ -1,6 +1,7 @@
 package org.apache.shenyu.isolation;
 
 import java.net.URLClassLoader;
+import java.util.List;
 
 public interface Module {
 
@@ -17,6 +18,8 @@ public interface Module {
      * @throws Throwable
      */
     void init() throws Throwable;
+
+    List<String> getRegisterClassNames();
 
     //    String getPath();
 //

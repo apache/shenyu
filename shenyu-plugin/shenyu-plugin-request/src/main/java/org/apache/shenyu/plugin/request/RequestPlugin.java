@@ -24,7 +24,6 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RequestHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.isolation.Module;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -40,7 +39,6 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
-import java.net.URLClassLoader;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -211,5 +209,11 @@ public class RequestPlugin extends AbstractShenyuPlugin {
 
     private void fillHeader(final Map.Entry<String, String> shenyuHeader, final HttpHeaders headers) {
         headers.set(shenyuHeader.getKey(), shenyuHeader.getValue());
+    }
+
+
+    @Override
+    public List<String> getRegisterClassNames() {
+        return Arrays.asList(RequestPlugin.class.getName(), RequestPluginHandler.class.getName());
     }
 }

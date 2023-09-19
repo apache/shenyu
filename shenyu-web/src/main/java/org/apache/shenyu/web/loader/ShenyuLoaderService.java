@@ -23,18 +23,23 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.config.ShenyuConfig.ExtPlugin;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Objects;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
+import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -109,7 +114,7 @@ public class ShenyuLoaderService {
      *
      * @param results results
      */
-    private void loaderPlugins(final List<ShenyuLoaderResult> results) {
+    public void loaderPlugins(final List<ShenyuLoaderResult> results) {
         if (CollectionUtils.isEmpty(results)) {
             return;
         }
@@ -119,4 +124,50 @@ public class ShenyuLoaderService {
         subscriber.putExtendPluginDataHandler(handlers);
     }
 
+    public void loaderPlugins(final List<String> registerClassNames, ClassLoader classLoader) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        if (Objects.isNull(registerClassNames)) {
+            return;
+        }
+
+        for (String className : registerClassNames) {
+            Class<?> clazz = Class.forName(className, false, classLoader);
+            if (ShenyuPlugin.class.isAssignableFrom(clazz)) {
+                List<ShenyuPlugin> pluginList = Arrays.asList(getOrCreateSpringBean(className, classLoader));
+                webHandler.putExtPlugins(pluginList);
+            } else if (PluginDataHandler.class.isAssignableFrom(clazz)) {
+                List<PluginDataHandler> handlerList = Arrays.asList(getOrCreateSpringBean(className, classLoader));
+                subscriber.putExtendPluginDataHandler(handlerList);
+            }
+        }
+    }
+
+    private final ReentrantLock lock = new ReentrantLock();
+
+    private <T> T getOrCreateSpringBean(final String className, final ClassLoader classLoader) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        if (SpringBeanUtils.getInstance().existBean(className)) {
+            return SpringBeanUtils.getInstance().getBeanByClassName(className);
+        }
+        lock.lock();
+        try {
+            T inst = SpringBeanUtils.getInstance().getBeanByClassName(className);
+            if (Objects.isNull(inst)) {
+                Class<?> clazz = Class.forName(className, false, classLoader);
+                //Exclude ShenyuPlugin subclass and PluginDataHandler subclass
+                // without adding @Component @Service annotation
+                boolean next = ShenyuPlugin.class.isAssignableFrom(clazz)
+                        || PluginDataHandler.class.isAssignableFrom(clazz);
+                if (next) {
+                    GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+                    beanDefinition.setBeanClassName(className);
+                    beanDefinition.setAutowireCandidate(true);
+                    beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+                    String beanName = SpringBeanUtils.getInstance().registerBean(beanDefinition, classLoader);
+                    inst = SpringBeanUtils.getInstance().getBeanByClassName(beanName);
+                }
+            }
+            return inst;
+        } finally {
+            lock.unlock();
+        }
+    }
 }

@@ -32,7 +32,6 @@ import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.isolation.Module;
-import org.apache.shenyu.isolation.ModuleManager;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -46,9 +45,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URLClassLoader;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -475,6 +471,12 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin, Module {
      * @throws Throwable
      */
     @Override
-    public void init() throws Throwable {};
+    public void init() throws Throwable {
+
+
+    };
+
+    @Override
+    public List<String> getRegisterClassNames() {return null;};
 
 }

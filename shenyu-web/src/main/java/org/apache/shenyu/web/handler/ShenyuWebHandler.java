@@ -40,7 +40,6 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URLClassLoader;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -249,7 +248,9 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 return;
             }
             plugin.setClassLoader(pluginClassLoader);
-            plugin.init();
+
+            // 将 class 加入到 spring bean 中去
+            shenyuLoaderService.loaderPlugins(plugin.getRegisterClassNames(), pluginClassLoader);
             LOG.info("load {} plugin success, path: {}", pluginName, pluginJarDir);
         } catch (Throwable e) {
             LOG.error("load {} plugin classloader failed.", pluginName);

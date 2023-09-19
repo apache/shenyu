@@ -24,11 +24,21 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
  * The type of ShenYu Loader result.
  */
 public class ShenyuLoaderResult {
+
+    private String className;
     
     private ShenyuPlugin shenyuPlugin;
     
     private PluginDataHandler pluginDataHandler;
-    
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
     /**
      * Gets shenyu plugin.
      *
