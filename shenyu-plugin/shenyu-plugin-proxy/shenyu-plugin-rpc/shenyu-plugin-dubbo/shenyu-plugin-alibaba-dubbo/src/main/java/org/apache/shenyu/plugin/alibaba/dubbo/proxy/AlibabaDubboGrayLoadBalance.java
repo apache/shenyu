@@ -52,7 +52,7 @@ public class AlibabaDubboGrayLoadBalance implements LoadBalance {
         if (CollectionUtils.isNotEmpty(dubboUpstreams)) {
             Upstream upstream = LoadBalancerFactory.selector(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(shenyuSelectorId), dubboRuleHandle.getLoadBalance(), remoteAddressIp);
             if (StringUtils.isBlank(upstream.getUrl()) && StringUtils.isBlank(upstream.getGroup()) && StringUtils.isBlank(upstream.getVersion())) {
-                return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(dubboRuleHandle.getLoadBalance()).select(invokers, url, invocation);
+                return select(invokers, url, invocation, dubboRuleHandle.getLoadBalance());
             }
             // url is the first level, then is group, the version is the lowest.
             final List<Invoker<T>> invokerGrays = invokers.stream().filter(each -> {

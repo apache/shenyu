@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.controller;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
+import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
@@ -84,6 +85,17 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @ResponseBody
     public String registerApiDoc(@RequestBody final ApiDocRegisterDTO apiDocRegisterDTO) {
         publisher.publish(apiDocRegisterDTO);
+        return ShenyuResultMessage.SUCCESS;
+    }
+
+    /**
+     * registerDiscoveryConfig.
+     * @param discoveryConfigRegisterDTO discoveryConfigRegisterDTO
+     * @return String
+     */
+    @PostMapping("/register-discoveryConfig")
+    @ResponseBody
+    public String registerDiscoveryConfig(@RequestBody final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
         return ShenyuResultMessage.SUCCESS;
     }
     

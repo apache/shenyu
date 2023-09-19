@@ -60,7 +60,7 @@ public class VersionOneSignProvider implements SignProvider {
 
         Map<String, String> params = Maps.newHashMap();
         params.put(Constants.TIMESTAMP, signParameters.getTimestamp());
-        params.put(Constants.PATH, signParameters.getUri().getPath());
+        params.put(Constants.PATH, signParameters.getUri().getRawPath());
         params.put(Constants.VERSION, signParameters.getVersion());
 
         if (Objects.isNull(requestBody)) {

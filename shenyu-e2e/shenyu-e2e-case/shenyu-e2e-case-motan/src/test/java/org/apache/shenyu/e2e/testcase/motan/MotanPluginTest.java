@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.e2e.testcase.motan;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.restassured.RestAssured;
 import io.restassured.parsing.Parser;
+import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
@@ -29,11 +29,6 @@ import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.model.ResourcesData;
-import org.apache.shenyu.e2e.model.data.MetaData;
-import org.apache.shenyu.e2e.model.data.RuleCacheData;
-import org.apache.shenyu.e2e.model.data.SelectorCacheData;
-import org.apache.shenyu.e2e.model.response.MetaDataDTO;
-import org.apache.shenyu.e2e.model.response.RuleDTO;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -78,19 +73,13 @@ public class MotanPluginTest {
     private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeAll
-    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
+    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        Thread.sleep(10000);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         adminClient.syncPluginAll();
-        List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
-        Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
-        List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
-        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
-        Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
-        List<RuleDTO> ruleDTOList = adminClient.listAllRules();
-        List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "17");
@@ -101,7 +90,7 @@ public class MotanPluginTest {
         formData.add("config", "{\"registerProtocol\":\"zk\", \"registerAddress\":\"zookeeper:2181\"}");
         adminClient.changePluginStatus("17", formData);
         adminClient.deleteAllSelectors();
-        selectorDTOList = adminClient.listAllSelectors();
+        List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         Assertions.assertEquals(0, selectorDTOList.size());
         RestAssured.registerParser("text/plain", Parser.JSON);
     }
