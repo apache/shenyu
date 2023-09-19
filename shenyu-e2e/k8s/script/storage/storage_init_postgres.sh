@@ -16,11 +16,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-mkdir -p /tmp/shenyu-e2e/pg
+mkdir -p /tmp/shenyu-e2e/postgres/schema
+mkdir -p /tmp/shenyu-e2e/postgres/driver
 
-cp db/init/pg/create-table.sql /tmp/shenyu-e2e/pg/create-table.sql
-
-wget -O /tmp/shenyu-e2e/pg/postgresql.jar \
+wget -O /tmp/shenyu-e2e/postgres/driver/postgresql.jar \
   https://jdbc.postgresql.org/download/postgresql-42.5.0.jar || \
-  wget -O /tmp/shenyu-e2e/pg/postgresql.jar \
+  wget -O /tmp/shenyu-e2e/postgres/driver/postgresql.jar \
   https://jdbc.postgresql.org/download/postgresql-42.5.0.jar
+
+cp db/init/pg/create-table.sql /tmp/shenyu-e2e/postgres/schema/create-table.sql

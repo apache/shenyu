@@ -42,7 +42,7 @@ spec:
             - name: spring.datasource.password
               value: shenyue2e
             - name: spring.datasource.url
-              value: jdbc:postgresql://shenyu-postgres:5432/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
+              value: jdbc:postgresql://shenyu-postgres:30432/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
           ports:
             - containerPort: 9097
           livenessProbe:
@@ -55,7 +55,7 @@ spec:
               port: 9097
               path: /actuator/health
           readinessProbe:
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
@@ -65,7 +65,6 @@ spec:
               path: /actuator/health
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
-status: { }
 
 ---
 apiVersion: apps/v1
@@ -103,7 +102,7 @@ spec:
               port: 9197
               path: /actuator/health
           readinessProbe:
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
@@ -113,7 +112,6 @@ spec:
               path: /actuator/health
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
-status: { }
 
 ---
 apiVersion: apps/v1

@@ -81,6 +81,7 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
         run: |
           bash ./shenyu-e2e/k8s/script/init/mysql_container_init.sh
+          bash ./shenyu-e2e/k8s/script/init/postgres_container_init.sh
 
       - name: Run E2E Tests
         if: steps.filter.outputs.changed == 'true'

@@ -35,8 +35,8 @@ sh ${curPath}/healthcheck.sh h2
 
 curl -S "http://localhost:31195/actuator/pluginData"
 
-admin_status=`curl -X GET "http://localhost:31095/actuator/health" -H "accept: */*"`
-bootstrap_status=`curl -X GET "http://localhost:31195/actuator/health" -H "accept: */*"`
+admin_status=`curl -s -o /dev/null -w "%{http_code}" -X GET "http://localhost:31095/actuator/health" -H "accept: */*"`
+bootstrap_status=`curl -s -o /dev/null -w "%{http_code}" -X GET "http://localhost:31195/actuator/health" -H "accept: */*"`
 
 if [ $admin_status -eq 200 -a $bootstrap_status -eq 200 ]; then
     echo -e "Success to send request: $admin_status"
