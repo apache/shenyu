@@ -19,10 +19,10 @@
 echo -e `nc -z -v -w30 shenyu-mysql 30306`
 
 curPath=$(readlink -f "$(dirname "$0")")
-PRGDIR=`dirname "$curPath"`
-echo $PRGDIR
-kubectl apply -f ${PRGDIR}/shenyu-deployment-mysql.yml
-kubectl apply -f ${PRGDIR}/shenyu-app-service-mysql.yml
+PRGDIR=$(dirname "$curPath")
+echo "$PRGDIR"
+kubectl apply -f "${PRGDIR}"/shenyu-deployment-mysql.yml
+kubectl apply -f "${PRGDIR}"/shenyu-app-service-mysql.yml
 
 kubectl get pod -o wide
 
@@ -30,6 +30,6 @@ sleep 60s
 
 kubectl get pod -o wide
 
-chmod +x ${curPath}/healthcheck.sh
-sh ${curPath}/healthcheck.sh mysql
+chmod +x "${curPath}"/healthcheck.sh
+sh "${curPath}"/healthcheck.sh mysql
 

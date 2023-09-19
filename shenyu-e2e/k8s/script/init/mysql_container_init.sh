@@ -17,18 +17,13 @@
 # limitations under the License.
 
 # prepare mysql
-bash ./shenyu-e2e/k8s/script/storage/storage_init_mysql.sh
-
-## todo: for test
-ls /tmp/shenyu-e2e/mysql/schema
-ls /tmp/shenyu-e2e/mysql/driver
-## todo: for test
+curPath=$(readlink -f "$(dirname "$0")")
+PRGDIR=$(dirname "$(dirname "$curPath")")
+echo "$PRGDIR"
+bash "${PRGDIR}"/storage/storage_init_mysql.sh
 
 # init kubernetes for mysql
-curPath=$(readlink -f "$(dirname "$0")")
-PRGDIR=`dirname "$(dirname "$curPath")"`
-echo $PRGDIR
-kubectl apply -f ${PRGDIR}/shenyu-mysql.yml
+kubectl apply -f "${PRGDIR}"/shenyu-mysql.yml
 sleep 30s
 kubectl get pod -o wide
 

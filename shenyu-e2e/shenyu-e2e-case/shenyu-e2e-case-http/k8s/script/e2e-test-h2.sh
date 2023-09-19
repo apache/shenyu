@@ -18,27 +18,27 @@
 
 # init kubernetes for h2
 curPath=$(readlink -f "$(dirname "$0")")
-PRGDIR=`dirname "$curPath"`
-echo $PRGDIR
-kubectl apply -f ${PRGDIR}/shenyu-deployment-h2.yml
-kubectl apply -f ${PRGDIR}/shenyu-app-service-h2.yml
+PRGDIR=$(dirname "$curPath")
+echo "$PRGDIR"
+kubectl apply -f "${PRGDIR}"/shenyu-deployment-h2.yml
+kubectl apply -f "${PRGDIR}"/shenyu-app-service-h2.yml
 
 sleep 60s
 
 kubectl get pod -o wide
 
 # execute healthcheck.sh
-chmod +x ${curPath}/healthcheck.sh
-sh ${curPath}/healthcheck.sh h2
+chmod +x "${curPath}"/healthcheck.sh
+sh "${curPath}"/healthcheck.sh h2
 
 ## run e2e-test
 
 curl -S "http://localhost:31195/actuator/pluginData"
 
-admin_status=`curl -s -o /dev/null -w "%{http_code}" -X GET "http://localhost:31095/actuator/health" -H "accept: */*"`
-bootstrap_status=`curl -s -o /dev/null -w "%{http_code}" -X GET "http://localhost:31195/actuator/health" -H "accept: */*"`
+admin_status=$(curl -s -o /dev/null -w "%{http_code}" -X GET "http://localhost:31095/actuator/health" -H "accept: */*")
+bootstrap_status=$(curl -s -o /dev/null -w "%{http_code}" -X GET "http://localhost:31195/actuator/health" -H "accept: */*")
 
-if [ $admin_status -eq 200 -a $bootstrap_status -eq 200 ]; then
+if [ "$admin_status" -eq 200 -a "$bootstrap_status" -eq 200 ]; then
     echo -e "Success to send request: $admin_status"
     echo -e "Success to send request: $bootstrap_status"
     echo -e "\n-------------------"
