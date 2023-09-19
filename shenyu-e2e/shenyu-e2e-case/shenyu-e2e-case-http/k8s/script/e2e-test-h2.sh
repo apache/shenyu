@@ -23,7 +23,7 @@ echo $PRGDIR
 kubectl apply -f ${PRGDIR}/shenyu-deployment-h2.yml
 kubectl apply -f ${PRGDIR}/shenyu-app-service-h2.yml
 
-sleep 10s
+sleep 30s
 
 kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
 kubectl get pod -o wide
