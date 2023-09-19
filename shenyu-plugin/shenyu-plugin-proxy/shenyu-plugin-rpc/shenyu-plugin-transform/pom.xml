@@ -23,6 +23,6 @@
         <artifactId>shenyu-plugin-rpc</artifactId>
         <version>2.6.1-SNAPSHOT</version>
     </parent>
-    <artifactId>shenyu-plguin-transform</artifactId>
+    <artifactId>shenyu-plugin-transform</artifactId>
     
 </project>
