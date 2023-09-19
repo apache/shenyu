@@ -877,6 +877,7 @@ INSERT INTO `plugin_handle` VALUES ('1529402613199978509', '4', 'replenishRate',
 INSERT INTO `plugin_handle` VALUES ('1529402613199978510', '4', 'burstCapacity', 'burstCapacity', 2, 2, 3, '{\"required\":\"1\",\"defaultValue\":\"100\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978511', '3', 'regex', 'regex', 2, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978512', '3', 'replace', 'replace', 2, 2, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1697146860569596304', '3', 'percentage', 'percentage', 1, 2, 3, NULL, '2023-09-15 20:25:53', '2023-09-15 20:25:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978513', '16', 'redirectURI', 'redirectURI', 2, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978514', '8', 'path', 'path', 2, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978515', '8', 'timeout', 'timeout ms)', 1, 2, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
