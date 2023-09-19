@@ -41,17 +41,6 @@ spec:
               value: sql-script/h2/schema.sql
           ports:
             - containerPort: 9095
-          readinessProbe:
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-            tcpSocket:
-              port: 9095
-#            httpGet:
-#              port: 9095
-#              path: /actuator/health
           livenessProbe:
             initialDelaySeconds: 10
             periodSeconds: 5
@@ -61,6 +50,17 @@ spec:
             httpGet:
               port: 9095
               path: /actuator/health
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            tcpSocket:
+              port: 9095
+          #            httpGet:
+          #              port: 9095
+          #              path: /actuator/health
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
 

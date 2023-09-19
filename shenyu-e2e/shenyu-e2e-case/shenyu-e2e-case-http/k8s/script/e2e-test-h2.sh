@@ -23,9 +23,8 @@ echo $PRGDIR
 kubectl apply -f ${PRGDIR}/shenyu-deployment-h2.yml
 kubectl apply -f ${PRGDIR}/shenyu-app-service-h2.yml
 
-sleep 30s
+sleep 60s
 
-kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
 kubectl get pod -o wide
 
 # execute healthcheck.sh
@@ -39,16 +38,3 @@ curl -S "http://localhost:31195/actuator/pluginData"
 status=`curl "http://localhost:31195/actuator/pluginData"`
 echo -e "curl $status"
 
-### wait shenyu-admin and shenyu-bootstrap start
-
-# get shenyu-admin pod name
-#
-#shenyu_admin_pod_name=`kubectl get pod -n kube-system | grep shenyu-admin | awk '{print $1}'`
-#
-## get shenyu-bootstrap pod name
-#
-#shenyu_bootstrap_pod_name=`kubectl get pod -n kube-system | grep shenyu-bootstrap | awk '{print $1}'`
-#
-## get shenyu-admin pod status
-#
-#shenyu_admin_pod_status=`kubectl get pod -n kube-system | grep shenyu-admin | awk '{print $3}'`
