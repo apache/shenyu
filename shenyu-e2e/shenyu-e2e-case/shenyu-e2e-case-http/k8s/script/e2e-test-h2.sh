@@ -35,6 +35,16 @@ sh ${curPath}/healthcheck.sh h2
 
 curl -S "http://localhost:31195/actuator/pluginData"
 
-status=`curl "http://localhost:31195/actuator/pluginData"`
-echo -e "curl $status"
+admin_status=`curl -X GET "http://localhost:31095/actuator/health" -H "accept: */*"`
+bootstrap_status=`curl -X GET "http://localhost:31195/actuator/health" -H "accept: */*"`
+
+if [ $admin_status -eq 200 && $bootstrap_status -eq 200 ]; then
+    echo -e "Success to send request: $status"
+    echo -e "\n-------------------"
+    exit 0
+fi
+echo -e "Failed to send request from shenyu-bootstrap : $admin_status"
+echo -e "Failed to send request from shenyu-bootstrap : $bootstrap_status"
+echo -e "\n-------------------"
+exit 1
 
