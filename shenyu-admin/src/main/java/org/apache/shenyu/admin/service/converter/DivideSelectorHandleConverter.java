@@ -24,24 +24,26 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The type Divide selector handle converter.
  */
 @Component
 public class DivideSelectorHandleConverter extends AbstractSelectorHandleConverter implements SelectorHandleConverter {
-    
+
     @Override
-    public List<CommonUpstream> convertUpstream(final String handle) {
-        return CommonUpstreamUtils.convertCommonUpstreamList(convert(handle));
+    public List<DivideUpstream> convertUpstream(final String handle) {
+        return Optional.ofNullable(convert(handle)).orElse(Collections.emptyList());
     }
-    
+
     @Override
     public String pluginName() {
         return PluginEnum.DIVIDE.getName();
     }
-    
+
     /**
      * Do handle object.
      *
@@ -56,7 +58,7 @@ public class DivideSelectorHandleConverter extends AbstractSelectorHandleConvert
                 .forEach(alive -> existList.add(CommonUpstreamUtils.buildAliveDivideUpstream(alive.getProtocol(), alive.getUpstreamUrl())));
         return existList;
     }
-    
+
     private List<DivideUpstream> convert(final String handle) {
         return GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
     }

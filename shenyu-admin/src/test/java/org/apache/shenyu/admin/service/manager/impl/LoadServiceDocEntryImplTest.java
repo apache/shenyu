@@ -30,7 +30,7 @@ import org.apache.shenyu.admin.service.converter.SelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.manager.PullSwaggerDocService;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,6 +51,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.anyString;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -118,10 +120,10 @@ public class LoadServiceDocEntryImplTest {
         commonPager.setDataList(list);
         commonPager.setPage(new PageParameter(1, 1));
         SelectorHandleConverter selectorHandleConverter = mock(SelectorHandleConverter.class);
-        List<CommonUpstream> upstreamList = new ArrayList<>();
-        upstreamList.add(new CommonUpstream("testProtocol", "testUpstreamHost", "testUrl", true, 1000L));
-
-        when(selectorHandleConverter.convertUpstream(any())).thenReturn(upstreamList);
+        List<DivideUpstream> upstreamList = new ArrayList<>();
+        DivideUpstream build = DivideUpstream.builder().servletContextPath("/test").upstreamUrl("testUrl").upstreamHost("testUpstreamHost").status(true).weight(100).timestamp(10000L).build();
+        upstreamList.add(build);
+        doReturn(upstreamList).when(selectorHandleConverter).convertUpstream(anyString());
         when(converterFactor.newInstance(any())).thenReturn(selectorHandleConverter);
         when(selectorService.listByPage(any())).thenReturn(commonPager);
         when(pluginMapper.selectByNames(any())).thenReturn(pluginDOList);

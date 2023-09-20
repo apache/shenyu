@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.cache.ServletContextPathCache;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -107,9 +106,6 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         if (doSubmit(selectorDO.getId(), canAddList)) {
             return null;
         }
-        uriList.stream()
-                .filter(dto -> StringUtils.isNotEmpty(dto.getContextPath()) && StringUtils.isNotEmpty(dto.getServletContextPath()))
-                .forEach(e -> ServletContextPathCache.getInstance().cachePath(e.getContextPath(), e.getServletContextPath()));
         return GsonUtils.getInstance().toJson(CollectionUtils.isEmpty(existList) ? canAddList : existList);
     }
 
@@ -125,7 +121,6 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
 
     @Override
     public String offline(final String selectorName, final List<URIRegisterDTO> uriList) {
-        uriList.stream().filter(dto -> Objects.nonNull(dto.getContextPath())).forEach(dto -> ServletContextPathCache.getInstance().removePath(dto.getContextPath()));
         final SelectorService selectorService = getSelectorService();
         SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
         if (Objects.isNull(selectorDO)) {

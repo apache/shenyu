@@ -29,7 +29,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.cache.ServletContextPathCache;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.entity.PluginDO;
@@ -46,6 +45,7 @@ import org.apache.shenyu.admin.service.manager.PullSwaggerDocService;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
@@ -130,7 +130,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     private List<UpstreamInstance> getLastUpdateInstanceList(final List<SelectorData> changedList) {
         if (CollectionUtils.isEmpty(changedList)) {
             LOG.info("getLastUpdateInstanceList, changedList is empty.");
-            return Collections.emptyList(); 
+            return Collections.emptyList();
         }
         return changedList.parallelStream()
             .map(this::getClusterLastUpdateInstance)
@@ -202,8 +202,8 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         if (StringUtils.isNotEmpty(handle)) {
             allInstances = new ArrayList<>();
             try {
-                List<CommonUpstream> upstreamList = this.convert(pluginId, handle);
-                for (CommonUpstream upstream : upstreamList) {
+                List<DivideUpstream> upstreamList = this.convert(pluginId, handle);
+                for (DivideUpstream upstream : upstreamList) {
                     UpstreamInstance instance = new UpstreamInstance();
                     instance.setContextPath(contextPath);
                     String[] upstreamUrlArr = upstream.getUpstreamUrl().split(":");
@@ -211,8 +211,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                     instance.setPort(upstreamUrlArr.length == 1 ? 80 : Integer.parseInt(upstreamUrlArr[1]));
                     instance.setEnabled(enabled);
                     instance.setHealthy(true);
-                    String servletContextPath = ServletContextPathCache.getInstance().obtainServletContextPath(contextPath);
-                    instance.setServletContextPath(servletContextPath);
+                    instance.setServletContextPath(upstream.getServletContextPath());
                     instance.setStartupTime(upstream.getTimestamp());
                     allInstances.add(instance);
                 }
@@ -224,9 +223,10 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         return allInstances;
     }
 
-    private List<CommonUpstream> convert(final String pluginId, final String handle) {
+    private List<DivideUpstream> convert(final String pluginId, final String handle) {
         String pluginName = supportSwaggerPluginMap.get(pluginId);
-        return converterFactor.newInstance(pluginName).convertUpstream(handle)
+        List<DivideUpstream> commonUpstreams = (List<DivideUpstream>) converterFactor.newInstance(pluginName).convertUpstream(handle);
+        return commonUpstreams
             .stream().filter(CommonUpstream::isStatus)
             .collect(Collectors.toList());
     }

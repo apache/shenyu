@@ -25,26 +25,26 @@ import java.util.List;
  * The interface Selector handle converter.
  */
 public interface SelectorHandleConverter {
-    
+
     /**
      * Convert upstream list.
      *
      * @param handle the handle
      * @return the list
      */
-    List<CommonUpstream> convertUpstream(String handle);
-    
+    List<? extends CommonUpstream> convertUpstream(String handle);
+
     /**
      * Plugin name string.
      *
      * @return the string
      */
     String pluginName();
-    
+
     /**
      * Handler string.
      *
-     * @param handle the handle
+     * @param handle    the handle
      * @param aliveList the upstream live list
      * @return the string
      */
@@ -53,7 +53,7 @@ public interface SelectorHandleConverter {
     /**
      * Update upstream status and remove invalid.
      *
-     * @param <T> the type parameter
+     * @param <T>       the type parameter
      * @param existList the existList
      * @param aliveList the aliveList
      * @return the valid existList
