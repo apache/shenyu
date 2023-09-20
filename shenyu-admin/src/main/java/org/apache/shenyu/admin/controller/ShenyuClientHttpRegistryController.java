@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
@@ -31,6 +32,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.annotation.Resource;
+
 /**
  * The type shenyu client controller.
  */
@@ -39,6 +42,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class ShenyuClientHttpRegistryController implements ShenyuClientServerRegisterRepository {
 
     private ShenyuClientServerRegisterPublisher publisher;
+
+    @Resource
+    private DiscoveryService discoveryService;
 
     @Override
     public void init(final ShenyuClientServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
@@ -62,7 +68,7 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
         publisher.publish(metaDataRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
     /**
      * Register uri string.
      *
@@ -78,6 +84,7 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
 
     /**
      * registerApiDoc.
+     *
      * @param apiDocRegisterDTO apiDocRegisterDTO
      * @return String
      */
@@ -90,15 +97,17 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
 
     /**
      * registerDiscoveryConfig.
+     *
      * @param discoveryConfigRegisterDTO discoveryConfigRegisterDTO
      * @return String
      */
     @PostMapping("/register-discoveryConfig")
     @ResponseBody
     public String registerDiscoveryConfig(@RequestBody final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
+        discoveryService.registerDiscoveryConfig(discoveryConfigRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
     /**
      * Offline result string.
      *

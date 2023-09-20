@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
+import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 
 import java.util.List;
 
@@ -47,6 +48,18 @@ public interface DiscoveryService {
      * @return the string
      */
     DiscoveryVO createOrUpdate(DiscoveryDTO discoveryDTO);
+
+
+    /**
+     * registerDiscoveryConfig.
+     * <p>
+     * shenyu-client create discovery .
+     * </p>
+     *
+     * @param discoveryConfigRegisterDTO discoveryConfigRegisterDTO
+     */
+    void registerDiscoveryConfig(DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO);
+
 
     /**
      * delete by id.
