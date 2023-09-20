@@ -35,6 +35,10 @@ spec:
           image: postgres:14
           ports:
             - containerPort: 5432
+          resources: {
+            limits: { cpu: "1", memory: "768Mi" },
+            requests: { cpu: "0.5", memory: "512Mi" }
+          }
           env:
             - name: POSTGRES_USER
               value: shenyue2e

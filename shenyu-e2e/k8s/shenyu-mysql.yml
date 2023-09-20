@@ -35,6 +35,10 @@ spec:
           image: mysql:8.0
           ports:
             - containerPort: 3306
+          resources: {
+            limits: { cpu: "1", memory: "768Mi" },
+            requests: { cpu: "0.5", memory: "512Mi" }
+          }
           env:
             - name: MYSQL_ROOT_PASSWORD
               value: shenyue2e
