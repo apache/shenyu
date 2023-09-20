@@ -135,7 +135,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     }
 
     /**
-     * instanceRegisterListener.
+     * InstanceRegisterListener.
      *
      * @param clientRegisterConfig  clientRegisterConfig
      * @param shenyuDiscoveryConfig shenyuDiscoveryConfig
