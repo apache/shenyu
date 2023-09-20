@@ -52,7 +52,7 @@ spec:
               command:
                 - /bin/sh
                 - "-c"
-                - psql -U shenyue2e -h127.0.0.1 -p5432 -dshenyu -c "SELECT 1"
+                - psql -U ${POSTGRES_USER} -h127.0.0.1 -p5432 -d${POSTGRES_DB} -c "SELECT 1"
           readinessProbe:
             initialDelaySeconds: 10
             periodSeconds: 10
@@ -63,7 +63,7 @@ spec:
               command:
                 - /bin/sh
                 - "-c"
-                - psql -U shenyue2e -h127.0.0.1 -p5432 -dshenyu -c "SELECT 1"
+                - psql -U ${POSTGRES_USER} -h127.0.0.1 -p5432 -d${POSTGRES_DB} -c "SELECT 1"
           volumeMounts:
             - name: postgres-initdb
               mountPath: /docker-entrypoint-initdb.d

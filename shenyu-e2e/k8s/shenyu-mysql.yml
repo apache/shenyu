@@ -52,7 +52,7 @@ spec:
               command:
                 - /bin/sh
                 - "-c"
-                - mysql -u root -pshenyue2e -e "SELECT 1"
+                - mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "SELECT 1"
           readinessProbe:
             initialDelaySeconds: 10
             periodSeconds: 10
@@ -63,7 +63,7 @@ spec:
               command:
                 - /bin/sh
                 - "-c"
-                - mysql -u root -pshenyue2e -e "SELECT 1"
+                - mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "SELECT 1"
           volumeMounts:
             - name: mysql-initdb
               mountPath: /docker-entrypoint-initdb.d
