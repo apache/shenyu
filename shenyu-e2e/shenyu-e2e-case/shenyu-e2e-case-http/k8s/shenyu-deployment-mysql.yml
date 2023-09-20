@@ -83,50 +83,50 @@ spec:
             path: /tmp/shenyu-e2e/mysql/driver
       restartPolicy: Always
 
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: shenyu-bootstrap-mysql
-  labels:
-    app: shenyu-bootstrap-mysql
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: shenyu-bootstrap-mysql
-  template:
-    metadata:
-      labels:
-        app: shenyu-bootstrap-mysql
-    spec:
-      containers:
-        - name: shenyu-bootstrap-mysql
-          image: apache/shenyu-bootstrap:latest
-          resources: { }
-          env:
-            - name: shenyu.sync.websocket.urls
-              value: ws://shenyu-admin-mysql:9096/websocket
-          ports:
-            - containerPort: 9196
-          livenessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-            httpGet:
-              port: 9196
-              path: /actuator/health
-          readinessProbe:
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-            httpGet:
-              port: 9196
-              path: /actuator/health
-          imagePullPolicy: IfNotPresent
-      restartPolicy: Always
+#---
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: shenyu-bootstrap-mysql
+#  labels:
+#    app: shenyu-bootstrap-mysql
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      app: shenyu-bootstrap-mysql
+#  template:
+#    metadata:
+#      labels:
+#        app: shenyu-bootstrap-mysql
+#    spec:
+#      containers:
+#        - name: shenyu-bootstrap-mysql
+#          image: apache/shenyu-bootstrap:latest
+#          resources: { }
+#          env:
+#            - name: shenyu.sync.websocket.urls
+#              value: ws://shenyu-admin-mysql:9096/websocket
+#          ports:
+#            - containerPort: 9196
+#          livenessProbe:
+#            initialDelaySeconds: 30
+#            periodSeconds: 10
+#            timeoutSeconds: 5
+#            successThreshold: 1
+#            failureThreshold: 3
+#            httpGet:
+#              port: 9196
+#              path: /actuator/health
+#          readinessProbe:
+#            initialDelaySeconds: 10
+#            periodSeconds: 10
+#            timeoutSeconds: 5
+#            successThreshold: 1
+#            failureThreshold: 3
+#            httpGet:
+#              port: 9196
+#              path: /actuator/health
+#          imagePullPolicy: IfNotPresent
+#      restartPolicy: Always
 
