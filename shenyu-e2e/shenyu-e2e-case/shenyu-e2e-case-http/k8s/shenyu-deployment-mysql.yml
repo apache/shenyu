@@ -30,24 +30,14 @@ spec:
       labels:
         app: shenyu-admin-mysql
     spec:
-#      initContainers:
-#        - name: wait-mysql
-#          image: busybox:latest
-#          command: [ "sh","-c" ]
-#          args: [ "until nc -z -v -w30 localhost 30306;
-#                    do
-#                    echo \"Waiting for database connection...\";
-#                    sleep 2;
-#                    done;
-#                    echo \"Database is ready!\"" ]
       containers:
         - name: shenyu-admin-mysql
           image: apache/shenyu-admin:latest
-#          resources: {
-#            limits: { cpu: "1", memory: "1324Mi" },
-#            requests: { cpu: "0.5", memory: "1024Mi" }
-#          }
+          args:
+            - -Xmx768m -Xms768m
           env:
+            - name: server.port
+              value: "9096"
             - name: SPRING_PROFILES_ACTIVE
               value: mysql
             - name: spring.datasource.username
@@ -107,7 +97,11 @@ spec:
         - name: shenyu-bootstrap-mysql
           image: apache/shenyu-bootstrap:latest
           resources: { }
+          args:
+            - -Xmx768m -Xms768m
           env:
+            - name: server.port
+              value: "9196"
             - name: shenyu.sync.websocket.urls
               value: ws://shenyu-admin-mysql:9096/websocket
           ports:
@@ -122,7 +116,7 @@ spec:
               port: 9196
               path: /actuator/health
           readinessProbe:
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1

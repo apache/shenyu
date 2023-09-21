@@ -27,8 +27,8 @@ jobs:
     strategy:
       matrix:
         include:
-          #          - case: shenyu-e2e-case-http
-          #            script: e2e-http-h2
+          - case: shenyu-e2e-case-http
+            script: e2e-http-h2
           - case: shenyu-e2e-case-http
             script: e2e-http-mysql
     #          - case: shenyu-e2e-case-http
