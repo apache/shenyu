@@ -89,10 +89,7 @@ spec:
       containers:
         - name: shenyu-bootstrap-h2
           image: apache/shenyu-bootstrap:latest
-          resources: {
-            limits: { cpu: "1", memory: "1500Mi" },
-            requests: { cpu: "0.5", memory: "1324Mi" }
-          }
+          resources: {}
           env:
             - name: shenyu.sync.websocket.urls
               value: ws://shenyu-admin-h2:9095/websocket
