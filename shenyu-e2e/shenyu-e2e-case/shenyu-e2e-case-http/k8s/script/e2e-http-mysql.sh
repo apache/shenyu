@@ -21,7 +21,7 @@ shenyuTestCaseDir=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 echo "$shenyuTestCaseDir"
 bash "$shenyuTestCaseDir"/k8s/script/init/mysql_container_init.sh
 
-echo -e $(nc -z -v -w30 shenyu-mysql 3306)
+echo -e $(nc -z -v -w30 localhost 30306)
 
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
@@ -36,5 +36,9 @@ sleep 60s
 kubectl get pod -o wide
 
 chmod +x "${curPath}"/healthcheck.sh
-sh "${curPath}"/healthcheck.sh mysql
+sh "${curPath}"/healthcheck.sh mysql http://localhost:31096/actuator/health http://localhost:31196/actuator/health
+
+## run e2e-test
+
+curl -S "http://localhost:31196/actuator/pluginData"
 
