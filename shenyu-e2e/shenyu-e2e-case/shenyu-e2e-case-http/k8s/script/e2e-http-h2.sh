@@ -46,7 +46,7 @@ if [ "$admin_status" -eq 200 -a "$bootstrap_status" -eq 200 ]; then
     exit 0
 fi
 echo -e "\n-------------------"
-echo -e "Failed to send request from shenyu-bootstrap : $admin_status"
+echo -e "Failed to send request from shenyu-admin : $admin_status"
 echo -e "Failed to send request from shenyu-bootstrap : $bootstrap_status"
 echo -e "\n-------------------"
 exit 1

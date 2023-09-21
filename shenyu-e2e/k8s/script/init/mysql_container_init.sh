@@ -19,7 +19,6 @@
 # prepare mysql
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$(dirname "$curPath")")
-echo "$curPath"
 echo "$PRGDIR"
 bash "$PRGDIR"/script/storage/storage_init_mysql.sh
 
