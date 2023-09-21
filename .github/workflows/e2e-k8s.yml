@@ -67,6 +67,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-e2e-maven-
 
+      - name: Setup Debug Session
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 15
+        with:
+          detached: true
       -
         name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
