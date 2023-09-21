@@ -31,6 +31,8 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
 
     private String registerPath;
 
+    private String pluginName;
+
     /**
      * Gets name.
      *
@@ -119,5 +121,22 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
      */
     public void setRegisterPath(final String registerPath) {
         this.registerPath = registerPath;
+    }
+    /**
+     * getPluginName.
+     *
+     * @return pluginName
+     */
+    public String getPluginName() {
+        return pluginName;
+    }
+
+    /**
+     * setPluginName.
+     *
+     * @param pluginName pluginName
+     */
+    public void setPluginName(final String pluginName) {
+        this.pluginName = pluginName;
     }
 }
