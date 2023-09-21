@@ -20,7 +20,7 @@
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$(dirname "$curPath")")
 echo "$PRGDIR"
-bash "${PRGDIR}"/storage/storage_init_postgres.sh
+bash "$PRGDIR"/script/storage/storage_init_postgres.sh
 
 # init kubernetes for mysql
 kubectl apply -f "${PRGDIR}"/shenyu-postgres.yml

@@ -19,8 +19,9 @@
 # prepare mysql
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$(dirname "$curPath")")
+echo "$curPath"
 echo "$PRGDIR"
-bash "${PRGDIR}"/storage/storage_init_mysql.sh
+bash "$PRGDIR"/script/storage/storage_init_mysql.sh
 
 # init kubernetes for mysql
 kubectl apply -f "${PRGDIR}"/shenyu-mysql.yml
