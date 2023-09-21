@@ -16,7 +16,12 @@
 # limitations under the License.
 #
 
-echo -e `nc -z -v -w30 shenyu-mysql 30306`
+# init kubernetes for mysql
+shenyuTestCaseDir=$(dirname "$(dirname "$(dirname "$0")")")
+echo "$shenyuTestCaseDir"
+bash "$shenyuTestCaseDir"/k8s/script/init/mysql_container_init.sh
+
+echo -e $(nc -z -v -w30 shenyu-mysql 3306)
 
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
