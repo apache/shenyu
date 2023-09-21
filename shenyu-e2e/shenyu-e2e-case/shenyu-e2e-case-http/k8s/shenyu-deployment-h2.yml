@@ -33,7 +33,10 @@ spec:
       containers:
         - name: shenyu-admin-h2
           image: apache/shenyu-admin:latest
-          resources: {}
+          resources: {
+            limits: { cpu: "1", memory: "768Mi" },
+            requests: { cpu: "0.5", memory: "512Mi" }
+          }
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: h2
@@ -86,7 +89,10 @@ spec:
       containers:
         - name: shenyu-bootstrap-h2
           image: apache/shenyu-bootstrap:latest
-          resources: {}
+          resources: {
+            limits: { cpu: "1", memory: "768Mi" },
+            requests: { cpu: "0.5", memory: "512Mi" }
+          }
           env:
             - name: shenyu.sync.websocket.urls
               value: ws://shenyu-admin-h2:9095/websocket

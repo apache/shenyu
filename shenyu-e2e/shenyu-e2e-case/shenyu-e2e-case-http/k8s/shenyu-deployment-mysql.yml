@@ -56,24 +56,26 @@ spec:
               value: shenyue2e
             - name: spring.datasource.url
               value: jdbc:mysql://shenyu-mysql:30306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
-          livenessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-            httpGet:
-              port: 9096
-              path: /actuator/health
-          readinessProbe:
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-            httpGet:
-              port: 9096
-              path: /actuator/health
+            - name: logging.level.root
+              value: debug
+#          livenessProbe:
+#            initialDelaySeconds: 30
+#            periodSeconds: 10
+#            timeoutSeconds: 5
+#            successThreshold: 1
+#            failureThreshold: 3
+#            httpGet:
+#              port: 9096
+#              path: /actuator/health
+#          readinessProbe:
+#            initialDelaySeconds: 10
+#            periodSeconds: 10
+#            timeoutSeconds: 5
+#            successThreshold: 1
+#            failureThreshold: 3
+#            httpGet:
+#              port: 9096
+#              path: /actuator/health
           ports:
             - containerPort: 9096
           imagePullPolicy: IfNotPresent
