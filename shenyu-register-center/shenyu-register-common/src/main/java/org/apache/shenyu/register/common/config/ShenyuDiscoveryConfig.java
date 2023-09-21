@@ -27,6 +27,8 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
 
     private String serverList;
 
+    private String pluginName;
+
     /**
      * Gets name.
      *
@@ -81,4 +83,21 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
         this.serverList = serverList;
     }
 
+    /**
+     * getPluginName.
+     *
+     * @return pluginName
+     */
+    public String getPluginName() {
+        return pluginName;
+    }
+
+    /**
+     * setPluginName.
+     *
+     * @param pluginName pluginName
+     */
+    public void setPluginName(final String pluginName) {
+        this.pluginName = pluginName;
+    }
 }
