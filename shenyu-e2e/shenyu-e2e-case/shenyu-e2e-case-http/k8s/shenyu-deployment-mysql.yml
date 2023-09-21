@@ -55,7 +55,7 @@ spec:
             - name: spring.datasource.password
               value: shenyue2e
             - name: spring.datasource.url
-              value: jdbc:mysql://shenyu-mysql:30306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+              value: jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
             - name: logging.level.root
               value: debug
 #          livenessProbe:
