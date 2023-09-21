@@ -17,7 +17,7 @@
 #
 
 # init kubernetes for mysql
-shenyuTestCaseDir=$(dirname "$(dirname "$(dirname "$0")")")
+shenyuTestCaseDir=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 echo "$shenyuTestCaseDir"
 bash "$shenyuTestCaseDir"/k8s/script/init/mysql_container_init.sh
 
