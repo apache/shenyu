@@ -248,7 +248,6 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 return;
             }
 
-            // 将 class 加入到 spring bean 中去
             shenyuLoaderService.loaderPlugins(plugin.getRegisterClassNames(), pluginClassLoader);
             LOG.info("load {} plugin success, path: {}", pluginName, pluginJarDir);
         } catch (Throwable e) {
