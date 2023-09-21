@@ -117,7 +117,7 @@ public class IngressConstants {
     // The configuration key to specify the SpringCloud path for the plugin, in string
     public static final String PLUGIN_SPRING_CLOUD_PATH = "shenyu.apache.org/plugin-spring-cloud-path";
 
-    // he configuration key to specify the SpringCloud context path for the plugin, in string
+    // The configuration key to specify the SpringCloud context path for the plugin, in string
     public static final String PLUGIN_SPRING_CLOUD_CONTEXT_PATH = "shenyu.apache.org/plugin-spring-cloud-context-path";
 
     // The configuration key to specify the SpringCloud load balance for the plugin, in string
@@ -141,10 +141,21 @@ public class IngressConstants {
     // The configuration key to specify the SpringCloud gray for the plugin, in string
     public static final String PLUGIN_SPRING_CLOUD_GRAY = "shenyu.apache.org/plugin-spring-cloud-gray";
 
-    // // Determining whether to use the WebSocket plugin, in String
+    //Determining whether to use the WebSocket plugin, in String
     public static final String PLUGIN_WEB_SOCKET_ENABLED = "shenyu.apache.org/plugin-web-socket-enabled";
 
     // Upstream protocol, in string
     public static final String UPSTREAMS_PROTOCOL_ANNOTATION_KEY = "shenyu.apache.org/upstreams-protocol";
+
+    //The configuration key to specify the Context path for the plugin, in string
+    public static final String PLUGIN_CONTEXT_PATH_PATH = "shenyu.apache.org/plugin-context-path-path";
+
+    //The configuration key to specify the Context path add prefix for the plugin, in string
+    public static final String PLUGIN_CONTEXT_PATH_ADD_PREFIX = "shenyu.apache.org/plugin-context-path-add-prefix";
+
+    public static final String PLUGIN_CONTEXT_PATH_ADD_PREFIXED = "shenyu.apache.org/plugin-context-path-add-prefixed";
+
+
+
 
 }
