@@ -43,10 +43,10 @@ spec:
       containers:
         - name: shenyu-admin-mysql
           image: apache/shenyu-admin:latest
-          resources: {
-            limits: { cpu: "1", memory: "1324Mi" },
-            requests: { cpu: "0.5", memory: "1024Mi" }
-          }
+#          resources: {
+#            limits: { cpu: "1", memory: "1324Mi" },
+#            requests: { cpu: "0.5", memory: "1024Mi" }
+#          }
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: mysql
@@ -56,8 +56,6 @@ spec:
               value: shenyue2e
             - name: spring.datasource.url
               value: jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
-            - name: logging.level.root
-              value: debug
 #          livenessProbe:
 #            initialDelaySeconds: 30
 #            periodSeconds: 10
