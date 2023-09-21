@@ -25,27 +25,31 @@ import java.util.Properties;
 public class DiscoveryConfigRegisterDTO implements DataTypeParent {
     private String name;
 
-    private String type;
+    private String discoveryType;
 
     private String serverList;
+
+    private String pluginName;
 
     private Properties props;
 
     public DiscoveryConfigRegisterDTO() {
     }
 
-    public DiscoveryConfigRegisterDTO(final String name, final String type, final String serverList, final Properties props) {
+    public DiscoveryConfigRegisterDTO(final String name, final String discoveryType, final String serverList, final String pluginName, final Properties props) {
         this.name = name;
-        this.type = type;
+        this.discoveryType = discoveryType;
         this.serverList = serverList;
         this.props = props;
+        this.pluginName = pluginName;
     }
 
     private DiscoveryConfigRegisterDTO(final Builder builder) {
         name = builder.name;
-        type = builder.type;
+        discoveryType = builder.discoveryType;
         serverList = builder.serverList;
         props = builder.props;
+        pluginName = builder.pluginName;
     }
 
     @Override
@@ -81,12 +85,21 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
     }
 
     /**
-     * setType.
+     * getDiscoveryType.
      *
-     * @param type type
+     * @return discoveryType
      */
-    public void setType(final String type) {
-        this.type = type;
+    public String getDiscoveryType() {
+        return discoveryType;
+    }
+
+    /**
+     * setDiscoveryType.
+     *
+     * @param discoveryType discoveryType
+     */
+    public void setDiscoveryType(final String discoveryType) {
+        this.discoveryType = discoveryType;
     }
 
     /**
@@ -125,12 +138,33 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
         this.props = props;
     }
 
+    /**
+     * getPluginName.
+     *
+     * @return pluginName
+     */
+    public String getPluginName() {
+        return pluginName;
+    }
+
+    /**
+     * setPluginName.
+     *
+     * @param pluginName pluginName
+     */
+    public void setPluginName(final String pluginName) {
+        this.pluginName = pluginName;
+    }
+
     public static final class Builder {
+
         private String name;
 
-        private String type;
+        private String discoveryType;
 
         private String serverList;
+
+        private String pluginName;
 
         private Properties props;
 
@@ -149,13 +183,13 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
         }
 
         /**
-         * type.
+         * discoveryType.
          *
-         * @param type type
+         * @param discoveryType discoveryType
          * @return Builder builder
          */
-        public Builder type(final String type) {
-            this.type = type;
+        public Builder discoveryType(final String discoveryType) {
+            this.discoveryType = discoveryType;
             return this;
         }
 
@@ -178,6 +212,17 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
          */
         public Builder props(final Properties props) {
             this.props = props;
+            return this;
+        }
+
+        /**
+         * pluginName.
+         *
+         * @param pluginName pluginName
+         * @return Builder
+         */
+        public Builder pluginName(final String pluginName) {
+            this.pluginName = pluginName;
             return this;
         }
 
