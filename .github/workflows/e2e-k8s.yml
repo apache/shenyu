@@ -66,12 +66,6 @@ jobs:
           key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-e2e-maven-
-
-      - name: Setup Debug Session
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 15
-        with:
-          detached: true
       -
         name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
@@ -100,3 +94,9 @@ jobs:
           kubectl get all
           kubectl get events --all-namespaces
           kubectl logs -l app=shenyu-admin-mysql
+
+      - name: Setup Debug Session
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 15
+        with:
+          detached: true
