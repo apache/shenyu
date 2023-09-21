@@ -122,6 +122,7 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
     public void setRegisterPath(final String registerPath) {
         this.registerPath = registerPath;
     }
+
     /**
      * getPluginName.
      *
