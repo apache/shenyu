@@ -34,8 +34,8 @@ spec:
         - name: shenyu-admin-h2
           image: apache/shenyu-admin:latest
           resources: {
-            limits: { cpu: "1", memory: "768Mi" },
-            requests: { cpu: "0.5", memory: "512Mi" }
+            limits: { cpu: "1", memory: "1024Mi" },
+            requests: { cpu: "0.5", memory: "768Mi" }
           }
           env:
             - name: SPRING_PROFILES_ACTIVE
@@ -90,8 +90,8 @@ spec:
         - name: shenyu-bootstrap-h2
           image: apache/shenyu-bootstrap:latest
           resources: {
-            limits: { cpu: "1", memory: "768Mi" },
-            requests: { cpu: "0.5", memory: "512Mi" }
+            limits: { cpu: "1", memory: "1024Mi" },
+            requests: { cpu: "0.5", memory: "768Mi" }
           }
           env:
             - name: shenyu.sync.websocket.urls

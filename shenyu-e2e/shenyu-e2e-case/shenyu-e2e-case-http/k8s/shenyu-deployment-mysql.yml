@@ -44,8 +44,8 @@ spec:
         - name: shenyu-admin-mysql
           image: apache/shenyu-admin:latest
           resources: {
-            limits: { cpu: "1", memory: "768Mi" },
-            requests: { cpu: "0.5", memory: "512Mi" }
+            limits: { cpu: "1", memory: "1024Mi" },
+            requests: { cpu: "0.5", memory: "768Mi" }
           }
           env:
             - name: SPRING_PROFILES_ACTIVE
