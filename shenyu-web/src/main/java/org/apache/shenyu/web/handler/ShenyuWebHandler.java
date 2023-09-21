@@ -247,7 +247,6 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 LOG.error("failed to find plugin: {}", pluginName);
                 return;
             }
-            plugin.setClassLoader(pluginClassLoader);
 
             // 将 class 加入到 spring bean 中去
             shenyuLoaderService.loaderPlugins(plugin.getRegisterClassNames(), pluginClassLoader);

@@ -24,6 +24,7 @@ import org.apache.shenyu.common.config.ShenyuConfig.ExtPlugin;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Service;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.net.URLClassLoader;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -124,7 +126,7 @@ public class ShenyuLoaderService {
         subscriber.putExtendPluginDataHandler(handlers);
     }
 
-    public void loaderPlugins(final List<String> registerClassNames, ClassLoader classLoader) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public void loaderPlugins(final List<String> registerClassNames, URLClassLoader classLoader) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         if (Objects.isNull(registerClassNames)) {
             return;
         }
@@ -132,11 +134,12 @@ public class ShenyuLoaderService {
         for (String className : registerClassNames) {
             Class<?> clazz = Class.forName(className, false, classLoader);
             if (ShenyuPlugin.class.isAssignableFrom(clazz)) {
-                List<ShenyuPlugin> pluginList = Arrays.asList(getOrCreateSpringBean(className, classLoader));
-                webHandler.putExtPlugins(pluginList);
+                AbstractShenyuPlugin plugin = getOrCreateSpringBean(className, classLoader);
+                plugin.setClassLoader(classLoader);
+                webHandler.putExtPlugins(Arrays.asList(plugin));
             } else if (PluginDataHandler.class.isAssignableFrom(clazz)) {
-                List<PluginDataHandler> handlerList = Arrays.asList(getOrCreateSpringBean(className, classLoader));
-                subscriber.putExtendPluginDataHandler(handlerList);
+                PluginDataHandler pluginDataHandler = getOrCreateSpringBean(className, classLoader);
+                subscriber.putExtendPluginDataHandler(Arrays.asList(pluginDataHandler));
             }
         }
     }
