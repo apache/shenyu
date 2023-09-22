@@ -109,7 +109,7 @@ jobs:
 
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
-        run: bash ./shenyu-integrated-test/${{ matrix.case }}/build_k8s_cluster.sh
+        run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/build_k8s_cluster.sh
 
       - name: Wait for k8s Cluster Start up
         if: steps.filter.outputs.changed == 'true'
