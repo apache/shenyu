@@ -16,10 +16,9 @@
 # limitations under the License.
 #
 
-kind load docker-image "shenyu-examples-eureka:latest"
-kind load docker-image "shenyu-examples-springcloud:latest"
-kind load docker-image "apache/shenyu-integrated-test-k8s-ingress-spring-cloud:latest"
-kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-spring-cloud/deploy/deploy-shenyu.yaml
-kubectl apply -f ./shenyu-examples/shenyu-examples-eureka/k8s/shenyu-examples-eureka.yml
-kubectl apply -f ./shenyu-examples/shenyu-examples-springcloud/k8s/shenyu-examples-springcloud.yml
-kubectl apply -f ./shenyu-examples/shenyu-examples-springcloud/k8s/ingress.yml
+kind load docker-image "shenyu-examples-motan:latest"
+kind load docker-image "apache/shenyu-integrated-test-k8s-ingress-motan:latest"
+kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-motan/deploy/deploy-shenyu.yaml
+kubectl apply -f ./shenyu-examples/shenyu-examples-motan/shenyu-examples-motan-service/k8s/shenyu-zookeeper.yml
+kubectl apply -f ./shenyu-examples/shenyu-examples-motan/shenyu-examples-motan-service/k8s/shenyu-examples-motan.yml
+kubectl apply -f ./shenyu-examples/shenyu-examples-motan/shenyu-examples-motan-service/k8s/ingress.yml
