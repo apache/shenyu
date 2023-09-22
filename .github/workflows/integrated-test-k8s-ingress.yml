@@ -18,8 +18,8 @@ name: it-k8s
 on:
   pull_request:
   push:
-#    branches:
-#      - master
+    branches:
+      - master
 
 jobs:
   build:
@@ -33,7 +33,7 @@ jobs:
           - shenyu-integrated-test-k8s-ingress-spring-cloud
           - shenyu-integrated-test-k8s-ingress-websocket
     runs-on: ubuntu-latest
-    if: github.repository == 'runqi-zhao/shenyu'
+    if: github.repository == 'apache/shenyu'
     steps:
       - uses: actions/checkout@v3
         with:
