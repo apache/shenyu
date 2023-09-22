@@ -21,8 +21,6 @@ shenyuTestCaseDir=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 echo "$shenyuTestCaseDir"
 bash "$shenyuTestCaseDir"/k8s/script/init/mysql_container_init.sh
 
-echo -e $(nc -z -v -w30 localhost 30306)
-
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
 echo "$PRGDIR"

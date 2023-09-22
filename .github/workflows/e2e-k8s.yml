@@ -31,8 +31,8 @@ jobs:
             script: e2e-http-h2
           - case: shenyu-e2e-case-http
             script: e2e-http-mysql
-    #          - case: shenyu-e2e-case-http
-    #            script: e2e-http-postgres
+          - case: shenyu-e2e-case-http
+            script: e2e-http-postgres
     if: (github.repository == 'moremind/shenyu')
     steps:
       - uses: actions/checkout@v2
@@ -84,11 +84,11 @@ jobs:
         run: |
           docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest | sudo k3s ctr images import -
 
-      - name: Setup Debug Session
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 15
-        with:
-          detached: true
+#      - name: Setup Debug Session
+#        uses: mxschmitt/action-tmate@v3
+#        timeout-minutes: 15
+#        with:
+#          detached: true
 
       - name: Run E2E Tests
         if: steps.filter.outputs.changed == 'true'

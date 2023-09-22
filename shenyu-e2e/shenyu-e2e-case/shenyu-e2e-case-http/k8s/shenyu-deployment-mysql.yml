@@ -126,4 +126,3 @@ spec:
               path: /actuator/health
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
-

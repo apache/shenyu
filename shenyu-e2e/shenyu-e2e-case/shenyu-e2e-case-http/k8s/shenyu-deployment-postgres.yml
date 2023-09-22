@@ -28,13 +28,15 @@ spec:
   template:
     metadata:
       labels:
-        app: shenyu-admin
+        app: shenyu-admin-postgres
     spec:
       containers:
-        - name: shenyu-admin
+        - name: shenyu-admin-postgres
           image: apache/shenyu-admin:latest
           resources: { }
           env:
+            - name: server.port
+              value: "9097"
             - name: SPRING_PROFILES_ACTIVE
               value: pg
             - name: spring.datasource.username
@@ -42,7 +44,7 @@ spec:
             - name: spring.datasource.password
               value: shenyue2e
             - name: spring.datasource.url
-              value: jdbc:postgresql://shenyu-postgres:30432/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
+              value: jdbc:postgresql://shenyu-postgres:5432/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
           ports:
             - containerPort: 9097
           livenessProbe:
@@ -64,6 +66,13 @@ spec:
               port: 9097
               path: /actuator/health
           imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: mysql-connector-volume
+              mountPath: /opt/shenyu-admin/ext-lib
+      volumes:
+        - name: mysql-connector-volume
+          hostPath:
+            path: /tmp/shenyu-e2e/postgres/driver
       restartPolicy: Always
 
 ---
@@ -87,7 +96,11 @@ spec:
         - name: shenyu-bootstrap-postgres
           image: apache/shenyu-bootstrap:latest
           resources: { }
+          args:
+            - -Xmx768m -Xms768m
           env:
+            - name: server.port
+              value: "9197"
             - name: shenyu.sync.websocket.urls
               value: ws://shenyu-admin-postgres:9097/websocket
           ports:
@@ -110,38 +123,5 @@ spec:
             httpGet:
               port: 9197
               path: /actuator/health
-          imagePullPolicy: IfNotPresent
-      restartPolicy: Always
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: shenyu-postgres
-  labels:
-    app: shenyu-postgres
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: shenyu-postgres
-  template:
-    metadata:
-      labels:
-        app: shenyu-postgres
-    spec:
-      containers:
-        - name: shenyu-postgres
-          image: postgres:14
-          resources: { }
-          env:
-            - name: POSTGRES_USER
-              value: shenyue2e
-            - name: POSTGRES_PASSWORD
-              value: shenyue2e
-            - name: POSTGRES_DB
-              value: shenyu
-          ports:
-            - containerPort: 5432
           imagePullPolicy: IfNotPresent
       restartPolicy: Always

@@ -16,26 +16,27 @@
 # limitations under the License.
 #
 
-## init kubernetes for h2
-pwd
+# init kubernetes for mysql
+shenyuTestCaseDir=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
+echo "$shenyuTestCaseDir"
+bash "$shenyuTestCaseDir"/k8s/script/init/postgres_container_init.sh
+
 curPath=$(readlink -f "$(dirname "$0")")
-echo $curPath
+PRGDIR=$(dirname "$curPath")
+echo "$PRGDIR"
+kubectl apply -f "${PRGDIR}"/shenyu-deployment-postgres.yml
+kubectl apply -f "${PRGDIR}"/shenyu-app-service-postgres.yml
 
-PRGDIR=`dirname "$curPath"`
-echo $PRGDIR
-kubectl apply -f ${PRGDIR}/shenyu-deployment-postgres.yml
-kubectl apply -f ${PRGDIR}/shenyu-app-service-postgres.yml
-
-sleep 10s
-
-kubectl -n kube-system  get pods | grep Evicted |awk '{print$1}'|xargs kubectl -n kube-system delete pods
 kubectl get pod -o wide
 
-# execute healthcheck.sh
-chmod +x ${curPath}/healthcheck.sh
-sh ${curPath}/healthcheck.sh postgres
+sleep 60s
+
+kubectl get pod -o wide
+
+chmod +x "${curPath}"/healthcheck.sh
+sh "${curPath}"/healthcheck.sh postgres http://localhost:31097/actuator/health http://localhost:31197/actuator/health
 
 ## run e2e-test
-curl http://localhost:31196/acuator/shenyu/pluginData
 
+curl -S "http://localhost:31197/actuator/pluginData"
 
