@@ -80,6 +80,9 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
 
     private final Environment env;
 
+    private final String servletContextPath;
+
+
     /**
      * Instantiates a new context refreshed event listener.
      *
@@ -97,6 +100,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         this.protocol = props.getProperty(ShenyuClientConstants.PROTOCOL, ShenyuClientConstants.HTTP);
         this.addPrefixed = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.ADD_PREFIXED,
                 Boolean.FALSE.toString()));
+        this.servletContextPath = this.env.getProperty("server.servlet.context-path");
         mappingAnnotation.add(ShenyuSpringMvcClient.class);
         mappingAnnotation.add(RequestMapping.class);
     }
@@ -158,7 +162,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     @Override
     protected String buildApiSuperPath(final Class<?> clazz, @Nullable final ShenyuSpringMvcClient beanShenyuClient) {
         final String servletPath = StringUtils.defaultString(this.env.getProperty("spring.mvc.servlet.path"), "");
-        final String servletContextPath = StringUtils.defaultString(this.env.getProperty("server.servlet.context-path"), "");
+        final String servletContextPath = StringUtils.defaultString(this.servletContextPath, "");
         final String rootPath = String.format("/%s/%s/", servletContextPath, servletPath);
         if (Objects.nonNull(beanShenyuClient) && StringUtils.isNotBlank(beanShenyuClient.path())) {
             return formatPath(String.format("%s/%s", rootPath, beanShenyuClient.path()));
@@ -243,7 +247,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                                                    final Method method) {
         return MetaDataRegisterDTO.builder()
                 .contextPath(getContextPath())
-                .addPrefixed(addPrefixed)
+                .addPrefixed(StringUtils.isNotEmpty(this.servletContextPath))
                 .appName(getAppName())
                 .serviceName(clazz.getName())
                 .methodName(Optional.ofNullable(method).map(Method::getName).orElse(null))
@@ -273,5 +277,10 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         final int port = Integer.parseInt(Optional.ofNullable(super.getPort()).orElseGet(() -> "-1"));
         final int mergedPort = port <= 0 ? PortUtils.findPort(getContext().getAutowireCapableBeanFactory()) : port;
         return String.valueOf(mergedPort);
+    }
+
+    @Override
+    public String getContextPath() {
+        return StringUtils.defaultString(this.servletContextPath, super.getContextPath());
     }
 }

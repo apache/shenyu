@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -180,7 +179,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
         uriComponentsBuilder.scheme("http");
         uriComponentsBuilder.host(instance.getIp());
         uriComponentsBuilder.port(instance.getPort());
-        uriComponentsBuilder.path(Optional.ofNullable(instance.getContextPath()).orElse(""));
+        uriComponentsBuilder.path(instance.getAddPrefixed() ? instance.getContextPath() : StringUtils.EMPTY);
         uriComponentsBuilder.path(SWAGGER_V2_PATH);
         return uriComponentsBuilder.build().toUriString();
     }

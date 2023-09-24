@@ -20,10 +20,12 @@ package org.apache.shenyu.admin.service.manager.impl;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.entity.PluginDO;
+import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
+import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverter;
@@ -74,6 +76,9 @@ public class LoadServiceDocEntryImplTest {
     @Mock
     private ShenyuDictService shenyuDictService;
 
+    @Mock
+    private RuleService ruleService;
+
     @Test
     public void testLoadApiDocument() {
         ShenyuDictVO shenyuInitData = new ShenyuDictVO();
@@ -99,7 +104,7 @@ public class LoadServiceDocEntryImplTest {
         SelectorVO selectorVO = new SelectorVO(
                 "1",
                 "1",
-                "test",
+                "/test",
                 1,
                 "testMatchMode",
                 1,
@@ -114,6 +119,15 @@ public class LoadServiceDocEntryImplTest {
                 formattedDateString,
                 formattedDateString
         );
+        final RuleDO ruleDO = new RuleDO(
+                "1",
+                1,
+                "/test",
+                true,
+                true, 1,
+                "{\"addPrefixed\":true,\"contextPath\":\"/http\"}",
+                true
+        );
         list.add(selectorVO);
         commonPager.setDataList(list);
         commonPager.setPage(new PageParameter(1, 1));
@@ -125,6 +139,7 @@ public class LoadServiceDocEntryImplTest {
         when(converterFactor.newInstance(any())).thenReturn(selectorHandleConverter);
         when(selectorService.listByPage(any())).thenReturn(commonPager);
         when(pluginMapper.selectByNames(any())).thenReturn(pluginDOList);
+        when(ruleService.findByName(any())).thenReturn(ruleDO);
         loadServiceDocEntry.loadApiDocument();
         verify(pullSwaggerDocService).pullApiDocument((Set<UpstreamInstance>) any());
     }

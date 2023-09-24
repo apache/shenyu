@@ -19,7 +19,7 @@ server:
   tomcat:
     max-http-form-post-size: 100MB
   servlet:
-    context-path: /http-swagger2 # should be the same as shenyu.client.http.contextPath
+    context-path: /http # overlay  shenyu.client.http.contextPath
 
 shenyu:
   register:
@@ -31,7 +31,7 @@ shenyu:
   client:
       http:
         props:
-          contextPath: /http-swagger2
+          contextPath: /http-swagger2 # priority lower than server.servlet.context-path
           appName: http-swagger2
 #          port: 8190
 

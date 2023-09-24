@@ -45,6 +45,11 @@ public class UpstreamInstance {
     private boolean enabled = true;
 
     /**
+     * instance add prefixed.
+     */
+    private boolean addPrefixed;
+
+    /**
      * getClusterName.
      * @return String
      */
@@ -159,6 +164,22 @@ public class UpstreamInstance {
         this.enabled = enabled;
     }
 
+    /**
+     * getAddPrefixed.
+     * @return boolean
+     */
+    public boolean getAddPrefixed() {
+        return addPrefixed;
+    }
+
+    /**
+     * setAddPrefixed.
+     * @param addPrefixed addPrefixed
+     */
+    public void setAddPrefixed(final boolean addPrefixed) {
+        this.addPrefixed = addPrefixed;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -171,6 +192,7 @@ public class UpstreamInstance {
         return port == that.port
                 && healthy == that.healthy
                 && enabled == that.enabled
+                && addPrefixed == that.addPrefixed
                 && Objects.equals(contextPath, that.contextPath)
                 && Objects.equals(ip, that.ip)
                 && Objects.equals(startupTime, that.startupTime);

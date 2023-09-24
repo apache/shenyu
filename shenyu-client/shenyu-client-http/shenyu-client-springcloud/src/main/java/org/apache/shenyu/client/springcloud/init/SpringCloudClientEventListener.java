@@ -67,17 +67,17 @@ import java.util.stream.Stream;
 public class SpringCloudClientEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuSpringCloudClient> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringCloudClientEventListener.class);
-    
+
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final Boolean isFull;
-    
+
     private final Environment env;
-    
+
     private final String servletContextPath;
 
     private final boolean addPrefixed;
-    
+
     private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(3);
 
     /**
@@ -186,7 +186,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
         }
         return pathJoin(contextPath, superPath);
     }
-    
+
     private String getPathByMethod(@NonNull final Method method) {
         for (Class<? extends Annotation> mapping : mappingAnnotation) {
             final Annotation mergedAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, mapping);
@@ -197,7 +197,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
         }
         return null;
     }
-    
+
     private String getPathByAnnotation(@Nullable final Annotation annotation) {
         if (Objects.isNull(annotation)) {
             return null;
@@ -238,7 +238,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                                                    final String path, final Class<?> clazz, final Method method) {
         return MetaDataRegisterDTO.builder()
                 .contextPath(StringUtils.defaultIfBlank(getContextPath(), this.servletContextPath))
-                .addPrefixed(addPrefixed)
+                .addPrefixed(StringUtils.isNotBlank(this.servletContextPath))
                 .appName(getAppName())
                 .serviceName(clazz.getName())
                 .methodName(Optional.ofNullable(method).map(Method::getName).orElse(null))
@@ -259,7 +259,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
     public String getAppName() {
         return env.getProperty("spring.application.name");
     }
-    
+
     @Override
     public String getPort() {
         final int port = Integer.parseInt(Optional.ofNullable(super.getPort()).orElseGet(() -> "-1"));
