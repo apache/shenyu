@@ -84,6 +84,9 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
 
+      - name: Build Docker Image
+        run: docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest
+
   e2e-storage:
     runs-on: ubuntu-latest
     needs:
