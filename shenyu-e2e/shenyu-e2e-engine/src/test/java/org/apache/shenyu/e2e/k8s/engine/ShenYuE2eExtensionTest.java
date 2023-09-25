@@ -51,12 +51,5 @@ public class ShenYuE2eExtensionTest {
     
     @Test
     public void test(final AdminClient adminClient, final GatewayClient gatewayClient, final EnvironmentClient client) {
-        //System.out.println(adminClient);
-        //System.out.println(gatewayClient);
-        //System.out.println(client);
-        //AdminClient adminClient1 = (AdminClient) client.getClient("shenyu-e2e-mysql");
-        //System.out.println(adminClient1);
-        ////clientMap.forEach((key, value) -> System.out.println(key + " : " + value));
-        //System.out.println("test");
     }
 }
