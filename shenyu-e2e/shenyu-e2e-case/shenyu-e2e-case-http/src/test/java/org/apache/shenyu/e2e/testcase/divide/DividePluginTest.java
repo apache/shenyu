@@ -95,7 +95,6 @@ public class DividePluginTest {
         for (Resource res : resources.getResources()) {
             SelectorDTO dto = client.create(res.getSelector());
             selectorIds.add(dto.getId());
-            
             res.getRules().forEach(rule -> {
                 rule.setSelectorId(dto.getId());
                 client.create(rule);
