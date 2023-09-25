@@ -85,7 +85,7 @@ jobs:
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
 
       - name: Build Docker Image
-        run: docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest
+        run: docker save apache/shenyu-admin:latest | gzip > shenyu-admin.tar.gz && docker save apache/shenyu-bootstrap:latest | gzip > shenyu-bootstrap.tar.gz
 
   e2e-storage:
     runs-on: ubuntu-latest
@@ -151,7 +151,9 @@ jobs:
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
         run: |
-          docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest | sudo k3s ctr images import -
+          sudo k3s ctr images import shenyu-admin.tar.gz
+          sudo k3s ctr images import shenyu-bootstrap.tar.gz
+#          docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest | sudo k3s ctr images import -
 
 #      - name: Setup Debug Session
 #        uses: mxschmitt/action-tmate@v3
