@@ -175,12 +175,12 @@ public class DockerServiceCompose implements ServiceCompose {
 
     @Override
     public GatewayClient newGatewayClient(final String scenarioId) {
-        return new GatewayClient(scenarioId, getGatewayBaseUrl(), gatewayConfigure.getProperties());
+        return new GatewayClient(scenarioId, getGatewayBaseUrl(), "", gatewayConfigure.getProperties());
     }
 
     @Override
     public AdminClient newAdminClient(final String scenarioId) {
-        return new AdminClient(scenarioId, getAdminBaseUrl(), adminConfigure.getProperties());
+        return new AdminClient(scenarioId, getAdminBaseUrl(), "", adminConfigure.getProperties());
     }
 
     @Override
@@ -190,7 +190,7 @@ public class DockerServiceCompose implements ServiceCompose {
                 .findFirst()
                 .orElseThrow(() -> new AssertionFailedError("ExternalServiceClient[" + externalServiceName + "] configure: not found"));
         String url = getBaseUrlByService(dockerServiceConfigure);
-        return new ExternalServiceClient(url, dockerServiceConfigure.getProperties());
+        return new ExternalServiceClient(url, "", "", dockerServiceConfigure.getProperties());
     }
 
     /**

@@ -64,7 +64,7 @@ public class DividePluginTest {
     private List<String> selectorIds = Lists.newArrayList();
     
     @BeforeAll
-    static void setup(final AdminClient client) {
+    void setup(final AdminClient client) {
         client.login();
         client.deleteAllSelectors();
     }

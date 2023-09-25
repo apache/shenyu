@@ -18,8 +18,6 @@
 package org.apache.shenyu.e2e.engine;
 
 import com.github.dockerjava.api.DockerClient;
-import junit.framework.AssertionFailedError;
-import org.apache.shenyu.e2e.annotation.ExternalService;
 import org.apache.shenyu.e2e.annotation.ShenYuAdminClient;
 import org.apache.shenyu.e2e.annotation.ShenYuGatewayClient;
 import org.apache.shenyu.e2e.annotation.ShenYuInjectable;
@@ -40,6 +38,7 @@ import org.junit.platform.commons.util.AnnotationUtils;
 import org.testcontainers.DockerClientFactory;
 
 import java.util.Objects;
+import junit.framework.AssertionFailedError;
 
 /**
  * ShenYu extension.
@@ -110,9 +109,10 @@ public class ShenYuExtension implements BeforeAllCallback, ExecutionCondition, A
             return context.getGatewayClient();
         }
         // TODO fixme.
-        ExternalService service = AnnotationUtils.findAnnotation(parameterType, ExternalService.class)
-                .orElseThrow(() -> new AssertionFailedError(""));
-        return context.getExternalServiceClient(service.serviceName());
+        //ExternalService service = AnnotationUtils.findAnnotation(parameterType, ExternalService.class)
+        //        .orElseThrow(() -> new AssertionFailedError(""));
+        //return context.getExternalServiceClient(service.serviceName());
+        return null;
     }
     
     @Override

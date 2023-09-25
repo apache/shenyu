@@ -15,17 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.annotation;
+package org.apache.shenyu.e2e.enums;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Inherited
-@ShenYuInjectable
-@Target({ElementType.PARAMETER, ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ExternalService {
+public enum ServiceTypeEnum {
+    
+    SHENYU_ADMIN,
+    
+    SHENYU_GATEWAY,
+    
+    EXTERNAL_SERVICE,
 }

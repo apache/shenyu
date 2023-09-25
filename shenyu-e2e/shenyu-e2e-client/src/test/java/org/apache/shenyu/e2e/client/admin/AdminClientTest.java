@@ -88,7 +88,7 @@ public class AdminClientTest {
         properties.put("username", "admin");
         properties.put("password", "123456");
         
-        client = new AdminClient("shenyu-e2e", "http://localhost:" + CONTAINER.getMappedPort(9095), properties);
+        client = new AdminClient("shenyu-e2e", "", "http://localhost:" + CONTAINER.getMappedPort(9095), properties);
         client.login();
     }
     

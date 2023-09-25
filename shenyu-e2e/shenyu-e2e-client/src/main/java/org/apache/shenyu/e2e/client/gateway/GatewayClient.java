@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.apache.shenyu.e2e.annotation.ShenYuGatewayClient;
+import org.apache.shenyu.e2e.client.BaseClient;
 import org.apache.shenyu.e2e.common.RequestLogConsumer;
 import org.apache.shenyu.e2e.model.data.MetaData;
 import org.apache.shenyu.e2e.model.data.RuleCacheData;
@@ -46,7 +47,7 @@ import static io.restassured.RestAssured.given;
  * A client to connect to ShenYu bootstrap(Gateway) server over HTTP.
  */
 @ShenYuGatewayClient
-public class GatewayClient {
+public class GatewayClient extends BaseClient {
 
     private static final Logger log = LoggerFactory.getLogger(GatewayClient.class);
     
@@ -58,10 +59,14 @@ public class GatewayClient {
 
     private final String baseUrl;
     
+    private final String serviceName;
+    
     private final Properties properties;
 
-    public GatewayClient(final String scenarioId, final String baseUrl, final Properties properties) {
+    public GatewayClient(final String scenarioId, final String serviceName, final String baseUrl, final Properties properties) {
+        super(serviceName);
         this.scenarioId = scenarioId;
+        this.serviceName = serviceName;
         this.baseUrl = baseUrl;
         this.properties = properties;
     }

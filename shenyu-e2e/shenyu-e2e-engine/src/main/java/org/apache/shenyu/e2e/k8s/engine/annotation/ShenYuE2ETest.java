@@ -15,10 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.k8s.annotation;
+package org.apache.shenyu.e2e.k8s.engine.annotation;
 
+import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.apache.shenyu.e2e.k8s.engine.ShenYuE2eExtension;
+import org.apache.shenyu.e2e.k8s.engine.ShenYuLogExtension;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -27,6 +31,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
+@ExtendWith({ShenYuE2eExtension.class, ShenYuLogExtension.class})
 @TestInstance(Lifecycle.PER_CLASS)
 public @interface ShenYuE2ETest {
     
@@ -40,30 +45,47 @@ public @interface ShenYuE2ETest {
     
     @Target(ElementType.TYPE)
     @Retention(RetentionPolicy.RUNTIME)
-    @interface ServiceConfigure {
+    @interface Environment {
         
         String serviceName();
         
+        ShenYuE2ETest.ServiceConfigure service();
+    }
+    
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface ServiceConfigure {
+        
+        /**
+         * the service module name.
+         *
+         * @return module name
+         */
+        String moduleName() default "";
+        
         String schema() default "http";
         
+        int port() default -1;
+        
+        /**
+         * the service base url, example: <a href="http://localhost:9095">http://localhost:9095</a>.
+         *
+         * @return the base url
+         */
         String baseUrl() default "";
+        
+        /**
+         * the service type.
+         *
+         * @return the service type.
+         */
+        ServiceTypeEnum type() default ServiceTypeEnum.SHENYU_ADMIN;
         
         /**
          * Indices more configures about connection.
          * @return Parameter[]
          */
         Parameter[] parameters() default {};
-    
-    }
-    
-    
-    @Target(ElementType.TYPE)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface Environment {
-        
-        String envKey();
-        
-        ShenYuE2ETest.ServiceConfigure service();
     }
     
     @Target(ElementType.TYPE)
@@ -74,6 +96,4 @@ public @interface ShenYuE2ETest {
         
         String value();
     }
-    
-    
 }

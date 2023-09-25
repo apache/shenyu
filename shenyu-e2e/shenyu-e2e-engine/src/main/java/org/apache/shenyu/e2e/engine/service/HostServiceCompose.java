@@ -66,13 +66,13 @@ public class HostServiceCompose implements ServiceCompose {
     @Override
     public AdminClient newAdminClient(final String scenarioId) {
         HostServiceConfigure adminConfigure = configure.getAdmin();
-        return new AdminClient(scenarioId, adminConfigure.getBaseUrl(), adminConfigure.getProperties());
+        return new AdminClient(scenarioId, "", adminConfigure.getBaseUrl(), adminConfigure.getProperties());
     }
     
     @Override
     public GatewayClient newGatewayClient(final String scenarioId) {
         HostServiceConfigure gatewayConfigure = configure.getGateway();
-        return new GatewayClient(scenarioId, gatewayConfigure.getBaseUrl(), gatewayConfigure.getProperties());
+        return new GatewayClient(scenarioId, "", gatewayConfigure.getBaseUrl(), gatewayConfigure.getProperties());
     }
     
     @Override
@@ -81,7 +81,7 @@ public class HostServiceCompose implements ServiceCompose {
                 .filter(e -> externalServiceName.equals(e.getServiceName()))
                 .findFirst()
                 .orElseThrow(() -> new AssertionFailedError("ExternalServiceClient[" + externalServiceName + "] configure: not found"));
-        return new ExternalServiceClient(serviceConfigure.getBaseUrl(), serviceConfigure.getProperties());
+        return new ExternalServiceClient("", "", serviceConfigure.getBaseUrl(), serviceConfigure.getProperties());
     }
     
     /**

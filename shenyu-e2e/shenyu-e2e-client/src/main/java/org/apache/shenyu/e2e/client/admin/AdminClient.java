@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.e2e.annotation.ShenYuAdminClient;
+import org.apache.shenyu.e2e.client.BaseClient;
 import org.apache.shenyu.e2e.common.IdManagers.Rules;
 import org.apache.shenyu.e2e.common.IdManagers.Selectors;
 import org.apache.shenyu.e2e.common.NameUtils;
@@ -69,7 +70,7 @@ import static org.apache.shenyu.e2e.model.data.SearchCondition.QUERY_ALL;
  * A client to connect to ShenYu Admin.
  */
 @ShenYuAdminClient
-public class AdminClient {
+public class AdminClient extends BaseClient {
 
     private static final Logger log = LoggerFactory.getLogger(AdminClient.class);
     
@@ -97,15 +98,18 @@ public class AdminClient {
     private final String scenarioId;
 
     private final String baseURL;
+    
+    private String serviceName;
 
     private final ImmutableMap<String, String> loginInfo;
     
-    public AdminClient(final String scenarioId, final String baseURL, final Properties properties) {
+    public AdminClient(final String scenarioId, final String serviceName, final String baseURL, final Properties properties) {
+        super(serviceName);
         Preconditions.checkArgument(properties.containsKey("username"), "Property username does not exist");
         Preconditions.checkArgument(properties.containsKey("password"), "Property password does not exist");
-        
         this.baseURL = baseURL;
         this.scenarioId = scenarioId;
+        this.serviceName = serviceName;
         this.loginInfo = ImmutableMap.<String, String>builder()
                 .put("username", properties.getProperty("username"))
                 .put("password", properties.getProperty("password"))

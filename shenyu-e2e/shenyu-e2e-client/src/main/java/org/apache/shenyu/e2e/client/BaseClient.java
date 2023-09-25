@@ -15,17 +15,36 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.annotation;
+package org.apache.shenyu.e2e.client;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Inherited
-@ShenYuInjectable
-@Target({ElementType.PARAMETER, ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ExternalService {
+public class BaseClient {
+    
+    private String serviceName;
+    
+    /**
+     * constructor.
+     *
+     * @param serviceName service name
+     */
+    public BaseClient(final String serviceName) {
+        this.serviceName = serviceName;
+    }
+    
+    /**
+     * get serviceName.
+     *
+     * @return service name
+     */
+    public String getServiceName() {
+        return serviceName;
+    }
+    
+    /**
+     * set service name.
+     *
+     * @param serviceName service name
+     */
+    public void setServiceName(final String serviceName) {
+        this.serviceName = serviceName;
+    }
 }
