@@ -35,8 +35,6 @@ spec:
           image: apache/shenyu-admin:latest
           resources: { }
           env:
-            - name: server.port
-              value: "9097"
             - name: SPRING_PROFILES_ACTIVE
               value: pg
             - name: spring.datasource.username
@@ -46,7 +44,7 @@ spec:
             - name: spring.datasource.url
               value: jdbc:postgresql://shenyu-postgres:5432/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
           ports:
-            - containerPort: 9097
+            - containerPort: 9095
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -54,7 +52,7 @@ spec:
             successThreshold: 1
             failureThreshold: 3
             httpGet:
-              port: 9097
+              port: 9095
               path: /actuator/health
           readinessProbe:
             initialDelaySeconds: 30
@@ -63,7 +61,7 @@ spec:
             successThreshold: 1
             failureThreshold: 3
             httpGet:
-              port: 9097
+              port: 9095
               path: /actuator/health
           imagePullPolicy: IfNotPresent
           volumeMounts:
@@ -99,12 +97,10 @@ spec:
           args:
             - -Xmx768m -Xms768m
           env:
-            - name: server.port
-              value: "9197"
             - name: shenyu.sync.websocket.urls
               value: ws://shenyu-admin-postgres:9097/websocket
           ports:
-            - containerPort: 9197
+            - containerPort: 9195
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -112,7 +108,7 @@ spec:
             successThreshold: 1
             failureThreshold: 3
             httpGet:
-              port: 9197
+              port: 9195
               path: /actuator/health
           readinessProbe:
             initialDelaySeconds: 30
@@ -121,7 +117,7 @@ spec:
             successThreshold: 1
             failureThreshold: 3
             httpGet:
-              port: 9197
+              port: 9195
               path: /actuator/health
           imagePullPolicy: IfNotPresent
       restartPolicy: Always

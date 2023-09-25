@@ -40,3 +40,5 @@ sh "${curPath}"/healthcheck.sh postgres http://localhost:31097/actuator/health h
 
 curl -S "http://localhost:31197/actuator/pluginData"
 
+./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -am test
+

@@ -40,3 +40,5 @@ sh "${curPath}"/healthcheck.sh mysql http://localhost:31096/actuator/health http
 
 curl -S "http://localhost:31196/actuator/pluginData"
 
+./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -am test
+

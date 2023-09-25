@@ -25,10 +25,10 @@ spec:
   selector:
     app: shenyu-admin-mysql
   ports:
-    - name: "9096"
-      port: 9096
-      targetPort: 9096
-      nodePort: 31096
+    - name: "9095"
+      port: 9095
+      targetPort: 9095
+      nodePort: 31095
 
 ---
 apiVersion: v1
@@ -43,6 +43,6 @@ spec:
     app: shenyu-bootstrap-mysql
   ports:
     - name: "9196"
-      port: 9196
-      targetPort: 9196
-      nodePort: 31196
+      port: 9195
+      targetPort: 9195
+      nodePort: 31195

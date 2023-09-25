@@ -36,20 +36,3 @@ sh "${curPath}"/healthcheck.sh h2 http://localhost:31095/actuator/health http://
 curl -S "http://localhost:31195/actuator/pluginData"
 
 ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -am test
-
-#admin_status=$(curl -s -o /dev/null -w "%{http_code}" -X GET "http://localhost:31095/actuator/health" -H "accept: */*")
-#bootstrap_status=$(curl -s -o /dev/null -w "%{http_code}" -X GET "http://localhost:31195/actuator/health" -H "accept: */*")
-#
-#if [ "$admin_status" -eq 200 -a "$bootstrap_status" -eq 200 ]; then
-#    echo -e "\n-------------------"
-#    echo -e "Success to send request: $admin_status"
-#    echo -e "Success to send request: $bootstrap_status"
-#    echo -e "\n-------------------"
-#    exit 0
-#fi
-#echo -e "\n-------------------"
-#echo -e "Failed to send request from shenyu-admin : $admin_status"
-#echo -e "Failed to send request from shenyu-bootstrap : $bootstrap_status"
-#echo -e "\n-------------------"
-#exit 1
-

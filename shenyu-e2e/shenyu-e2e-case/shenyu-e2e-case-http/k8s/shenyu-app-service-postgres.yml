@@ -25,10 +25,10 @@ spec:
   selector:
     app: shenyu-admin-postgres
   ports:
-    - name: "9097"
-      port: 9097
-      targetPort: 9097
-      nodePort: 31097
+    - name: "9095"
+      port: 9095
+      targetPort: 9095
+      nodePort: 31095
 
 ---
 apiVersion: v1
@@ -42,7 +42,7 @@ spec:
   selector:
     app: shenyu-bootstrap-postgres
   ports:
-    - name: "9197"
-      port: 9197
-      targetPort: 9197
-      nodePort: 31197
+    - name: "9195"
+      port: 9195
+      targetPort: 9195
+      nodePort: 31195
