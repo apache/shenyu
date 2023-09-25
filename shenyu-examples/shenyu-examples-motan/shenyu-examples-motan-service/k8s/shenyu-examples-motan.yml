@@ -77,7 +77,7 @@ spec:
     - name: "8081"
       port: 8081
       targetPort: 8081
-      nodePort: 31190
+      nodePort: 31193
     - name: "8082"
       port: 8082
       targetPort: 8082
