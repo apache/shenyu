@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//
-//package org.apache.shenyu.e2e.client.admin;
-//
+
+package org.apache.shenyu.e2e.client.admin;
+
 //import com.fasterxml.jackson.core.JsonProcessingException;
 //import com.google.common.collect.Lists;
 //import org.apache.shenyu.e2e.model.MatchMode;
