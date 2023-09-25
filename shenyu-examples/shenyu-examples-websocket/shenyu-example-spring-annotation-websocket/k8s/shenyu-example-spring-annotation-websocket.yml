@@ -70,6 +70,6 @@ spec:
     - name: "8001"
       port: 8001
       targetPort: 8001
-      nodePort: 31190
+      nodePort: 31188
 status:
   loadBalancer: {}
