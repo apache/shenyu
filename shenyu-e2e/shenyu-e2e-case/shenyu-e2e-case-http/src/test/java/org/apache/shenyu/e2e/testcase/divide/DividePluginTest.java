@@ -28,6 +28,8 @@ import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.ServiceType;
 import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
+import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.apache.shenyu.e2e.k8s.engine.annotation.ShenYuE2ETest;
 import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.ResourcesData.Resource;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
@@ -39,27 +41,48 @@ import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import java.util.List;
 
-@ShenYuTest(
-        mode = Mode.DOCKER,
-        services = {
-                @ServiceConfigure(
-                        serviceName = "admin",
-                        port = 9095,
-                        baseUrl = "http://{hostname:localhost}:9095",
+//@ShenYuTest(
+//        mode = Mode.DOCKER,
+//        services = {
+//                @ServiceConfigure(
+//                        serviceName = "admin",
+//                        port = 9095,
+//                        baseUrl = "http://{hostname:localhost}:9095",
+//                        parameters = {
+//                                @Parameter(key = "username", value = "admin"),
+//                                @Parameter(key = "password", value = "123456")
+//                        }
+//                ),
+//                @ServiceConfigure(
+//                        serviceName = "gateway",
+//                        port = 9195,
+//                        baseUrl = "http://{hostname:localhost}:9195",
+//                        type = ServiceType.SHENYU_GATEWAY
+//                )
+//        },
+//        dockerComposeFile = "classpath:./docker-compose.{storage:h2}.yml"
+//)
+@ShenYuE2ETest(environments = {
+        @ShenYuE2ETest.Environment(
+                serviceName = "shenyu-e2e-admin",
+                service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31095",
+                        type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
-                                @Parameter(key = "username", value = "admin"),
-                                @Parameter(key = "password", value = "123456")
+                                @ShenYuE2ETest.Parameter(key = "username", value = "admin"),
+                                @ShenYuE2ETest.Parameter(key = "password", value = "123456")
                         }
-                ),
-                @ServiceConfigure(
-                        serviceName = "gateway",
-                        port = 9195,
-                        baseUrl = "http://{hostname:localhost}:9195",
-                        type = ServiceType.SHENYU_GATEWAY
                 )
-        },
-        dockerComposeFile = "classpath:./docker-compose.{storage:h2}.yml"
-)
+        ),
+        @ShenYuE2ETest.Environment(
+                serviceName = "shenyu-e2e-gateway",
+                service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31195",
+                        type = ServiceTypeEnum.SHENYU_GATEWAY
+                )
+        )
+})
+
 public class DividePluginTest {
     private List<String> selectorIds = Lists.newArrayList();
     
