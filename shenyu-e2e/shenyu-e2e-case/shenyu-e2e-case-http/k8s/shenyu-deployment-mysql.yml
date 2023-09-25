@@ -36,6 +36,8 @@ spec:
           args:
             - -Xmx768m -Xms768m
           env:
+            - name: 'TZ'
+              value: 'Asia/Beijing'
             - name: SPRING_PROFILES_ACTIVE
               value: mysql
             - name: spring.datasource.username
