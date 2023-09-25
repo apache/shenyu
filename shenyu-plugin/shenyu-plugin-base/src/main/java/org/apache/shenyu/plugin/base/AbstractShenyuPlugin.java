@@ -473,7 +473,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin, Module {
     @Override
     public void init() throws Throwable {
 
-
     };
 
     @Override
