@@ -22,8 +22,67 @@ on:
       - e2e-k8s
 
 jobs:
-  k8s-e2e-storage:
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      e2e: ${{ steps.filter.outputs.e2e }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Free disk space
+        run: |
+          df --human-readable
+          sudo apt clean
+          docker rmi $(docker image ls --all --quiet)
+          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
+          df --human-readable
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: '.github/filters.yml'
+          list-files: json
+
+  build-docker-images:
+    needs: changes
+    if: ${{ needs.changes.outputs.e2e == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Free disk space
+        run: |
+          df --human-readable
+          sudo apt clean
+          docker rmi $(docker image ls --all --quiet)
+          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
+          df --human-readable
+
+      - name: Restore ShenYu E2E Maven Repos
+        id: restore-e2e-maven-cache
+        uses: actions/cache/restore@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-e2e-maven-
+
+      - name: Set up JDK 8 for Building ShenYu
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      - name: Build with Maven
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+
+  e2e-storage:
+    runs-on: ubuntu-latest
+    needs:
+      - changes
+      - build-docker-images
     strategy:
       matrix:
         include:
@@ -75,9 +134,10 @@ jobs:
           key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-e2e-maven-
-      - name: Build with Maven
-        if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+
+#      - name: Build with Maven
+#        if: steps.filter.outputs.changed == 'true'
+#        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
 
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
