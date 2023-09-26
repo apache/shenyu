@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
 
     @Override
-    public void handlerDiscoveryUpstreamData(DiscoverySyncData discoverySyncData) {
+    public void handlerDiscoveryUpstreamData(final DiscoverySyncData discoverySyncData) {
         if (Objects.isNull(discoverySyncData) || Objects.isNull(discoverySyncData.getSelectorId())) {
             return;
         }
