@@ -123,13 +123,13 @@ jobs:
         with:
           submodules: true
 
-      #      - name: Free disk space
-      #        run: |
-      #          df --human-readable
-      #          sudo apt clean
-      #          docker rmi $(docker image ls --all --quiet)
-      #          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
-      #          df --human-readable
+      - name: Free disk space
+        run: |
+          df --human-readable
+          sudo apt clean
+          docker rmi $(docker image ls --all --quiet)
+          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
+          df --human-readable
 
       - uses: dorny/paths-filter@v2
         id: filter
@@ -171,8 +171,8 @@ jobs:
 
       - name: Build Docker Images
         run: |
-          docker load -i shenyu-admin_latest.tar
-          docker load -i shenyu-bootstrap_latest.tar
+          docker load -i /tmp/shenyu-admin_latest.tar
+          docker load -i /tmp/shenyu-bootstrap_latest.tar
 
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
