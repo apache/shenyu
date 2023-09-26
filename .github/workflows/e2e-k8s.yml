@@ -86,8 +86,8 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker save apache/shenyu-admin:latest | gzip > /tmp/apache-shenyu-admin.tar.gz
-          docker save apache/shenyu-bootstrap:latest | gzip > /tmp/apache-shenyu-bootstrap.tar.gz
+          docker save apache/shenyu-admin:latest | gzip > /tmp/apache-shenyu-admin_latest.tar.gz
+          docker save apache/shenyu-bootstrap:latest | gzip > /tmp/apache-shenyu-bootstrap_latest.tar.gz
 
       - name: Upload Docker Image Artifacts
         uses: actions/upload-artifact@v3
@@ -164,8 +164,8 @@ jobs:
 
       - name: Build Docker Images
         run: |
-          gunzip -c apache-shenyu-admin.tar.gz | docker load
-          gunzip -c apache-shenyu-bootstrap.tar.gz | docker load
+          gunzip -c /tmp/apache-shenyu-admin_latest.tar.gz | docker load
+          gunzip -c /tmp/apache-shenyu-bootstrap_latest.tar.gz | docker load
 
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
