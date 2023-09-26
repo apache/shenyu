@@ -39,7 +39,6 @@ import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
@@ -79,8 +78,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         final int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(RetryEnum.CURRENT::getName);
         LogUtils.debug(LOG, () -> String.format("The request urlPath is: %s, retryTimes is : %s, retryStrategy is : %s", uri, retryTimes, retryStrategy));
-        final HttpHeaders httpHeaders = buildHttpHeaders(exchange);
-        final Mono<R> response = doRequest(exchange, exchange.getRequest().getMethodValue(), uri, httpHeaders, exchange.getRequest().getBody())
+        final Mono<R> response = doRequest(exchange, exchange.getRequest().getMethodValue(), uri, exchange.getRequest().getBody())
                 .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
         if (RetryEnum.CURRENT.getName().equals(retryStrategy)) {
@@ -100,7 +98,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                     .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
         }
         final Set<URI> exclude = Sets.newHashSet(uri);
-        return resend(response, exchange, duration, httpHeaders, exclude, retryTimes)
+        return resend(response, exchange, duration, exclude, retryTimes)
                 .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
                 .onErrorMap(TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th))
@@ -110,12 +108,11 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
     private Mono<R> resend(final Mono<R> clientResponse,
                            final ServerWebExchange exchange,
                            final Duration duration,
-                           final HttpHeaders httpHeaders,
                            final Set<URI> exclude,
                            final int retryTimes) {
         Mono<R> result = clientResponse;
         for (int i = 0; i < retryTimes; i++) {
-            result = resend(result, exchange, duration, httpHeaders, exclude);
+            result = resend(result, exchange, duration, exclude);
         }
         return result;
     }
@@ -123,7 +120,6 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
     private Mono<R> resend(final Mono<R> response,
                            final ServerWebExchange exchange,
                            final Duration duration,
-                           final HttpHeaders httpHeaders,
                            final Set<URI> exclude) {
         // does it necessary to add backoff interval time ?
         return response.onErrorResume(th -> {
@@ -154,23 +150,10 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
             // in order not to affect the next retry call, newUri needs to be excluded
             exclude.add(newUri);
-            return doRequest(exchange, exchange.getRequest().getMethodValue(), newUri, httpHeaders, exchange.getRequest().getBody())
+            return doRequest(exchange, exchange.getRequest().getMethodValue(), newUri, exchange.getRequest().getBody())
                     .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                     .doOnError(e -> LOG.error(e.getMessage(), e));
         });
-    }
-
-    /**
-     * Build the http request headers.
-     *
-     * @param exchange the current server exchange
-     * @return HttpHeaders
-     */
-    private HttpHeaders buildHttpHeaders(final ServerWebExchange exchange) {
-        final HttpHeaders headers = new HttpHeaders();
-        headers.addAll(exchange.getRequest().getHeaders());
-        headers.remove(HttpHeaders.HOST);
-        return headers;
     }
 
     /**
@@ -179,11 +162,10 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
      * @param exchange    the current server exchange
      * @param httpMethod  http method, eg.POST
      * @param uri         the request uri
-     * @param httpHeaders the request header
      * @param body        the request body
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
     protected abstract Mono<R> doRequest(ServerWebExchange exchange, String httpMethod,
-                                         URI uri, HttpHeaders httpHeaders, Flux<DataBuffer> body);
+                                         URI uri, Flux<DataBuffer> body);
 
 }
