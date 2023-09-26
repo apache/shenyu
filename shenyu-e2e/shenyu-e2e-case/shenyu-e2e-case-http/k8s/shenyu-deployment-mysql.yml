@@ -101,7 +101,7 @@ spec:
             - -Xmx768m -Xms768m
           env:
             - name: shenyu.sync.websocket.urls
-              value: ws://shenyu-admin-mysql:9096/websocket
+              value: ws://shenyu-admin-mysql:9095/websocket
           ports:
             - containerPort: 9195
           livenessProbe:
