@@ -88,7 +88,20 @@ jobs:
         run: |
           docker save -o shenyu-admin_latest.tar apache/shenyu-admin:latest
           docker save -o shenyu-bootstrap_latest.tar apache/shenyu-bootstrap:latest
-  
+          ls -l
+
+      - name: Build Docker Images
+        run: |
+          docker load -i shenyu-admin_latest.tar
+          docker load -i shenyu-bootstrap_latest.tar
+          docker images ls -a
+
+      - name: Upload Docker Image Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: shenyu-images
+          path: shenyu-admin_latest.tar,shenyu-bootstrap_latest.tar
+          retention-days: 1
 
   e2e-storage:
     runs-on: ubuntu-latest
@@ -150,6 +163,11 @@ jobs:
 #      - name: Build with Maven
 #        if: steps.filter.outputs.changed == 'true'
 #        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: shenyu-images
+          path: /tmp/
 
       - name: Build Docker Images
         run: |
