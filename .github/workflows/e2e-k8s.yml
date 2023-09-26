@@ -161,11 +161,6 @@ jobs:
           name: shenyu-images
           path: /tmp/
 
-#      - name: Build Docker Images
-#        run: |
-#          gunzip -c /tmp/apache-shenyu-admin_latest.tar.gz | docker load
-#          gunzip -c /tmp/apache-shenyu-bootstrap_latest.tar.gz | docker load
-
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
         run: |

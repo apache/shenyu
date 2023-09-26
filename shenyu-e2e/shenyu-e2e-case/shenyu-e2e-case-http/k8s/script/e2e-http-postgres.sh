@@ -34,11 +34,11 @@ sleep 60s
 kubectl get pod -o wide
 
 chmod +x "${curPath}"/healthcheck.sh
-sh "${curPath}"/healthcheck.sh postgres http://localhost:31097/actuator/health http://localhost:31197/actuator/health
+sh "${curPath}"/healthcheck.sh postgres http://localhost:31095/actuator/health http://localhost:31195/actuator/health
 
 ## run e2e-test
 
-curl -S "http://localhost:31197/actuator/pluginData"
+curl -S "http://localhost:31195/actuator/pluginData"
 
 ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -am test
 

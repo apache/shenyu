@@ -14,5 +14,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-http://localhost:31096/actuator/health
-http://localhost:31196/actuator/health
+http://localhost:31095/actuator/health
+http://localhost:31195/actuator/health
