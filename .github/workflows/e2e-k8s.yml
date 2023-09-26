@@ -170,8 +170,8 @@ jobs:
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
         run: |
-          sudo k3s ctr images import /tmp/apache-shenyu-admin_latest.tar.gz | docker load
-          sudo k3s ctr images import /tmp/apache-shenyu-admin_latest.tar.gz | docker load
+          sudo k3s ctr images import /tmp/apache-shenyu-admin_latest.tar.gz
+          sudo k3s ctr images import /tmp/apache-shenyu-admin_latest.tar.gz
 #          docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest | sudo k3s ctr images import -
 
 #      - name: Setup Debug Session
