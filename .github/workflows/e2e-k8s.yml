@@ -93,7 +93,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: shenyu-images
-          path: /tmp/apache-shenyu-.*.tar
+          path: /tmp/apache-shenyu-*.tar
           retention-days: 1
 
   e2e-storage:
