@@ -44,8 +44,8 @@ jobs:
           list-files: json
 
   build-docker-images:
-#    needs: changes
-#    if: ${{ needs.changes.outputs.e2e == 'true' }}
+    #    needs: changes
+    #    if: ${{ needs.changes.outputs.e2e == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -85,7 +85,10 @@ jobs:
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
 
       - name: Build Docker Image
-        run: docker save apache/shenyu-admin:latest | gzip > /tmp/shenyu-admin.tar.gz && docker save apache/shenyu-bootstrap:latest | gzip > /tmp/shenyu-bootstrap.tar.gz
+        run: |
+          docker save -o shenyu-admin_latest.tar apache/shenyu-admin:latest
+          docker save -o shenyu-bootstrap_latest.tar apache/shenyu-bootstrap:latest
+  
 
   e2e-storage:
     runs-on: ubuntu-latest
@@ -107,13 +110,13 @@ jobs:
         with:
           submodules: true
 
-#      - name: Free disk space
-#        run: |
-#          df --human-readable
-#          sudo apt clean
-#          docker rmi $(docker image ls --all --quiet)
-#          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
-#          df --human-readable
+      #      - name: Free disk space
+      #        run: |
+      #          df --human-readable
+      #          sudo apt clean
+      #          docker rmi $(docker image ls --all --quiet)
+      #          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
+      #          df --human-readable
 
       - uses: dorny/paths-filter@v2
         id: filter
@@ -147,6 +150,11 @@ jobs:
 #      - name: Build with Maven
 #        if: steps.filter.outputs.changed == 'true'
 #        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+
+      - name: Build Docker Images
+        run: |
+          docker load -i shenyu-admin_latest.tar
+          docker load -i shenyu-bootstrap_latest.tar
 
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
