@@ -78,7 +78,8 @@ public class ShenYuE2eExtension implements BeforeAllCallback, ExecutionCondition
             // FIXME check service is available
             for (ShenYuE2ETest.Environment environment : environments) {
                 if (!SocketUtils.checkUrl(environment.service().baseUrl(), 3000)) {
-                    return ConditionEvaluationResult.disabled(environment.serviceName() + ":" + environment.service().baseUrl() + " is not available");
+                    throw new AssertionFailedError(environment.serviceName() + ":" + environment.service().baseUrl() + " is not available");
+                    //return ConditionEvaluationResult.disabled(environment.serviceName() + ":" + environment.service().baseUrl() + " is not available");
                 }
             }
             configure = ShenYuE2EEngineConfigure.fromAnnotation(testClass.getAnnotation(ShenYuE2ETest.class));
