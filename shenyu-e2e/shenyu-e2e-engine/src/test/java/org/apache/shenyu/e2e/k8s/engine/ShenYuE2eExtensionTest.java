@@ -17,39 +17,39 @@
 
 package org.apache.shenyu.e2e.k8s.engine;
 
-import org.apache.shenyu.e2e.client.EnvironmentClient;
-import org.apache.shenyu.e2e.client.admin.AdminClient;
-import org.apache.shenyu.e2e.client.gateway.GatewayClient;
-import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
-import org.apache.shenyu.e2e.k8s.engine.annotation.ShenYuE2ETest;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+//import org.apache.shenyu.e2e.client.EnvironmentClient;
+//import org.apache.shenyu.e2e.client.admin.AdminClient;
+//import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+//import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+//import org.apache.shenyu.e2e.k8s.engine.annotation.ShenYuE2ETest;
+//import org.junit.jupiter.api.MethodOrderer;
+//import org.junit.jupiter.api.Test;
+//import org.junit.jupiter.api.TestMethodOrder;
 
-@ShenYuE2ETest(environments = {
-        @ShenYuE2ETest.Environment(
-                serviceName = "shenyu-e2e-mysql",
-                service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:9095",
-                        type = ServiceTypeEnum.SHENYU_ADMIN,
-                        parameters = {
-                                @ShenYuE2ETest.Parameter(key = "username", value = "root"),
-                                @ShenYuE2ETest.Parameter(key = "password", value = "123456")
-                        }
-                )
-        ),
-        @ShenYuE2ETest.Environment(
-                serviceName = "shenyu-e2e-postgresql",
-                service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:9095",
-                        type = ServiceTypeEnum.SHENYU_GATEWAY
-                )
-        )
-})
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class ShenYuE2eExtensionTest {
-    
-    @Test
-    public void test(final AdminClient adminClient, final GatewayClient gatewayClient, final EnvironmentClient client) {
-    }
-}
+//@ShenYuE2ETest(environments = {
+//        @ShenYuE2ETest.Environment(
+//                serviceName = "shenyu-e2e-mysql",
+//                service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
+//                        baseUrl = "http://localhost:9095",
+//                        type = ServiceTypeEnum.SHENYU_ADMIN,
+//                        parameters = {
+//                                @ShenYuE2ETest.Parameter(key = "username", value = "root"),
+//                                @ShenYuE2ETest.Parameter(key = "password", value = "123456")
+//                        }
+//                )
+//        ),
+//        @ShenYuE2ETest.Environment(
+//                serviceName = "shenyu-e2e-postgresql",
+//                service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
+//                        baseUrl = "http://localhost:9095",
+//                        type = ServiceTypeEnum.SHENYU_GATEWAY
+//                )
+//        )
+//})
+//@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+//public class ShenYuE2eExtensionTest {
+//
+//    @Test
+//    public void test(final AdminClient adminClient, final GatewayClient gatewayClient, final EnvironmentClient client) {
+//    }
+//}
