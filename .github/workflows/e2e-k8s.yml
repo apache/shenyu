@@ -86,21 +86,15 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker save -o shenyu-admin_latest.tar apache/shenyu-admin:latest
-          docker save -o shenyu-bootstrap_latest.tar apache/shenyu-bootstrap:latest
-          ls -l
-
-      - name: Build Docker Images
-        run: |
-          docker load -i shenyu-admin_latest.tar
-          docker load -i shenyu-bootstrap_latest.tar
-          docker images ls -a
+          docker save apche/shenyu-admin:latest > /tmp/apache-shenyu-admin_latest.tar
+          docker save -o shenyu-bootstrap_latest.tar /tmp/apache-shenyu-bootstrap_latest.tar
+          docker image ls -a
 
       - name: Upload Docker Image Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: shenyu-images
-          path: shenyu-admin_latest.tar,shenyu-bootstrap_latest.tar
+          path: /tmp/apache-shenyu-*.tar
           retention-days: 1
 
   e2e-storage:
