@@ -62,7 +62,8 @@ public final class ClientDiscoveryConfigRefreshedEventListener implements Applic
                 .name(shenyuDiscoveryConfig.getName())
                 .serverList(shenyuDiscoveryConfig.getServerList())
                 .props(shenyuDiscoveryConfig.getProps())
-                .type(shenyuDiscoveryConfig.getType())
+                .discoveryType(shenyuDiscoveryConfig.getType())
+                .pluginName(shenyuDiscoveryConfig.getPluginName())
                 .build();
     }
 }
