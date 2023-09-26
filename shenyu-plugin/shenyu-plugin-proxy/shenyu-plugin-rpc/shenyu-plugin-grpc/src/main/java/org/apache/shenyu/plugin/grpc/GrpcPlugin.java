@@ -36,6 +36,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.ChainUtils;
 import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
 import org.apache.shenyu.plugin.grpc.client.ShenyuGrpcClient;
 import org.apache.shenyu.plugin.grpc.context.GrpcConstants;
@@ -105,7 +106,7 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
             exchange.getAttributes().put(Constants.RPC_RESULT, ret.getResults());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
-        })).onErrorMap(ShenyuException::new).then(chain.execute(exchange));
+        })).onErrorMap(ShenyuException::new).then(ChainUtils.executeByLoadBalancer(exchange, chain, null, null));
     }
 
     /**
