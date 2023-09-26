@@ -86,14 +86,13 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker save apache/shenyu-admin:latest | gzip > /tmp/apache-shenyu-admin_latest.tar.gz
-          docker save apache/shenyu-bootstrap:latest | gzip > /tmp/apache-shenyu-bootstrap_latest.tar.gz
+          docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest > /tmp/apache-shenyu.tar
 
       - name: Upload Docker Image Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: shenyu-images
-          path: /tmp/apache-shenyu-*.tar.gz
+          path: /tmp/apache-shenyu.tar
           retention-days: 1
 
   e2e-storage:
@@ -162,16 +161,15 @@ jobs:
           name: shenyu-images
           path: /tmp/
 
-      - name: Build Docker Images
-        run: |
-          gunzip -c /tmp/apache-shenyu-admin_latest.tar.gz | docker load
-          gunzip -c /tmp/apache-shenyu-bootstrap_latest.tar.gz | docker load
+#      - name: Build Docker Images
+#        run: |
+#          gunzip -c /tmp/apache-shenyu-admin_latest.tar.gz | docker load
+#          gunzip -c /tmp/apache-shenyu-bootstrap_latest.tar.gz | docker load
 
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
         run: |
-          sudo k3s ctr images import /tmp/apache-shenyu-admin_latest.tar.gz
-          sudo k3s ctr images import /tmp/apache-shenyu-admin_latest.tar.gz
+          sudo k3s ctr images import /tmp/apache-shenyu.tar
 #          docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest | sudo k3s ctr images import -
 
 #      - name: Setup Debug Session
