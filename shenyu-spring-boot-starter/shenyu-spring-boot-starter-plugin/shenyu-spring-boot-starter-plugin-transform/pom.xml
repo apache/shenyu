@@ -28,7 +28,7 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plguin-transform</artifactId>
+            <artifactId>shenyu-plugin-transform</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
