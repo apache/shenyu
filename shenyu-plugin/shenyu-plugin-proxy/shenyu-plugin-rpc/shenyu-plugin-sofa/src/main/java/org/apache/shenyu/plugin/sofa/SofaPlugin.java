@@ -123,4 +123,5 @@ public class SofaPlugin extends AbstractShenyuPlugin {
     private boolean checkMetaData(final MetaData metaData) {
         return Objects.nonNull(metaData) && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
     }
+
 }
