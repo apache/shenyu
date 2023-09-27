@@ -196,7 +196,7 @@ jobs:
       matrix:
         include:
           - case: shenyu-e2e-case-spring-cloud
-            script: e2e-springcloud.sh
+            script: e2e-springcloud
     if: (github.repository == 'moremind/shenyu')
     steps:
       - uses: actions/checkout@v2
