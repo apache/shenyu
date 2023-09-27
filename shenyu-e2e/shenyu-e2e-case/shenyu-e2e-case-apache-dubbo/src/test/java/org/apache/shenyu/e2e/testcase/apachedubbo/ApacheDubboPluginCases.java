@@ -94,7 +94,7 @@ public class ApacheDubboPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists("/put")
                                 .addNotExists("/get")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/dubbo/findAll")).build())
                 .build();
     }
 
@@ -132,7 +132,7 @@ public class ApacheDubboPluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.PUT, "/dubbo/findAll")
                                 .addExists(Method.DELETE, "/dubbo/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/dubbo/findAll")).build())
                 .build();
     }
 
@@ -170,7 +170,7 @@ public class ApacheDubboPluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.PUT, "/dubbo/findAll")
                                 .addExists(Method.DELETE, "/dubbo/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/dubbo/findAll")).build())
                 .build();
     }
 
@@ -208,7 +208,7 @@ public class ApacheDubboPluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.PUT, "/dubbo/findAll")
                                 .addExists(Method.DELETE, "/dubbo/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/dubbo/findAll")).build())
                 .build();
     }
 
@@ -252,7 +252,7 @@ public class ApacheDubboPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/dubbo/findAll")
                                 .addNotExists(Method.DELETE, "/dubbo/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.GET, "/dubbo/findAll")).build())
                 .build();
     }
 
@@ -296,7 +296,7 @@ public class ApacheDubboPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/dubbo/findAll")
                                 .addNotExists(Method.DELETE, "/dubbo/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.POST, "/dubbo/findAll")).build())
                 .build();
     }
 
@@ -340,7 +340,7 @@ public class ApacheDubboPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.POST, "/dubbo/findAll")
                                 .addNotExists(Method.DELETE, "/dubbo/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.PUT, "/dubbo/findAll")).build())
                 .build();
     }
 
@@ -384,7 +384,7 @@ public class ApacheDubboPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.POST, "/dubbo/findAll")
                                 .addNotExists(Method.PUT, "/dubbo/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.DELETE, "/dubbo/findAll")).build())
                 .build();
     }
 
