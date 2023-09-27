@@ -21,6 +21,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -99,6 +100,9 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
     
     private void duplicate(final HttpHeaders headers) {
         List<String> duplicateHeaders = properties.getHeaders();
+        if (CollectionUtils.isEmpty(duplicateHeaders)) {
+            return;
+        }
         DuplicateResponseHeaderStrategy strategy = properties.getStrategy();
         for (String headerKey : duplicateHeaders) {
             duplicateHeaders(headers, headerKey, strategy);

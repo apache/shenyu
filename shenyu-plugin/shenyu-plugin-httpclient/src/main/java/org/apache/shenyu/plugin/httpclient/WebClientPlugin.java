@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
@@ -113,6 +114,9 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
     
     private void duplicate(final HttpHeaders headers) {
         List<String> duplicateHeaders = properties.getHeaders();
+        if (CollectionUtils.isEmpty(duplicateHeaders)) {
+            return;
+        }
         DuplicateResponseHeaderStrategy strategy = properties.getStrategy();
         for (String headerKey : duplicateHeaders) {
             duplicateHeaders(headers, headerKey, strategy);
