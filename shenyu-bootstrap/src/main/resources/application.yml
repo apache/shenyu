@@ -195,6 +195,10 @@ shenyu:
 #      selectCount: 1
 #      workerCount: 8
 #      daemon: true
+  duplicate-response-header:
+    strategy: RETAIN_FIRST
+    headers:
+      - Access-Control-Allow-Origin
   register:
     enabled: false
     registerType: zookeeper #etcd #consul
@@ -342,7 +346,7 @@ logging:
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
-    org.springframework.http.server.reactive: info
-    org.springframework.web.reactive: info
-    reactor.ipc.netty: info
-    reactor.netty: info
+    org.springframework.http.server.reactive: debug
+    org.springframework.web.reactive: debug
+    reactor.ipc.netty: debug
+    reactor.netty: debug
