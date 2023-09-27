@@ -30,7 +30,6 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.base.utils.ChainUtils;
 import org.apache.shenyu.plugin.motan.proxy.MotanProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +78,7 @@ public class MotanPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         final Mono<Object> result = motanProxyService.genericInvoker(param, metaData, exchange);
-        return result.then(ChainUtils.executeByLoadBalancer(exchange, chain, null, null));
+        return result.then(chain.execute(exchange));
     }
 
     /**

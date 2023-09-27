@@ -28,7 +28,6 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.plugin.alibaba.dubbo.proxy.AlibabaDubboProxyService;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.base.utils.ChainUtils;
 import org.apache.shenyu.plugin.dubbo.common.AbstractDubboPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,7 +100,7 @@ public class AlibabaDubboPlugin extends AbstractDubboPlugin {
         }).flatMap(response -> {
             exchange.getAttributes().put(Constants.RPC_RESULT, Objects.nonNull(response) ? response : Constants.DUBBO_RPC_RESULT_EMPTY);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
-            return ChainUtils.executeByLoadBalancer(exchange, chain, null, null);
+            return chain.execute(exchange);
         });
     }
 

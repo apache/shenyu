@@ -24,7 +24,6 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.base.utils.ChainUtils;
 import org.apache.shenyu.plugin.dubbo.common.AbstractDubboPlugin;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -68,7 +67,7 @@ public class ApacheDubboPlugin extends AbstractDubboPlugin {
         RpcContext.getClientAttachment().setAttachment(Constants.DUBBO_RULE_ID, rule.getId());
         RpcContext.getClientAttachment().setAttachment(Constants.DUBBO_REMOTE_ADDRESS, Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
         final Mono<Object> result = dubboProxyService.genericInvoker(param, metaData, exchange);
-        return result.then(ChainUtils.executeByLoadBalancer(exchange, chain, null, null));
+        return result.then(chain.execute(exchange));
     }
 
     @Override

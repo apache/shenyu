@@ -55,8 +55,7 @@ public class SentinelPlugin extends AbstractShenyuPlugin {
         String resourceName = CacheKeyUtils.INST.getKey(rule);
         SentinelHandle sentinelHandle = SentinelRuleHandle.CACHED_HANDLE.get().obtainHandle(resourceName);
         sentinelHandle.checkData();
-        exchange.getAttributes().put(Constants.WATCHER_HTTP_STATUS, (Consumer<ServerWebExchange>) serverWebExchange -> {
-            HttpStatus status = serverWebExchange.getResponse().getStatusCode();
+        exchange.getAttributes().put(Constants.WATCHER_HTTP_STATUS, (Consumer<HttpStatus>) status -> {
             if (status == null || !status.is2xxSuccessful()) {
                 throw new SentinelFallbackException(status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status);
             }

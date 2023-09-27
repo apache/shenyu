@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.base.utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.constant.LoadBalancerConstant;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -27,20 +28,6 @@ import reactor.core.publisher.Mono;
  * Change utils.
  */
 public final class ChainUtils {
-    /**
-     * begin time.
-     */
-    private static Long beginTime;
-
-    /**
-     * p2c load balancer.
-     */
-    private static final String P2C = "p2c";
-
-    /**
-     * shortest response load balancer.
-     */
-    private static final String SHORTEST_RESPONSE = "shortestResponse";
 
     /**
      * execute chain by load balancer.
@@ -54,12 +41,12 @@ public final class ChainUtils {
         if (upstream == null || StringUtils.isEmpty(loadBalancer)) {
             return chain.execute(exchange);
         }
-        if (loadBalancer.equals(P2C)) {
+        if (LoadBalancerConstant.P2C.equals(loadBalancer)) {
             return chain.execute(exchange).doOnSuccess(e -> responseTrigger(upstream
             )).doOnError(throwable -> responseTrigger(upstream));
-        } else if (loadBalancer.equals(SHORTEST_RESPONSE)) {
-            beginTime = System.currentTimeMillis();
-            return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream
+        } else if (LoadBalancerConstant.SHORTEST_RESPONSE.equals(loadBalancer)) {
+            final Long beginTime = System.currentTimeMillis();
+            return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream, beginTime
             ));
         }
         return chain.execute(exchange);
@@ -96,7 +83,7 @@ public final class ChainUtils {
      * shortest response success response trigger.
      * @param upstream upstream
      */
-    private static void successResponseTrigger(final Upstream upstream) {
+    private static void successResponseTrigger(final Upstream upstream, final Long beginTime) {
         upstream.getSucceededElapsed().addAndGet(System.currentTimeMillis() - beginTime);
         upstream.getSucceeded().incrementAndGet();
     }
