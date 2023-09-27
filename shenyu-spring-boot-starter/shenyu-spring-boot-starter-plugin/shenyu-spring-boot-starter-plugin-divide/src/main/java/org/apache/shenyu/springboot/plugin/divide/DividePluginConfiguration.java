@@ -25,6 +25,7 @@ import org.apache.shenyu.plugin.divide.DividePlugin;
 import org.apache.shenyu.plugin.divide.context.DivideShenyuContextDecorator;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.apache.shenyu.plugin.divide.handler.DivideMetaDataHandler;
+import org.apache.shenyu.plugin.divide.handler.DivideUpstreamDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -64,6 +65,17 @@ public class DividePluginConfiguration {
     @Bean
     public MetaDataHandler divideMetaDataHandler() {
         return new DivideMetaDataHandler();
+    }
+
+
+    /**
+     * divide discovery upstream data handler.
+     *
+     * @return the discovery upstream data handler
+     */
+    @Bean
+    public DivideUpstreamDataHandler divideUpstreamDataHandler() {
+        return new DivideUpstreamDataHandler();
     }
 
     /**
