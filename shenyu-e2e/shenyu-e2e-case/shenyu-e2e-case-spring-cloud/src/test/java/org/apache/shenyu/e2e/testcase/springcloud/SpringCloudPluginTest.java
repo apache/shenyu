@@ -122,7 +122,7 @@ public class SpringCloudPluginTest {
     @AfterEach
     void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
         spec.getDeleter().delete(client, selectorIds);
-        spec.getPostChecker().check(gateway);
+        spec.deleteWaiting().waitFor(gateway);
         selectorIds = Lists.newArrayList();
     }
 
