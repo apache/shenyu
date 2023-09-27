@@ -82,11 +82,6 @@ data:
           zombieCheckTimes: 5
           scheduledTime: 10
           nacosNameSpace: ShenyuRegisterCenter
-      sync:
-        websocket:
-          enabled: true
-          messageMaxSize: 10240
-          allowOrigins: ws://localhost:9095;ws://localhost:9195;
       ldap:
         enabled: false
         url: ldap://xxxx:xxx
@@ -159,9 +154,9 @@ data:
 
     spring:
       datasource:
-        url: jdbc:mysql://localhost:30306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+        url: jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
         username: root
-        password: 123456
+        password: shenyue2e
         driver-class-name: com.mysql.cj.jdbc.Driver
         hikari:
           connection-timeout: 30000
@@ -386,10 +381,6 @@ data:
       file:
         enabled: true
         maxSize: 10
-      sync:
-        websocket:
-          urls: ws://localhost:9095/websocket
-          allowOrigin: ws://localhost:9195
       exclude:
         enabled: false
         paths:

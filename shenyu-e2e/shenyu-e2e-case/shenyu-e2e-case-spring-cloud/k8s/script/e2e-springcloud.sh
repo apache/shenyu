@@ -24,7 +24,21 @@ bash "$shenyuTestCaseDir"/k8s/script/init/mysql_container_init.sh
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
 echo "$PRGDIR"
-kubectl apply -f "${PRGDIR}"/shenyu-deployment-mysql.yml
-kubectl apply -f "${PRGDIR}"/shenyu-app-service-mysql.yml
+kubectl apply -f "${PRGDIR}"/shenyu-admin-websocket.yml
+kubectl apply -f "${PRGDIR}"/shenyu-bootstrap-websocket.yml
 
 kubectl get pod -o wide
+
+sleep 30s
+
+kubectl get pod -o wide
+
+chmod +x "${curPath}"/healthcheck.sh
+sh "${curPath}"/healthcheck.sh mysql http://localhost:31095/actuator/health http://localhost:31195/actuator/health
+
+## run e2e-test
+
+curl -S "http://localhost:31195/actuator/pluginData"
+
+#./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -am test
+

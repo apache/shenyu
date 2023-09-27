@@ -23,7 +23,7 @@ echo "$PRGDIR"
 kubectl apply -f "${PRGDIR}"/shenyu-deployment-h2.yml
 kubectl apply -f "${PRGDIR}"/shenyu-app-service-h2.yml
 
-sleep 60s
+sleep 30s
 
 kubectl get pod -o wide
 

@@ -29,7 +29,7 @@ kubectl apply -f "${PRGDIR}"/shenyu-app-service-postgres.yml
 
 kubectl get pod -o wide
 
-sleep 60s
+sleep 30s
 
 kubectl get pod -o wide
 
