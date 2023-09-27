@@ -59,7 +59,19 @@
                             <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <includeArtifactIds>shenyu-plugin-request</includeArtifactIds>
+                            <excludeArtifactIds>
+                                shenyu-common,
+                                shenyu-class-isolation,
+                                shenyu-plugin-base,
+                                shenyu-plugin-api,
+                                shenyu-spi,
+                                shenyu-sync-data-api,
+                            </excludeArtifactIds>
+                            <excludeGroupIds>
+                                org.slf4j,
+                                org.springframework,
+                                io.projectreactor
+                            </excludeGroupIds>
                             <outputDirectory>${main.basedir}/plugins/request</outputDirectory>
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>false</overWriteSnapshots>
