@@ -43,6 +43,7 @@ spec:
             - name: shenyu-admin-sync-websocket
               valueFrom:
                 configMapKeyRef:
+                  name: shenyu-configmap
                   key: shenyu-admin-sync-websocket.yml
           volumeMounts:
             - name: mysql-connector-volume
