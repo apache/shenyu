@@ -92,7 +92,7 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                             final Builder builder = ClientResponse.create(response.statusCode())
                                     .headers(headers -> {
                                         headers.addAll(response.headers().asHttpHeaders());
-                                        duplicate(headers);
+                                        this.duplicate(headers);
                                     });
                             if (option.isPresent()) {
                                 final DataBufferFactory dataBufferFactory = exchange.getResponse().bufferFactory();

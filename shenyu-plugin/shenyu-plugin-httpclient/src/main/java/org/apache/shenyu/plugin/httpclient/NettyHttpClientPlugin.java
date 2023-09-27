@@ -73,10 +73,10 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                 .responseConnection((res, connection) -> {
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_CONN_ATTR, connection);
-                    ServerHttpResponse response = exchange.getResponse();
+                    final ServerHttpResponse response = exchange.getResponse();
                     HttpHeaders headers = new HttpHeaders();
                     res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
-                    duplicate(headers);
+                    this.duplicate(headers);
                     String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
                     if (StringUtils.isNotBlank(contentTypeValue)) {
                         exchange.getAttributes().put(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
