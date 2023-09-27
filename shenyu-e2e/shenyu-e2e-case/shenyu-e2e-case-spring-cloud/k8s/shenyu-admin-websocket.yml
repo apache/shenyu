@@ -40,6 +40,10 @@ spec:
               value: 'Asia/Beijing'
             - name: SPRING_PROFILES_ACTIVE
               value: mysql
+            - name: shenyu-admin-sync-websocket
+              valueFrom:
+                configMapKeyRef:
+                  key: shenyu-admin-sync-websocket.yml
           volumeMounts:
             - name: mysql-connector-volume
               mountPath: /opt/shenyu-admin/ext-lib
@@ -49,9 +53,9 @@ spec:
             - name: shenyu-admin-application-mysql
               mountPath: /opt/shenyu-admin/conf/application-mysql.yml
               subPath: shenyu-admin-application-mysql.yml
-            - name: shenyu-admin-sync-websocket
-              mountPath: /opt/shenyu-admin/conf/application.yml
-              subPath: shenyu-admin-sync-websocket.yml
+#            - name: shenyu-admin-sync-websocket
+#              mountPath: /opt/shenyu-admin/conf/application.yml
+#              subPath: shenyu-admin-sync-websocket.yml
       volumes:
         - name: mysql-connector-volume
           hostPath:
@@ -68,12 +72,12 @@ spec:
               items:
                 - key: shenyu-admin-application-mysql.yml
                   path: shenyu-admin-application-mysql.yml
-        - name: shenyu-admin-sync-websocket
-          configMap:
-            name: shenyu-configmap
-            items:
-              - key: shenyu-admin-sync-websocket.yml
-                path: shenyu-admin-sync-websocket.yml
+#        - name: shenyu-admin-sync-websocket
+#          configMap:
+#            name: shenyu-configmap
+#            items:
+#              - key: shenyu-admin-sync-websocket.yml
+#                path: shenyu-admin-sync-websocket.yml
 ---
 apiVersion: v1
 kind: Service
