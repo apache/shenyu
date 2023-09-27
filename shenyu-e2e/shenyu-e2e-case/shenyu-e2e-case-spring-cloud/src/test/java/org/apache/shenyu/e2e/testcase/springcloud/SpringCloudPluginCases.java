@@ -101,7 +101,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists("/get")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(TEST)).build())
                 .build();
     }
 
@@ -138,7 +138,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.DELETE, TEST + "/xx")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(TEST + "/xx")).build())
                 .build();
     }
 
@@ -174,7 +174,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.DELETE, TEST + "/xx")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(TEST)).build())
                 .build();
     }
 
@@ -207,7 +207,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists("/springcloud/tested")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(TEST)).build())
                 .build();
     }
 
@@ -250,7 +250,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.GET, "/get")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.GET, TEST)).build())
                 .build();
     }
 
@@ -293,7 +293,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.POST, "/post")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.POST, TEST)).build())
                 .build();
     }
 
@@ -336,7 +336,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/put")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.PUT, TEST)).build())
                 .build();
     }
 
@@ -379,7 +379,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.DELETE, "/delete")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.DELETE, TEST)).build())
                 .build();
     }
     

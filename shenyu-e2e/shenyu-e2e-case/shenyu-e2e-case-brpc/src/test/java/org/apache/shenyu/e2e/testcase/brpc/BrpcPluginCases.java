@@ -85,7 +85,7 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists("/put")
                                 .addNotExists("/get")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/brpc/testchecker")).build())
                 .build();
     }
 
@@ -119,7 +119,7 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/brpc/testP")
                                 .addNotExists(Method.DELETE, "/brpc/testD")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/brpc/testchecker")).build())
                 .build();
     }
 
@@ -155,7 +155,7 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/brpc/testput")
                                 .addNotExists(Method.DELETE, "/brpc/tesdelete")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/brpc/testcheck")).build())
                 .build();
     }
 
@@ -191,7 +191,7 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/brpc/testPut")
                                 .addNotExists(Method.DELETE, "/brpc/testDelete")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/brpc/testcheck")).build())
                 .build();
     }
 
@@ -233,7 +233,7 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/brpc/testput")
                                 .addNotExists(Method.DELETE, "/brpc/testdelete")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.GET, "/brpc/tesget")).build())
                 .build();
     }
 
@@ -274,7 +274,7 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/brpc/testput")
                                 .addNotExists(Method.DELETE, "/brpc/testdelete")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.POST, "/brpc/testpost")).build())
                 .build();
     }
 
@@ -313,7 +313,7 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.POST, "/brpc/testpost")
                                 .addNotExists(Method.DELETE, "/brpc/testdelete")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.PUT, "/brpc/testput")).build())
                 .build();
     }
 
@@ -352,7 +352,7 @@ public class BrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.POST, "/brpc/testpost")
                                 .addNotExists(Method.PUT, "/brpc/testput")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.DELETE, "/brpc/testdelete")).build())
                 .build();
     }
 }
