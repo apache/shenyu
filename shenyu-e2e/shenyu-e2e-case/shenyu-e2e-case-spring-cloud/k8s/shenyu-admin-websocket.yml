@@ -17,7 +17,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: shenyu
   name: shenyu-admin
 spec:
   selector:
@@ -32,7 +31,9 @@ spec:
       containers:
         - name: shenyu-admin
           image: apache/shenyu-admin:latest
-          imagePullPolicy: Always
+          args:
+            - -Xmx768m -Xms768m
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9095
           env:

@@ -18,7 +18,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: shenyu
   name: shenyu-bootstrap
 spec:
   selector:
@@ -63,8 +62,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: shenyu
-  name: shenyu-bootstrap-svc
+  name: shenyu-bootstrap
 spec:
   selector:
     app: shenyu-bootstrap
