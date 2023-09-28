@@ -24,11 +24,10 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
-import org.apache.shenyu.plugin.base.utils.ResponseUtils;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -74,19 +73,14 @@ public class WebClientMessageWriter implements MessageWriter {
                 return WebFluxResultUtils.result(exchange, error);
             }
             this.redrawResponseHeaders(response, clientResponse);
-            // image, pdf or stream does not do format processing.
-            if (clientResponse.headers().contentType().isPresent()) {
-                final String media = clientResponse.headers().contentType().get().toString().toLowerCase();
-                if (COMMON_BIN_MEDIA_TYPE_PATTERN.matcher(media).matches()) {
-                    return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()))
-                            .doOnCancel(() -> clean(exchange));
-                }
-            }
-            clientResponse = ResponseUtils.buildClientResponse(response, clientResponse.body(BodyExtractors.toDataBuffers()));
 
-            Mono<Void> responseMono = clientResponse.bodyToMono(byte[].class)
-                    .flatMap(originData -> WebFluxResultUtils.result(exchange, originData))
-                    .doOnCancel(() -> clean(exchange));
+            Optional<DataBuffer> responseBodyDataBufferOptional = Optional.ofNullable(exchange.getAttribute(Constants.CLIENT_RESPONSE_BODY_DATA_BUFFER));
+            Mono<Void> responseMono = responseBodyDataBufferOptional
+                    .map(dataBuffer -> exchange.getResponse().writeWith(Mono.just(dataBuffer))
+                        .doOnCancel(() -> clean(exchange)))
+                    .orElseGet(() -> exchange.getResponse().writeWith(Mono.empty())
+                        .doOnCancel(() -> clean(exchange)));
+
             exchange.getAttributes().put(Constants.RESPONSE_MONO, responseMono);
             // watcher httpStatus
             final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);

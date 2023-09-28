@@ -21,7 +21,6 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -78,16 +77,14 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                     // fix chinese garbled code
                     return outputMessage.writeWith(DataBufferUtils.join(body));
                 })
-                .exchangeToMono(response -> response.bodyToMono(byte[].class)
+                .exchangeToMono(response -> response.bodyToMono(DataBuffer.class)
                         .flatMap(bytes -> Mono.fromCallable(() -> Optional.ofNullable(bytes))).defaultIfEmpty(Optional.empty())
                         .flatMap(option -> {
-                            final ClientResponse.Builder builder = ClientResponse.create(response.statusCode())
-                                    .headers(headers -> headers.addAll(response.headers().asHttpHeaders()));
                             if (option.isPresent()) {
-                                final DataBufferFactory dataBufferFactory = exchange.getResponse().bufferFactory();
-                                return Mono.just(builder.body(Flux.just(dataBufferFactory.wrap(option.get()))).build());
+                                exchange.getAttributes().put(Constants.CLIENT_RESPONSE_BODY_DATA_BUFFER, option.get());
+                                return Mono.just(response);
                             }
-                            return Mono.just(builder.build());
+                            return Mono.just(response);
                         }))
                 .doOnSuccess(res -> {
                     if (res.statusCode().is2xxSuccessful()) {
