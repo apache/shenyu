@@ -40,9 +40,9 @@ spec:
               value: 'Asia/Beijing'
             - name: SPRING_PROFILES_ACTIVE
               value: mysql
-          envFrom:
-            - configMapRef:
-                name: shenyu-admin-sync-websocket
+#          envFrom:
+#            - configMapRef:
+#                name: shenyu-admin-sync-websocket
           volumeMounts:
             - name: mysql-connector-volume
               mountPath: /opt/shenyu-admin/ext-lib

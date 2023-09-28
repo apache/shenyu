@@ -42,9 +42,9 @@ spec:
             - name: shenyu-bootstrap-application
               mountPath: /opt/shenyu-bootstrap/conf/application.yml
               subPath: shenyu-bootstrap-application.yml
-            - name: shenyu-bootstrap-sync-websocket
-              mountPath: /opt/shenyu-bootstrap/conf/application.yml
-              subPath: shenyu-bootstrap-application.yml
+#            - name: shenyu-bootstrap-sync-websocket
+#              mountPath: /opt/shenyu-bootstrap/conf/application.yml
+#              subPath: shenyu-bootstrap-application.yml
       volumes:
         - name: shenyu-bootstrap-application
           configMap:
@@ -52,12 +52,12 @@ spec:
             items:
               - key: shenyu-bootstrap-application.yml
                 path: shenyu-bootstrap-application.yml
-        - name: shenyu-bootstrap-sync-websocket
-          configMap:
-            name: shenyu-configmap
-            items:
-              - key: shenyu-bootstrap-sync-websocket.yml
-                path: shenyu-bootstrap-sync-websocket.yml
+#        - name: shenyu-bootstrap-sync-websocket
+#          configMap:
+#            name: shenyu-configmap
+#            items:
+#              - key: shenyu-bootstrap-sync-websocket.yml
+#                path: shenyu-bootstrap-sync-websocket.yml
 
 ---
 apiVersion: v1

@@ -71,6 +71,10 @@ data:
       type-handlers-package: org.apache.shenyu.admin.mybatis.handler
     
     shenyu:
+      sync:
+        websocket:
+          urls: ws://localhost:9095/websocket
+          allowOrigin: ws://localhost:9195
       register:
         registerType: http #http #zookeeper #etcd #nacos #consul
         serverLists: #localhost:2181 #http://localhost:2379 #localhost:8848
@@ -236,6 +240,10 @@ data:
             include: "*" # or health,info
 
     shenyu:
+      sync:
+        websocket:
+          urls: ws://shenyu-admin:9095/websocket
+          allowOrigin: ws://localhost:9195
       selectorMatchCache:
         ## selector L1 cache
         cache:
@@ -460,13 +468,6 @@ metadata:
   labels:
     app: shenyu-admin-sync-websocket
 data:
-  shenyu-admin-sync-websocket.yml: |
-    shenyu:
-      sync:
-        websocket:
-          urls: ws://localhost:9095/websocket
-          allowOrigin: ws://localhost:9195
-
   shenyu-admin-sync-http.yml: |
     shenyu:
       sync:
