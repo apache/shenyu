@@ -262,8 +262,8 @@ jobs:
           kubectl get all
           kubectl get events --all-namespaces
           kubectl logs -l app=shenyu-admin-mysql
-      - name: Setup Debug Session
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 15
-        with:
-          detached: true
+#      - name: Setup Debug Session
+#        uses: mxschmitt/action-tmate@v3
+#        timeout-minutes: 15
+#        with:
+#          detached: true

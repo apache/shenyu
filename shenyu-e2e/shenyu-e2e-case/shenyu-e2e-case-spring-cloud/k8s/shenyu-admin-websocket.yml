@@ -78,13 +78,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: shenyu-admin-mysql
+  name: shenyu-admin
   labels:
-    app: shenyu-admin-mysql
+    app: shenyu-admin
 spec:
   type: NodePort
   selector:
-    app: shenyu-admin-mysql
+    app: shenyu-admin
   ports:
     - name: "9095"
       port: 9095
