@@ -25,19 +25,18 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.util.Optional;
 
 /**
  * The type Web client plugin.
  */
-public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
+public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flux<DataBuffer>>> {
     
     private final WebClient webClient;
     
@@ -51,12 +50,12 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
     }
     
     @Override
-    protected Mono<ClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod,
+    protected Mono<ResponseEntity<Flux<DataBuffer>>> doRequest(final ServerWebExchange exchange, final String httpMethod,
                                              final URI uri, final Flux<DataBuffer> body) {
         // springWebflux5.3 mark #exchange() deprecated. because #echange maybe make memory leak.
         // https://github.com/spring-projects/spring-framework/issues/25751
         // exchange is deprecated, so change to {@link WebClient.RequestHeadersSpec#exchangeToMono(Function)}
-        return webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
+        final WebClient.ResponseSpec responseSpec = webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
                 .headers(headers -> {
                     headers.addAll(exchange.getRequest().getHeaders());
                     headers.remove(HttpHeaders.HOST);
@@ -76,24 +75,17 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                     }
                     // fix chinese garbled code
                     return outputMessage.writeWith(DataBufferUtils.join(body));
-                })
-                .exchangeToMono(response -> response.bodyToMono(DataBuffer.class)
-                        .flatMap(bytes -> Mono.fromCallable(() -> Optional.ofNullable(bytes))).defaultIfEmpty(Optional.empty())
-                        .flatMap(option -> {
-                            if (option.isPresent()) {
-                                exchange.getAttributes().put(Constants.CLIENT_RESPONSE_BODY_DATA_BUFFER, option.get());
-                                return Mono.just(response);
-                            }
-                            return Mono.just(response);
-                        }))
-                .doOnSuccess(res -> {
-                    if (res.statusCode().is2xxSuccessful()) {
+                }).retrieve();
+        return responseSpec.toEntityFlux(DataBuffer.class)
+                .flatMap(fluxResponseEntity -> {
+                    if (fluxResponseEntity.getStatusCode().is2xxSuccessful()) {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
                     } else {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
                     }
-                    exchange.getResponse().setStatusCode(res.statusCode());
-                    exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
+                    exchange.getResponse().setStatusCode(fluxResponseEntity.getStatusCode());
+                    exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, fluxResponseEntity);
+                    return Mono.just(fluxResponseEntity);
                 });
     }
     

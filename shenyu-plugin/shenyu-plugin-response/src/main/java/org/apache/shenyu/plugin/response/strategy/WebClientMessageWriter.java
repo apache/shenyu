@@ -21,15 +21,14 @@ import com.google.common.collect.Lists;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
@@ -67,19 +66,23 @@ public class WebClientMessageWriter implements MessageWriter {
     public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange).then(Mono.defer(() -> {
             ServerHttpResponse response = exchange.getResponse();
-            ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-            if (Objects.isNull(clientResponse)) {
-                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR);
-                return WebFluxResultUtils.result(exchange, error);
-            }
-            this.redrawResponseHeaders(response, clientResponse);
+//            ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+//            if (Objects.isNull(clientResponse)) {
+//                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR);
+//                return WebFluxResultUtils.result(exchange, error);
+//            }
+//            this.redrawResponseHeaders(response, clientResponse);
 
-            Optional<DataBuffer> responseBodyDataBufferOptional = Optional.ofNullable(exchange.getAttribute(Constants.CLIENT_RESPONSE_BODY_DATA_BUFFER));
-            Mono<Void> responseMono = responseBodyDataBufferOptional
-                    .map(dataBuffer -> exchange.getResponse().writeWith(Mono.just(dataBuffer))
-                        .doOnCancel(() -> clean(exchange)))
-                    .orElseGet(() -> exchange.getResponse().writeWith(Mono.empty())
-                        .doOnCancel(() -> clean(exchange)));
+            ResponseEntity<Flux<DataBuffer>> responseBodyDataBufferOptional = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+            Mono<Void> responseMono = exchange.getResponse().writeWith(responseBodyDataBufferOptional.getBody())
+                    .doOnCancel(() -> clean(exchange));
+
+//            Optional<DataBuffer> responseBodyDataBufferOptional = Optional.ofNullable(exchange.getAttribute(Constants.CLIENT_RESPONSE_BODY_DATA_BUFFER));
+//            Mono<Void> responseMono = responseBodyDataBufferOptional
+//                    .map(dataBuffer -> exchange.getResponse().writeWith(Mono.just(dataBuffer))
+//                        .doOnCancel(() -> clean(exchange)))
+//                    .orElseGet(() -> exchange.getResponse().writeWith(Mono.empty())
+//                        .doOnCancel(() -> clean(exchange)));
 
             exchange.getAttributes().put(Constants.RESPONSE_MONO, responseMono);
             // watcher httpStatus
