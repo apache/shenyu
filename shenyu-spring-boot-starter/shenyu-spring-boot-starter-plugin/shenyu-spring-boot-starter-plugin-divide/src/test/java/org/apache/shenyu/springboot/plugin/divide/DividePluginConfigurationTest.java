@@ -21,6 +21,7 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.divide.handler.DivideUpstreamDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -69,6 +70,15 @@ public class DividePluginConfigurationTest {
     public void testDivideMetaDataHandler() {
         applicationContextRunner.run(context -> {
                 MetaDataHandler handler = context.getBean("divideMetaDataHandler", MetaDataHandler.class);
+                assertNotNull(handler);
+            }
+        );
+    }
+
+    @Test
+    public void testDivideUpstreamDataHandler() {
+        applicationContextRunner.run(context -> {
+                DivideUpstreamDataHandler handler = context.getBean("divideUpstreamDataHandler", DivideUpstreamDataHandler.class);
                 assertNotNull(handler);
             }
         );
