@@ -40,7 +40,7 @@ spec:
             - name: 'TZ'
               value: 'Asia/Beijing'
             - name: SPRING_PROFILES_ACTIVE
-              value: mysql,admin-sync-websocket
+              value: mysql
           volumeMounts:
             - name: mysql-connector-volume
               mountPath: /opt/shenyu-admin/ext-lib
@@ -53,6 +53,7 @@ spec:
 #            - name: shenyu-admin-sync-websocket
 #              mountPath: /opt/shenyu-admin/conf/application-admin-sync-websocket.yml
 #              subPath: application-admin-sync-websocket.yml
+      restartPolicy: Always
       volumes:
         - name: mysql-connector-volume
           hostPath:
