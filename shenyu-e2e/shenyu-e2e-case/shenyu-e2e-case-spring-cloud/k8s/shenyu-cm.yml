@@ -82,6 +82,11 @@ data:
           zombieCheckTimes: 5
           scheduledTime: 10
           nacosNameSpace: ShenyuRegisterCenter
+      sync:
+        websocket:
+          enabled: true
+          messageMaxSize: 10240
+          allowOrigins: ws://localhost:9095;ws://localhost:9195;
       ldap:
         enabled: false
         url: ldap://xxxx:xxx
@@ -144,7 +149,7 @@ data:
         org.apache.shenyu.lottery: info
         org.apache.shenyu: info
     #    org.apache.shenyu.admin.utils.HttpUtils: debug
-  
+    
 
   shenyu-admin-application-mysql.yml: |
     shenyu:
