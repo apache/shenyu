@@ -42,8 +42,8 @@ public class VersionTwoSignProvider implements SignProvider {
 
     private String getRelativeURL(final URI uri) {
         if (Objects.isNull(uri.getQuery())) {
-            return uri.getPath();
+            return uri.getRawPath();
         }
-        return uri.getPath() + "?" + uri.getQuery();
+        return uri.getRawPath() + "?" + uri.getQuery();
     }
 }

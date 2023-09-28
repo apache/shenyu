@@ -468,7 +468,7 @@ public class AdminClient {
      * @param formData formData
      */
     public void changePluginStatus(final String id, final MultiValueMap<String, String> formData) {
-        putResource("/plugin", id, SelectorDTO.class, formData);
+        putResource("/plugin", id, PluginDTO.class, formData);
     }
     
     private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final MultiValueMap<String, String> formData) {
@@ -503,6 +503,15 @@ public class AdminClient {
         ShenYuResult rst = response.getBody();
         Assertions.assertNotNull(rst, "checking http response body");
         basicAuth.remove("Content-Type");
+    }
+
+    /**
+     * sync all plugin.
+     */
+    public void syncPluginAll() {
+        HttpEntity<SearchCondition> entity = new HttpEntity<>(basicAuth);
+        template.postForEntity(baseURL + "/plugin/syncPluginAll", entity, ShenYuResult.class);
+        log.warn("admin syncPluginAll");
     }
 
     @FunctionalInterface
