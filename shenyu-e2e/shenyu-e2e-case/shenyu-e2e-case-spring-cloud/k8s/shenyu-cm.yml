@@ -451,6 +451,15 @@ data:
         reactor.ipc.netty: info
         reactor.netty: info
 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shenyu-admin-sync-websocket
+  namespace: shenyu
+  labels:
+    app: shenyu-admin-sync-websocket
+data:
   shenyu-admin-sync-websocket.yml: |
     shenyu:
       sync:
