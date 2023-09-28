@@ -71,10 +71,6 @@ data:
       type-handlers-package: org.apache.shenyu.admin.mybatis.handler
     
     shenyu:
-      sync:
-        websocket:
-          urls: ws://localhost:9095/websocket
-          allowOrigin: ws://localhost:9195
       register:
         registerType: http #http #zookeeper #etcd #nacos #consul
         serverLists: #localhost:2181 #http://localhost:2379 #localhost:8848
@@ -240,10 +236,6 @@ data:
             include: "*" # or health,info
 
     shenyu:
-      sync:
-        websocket:
-          urls: ws://shenyu-admin:9095/websocket
-          allowOrigin: ws://localhost:9195
       selectorMatchCache:
         ## selector L1 cache
         cache:
@@ -459,22 +451,20 @@ data:
         reactor.ipc.netty: info
         reactor.netty: info
 
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: shenyu-admin-sync-websocket
-  namespace: shenyu
-  labels:
-    app: shenyu-admin-sync-websocket
-data:
-  shenyu-admin-sync-http.yml: |
+  application-admin-sync-websocket.yml: |
+    shenyu:
+      sync:
+        websocket:
+          urls: ws://localhost:9095/websocket
+          allowOrigin: ws://localhost:9195
+
+  application-admin-sync-http.yml: |
     shenyu:
       sync:
         http:
           enabled: true
 
-  shenyu-admin-sync-zookeeper.yml: |
+  application-admin-sync-zookeeper.yml: |
     shenyu:
       sync:
         zookeeper:
@@ -482,13 +472,13 @@ data:
           sessionTimeout: 5000
           connectionTimeout: 2000
 
-  shenyu-admin-sync-etcd.yml: |
+  application-admin-sync-etcd.yml: |
     shenyu:
       sync:
         etcd:
           url: http://localhost:2379
 
-  shenyu-admin-sync-nacos.yaml: |
+  application-admin-sync-nacos.yaml: |
     shenyu:
       sync:
         nacos:
@@ -503,14 +493,14 @@ data:
             accessKey:
             secretKey:
 
-  shenyu-bootstrap-sync-websocket.yml: |
+  application-bootstrap-sync-websocket.yml: |
     shenyu:
       sync:
         websocket:
           urls: ws://localhost:9095/websocket
           allowOrigin: ws://localhost:9195
 
-  shenyu-boostrap-sync-http.yml: |
+  application-boostrap-sync-http.yml: |
     shenyu:
       sync:
         http:
@@ -518,7 +508,7 @@ data:
           username: admin
           password: 123456
 
-  shenyu-boostrap-sync-zookeeper.yml: |
+  application-boostrap-sync-zookeeper.yml: |
     shenyu:
       sync:
         zookeeper:
@@ -526,13 +516,13 @@ data:
           sessionTimeout: 5000
           connectionTimeout: 2000
 
-  shenyu-bootstrap-sync-etcd.yml: |
+  application-bootstrap-sync-etcd.yml: |
     shenyu:
       sync:
         etcd:
           url: http://localhost:2379
 
-  shenyu-bootstrap-sync-nacos.yaml: |
+  application-bootstrap-sync-nacos.yaml: |
     shenyu:
       sync:
         nacos:
