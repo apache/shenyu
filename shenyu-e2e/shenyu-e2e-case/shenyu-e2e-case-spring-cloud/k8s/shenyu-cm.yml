@@ -497,7 +497,7 @@ data:
     shenyu:
       sync:
         websocket:
-          urls: ws://localhost:9095/websocket
+          urls: ws://shenyu-admin:9095/websocket
           allowOrigin: ws://localhost:9195
 
   application-boostrap-sync-http.yml: |
