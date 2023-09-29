@@ -454,8 +454,9 @@ data:
     shenyu:
       sync:
         websocket:
-          urls: ws://localhost:9095/websocket
-          allowOrigin: ws://localhost:9195
+          enabled: true
+          messageMaxSize: 10240
+          allowOrigins: ws://localhost:9095;ws://localhost:9195;
 
   application-admin-sync-http.yml: |
     shenyu:
