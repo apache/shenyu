@@ -128,6 +128,7 @@ shenyu:
     enable: true
   dashboard:
     core:
+      enablePrintApiLog: true
       onlySuperAdminPermission:
         - system:manager:add
         - system:manager:edit

@@ -37,19 +37,19 @@ public interface ShenyuDiscoveryService {
     void init(DiscoveryConfig config);
 
     /**
-     * Watcher path , fire data changed event.
+     * Watch path , fire data changed event.
      *
      * @param key      the key
      * @param listener the listener
      */
-    void watcher(String key, DataChangedEventListener listener);
+    void watch(String key, DataChangedEventListener listener);
 
     /**
-     * unWatcher path.
+     * unwatch path.
      *
      * @param key key
      */
-    void unWatcher(String key);
+    void unwatch(String key);
 
     /**
      * Register data.
@@ -62,18 +62,18 @@ public interface ShenyuDiscoveryService {
     /**
      * getData by key.
      *
-     * @param key key
+     * @param key keyd
      * @return value
      */
     List<String> getRegisterData(String key);
 
     /**
-     * exits.
+     * exists.
      *
      * @param key key
      * @return Boolean
      */
-    Boolean exits(String key);
+    Boolean exists(String key);
 
     /**
      * shutdown.

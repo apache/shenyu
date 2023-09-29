@@ -41,7 +41,9 @@ public class DiscoveryProcessorHolder {
             return localDiscoveryProcessor;
         } else if (DiscoveryMode.ZOOKEEPER.name().equalsIgnoreCase(mode)) {
             return defaultDiscoveryProcessor;
-        } else {
+        } else if (DiscoveryMode.ETCD.name().equalsIgnoreCase(mode)) {
+            return defaultDiscoveryProcessor;
+        }else {
             throw new NotImplementedException("shenyu discovery mode current didn't support " + mode);
         }
     }
