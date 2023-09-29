@@ -21,12 +21,14 @@ import com.google.common.collect.Lists;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -73,16 +75,22 @@ public class WebClientMessageWriter implements MessageWriter {
 //            }
 //            this.redrawResponseHeaders(response, clientResponse);
 
-            ResponseEntity<Flux<DataBuffer>> responseBodyDataBufferOptional = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-            Mono<Void> responseMono = exchange.getResponse().writeWith(responseBodyDataBufferOptional.getBody())
-                    .doOnCancel(() -> clean(exchange));
+            ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+            if (Objects.isNull(fluxResponseEntity)) {
+                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR);
+                return WebFluxResultUtils.result(exchange, error);
+            }
 
-//            Optional<DataBuffer> responseBodyDataBufferOptional = Optional.ofNullable(exchange.getAttribute(Constants.CLIENT_RESPONSE_BODY_DATA_BUFFER));
-//            Mono<Void> responseMono = responseBodyDataBufferOptional
-//                    .map(dataBuffer -> exchange.getResponse().writeWith(Mono.just(dataBuffer))
-//                        .doOnCancel(() -> clean(exchange)))
-//                    .orElseGet(() -> exchange.getResponse().writeWith(Mono.empty())
-//                        .doOnCancel(() -> clean(exchange)));
+            this.redrawResponseHeaders(response, fluxResponseEntity);
+
+            Mono<Void> responseMono;
+            if (Objects.nonNull(fluxResponseEntity.getBody())) {
+                responseMono = exchange.getResponse().writeWith(fluxResponseEntity.getBody())
+                        .onErrorResume(error -> releaseIfNotConsumed(fluxResponseEntity, error))
+                        .doOnCancel(() -> clean(exchange));
+            } else {
+                responseMono = exchange.getResponse().writeWith(Mono.empty());
+            }
 
             exchange.getAttributes().put(Constants.RESPONSE_MONO, responseMono);
             // watcher httpStatus
@@ -98,9 +106,9 @@ public class WebClientMessageWriter implements MessageWriter {
     }
 
     private void redrawResponseHeaders(final ServerHttpResponse response,
-                                       final ClientResponse clientResponse) {
+                                       final ResponseEntity<Flux<DataBuffer>> fluxResponseEntity) {
         // cookies are also headers, and adding them will result in duplicate headers
-        HttpHeaders httpHeaders = clientResponse.headers().asHttpHeaders();
+        HttpHeaders httpHeaders = fluxResponseEntity.getHeaders();
         // if the client response has cors header remove cors header from response that crossfilter put
         if (CORS_HEADERS.stream().anyMatch(httpHeaders::containsKey)) {
             CORS_HEADERS.forEach(header -> response.getHeaders().remove(header));
@@ -118,10 +126,14 @@ public class WebClientMessageWriter implements MessageWriter {
         response.getHeaders().putAll(httpHeaders);
     }
 
+    private static <T> Mono<T> releaseIfNotConsumed(final ResponseEntity<Flux<DataBuffer>> fluxResponseEntity, final Throwable ex) {
+        return fluxResponseEntity.getBody().onErrorResume(ex2 -> Mono.empty()).then(Mono.error(ex));
+    }
+
     private void clean(final ServerWebExchange exchange) {
-        ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-        if (Objects.nonNull(clientResponse)) {
-            clientResponse.bodyToMono(Void.class).subscribe();
+        ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+        if (Objects.nonNull(fluxResponseEntity) && Objects.nonNull(fluxResponseEntity.getBody())) {
+            fluxResponseEntity.getBody().subscribe();
         }
     }
 
