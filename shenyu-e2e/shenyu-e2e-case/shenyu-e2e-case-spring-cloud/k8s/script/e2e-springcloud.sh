@@ -30,7 +30,7 @@ kubectl apply -f "${PRGDIR}"/shenyu-bootstrap-websocket.yml
 
 kubectl get pod -o wide
 
-sleep 30s
+sleep 60s
 
 kubectl get pod -o wide
 

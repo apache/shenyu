@@ -37,6 +37,8 @@ spec:
           env:
             - name: TZ
               value: Asia/Beijing
+            - name: SPRING_PROFILES_ACTIVE
+              value: bootstrap-sync-websocket
           volumeMounts:
             - name: shenyu-bootstrap-application
               mountPath: /opt/shenyu-bootstrap/conf/application.yml
