@@ -199,7 +199,7 @@ data:
         max-in-memory-size: 2MB
       cloud:
         discovery:
-          enabled: true
+          enabled: false
         nacos:
           discovery:
             server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
@@ -213,7 +213,7 @@ data:
 
     eureka:
       client:
-        enabled: true
+        enabled: false
         serviceUrl:
           defaultZone: http://localhost:8761/eureka/
       instance:
