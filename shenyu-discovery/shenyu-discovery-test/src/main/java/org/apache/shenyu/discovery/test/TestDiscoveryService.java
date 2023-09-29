@@ -1,27 +1,14 @@
-package org.apache.shenyu.discovery.consul;
+package org.apache.shenyu.discovery.test;
 
-import com.ecwid.consul.v1.ConsulClient;
-import com.ecwid.consul.v1.agent.model.NewService;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.shenyu.spi.Join;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class ConsulDiscoveryService implements ShenyuDiscoveryService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConsulDiscoveryService.class);
-
-    private ConsulClient consulClient;
-
-    private NewService newService;
-
-    private final Map<String, Long> consulIndexes = new HashMap<>();
-
+@Join
+public class TestDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void init(DiscoveryConfig config) {
 

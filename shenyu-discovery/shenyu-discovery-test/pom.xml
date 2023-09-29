@@ -26,7 +26,7 @@
         <version>2.6.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>shenyu-discovery-consul</artifactId>
+    <artifactId>shenyu-discovery-test</artifactId>
 
     <dependencies>
         <dependency>
@@ -40,13 +40,6 @@
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>com.ecwid.consul</groupId>
-            <artifactId>consul-api</artifactId>
-            <version>1.4.5</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
-
 
 </project>

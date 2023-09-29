@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-
 package org.apache.shenyu.discovery.etcd;
+
 
 import io.etcd.jetcd.*;
 
@@ -106,31 +106,31 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
             try (Watch watch = etcdClient.getWatchClient()) {
                 WatchOption option = WatchOption.newBuilder().isPrefix(true).build();
                 Watch.Watcher watcher = watch.watch(bytesOf(key), option, Watch.listener(response -> {
-                    for (WatchEvent event : response.getEvents()) {
-                        DiscoveryDataChangedEvent dataChangedEvent;
-                        // 忽略父节点变化
-                        if (event.getKeyValue().getKey().equals(bytesOf(key))) {
-                            return;
-                        }
-                        String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
-                        String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
-                        // TODO 判空，是否有必要？
-                        // TODO 如何区分新增和更新
-                        if (Objects.nonNull(event.getKeyValue()) && Objects.nonNull(value)) {
-                            switch (event.getEventType()) {
-                                case PUT:
-                                    dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.ADDED);
-                                    break;
-                                case DELETE:
-                                    dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.DELETED);
-                                    break;
-                                default:
-                                    dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.IGNORED);
+                            for (WatchEvent event : response.getEvents()) {
+                                DiscoveryDataChangedEvent dataChangedEvent;
+                                // 忽略父节点变化
+                                if (event.getKeyValue().getKey().equals(bytesOf(key))) {
+                                    return;
+                                }
+                                String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
+                                String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
+                                // TODO 判空，是否有必要？
+                                // TODO 如何区分新增和更新
+                                if (Objects.nonNull(event.getKeyValue()) && Objects.nonNull(value)) {
+                                    switch (event.getEventType()) {
+                                        case PUT:
+                                            dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.ADDED);
+                                            break;
+                                        case DELETE:
+                                            dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.DELETED);
+                                            break;
+                                        default:
+                                            dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.IGNORED);
+                                    }
+                                    listener.onChange(dataChangedEvent);
+                                }
                             }
-                            listener.onChange(dataChangedEvent);
                         }
-                    }
-                }
                 ));
                 watchCache.put(key, watcher);
             } catch (Exception e) {

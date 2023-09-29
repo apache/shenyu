@@ -43,7 +43,7 @@ public class DiscoveryProcessorHolder {
             return defaultDiscoveryProcessor;
         } else if (DiscoveryMode.ETCD.name().equalsIgnoreCase(mode)) {
             return defaultDiscoveryProcessor;
-        }else {
+        } else {
             throw new NotImplementedException("shenyu discovery mode current didn't support " + mode);
         }
     }

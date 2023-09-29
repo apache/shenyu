@@ -6,16 +6,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class EtcdDiscoveryServiceTest {
-
     @Test
     public void testDiscoverySPI1() {
-        ShenyuDiscoveryService etcd = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin("etcd");
-        assertThat(etcd.getClass().getName(), is(EtcdDiscoveryService.class.getName()));
+        ShenyuDiscoveryService zk = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin("etcd");
+        assertThat(zk.getClass().getName(), is(EtcdDiscoveryService.class.getName()));
     }
-
-
-
 }
