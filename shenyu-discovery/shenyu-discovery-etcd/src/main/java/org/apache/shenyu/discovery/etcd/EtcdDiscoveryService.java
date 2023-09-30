@@ -17,25 +17,22 @@
 
 package org.apache.shenyu.discovery.etcd;
 
-
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.Lease;
 import io.etcd.jetcd.KV;
 import io.etcd.jetcd.Watch;
-
 import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
 import io.etcd.jetcd.options.WatchOption;
 import io.etcd.jetcd.watch.WatchEvent;
+import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
-import io.grpc.stub.StreamObserver;
-
 import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
@@ -62,14 +59,14 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
     private final ConcurrentHashMap<String, Watch.Watcher> watchCache = new ConcurrentHashMap<>();
 
-    private long leaseId = 0;
+    private long leaseId;
 
     private long ttl;
 
     private long timeout;
 
     @Override
-    public void init(DiscoveryConfig config) {
+    public void init(final DiscoveryConfig config) {
         Properties props = config.getProps();
         this.timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
         this.ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
@@ -84,7 +81,6 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
     private void initLease() {
         try (Lease lease = etcdClient.getLeaseClient()) {
-            System.out.println("here");
             this.leaseId = lease.grant(ttl).get().getID();
             lease.keepAlive(leaseId, new StreamObserver<LeaseKeepAliveResponse>() {
                 @Override
@@ -106,9 +102,8 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-
     @Override
-    public void watch(String key, DataChangedEventListener listener) {
+    public void watch(final String key, final DataChangedEventListener listener) {
         if (!this.watchCache.containsKey(key)) {
             try {
                 Watch watch = etcdClient.getWatchClient();
@@ -145,14 +140,14 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     }
 
     @Override
-    public void unwatch(String key) {
+    public void unwatch(final String key) {
         if (watchCache.containsKey(key)) {
             watchCache.remove(key).close();
         }
     }
 
     @Override
-    public void register(String key, String value) {
+    public void register(final String key, final String value) {
         try {
             KV kvClient = etcdClient.getKVClient();
             PutOption putOption = PutOption.newBuilder().withLeaseId(leaseId).build();
@@ -164,7 +159,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     }
 
     @Override
-    public List<String> getRegisterData(String key) {
+    public List<String> getRegisterData(final String key) {
         try {
             KV kvClient = etcdClient.getKVClient();
             GetOption option = GetOption.newBuilder().isPrefix(true).build();
@@ -179,7 +174,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     }
 
     @Override
-    public Boolean exists(String key) {
+    public Boolean exists(final String key) {
         try {
             KV kvClient = etcdClient.getKVClient();
             GetOption option = GetOption.newBuilder().isPrefix(true).withCountOnly(true).build();

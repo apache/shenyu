@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 package org.apache.shenyu.discovery.nacos;
 
 import com.alibaba.fastjson2.JSONObject;
@@ -35,7 +34,11 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
@@ -58,9 +61,8 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
 
     private List<Instance> instancesList = new ArrayList<>();
 
-
     @Override
-    public void init(DiscoveryConfig config) {
+    public void init(final DiscoveryConfig config) {
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
         this.groupName = properties.getProperty("groupName", "SHENYU_GROUP");
@@ -78,9 +80,8 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-
     @Override
-    public void watch(String key, DataChangedEventListener listener) {
+    public void watch(final String key, final DataChangedEventListener listener) {
         EventListener nacosListener = listenerMap.computeIfAbsent(key, k -> createNacosListener(key, listener));
         try {
             namingService.subscribe(key, groupName, nacosListener);
@@ -89,7 +90,7 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-    private EventListener createNacosListener(String key, DataChangedEventListener listener) {
+    private EventListener createNacosListener(final String key, final DataChangedEventListener listener) {
         return event -> {
             if (event instanceof NamingEvent) {
                 List<Instance> currentInstances = ((NamingEvent) event).getInstances();
@@ -100,9 +101,8 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         };
     }
 
-
     @Override
-    public void unwatch(String key) {
+    public void unwatch(final String key) {
         try {
             EventListener nacosListener = listenerMap.get(key);
             if (nacosListener != null) {
@@ -115,9 +115,8 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-
     @Override
-    public void register(String key, String value) {
+    public void register(final String key, final String value) {
         try {
             JSONObject jsonValue = JSONObject.parse(value);
             Instance instance = new Instance();
@@ -133,9 +132,8 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-
     @Override
-    public List<String> getRegisterData(String key) {
+    public List<String> getRegisterData(final String key) {
         try {
             List<Instance> instances = namingService.getAllInstances(key);
             List<String> registerData = new ArrayList<>();
@@ -150,9 +148,8 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-
     @Override
-    public Boolean exists(String key) {
+    public Boolean exists(final String key) {
         try {
             List<Instance> instances = namingService.selectInstances(key, true);
             return !instances.isEmpty();
@@ -161,7 +158,6 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
             throw new ShenyuException(e);
         }
     }
-
 
     @Override
     public void shutdown() {
@@ -178,9 +174,9 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-    private void compareInstances(List<Instance> previousInstances, List<Instance> currentInstances, DataChangedEventListener listener) {
+    private void compareInstances(final List<Instance> previousInstances, final List<Instance> currentInstances, final DataChangedEventListener listener) {
         DiscoveryDataChangedEvent dataChangedEvent = null;
-        if (currentInstances.size() > previousInstances.size()){
+        if (currentInstances.size() > previousInstances.size()) {
             Set<Instance> addedInstances = currentInstances.stream()
                     .filter(item -> !previousInstances.contains(item))
                     .collect(Collectors.toSet());
@@ -208,10 +204,10 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         listener.onChange(dataChangedEvent);
     }
 
-    private String buildInstanceInfoJson(Instance instance) {
+    private String buildInstanceInfoJson(final Instance instance) {
         JSONObject instanceJson = new JSONObject();
-        instanceJson.put("url", instance.getIp()+":"+instance.getPort());
-        instanceJson.put("status", instance.isHealthy() ? 0: -1);
+        instanceJson.put("url", instance.getIp() + ":" + instance.getPort());
+        instanceJson.put("status", instance.isHealthy() ? 0 : -1);
         instanceJson.put("weight", instance.getWeight());
 
         return instanceJson.toString();

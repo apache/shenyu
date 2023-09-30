@@ -18,15 +18,23 @@
 package org.apache.shenyu.discovery.eureka;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.netflix.appinfo.*;
+import com.netflix.appinfo.ApplicationInfoManager;
+import com.netflix.appinfo.MyDataCenterInstanceConfig;
+import com.netflix.appinfo.InstanceInfo;
+import com.netflix.appinfo.DataCenterInfo;
+import com.netflix.appinfo.MyDataCenterInfo;
+import com.netflix.appinfo.EurekaInstanceConfig;
 import com.netflix.appinfo.providers.EurekaConfigBasedInstanceInfoProvider;
 import com.netflix.config.ConfigurationManager;
-import com.netflix.discovery.*;
+import com.netflix.discovery.EurekaClient;
+import com.netflix.discovery.EurekaEventListener;
+import com.netflix.discovery.EurekaClientConfig;
+import com.netflix.discovery.DiscoveryClient;
+import com.netflix.discovery.DefaultEurekaClientConfig;
 import com.netflix.discovery.shared.transport.EurekaHttpClient;
 import com.netflix.discovery.shared.transport.jersey.JerseyApplicationClient;
 import com.sun.jersey.client.apache4.ApacheHttpClient4;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +51,14 @@ import java.util.concurrent.ConcurrentMap;
 @Join
 public class EurekaDiscoveryService implements ShenyuDiscoveryService {
     private static final Logger LOGGER = LoggerFactory.getLogger(EurekaDiscoveryService.class);
+
     private ApplicationInfoManager applicationInfoManager;
+
     private EurekaClient eurekaClient;
+
     private EurekaHttpClient eurekaHttpClient;
-    private static final ConcurrentMap<String, EurekaEventListener> listenerMap = new ConcurrentHashMap<>();
+
+    private final ConcurrentMap<String, EurekaEventListener> listenerMap = new ConcurrentHashMap<>();
 
     @Override
     public void init(final DiscoveryConfig config) {
@@ -63,9 +75,8 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-
     @Override
-    public void watch(String key, DataChangedEventListener listener) {
+    public void watch(final String key, final DataChangedEventListener listener) {
         EurekaEventListener eurekaEventListener = listenerMap.computeIfAbsent(key, k -> createEurekaListener(key, listener));
         eurekaClient.registerEventListener(eurekaEventListener);
         try {
@@ -75,13 +86,13 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-    private EurekaEventListener createEurekaListener(String key, DataChangedEventListener listener) {
+    private EurekaEventListener createEurekaListener(final String key, final DataChangedEventListener listener) {
         return event -> {
         };
     }
 
     @Override
-    public void unwatch(String key) {
+    public void unwatch(final String key) {
         try {
             EurekaEventListener eurekaEventListener = listenerMap.get(key);
             if (eurekaEventListener != null) {
@@ -95,7 +106,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
     }
 
     @Override
-    public void register(String key, String value) {
+    public void register(final String key, final String value) {
         JSONObject jsonValue = JSONObject.parse(value);
         InstanceInfo instanceInfo = InstanceInfo.Builder.newBuilder()
                 .setAppName(key)
@@ -108,7 +119,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
     }
 
     @Override
-    public List<String> getRegisterData(String key) {
+    public List<String> getRegisterData(final String key) {
         try {
             List<InstanceInfo> instances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
             List<String> registerDataList = new ArrayList<>();
@@ -123,7 +134,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
     }
 
     @Override
-    public Boolean exists(String key) {
+    public Boolean exists(final String key) {
         try {
             InstanceInfo instanceInfo = eurekaClient.getNextServerFromEureka(key, false);
             return instanceInfo != null;
@@ -144,7 +155,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-    private Properties getEurekaProperties(DiscoveryConfig config) {
+    private Properties getEurekaProperties(final DiscoveryConfig config) {
         Properties eurekaProperties = new Properties();
         eurekaProperties.setProperty("eureka.client.service-url.defaultZone", config.getServerList());
         eurekaProperties.setProperty("eureka.serviceUrl.default", config.getServerList());
@@ -154,14 +165,14 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
 
     private ApplicationInfoManager initializeApplicationInfoManager(final EurekaInstanceConfig instanceConfig) {
         if (applicationInfoManager == null) {
-            InstanceInfo instanceInfo = new EurekaConfigBasedInstanceInfoProvider(instanceConfig).get();//应用实例信息
+            InstanceInfo instanceInfo = new EurekaConfigBasedInstanceInfoProvider(instanceConfig).get();
             applicationInfoManager = new ApplicationInfoManager(instanceConfig, instanceInfo);
         }
 
         return applicationInfoManager;
     }
 
-    private EurekaClient initializeEurekaClient(ApplicationInfoManager applicationInfoManager, EurekaClientConfig clientConfig) {
+    private EurekaClient initializeEurekaClient(final ApplicationInfoManager applicationInfoManager, final EurekaClientConfig clientConfig) {
         if (eurekaClient == null) {
             eurekaClient = new DiscoveryClient(applicationInfoManager, clientConfig);
         }
@@ -175,7 +186,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
         eurekaHttpClient = null;
     }
 
-    private String buildInstanceInfoJson(InstanceInfo instanceInfo) {
+    private String buildInstanceInfoJson(final InstanceInfo instanceInfo) {
         JSONObject instanceJson = new JSONObject();
         instanceJson.put("url", instanceInfo.getIPAddr() + ":" + instanceInfo.getPort());
         instanceJson.put("status", instanceInfo.getStatus().toString());
