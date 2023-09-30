@@ -46,16 +46,13 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
     private ApplicationInfoManager applicationInfoManager;
     private EurekaClient eurekaClient;
     private EurekaHttpClient eurekaHttpClient;
-
-    private static final ConcurrentMap<String, List<EurekaEventListener>> LISTENER_SERVICE_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, EurekaEventListener> listenerMap = new ConcurrentHashMap<>();
 
     @Override
     public void init(final DiscoveryConfig config) {
         try {
             if (eurekaClient == null) {
-                // 配置 Eureka 服务器地址
                 ConfigurationManager.loadProperties(getEurekaProperties(config));
-                // 初始化 ApplicationInfoManager
                 applicationInfoManager = initializeApplicationInfoManager(new MyDataCenterInstanceConfig());
                 eurekaClient = initializeEurekaClient(applicationInfoManager, new DefaultEurekaClientConfig());
                 eurekaHttpClient = new JerseyApplicationClient(new ApacheHttpClient4(), config.getServerList(), null);
@@ -69,38 +66,32 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void watch(String key, DataChangedEventListener listener) {
-        // 使用Eureka的监听器来监听服务实例变化
+        EurekaEventListener eurekaEventListener = listenerMap.computeIfAbsent(key, k -> createEurekaListener(key, listener));
+        eurekaClient.registerEventListener(eurekaEventListener);
+        try {
+            eurekaClient.registerEventListener(eurekaEventListener);
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
 
-//        eurekaClient.registerEventListener(event -> {
-//            String appName = event.getAppName(); // 获取应用名称
-//            if (key.equals(appName)) { // 检查是否是指定的服务名称
-//                String instanceId = event.getInstanceId(); // 获取服务实例ID
-//                String instanceData = buildInstanceInfoJson(appName, instanceId); // 构建服务实例信息
-//                DiscoveryDataChangedEvent dataChangedEvent;
-//
-//                if (event instanceof StatusChangeEvent) {
-//                    StatusChangeEvent statusChangeEvent = (StatusChangeEvent) event;
-//                    StatusChangeEvent.StatusEventType statusEventType = statusChangeEvent.getStatusEventType();
-//
-//                    if (statusEventType == StatusChangeEvent.StatusEventType.UP) {
-//                        // 服务实例上线
-//                        dataChangedEvent = new DiscoveryDataChangedEvent(key, instanceData, DiscoveryDataChangedEvent.Event.ADDED);
-//                    } else if (statusEventType == StatusChangeEvent.StatusEventType.DOWN) {
-//                        // 服务实例下线
-//                        dataChangedEvent = new DiscoveryDataChangedEvent(key, instanceData, DiscoveryDataChangedEvent.Event.DELETED);
-//                    } else {
-//                        return; // 忽略其他状态事件
-//                    }
-//
-//                    listener.onChange(dataChangedEvent);
-//                }
-//            }
-//        });
+    private EurekaEventListener createEurekaListener(String key, DataChangedEventListener listener) {
+        return event -> {
+        };
     }
 
     @Override
     public void unwatch(String key) {
-
+        try {
+            EurekaEventListener eurekaEventListener = listenerMap.get(key);
+            if (eurekaEventListener != null) {
+                eurekaClient.unregisterEventListener(eurekaEventListener);
+                listenerMap.remove(key);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error removing Eureka service listener: {}", e.getMessage(), e);
+            throw new ShenyuException(e);
+        }
     }
 
     @Override
@@ -122,14 +113,12 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
             List<InstanceInfo> instances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
             List<String> registerDataList = new ArrayList<>();
             for (InstanceInfo instanceInfo : instances) {
-                // 构建服务实例信息的 JSON 字符串
                 String instanceInfoJson = buildInstanceInfoJson(instanceInfo);
-                // 将 JSON 字符串添加到列表
                 registerDataList.add(instanceInfoJson);
             }
             return registerDataList;
         } catch (Exception e) {
-            throw  new ShenyuException(e);
+            throw new ShenyuException(e);
         }
     }
 
@@ -139,7 +128,6 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
             InstanceInfo instanceInfo = eurekaClient.getNextServerFromEureka(key, false);
             return instanceInfo != null;
         } catch (Exception e) {
-            // 处理查询过程中的异常
             throw new ShenyuException(e);
         }
     }
@@ -188,14 +176,11 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
     }
 
     private String buildInstanceInfoJson(InstanceInfo instanceInfo) {
-        // 构建一个包含服务实例信息的 JSON 对象
-        // TODO：具体需要哪些数据？
         JSONObject instanceJson = new JSONObject();
-        instanceJson.put("url", instanceInfo.getIPAddr()+":"+instanceInfo.getPort());
+        instanceJson.put("url", instanceInfo.getIPAddr() + ":" + instanceInfo.getPort());
         instanceJson.put("status", instanceInfo.getStatus().toString());
         instanceJson.put("weight", instanceInfo.getMetadata().get("weight"));
 
-        // 将 JSON 对象转化为字符串
         return instanceJson.toString();
     }
 }

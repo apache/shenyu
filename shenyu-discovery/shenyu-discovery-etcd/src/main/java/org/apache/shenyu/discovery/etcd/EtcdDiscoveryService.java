@@ -45,7 +45,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -107,37 +110,33 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void watch(String key, DataChangedEventListener listener) {
         if (!this.watchCache.containsKey(key)) {
-            System.out.println("start watching");
-            try (Watch watch = etcdClient.getWatchClient()) {
+            try {
+                Watch watch = etcdClient.getWatchClient();
                 WatchOption option = WatchOption.newBuilder().isPrefix(true).build();
                 Watch.Watcher watcher = watch.watch(bytesOf(key), option, Watch.listener(response -> {
-                            for (WatchEvent event : response.getEvents()) {
-                                DiscoveryDataChangedEvent dataChangedEvent;
-                                // 忽略父节点变化
-//                                if (event.getKeyValue().getKey().equals(bytesOf(key))) {
-//                                    System.out.println("被迫return");
-//                                    return;
-//                                }
-                                String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
-                                String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
-                                // TODO 判空，是否有必要？
-                                // TODO 如何区分新增和更新
-                                if (Objects.nonNull(event.getKeyValue()) && Objects.nonNull(value)) {
-                                    switch (event.getEventType()) {
-                                        case PUT:
-                                            dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.UPDATED);
-                                            break;
-                                        case DELETE:
-                                            dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.DELETED);
-                                            break;
-                                        default:
-                                            dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.IGNORED);
-                                    }
-                                    listener.onChange(dataChangedEvent);
-                                }
-                            }
+                    for (WatchEvent event : response.getEvents()) {
+                        DiscoveryDataChangedEvent dataChangedEvent;
+                        // ignore parent node
+                        if (event.getKeyValue().getKey().equals(bytesOf(key))) {
+                            return;
                         }
-                ));
+                        String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
+                        String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
+                        if (Objects.nonNull(event.getKeyValue()) && Objects.nonNull(value)) {
+                            switch (event.getEventType()) {
+                                case PUT:
+                                    dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.UPDATED);
+                                    break;
+                                case DELETE:
+                                    dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.DELETED);
+                                    break;
+                                default:
+                                    dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.IGNORED);
+                            }
+                            listener.onChange(dataChangedEvent);
+                        }
+                    }
+                }));
                 watchCache.put(key, watcher);
             } catch (Exception e) {
                 throw new ShenyuException(e);
@@ -158,7 +157,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
             KV kvClient = etcdClient.getKVClient();
             PutOption putOption = PutOption.newBuilder().withLeaseId(leaseId).build();
             kvClient.put(bytesOf(key), bytesOf(value), putOption).get(timeout, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException | CancellationException e) {
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOGGER.error("etcd client register success(key:{},value:{}) error.", key, value, e);
             throw new ShenyuException(e);
         }
@@ -166,7 +165,6 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public List<String> getRegisterData(String key) {
-        //TODO 将注册中心数据转化成shenyu需要的数据
         try {
             KV kvClient = etcdClient.getKVClient();
             GetOption option = GetOption.newBuilder().isPrefix(true).build();
@@ -187,7 +185,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
             GetOption option = GetOption.newBuilder().isPrefix(true).withCountOnly(true).build();
             GetResponse response = kvClient.get(bytesOf(key), option).get();
             return response.getCount() > 0;
-        } catch (InterruptedException | ExecutionException | CancellationException e) {
+        } catch (InterruptedException | ExecutionException e) {
             throw new ShenyuException(e);
         }
     }
@@ -196,11 +194,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     public void shutdown() {
         if (Objects.nonNull(etcdClient)) {
             this.etcdClient.close();
-            System.out.println("shutdown success!");
-        } else {
-            System.out.println("client is null");
         }
-
     }
 
     private ByteSequence bytesOf(final String val) {

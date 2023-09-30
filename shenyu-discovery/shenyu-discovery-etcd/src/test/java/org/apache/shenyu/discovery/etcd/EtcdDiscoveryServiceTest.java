@@ -1,23 +1,12 @@
 package org.apache.shenyu.discovery.etcd;
 
-import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
-import org.apache.shenyu.spi.ExtensionLoader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Properties;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
-// @Test
-//    public void testDiscoverySPI1() {
-//        ShenyuDiscoveryService zk = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin("etcd");
-//        assertThat(zk.getClass().getName(), is(EtcdDiscoveryService.class.getName()));
-//    }
 
 class TestEventListener implements DataChangedEventListener{
 
@@ -43,13 +32,11 @@ class EtcdDiscoveryServiceTest {
 
     void testInitWithValidConfig() {
 
-
         DiscoveryConfig config = new DiscoveryConfig();
         config.setName("test");
         config.setType("test");
         config.setServerList("http://127.0.0.1:2379");
 
-        // 调用初始化方法
         this.etcdDiscoveryService.init(config);
 
     }
@@ -66,12 +53,12 @@ class EtcdDiscoveryServiceTest {
 
     @Test
     void register() {
-        this.etcdDiscoveryService.register("/shenyu/discovery/service3", "520");
+        this.etcdDiscoveryService.register("/shenyu/discovery/service3", "666");
     }
 
     @Test
     void getRegisterData() {
-        this.etcdDiscoveryService.register("/shenyu/discovery/service3", "520");
+        this.etcdDiscoveryService.register("/shenyu/discovery/service3", "666");
         System.out.println(this.etcdDiscoveryService.getRegisterData("/shenyu/discovery"));
     }
 
