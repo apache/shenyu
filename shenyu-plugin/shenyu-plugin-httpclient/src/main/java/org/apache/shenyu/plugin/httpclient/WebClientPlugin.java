@@ -52,15 +52,18 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
     }
     
     @Override
-    protected Mono<ClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri,
-                                             final HttpHeaders httpHeaders, final Flux<DataBuffer> body) {
+    protected Mono<ClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod,
+                                             final URI uri, final Flux<DataBuffer> body) {
         // springWebflux5.3 mark #exchange() deprecated. because #echange maybe make memory leak.
         // https://github.com/spring-projects/spring-framework/issues/25751
         // exchange is deprecated, so change to {@link WebClient.RequestHeadersSpec#exchangeToMono(Function)}
         return webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
-                .headers(headers -> headers.addAll(httpHeaders))
+                .headers(headers -> {
+                    headers.addAll(exchange.getRequest().getHeaders());
+                    headers.remove(HttpHeaders.HOST);
+                })
                 .body((outputMessage, context) -> {
-                    MediaType mediaType = httpHeaders.getContentType();
+                    MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
                     if (MediaType.TEXT_EVENT_STREAM.isCompatibleWith(mediaType)
                             || MediaType.MULTIPART_MIXED.isCompatibleWith(mediaType)
                             || MediaType.IMAGE_PNG.isCompatibleWith(mediaType)

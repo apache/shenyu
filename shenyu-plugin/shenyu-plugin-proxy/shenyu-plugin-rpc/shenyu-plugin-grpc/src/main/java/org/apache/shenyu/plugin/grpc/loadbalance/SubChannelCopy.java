@@ -32,6 +32,8 @@ public class SubChannelCopy {
 
     private final String status;
 
+    private final String url;
+
     private final LoadBalancer.Subchannel channel;
 
     private final EquivalentAddressGroup addressGroup;
@@ -49,6 +51,7 @@ public class SubChannelCopy {
         this.weight = SubChannels.getWeight(channel);
         this.state = SubChannels.getStateInfo(channel);
         this.status = SubChannels.getStatus(channel);
+        this.url = SubChannels.getUrl(channel);
     }
 
     /**
@@ -96,6 +99,15 @@ public class SubChannelCopy {
         return state;
     }
 
+    /**
+     * url.
+     *
+     * @return Url
+     */
+    public String getUrl() {
+        return url;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -106,11 +118,12 @@ public class SubChannelCopy {
         }
         SubChannelCopy that = (SubChannelCopy) o;
         return weight == that.weight && Objects.equals(status, that.status) && Objects.equals(channel, that.channel)
-                && Objects.equals(addressGroup, that.addressGroup) && Objects.equals(state, that.state);
+                && Objects.equals(addressGroup, that.addressGroup) && Objects.equals(state, that.state)
+                && Objects.equals(url, that.url);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(weight, status, channel, addressGroup, state);
+        return Objects.hash(weight, status, channel, addressGroup, state, url);
     }
 }

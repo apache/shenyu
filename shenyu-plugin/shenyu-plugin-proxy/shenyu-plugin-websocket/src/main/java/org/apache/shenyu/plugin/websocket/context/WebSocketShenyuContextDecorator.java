@@ -32,6 +32,7 @@ public class WebSocketShenyuContextDecorator implements ShenyuContextDecorator {
     public ShenyuContext decorator(final ShenyuContext shenyuContext, final MetaData metaData) {
         String path = shenyuContext.getPath();
         shenyuContext.setMethod(path);
+        shenyuContext.setRealUrl(path);
         shenyuContext.setRpcType(RpcTypeEnum.WEB_SOCKET.getName());
         shenyuContext.setModule(String.format("%s-%s", PluginEnum.WEB_SOCKET.getName(), shenyuContext.getRpcType()));
         return shenyuContext;
