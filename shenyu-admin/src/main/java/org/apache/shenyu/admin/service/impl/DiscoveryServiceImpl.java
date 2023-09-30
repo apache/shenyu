@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.discovery.DiscoveryLevel;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
@@ -33,7 +34,9 @@ import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -42,6 +45,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 
 @Service
 public class DiscoveryServiceImpl implements DiscoveryService {
@@ -81,6 +87,24 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Transactional(rollbackFor = Exception.class)
     public DiscoveryVO createOrUpdate(final DiscoveryDTO discoveryDTO) {
         return StringUtils.isBlank(discoveryDTO.getId()) ? this.create(discoveryDTO) : this.update(discoveryDTO);
+    }
+
+    @Override
+    public void registerDiscoveryConfig(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
+        DiscoveryDTO discoveryDTO = new DiscoveryDTO();
+        discoveryDTO.setName(discoveryConfigRegisterDTO.getName());
+        discoveryDTO.setType(discoveryConfigRegisterDTO.getDiscoveryType());
+        discoveryDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
+        discoveryDTO.setServerList(discoveryConfigRegisterDTO.getServerList());
+        discoveryDTO.setLevel(DiscoveryLevel.PLUGIN.getCode());
+        discoveryDTO.setProps(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())));
+        DiscoveryDO discoveryDO = discoveryMapper.selectByName(discoveryConfigRegisterDTO.getName());
+        if (Objects.nonNull(discoveryDO)) {
+            LOG.warn("shenyu DiscoveryConfigRegisterDTO has been register");
+            return;
+        }
+        this.create(discoveryDTO);
+        LOG.info("shenyu success register DiscoveryConfigRegisterDTO name={}|pluginName={}", discoveryConfigRegisterDTO.getName(), discoveryConfigRegisterDTO.getPluginName());
     }
 
     @Override

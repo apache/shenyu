@@ -85,7 +85,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 .addNotExists("/get")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(ANYTHING)).build())
                 .build();
     }
     
@@ -123,7 +123,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.DELETE, ANYTHING + "/xx/yy")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(ANYTHING + "/xx/yyy")).build())
                 .build();
     }
     
@@ -160,7 +160,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.DELETE, ANYTHING + "/xx/yy")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(ANYTHING + "/xx")).build())
                 .build();
     }
     
@@ -199,7 +199,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 .addVerifier(Method.DELETE, "/status/200", isEmptyOrNullString())
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(ANYTHING + "/200")).build())
                 .build();
     }
     
@@ -243,7 +243,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.GET, "/get")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.GET, ANYTHING)).build())
                 .build();
     }
     
@@ -287,7 +287,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.POST, "/get")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.POST, ANYTHING)).build())
                 .build();
     }
     
@@ -331,7 +331,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/get")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.PUT, ANYTHING)).build())
                 .build();
     }
     
@@ -375,7 +375,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.DELETE, "/get")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.DELETE, ANYTHING)).build())
                 .build();
     }
 }

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.e2e.testcase.alibabadubbo;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
@@ -27,11 +27,6 @@ import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.model.ResourcesData;
-import org.apache.shenyu.e2e.model.data.MetaData;
-import org.apache.shenyu.e2e.model.data.RuleCacheData;
-import org.apache.shenyu.e2e.model.data.SelectorCacheData;
-import org.apache.shenyu.e2e.model.response.MetaDataDTO;
-import org.apache.shenyu.e2e.model.response.RuleDTO;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -76,18 +71,14 @@ public class AlibabaDubboPluginTest {
     private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeAll
-    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
+    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        Thread.sleep(10000);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
+        adminClient.syncPluginAll();
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
-        Assertions.assertEquals(selectorDTOList.size(), selectorCacheList.size());
-        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
-        List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
-        Assertions.assertEquals(metaDataDTOList.size(), metaDataCacheList.size());
-        List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        List<RuleDTO> ruleDTOList = adminClient.listAllRules();
-        Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
         for (SelectorDTO selectorDTO :selectorDTOList) {
             if (selectorDTO.getHandle() != null && !selectorDTO.getHandle().equals("")) {
                 AlibabaDubboPluginCases.verifierUri(selectorDTO.getHandle());
@@ -102,6 +93,7 @@ public class AlibabaDubboPluginTest {
         formData.add("sort", "310");
         formData.add("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\",\"threadpool\":\"shared\",\"threads\":2147483647,\"register\":\"zookeeper://zookeeper:2181\"}");
         adminClient.changePluginStatus("6", formData);
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.alibaba.dubbo.AlibabaDubboPlugin");
         adminClient.deleteAllSelectors();
         selectorDTOList = adminClient.listAllSelectors();
         Assertions.assertEquals(0, selectorDTOList.size());
@@ -133,7 +125,7 @@ public class AlibabaDubboPluginTest {
     @AfterEach
     void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
         spec.getDeleter().delete(client, selectorIds);
-        spec.getPostChecker().check(gateway);
+        spec.deleteWaiting().waitFor(gateway);
         selectorIds = Lists.newArrayList();
     }
 
