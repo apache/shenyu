@@ -312,6 +312,12 @@
             <artifactId>shenyu-discovery-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-discovery-etcd</artifactId>
+            <version>2.6.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <profiles>

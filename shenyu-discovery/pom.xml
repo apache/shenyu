@@ -32,7 +32,6 @@
         <module>shenyu-discovery-etcd</module>
         <module>shenyu-discovery-nacos</module>
         <module>shenyu-discovery-eureka</module>
-        <module>shenyu-discovery-test</module>
     </modules>
 
 </project>

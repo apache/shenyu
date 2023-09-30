@@ -18,7 +18,11 @@
 package org.apache.shenyu.discovery.etcd;
 
 
-import io.etcd.jetcd.*;
+import io.etcd.jetcd.ByteSequence;
+import io.etcd.jetcd.Client;
+import io.etcd.jetcd.Lease;
+import io.etcd.jetcd.KV;
+import io.etcd.jetcd.Watch;
 
 import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
@@ -75,8 +79,9 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
     }
 
-    private void initLease(){
-        try(Lease lease = etcdClient.getLeaseClient()){
+    private void initLease() {
+        try (Lease lease = etcdClient.getLeaseClient()) {
+            System.out.println("here");
             this.leaseId = lease.grant(ttl).get().getID();
             lease.keepAlive(leaseId, new StreamObserver<LeaseKeepAliveResponse>() {
                 @Override
@@ -99,19 +104,20 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     }
 
 
-
     @Override
     public void watch(String key, DataChangedEventListener listener) {
         if (!this.watchCache.containsKey(key)) {
+            System.out.println("start watching");
             try (Watch watch = etcdClient.getWatchClient()) {
                 WatchOption option = WatchOption.newBuilder().isPrefix(true).build();
                 Watch.Watcher watcher = watch.watch(bytesOf(key), option, Watch.listener(response -> {
                             for (WatchEvent event : response.getEvents()) {
                                 DiscoveryDataChangedEvent dataChangedEvent;
                                 // 忽略父节点变化
-                                if (event.getKeyValue().getKey().equals(bytesOf(key))) {
-                                    return;
-                                }
+//                                if (event.getKeyValue().getKey().equals(bytesOf(key))) {
+//                                    System.out.println("被迫return");
+//                                    return;
+//                                }
                                 String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
                                 String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
                                 // TODO 判空，是否有必要？
@@ -119,7 +125,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
                                 if (Objects.nonNull(event.getKeyValue()) && Objects.nonNull(value)) {
                                     switch (event.getEventType()) {
                                         case PUT:
-                                            dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.ADDED);
+                                            dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.UPDATED);
                                             break;
                                         case DELETE:
                                             dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.DELETED);
@@ -178,9 +184,9 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     public Boolean exists(String key) {
         try {
             KV kvClient = etcdClient.getKVClient();
-            GetOption option = GetOption.newBuilder().withCountOnly(true).build();
+            GetOption option = GetOption.newBuilder().isPrefix(true).withCountOnly(true).build();
             GetResponse response = kvClient.get(bytesOf(key), option).get();
-            return response.getCount() == 1;
+            return response.getCount() > 0;
         } catch (InterruptedException | ExecutionException | CancellationException e) {
             throw new ShenyuException(e);
         }
@@ -190,7 +196,11 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     public void shutdown() {
         if (Objects.nonNull(etcdClient)) {
             this.etcdClient.close();
+            System.out.println("shutdown success!");
+        } else {
+            System.out.println("client is null");
         }
+
     }
 
     private ByteSequence bytesOf(final String val) {
