@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Testing the correctness of etcd data synchronization method.
  */
+/**
 @ShenYuTest(
         mode = ShenYuEngineConfigure.Mode.DOCKER,
         services = {
@@ -52,6 +53,27 @@ import org.junit.jupiter.api.Test;
         },
         dockerComposeFile = "classpath:./docker-compose.mysql.yml"
 )
+*/
+@ShenYuE2ETest(environments = {
+        @ShenYuE2ETest.Environment(
+                serviceName = "shenyu-e2e-admin",
+                service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31095",
+                        type = ServiceTypeEnum.SHENYU_ADMIN,
+                        parameters = {
+                                @ShenYuE2ETest.Parameter(key = "username", value = "admin"),
+                                @ShenYuE2ETest.Parameter(key = "password", value = "123456")
+                        }
+                )
+        ),
+        @ShenYuE2ETest.Environment(
+                serviceName = "shenyu-e2e-gateway",
+                service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31195",
+                        type = ServiceTypeEnum.SHENYU_GATEWAY
+                )
+        )
+})
 public class DataSynEtcdTest {
     @Test
     void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
