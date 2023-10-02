@@ -26,12 +26,11 @@ curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
 echo "$PRGDIR"
 kubectl apply -f "${PRGDIR}"/shenyu-examples-eureka.yml
-
 sleep 20s
-
 kubectl apply -f "${PRGDIR}"/shenyu-cm.yml
 kubectl apply -f "${PRGDIR}"/shenyu-admin-websocket.yml
 kubectl apply -f "${PRGDIR}"/shenyu-bootstrap-websocket.yml
+kubectl apply -f "${PRGDIR}"/shenyu-examples-springcloud.yml
 
 kubectl get pod -o wide
 
