@@ -21,15 +21,18 @@ shenyuTestCaseDir=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 echo "$shenyuTestCaseDir"
 bash "$shenyuTestCaseDir"/k8s/script/init/mysql_container_init.sh
 
-# init register center
-kubectl apply -f ./shenyu-examples/shenyu-examples-eureka/k8s/shenyu-examples-eureka.yml
-sleep 20s
-
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
 echo "$PRGDIR"
 kubectl apply -f "${PRGDIR}"/shenyu-cm.yml
 kubectl apply -f "${PRGDIR}"/shenyu-admin-websocket.yml
+sleep 20s
+
+# init register center
+kubectl apply -f ./shenyu-examples/shenyu-examples-eureka/k8s/shenyu-examples-eureka.yml
+sleep 20s
+
+# init shenyu
 kubectl apply -f "${PRGDIR}"/shenyu-bootstrap-websocket.yml
 
 kubectl get pod -o wide
