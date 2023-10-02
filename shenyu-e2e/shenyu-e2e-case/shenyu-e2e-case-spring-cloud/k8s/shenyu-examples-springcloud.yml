@@ -32,7 +32,7 @@ spec:
         app: shenyu-examples-springcloud
     spec:
       containers:
-        - image: shenyu-examples-springcloud
+        - image: shenyu-examples-springcloud:latest
           name: shenyu-examples-springcloud
           livenessProbe:
             exec:

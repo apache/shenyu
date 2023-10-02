@@ -16,6 +16,8 @@
 # limitations under the License.
 #
 
+docker save shenyu-examples-eureka:latest shenyu-examples-springcloud:latest | sudo k3s ctr images import -
+
 # init kubernetes for mysql
 shenyuTestCaseDir=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 echo "$shenyuTestCaseDir"

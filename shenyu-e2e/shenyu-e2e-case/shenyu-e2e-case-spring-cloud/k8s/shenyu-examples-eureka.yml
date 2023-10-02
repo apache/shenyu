@@ -32,7 +32,7 @@ spec:
         app: shenyu-examples-eureka
     spec:
       containers:
-        - image: shenyu-examples-eureka
+        - image: shenyu-examples-eureka:latest
           name: shenyu-examples-eureka
           livenessProbe:
             httpGet:
