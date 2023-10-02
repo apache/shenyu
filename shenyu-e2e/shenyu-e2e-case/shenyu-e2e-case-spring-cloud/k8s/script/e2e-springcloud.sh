@@ -21,6 +21,10 @@ shenyuTestCaseDir=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 echo "$shenyuTestCaseDir"
 bash "$shenyuTestCaseDir"/k8s/script/init/mysql_container_init.sh
 
+# init register center
+kubectl apply -f ./shenyu-examples/shenyu-examples-eureka/k8s/shenyu-examples-eureka.yml
+sleep 20s
+
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
 echo "$PRGDIR"

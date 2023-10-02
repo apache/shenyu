@@ -240,6 +240,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-e2e-maven-
 
+      - name: Build examples with Maven
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+
       - uses: actions/download-artifact@v3
         with:
           name: shenyu-images
@@ -251,11 +254,11 @@ jobs:
           sudo k3s ctr images import /tmp/apache-shenyu-admin.tar
           sudo k3s ctr images import /tmp/apache-shenyu-bootstrap.tar
 
-      - name: Setup Debug Session
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 15
-        with:
-          detached: true
+#      - name: Setup Debug Session
+#        uses: mxschmitt/action-tmate@v3
+#        timeout-minutes: 15
+#        with:
+#          detached: true
 
       - name: Run E2E Tests
         if: steps.filter.outputs.changed == 'true'
