@@ -17,7 +17,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shenyu-examples-springcloud-deployment
+  name: shenyu-examples-springcloud
   labels:
     app: shenyu-examples-springcloud
 spec:
@@ -56,7 +56,7 @@ status: {}
 apiVersion: v1
 kind: Service
 metadata:
-  name: shenyu-examples-springcloud-service
+  name: shenyu-examples-springcloud
   labels:
     app: shenyu-examples-springcloud
 spec:

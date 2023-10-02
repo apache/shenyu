@@ -17,7 +17,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shenyu-examples-eureka-deployment
+  name: shenyu-examples-eureka
   labels:
     app: shenyu-examples-eureka
 spec:
@@ -28,7 +28,6 @@ spec:
   strategy: {}
   template:
     metadata:
-      namespace: shenyu-ingress
       labels:
         app: shenyu-examples-eureka
     spec:
@@ -36,12 +35,17 @@ spec:
         - image: shenyu-examples-eureka
           name: shenyu-examples-eureka
           livenessProbe:
-            exec:
-              command:
-                - wget -q -O - http://localhost:8885/actuator/health | grep UP || exit 1
-            initialDelaySeconds: 10
+            httpGet:
+              port: 8761
+              path: /actuator/health
+#            exec:
+#              command:
+#                - wget -q -O - http://localhost:8761/actuator/health | grep UP || exit 1
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
             failureThreshold: 3
-            timeoutSeconds: 2
           env:
             - name: eureka.instance.client.serviceUrl.defaultZone
               value: http://shenyu-examples-eureka:8761
