@@ -17,37 +17,36 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shenyu-examples-springcloud-deployment
+  name: shenyu-examples-eureka-deployment
   labels:
-    app: shenyu-examples-springcloud
+    app: shenyu-examples-eureka
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: shenyu-examples-springcloud
+      app: shenyu-examples-eureka
   strategy: {}
   template:
     metadata:
+      namespace: shenyu-ingress
       labels:
-        app: shenyu-examples-springcloud
+        app: shenyu-examples-eureka
     spec:
       containers:
-        - image: shenyu-examples-springcloud
-          name: shenyu-examples-springcloud
+        - image: shenyu-examples-eureka
+          name: shenyu-examples-eureka
           livenessProbe:
             exec:
               command:
-                - wget -q -O - http://localhost:8884/actuator/health | grep UP || exit 1
+                - wget -q -O - http://localhost:8885/actuator/health | grep UP || exit 1
             initialDelaySeconds: 10
             failureThreshold: 3
             timeoutSeconds: 2
           env:
-            - name: shenyu.register.serverLists
-              value: http://shenyu-admin:9095
-            - name: eureka.client.serviceUrl.defaultZone
-              value: http://shenyu-examples-eureka:8761/eureka/
+            - name: eureka.instance.client.serviceUrl.defaultZone
+              value: http://shenyu-examples-eureka:8761
           ports:
-            - containerPort: 8884
+            - containerPort: 8761
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
 status: {}
@@ -56,17 +55,11 @@ status: {}
 apiVersion: v1
 kind: Service
 metadata:
-  name: shenyu-examples-springcloud-service
-  labels:
-    app: shenyu-examples-springcloud
+  name: shenyu-examples-eureka
 spec:
   selector:
-    app: shenyu-examples-springcloud
-  type: NodePort
+    app: shenyu-examples-eureka
   ports:
-    - name: "8884"
-      port: 8884
-      targetPort: 8884
-      nodePort: 31192
-status:
-  loadBalancer: {}
+    - protocol: TCP
+      port: 8761
+
