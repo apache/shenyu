@@ -20,7 +20,6 @@ metadata:
   name: shenyu-examples-springcloud-deployment
   labels:
     app: shenyu-examples-springcloud
-    all: shenyu-examples-springcloud
 spec:
   replicas: 1
   selector:
