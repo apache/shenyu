@@ -22,37 +22,59 @@ import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
+import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.apache.shenyu.e2e.k8s.engine.annotation.ShenYuE2ETest;
 import org.junit.jupiter.api.Test;
 
 /**
  * Testing the correctness of Apollo data synchronization method.
  */
-@ShenYuTest(
-        mode = ShenYuEngineConfigure.Mode.DOCKER,
-        services = {
-                @ShenYuTest.ServiceConfigure(
-                        serviceName = "admin",
-                        port = 9095,
-                        baseUrl = "http://{hostname:localhost}:9095",
+//@ShenYuTest(
+//        mode = ShenYuEngineConfigure.Mode.DOCKER,
+//        services = {
+//                @ShenYuTest.ServiceConfigure(
+//                        serviceName = "admin",
+//                        port = 9095,
+//                        baseUrl = "http://{hostname:localhost}:9095",
+//                        parameters = {
+//                                @ShenYuTest.Parameter(key = "username", value = "admin"),
+//                                @ShenYuTest.Parameter(key = "password", value = "123456"),
+//                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
+//                        }
+//                ),
+//                @ShenYuTest.ServiceConfigure(
+//                        serviceName = "gateway",
+//                        port = 9195,
+//                        baseUrl = "http://{hostname:localhost}:9195",
+//                        type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
+//                        parameters = {
+//                                @ShenYuTest.Parameter(key = "application", value = "spring.cloud.discovery.enabled:true,eureka.client.enabled:true"),
+//                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
+//                        }
+//                )
+//        },
+//        dockerComposeFile = "classpath:./docker-compose.mysql.yml"
+//)
+@ShenYuE2ETest(environments = {
+        @ShenYuE2ETest.Environment(
+                serviceName = "shenyu-e2e-admin",
+                service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31095",
+                        type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
-                                @ShenYuTest.Parameter(key = "username", value = "admin"),
-                                @ShenYuTest.Parameter(key = "password", value = "123456"),
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
-                        }
-                ),
-                @ShenYuTest.ServiceConfigure(
-                        serviceName = "gateway",
-                        port = 9195,
-                        baseUrl = "http://{hostname:localhost}:9195",
-                        type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
-                        parameters = {
-                                @ShenYuTest.Parameter(key = "application", value = "spring.cloud.discovery.enabled:true,eureka.client.enabled:true"),
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
+                                @ShenYuE2ETest.Parameter(key = "username", value = "admin"),
+                                @ShenYuE2ETest.Parameter(key = "password", value = "123456")
                         }
                 )
-        },
-        dockerComposeFile = "classpath:./docker-compose.mysql.yml"
-)
+        ),
+        @ShenYuE2ETest.Environment(
+                serviceName = "shenyu-e2e-gateway",
+                service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31195",
+                        type = ServiceTypeEnum.SHENYU_GATEWAY
+                )
+        )
+})
 public class DataSynZookeeperTest {
 
     @Test

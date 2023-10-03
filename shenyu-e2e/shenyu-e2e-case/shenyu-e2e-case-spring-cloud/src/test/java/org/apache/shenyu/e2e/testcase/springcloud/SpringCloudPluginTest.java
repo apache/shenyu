@@ -26,6 +26,8 @@ import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
 import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
+import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.apache.shenyu.e2e.k8s.engine.annotation.ShenYuE2ETest;
 import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.AfterAll;
@@ -42,23 +44,43 @@ import java.util.List;
 /**
  * Testing spring-cloud plugin.
  */
-@ShenYuTest(
-        mode = ShenYuEngineConfigure.Mode.DOCKER,
-        services = {
-                @ShenYuTest.ServiceConfigure(
-                        serviceName = "admin",
-                        port = 9095,
-                        baseUrl = "http://{hostname:localhost}:9095",
+//@ShenYuTest(
+//        mode = ShenYuEngineConfigure.Mode.DOCKER,
+//        services = {
+//                @ShenYuTest.ServiceConfigure(
+//                        serviceName = "admin",
+//                        port = 9095,
+//                        baseUrl = "http://{hostname:localhost}:9095",
+//                        parameters = {
+//                                @ShenYuTest.Parameter(key = "username", value = "admin"),
+//                                @ShenYuTest.Parameter(key = "password", value = "123456"),
+//                                @ShenYuTest.Parameter(key = "dataSyn", value = "admin_websocket")
+//                        }
+//                ),
+//                @ShenYuTest.ServiceConfigure(
+//                        serviceName = "gateway",
+//                        port = 9195,
+//                        baseUrl = "http://{hostname:localhost}:9195", type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY, parameters = {@ShenYuTest.Parameter(key = "application", value = "spring.cloud.discovery.enabled:true,eureka.client.enabled:true"), @ShenYuTest.Parameter(key = "dataSyn", value = "gateway_websocket")})}, dockerComposeFile = "classpath:./docker-compose.mysql.yml")
+@ShenYuE2ETest(environments = {
+        @ShenYuE2ETest.Environment(
+                serviceName = "shenyu-e2e-admin",
+                service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31095",
+                        type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
-                                @ShenYuTest.Parameter(key = "username", value = "admin"),
-                                @ShenYuTest.Parameter(key = "password", value = "123456"),
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "admin_websocket")
+                                @ShenYuE2ETest.Parameter(key = "username", value = "admin"),
+                                @ShenYuE2ETest.Parameter(key = "password", value = "123456")
                         }
-                ),
-                @ShenYuTest.ServiceConfigure(
-                        serviceName = "gateway",
-                        port = 9195,
-                        baseUrl = "http://{hostname:localhost}:9195", type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY, parameters = {@ShenYuTest.Parameter(key = "application", value = "spring.cloud.discovery.enabled:true,eureka.client.enabled:true"), @ShenYuTest.Parameter(key = "dataSyn", value = "gateway_websocket")})}, dockerComposeFile = "classpath:./docker-compose.mysql.yml")
+                )
+        ),
+        @ShenYuE2ETest.Environment(
+                serviceName = "shenyu-e2e-gateway",
+                service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31195",
+                        type = ServiceTypeEnum.SHENYU_GATEWAY
+                )
+        )
+})
 public class SpringCloudPluginTest {
     
     private List<String> selectorIds = Lists.newArrayList();
