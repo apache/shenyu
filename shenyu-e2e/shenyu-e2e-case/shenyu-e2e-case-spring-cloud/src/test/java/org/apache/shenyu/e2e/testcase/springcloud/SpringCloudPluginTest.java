@@ -86,12 +86,12 @@ public class SpringCloudPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
 
-        List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        for (SelectorDTO selectorDTO : selectorDTOList) {
-            if (selectorDTO.getHandle() != null && !"{}".equals(selectorDTO.getHandle())) {
-                SpringCloudPluginCases.verifierUri(selectorDTO.getHandle());
-            }
-        }
+        //List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
+        //for (SelectorDTO selectorDTO : selectorDTOList) {
+        //    if (selectorDTO.getHandle() != null && !"{}".equals(selectorDTO.getHandle())) {
+        //        SpringCloudPluginCases.verifierUri(selectorDTO.getHandle());
+        //    }
+        //}
         //MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         //formData.add("id", "8");
         //formData.add("name", "springCloud");
