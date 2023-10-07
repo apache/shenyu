@@ -29,6 +29,8 @@ import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import java.util.List;
@@ -92,13 +94,13 @@ public class SpringCloudPluginTest {
         //        SpringCloudPluginCases.verifierUri(selectorDTO.getHandle());
         //    }
         //}
-        //MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        //formData.add("id", "8");
-        //formData.add("name", "springCloud");
-        //formData.add("enabled", "true");
-        //formData.add("role", "Proxy");
-        //formData.add("sort", "200");
-        //adminClient.changePluginStatus("8", formData);
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("id", "8");
+        formData.add("name", "springCloud");
+        formData.add("enabled", "true");
+        formData.add("role", "Proxy");
+        formData.add("sort", "200");
+        adminClient.changePluginStatus("8", formData);
         //String id = "";
         //for (SelectorDTO selectorDTO : selectorDTOList) {
         //    if (!"".equals(selectorDTO.getHandle())) {

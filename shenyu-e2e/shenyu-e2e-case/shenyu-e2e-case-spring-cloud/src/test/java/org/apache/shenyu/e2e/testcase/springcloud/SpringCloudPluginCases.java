@@ -73,7 +73,7 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
     
     private ShenYuScenarioSpec testSpringCloud() {
         return ShenYuScenarioSpec.builder()
-                .name("single-spring-cloud uri =]")
+                .name("sping-cloud order test")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()
                         .checker(exists("/springcloud/order/path/123/hahah"))
                         .build())
