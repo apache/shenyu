@@ -22,9 +22,11 @@ import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * ShenyuClientPathController.
@@ -45,8 +47,9 @@ public class ShenyuClientPathController {
     @RequestMapping("shenyu/client/hello")
     @ShenyuSpringMvcClient("shenyu/client/hello")
     @ApiDoc(desc = "shenyu/client/hello")
-    public String hello() {
-        return "hello! " + HELLO_SUFFIX;
+    public String hello(final ServerWebExchange exchange) {
+        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+        return null;
     }
 
     /**
