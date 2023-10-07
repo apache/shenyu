@@ -29,7 +29,7 @@ spec:
   template:
     metadata:
       labels:
-        app: zookeeper
+        app: shenyu-zookeeper
     spec:
       containers:
         - image: zookeeper:latest
