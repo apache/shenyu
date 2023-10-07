@@ -53,7 +53,7 @@ do
     ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test -T1C
     # shellcheck disable=SC2181
     if (( $? )); then
-        echo "${sync}-e2e-test failed"
+        echo "${sync}-sync-e2e-test failed"
         exit 1
     fi
     kubectl delete -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
