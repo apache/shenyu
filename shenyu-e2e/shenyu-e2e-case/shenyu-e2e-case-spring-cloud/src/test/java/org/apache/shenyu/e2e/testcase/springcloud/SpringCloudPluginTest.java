@@ -135,7 +135,7 @@ public class SpringCloudPluginTest {
     }
 
     @ShenYuScenario(provider = SpringCloudPluginCases.class)
-    public void testSpringCloud(final GatewayClient gateway, final CaseSpec spec) {
+    void testSpringCloud(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 
