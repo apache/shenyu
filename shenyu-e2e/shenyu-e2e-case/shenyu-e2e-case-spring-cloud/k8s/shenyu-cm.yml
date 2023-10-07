@@ -504,7 +504,7 @@ data:
     shenyu:
       sync:
         http:
-          url: http://localhost:31095
+          url: http://shenyu-admin:9095
           username: admin
           password: 123456
 

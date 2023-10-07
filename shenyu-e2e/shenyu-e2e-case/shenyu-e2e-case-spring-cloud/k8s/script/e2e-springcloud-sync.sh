@@ -30,7 +30,7 @@ echo "$PRGDIR"
 kubectl apply -f "${PRGDIR}"/shenyu-examples-eureka.yml
 kubectl apply -f "${PRGDIR}"/shenyu-cm.yml
 sleep 10s
-
+./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test-compile -T1C
 # init shenyu sync
 syncArray=("websocket" "http" "zookeeper" "etcd")
 middlewareSyncArray=("zookeeper" "etcd")
@@ -44,13 +44,14 @@ do
         sleep 10s
     fi
     kubectl apply -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
+    sleep 10s
     kubectl apply -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
     kubectl apply -f "${PRGDIR}"/shenyu-examples-springcloud.yml
-    sleep 60s
+    sleep 50s
     kubectl get pod -o wide
     sh "${curPath}"/healthcheck.sh mysql http://localhost:31095/actuator/health http://localhost:31195/actuator/health
     ## run e2e-test
-    ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test -T1C
+    ./mvnw shenyu-e2e-case/shenyu-e2e-case-spring-cloud test
     # shellcheck disable=SC2181
     if (( $? )); then
         echo "${sync}-sync-e2e-test failed"
