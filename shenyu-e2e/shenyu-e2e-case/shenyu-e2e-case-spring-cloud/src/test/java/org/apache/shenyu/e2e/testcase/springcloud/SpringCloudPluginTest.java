@@ -138,23 +138,23 @@ public class SpringCloudPluginTest {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 
-    @AfterEach
-    public void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
-        spec.getDeleter().delete(client, selectorIds);
-        spec.deleteWaiting().waitFor(gateway);
-        selectorIds = Lists.newArrayList();
-    }
-
-    @AfterAll
-    public static void teardown(final AdminClient client) {
-        client.deleteAllSelectors();
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "8");
-        formData.add("name", "springCloud");
-        formData.add("enabled", "false");
-        formData.add("role", "Proxy");
-        formData.add("sort", "200");
-        client.changePluginStatus("8", formData);
-    }
+    //@AfterEach
+    //public void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
+    //    spec.getDeleter().delete(client, selectorIds);
+    //    spec.deleteWaiting().waitFor(gateway);
+    //    selectorIds = Lists.newArrayList();
+    //}
+    //
+    //@AfterAll
+    //public static void teardown(final AdminClient client) {
+    //    client.deleteAllSelectors();
+    //    MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+    //    formData.add("id", "8");
+    //    formData.add("name", "springCloud");
+    //    formData.add("enabled", "false");
+    //    formData.add("role", "Proxy");
+    //    formData.add("sort", "200");
+    //    client.changePluginStatus("8", formData);
+    //}
 }
 
