@@ -33,6 +33,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.testcontainers.shaded.com.google.common.collect.Lists;
@@ -60,6 +62,8 @@ import java.util.List;
                         port = 9195,
                         baseUrl = "http://{hostname:localhost}:9195", type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY, parameters = {@ShenYuTest.Parameter(key = "application", value = "spring.cloud.discovery.enabled:true,eureka.client.enabled:true"), @ShenYuTest.Parameter(key = "dataSyn", value = "gateway_websocket")})}, dockerComposeFile = "classpath:./docker-compose.mysql.yml")
 public class SpringCloudPluginTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SpringCloudPluginTest.class);
     
     private List<String> selectorIds = Lists.newArrayList();
     
@@ -75,6 +79,7 @@ public class SpringCloudPluginTest {
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         for (SelectorDTO selectorDTO : selectorDTOList) {
             if (selectorDTO.getHandle() != null && !selectorDTO.getHandle().isEmpty() && !"{}".equals(selectorDTO.getHandle())) {
+                LOGGER.warn("SpringCloudPluginTest setup selectorDTO handle = {}", selectorDTO.getHandle());
                 SpringCloudPluginCases.verifierUri(selectorDTO.getHandle());
             }
         }
