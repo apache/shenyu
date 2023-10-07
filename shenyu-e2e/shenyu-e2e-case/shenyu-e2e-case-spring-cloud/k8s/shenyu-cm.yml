@@ -468,7 +468,7 @@ data:
     shenyu:
       sync:
         zookeeper:
-          url: localhost:2181
+          url: shenyu-zookeeper:2181
           sessionTimeout: 5000
           connectionTimeout: 2000
 
@@ -476,13 +476,13 @@ data:
     shenyu:
       sync:
         etcd:
-          url: http://localhost:2379
+          url: http://shenyu-etcd:2379
 
-  application-admin-sync-nacos.yaml: |
+  application-admin-sync-nacos.yml: |
     shenyu:
       sync:
         nacos:
-          url: localhost:8848
+          url: shenyu-nacos:8848
           namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
           username:
           password:
@@ -500,7 +500,7 @@ data:
           urls: ws://shenyu-admin:9095/websocket
           allowOrigin: ws://localhost:9195
 
-  application-boostrap-sync-http.yml: |
+  application-bootstrap-sync-http.yml: |
     shenyu:
       sync:
         http:
@@ -508,11 +508,11 @@ data:
           username: admin
           password: 123456
 
-  application-boostrap-sync-zookeeper.yml: |
+  application-bootstrap-sync-zookeeper.yml: |
     shenyu:
       sync:
         zookeeper:
-          url: localhost:2181
+          url: shenyu-zookeeper:2181
           sessionTimeout: 5000
           connectionTimeout: 2000
 
@@ -520,13 +520,13 @@ data:
     shenyu:
       sync:
         etcd:
-          url: http://localhost:2379
+          url: http://shenyu-etcd:2379
 
-  application-bootstrap-sync-nacos.yaml: |
+  application-bootstrap-sync-nacos.yml: |
     shenyu:
       sync:
         nacos:
-          url: localhost:8848
+          url: shenyu-nacos:8848
           namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
           username:
           password:

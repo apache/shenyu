@@ -196,7 +196,7 @@ jobs:
       matrix:
         include:
           - case: shenyu-e2e-case-spring-cloud
-            script: e2e-springcloud
+            script: e2e-springcloud-sync
     if: (github.repository == 'moremind/shenyu')
     steps:
       - uses: actions/checkout@v2
@@ -241,7 +241,7 @@ jobs:
             ${{ runner.os }}-e2e-maven-
 
       - name: Build examples with Maven
-        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml -T1C
 
       - uses: actions/download-artifact@v3
         with:

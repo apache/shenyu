@@ -40,7 +40,7 @@ spec:
             - name: 'TZ'
               value: 'Asia/Beijing'
             - name: SPRING_PROFILES_ACTIVE
-              value: mysql, admin-sync-etcd
+              value: mysql, admin-sync-nacos
           volumeMounts:
             - name: mysql-connector-volume
               mountPath: /opt/shenyu-admin/ext-lib
@@ -50,9 +50,9 @@ spec:
             - name: shenyu-admin-application-mysql
               mountPath: /opt/shenyu-admin/conf/application-mysql.yml
               subPath: shenyu-admin-application-mysql.yml
-            - name: shenyu-admin-sync-etcd
-              mountPath: /opt/shenyu-admin/conf/application-admin-sync-etcd.yml
-              subPath: application-admin-sync-etcd.yml
+            - name: shenyu-admin-sync-nacos
+              mountPath: /opt/shenyu-admin/conf/application-admin-sync-nacos.yml
+              subPath: application-admin-sync-nacos.yml
       restartPolicy: Always
       volumes:
         - name: mysql-connector-volume
@@ -62,20 +62,20 @@ spec:
           configMap:
             name: shenyu-configmap
             items:
-              - key: shenyu-admin-application.yml
-                path: shenyu-admin-application.yml
+               - key: shenyu-admin-application.yml
+                 path: shenyu-admin-application.yml
         - name: shenyu-admin-application-mysql
           configMap:
-            name: shenyu-configmap
-            items:
-              - key: shenyu-admin-application-mysql.yml
-                path: shenyu-admin-application-mysql.yml
-        - name: shenyu-admin-sync-etcd
+              name: shenyu-configmap
+              items:
+                - key: shenyu-admin-application-mysql.yml
+                  path: shenyu-admin-application-mysql.yml
+        - name: shenyu-admin-sync-nacos
           configMap:
             name: shenyu-configmap
             items:
-              - key: application-admin-sync-etcd.yml
-                path: application-admin-sync-etcd.yml
+              - key: application-admin-sync-nacos.yml
+                path: application-admin-sync-nacos.yml
 ---
 apiVersion: v1
 kind: Service

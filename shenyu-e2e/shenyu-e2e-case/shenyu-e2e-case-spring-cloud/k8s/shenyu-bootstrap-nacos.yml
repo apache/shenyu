@@ -38,14 +38,14 @@ spec:
             - name: TZ
               value: Asia/Beijing
             - name: SPRING_PROFILES_ACTIVE
-              value: bootstrap-sync-zookeeper
+              value: bootstrap-sync-nacos
           volumeMounts:
             - name: shenyu-bootstrap-application
               mountPath: /opt/shenyu-bootstrap/conf/application.yml
               subPath: shenyu-bootstrap-application.yml
-            - name: shenyu-bootstrap-sync-zookeeper
-              mountPath: /opt/shenyu-bootstrap/conf/application-bootstrap-sync-zookeeper.yml
-              subPath: application-bootstrap-sync-zookeeper.yml
+            - name: shenyu-bootstrap-sync-nacos
+              mountPath: /opt/shenyu-bootstrap/conf/application-bootstrap-sync-nacos.yml
+              subPath: application-bootstrap-sync-nacos.yml
       volumes:
         - name: shenyu-bootstrap-application
           configMap:
@@ -53,12 +53,12 @@ spec:
             items:
               - key: shenyu-bootstrap-application.yml
                 path: shenyu-bootstrap-application.yml
-        - name: shenyu-bootstrap-sync-zookeeper
+        - name: shenyu-bootstrap-sync-nacos
           configMap:
             name: shenyu-configmap
             items:
-              - key: application-bootstrap-sync-zookeeper.yml
-                path: application-bootstrap-sync-zookeeper.yml
+              - key: application-bootstrap-sync-nacos.yml
+                path: application-bootstrap-sync-nacos.yml
 
 ---
 apiVersion: v1
