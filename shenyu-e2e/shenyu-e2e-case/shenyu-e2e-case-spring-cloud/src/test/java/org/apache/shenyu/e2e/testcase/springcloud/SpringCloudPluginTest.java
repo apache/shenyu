@@ -74,7 +74,7 @@ public class SpringCloudPluginTest {
 
         List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         for (SelectorDTO selectorDTO : selectorDTOList) {
-            if (selectorDTO.getHandle() != null && !"{}".equals(selectorDTO.getHandle())) {
+            if (selectorDTO.getHandle() != null && !selectorDTO.getHandle().isEmpty() && !"{}".equals(selectorDTO.getHandle())) {
                 SpringCloudPluginCases.verifierUri(selectorDTO.getHandle());
             }
         }
