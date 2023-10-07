@@ -51,7 +51,7 @@ do
     kubectl get pod -o wide
     sh "${curPath}"/healthcheck.sh mysql http://localhost:31095/actuator/health http://localhost:31195/actuator/health
     ## run e2e-test
-    ./mvnw shenyu-e2e-case/shenyu-e2e-case-spring-cloud test
+    ./mvnw -B -f ./shenyu-e2e/pom.xml shenyu-e2e-case/shenyu-e2e-case-spring-cloud test
     # shellcheck disable=SC2181
     if (( $? )); then
         echo "${sync}-sync-e2e-test failed"
