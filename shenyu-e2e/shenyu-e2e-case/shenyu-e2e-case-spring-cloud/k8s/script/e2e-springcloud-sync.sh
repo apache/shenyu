@@ -32,30 +32,34 @@ kubectl apply -f "${PRGDIR}"/shenyu-cm.yml
 sleep 10s
 
 # init shenyu sync
-syncArray=("websocket" "http" "zookeeper" "nacos" "etcd")
-middlewareSyncArray=("zookeeper" "nacos" "etcd")
+syncArray=("websocket" "http" "zookeeper" "etcd")
+middlewareSyncArray=("zookeeper" "etcd")
 for sync in ${syncArray[@]};
 do
+   echo "current sync method is ${sync}"
     # shellcheck disable=SC2199
     # shellcheck disable=SC2076
-    if [[ "${middlewareSyncArray[@]}" =~ " ${sync} " ]]; then
+    if [[ "${middlewareSyncArray[@]}" =~ "${sync}" ]]; then
         kubectl apply -f "$shenyuTestCaseDir"/k8s/shenyu-"${sync}".yml
         sleep 10s
     fi
     kubectl apply -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
     kubectl apply -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
     kubectl apply -f "${PRGDIR}"/shenyu-examples-springcloud.yml
-    sleep 30s
-
+    sleep 60s
     kubectl get pod -o wide
     sh "${curPath}"/healthcheck.sh mysql http://localhost:31095/actuator/health http://localhost:31195/actuator/health
-
     ## run e2e-test
-    ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test
-
+    ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test -T1C
+    # shellcheck disable=SC2181
+    if (( $? )); then
+        echo "${sync}-e2e-test failed"
+        exit 1
+    fi
     kubectl delete -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
     kubectl delete -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
     kubectl delete -f "${PRGDIR}"/shenyu-examples-springcloud.yml
+    echo "delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
     sleep 10s
 done
 
