@@ -226,7 +226,7 @@ public class HttpSyncDataService implements SyncDataService {
         @Override
         public void run() {
             while (RUNNING.get()) {
-                int retryTimes = 3;
+                int retryTimes = 10;
                 for (int time = 1; time <= retryTimes; time++) {
                     try {
                         //do long polling.
