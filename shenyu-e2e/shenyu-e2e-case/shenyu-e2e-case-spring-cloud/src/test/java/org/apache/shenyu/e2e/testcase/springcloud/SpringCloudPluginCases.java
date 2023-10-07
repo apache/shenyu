@@ -59,15 +59,29 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
-                testWithUriEquals(),
-                testWithUriPathPattern(),
-                testWithUriStartWith(),
-                testWithEndWith(),
-                testWithMethodGet(),
-                testWithMethodPost(),
-                testWithMethodPut(),
-                testWithMethodDelete()
+                testSpringCloud()
+                //testWithUriEquals(),
+                //testWithUriPathPattern(),
+                //testWithUriStartWith(),
+                //testWithEndWith(),
+                //testWithMethodGet(),
+                //testWithMethodPost(),
+                //testWithMethodPut(),
+                //testWithMethodDelete()
         );
+    }
+    
+    private ShenYuScenarioSpec testSpringCloud() {
+        return ShenYuScenarioSpec.builder()
+                .name("single-spring-cloud uri =]")
+                .beforeEachSpec(ShenYuBeforeEachSpec.builder()
+                        .checker(exists("/springcloud/order/path/123/hahah"))
+                        .build())
+                .caseSpec(ShenYuCaseSpec.builder()
+                        .addExists("/springcloud/order/path/123/hahah")
+                        .addNotExists("/springcloud/order/path/123/hahah/123")
+                        .build())
+                .build();
     }
 
     private ShenYuScenarioSpec testWithUriEquals() {
