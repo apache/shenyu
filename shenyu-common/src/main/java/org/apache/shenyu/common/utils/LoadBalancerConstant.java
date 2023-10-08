@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.constant;
+package org.apache.shenyu.common.utils;
 
 /**
  * Load balancer constant.

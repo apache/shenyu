@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.base.utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.base.constant.LoadBalancerConstant;
+import org.apache.shenyu.common.utils.LoadBalancerConstant;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
