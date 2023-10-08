@@ -18,7 +18,6 @@
 package org.apache.shenyu.springboot.starter.client.springmvc;
 
 import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
-import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ClientInfoRefreshedEventListener;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
