@@ -70,8 +70,8 @@ spec:
     - name: "9848"
       port: 9848
       targetPort: 9848
-      nodePort: 30849
+      nodePort: 31848
     - name: "9849"
       port: 9849
       targetPort: 9849
-      nodePort: 30850
+      nodePort: 31849
