@@ -35,7 +35,7 @@ SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
 MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd")
 for sync in ${SYNC_ARRAY[@]}; do
   bash "$SHENYU_TESTCASE_DIR"/k8s/script/init/mysql_container_init.sh
-  echo -e "-------------------\n"
+  echo -e "------------------\n"
   echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
   # shellcheck disable=SC2199
   # shellcheck disable=SC2076
@@ -45,10 +45,10 @@ for sync in ${SYNC_ARRAY[@]}; do
   fi
   kubectl apply -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:31095/actuator/health
-  kubectl logs -f "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
+#  kubectl logs -f "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
   kubectl apply -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:31195/actuator/health
-  kubectl logs -f "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
+#  kubectl logs -f "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
   kubectl apply -f "${PRGDIR}"/shenyu-examples-springcloud.yml
   kubectl get pod -o wide
 
