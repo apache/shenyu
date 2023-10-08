@@ -61,19 +61,20 @@ metadata:
   labels:
     app: shenyu-nacos
 spec:
-  type: NodePort
   selector:
     app: shenyu-nacos
+  type: ClusterIP
+  clusterIP: None
   ports:
     - name: "8848"
+      protocol: TCP
       port: 8848
       targetPort: 8848
-      nodePort: 30848
     - name: "9848"
+      protocol: TCP
       port: 9848
       targetPort: 9848
-      nodePort: 31848
     - name: "9849"
+      protocol: TCP
       port: 9849
       targetPort: 9849
-      nodePort: 31849
