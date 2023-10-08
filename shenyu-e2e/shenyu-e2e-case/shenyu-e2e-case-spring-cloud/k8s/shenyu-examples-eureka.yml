@@ -61,9 +61,11 @@ kind: Service
 metadata:
   name: shenyu-examples-eureka
 spec:
+  type: NodePort
   selector:
     app: shenyu-examples-eureka
   ports:
-    - protocol: TCP
+    - name: "8761"
       port: 8761
-
+      targetPort: 8761
+      nodePort: 30761

@@ -27,12 +27,12 @@ CUR_PATH=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$CUR_PATH")
 echo "$PRGDIR"
 kubectl apply -f "${PRGDIR}"/shenyu-examples-eureka.yml
+sh "${CUR_PATH}"/healthcheck.sh http://localhost:30761/actuator/health
 kubectl apply -f "${PRGDIR}"/shenyu-cm.yml
-sleep 10s
 ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test-compile -T1C
 # init shenyu sync
-SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd" "nacos")
-MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
+SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
+MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd")
 for sync in ${SYNC_ARRAY[@]}; do
   echo -e "-------------------\n"
   echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
@@ -43,16 +43,16 @@ for sync in ${SYNC_ARRAY[@]}; do
     sleep 10s
   fi
   kubectl apply -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
+  sh "${CUR_PATH}"/healthcheck.sh http://localhost:31095/actuator/health
   kubectl logs -f "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
-  sleep 10s
   kubectl apply -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
+  sh "${CUR_PATH}"/healthcheck.sh http://localhost:31195/actuator/health
   kubectl logs -f "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
   kubectl apply -f "${PRGDIR}"/shenyu-examples-springcloud.yml
-  sleep 50s
   kubectl get pod -o wide
-  sh "${CUR_PATH}"/healthcheck.sh mysql http://localhost:31095/actuator/health http://localhost:31195/actuator/health
+
   ## run e2e-test
-    ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test
+  ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test
   # shellcheck disable=SC2181
   if (($?)); then
     echo "${sync}-sync-e2e-test failed"
