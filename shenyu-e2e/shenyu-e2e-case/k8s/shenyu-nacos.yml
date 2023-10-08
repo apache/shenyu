@@ -64,7 +64,7 @@ spec:
   selector:
     app: shenyu-nacos
   type: NodePort
-  clusterIP: None
+  publishNotReadyAddresses: true
   ports:
     - name: "8848"
       protocol: TCP
