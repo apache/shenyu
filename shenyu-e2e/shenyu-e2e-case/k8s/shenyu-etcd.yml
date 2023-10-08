@@ -35,6 +35,13 @@ spec:
         - image: bitnami/etcd:3.5
           name: shenyu-etcd
           resources: { }
+          env:
+            - name: ALLOW_NONE_AUTHENTICATION
+              value: "yes"
+            - name: ETCD_ADVERTISE_CLIENT_URLS
+              value: http://shenyu-etcd:2379
+            - name: TZ
+              value: Asia/Shanghai
           ports:
             - containerPort: 2379
               name: client

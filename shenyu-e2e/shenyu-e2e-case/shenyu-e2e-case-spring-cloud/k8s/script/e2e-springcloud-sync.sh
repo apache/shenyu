@@ -60,6 +60,12 @@ do
     kubectl delete -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
     kubectl delete -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
     kubectl delete -f "${PRGDIR}"/shenyu-examples-springcloud.yml
+    # shellcheck disable=SC2199
+    # shellcheck disable=SC2076
+    if [[ "${middlewareSyncArray[@]}" =~ "${sync}" ]]; then
+        kubectl delete -f "$shenyuTestCaseDir"/k8s/shenyu-"${sync}".yml
+        sleep 10s
+    fi
     echo "delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
     sleep 10s
 done
