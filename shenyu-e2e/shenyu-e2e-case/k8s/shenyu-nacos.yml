@@ -63,7 +63,7 @@ metadata:
 spec:
   selector:
     app: shenyu-nacos
-  type: ClusterIP
+  type: NodePort
   clusterIP: None
   ports:
     - name: "8848"
