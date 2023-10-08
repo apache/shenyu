@@ -24,7 +24,6 @@ import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties;
 import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties.DuplicateResponseHeaderStrategy;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -37,7 +36,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * The type Web client plugin.
@@ -97,8 +95,9 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
                     }
                     this.duplicate(fluxResponseEntity.getHeaders());
-                    exchange.getResponse().setStatusCode(res.statusCode());
-                    exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
+                    exchange.getResponse().setStatusCode(fluxResponseEntity.getStatusCode());
+                    exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, fluxResponseEntity);
+                    return Mono.just(fluxResponseEntity);
                 });
     }
     
