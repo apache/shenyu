@@ -20,7 +20,7 @@ docker save shenyu-examples-eureka:latest shenyu-examples-springcloud:latest | s
 
 # init kubernetes for mysql
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
-bash "$SHENYU_TESTCASE_DIR"/k8s/script/init/mysql_container_init.sh
+bash "$SHENYU_TESTCASE_DIR"/k8s/script/storage/storage_init_mysql.sh
 
 # init register center
 CUR_PATH=$(readlink -f "$(dirname "$0")")
@@ -34,6 +34,7 @@ kubectl apply -f "${PRGDIR}"/shenyu-cm.yml
 SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
 MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd")
 for sync in ${SYNC_ARRAY[@]}; do
+  bash "$SHENYU_TESTCASE_DIR"/k8s/script/init/mysql_container_init.sh
   echo -e "-------------------\n"
   echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
   # shellcheck disable=SC2199
@@ -58,6 +59,7 @@ for sync in ${SYNC_ARRAY[@]}; do
     echo "${sync}-sync-e2e-test failed"
     exit 1
   fi
+  kubectl delete -f "$SHENYU_TESTCASE_DIR"/k8s/shenyu-mysql.yml
   kubectl delete -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
   kubectl delete -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
   kubectl delete -f "${PRGDIR}"/shenyu-examples-springcloud.yml
