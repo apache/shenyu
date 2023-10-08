@@ -192,7 +192,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         return ShenyuResultMessage.SUCCESS;
     }
 
-    private void doDiscoveryLocal(final SelectorDO selectorDO, final String pluginName, final List<URIRegisterDTO> uriList) {
+    protected void doDiscoveryLocal(final SelectorDO selectorDO, final String pluginName, final List<URIRegisterDTO> uriList) {
         String discoveryHandlerId = discoveryService.registerDefaultDiscovery(selectorDO.getId(), pluginName);
         for (URIRegisterDTO uriRegisterDTO : uriList) {
             DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(uriRegisterDTO.getHost(), uriRegisterDTO.getPort(), uriRegisterDTO.getProtocol());
