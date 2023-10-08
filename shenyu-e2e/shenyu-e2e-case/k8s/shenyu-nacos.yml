@@ -43,12 +43,12 @@ spec:
             - name: MODE
               value: standalone
           ports:
-            - containerPort: 8848
-              name: client
-            - containerPort: 9848
-              name: server
-            - containerPort: 9849
-              name: raft
+            - name: client
+              containerPort: 8848
+            - name: server
+              containerPort: 9848
+            - name: raft
+              containerPort: 9849
       restartPolicy: Always
 
 ---
@@ -63,12 +63,15 @@ spec:
   selector:
     app: shenyu-nacos
   ports:
-    - port: 8848
+    - name: "8848"
+      port: 8848
       targetPort: 8848
       nodePort: 30848
-    - port: 9848
+    - name: "9848"
+      port: 9848
       targetPort: 9848
       nodePort: 30849
-    - port: 9849
+    - name: "9849
+      port: 9849
       targetPort: 9849
       nodePort: 30850
