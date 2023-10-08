@@ -50,6 +50,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:31195/actuator/health
 #  kubectl logs -f "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
   kubectl apply -f "${PRGDIR}"/shenyu-examples-springcloud.yml
+  sh "${CUR_PATH}"/healthcheck.sh http://localhost:30884/actuator/health
   kubectl get pod -o wide
 
   ## run e2e-test
