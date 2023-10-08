@@ -75,7 +75,10 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                     }
                     // fix chinese garbled code
                     return outputMessage.writeWith(DataBufferUtils.join(body));
-                }).retrieve();
+                })
+                .retrieve()
+                // cover DefaultResponseSpec#DEFAULT_STATUS_HANDLER
+                .onRawStatus(httpStatus -> httpStatus >= 400, clientResponse -> Mono.empty());
         return responseSpec.toEntityFlux(DataBuffer.class)
                 .flatMap(fluxResponseEntity -> {
                     if (fluxResponseEntity.getStatusCode().is2xxSuccessful()) {
