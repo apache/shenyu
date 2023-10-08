@@ -36,6 +36,7 @@ services:
       - TZ=Asia/Shanghai
       - MODE=standalone
     expose:
+      -
       - 8848
       - 9848
       - 9849

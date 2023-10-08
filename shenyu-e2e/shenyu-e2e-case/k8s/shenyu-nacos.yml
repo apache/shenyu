@@ -32,10 +32,35 @@ spec:
         app: shenyu-nacos
     spec:
       containers:
-        - image: nacos/nacos-server:latest
+        - image: nacos/nacos-server:v2.2.3
           name: shenyu-nacos
           resources: { }
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: MODE
+              value: standalone
           ports:
             - containerPort: 8848
               name: client
+            - containerPort: 9848
+              name: server
+            - containerPort: 9849
+              name: raft
       restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shenyu-nacos
+  labels:
+    app: shenyu-nacos
+spec:
+  type: NodePort
+  selector:
+    app: shenyu-nacos
+  ports:
+    - port: 8848
+      targetPort: 8848
+      nodePort: 30848
