@@ -23,7 +23,6 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 
@@ -31,28 +30,12 @@ import org.springframework.lang.NonNull;
  * The type spring ext configuration.
  */
 @Configuration
-public class SpringExtConfiguration {
+public class SpringExtConfiguration implements ApplicationContextAware {
 
-    /**
-     * Application context aware application context aware.
-     *
-     * @return the application context aware
-     */
-    @Bean
-    public ApplicationContextAware applicationContextAware() {
-        return new ShenyuApplicationContextAware();
-    }
-
-    /**
-     * The type shenyu application context aware.
-     */
-    public static class ShenyuApplicationContextAware implements ApplicationContextAware {
-
-        @Override
-        public void setApplicationContext(@NonNull final ApplicationContext applicationContext) throws BeansException {
-            SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
-            ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
-            Singleton.INST.single(ShenyuConfig.class, shenyuConfig);
-        }
+    @Override
+    public void setApplicationContext(@NonNull final ApplicationContext applicationContext) throws BeansException {
+        SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
+        ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
+        Singleton.INST.single(ShenyuConfig.class, shenyuConfig);
     }
 }
