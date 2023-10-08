@@ -22,7 +22,7 @@ for loop in $(seq 1 30); do
   if [ "$status" -eq 200 ]; then
     break
   fi
-  sleep 5s
+  sleep 2s
 done
 
 status=$(curl -s -o /dev/null -w "%{http_code}" -X GET "${1}" -H "accept: */*")
