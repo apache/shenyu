@@ -33,6 +33,8 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
 
     private String pluginName;
 
+    private String protocol;
+
     /**
      * Gets name.
      *
@@ -139,5 +141,24 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
      */
     public void setPluginName(final String pluginName) {
         this.pluginName = pluginName;
+    }
+
+    /**
+     * getProtocol.
+     *
+     * @return protocol
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+
+    /**
+     * setProtocol.
+     *
+     * @param protocol protocol
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
     }
 }

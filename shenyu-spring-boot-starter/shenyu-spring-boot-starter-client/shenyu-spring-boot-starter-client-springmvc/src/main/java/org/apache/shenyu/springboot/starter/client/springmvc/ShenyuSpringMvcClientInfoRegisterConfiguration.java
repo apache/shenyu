@@ -148,7 +148,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
         discoveryUpstreamData.setUrl(clientRegisterConfig.getHost() + ":" + clientRegisterConfig.getPort());
         discoveryUpstreamData.setStatus(0);
         discoveryUpstreamData.setWeight(Integer.parseInt(shenyuDiscoveryConfig.getWeight()));
-        discoveryUpstreamData.setProtocol(ShenyuClientConstants.HTTP);
+        discoveryUpstreamData.setProtocol(shenyuDiscoveryConfig.getProtocol());
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 
