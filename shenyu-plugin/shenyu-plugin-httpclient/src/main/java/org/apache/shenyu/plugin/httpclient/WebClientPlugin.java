@@ -17,10 +17,14 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
+import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties;
+import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties.DuplicateResponseHeaderStrategy;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -32,6 +36,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * The type Web client plugin.
@@ -40,13 +46,17 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
     
     private final WebClient webClient;
     
+    private final DuplicateResponseHeaderProperties properties;
+
     /**
      * Instantiates a new Web client plugin.
      *
      * @param webClient the web client
+     * @param properties properties
      */
-    public WebClientPlugin(final WebClient webClient) {
+    public WebClientPlugin(final WebClient webClient, final DuplicateResponseHeaderProperties properties) {
         this.webClient = webClient;
+        this.properties = properties;
     }
     
     @Override
@@ -86,12 +96,23 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                     } else {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
                     }
-                    exchange.getResponse().setStatusCode(fluxResponseEntity.getStatusCode());
-                    exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, fluxResponseEntity);
-                    return Mono.just(fluxResponseEntity);
+                    this.duplicate(fluxResponseEntity.getHeaders());
+                    exchange.getResponse().setStatusCode(res.statusCode());
+                    exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                 });
     }
     
+    private void duplicate(final HttpHeaders headers) {
+        List<String> duplicateHeaders = properties.getHeaders();
+        if (CollectionUtils.isEmpty(duplicateHeaders)) {
+            return;
+        }
+        DuplicateResponseHeaderStrategy strategy = properties.getStrategy();
+        for (String headerKey : duplicateHeaders) {
+            duplicateHeaders(headers, headerKey, strategy);
+        }
+    }
+
     @Override
     public int getOrder() {
         return PluginEnum.WEB_CLIENT.getCode();

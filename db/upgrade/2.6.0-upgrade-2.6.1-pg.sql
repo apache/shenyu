@@ -35,3 +35,63 @@ DELETE FROM "public"."plugin_handle" WHERE id = 1529403902779330602;
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204173923', '6', 'retries', 'retries', 3, 2, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204173924', '6', 'timeout', 'timeout', 3, 2, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 --dubbo plugin end
+
+--alert notice menu
+INSERT INTO "public"."resource" VALUES ('1697141926247763968','1346776175553376256','SHENYU.MENU.SYSTEM.MANAGMENT.ALERT','','/system/alert','',1,3,'alert',0,0,'',1,'2023-08-31 14:59:01','2023-08-31 06:59:01');
+INSERT INTO "public"."resource" VALUES ('1697146375729025024', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 0, 'unordered-list', 1, 0, 'system:alert:list', 1, '2023-08-31 15:16:42', '2023-08-31 07:22:07');
+INSERT INTO "public"."resource" VALUES ('1697145808210333696','1697141926247763968','SHENYU.BUTTON.SYSTEM.ADD','','','',2,0,'plus',1,0,'system:alert:add',1,'2023-08-31 15:14:26','2023-08-31 07:14:26');
+INSERT INTO "public"."resource" VALUES ('1697146617513873408','1697141926247763968','SHENYU.BUTTON.SYSTEM.DELETE','','','',2,0,'delete',1,0,'system:alert:delete',1,'2023-08-31 15:17:39','2023-08-31 07:22:07');
+INSERT INTO "public"."resource" VALUES ('1697146860540235776','1697141926247763968','SHENYU.BUTTON.SYSTEM.EDIT','','','',2,0,'edit',1,0,'system:alert:edit',1,'2023-08-31 15:18:37','2023-08-31 07:18:37');
+
+INSERT INTO "public"."permission" VALUES ('1697141926281318400', '1346358560427216896', '1697141926247763968', '2023-08-31 14:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1697145808239693824', '1346358560427216896', '1697145808210333696', '2023-08-31 15:14:26', '2023-08-31 07:14:26');
+INSERT INTO "public"."permission" VALUES ('1697146375754190848', '1346358560427216896', '1697146375729025024', '2023-08-31 15:16:42', '2023-08-31 07:16:42');
+INSERT INTO "public"."permission" VALUES ('1697146617543233536', '1346358560427216896', '1697146617513873408', '2023-08-31 15:17:39', '2023-08-31 07:17:39');
+INSERT INTO "public"."permission" VALUES ('1697146860569595904', '1346358560427216896', '1697146860540235776', '2023-08-31 15:18:37', '2023-08-31 07:18:37');
+--alert notice menu end
+
+-- add percentage field for rewrite plugin
+INSERT INTO "public"."plugin_handle" VALUES ('1697146860569596304', '3', 'percentage', 'percentage', 1, 2, 3, NULL, '2023-09-15 20:25:53', '2023-09-15 20:25:53');
+
+-- ----------------------------
+-- Table structure for alert_receiver
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."alert_receiver";
+CREATE TABLE "public"."alert_receiver"
+(
+    "id"                   varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name"                 varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "enable"               int4     NOT NULL,
+    "type"                 int4     NOT NULL,
+    "phone"                varchar(255) COLLATE "pg_catalog"."default",
+    "email"                varchar(255) COLLATE "pg_catalog"."default",
+    "hook_url"             varchar(255) COLLATE "pg_catalog"."default",
+    "wechat_id"            varchar(255) COLLATE "pg_catalog"."default",
+    "access_token"         varchar(255) COLLATE "pg_catalog"."default",
+    "tg_bot_token"         varchar(255) COLLATE "pg_catalog"."default",
+    "tg_user_id"           varchar(255) COLLATE "pg_catalog"."default",
+    "slack_web_hook_url"   varchar(255) COLLATE "pg_catalog"."default",
+    "corp_id"              varchar(255) COLLATE "pg_catalog"."default",
+    "agent_id"             varchar(255) COLLATE "pg_catalog"."default",
+    "app_secret"           varchar(255) COLLATE "pg_catalog"."default",
+    "discord_channel_id"   varchar(255) COLLATE "pg_catalog"."default",
+    "discord_bot_token"    varchar(255) COLLATE "pg_catalog"."default",
+    "smn_ak"               varchar(255) COLLATE "pg_catalog"."default",
+    "smn_sk"               varchar(255) COLLATE "pg_catalog"."default",
+    "smn_project_id"       varchar(255) COLLATE "pg_catalog"."default",
+    "smn_region"           varchar(255) COLLATE "pg_catalog"."default",
+    "smn_topic_urn"        varchar(255) COLLATE "pg_catalog"."default",
+    "match_all"            int4      NOT NULL,
+    "labels"               varchar(255) COLLATE "pg_catalog"."default",
+    "levels"               varchar(255) COLLATE "pg_catalog"."default",
+    "date_created"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."alert_receiver"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."alert_receiver"."name" IS 'alarm receiver name';
+COMMENT ON COLUMN "public"."alert_receiver"."enable" IS 'enable or not';
+COMMENT ON COLUMN "public"."alert_receiver"."type" IS 'notice type 0-SMS 1-Email 2-webhook 3-WeChat Official Account 4-Enterprise WeChat Robot 5-DingTalk Robot 6-FeiShu Robot 7-Telegram Bot 8-SlackWebHook 9-Discord Bot 10-Enterprise WeChat';
+COMMENT ON COLUMN "public"."alert_receiver"."match_all" IS 'match all or not';
+COMMENT ON COLUMN "public"."alert_receiver"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."alert_receiver"."date_updated" IS 'update time';
