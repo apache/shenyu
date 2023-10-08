@@ -17,9 +17,12 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
+import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties;
+import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties.DuplicateResponseHeaderStrategy;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -27,12 +30,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ClientResponse.Builder;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -42,13 +47,17 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
     
     private final WebClient webClient;
     
+    private final DuplicateResponseHeaderProperties properties;
+    
     /**
      * Instantiates a new Web client plugin.
      *
      * @param webClient the web client
+     * @param properties properties
      */
-    public WebClientPlugin(final WebClient webClient) {
+    public WebClientPlugin(final WebClient webClient, final DuplicateResponseHeaderProperties properties) {
         this.webClient = webClient;
+        this.properties = properties;
     }
     
     @Override
@@ -81,8 +90,11 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                 .exchangeToMono(response -> response.bodyToMono(byte[].class)
                         .flatMap(bytes -> Mono.fromCallable(() -> Optional.ofNullable(bytes))).defaultIfEmpty(Optional.empty())
                         .flatMap(option -> {
-                            final ClientResponse.Builder builder = ClientResponse.create(response.statusCode())
-                                    .headers(headers -> headers.addAll(response.headers().asHttpHeaders()));
+                            final Builder builder = ClientResponse.create(response.statusCode())
+                                    .headers(headers -> {
+                                        headers.addAll(response.headers().asHttpHeaders());
+                                        this.duplicate(headers);
+                                    });
                             if (option.isPresent()) {
                                 final DataBufferFactory dataBufferFactory = exchange.getResponse().bufferFactory();
                                 return Mono.just(builder.body(Flux.just(dataBufferFactory.wrap(option.get()))).build());
@@ -98,6 +110,17 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                     exchange.getResponse().setStatusCode(res.statusCode());
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                 });
+    }
+    
+    private void duplicate(final HttpHeaders headers) {
+        List<String> duplicateHeaders = properties.getHeaders();
+        if (CollectionUtils.isEmpty(duplicateHeaders)) {
+            return;
+        }
+        DuplicateResponseHeaderStrategy strategy = properties.getStrategy();
+        for (String headerKey : duplicateHeaders) {
+            duplicateHeaders(headers, headerKey, strategy);
+        }
     }
     
     @Override
