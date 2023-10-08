@@ -32,9 +32,11 @@ spec:
         app: shenyu-nacos
     spec:
       containers:
-        - image: nacos/nacos-server:v2.2.3
+        - image: nacos/nacos-server:latest
           name: shenyu-nacos
           resources: { }
+          args:
+            - -Xmx768m -Xms768m
           env:
             - name: TZ
               value: Asia/Shanghai
