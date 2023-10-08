@@ -42,6 +42,8 @@ spec:
               value: Asia/Shanghai
             - name: MODE
               value: standalone
+            - name: PREFER_HOST_MODE
+              value: hostname
           ports:
             - name: client
               containerPort: 8848
