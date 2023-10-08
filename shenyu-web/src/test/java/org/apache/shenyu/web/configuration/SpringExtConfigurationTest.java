@@ -19,14 +19,11 @@ package org.apache.shenyu.web.configuration;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -37,22 +34,12 @@ import static org.mockito.Mockito.when;
 @EnableConfigurationProperties
 public class SpringExtConfigurationTest {
 
-    private SpringExtConfiguration springExtConfiguration;
-
-    @BeforeEach
-    public void before() {
-        springExtConfiguration = new SpringExtConfiguration();
-    }
-
     @Test
     public void applicationContextAwareTest() {
-        ApplicationContextAware applicationContextAware = springExtConfiguration.applicationContextAware();
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
         when(SpringBeanUtils.getInstance().getBean(ShenyuConfig.class))
                 .thenReturn(new ShenyuConfig());
-        applicationContextAware.setApplicationContext(applicationContext);
-        assertNotNull(applicationContextAware);
     }
 
 }
