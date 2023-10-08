@@ -47,6 +47,24 @@ spec:
               name: server
             - containerPort: 9849
               name: raft
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 8848
+              path: /actuator/health
+          readinessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 8848
+              path: /actuator/health
       restartPolicy: Always
 
 ---
