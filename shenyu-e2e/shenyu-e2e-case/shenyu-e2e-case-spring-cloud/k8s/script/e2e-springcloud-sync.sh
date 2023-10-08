@@ -43,16 +43,16 @@ for sync in ${SYNC_ARRAY[@]}; do
     sleep 10s
   fi
   kubectl apply -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
-  echo -e kubectl logs -f "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
+  kubectl logs -f "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
   sleep 10s
   kubectl apply -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
-  echo -e kubectl logs -f "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
+  kubectl logs -f "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
   kubectl apply -f "${PRGDIR}"/shenyu-examples-springcloud.yml
   sleep 50s
   kubectl get pod -o wide
   sh "${CUR_PATH}"/healthcheck.sh mysql http://localhost:31095/actuator/health http://localhost:31195/actuator/health
   ## run e2e-test
-  ./mvnw -B -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud test
+    ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test
   # shellcheck disable=SC2181
   if (($?)); then
     echo "${sync}-sync-e2e-test failed"
