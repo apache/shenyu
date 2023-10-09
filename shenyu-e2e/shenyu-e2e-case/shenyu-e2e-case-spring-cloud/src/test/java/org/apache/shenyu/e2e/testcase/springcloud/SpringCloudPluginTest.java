@@ -79,6 +79,7 @@ import java.util.List;
 public class SpringCloudPluginTest {
     
     private static final Logger LOG = LoggerFactory.getLogger(SpringCloudPluginTest.class);
+    
     private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeEach
