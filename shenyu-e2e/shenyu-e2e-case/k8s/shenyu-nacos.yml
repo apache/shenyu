@@ -32,7 +32,7 @@ spec:
         app: shenyu-nacos
     spec:
       containers:
-        - image: nacos/nacos-server:v2.0.4
+        - image: nacos/nacos-server:v2.2.3
           name: shenyu-nacos
           securityContext:
             privileged: true
