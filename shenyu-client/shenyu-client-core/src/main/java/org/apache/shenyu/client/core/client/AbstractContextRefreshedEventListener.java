@@ -122,7 +122,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         this.ipAndPort = props.getProperty(ShenyuClientConstants.IP_PORT);
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = props.getProperty(ShenyuClientConstants.PORT);
-        this.isDiscoveryLocalMode = Boolean.valueOf(props.getProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.FALSE.toString()));
+        this.isDiscoveryLocalMode = Boolean.valueOf(props.getProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.TRUE.toString()));
         publisher.start(shenyuClientRegisterRepository);
     }
 
