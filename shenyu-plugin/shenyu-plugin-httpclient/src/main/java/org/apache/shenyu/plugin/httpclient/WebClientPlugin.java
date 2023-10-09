@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
+import org.apache.shenyu.plugin.base.utils.MediaTypeUtils;
 import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties;
 import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties.DuplicateResponseHeaderStrategy;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -70,15 +71,7 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                 })
                 .body((outputMessage, context) -> {
                     MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
-                    if (MediaType.TEXT_EVENT_STREAM.isCompatibleWith(mediaType)
-                            || MediaType.MULTIPART_MIXED.isCompatibleWith(mediaType)
-                            || MediaType.IMAGE_PNG.isCompatibleWith(mediaType)
-                            || MediaType.IMAGE_JPEG.isCompatibleWith(mediaType)
-                            || MediaType.IMAGE_GIF.isCompatibleWith(mediaType)
-                            //APPLICATION_STREAM_JSON is deprecated
-                            || MediaType.APPLICATION_NDJSON.isCompatibleWith(mediaType)
-                            || MediaType.APPLICATION_PDF.isCompatibleWith(mediaType)
-                            || MediaType.APPLICATION_OCTET_STREAM.isCompatibleWith(mediaType)) {
+                    if (MediaTypeUtils.isByteType(mediaType)) {
                         return outputMessage.writeWith(body);
                     }
                     // fix chinese garbled code
