@@ -57,7 +57,7 @@ import java.util.List;
         @ShenYuE2ETest.Environment(
                 serviceName = "shenyu-e2e-admin",
                 service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:9095",
+                        baseUrl = "http://localhost:31095",
                         type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
                                 @ShenYuE2ETest.Parameter(key = "username", value = "admin"),
@@ -68,7 +68,7 @@ import java.util.List;
         @ShenYuE2ETest.Environment(
                 serviceName = "shenyu-e2e-gateway",
                 service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:9195",
+                        baseUrl = "http://localhost:31195",
                         type = ServiceTypeEnum.SHENYU_GATEWAY
                 )
         )
