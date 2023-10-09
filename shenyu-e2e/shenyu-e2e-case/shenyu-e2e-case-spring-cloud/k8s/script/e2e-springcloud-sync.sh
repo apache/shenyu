@@ -46,10 +46,8 @@ for sync in ${SYNC_ARRAY[@]}; do
   fi
   kubectl apply -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:31095/actuator/health
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
   kubectl apply -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:31195/actuator/health
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
   kubectl apply -f "${PRGDIR}"/shenyu-examples-springcloud.yml
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:30884/actuator/health
   sleep 10s
@@ -62,6 +60,8 @@ for sync in ${SYNC_ARRAY[@]}; do
     echo "${sync}-sync-e2e-test failed"
     exit 1
   fi
+  kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
+  kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-mysql.yml
   kubectl delete -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
   kubectl delete -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
