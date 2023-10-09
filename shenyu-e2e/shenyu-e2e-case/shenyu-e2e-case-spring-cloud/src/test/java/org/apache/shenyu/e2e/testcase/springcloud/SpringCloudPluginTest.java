@@ -28,6 +28,8 @@ import org.apache.shenyu.e2e.k8s.engine.annotation.ShenYuE2ETest;
 import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.BeforeEach;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.testcontainers.shaded.com.google.common.collect.Lists;
@@ -75,7 +77,8 @@ import java.util.List;
         )
 })
 public class SpringCloudPluginTest {
-
+    
+    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudPluginTest.class);
     private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeEach
@@ -93,6 +96,7 @@ public class SpringCloudPluginTest {
         //        SpringCloudPluginCases.verifierUri(selectorDTO.getHandle());
         //    }
         //}
+        LOG.info("start spring cloud plugin");
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "8");
         formData.add("name", "springCloud");
