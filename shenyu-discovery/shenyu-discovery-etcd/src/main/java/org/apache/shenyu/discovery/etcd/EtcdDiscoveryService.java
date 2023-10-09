@@ -40,8 +40,10 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +59,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
     private Client etcdClient;
 
-    private final ConcurrentHashMap<String, Watch.Watcher> watchCache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Watch.Watcher> watchCache = new ConcurrentHashMap<>();
 
     private long leaseId;
 
@@ -80,7 +82,8 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     }
 
     private void initLease() {
-        try (Lease lease = etcdClient.getLeaseClient()) {
+        try {
+            Lease lease = etcdClient.getLeaseClient();
             this.leaseId = lease.grant(ttl).get().getID();
             lease.keepAlive(leaseId, new StreamObserver<LeaseKeepAliveResponse>() {
                 @Override
@@ -187,12 +190,21 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void shutdown() {
-        if (Objects.nonNull(etcdClient)) {
-            this.etcdClient.close();
+        try {
+            for (Map.Entry<String, Watch.Watcher> entry : watchCache.entrySet()) {
+                Watch.Watcher watcher = entry.getValue();
+                watcher.close();
+            }
+            if (etcdClient != null) {
+                etcdClient.close();
+            }
+        } catch (Exception e) {
+            throw new ShenyuException(e);
         }
     }
 
     private ByteSequence bytesOf(final String val) {
         return ByteSequence.from(val, UTF_8);
     }
+
 }

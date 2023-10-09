@@ -53,13 +53,13 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
 
     private static final String NAMESPACE = "nacosNameSpace";
 
-    private ConcurrentMap<String, EventListener> listenerMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, EventListener> listenerMap = new ConcurrentHashMap<>();
 
     private NamingService namingService;
 
     private String groupName;
 
-    private List<Instance> instancesList = new ArrayList<>();
+    private final ConcurrentMap<String, List<Instance>> instanceListMap = new ConcurrentHashMap<>();
 
     @Override
     public void init(final DiscoveryConfig config) {
@@ -82,23 +82,28 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void watch(final String key, final DataChangedEventListener listener) {
-        EventListener nacosListener = listenerMap.computeIfAbsent(key, k -> createNacosListener(key, listener));
         try {
-            namingService.subscribe(key, groupName, nacosListener);
-        } catch (Exception e) {
+            if (!listenerMap.containsKey(key)) {
+                List<Instance> initialInstances = namingService.selectInstances(key, groupName, true);
+                instanceListMap.put(key, initialInstances);
+                EventListener nacosListener = event -> {
+                    if (event instanceof NamingEvent) {
+                        try {
+                            List<Instance> previousInstances = instanceListMap.get(key);
+                            List<Instance> currentInstances = namingService.selectInstances(key, groupName, true);
+                            compareInstances(previousInstances, currentInstances, listener);
+                            instanceListMap.put(key, currentInstances);
+                        } catch (NacosException e) {
+                            throw new ShenyuException(e);
+                        }
+                    }
+                };
+                namingService.subscribe(key, groupName, nacosListener);
+                listenerMap.put(key, nacosListener);
+            }
+        } catch (NacosException e) {
             throw new ShenyuException(e);
         }
-    }
-
-    private EventListener createNacosListener(final String key, final DataChangedEventListener listener) {
-        return event -> {
-            if (event instanceof NamingEvent) {
-                List<Instance> currentInstances = ((NamingEvent) event).getInstances();
-                compareInstances(this.instancesList, currentInstances, listener);
-                this.instancesList.clear();
-                this.instancesList.addAll(currentInstances);
-            }
-        };
     }
 
     @Override
@@ -106,7 +111,7 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         try {
             EventListener nacosListener = listenerMap.get(key);
             if (nacosListener != null) {
-                namingService.unsubscribe(key, nacosListener);
+                namingService.unsubscribe(key, groupName, nacosListener);
                 listenerMap.remove(key);
             }
         } catch (NacosException e) {
@@ -124,8 +129,7 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
             instance.setPort(jsonValue.getIntValue("port"));
             instance.setWeight(jsonValue.getDoubleValue("weight"));
             instance.setServiceName(jsonValue.getString("serviceName"));
-            namingService.registerInstance(key, instance);
-
+            namingService.registerInstance(key, groupName, instance);
         } catch (NacosException e) {
             LOGGER.error("Error registering Nacos service instance: {}", e.getMessage(), e);
             throw new ShenyuException(e);
@@ -135,7 +139,7 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public List<String> getRegisterData(final String key) {
         try {
-            List<Instance> instances = namingService.getAllInstances(key);
+            List<Instance> instances = namingService.selectInstances(key, groupName, true);
             List<String> registerData = new ArrayList<>();
             for (Instance instance : instances) {
                 String data = buildInstanceInfoJson(instance);
@@ -151,7 +155,7 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public Boolean exists(final String key) {
         try {
-            List<Instance> instances = namingService.selectInstances(key, true);
+            List<Instance> instances = namingService.selectInstances(key, groupName, true);
             return !instances.isEmpty();
         } catch (NacosException e) {
             LOGGER.error("Error checking Nacos service existence: {}", e.getMessage(), e);
@@ -162,52 +166,60 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void shutdown() {
         try {
-            for (Map.Entry<String, EventListener> entry : listenerMap.entrySet()) {
-                String key = entry.getKey();
-                EventListener listener = entry.getValue();
-                namingService.unsubscribe(key, listener);
+            if (namingService != null) {
+                for (Map.Entry<String, EventListener> entry : listenerMap.entrySet()) {
+                    String key = entry.getKey();
+                    EventListener listener = entry.getValue();
+                    namingService.unsubscribe(key, groupName, listener);
+                }
+                listenerMap.clear();
+                namingService.shutDown();
             }
-            listenerMap.clear();
-            namingService.shutDown();
         } catch (NacosException e) {
             throw new ShenyuException(e);
         }
     }
 
     private void compareInstances(final List<Instance> previousInstances, final List<Instance> currentInstances, final DataChangedEventListener listener) {
-        DiscoveryDataChangedEvent dataChangedEvent = null;
-        if (currentInstances.size() > previousInstances.size()) {
-            Set<Instance> addedInstances = currentInstances.stream()
-                    .filter(item -> !previousInstances.contains(item))
-                    .collect(Collectors.toSet());
-            if (!addedInstances.isEmpty()) {
-                Instance addedInstance = addedInstances.iterator().next();
-                dataChangedEvent = new DiscoveryDataChangedEvent(addedInstance.getServiceName(), buildInstanceInfoJson(addedInstance), DiscoveryDataChangedEvent.Event.ADDED);
-            }
-        } else if (currentInstances.size() < previousInstances.size()) {
-            Set<Instance> deletedInstances = previousInstances.stream()
-                    .filter(item -> !currentInstances.contains(item))
-                    .collect(Collectors.toSet());
-            if (!deletedInstances.isEmpty()) {
-                Instance deletedInstance = deletedInstances.iterator().next();
-                dataChangedEvent = new DiscoveryDataChangedEvent(deletedInstance.getServiceName(), buildInstanceInfoJson(deletedInstance), DiscoveryDataChangedEvent.Event.DELETED);
-            }
-        } else {
-            Set<Instance> updatedInstances = currentInstances.stream()
-                    .filter(previousInstances::contains)
-                    .collect(Collectors.toSet());
-            if (!updatedInstances.isEmpty()) {
-                Instance updatedInstance = updatedInstances.iterator().next();
-                dataChangedEvent = new DiscoveryDataChangedEvent(updatedInstance.getServiceName(), buildInstanceInfoJson(updatedInstance), DiscoveryDataChangedEvent.Event.UPDATED);
+        Set<Instance> addedInstances = currentInstances.stream()
+                .filter(item -> !previousInstances.contains(item))
+                .collect(Collectors.toSet());
+        if (!addedInstances.isEmpty()) {
+            for (Instance instance: addedInstances) {
+                DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getServiceName(),
+                        buildInstanceInfoJson(instance), DiscoveryDataChangedEvent.Event.ADDED);
+                listener.onChange(dataChangedEvent);
             }
         }
-        listener.onChange(dataChangedEvent);
+
+        Set<Instance> deletedInstances = previousInstances.stream()
+                .filter(item -> !currentInstances.contains(item))
+                .collect(Collectors.toSet());
+        if (!deletedInstances.isEmpty()) {
+            for (Instance instance: deletedInstances) {
+                DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getServiceName(),
+                        buildInstanceInfoJson(instance), DiscoveryDataChangedEvent.Event.DELETED);
+                listener.onChange(dataChangedEvent);
+            }
+        }
+
+        Set<Instance> updatedInstances = currentInstances.stream()
+                .filter(currentInstance -> previousInstances.stream()
+                        .anyMatch(previousInstance -> currentInstance.getInstanceId().equals(previousInstance.getInstanceId()) && !currentInstance.equals(previousInstance)))
+                .collect(Collectors.toSet());
+        if (!updatedInstances.isEmpty()) {
+            for (Instance instance: updatedInstances) {
+                DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getServiceName(),
+                        buildInstanceInfoJson(instance), DiscoveryDataChangedEvent.Event.UPDATED);
+                listener.onChange(dataChangedEvent);
+            }
+        }
     }
 
     private String buildInstanceInfoJson(final Instance instance) {
         JSONObject instanceJson = new JSONObject();
         instanceJson.put("url", instance.getIp() + ":" + instance.getPort());
-        instanceJson.put("status", instance.isHealthy() ? 0 : -1);
+        instanceJson.put("status", instance.isHealthy() ? 1 : 0);
         instanceJson.put("weight", instance.getWeight());
 
         return instanceJson.toString();
