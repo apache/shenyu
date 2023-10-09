@@ -32,7 +32,7 @@ spec:
         app: shenyu-nacos
     spec:
       containers:
-        - image: nacos/nacos-server:latest
+        - image: nacos/nacos-server:v2.0.4
           name: shenyu-nacos
           resources: { }
           args:
