@@ -35,10 +35,12 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties.DuplicateResponseHeaderStrategy;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
@@ -49,6 +51,8 @@ import reactor.util.retry.RetryBackoffSpec;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -167,5 +171,24 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
      */
     protected abstract Mono<R> doRequest(ServerWebExchange exchange, String httpMethod,
                                          URI uri, Flux<DataBuffer> body);
-
+    
+    protected void duplicateHeaders(final HttpHeaders headers, final String header, final DuplicateResponseHeaderStrategy strategy) {
+        List<String> headerValues = headers.get(header);
+        if (Objects.isNull(headerValues) || headerValues.size() <= 1) {
+            return;
+        }
+        switch (strategy) {
+            case RETAIN_FIRST:
+                headers.set(header, headerValues.get(0));
+                break;
+            case RETAIN_LAST:
+                headers.set(header, headerValues.get(headerValues.size() - 1));
+                break;
+            case RETAIN_UNIQUE:
+                headers.put(header, new ArrayList<>(new LinkedHashSet<>(headerValues)));
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + strategy);
+        }
+    }
 }
