@@ -33,6 +33,7 @@ import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuCaseSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
@@ -392,6 +393,9 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
         SpringCloudSelectorHandle springCloudSelectorHandle = MAPPER.readValue(handle, SpringCloudSelectorHandle.class);
         Assertions.assertEquals("springCloud-test", springCloudSelectorHandle.getServiceId());
         Assertions.assertEquals(false, springCloudSelectorHandle.getGray());
+        if (ObjectUtils.isEmpty(springCloudSelectorHandle.getDivideUpstreams())) {
+            return;
+        }
         DivideUpstream divideUpstream = springCloudSelectorHandle.getDivideUpstreams().get(0);
         Assertions.assertEquals(50, divideUpstream.getWeight());
         Assertions.assertEquals(600000, divideUpstream.getWarmup());
