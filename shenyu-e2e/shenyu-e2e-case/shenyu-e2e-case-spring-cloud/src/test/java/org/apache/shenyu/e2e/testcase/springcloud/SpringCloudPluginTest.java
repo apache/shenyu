@@ -32,6 +32,7 @@ import org.springframework.util.MultiValueMap;
 import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Testing spring-cloud plugin.
@@ -57,7 +58,7 @@ import java.util.List;
         @ShenYuE2ETest.Environment(
                 serviceName = "shenyu-e2e-admin",
                 service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:31095",
+                        baseUrl = "http://localhost:9095",
                         type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
                                 @ShenYuE2ETest.Parameter(key = "username", value = "admin"),
@@ -68,7 +69,7 @@ import java.util.List;
         @ShenYuE2ETest.Environment(
                 serviceName = "shenyu-e2e-gateway",
                 service = @ShenYuE2ETest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:31195",
+                        baseUrl = "http://localhost:9195",
                         type = ServiceTypeEnum.SHENYU_GATEWAY
                 )
         )
@@ -83,7 +84,7 @@ public class SpringCloudPluginTest {
     public void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        adminClient.syncPluginAll();
+        //adminClient.syncPluginAll();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
@@ -102,6 +103,7 @@ public class SpringCloudPluginTest {
         formData.add("role", "Proxy");
         formData.add("sort", "200");
         adminClient.changePluginStatus("8", formData);
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.springcloud.SpringCloudPlugin");
         //String id = "";
         //for (SelectorDTO selectorDTO : selectorDTOList) {
         //    if (!"".equals(selectorDTO.getHandle())) {

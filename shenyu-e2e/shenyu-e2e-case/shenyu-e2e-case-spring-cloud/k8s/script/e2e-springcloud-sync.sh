@@ -30,6 +30,7 @@ kubectl apply -f "${PRGDIR}"/shenyu-examples-eureka.yml
 sh "${CUR_PATH}"/healthcheck.sh http://localhost:30761/actuator/health
 kubectl apply -f "${PRGDIR}"/shenyu-cm.yml
 #./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test-compile -T1C
+
 # init shenyu sync
 SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
 MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd")
@@ -55,13 +56,13 @@ for sync in ${SYNC_ARRAY[@]}; do
 
   ## run e2e-test
   ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
   # shellcheck disable=SC2181
   if (($?)); then
     echo "${sync}-sync-e2e-test failed"
     exit 1
   fi
+  kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
+  kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-mysql.yml
   kubectl delete -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
   kubectl delete -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
@@ -73,22 +74,3 @@ for sync in ${SYNC_ARRAY[@]}; do
   fi
   echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
 done
-
-#kubectl apply -f "${PRGDIR}"/shenyu-admin-websocket.yml
-#kubectl apply -f "${PRGDIR}"/shenyu-bootstrap-websocket.yml
-#
-#
-#kubectl get pod -o wide
-#
-#sleep 60s
-#
-#kubectl get pod -o wide
-#
-#chmod +x "${CUR_PATH}"/healthcheck.sh
-#sh "${CUR_PATH}"/healthcheck.sh mysql http://localhost:31095/actuator/health http://localhost:31195/actuator/health
-#
-### run e2e-test
-#
-#curl -S "http://localhost:31195/actuator/pluginData"
-#
-#./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test
