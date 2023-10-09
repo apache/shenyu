@@ -66,6 +66,7 @@ spec:
     app: shenyu-examples-eureka
   ports:
     - name: "8761"
+      protocol: TCP
       port: 8761
       targetPort: 8761
       nodePort: 30761

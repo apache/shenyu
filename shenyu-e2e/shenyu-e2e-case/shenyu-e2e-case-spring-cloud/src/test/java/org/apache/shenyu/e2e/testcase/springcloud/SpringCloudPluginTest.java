@@ -116,23 +116,23 @@ public class SpringCloudPluginTest {
         //Assertions.assertEquals(1, selectorDTOList.size());
     }
 
-    @BeforeEach
-    public void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
-        spec.getChecker().check(gateway);
-
-        ResourcesData resources = spec.getResources();
-        for (ResourcesData.Resource res : resources.getResources()) {
-            SelectorDTO dto = client.create(res.getSelector());
-            selectorIds.add(dto.getId());
-
-            res.getRules().forEach(rule -> {
-                rule.setSelectorId(dto.getId());
-                client.create(rule);
-            });
-        }
-
-        spec.getWaiting().waitFor(gateway);
-    }
+    //@BeforeEach
+    //public void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
+    //    spec.getChecker().check(gateway);
+    //
+    //    ResourcesData resources = spec.getResources();
+    //    for (ResourcesData.Resource res : resources.getResources()) {
+    //        SelectorDTO dto = client.create(res.getSelector());
+    //        selectorIds.add(dto.getId());
+    //
+    //        res.getRules().forEach(rule -> {
+    //            rule.setSelectorId(dto.getId());
+    //            client.create(rule);
+    //        });
+    //    }
+    //
+    //    spec.getWaiting().waitFor(gateway);
+    //}
 
     @ShenYuScenario(provider = SpringCloudPluginCases.class)
     void testSpringCloud(final GatewayClient gateway, final CaseSpec spec) {

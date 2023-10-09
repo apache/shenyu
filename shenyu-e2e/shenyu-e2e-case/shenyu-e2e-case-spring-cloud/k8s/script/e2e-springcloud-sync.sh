@@ -52,6 +52,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
   kubectl apply -f "${PRGDIR}"/shenyu-examples-springcloud.yml
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:30884/actuator/health
+  sleep 10s
   kubectl get pod -o wide
 
   ## run e2e-test
