@@ -100,7 +100,7 @@ public class HttpClientPluginConfiguration {
      * The type Web client configuration.
      */
     @Configuration
-    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "webClient", matchIfMissing = true)
+    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "netty", matchIfMissing = true)
     static class WebClientConfiguration {
 
         /**
@@ -130,7 +130,7 @@ public class HttpClientPluginConfiguration {
      * The type Netty http client configuration.
      */
     @Configuration
-    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "netty")
+    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "netty", matchIfMissing = true)
     static class NettyHttpClientConfiguration {
 
         /**
