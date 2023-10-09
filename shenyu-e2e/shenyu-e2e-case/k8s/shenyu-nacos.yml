@@ -15,17 +15,17 @@
 # limitations under the License.
 
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: shenyu-nacos
   labels:
     app: shenyu-nacos
 spec:
+  serviceName: shenyu-nacos
   replicas: 1
   selector:
     matchLabels:
       app: shenyu-nacos
-  strategy: { }
   template:
     metadata:
       labels:
@@ -44,6 +44,16 @@ spec:
           env:
             - name: TZ
               value: Asia/Shanghai
+            - name: SERVICE_NAME
+              value: "shenyu-nacos"
+            - name: DOMAIN_NAME
+              value: "standalone.local"
+            - name: NACOS_SERVER_PORT
+              value: "8848"
+            - name: NACOS_APPLICATION_PORT
+              value: "8848"
+            - name: NACOS_SERVERS
+              value: "nacos.shenyu-nacos.nacos.svc.standalone.local:8848"
             - name: MODE
               value: standalone
             - name: PREFER_HOST_MODE
