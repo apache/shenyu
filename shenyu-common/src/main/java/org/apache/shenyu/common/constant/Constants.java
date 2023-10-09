@@ -51,11 +51,6 @@ public interface Constants {
      * The constant CLIENT_RESPONSE_ATTR.
      */
     String CLIENT_RESPONSE_ATTR = "webHandlerClientResponse";
-
-    /**
-     * The constant CLIENT_RESPONSE_BODY_DATA_BUFFER.
-     */
-    String CLIENT_RESPONSE_BODY_DATA_BUFFER = "responseBodyDataBuffer";
     
     /**
      * The constant DUBBO_RPC_RESULT_EMPTY.

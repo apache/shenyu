@@ -94,7 +94,10 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                     } else {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
                     }
-                    this.duplicate(fluxResponseEntity.getHeaders());
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.addAll(fluxResponseEntity.getHeaders());
+                    this.duplicate(headers);
+                    exchange.getResponse().getHeaders().putAll(headers);
                     exchange.getResponse().setStatusCode(fluxResponseEntity.getStatusCode());
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, fluxResponseEntity);
                     return Mono.just(fluxResponseEntity);
