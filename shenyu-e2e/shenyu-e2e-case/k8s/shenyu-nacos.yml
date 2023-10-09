@@ -34,6 +34,10 @@ spec:
       containers:
         - image: nacos/nacos-server:v2.0.4
           name: shenyu-nacos
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["NET_ADMIN"]
           resources: { }
           args:
             - -Xmx768m -Xms768m
