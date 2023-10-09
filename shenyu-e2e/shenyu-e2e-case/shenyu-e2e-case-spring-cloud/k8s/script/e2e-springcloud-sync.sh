@@ -32,8 +32,8 @@ kubectl apply -f "${PRGDIR}"/shenyu-cm.yml
 #./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test-compile -T1C
 
 # init shenyu sync
-SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
-MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd")
+SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd" "nacos")
+MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
 for sync in ${SYNC_ARRAY[@]}; do
   echo -e "------------------\n"
   kubectl apply -f "$SHENYU_TESTCASE_DIR"/k8s/shenyu-mysql.yml
