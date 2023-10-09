@@ -23,9 +23,13 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.config.ShenyuConfig.ExtPlugin;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.cache.CommonMetaDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
@@ -57,6 +61,11 @@ public class ShenyuLoaderService {
 
     private final ShenyuConfig shenyuConfig;
 
+    private final ShenyuContextBuilder builder;
+
+    private final CommonMetaDataSubscriber metaDataSubscriber;
+
+
     /**
      * Instantiates a new Shenyu loader service.
      *
@@ -67,6 +76,21 @@ public class ShenyuLoaderService {
     public ShenyuLoaderService(final ShenyuWebHandler webHandler, final CommonPluginDataSubscriber subscriber, final ShenyuConfig shenyuConfig) {
         this.subscriber = subscriber;
         this.webHandler = webHandler;
+        this.builder = null;
+        this.metaDataSubscriber = null;
+        this.shenyuConfig = shenyuConfig;
+        ExtPlugin config = shenyuConfig.getExtPlugin();
+        if (config.getEnabled()) {
+            ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(config.getThreads(), ShenyuThreadFactory.create("plugin-ext-loader", true));
+            executor.scheduleAtFixedRate(this::loaderExtPlugins, config.getScheduleDelay(), config.getScheduleTime(), TimeUnit.SECONDS);
+        }
+    }
+
+    public ShenyuLoaderService(final ShenyuWebHandler webHandler, final CommonPluginDataSubscriber subscriber, final ShenyuConfig shenyuConfig, final ShenyuContextBuilder builder, final CommonMetaDataSubscriber metaDataSubscriber) {
+        this.subscriber = subscriber;
+        this.webHandler = webHandler;
+        this.builder = builder;
+        this.metaDataSubscriber = metaDataSubscriber;
         this.shenyuConfig = shenyuConfig;
         ExtPlugin config = shenyuConfig.getExtPlugin();
         if (config.getEnabled()) {
@@ -133,6 +157,7 @@ public class ShenyuLoaderService {
 
         for (String className : registerClassNames) {
             Class<?> clazz = Class.forName(className, false, classLoader);
+
             if (ShenyuPlugin.class.isAssignableFrom(clazz)) {
                 AbstractShenyuPlugin plugin = getOrCreateSpringBean(className, classLoader);
                 plugin.setClassLoader(classLoader);
@@ -140,6 +165,14 @@ public class ShenyuLoaderService {
             } else if (PluginDataHandler.class.isAssignableFrom(clazz)) {
                 PluginDataHandler pluginDataHandler = getOrCreateSpringBean(className, classLoader);
                 subscriber.putExtendPluginDataHandler(Arrays.asList(pluginDataHandler));
+            } else if (ShenyuContextDecorator.class.isAssignableFrom(clazz)) {
+                ShenyuContextDecorator decorator = getOrCreateSpringBean(className, classLoader);
+                builder.addDecorator(decorator);
+            } else if (MetaDataHandler.class.isAssignableFrom(clazz)) {
+                MetaDataHandler metaDataHandler = getOrCreateSpringBean(className, classLoader);
+                metaDataSubscriber.addHander(metaDataHandler);
+            } else {
+                getOrCreateSpringBean(className, classLoader);
             }
         }
     }
@@ -158,7 +191,9 @@ public class ShenyuLoaderService {
                 //Exclude ShenyuPlugin subclass and PluginDataHandler subclass
                 // without adding @Component @Service annotation
                 boolean next = ShenyuPlugin.class.isAssignableFrom(clazz)
-                        || PluginDataHandler.class.isAssignableFrom(clazz);
+                        || PluginDataHandler.class.isAssignableFrom(clazz)
+                        || ShenyuContextDecorator.class.isAssignableFrom(clazz)
+                        || MetaDataHandler.class.isAssignableFrom(clazz);
                 if (next) {
                     GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
                     beanDefinition.setBeanClassName(className);

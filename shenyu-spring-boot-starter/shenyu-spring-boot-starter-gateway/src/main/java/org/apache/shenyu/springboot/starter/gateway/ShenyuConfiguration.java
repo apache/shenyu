@@ -22,6 +22,7 @@ import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
 import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.base.alert.AlarmService;
 import org.apache.shenyu.plugin.base.alert.AlarmServiceImpl;
 import org.apache.shenyu.plugin.base.cache.CommonMetaDataSubscriber;
@@ -149,8 +150,10 @@ public class ShenyuConfiguration {
     @Bean
     public ShenyuLoaderService shenyuLoaderService(final ShenyuWebHandler shenyuWebHandler,
                                                    final PluginDataSubscriber pluginDataSubscriber,
-                                                   final ShenyuConfig config) {
-        return new ShenyuLoaderService(shenyuWebHandler, (CommonPluginDataSubscriber) pluginDataSubscriber, config);
+                                                   final ShenyuConfig config,
+                                                   final ShenyuContextBuilder builder,
+                                                   final CommonMetaDataSubscriber metaDataSubscriber) {
+        return new ShenyuLoaderService(shenyuWebHandler, (CommonPluginDataSubscriber) pluginDataSubscriber, config, builder, metaDataSubscriber);
     }
     
     /**

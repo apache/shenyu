@@ -73,7 +73,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         this.selectorMatchConfig = selectorMatchConfig;
         this.ruleMatchCacheConfig = ruleMatchCacheConfig;
     }
-    
+
     /**
      * Instantiates a new Common plugin data subscriber.
      *

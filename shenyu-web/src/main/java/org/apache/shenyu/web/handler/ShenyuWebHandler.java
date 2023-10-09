@@ -205,7 +205,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     private synchronized void onPluginEnabled(final PluginData pluginData) {
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
         // init plugin, 暂时先初始化request插件
-        if (pluginData.getName().equals("request")) {
+        if (Arrays.asList("request", "motan", "sofa").contains(pluginData.getName())) {
             initPluginClassLoader(pluginData.getName());
         }
 

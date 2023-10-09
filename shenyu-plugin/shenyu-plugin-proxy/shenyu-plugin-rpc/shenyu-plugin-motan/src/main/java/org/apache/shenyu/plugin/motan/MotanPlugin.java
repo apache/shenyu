@@ -30,6 +30,9 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.motan.context.MotanShenyuContextDecorator;
+import org.apache.shenyu.plugin.motan.handler.MotanMetaDataHandler;
+import org.apache.shenyu.plugin.motan.handler.MotanPluginDataHandler;
 import org.apache.shenyu.plugin.motan.proxy.MotanProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +40,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -101,12 +106,12 @@ public class MotanPlugin extends AbstractShenyuPlugin {
     public boolean skip(final ServerWebExchange exchange) {
         return skipExcept(exchange, RpcTypeEnum.MOTAN);
     }
-    
+
     @Override
     protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noSelectorResult(pluginName, exchange);
     }
-    
+
     @Override
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
@@ -119,5 +124,10 @@ public class MotanPlugin extends AbstractShenyuPlugin {
 
     private boolean checkMetaData(final MetaData metaData) {
         return Objects.nonNull(metaData) && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
+    }
+
+    @Override
+    public List<String> getRegisterClassNames() {
+        return Arrays.asList(MotanProxyService.class.getName(), MotanPlugin.class.getName(), MotanPluginDataHandler.class.getName(), MotanMetaDataHandler.class.getName(), MotanShenyuContextDecorator.class.getName());
     }
 }

@@ -18,7 +18,9 @@
 package org.apache.shenyu.plugin.sofa;
 
 import com.alipay.sofa.rpc.context.RpcInvokeContext;
-import java.util.Objects;
+
+import java.util.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -32,15 +34,16 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.sofa.context.SofaShenyuContextDecorator;
+import org.apache.shenyu.plugin.sofa.handler.SofaMetaDataHandler;
+import org.apache.shenyu.plugin.sofa.handler.SofaPluginDataHandler;
+import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * The sofa plugin.
@@ -58,6 +61,10 @@ public class SofaPlugin extends AbstractShenyuPlugin {
      */
     public SofaPlugin(final SofaProxyService sofaProxyService) {
         this.sofaProxyService = sofaProxyService;
+    }
+
+    public SofaPlugin() {
+        this.sofaProxyService = new SofaProxyService(null);
     }
 
     @Override
@@ -122,6 +129,11 @@ public class SofaPlugin extends AbstractShenyuPlugin {
 
     private boolean checkMetaData(final MetaData metaData) {
         return Objects.nonNull(metaData) && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
+    }
+
+    @Override
+    public List<String> getRegisterClassNames() {
+        return Arrays.asList(SofaPlugin.class.getName(), SofaMetaDataHandler.class.getName(), SofaParamResolveService.class.getName(), SofaPluginDataHandler.class.getName(), SofaShenyuContextDecorator.class.getName());
     }
 
 }

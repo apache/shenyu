@@ -34,6 +34,7 @@
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>
+            <version>5.7.6</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

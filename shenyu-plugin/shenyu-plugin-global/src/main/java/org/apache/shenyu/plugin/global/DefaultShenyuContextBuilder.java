@@ -32,6 +32,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -60,6 +61,10 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
     public ShenyuContext build(final ServerWebExchange exchange) {
         Pair<String, MetaData> buildData = buildData(exchange);
         return decoratorMap.get(buildData.getLeft()).decorator(buildDefaultContext(exchange.getRequest()), buildData.getRight());
+    }
+
+    public void addDecorator(ShenyuContextDecorator decorator) {
+        this.decoratorMap.put(decorator.rpcType(), decorator);
     }
     
     private Pair<String, MetaData> buildData(final ServerWebExchange exchange) {
