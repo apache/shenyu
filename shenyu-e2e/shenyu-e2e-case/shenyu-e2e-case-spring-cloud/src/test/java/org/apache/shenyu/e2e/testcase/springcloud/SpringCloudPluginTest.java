@@ -32,7 +32,6 @@ import org.springframework.util.MultiValueMap;
 import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Testing spring-cloud plugin.
