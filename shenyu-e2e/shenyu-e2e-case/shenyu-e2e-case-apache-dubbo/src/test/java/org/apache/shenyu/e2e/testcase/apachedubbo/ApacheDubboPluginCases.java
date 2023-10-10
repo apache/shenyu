@@ -64,13 +64,13 @@ public class ApacheDubboPluginCases implements ShenYuScenarioProvider {
     
     private ShenYuScenarioSpec testDubboFindAll() {
         return ShenYuScenarioSpec.builder()
-                .name("apache dubbo order test")
+                .name("apache dubbo findAll")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()
-                        .checker(exists("/dubbo/demo/findAll"))
+                        .checker(exists("/dubbo/findAll"))
                         .build())
                 .caseSpec(ShenYuCaseSpec.builder()
-                        .addExists("/dubbo/demo/findAll")
-                        .addNotExists("/dubbo/demo/findAll/123")
+                        .addExists("/dubbo/findAll")
+                        .addNotExists("/dubbo/findAll")
                         .build())
                 .build();
     }
