@@ -31,19 +31,15 @@ import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -107,14 +103,9 @@ public class WebClientMessageWriterTest {
     }
 
     private ServerWebExchange generateServerWebExchange(final boolean haveResponse) {
-        ClientResponse mockResponse = mock(ClientResponse.class);
-        MultiValueMap<String, ResponseCookie> cookies = new LinkedMultiValueMap<>();
-        cookies.add("id", mock(ResponseCookie.class));
-        when(mockResponse.cookies()).thenReturn(cookies);
-        ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
-        when(headers.asHttpHeaders()).thenReturn(mock(HttpHeaders.class));
-        when(mockResponse.headers()).thenReturn(headers);
-        when(mockResponse.body(any())).thenReturn(Mono.empty());
+        ResponseEntity mockResponse = mock(ResponseEntity.class);
+        when(mockResponse.getHeaders()).thenReturn(mock(HttpHeaders.class));
+        when(mockResponse.getBody()).thenReturn(Mono.empty());
 
         ServerWebExchange exchange = MockServerWebExchange
                 .from(MockServerHttpRequest.get("/test").build());

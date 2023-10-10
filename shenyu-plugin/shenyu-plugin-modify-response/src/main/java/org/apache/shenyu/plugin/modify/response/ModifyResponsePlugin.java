@@ -29,21 +29,19 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
@@ -98,13 +96,16 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-            ClientResponse clientResponse = this.buildModifiedResponse(body);
-            Mono<byte[]> modifiedBody = clientResponse.bodyToMono(byte[].class)
-                    .flatMap(originalBody -> Mono.just(modifyBody(originalBody)));
-            return ResponseUtils.writeWith(clientResponse, this.exchange, modifiedBody, byte[].class);
+            final Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(body);
+            buildModifiedResponse(body);
+            return dataBufferMono.flatMap(dataBuffer -> {
+                byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                dataBuffer.read(bytes);
+                return WebFluxResultUtils.result(this.exchange, modifyBody(bytes));
+            });
         }
 
-        private ClientResponse buildModifiedResponse(final Publisher<? extends DataBuffer> body) {
+        private void buildModifiedResponse(final Publisher<? extends DataBuffer> body) {
             HttpHeaders httpHeaders = new HttpHeaders();
             // add origin headers
             httpHeaders.addAll(this.getHeaders());
@@ -134,23 +135,13 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             }
 
             // reset http status
-            ClientResponse clientResponse = ResponseUtils.buildClientResponse(this.getDelegate(), body);
-            HttpStatus statusCode = clientResponse.statusCode();
             if (this.ruleHandle.getStatusCode() > 0) {
-                this.setStatusCode(statusCode = HttpStatus.valueOf(this.ruleHandle.getStatusCode()));
+                this.setStatusCode(HttpStatus.valueOf(this.ruleHandle.getStatusCode()));
             }
 
             // reset http headers
             this.getDelegate().getHeaders().clear();
             this.getDelegate().getHeaders().putAll(httpHeaders);
-            int rowStatusCode = clientResponse.rawStatusCode();
-            ExchangeStrategies strategies = clientResponse.strategies();
-
-            return ClientResponse.create(statusCode, strategies)
-                    .rawStatusCode(rowStatusCode)
-                    .headers(headers -> headers.addAll(httpHeaders))
-                    .cookies(cookies -> cookies.addAll(this.getCookies()))
-                    .body(Flux.from(body)).build();
         }
 
         private byte[] modifyBody(final byte[] responseBody) {
