@@ -53,7 +53,7 @@ spec:
             - name: NACOS_APPLICATION_PORT
               value: "8848"
             - name: NACOS_SERVERS
-              value: "nacos.shenyu-nacos.nacos.svc.standalone.local:8848"
+              value: "nacos-0.shenyu-nacos.nacos.svc.standalone.local:8848"
             - name: MODE
               value: standalone
             - name: PREFER_HOST_MODE
@@ -77,14 +77,14 @@ metadata:
 spec:
   selector:
     app: shenyu-nacos
-  type: NodePort
+#  type: NodePort
   publishNotReadyAddresses: true
   ports:
     - name: "8848"
       protocol: TCP
       port: 8848
       targetPort: 8848
-      nodePort: 30848
+#      nodePort: 30848
     - name: "9848"
       protocol: TCP
       port: 9848
@@ -94,4 +94,4 @@ spec:
       protocol: TCP
       port: 9849
       targetPort: 9849
-      nodePort: 31849
+#      nodePort: 31849
