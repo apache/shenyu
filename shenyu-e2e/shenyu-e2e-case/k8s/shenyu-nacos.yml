@@ -46,14 +46,12 @@ spec:
               value: Asia/Shanghai
             - name: SERVICE_NAME
               value: "shenyu-nacos"
-            - name: DOMAIN_NAME
-              value: "standalone.local"
             - name: NACOS_SERVER_PORT
               value: "8848"
             - name: NACOS_APPLICATION_PORT
               value: "8848"
             - name: NACOS_SERVERS
-              value: "nacos-0.shenyu-nacos.nacos.svc.standalone.local:8848"
+              value: "shenyu-nacos-0.default.svc.cluster.local:8848"
             - name: MODE
               value: standalone
             - name: PREFER_HOST_MODE
@@ -77,7 +75,7 @@ metadata:
 spec:
   selector:
     app: shenyu-nacos
-#  type: NodePort
+  type: LoadBalancer
   publishNotReadyAddresses: true
   ports:
     - name: "8848"
