@@ -30,8 +30,8 @@ kubectl apply -f "${PRGDIR}"/shenyu-examples-eureka.yml
 kubectl apply -f "${PRGDIR}"/shenyu-cm.yml
 
 # init shenyu sync
-#SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd" "nacos")
-SYNC_ARRAY=("websocket" "nacos")
+SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
+#SYNC_ARRAY=("websocket" "nacos")
 MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
 for sync in ${SYNC_ARRAY[@]}; do
   echo -e "------------------\n"
@@ -55,11 +55,17 @@ for sync in ${SYNC_ARRAY[@]}; do
   kubectl get pod -o wide
 
   ## run e2e-test
-  mvn_result=$(./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test)
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
-  if (echo "$mvn_result" | grep -q "BUILD FAILURE"); then
+  ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test
+  # shellcheck disable=SC2181
+  if (($?)); then
     echo "${sync}-sync-e2e-test failed"
+    echo "shenyu-admin log:"
+    echo "------------------"
+    kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
+    echo "shenyu-bootstrap log:"
+    echo "------------------"
+    kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
+
     exit 1
   fi
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-mysql.yml
