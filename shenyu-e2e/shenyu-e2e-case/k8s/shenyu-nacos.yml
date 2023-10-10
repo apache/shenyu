@@ -89,6 +89,7 @@ spec:
     app: shenyu-nacos
   type: ClusterIP
   publishNotReadyAddresses: true
+  clusterIP: None
   ports:
     - port: 8848
       name: server
