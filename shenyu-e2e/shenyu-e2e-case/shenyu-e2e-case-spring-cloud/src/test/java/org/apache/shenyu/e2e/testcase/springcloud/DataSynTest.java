@@ -73,7 +73,7 @@ import org.junit.jupiter.api.Test;
                 )
         )
 })
-public class DataSynHttpTest {
+public class DataSynTest {
 
     @Test
     void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {

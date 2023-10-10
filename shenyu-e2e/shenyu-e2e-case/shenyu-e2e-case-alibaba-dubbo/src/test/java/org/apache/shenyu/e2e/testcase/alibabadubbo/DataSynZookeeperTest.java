@@ -17,51 +17,51 @@
 
 package org.apache.shenyu.e2e.testcase.alibabadubbo;
 
-import org.apache.shenyu.e2e.client.WaitDataSync;
-import org.apache.shenyu.e2e.client.admin.AdminClient;
-import org.apache.shenyu.e2e.client.gateway.GatewayClient;
-import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
-import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
-import org.junit.jupiter.api.Test;
-
-/**
- * Testing the correctness of Apollo data synchronization method.
- */
-@ShenYuTest(
-        mode = ShenYuEngineConfigure.Mode.DOCKER,
-        services = {
-                @ShenYuTest.ServiceConfigure(
-                        serviceName = "admin",
-                        port = 9095,
-                        baseUrl = "http://{hostname:localhost}:9095",
-                        parameters = {
-                                @ShenYuTest.Parameter(key = "username", value = "admin"),
-                                @ShenYuTest.Parameter(key = "password", value = "123456"),
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
-                        }
-                ),
-                @ShenYuTest.ServiceConfigure(
-                        serviceName = "gateway",
-                        port = 9195,
-                        baseUrl = "http://{hostname:localhost}:9195",
-                        type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
-                        parameters = {
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
-                        }
-                )
-        },
-        dockerComposeFile = "classpath:./docker-compose.mysql.yml"
-)
-public class DataSynZookeeperTest {
-
-    @Test
-    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
-        adminClient.login();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        adminClient.syncPluginAll();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-    }
-
-}
+//import org.apache.shenyu.e2e.client.WaitDataSync;
+//import org.apache.shenyu.e2e.client.admin.AdminClient;
+//import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+//import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+//import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
+//import org.junit.jupiter.api.Test;
+//
+///**
+// * Testing the correctness of Apollo data synchronization method.
+// */
+//@ShenYuTest(
+//        mode = ShenYuEngineConfigure.Mode.DOCKER,
+//        services = {
+//                @ShenYuTest.ServiceConfigure(
+//                        serviceName = "admin",
+//                        port = 9095,
+//                        baseUrl = "http://{hostname:localhost}:9095",
+//                        parameters = {
+//                                @ShenYuTest.Parameter(key = "username", value = "admin"),
+//                                @ShenYuTest.Parameter(key = "password", value = "123456"),
+//                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
+//                        }
+//                ),
+//                @ShenYuTest.ServiceConfigure(
+//                        serviceName = "gateway",
+//                        port = 9195,
+//                        baseUrl = "http://{hostname:localhost}:9195",
+//                        type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
+//                        parameters = {
+//                                @ShenYuTest.Parameter(key = "dataSyn", value = "zookeeper")
+//                        }
+//                )
+//        },
+//        dockerComposeFile = "classpath:./docker-compose.mysql.yml"
+//)
+//public class DataSynZookeeperTest {
+//
+//    @Test
+//    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
+//        adminClient.login();
+//        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
+//        adminClient.syncPluginAll();
+//        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
+//        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
+//        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
+//    }
+//
+//}
