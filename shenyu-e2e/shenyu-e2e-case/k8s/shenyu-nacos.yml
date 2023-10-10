@@ -30,7 +30,19 @@ spec:
     metadata:
       labels:
         app: shenyu-nacos
+      annotations:
+        pod.alpha.kubernetes.io/initialized: "true"
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                      - nacos
+              topologyKey: "kubernetes.io/hostname"
       containers:
         - image: nacos/nacos-server:v2.2.3
           name: shenyu-nacos
@@ -77,6 +89,7 @@ spec:
     app: shenyu-nacos
   type: LoadBalancer
   publishNotReadyAddresses: true
+  clusterIP: None
   ports:
     - name: "8848"
       protocol: TCP
@@ -87,7 +100,7 @@ spec:
       protocol: TCP
       port: 9848
       targetPort: 9848
-      nodePort: 31848
+#      nodePort: 31848
     - name: "9849"
       protocol: TCP
       port: 9849
