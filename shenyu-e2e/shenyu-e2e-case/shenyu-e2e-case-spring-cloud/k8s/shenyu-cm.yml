@@ -449,6 +449,7 @@ data:
         org.springframework.web.reactive: info
         reactor.ipc.netty: info
         reactor.netty: info
+        com.alibaba: debug
 
   application-admin-sync-websocket.yml: |
     shenyu:
