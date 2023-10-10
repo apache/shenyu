@@ -89,20 +89,17 @@ spec:
     app: shenyu-nacos
   type: ClusterIP
   publishNotReadyAddresses: true
-  clusterIP: None
   ports:
-    - name: "8848"
-      protocol: TCP
-      port: 8848
+    - port: 8848
+      name: server
       targetPort: 8848
-#      nodePort: 30848
-    - name: "9848"
-      protocol: TCP
-      port: 9848
+    - port: 9848
+      name: client-rpc
       targetPort: 9848
-#      nodePort: 31848
-    - name: "9849"
-      protocol: TCP
-      port: 9849
+    - port: 9849
+      name: raft-rpc
       targetPort: 9849
-#      nodePort: 31849
+    ## 兼容1.4.x版本的选举端口
+    - port: 7848
+      name: old-raft-rpc
+      targetPort: 7848
