@@ -45,10 +45,10 @@ for sync in ${SYNC_ARRAY[@]}; do
   if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" ]]; then
     kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-"${sync}".yml
     sleep 10s
-    if [[ "${sync}" == "nacos" ]]; then
-      sh "${CUR_PATH}"/healthcheck.sh http://localhost:30848/nacos/actuator/health
-      nohup kubectl port-forward deployment/shenyu-nacos 8848:8848 9848:9848 9849:9849 &
-    fi
+#    if [[ "${sync}" == "nacos" ]]; then
+#      sh "${CUR_PATH}"/healthcheck.sh http://localhost:30848/nacos/actuator/health
+#      nohup kubectl port-forward deployment/shenyu-nacos 8848:8848 9848:9848 9849:9849 &
+#    fi
   fi
   kubectl apply -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:31095/actuator/health
