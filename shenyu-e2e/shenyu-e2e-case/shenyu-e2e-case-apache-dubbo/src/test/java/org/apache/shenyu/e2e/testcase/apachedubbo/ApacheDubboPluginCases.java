@@ -70,7 +70,7 @@ public class ApacheDubboPluginCases implements ShenYuScenarioProvider {
                         .build())
                 .caseSpec(ShenYuCaseSpec.builder()
                         .addExists("/dubbo/findAll")
-                        .addNotExists("/dubbo/findAll")
+                        .addNotExists("/dubbo/findAll/aaa")
                         .build())
                 .build();
     }
