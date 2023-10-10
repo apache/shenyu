@@ -140,7 +140,7 @@
         <mockito.version>3.5.15</mockito.version>
         <awaitility.version>4.0.3</awaitility.version>
         <commons-io.version>2.11.0</commons-io.version>
-        <nacos-client.version>2.2.3</nacos-client.version>
+        <nacos-client.version>2.2.4</nacos-client.version>
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
         <grpc.version>1.53.0</grpc.version>
         <brpc.version>2022.2.0</brpc.version>
