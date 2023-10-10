@@ -62,13 +62,6 @@ public class ApacheDubboPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        //List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        //
-        //for (SelectorDTO selectorDTO :selectorDTOList) {
-        //    if (selectorDTO.getHandle() != null && !selectorDTO.getHandle().equals("")) {
-        //        ApacheDubboPluginCases.verifierUri(selectorDTO.getHandle());
-        //    }
-        //}
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "6");
@@ -76,54 +69,15 @@ public class ApacheDubboPluginTest {
         formData.add("enabled", "true");
         formData.add("role", "Proxy");
         formData.add("sort", "310");
-        formData.add("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\",\"threadpool\":\"shared\",\"threads\":2147483647,\"register\":\"zookeeper://shenyu-zookeeper:2181\"}");
+        formData.add("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\"," +
+                "\"threadpool\":\"shared\",\"threads\":2147483647,\"register\":\"zookeeper://shenyu-zookeeper:2181\"}");
         adminClient.changePluginStatus("6", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin");
-        //adminClient.deleteAllSelectors();
-        //selectorDTOList = adminClient.listAllSelectors();
-        //Assertions.assertEquals(0, selectorDTOList.size());
     }
-
-    //@BeforeEach
-    //void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
-    //    spec.getChecker().check(gateway);
-    //
-    //    ResourcesData resources = spec.getResources();
-    //    for (ResourcesData.Resource res : resources.getResources()) {
-    //        SelectorDTO dto = client.create(res.getSelector());
-    //        selectorIds.add(dto.getId());
-    //
-    //        res.getRules().forEach(rule -> {
-    //            rule.setSelectorId(dto.getId());
-    //            client.create(rule);
-    //        });
-    //    }
-    //
-    //    spec.getWaiting().waitFor(gateway);
-    //}
-
+    
     @ShenYuScenario(provider = ApacheDubboPluginCases.class)
     void testSpringCloud(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
-
-    //@AfterEach
-    //void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
-    //    spec.getDeleter().delete(client, selectorIds);
-    //    spec.deleteWaiting().waitFor(gateway);
-    //    selectorIds = Lists.newArrayList();
-    //}
-    //
-    //@AfterAll
-    //static void teardown(final AdminClient client) {
-    //    client.deleteAllSelectors();
-    //    MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-    //    formData.add("id", "6");
-    //    formData.add("name", "dubbo");
-    //    formData.add("enabled", "false");
-    //    formData.add("role", "Proxy");
-    //    formData.add("sort", "310");
-    //    client.changePluginStatus("6", formData);
-    //}
 }
 
