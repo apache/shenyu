@@ -62,12 +62,13 @@ for sync in ${SYNC_ARRAY[@]}; do
   ## run e2e-test
   ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test
   # shellcheck disable=SC2181
-  if (($?)); then
+  $mvnresult = $?
+  kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
+  kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
+  if (($mvnresult)); then
     echo "${sync}-sync-e2e-test failed"
     exit 1
   fi
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-mysql.yml
   kubectl delete -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
   kubectl delete -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
