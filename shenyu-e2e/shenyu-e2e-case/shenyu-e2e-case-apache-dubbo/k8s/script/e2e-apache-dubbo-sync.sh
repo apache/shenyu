@@ -26,7 +26,6 @@ bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_mysql.sh
 CUR_PATH=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$CUR_PATH")
 kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-cm.yml
-kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-zookeeper.yml
 
 # init shenyu sync
 SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
@@ -35,10 +34,12 @@ MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
 for sync in ${SYNC_ARRAY[@]}; do
   echo -e "------------------\n"
   kubectl apply -f "$SHENYU_TESTCASE_DIR"/k8s/shenyu-mysql.yml
+  kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-zookeeper.yml
   sleep 30s
   echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
   # shellcheck disable=SC2199
   # shellcheck disable=SC2076
+  # shellcheck disable=SC2154
   if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" && "zookeeper" -ne "${sync}" ]]; then
     kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-"${sync}".yml
     sleep 10s

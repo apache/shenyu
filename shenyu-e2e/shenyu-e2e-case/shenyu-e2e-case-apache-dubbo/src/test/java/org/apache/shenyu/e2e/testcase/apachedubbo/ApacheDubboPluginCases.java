@@ -65,9 +65,9 @@ public class ApacheDubboPluginCases implements ShenYuScenarioProvider {
     private ShenYuScenarioSpec testDubboFindAll() {
         return ShenYuScenarioSpec.builder()
                 .name("apache dubbo findAll")
-                //.beforeEachSpec(ShenYuBeforeEachSpec.builder()
-                //        .checker(exists("/dubbo/findAll"))
-                //        .build())
+                .beforeEachSpec(ShenYuBeforeEachSpec.builder()
+                        .checker(exists("/dubbo/findAll"))
+                        .build())
                 .caseSpec(ShenYuCaseSpec.builder()
                         .addExists("/dubbo/findAll")
                         .addNotExists("/dubbo/findAll/aaa")
