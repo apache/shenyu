@@ -88,6 +88,7 @@ spec:
   selector:
     app: shenyu-nacos
   type: LoadBalancer
+  clusterIP: None
   publishNotReadyAddresses: true
   ports:
     - port: 8848
