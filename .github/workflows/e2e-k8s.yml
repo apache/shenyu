@@ -197,6 +197,8 @@ jobs:
         include:
           - case: shenyu-e2e-case-spring-cloud
             script: e2e-springcloud-sync
+          - case: shenyu-e2e-case-apache-dubbo
+            script: e2e-apache-dubbo-sync
     if: (github.repository == 'moremind/shenyu')
     steps:
       - uses: actions/checkout@v2

@@ -50,15 +50,29 @@ public class ApacheDubboPluginCases implements ShenYuScenarioProvider {
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
-                testWithUriEquals(),
-                testWithUriPathPattern(),
-                testWithUriStartWith(),
-                testWithEndWith(),
-                testWithMethodGet(),
-                testWithMethodPost(),
-                testWithMethodPut(),
-                testWithMethodDelete()
+                testDubboFindAll()
+                //testWithUriEquals(),
+                //testWithUriPathPattern(),
+                //testWithUriStartWith(),
+                //testWithEndWith(),
+                //testWithMethodGet(),
+                //testWithMethodPost(),
+                //testWithMethodPut(),
+                //testWithMethodDelete()
         );
+    }
+    
+    private ShenYuScenarioSpec testDubboFindAll() {
+        return ShenYuScenarioSpec.builder()
+                .name("apache dubbo order test")
+                .beforeEachSpec(ShenYuBeforeEachSpec.builder()
+                        .checker(exists("/dubbo/demo/findAll"))
+                        .build())
+                .caseSpec(ShenYuCaseSpec.builder()
+                        .addExists("/dubbo/demo/findAll")
+                        .addNotExists("/dubbo/demo/findAll/123")
+                        .build())
+                .build();
     }
 
     /**

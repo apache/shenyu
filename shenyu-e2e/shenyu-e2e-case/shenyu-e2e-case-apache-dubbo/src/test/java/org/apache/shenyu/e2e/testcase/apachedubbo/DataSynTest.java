@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.springcloud;
+package org.apache.shenyu.e2e.testcase.apachedubbo;
 
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
-import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.junit.jupiter.api.Test;
 
 /**
