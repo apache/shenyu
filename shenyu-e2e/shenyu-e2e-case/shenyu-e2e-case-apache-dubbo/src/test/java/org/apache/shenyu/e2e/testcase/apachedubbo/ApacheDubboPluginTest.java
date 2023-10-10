@@ -58,7 +58,7 @@ public class ApacheDubboPluginTest {
     static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        adminClient.syncPluginAll();
+        //adminClient.syncPluginAll();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
@@ -76,7 +76,7 @@ public class ApacheDubboPluginTest {
     }
     
     @ShenYuScenario(provider = ApacheDubboPluginCases.class)
-    void testSpringCloud(final GatewayClient gateway, final CaseSpec spec) {
+    void testDubbo(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 }
