@@ -21,7 +21,7 @@ package org.apache.shenyu.e2e.testcase.springcloud;
 //import org.apache.shenyu.e2e.client.admin.AdminClient;
 //import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 //import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
-//import org.apache.shenyu.e2e.k8s.engine.annotation.ShenYuE2ETest;
+//import org.apache.shenyu.e2e.engine.annotation.ShenYuE2ETest;
 //import org.junit.jupiter.api.Test;
 //
 ///**

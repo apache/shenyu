@@ -50,7 +50,6 @@ import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -91,7 +90,7 @@ public class AdminClient extends BaseClient {
 
     private final MultiValueMap<String, String> basicAuth = new HttpHeaders();
 
-    private final RestTemplate template = new RestTemplateBuilder().build();
+    private final RestTemplate template = new RestTemplate();
 
     private final ObjectMapper mapper = new ObjectMapper();
     

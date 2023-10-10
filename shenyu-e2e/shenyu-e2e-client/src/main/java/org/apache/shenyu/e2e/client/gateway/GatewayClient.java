@@ -30,7 +30,6 @@ import org.apache.shenyu.e2e.model.data.SelectorCacheData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -51,7 +50,7 @@ public class GatewayClient extends BaseClient {
 
     private static final Logger log = LoggerFactory.getLogger(GatewayClient.class);
     
-    private static final RestTemplate TEMPLATE = new RestTemplateBuilder().build();
+    private static final RestTemplate TEMPLATE = new RestTemplate();
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     

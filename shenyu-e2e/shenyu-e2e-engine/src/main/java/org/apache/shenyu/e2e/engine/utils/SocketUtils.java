@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.k8s.engine.utils;
+package org.apache.shenyu.e2e.engine.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
