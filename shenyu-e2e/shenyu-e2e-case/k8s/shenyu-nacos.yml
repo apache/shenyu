@@ -87,7 +87,7 @@ metadata:
 spec:
   selector:
     app: shenyu-nacos
-  type: LoadBalancer
+  type: ClusterIP
   publishNotReadyAddresses: true
   clusterIP: None
   ports:
