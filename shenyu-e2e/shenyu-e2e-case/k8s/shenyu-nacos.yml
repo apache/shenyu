@@ -62,8 +62,6 @@ spec:
               value: "8848"
             - name: NACOS_APPLICATION_PORT
               value: "8848"
-            - name: NACOS_SERVERS
-              value: "shenyu-nacos-0.shenyu-nacos.default.svc.cluster.local:8848"
             - name: MODE
               value: standalone
             - name: PREFER_HOST_MODE

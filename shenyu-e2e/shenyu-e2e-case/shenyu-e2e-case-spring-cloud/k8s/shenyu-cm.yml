@@ -482,7 +482,7 @@ data:
     shenyu:
       sync:
         nacos:
-          url: shenyu-nacos-0.shenyu-nacos.default.svc.cluster.local:8848
+          url: shenyu-nacos.default.svc.cluster.local:8848
           namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
           username:
           password:
@@ -526,7 +526,7 @@ data:
     shenyu:
       sync:
         nacos:
-          url: shenyu-nacos-0.shenyu-nacos.default.svc.cluster.local:8848
+          url: shenyu-nacos.default.svc.cluster.local:8848
           namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
           username:
           password:
