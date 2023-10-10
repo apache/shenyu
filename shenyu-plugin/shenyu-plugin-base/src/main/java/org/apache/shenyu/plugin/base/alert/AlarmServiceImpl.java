@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.plugin.base.alert;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.AlarmContent;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -27,6 +29,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Alarm service implement.
  */
@@ -34,16 +39,24 @@ public class AlarmServiceImpl implements AlarmService {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(AlarmServiceImpl.class);
     
+    private static final String PATH = "/alert/report";
+    
     private final RestTemplate restTemplate;
     
-    private final String adminReportUrl;
+    private final List<String> adminReportUrls;
     
     private final boolean enabled;
-    
-    public AlarmServiceImpl(final RestTemplate restTemplate, final String reportUrl, final boolean enabled) {
-        this.restTemplate = restTemplate;
-        this.adminReportUrl = reportUrl;
+
+    public AlarmServiceImpl(final RestTemplate restTemplate, final String admins, final boolean enabled) {
         this.enabled = enabled;
+        this.restTemplate = restTemplate;
+        String scheme = System.getProperty("scheme", "http");
+        String[] urls = StringUtils.split(admins, ",");
+        for (int index = 0; index < urls.length; index++) {
+            urls[index] = UriUtils.appendScheme(urls[index], scheme);
+            urls[index] = urls[index] + PATH;
+        }
+        adminReportUrls = Arrays.asList(urls);
     }
     
     @Override
@@ -54,11 +67,26 @@ public class AlarmServiceImpl implements AlarmService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<AlarmContent> request = new HttpEntity<>(content, headers);
-        ResponseEntity<Void> response = restTemplate.postForEntity(adminReportUrl, request, Void.class);
-        if (response.getStatusCode() == HttpStatus.OK) {
-            LOGGER.debug("send alarm content success: {}.", content);
-        } else {
-            LOGGER.debug("send alarm content failed: {}.", response.getStatusCode());
+        boolean success = false;
+        String errorMsg = "";
+        for (String reportUrl : adminReportUrls) {
+            if (success) {
+                continue;
+            }
+            try {
+                ResponseEntity<Void> response = restTemplate.postForEntity(reportUrl, request, Void.class);
+                if (response.getStatusCode() == HttpStatus.OK) {
+                    success = true;
+                    LOGGER.debug("send alarm content success: {}.", content);
+                } else {
+                    LOGGER.debug("send alarm content failed: {}.", response.getStatusCode());
+                }
+            } catch (Exception e) {
+                errorMsg = "send alarm content failed: " + e.getMessage();
+            }
+        }
+        if (!success) {
+            LOGGER.error(errorMsg);
         }
     }
 }
