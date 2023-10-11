@@ -288,7 +288,9 @@ shenyu:
       - /health_check
   alert:
     enabled: true
+    # the shenyu admin servers or gateway path switch one to config
     admins: localhost:9095
+#    gateway: localhost:9195/shenyu/admin/alert/report
   extPlugin:
     path:
     enabled: true

@@ -22,7 +22,6 @@ import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.spi.ExtensionLoader;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -36,17 +35,6 @@ import java.util.stream.Collectors;
  */
 @Configuration
 public class RegisterCenterConfiguration {
-
-    /**
-     * Shenyu register center config shenyu register center config.
-     *
-     * @return the shenyu register center config
-     */
-    @Bean
-    @ConfigurationProperties(prefix = "shenyu.register")
-    public ShenyuRegisterCenterConfig shenyuRegisterCenterConfig() {
-        return new ShenyuRegisterCenterConfig();
-    }
     
     /**
      * Shenyu client server register repository server register repository.

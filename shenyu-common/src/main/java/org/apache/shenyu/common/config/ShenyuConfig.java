@@ -1980,7 +1980,9 @@ public class ShenyuConfig {
     public static class AlertConfig {
         private Boolean enabled = Boolean.TRUE;
         
-        private String admins = "localhost:9095";
+        private String admins;
+        
+        private String gateway;
         
         /**
          * get shenyu spring cloud cache status.
@@ -2013,6 +2015,23 @@ public class ShenyuConfig {
          */
         public void setAdmins(final String admins) {
             this.admins = admins;
+        }
+
+        /**
+         * Get shenyu gateway alert report url path.
+         * eg: localhost:9195/shenyu/admin/alert/report
+         * @return gateway alert report url
+         */
+        public String getGateway() {
+            return gateway;
+        }
+
+        /**
+         * Set shenyu gateway alert report url.
+         * @param gateway gateway alert report url
+         */
+        public void setGateway(final String gateway) {
+            this.gateway = gateway;
         }
     }
 }
