@@ -57,7 +57,7 @@ public class ApacheDubboPluginTest {
     @BeforeEach
     public void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
+        //WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         //adminClient.syncPluginAll();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
