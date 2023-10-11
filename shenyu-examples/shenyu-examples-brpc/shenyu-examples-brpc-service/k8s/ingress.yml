@@ -32,7 +32,7 @@ metadata:
       {"methodInfo":[{"methodName":"getUser","paramTypes":[{"left":"java.lang.Long","right":"userId"}]}],"host":shenyu-examples-brpc-service,"port":8005}
 spec:
   selector:
-    app: shenyu-examples-apache-brpc-service
+    app: shenyu-examples-brpc-service
   ports:
     - port: 8005
 
