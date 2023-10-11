@@ -72,6 +72,7 @@ public class ApacheDubboPluginTest {
         formData.add("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\","
                 + "\"threadpool\":\"shared\",\"threads\":2147483647,\"register\":\"zookeeper://shenyu-zookeeper:2181\"}");
         adminClient.changePluginStatus("6", formData);
+        adminClient.changePluginStatus("6", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin");
         LOG.info("start dubbo plugin success!");
     }
