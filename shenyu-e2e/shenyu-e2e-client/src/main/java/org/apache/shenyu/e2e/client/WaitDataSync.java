@@ -95,7 +95,7 @@ public class WaitDataSync {
             pluginMap = gatewayClient.getPlugins();
         }
         if (!existPlugin) {
-            throw new AssertionFailedError(pluginClass + " plugin not found" );
+            throw new AssertionFailedError(pluginClass + " plugin not found");
         }
     }
 
