@@ -20,11 +20,14 @@ package org.apache.shenyu.plugin.api.result;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ObjectTypeUtils;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * The interface shenyu result.
@@ -66,9 +69,9 @@ public interface ShenyuResult<T> {
      * @return the context type
      */
     default MediaType contentType(ServerWebExchange exchange, Object formatted) {
-        final ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-        if (Objects.nonNull(clientResponse) && clientResponse.headers().contentType().isPresent()) {
-            return clientResponse.headers().contentType().get();
+        final ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+        if (Objects.nonNull(fluxResponseEntity) && Optional.ofNullable(fluxResponseEntity.getHeaders().getContentType()).isPresent()) {
+            return fluxResponseEntity.getHeaders().getContentType();
         }
         return MediaType.APPLICATION_JSON;
     }

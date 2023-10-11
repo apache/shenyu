@@ -288,7 +288,7 @@ shenyu:
       - /health_check
   alert:
     enabled: true
-    reportUrl: http://localhost:9095/alert/report
+    admins: localhost:9095
   extPlugin:
     path:
     enabled: true
