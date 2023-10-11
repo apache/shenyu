@@ -100,7 +100,7 @@ public class HttpClientPluginConfiguration {
      * The type Web client configuration.
      */
     @Configuration
-    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "netty")
+    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "webClient")
     static class WebClientConfiguration {
 
         /**
