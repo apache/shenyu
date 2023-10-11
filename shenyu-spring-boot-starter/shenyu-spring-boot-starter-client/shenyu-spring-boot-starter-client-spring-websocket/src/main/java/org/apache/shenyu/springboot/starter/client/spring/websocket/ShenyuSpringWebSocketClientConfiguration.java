@@ -32,6 +32,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import java.util.Properties;
 
 /**
  * The type shenyu websocket client http configuration.
@@ -55,7 +57,14 @@ public class ShenyuSpringWebSocketClientConfiguration {
     @Bean
     public SpringWebSocketClientEventListener springWebSocketClientEventListener(
             final ShenyuClientConfig clientConfig,
+            final Environment env,
             final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        ShenyuClientConfig.ClientPropertiesConfig clientPropertiesConfig = clientConfig.getClient().get(RpcTypeEnum.WEB_SOCKET.getName());
+        Properties props = clientPropertiesConfig == null ? null : clientPropertiesConfig.getProps();
+        String discoveryMode = env.getProperty("shenyu.discovery.mode", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
+        if (props != null) {
+            props.setProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.valueOf(ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode)).toString());
+        }
         return new SpringWebSocketClientEventListener(clientConfig.getClient().get(RpcTypeEnum.WEB_SOCKET.getName()), shenyuClientRegisterRepository);
     }
 
