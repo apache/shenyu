@@ -26,6 +26,8 @@ import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -52,7 +54,8 @@ import java.util.List;
         )
 })
 public class ApacheDubboPluginTest {
-    private List<String> selectorIds = Lists.newArrayList();
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ApacheDubboPluginTest.class);
     
     @BeforeEach
     public void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
@@ -62,7 +65,7 @@ public class ApacheDubboPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-
+        LOG.info("start dubbo plugin");
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "6");
         formData.add("name", "dubbo");
@@ -73,6 +76,7 @@ public class ApacheDubboPluginTest {
                 + "\"threadpool\":\"shared\",\"threads\":2147483647,\"register\":\"zookeeper://shenyu-zookeeper:2181\"}");
         adminClient.changePluginStatus("6", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin");
+        LOG.info("start dubbo plugin success!");
     }
     
     @ShenYuScenario(provider = ApacheDubboPluginCases.class)

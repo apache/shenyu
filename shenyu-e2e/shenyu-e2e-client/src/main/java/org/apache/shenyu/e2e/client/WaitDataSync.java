@@ -20,6 +20,7 @@ package org.apache.shenyu.e2e.client;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.junit.jupiter.api.Assertions;
+import org.opentest4j.AssertionFailedError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -92,6 +93,9 @@ public class WaitDataSync {
             Thread.sleep(3000);
             retryNum++;
             pluginMap = gatewayClient.getPlugins();
+        }
+        if (!existPlugin) {
+            throw new AssertionFailedError(pluginClass + " plugin not found" );
         }
     }
 
