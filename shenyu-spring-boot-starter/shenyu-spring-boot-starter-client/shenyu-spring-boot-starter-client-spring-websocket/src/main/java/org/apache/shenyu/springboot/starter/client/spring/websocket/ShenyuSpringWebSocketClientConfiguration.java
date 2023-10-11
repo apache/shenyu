@@ -52,6 +52,7 @@ public class ShenyuSpringWebSocketClientConfiguration {
      *
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
+     * @param env env
      * @return the spring web socket client event listener
      */
     @Bean
