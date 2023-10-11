@@ -22,8 +22,6 @@ import com.google.gson.JsonParser;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1EndpointAddress;
-import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1Ingress;
