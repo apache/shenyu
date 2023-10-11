@@ -46,9 +46,9 @@ public class BrpcPluginDemoTest extends AbstractPluginDataInit {
 
     @Test
     public void testGetUser() throws IOException {
-        BrpcTest response = HttpHelper.INSTANCE.getFromGateway("/brpc/getUser?userId=1001", new TypeToken<BrpcTest>() {
+        BrpcTest response = HttpHelper.INSTANCE.getFromGateway("/brpc/getUser?userId=1000001", new TypeToken<BrpcTest>() {
         }.getType());
         assertThat(response.getUserName(), is("User1"));
-        assertThat(response.getUserId(), is(1001L));
+        assertThat(response.getUserId(), is(1000001L));
     }
 }

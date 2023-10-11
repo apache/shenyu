@@ -252,23 +252,10 @@ public class BrpcParser implements K8sResourceParser<V1Ingress> {
             JsonObject jsonObject = parser.parse(rpcExt).getAsJsonObject();
             String host = jsonObject.get("host").getAsString();
             if (!isCompleteHost(host)) {
-                V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(host);
-                List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-                if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
-                    LOG.info("Endpoints do not have subsets");
-                } else {
-                    for (V1EndpointSubset subset : subsets) {
-                        List<V1EndpointAddress> addresses = subset.getAddresses();
-                        if (Objects.isNull(addresses) || addresses.isEmpty()) {
-                            continue;
-                        }
-                        for (V1EndpointAddress address : addresses) {
-                            host = address.getIp();
-                            jsonObject.addProperty("host", host);
-                            rpcExt = jsonObject.toString();
-                        }
-                    }
-                }
+                V1Service v1Service = serviceLister.namespace(namespace).get(host);
+                host = v1Service.getSpec().getClusterIP();
+                jsonObject.addProperty("host", host);
+                rpcExt = jsonObject.toString();
             }
         }
         return MetaData.builder()
