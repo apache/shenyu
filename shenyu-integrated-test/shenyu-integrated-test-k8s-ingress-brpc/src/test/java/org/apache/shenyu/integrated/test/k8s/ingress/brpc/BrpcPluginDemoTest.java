@@ -26,9 +26,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-
 public class BrpcPluginDemoTest extends AbstractPluginDataInit {
 
     private static final HttpHelper HTTP_HELPER = HttpHelper.INSTANCE;
