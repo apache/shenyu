@@ -26,6 +26,7 @@ import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -53,9 +54,9 @@ import java.util.List;
 })
 public class ApacheDubboPluginTest {
     private List<String> selectorIds = Lists.newArrayList();
-
-    @BeforeAll
-    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
+    
+    @BeforeEach
+    public void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         //adminClient.syncPluginAll();
