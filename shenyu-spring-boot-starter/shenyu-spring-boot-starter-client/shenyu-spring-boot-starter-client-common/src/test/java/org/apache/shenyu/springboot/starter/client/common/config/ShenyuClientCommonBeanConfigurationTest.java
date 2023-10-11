@@ -62,6 +62,7 @@ public class ShenyuClientCommonBeanConfigurationTest {
                         "shenyu.client.dubbo.props[appName]=common",
                         "shenyu.client.dubbo.props[host]=localhost",
                         "shenyu.discovery.name=local",
+                        "shenyu.discovery.enable=true",
                         "shenyu.discovery.type=local",
                         "shenyu.discovery.serverList=20888",
                         "shenyu.discovery.props[sleep]=1000",

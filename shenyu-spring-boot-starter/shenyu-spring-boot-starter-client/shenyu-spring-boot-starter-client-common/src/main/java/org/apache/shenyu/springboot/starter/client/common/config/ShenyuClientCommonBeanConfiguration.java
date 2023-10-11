@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnProperty(value = "shenyu.register.enabled", matchIfMissing = true, havingValue = "true")
 public class ShenyuClientCommonBeanConfiguration {
-    
+
     /**
      * Register the register repository for http client bean post processor.
      *
@@ -44,7 +44,7 @@ public class ShenyuClientCommonBeanConfiguration {
     public ShenyuClientRegisterRepository shenyuClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
         return ShenyuClientRegisterRepositoryFactory.newInstance(config);
     }
-    
+
     /**
      * Shenyu Register Center Config.
      *
@@ -55,7 +55,7 @@ public class ShenyuClientCommonBeanConfiguration {
     public ShenyuRegisterCenterConfig shenyuRegisterCenterConfig() {
         return new ShenyuRegisterCenterConfig();
     }
-    
+
     /**
      * Shenyu client config.
      *
@@ -73,6 +73,7 @@ public class ShenyuClientCommonBeanConfiguration {
      * @return the shenyu discovery config
      */
     @Bean
+    @ConditionalOnProperty(prefix = "shenyu.discovery", name = "enable", matchIfMissing = false, havingValue = "true")
     @ConfigurationProperties(prefix = "shenyu.discovery")
     public ShenyuDiscoveryConfig shenyuDiscoveryConfig() {
         return new ShenyuDiscoveryConfig();
