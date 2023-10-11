@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.e2e.testcase.apachedubbo;
 
-import com.google.common.collect.Lists;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
@@ -30,8 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-
-import java.util.List;
 
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
