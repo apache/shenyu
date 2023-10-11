@@ -40,7 +40,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   # shellcheck disable=SC2199
   # shellcheck disable=SC2076
   # shellcheck disable=SC2154
-  if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" && "zookeeper" -ne "${sync}" ]]; then
+  if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" ]]; then
     kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-"${sync}".yml
     sleep 10s
   fi
@@ -72,7 +72,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   kubectl delete -f "${PRGDIR}"/shenyu-examples-dubbo.yml
   # shellcheck disable=SC2199
   # shellcheck disable=SC2076
-  if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" && "zookeeper" -ne "${sync}" ]]; then
+  if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" ]]; then
     kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-"${sync}".yml
   fi
   echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
