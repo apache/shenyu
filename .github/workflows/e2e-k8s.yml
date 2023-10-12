@@ -278,7 +278,6 @@ jobs:
         run: |
           kubectl get all
           kubectl get events --all-namespaces
-          kubectl logs -l app=shenyu-admin-mysql
 
   requirement:
     name: e2e
