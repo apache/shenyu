@@ -238,7 +238,7 @@ jobs:
             ${{ runner.os }}-e2e-maven-
 
       - name: Build examples with Maven
-        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml -T1C
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
 
       - uses: actions/download-artifact@v3
         with:
