@@ -26,7 +26,6 @@ bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_mysql.sh
 CUR_PATH=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$CUR_PATH")
 echo "$PRGDIR"
-kubectl apply -f "${PRGDIR}"/shenyu-examples-eureka.yml
 kubectl apply -f "${PRGDIR}"/shenyu-cm.yml
 
 # init shenyu sync
@@ -35,6 +34,7 @@ SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
 MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
 for sync in ${SYNC_ARRAY[@]}; do
   echo -e "------------------\n"
+  kubectl apply -f "${PRGDIR}"/shenyu-examples-eureka.yml
   kubectl apply -f "$SHENYU_TESTCASE_DIR"/k8s/shenyu-mysql.yml
   sleep 30s
   echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
@@ -55,7 +55,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   kubectl get pod -o wide
 
   ## run e2e-test
-  ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test
+  ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud test
   # shellcheck disable=SC2181
   if (($?)); then
     echo "${sync}-sync-e2e-test failed"
