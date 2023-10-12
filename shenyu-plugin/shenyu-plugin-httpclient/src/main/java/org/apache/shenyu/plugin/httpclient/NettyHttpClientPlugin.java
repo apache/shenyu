@@ -18,9 +18,6 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.handler.codec.http.HttpMethod;
-import java.util.List;
-import java.util.Objects;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
@@ -40,8 +37,8 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
 import java.net.URI;
-import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * The type Netty http client plugin.
@@ -49,7 +46,7 @@ import java.util.function.Consumer;
 public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientResponse> {
 
     private final HttpClient httpClient;
-    
+
     private final DuplicateResponseHeaderProperties properties;
 
     /**
@@ -91,13 +88,10 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                         throw new IllegalStateException("Unable to set status code on response: " + res.status().code() + ", " + response.getClass());
                     }
                     response.getHeaders().putAll(headers);
-                    // watcher httpStatus
-                    final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);
-                    Optional.ofNullable(consumer).ifPresent(c -> c.accept(response.getStatusCode()));
                     return Mono.just(res);
                 }));
     }
-    
+
     private void duplicate(final HttpHeaders headers) {
         List<String> duplicateHeaders = properties.getHeaders();
         if (CollectionUtils.isEmpty(duplicateHeaders)) {
