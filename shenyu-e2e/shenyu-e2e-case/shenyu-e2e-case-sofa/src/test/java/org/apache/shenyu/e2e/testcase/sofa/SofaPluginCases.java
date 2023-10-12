@@ -42,6 +42,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
+                testSofaFindAll()
                 //testWithUriEquals(),
                 //testWithUriPathPattern(),
                 //testWithUriStartWith(),
