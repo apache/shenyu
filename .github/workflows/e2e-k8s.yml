@@ -279,3 +279,17 @@ jobs:
           kubectl get all
           kubectl get events --all-namespaces
           kubectl logs -l app=shenyu-admin-mysql
+
+  requirement:
+    name: e2e
+    if: ${{ needs.changes.outputs.e2e == 'true' }}
+    needs:
+      - changes
+      - e2e-storage
+      - e2e-case
+    runs-on: ubuntu-latest
+    steps:
+      - name: checking job status
+        run: |
+          [[ "${{ needs.e2e-storage.result }}" == "success" ]] || exit -1
+          [[ "${{ needs.e2e-case.result }}" == "success" ]] || exit -1
