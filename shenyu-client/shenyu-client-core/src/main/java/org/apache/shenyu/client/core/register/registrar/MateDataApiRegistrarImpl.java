@@ -30,13 +30,13 @@ import org.jetbrains.annotations.NotNull;
  *
  * @see MetaDataRegisterDTO
  */
-public class MateDataApiRegistrarImplImpl extends BaseApiRegistrarImpl {
+public class MateDataApiRegistrarImpl extends BaseApiRegistrarImpl {
     
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
     
     private final ClientRegisterConfig clientRegisterConfig;
     
-    public MateDataApiRegistrarImplImpl(final ClientRegisterConfig clientRegisterConfig) {
+    public MateDataApiRegistrarImpl(final ClientRegisterConfig clientRegisterConfig) {
         this.clientRegisterConfig = clientRegisterConfig;
     }
     
@@ -59,6 +59,7 @@ public class MateDataApiRegistrarImplImpl extends BaseApiRegistrarImpl {
                 .pathDesc(buildDesc(api))
                 .parameterTypes(buildParameterTypes(api))
                 .rpcType(api.getApiBean().getClientName())
+                .registerMetaData(getRegisterMetaData(api))
                 .enabled(getEnable(api))
                 .ruleName(buildRule(api))
                 .build();
@@ -81,6 +82,7 @@ public class MateDataApiRegistrarImplImpl extends BaseApiRegistrarImpl {
                 .parameterTypes(buildParameterTypes(apiBean))
                 .rpcType(apiBean.getClientName())
                 .enabled(getEnable(apiBean))
+                .registerMetaData(getRegisterMetaData(apiBean))
                 .ruleName(buildRule(apiBean))
                 .build();
         
@@ -129,6 +131,22 @@ public class MateDataApiRegistrarImplImpl extends BaseApiRegistrarImpl {
     
     private boolean getEnable(final ApiBean.ApiDefinition api) {
         final String enable = api.getPropertiesValue("enable");
+        if (StringUtils.isNotBlank(enable)) {
+            return Boolean.parseBoolean(enable);
+        }
+        return true;
+    }
+
+    private boolean getRegisterMetaData(final ApiBean api) {
+        final String enable = api.getPropertiesValue("registerMetaData");
+        if (StringUtils.isNotBlank(enable)) {
+            return Boolean.parseBoolean(enable);
+        }
+        return true;
+    }
+
+    private boolean getRegisterMetaData(final ApiBean.ApiDefinition api) {
+        final String enable = api.getPropertiesValue("registerMetaData");
         if (StringUtils.isNotBlank(enable)) {
             return Boolean.parseBoolean(enable);
         }
