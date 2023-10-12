@@ -30,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -50,18 +51,25 @@ public class AlarmServiceImpl implements AlarmService {
     public AlarmServiceImpl(final RestTemplate restTemplate, final String admins, final boolean enabled) {
         this.enabled = enabled;
         this.restTemplate = restTemplate;
+        adminReportUrls = new LinkedList<>();
         String scheme = System.getProperty("scheme", "http");
         String[] urls = StringUtils.split(admins, ",");
-        for (int index = 0; index < urls.length; index++) {
-            urls[index] = UriUtils.appendScheme(urls[index], scheme);
-            urls[index] = urls[index] + PATH;
+        if (urls != null) {
+            for (int index = 0; index < urls.length; index++) {
+                urls[index] = UriUtils.appendScheme(urls[index], scheme);
+                urls[index] = urls[index] + PATH;
+            }   
+            adminReportUrls.addAll(Arrays.asList(urls));
         }
-        adminReportUrls = Arrays.asList(urls);
     }
     
     @Override
     public void alarm(final AlarmContent content) {
         if (!enabled) {
+            return;
+        }
+        if (adminReportUrls.isEmpty()) {
+            LOGGER.error("Please config shenyu.alert.admins alarm reportUrl");
             return;
         }
         HttpHeaders headers = new HttpHeaders();
