@@ -192,6 +192,8 @@ services:
     environment:
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
     depends_on:
+      shenyu-zk:
+        condition: service_healthy
       shenyu-admin:
         condition: service_healthy
       shenyu-zk:
