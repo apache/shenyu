@@ -53,7 +53,7 @@ mybatis:
 shenyu:
   register:
     registerType: http #http #zookeeper #etcd #nacos #consul
-    serverLists: #localhost:2181 #http://localhost:2379 #localhost:8848
+    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
       sessionTimeout: 5000
       connectionTimeout: 2000
@@ -62,6 +62,13 @@ shenyu:
       zombieCheckTimes: 5
       scheduledTime: 10
       nacosNameSpace: ShenyuRegisterCenter
+      username: admin
+      password: 123456
+  client:
+    http:
+      props:
+        contextPath: /shenyu/admin
+        appName: ShenYuAdmin
   sync:
     websocket:
       enabled: true
