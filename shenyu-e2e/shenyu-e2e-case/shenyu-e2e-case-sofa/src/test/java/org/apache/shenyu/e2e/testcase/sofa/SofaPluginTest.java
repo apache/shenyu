@@ -57,8 +57,6 @@ public class SofaPluginTest {
     @BeforeAll
     static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        adminClient.syncPluginAll();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
@@ -72,51 +70,13 @@ public class SofaPluginTest {
         formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zookeeper:2181\"}");
         adminClient.changePluginStatus("11", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
-        //adminClient.deleteAllSelectors();
-        //final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        //Assertions.assertEquals(0, selectorDTOList.size());
     }
 
-    //@BeforeEach
-    //void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
-    //    spec.getChecker().check(gateway);
-    //
-    //    ResourcesData resources = spec.getResources();
-    //    for (ResourcesData.Resource res : resources.getResources()) {
-    //        SelectorDTO dto = client.create(res.getSelector());
-    //        selectorIds.add(dto.getId());
-    //
-    //        res.getRules().forEach(rule -> {
-    //            rule.setSelectorId(dto.getId());
-    //            client.create(rule);
-    //        });
-    //    }
-    //
-    //    spec.getWaiting().waitFor(gateway);
-    //}
+
 
     @ShenYuScenario(provider = SofaPluginCases.class)
     void testSofa(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
-
-    //@AfterEach
-    //void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
-    //    spec.getDeleter().delete(client, selectorIds);
-    //    spec.deleteWaiting().waitFor(gateway);
-    //    selectorIds = Lists.newArrayList();
-    //}
-    //
-    //@AfterAll
-    //static void teardown(final AdminClient client) {
-    //    client.deleteAllSelectors();
-    //    MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-    //    formData.add("id", "11");
-    //    formData.add("name", "sofa");
-    //    formData.add("enabled", "false");
-    //    formData.add("role", "Proxy");
-    //    formData.add("sort", "310");
-    //    client.changePluginStatus("11", formData);
-    //}
 }
 
