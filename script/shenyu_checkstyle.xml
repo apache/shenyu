@@ -28,7 +28,9 @@
     <module name="FileTabCharacter">
         <property name="eachLine" value="true"/>
     </module>
-    <module name="FileLength"/>
+    <module name="FileLength">
+        <property name="max" value="2500"/>
+    </module>
     <module name="NewlineAtEndOfFile">
         <property name="lineSeparator" value="lf"/>
     </module>

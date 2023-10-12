@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.e2e.testcase.sofa;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
@@ -27,11 +27,6 @@ import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.model.ResourcesData;
-import org.apache.shenyu.e2e.model.data.MetaData;
-import org.apache.shenyu.e2e.model.data.RuleCacheData;
-import org.apache.shenyu.e2e.model.data.SelectorCacheData;
-import org.apache.shenyu.e2e.model.response.MetaDataDTO;
-import org.apache.shenyu.e2e.model.response.RuleDTO;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -76,22 +71,13 @@ public class SofaPluginTest {
     private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeAll
-    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
+    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        Thread.sleep(10000);
-        List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
-        List<RuleDTO> ruleDTOList = adminClient.listAllRules();
-        Assertions.assertEquals(1, selectorDTOList.size());
-        Assertions.assertEquals(12, metaDataDTOList.size());
-        Assertions.assertEquals(12, ruleDTOList.size());
-
-        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
-        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
-        List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        Assertions.assertEquals(1, selectorCacheList.size());
-        Assertions.assertEquals(12, metaDataCacheList.size());
-        Assertions.assertEquals(12, ruleCacheList.size());
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
+        adminClient.syncPluginAll();
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "11");
@@ -102,7 +88,7 @@ public class SofaPluginTest {
         formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"zookeeper:2181\"}");
         adminClient.changePluginStatus("11", formData);
         adminClient.deleteAllSelectors();
-        selectorDTOList = adminClient.listAllSelectors();
+        final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         Assertions.assertEquals(0, selectorDTOList.size());
     }
 
@@ -132,7 +118,7 @@ public class SofaPluginTest {
     @AfterEach
     void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
         spec.getDeleter().delete(client, selectorIds);
-        spec.getPostChecker().check(gateway);
+        spec.deleteWaiting().waitFor(gateway);
         selectorIds = Lists.newArrayList();
     }
 

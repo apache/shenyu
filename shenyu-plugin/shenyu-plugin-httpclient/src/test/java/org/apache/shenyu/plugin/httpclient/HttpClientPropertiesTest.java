@@ -133,7 +133,7 @@ public class HttpClientPropertiesTest {
         Assertions.assertEquals(httpClientProperties.getPool().getMaxConnections(), ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS);
         Assertions.assertEquals(httpClientProperties.getPool().getName(), "name");
         Assertions.assertEquals(httpClientProperties.getPool().getType(), HttpClientProperties.Pool.PoolType.ELASTIC);
-        Assertions.assertEquals(httpClientProperties.getPool().getMaxIdleTime(), Duration.ofMillis(0L));
+        Assertions.assertEquals(Duration.ofMillis(httpClientProperties.getPool().getMaxIdleTime()), Duration.ofMillis(0L));
     }
 
     @Test

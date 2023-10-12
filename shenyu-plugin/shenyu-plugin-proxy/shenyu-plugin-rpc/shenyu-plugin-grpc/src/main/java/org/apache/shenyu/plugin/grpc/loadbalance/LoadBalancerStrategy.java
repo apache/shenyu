@@ -29,7 +29,11 @@ public enum LoadBalancerStrategy {
     /**
      * Round robin load balancer strategy.
      */
-    ROUND_ROBIN("round-robin");
+    ROUND_ROBIN("round-robin"),
+    /**
+     * Shenyu load balancer strategy.
+     */
+    SHENYU("SHENYU");
 
     private final String strategy;
 

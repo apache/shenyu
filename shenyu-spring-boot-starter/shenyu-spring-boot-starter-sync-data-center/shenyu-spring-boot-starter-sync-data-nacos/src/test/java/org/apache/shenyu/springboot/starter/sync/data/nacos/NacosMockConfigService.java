@@ -38,7 +38,7 @@ public class NacosMockConfigService implements ConfigService {
     @Override
     public String getConfigAndSignListener(
             final String s, final String s1, final long l, final Listener listener) {
-        return "{}";
+        return null;
     }
 
     @Override

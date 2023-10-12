@@ -17,7 +17,7 @@
 -- this file works for PostgreSQL, can not use "`" syntax.
 
 ALTER TABLE selector ADD COLUMN match_restful int2 NOT NULL;
-COMMENT ON COLUMN "public"."rule"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
+COMMENT ON COLUMN "public"."selector"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
 COMMIT;
 
 ALTER TABLE rule ADD COLUMN match_restful int2 NOT NULL;
@@ -201,7 +201,7 @@ INSERT INTO "public"."plugin_handle"
 VALUES('1678293231840038912', '42', 'discoveryZookeeper', 'discovery zk init props', 2, 3, 0, '{"required":"0","defaultValue":"{\"baseSleepTimeMilliseconds\":\"1000\",\"maxRetries\":\"3\",\"maxSleepTimeMilliseconds\":\"1000\",\"connectionTimeoutMilliseconds\":\"1000\",\"sessionTimeoutMilliseconds\":\"1000\",\"namespace\":\"\",\"digest\":null}","rule":""}', '2023-07-10 14:41:02.000', '2023-07-10 14:41:40.643');
 INSERT INTO "public"."plugin_handle"
 (id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
-VALUES('1678293333363167232', '42', 'discoveryhandler', 'discoveryhandler', 2, 1, 0, '{"required":"0","defaultValue":"url,protocol,status,weight","rule":""}', '2023-07-10 14:41:27.000', '2023-07-12 13:16:55.067');
+VALUES('1678293333363167232', '42', 'discoveryHandler', 'discoveryHandler', 2, 1, 0, '{"required":"0","defaultValue":"url,protocol,status,weight","rule":""}', '2023-07-10 14:41:27.000', '2023-07-12 13:16:55.067');
 INSERT INTO "public"."plugin_handle"
 (id, plugin_id, field, "label", data_type, "type", sort, ext_obj, date_created, date_updated)
 VALUES('1678997037438107648', '42', 'bossGroupThreadCount', 'bossGroupThreadCount', 2, 1, 1, '{"required":"0","defaultValue":"1","rule":""}', '2023-07-12 13:17:43.000', '2023-07-12 13:22:24.662');

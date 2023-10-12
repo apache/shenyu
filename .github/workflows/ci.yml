@@ -38,13 +38,15 @@ jobs:
             os: ubuntu-latest
           - java: 16
             os: ubuntu-latest
+          - java: 17
+            os: ubuntu-latest
     runs-on: ${{ matrix.os }}
     if: (github.repository == 'apache/shenyu')
     steps:
       - name: Support longpaths
         if: ${{ matrix.os == 'windows-latest'}}
         run: git config --system core.longpaths true
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - uses: dorny/paths-filter@v2
@@ -52,9 +54,10 @@ jobs:
         with:
           filters: '.github/filters.yml'
           list-files: json
-      - name: Cache Maven Repos
+      - name: Restore ShenYu Maven Repos
         if: steps.filter.outputs.changed == 'true'
-        uses: actions/cache@v2
+        id: restore-maven-cache
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -66,16 +69,22 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Prelease
+        run: ./mvnw -B clean test -Prelease
       - uses: codecov/codecov-action@v1
         if: steps.filter.outputs.changed == 'true'
+      - name: Save ShenYu Maven Repos
+        if: steps.filter.outputs.changed == 'true' && steps.restore-maven-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
   check-license-header:
     name: check-license-header
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - name: Check License Header

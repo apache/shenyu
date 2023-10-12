@@ -17,18 +17,12 @@
 
 package org.apache.shenyu.e2e.testcase.springcloud;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
-import org.apache.shenyu.e2e.model.data.MetaData;
-import org.apache.shenyu.e2e.model.data.RuleCacheData;
-import org.apache.shenyu.e2e.model.data.SelectorCacheData;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 /**
  * Testing the correctness of Apollo data synchronization method.
@@ -62,15 +56,13 @@ import java.util.List;
 public class DataSynZookeeperTest {
 
     @Test
-    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws InterruptedException, JsonProcessingException {
+    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        Thread.sleep(10000);
-        List<MetaData> metaDataCacheList = gatewayClient.getMetaDataCache();
-        List<SelectorCacheData> selectorCacheList = gatewayClient.getSelectorCache();
-        List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        Assertions.assertEquals(2, selectorCacheList.size());
-        Assertions.assertEquals(13, metaDataCacheList.size());
-        Assertions.assertEquals(14, ruleCacheList.size());
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
+        adminClient.syncPluginAll();
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
     }
 
 }

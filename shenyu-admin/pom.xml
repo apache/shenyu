@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.6.0-SNAPSHOT</version>
+        <version>2.6.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-admin</artifactId>
@@ -96,6 +96,12 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-register-client-server-apollo</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-alert</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -227,13 +233,8 @@
         </dependency>
 
         <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger-ui</artifactId>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
         </dependency>
 
         <dependency>
@@ -284,6 +285,11 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>logging-interceptor</artifactId>
         </dependency>
 
         <dependency>

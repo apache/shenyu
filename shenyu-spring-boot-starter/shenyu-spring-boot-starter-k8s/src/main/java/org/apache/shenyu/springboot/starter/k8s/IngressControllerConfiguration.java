@@ -27,13 +27,13 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1Secret;
-import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1SecretList;
-import io.kubernetes.client.openapi.models.V1ServiceList;
-import io.kubernetes.client.openapi.models.V1IngressList;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressList;
+import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1SecretList;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
 import org.apache.shenyu.common.config.NettyHttpProperties;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
@@ -42,7 +42,8 @@ import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.reconciler.EndpointsReconciler;
 import org.apache.shenyu.k8s.reconciler.IngressReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
-import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
+import org.apache.shenyu.plugin.global.subsciber.MetaDataCacheSubscriber;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -157,12 +158,16 @@ public class IngressControllerConfiguration {
     /**
      * ShenyuCacheRepository.
      *
-     * @param subscriber PluginDataSubscriber
+     * @param pluginDataSubscriber CommonPluginDataSubscriber
+     * @param metaDataSubscriber MetaDataSubscriber
+     * @param metaDataCacheSubscriber MetaDataCacheSubscriber
      * @return ShenyuCacheRepository
      */
     @Bean
-    public ShenyuCacheRepository shenyuCacheRepository(final PluginDataSubscriber subscriber) {
-        return new ShenyuCacheRepository(subscriber);
+    public ShenyuCacheRepository shenyuCacheRepository(final CommonPluginDataSubscriber pluginDataSubscriber,
+                                                       final MetaDataCacheSubscriber metaDataSubscriber,
+                                                       final MetaDataCacheSubscriber metaDataCacheSubscriber) {
+        return new ShenyuCacheRepository(pluginDataSubscriber, metaDataSubscriber, metaDataCacheSubscriber);
     }
 
     /**

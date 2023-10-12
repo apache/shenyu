@@ -127,5 +127,21 @@ public interface ShenyuPlugin {
     default boolean skipExceptHttpLike(ServerWebExchange exchange) {
         return !skip(exchange, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD);
     }
+
+    /**
+     * Plugin before operation.
+     *
+     * @param exchange context
+     */
+    default void before(ServerWebExchange exchange) {
+    }
+
+    /**
+     * Plugin after operation.
+     *
+     * @param exchange context
+     */
+    default void after(ServerWebExchange exchange) {
+    }
 }
 

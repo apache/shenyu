@@ -34,13 +34,13 @@ public class DubboRuleHandleTest {
     public void testGetterSetter() {
         DubboRuleHandle handle = new DubboRuleHandle();
         
-        handle.setLoadbalance(LoadBalanceEnum.HASH.getName());
+        handle.setLoadBalance(LoadBalanceEnum.HASH.getName());
         handle.setTimeout(1000L);
         handle.setVersion("version");
         handle.setGroup("group");
         handle.setRetries(10);
         
-        assertThat(handle.getLoadbalance(), is(LoadBalanceEnum.HASH.getName()));
+        assertThat(handle.getLoadBalance(), is(LoadBalanceEnum.HASH.getName()));
         assertThat(handle.getTimeout(), is(1000L));
         assertThat(handle.getVersion(), is("version"));
         assertThat(handle.getGroup(), is("group"));
