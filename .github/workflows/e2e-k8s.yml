@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: k8s-e2e-test
+name: e2e-test
 
 on:
   pull_request:
@@ -44,6 +44,8 @@ jobs:
           list-files: json
 
   build-docker-images:
+    needs: changes
+    if: ${{ needs.changes.outputs.e2e-test == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -69,15 +71,6 @@ jobs:
           filters: '.github/filters.yml'
           list-files: json
 
-      - name: Restore ShenYu E2E Maven Repos
-        id: restore-e2e-maven-cache
-        uses: actions/cache/restore@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-e2e-maven-
-
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
@@ -99,6 +92,7 @@ jobs:
     needs:
       - changes
       - build-docker-images
+    if: (github.repository == 'apache/shenyu')
     strategy:
       matrix:
         include:
@@ -108,7 +102,6 @@ jobs:
             script: e2e-http-mysql
           - case: shenyu-e2e-case-http
             script: e2e-http-postgres
-    if: (github.repository == 'apache/shenyu')
     steps:
       - uses: actions/checkout@v2
         with:
@@ -142,14 +135,14 @@ jobs:
           java-version: '8'
           distribution: 'temurin'
 
-      - name: Restore ShenYu E2E Maven Repos
-        id: restore-e2e-maven-cache
+      - name: Restore ShenYu Maven Repos
+        if: steps.filter.outputs.changed == 'true'
         uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-e2e-maven-
+            ${{ runner.os }}-maven-
 
       - uses: actions/download-artifact@v3
         with:
@@ -228,14 +221,14 @@ jobs:
           java-version: '8'
           distribution: 'temurin'
 
-      - name: Restore ShenYu E2E Maven Repos
-        id: restore-e2e-maven-cache
+      - name: Restore ShenYu Maven Repos
+        if: steps.filter.outputs.changed == 'true'
         uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-e2e-maven-
+            ${{ runner.os }}-maven-
 
       - name: Build examples with Maven
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
