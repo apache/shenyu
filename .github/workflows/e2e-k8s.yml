@@ -78,12 +78,12 @@ jobs:
       - name: Build shenyu-e2e-engine with Maven
         run: ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-engine -am clean install
 
-      - name: Save ShenYu E2E Maven Repos
-        if: steps.restore-e2e-maven-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
+#      - name: Save ShenYu E2E Maven Repos
+#        if: steps.restore-e2e-maven-cache.outputs.cache-hit != 'true'
+#        uses: actions/cache/save@v3
+#        with:
+#          path: ~/.m2/repository
+#          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
 
       - name: Build Docker Image
         run: |
@@ -240,13 +240,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Restore ShenYu E2E Maven Repos
-        uses: actions/cache/restore@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-e2e-maven-
+#      - name: Restore ShenYu E2E Maven Repos
+#        uses: actions/cache/restore@v3
+#        with:
+#          path: ~/.m2/repository
+#          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
+#          restore-keys: |
+#            ${{ runner.os }}-e2e-maven-
 
       - name: Build examples with Maven
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
