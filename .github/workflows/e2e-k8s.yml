@@ -25,7 +25,7 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      e2e: ${{ steps.filter.outputs.e2e }}
+      e2e: ${{ steps.filter.outputs.e2e-test }}
     steps:
       - uses: actions/checkout@v3
         with:
