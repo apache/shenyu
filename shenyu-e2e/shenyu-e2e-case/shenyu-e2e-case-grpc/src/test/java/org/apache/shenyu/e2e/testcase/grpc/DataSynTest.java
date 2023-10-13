@@ -20,16 +20,13 @@ package org.apache.shenyu.e2e.testcase.grpc;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
-import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
-import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
-import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
-import org.junit.jupiter.api.BeforeAll;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
+/**
+ * Testing the correctness of Http data synchronization method.
+ */
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
@@ -50,30 +47,13 @@ import java.util.List;
                 )
         )
 })
-public class GrpcPluginTest {
+public class DataSynTest {
 
-    @BeforeAll
-    void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
-
+    @Test
+    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "15");
-        formData.add("name", "grpc");
-        formData.add("enabled", "true");
-        formData.add("role", "Proxy");
-        formData.add("sort", "310");
-        formData.add("config", "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}");
-        adminClient.changePluginStatus("15", formData);
-        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.grpc.GrpcPlugin");
-    }
-
-    @ShenYuScenario(provider = GrpcPluginCases.class)
-    void testGrpc(final GatewayClient gateway, final CaseSpec spec) {
-        spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 }
-
