@@ -77,6 +77,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                 .build())
                 .build();
     }
+    
     /**
      * test with uri equal.
      *
