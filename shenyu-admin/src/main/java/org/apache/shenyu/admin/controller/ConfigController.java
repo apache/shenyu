@@ -18,13 +18,12 @@
 package org.apache.shenyu.admin.controller;
 
 import com.google.common.collect.Maps;
+import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -36,8 +35,7 @@ import java.util.Map;
 /**
  * This Controller only when HttpLongPollingDataChangedListener exist, will take effect.
  */
-@ResponseBody
-@RequestMapping("/configs")
+@RestApi("/configs")
 public class ConfigController {
     
     private final HttpLongPollingDataChangedListener longPollingListener;

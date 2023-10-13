@@ -17,20 +17,18 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.dto.AlertTemplateDTO;
+import org.apache.shenyu.admin.model.entity.AlertTemplateDO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AlertTemplateVO;
-import org.apache.shenyu.admin.model.entity.AlertTemplateDO;
 import org.apache.shenyu.admin.service.AlertTemplateService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -40,16 +38,15 @@ import java.util.List;
 /**
  * AlertTemplate Controller.
  */
-@Validated
-@RestController
-@RequestMapping("/alertTemplate")
+@RestApi("/alertTemplate")
 public class AlertTemplateController {
-
+    
     @Autowired
     private AlertTemplateService alertTemplateService;
-
+    
     /**
      * Add alert template.
+     *
      * @param alertTemplateDTO alertTemplateDTO
      * @return row int
      */
@@ -58,9 +55,10 @@ public class AlertTemplateController {
         int row = alertTemplateService.addTemplate(alertTemplateDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, row);
     }
-
+    
     /**
      * Delete alert template.
+     *
      * @param ids ids
      * @return row int
      */
@@ -69,9 +67,10 @@ public class AlertTemplateController {
         int row = alertTemplateService.deleteTemplate(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, row);
     }
-
+    
     /**
      * Update alert template.
+     *
      * @param alertTemplateDTO alertTemplateDTO
      * @return row int
      */
@@ -80,18 +79,20 @@ public class AlertTemplateController {
         int row = alertTemplateService.updateTemplate(alertTemplateDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, row);
     }
-
+    
     /**
      * Get all template.
+     *
      * @return all {@link AlertTemplateVO}
      */
     @GetMapping("getAll")
     public ShenyuAdminResult getAll() {
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, alertTemplateService.getAll());
     }
-
+    
     /**
      * Template detail.
+     *
      * @param id id
      * @return {@link AlertTemplateDO}
      */
