@@ -156,6 +156,38 @@ public class IngressConstants {
     public static final String PLUGIN_CONTEXT_PATH_ADD_PREFIXED = "shenyu.apache.org/plugin-context-path-add-prefixed";
 
 
+    //The configuration key to specify the Brpc application name for the plugin, in string
+    public static final String PLUGIN_BRPC_APP_NAME = "shenyu.apache.org/plugin-brpc-app-name";
+
+    //The configuration key to specify the Brpc service name for the plugin, in string
+    public static final String PLUGIN_BRPC_SERVICE_NAME = "shenyu.apache.org/plugin-brpc-service-name";
+
+    //The configuration key to specify the Brpc method name for the plugin, in string
+    public static final String PLUGIN_BRPC_METHOD_NAME = "shenyu.apache.org/plugin-brpc-method-name";
+
+    //The configuration key to specify the Brpc params type for the plugin, in string
+    public static final String PLUGIN_BRPC_PARAMS_TYPE = "shenyu.apache.org/plugin-brpc-params-type";
+
+    //The configuration key to specify the Brpc rpc type for the plugin, in string
+    public static final String PLUGIN_BRPC_RPC_TYPE = "shenyu.apache.org/plugin-brpc-rpc-type";
+
+    //The configuration key to specify the Brpc rpc ext for the plugin, in string
+    public static final String PLUGIN_BRPC_RPC_EXT = "shenyu.apache.org/plugin-brpc-rpc-ext";
+
+    //The configuration key to specify the Brpc context path for the plugin, in string
+    public static final String PLUGIN_BRPC_CONTEXT_PATH = "shenyu.apache.org/plugin-brpc-context-path";
+
+    //The configuration key to specify the Brpc path for the plugin, in string
+    public static final String PLUGIN_BRPC_PATH = "shenyu.apache.org/plugin-brpc-path";
+
+    //The configuration key to specify the Brpc enabled for the plugin, in string
+    public static final String PLUGIN_BRPC_ENABLED = "shenyu.apache.org/plugin-brpc-enabled";
+
+    //The configuration key to specify the Brpc rpc expand for the plugin, in string
+    public static final String PLUGIN_BRPC_RPC_EXPAND = "shenyu.apache.org/plugin-brpc-rpc-expand";
+
+    //The configuration key to specify the Brpc parameter type for the plugin, in string
+    public static final String PLUGIN_BRPC_PARAMETER_TYPE = "shenyu.apache.org/plugin-grpc-parameter-type";
 
 
 }
