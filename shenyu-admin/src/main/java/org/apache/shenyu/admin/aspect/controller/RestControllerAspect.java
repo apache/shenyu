@@ -47,8 +47,8 @@ public class RestControllerAspect {
     /**
      * cut.
      */
-    @Pointcut("@within(org.springframework.web.bind.annotation.RestController) " +
-            "|| @within(org.apache.shenyu.admin.aspect.annotation.RestApi)")
+    @Pointcut("@within(org.springframework.web.bind.annotation.RestController) "
+            + "|| @within(org.apache.shenyu.admin.aspect.annotation.RestApi)")
     public void controller() {
     }
     
