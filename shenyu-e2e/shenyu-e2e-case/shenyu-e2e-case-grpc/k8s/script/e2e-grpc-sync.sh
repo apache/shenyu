@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-docker save shenyu-examples-apache-dubbo-service:latest | sudo k3s ctr images import -
+docker save shenyu-examples-grpc:latest | sudo k3s ctr images import -
 
 # init kubernetes for mysql
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
