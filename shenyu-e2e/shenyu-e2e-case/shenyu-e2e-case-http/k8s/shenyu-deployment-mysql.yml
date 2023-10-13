@@ -1,0 +1,126 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shenyu-admin-mysql
+  labels:
+    app: shenyu-admin-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shenyu-admin-mysql
+  template:
+    metadata:
+      labels:
+        app: shenyu-admin-mysql
+    spec:
+      containers:
+        - name: shenyu-admin-mysql
+          image: apache/shenyu-admin:latest
+          args:
+            - -Xmx768m -Xms768m
+          env:
+            - name: 'TZ'
+              value: 'Asia/Beijing'
+            - name: SPRING_PROFILES_ACTIVE
+              value: mysql
+            - name: spring.datasource.username
+              value: root
+            - name: spring.datasource.password
+              value: shenyue2e
+            - name: spring.datasource.url
+              value: jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 9095
+              path: /actuator/health
+          readinessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 9095
+              path: /actuator/health
+          ports:
+            - containerPort: 9095
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: mysql-connector-volume
+              mountPath: /opt/shenyu-admin/ext-lib
+      volumes:
+        - name: mysql-connector-volume
+          hostPath:
+            path: /tmp/shenyu-e2e/mysql/driver
+      restartPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shenyu-bootstrap-mysql
+  labels:
+    app: shenyu-bootstrap-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shenyu-bootstrap-mysql
+  template:
+    metadata:
+      labels:
+        app: shenyu-bootstrap-mysql
+    spec:
+      containers:
+        - name: shenyu-bootstrap-mysql
+          image: apache/shenyu-bootstrap:latest
+          resources: { }
+          args:
+            - -Xmx768m -Xms768m
+          env:
+            - name: shenyu.sync.websocket.urls
+              value: ws://shenyu-admin-mysql:9095/websocket
+          ports:
+            - containerPort: 9195
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 9195
+              path: /actuator/health
+          readinessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 9195
+              path: /actuator/health
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always

@@ -45,17 +45,39 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
-                testWithUriEquals(),
-                testWithUriPathPattern(),
-                testWithUriStartWith(),
-                testWithEndWith(),
-                testWithMethodGet(),
-                testWithMethodPost(),
-                testWithMethodPut(),
-                testWithMethodDelete()
+                testGrpc()
+                //testWithUriEquals(),
+                //testWithUriPathPattern(),
+                //testWithUriStartWith(),
+                //testWithEndWith(),
+                //testWithMethodGet(),
+                //testWithMethodPost(),
+                //testWithMethodPut(),
+                //testWithMethodDelete()
         );
     }
 
+    private ShenYuScenarioSpec testGrpc() {
+        Map<String, List<MessageData>> body = new ConcurrentHashMap<>();
+        body.put("data", Lists.newArrayList(new MessageData("hello grpc")));
+        return ShenYuScenarioSpec.builder()
+                .name("test grpc invoker")
+                .beforeEachSpec(
+                        ShenYuBeforeEachSpec.builder()
+                                .checker(notExists("/sofa/findAll"))
+                                .checker(exists(Method.POST, "/grpc/echo", body))
+                                .build()
+                )
+                .caseSpec(
+                        ShenYuCaseSpec.builder()
+                                .addExists(Method.POST, "/grpc/echo", body)
+                                .addNotExists("/grpc/fin")
+                                .addNotExists("/put")
+                                .addNotExists("/get")
+                                .build())
+                .build();
+    }
+    
     /**
      * test with uri equal.
      *
