@@ -43,7 +43,7 @@ import java.util.List;
 /**
  * Alert Receiver Controller.
  */
-@@RestApi("/alert/receiver")
+@RestApi("/alert/receiver")
 public class AlertReceiverController {
     
     @Autowired

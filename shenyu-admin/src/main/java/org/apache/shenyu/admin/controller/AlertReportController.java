@@ -31,7 +31,7 @@ import javax.validation.Valid;
 /**
  * Alert report Controller.
  */
-@@RestApi("/alert/report")
+@RestApi("/alert/report")
 public class AlertReportController {
     
     @Autowired
