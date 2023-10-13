@@ -22,77 +22,41 @@ import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
-import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
-import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
-import org.apache.shenyu.e2e.model.ResourcesData;
-import org.apache.shenyu.e2e.model.data.RuleCacheData;
-import org.apache.shenyu.e2e.model.data.SelectorData;
-import org.apache.shenyu.e2e.model.response.RuleDTO;
-import org.apache.shenyu.e2e.model.response.SelectorDTO;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
+import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.testcontainers.shaded.com.google.common.collect.Lists;
 
-import java.util.List;
-
-@ShenYuTest(
-        mode = ShenYuEngineConfigure.Mode.DOCKER,
-        services = {
-                @ShenYuTest.ServiceConfigure(
-                        serviceName = "admin",
-                        port = 9095,
-                        baseUrl = "http://{hostname:localhost}:9095",
+@ShenYuTest(environments = {
+        @ShenYuTest.Environment(
+                serviceName = "shenyu-e2e-admin",
+                service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31095",
+                        type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
                                 @ShenYuTest.Parameter(key = "username", value = "admin"),
-                                @ShenYuTest.Parameter(key = "password", value = "123456"),
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "admin_websocket")
-                        }
-                ),
-                @ShenYuTest.ServiceConfigure(
-                        serviceName = "gateway",
-                        port = 9195,
-                        baseUrl = "http://{hostname:localhost}:9195",
-                        type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
-                        parameters = {
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "gateway_websocket")
+                                @ShenYuTest.Parameter(key = "password", value = "123456")
                         }
                 )
-        },
-        dockerComposeFile = "classpath:./docker-compose.mysql.yml"
-)
-/*
-  Testing grpc plugin.
- */
+        ),
+        @ShenYuTest.Environment(
+                serviceName = "shenyu-e2e-gateway",
+                service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31195",
+                        type = ServiceTypeEnum.SHENYU_GATEWAY
+                )
+        )
+})
 public class GrpcPluginTest {
-
-    private static String selectorId = "";
-
-    private static String condictionId = "";
-
-    private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeAll
     void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
 
         adminClient.login();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        adminClient.syncPluginAll();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        selectorId = selectorDTOList.get(0).getId();
-        selectorIds.add(selectorId);
-        SelectorDTO selector = adminClient.getSelector(selectorId);
-        condictionId = selector.getConditionList().get(0).getId();
-        List<RuleCacheData> ruleCacheList = gatewayClient.getRuleCache();
-        final List<RuleDTO> ruleDTOList = adminClient.listAllRules();
-        Assertions.assertEquals(ruleDTOList.size(), ruleCacheList.size());
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "15");
@@ -102,48 +66,11 @@ public class GrpcPluginTest {
         formData.add("sort", "310");
         formData.add("config", "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}");
         adminClient.changePluginStatus("15", formData);
-        adminClient.deleteAllRules(selectorId);
-    }
-
-    @BeforeEach
-    void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
-        spec.getChecker().check(gateway);
-        ResourcesData resources = spec.getResources();
-        for (ResourcesData.Resource res : resources.getResources()) {
-            SelectorData selector = res.getSelector();
-            selector.setId(selectorId);
-            selector.getConditionList().forEach(
-                condition -> {
-                    condition.setSelectorId(selectorId);
-                    condition.setId(condictionId);
-                }
-            );
-            client.changeSelector(selector.getId(), selector);
-
-            res.getRules().forEach(rule -> {
-                rule.setSelectorId(selectorId);
-                client.create(rule);
-            });
-        }
-
-        spec.getWaiting().waitFor(gateway);
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.grpc.GrpcPlugin");
     }
 
     @ShenYuScenario(provider = GrpcPluginCases.class)
     void testGrpc(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
-
-    @AfterAll
-    static void teardown(final AdminClient client) {
-        client.deleteAllSelectors();
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "15");
-        formData.add("name", "grpc");
-        formData.add("enabled", "false");
-        formData.add("role", "Proxy");
-        formData.add("sort", "310");
-        client.changePluginStatus("15", formData);
-    }
 }
-
