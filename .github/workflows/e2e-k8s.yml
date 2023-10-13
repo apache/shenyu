@@ -19,7 +19,7 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - e2e-k8s
 
 jobs:
   changes:
