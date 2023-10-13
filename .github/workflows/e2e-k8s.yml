@@ -102,7 +102,7 @@ jobs:
     needs:
       - changes
       - build-docker-images
-    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    if: (github.repository == 'moremind/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
     strategy:
       matrix:
         include:
@@ -190,7 +190,7 @@ jobs:
     needs:
       - changes
       - build-docker-images
-    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    if: (github.repository == 'moremind/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
     strategy:
       matrix:
         include:
