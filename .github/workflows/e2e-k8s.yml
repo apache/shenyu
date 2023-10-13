@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: k8s-e2e-test
+name: e2e
 
 on:
   pull_request:
   push:
     branches:
-      - e2e-k8s
+      - master
 
 jobs:
   changes:
@@ -109,7 +109,7 @@ jobs:
     needs:
       - changes
       - build-docker-images
-    if: (github.repository == 'moremind/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
     strategy:
       matrix:
         include:
@@ -195,7 +195,7 @@ jobs:
     needs:
       - changes
       - build-docker-images
-    if: (github.repository == 'moremind/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
     strategy:
       matrix:
         include:
