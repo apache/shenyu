@@ -31,7 +31,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * GrpcDiscoveryUpstreamDataHandler.
+ *  GrpcDiscoveryUpstreamDataHandler.
  */
 public class GrpcDiscoveryUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
 
