@@ -45,7 +45,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <outputDirectory>${main.basedir}/plugins/request</outputDirectory>
-                    <finalName>shenyu-plugin-request-${project.version}</finalName>
+                    <finalName>${project.artifactId}-${project.version}</finalName>
                 </configuration>
             </plugin>
             <plugin>

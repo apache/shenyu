@@ -72,7 +72,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <outputDirectory>${main.basedir}/plugins/motan</outputDirectory>
-                    <finalName>${artifactId}-${project.version}</finalName>
+                    <finalName>${project.artifactId}-${project.version}</finalName>
                 </configuration>
             </plugin>
             <plugin>

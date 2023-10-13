@@ -466,16 +466,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin, Module {
         LOG.info(pluginClassLoader.toString());
     }
 
-    /**
-     * Module init.
-     * @throws Throwable
-     */
     @Override
-    public void init() throws Throwable {
-
-    };
-
-    @Override
-    public List<String> getRegisterClassNames() {return null;};
-
+    public List<Object> init() throws Throwable {
+        return Collections.emptyList();
+    }
 }

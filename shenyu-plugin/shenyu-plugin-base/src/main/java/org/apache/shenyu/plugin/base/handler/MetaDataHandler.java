@@ -19,6 +19,8 @@ package org.apache.shenyu.plugin.base.handler;
 
 import org.apache.shenyu.common.dto.MetaData;
 
+import java.net.URLClassLoader;
+
 /**
  * The interface meta data handler.
  */
@@ -51,4 +53,10 @@ public interface MetaDataHandler {
      * @see org.apache.shenyu.common.enums.RpcTypeEnum#getName()
      */
     String rpcType();
+
+    default void setPluginClassLoader(URLClassLoader urlClassLoader) {}
+
+    default URLClassLoader getPluginClassLoader() {
+        return null;
+    }
 }

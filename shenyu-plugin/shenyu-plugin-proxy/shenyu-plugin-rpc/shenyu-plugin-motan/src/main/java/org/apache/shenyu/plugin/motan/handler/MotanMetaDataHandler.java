@@ -25,6 +25,7 @@ import org.apache.shenyu.plugin.motan.cache.ApplicationConfigCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URLClassLoader;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 
@@ -32,7 +33,14 @@ import java.util.concurrent.ConcurrentMap;
  * The motan metadata handler.
  */
 public class MotanMetaDataHandler implements MetaDataHandler {
-    
+
+    private URLClassLoader pluginClassLoader;
+
+    @Override
+    public void setPluginClassLoader(URLClassLoader classLoader) {
+        this.pluginClassLoader = classLoader;
+    }
+
     /**
      * logger.
      */
@@ -69,5 +77,10 @@ public class MotanMetaDataHandler implements MetaDataHandler {
     @Override
     public String rpcType() {
         return RpcTypeEnum.MOTAN.getName();
+    }
+
+    @Override
+    public URLClassLoader getPluginClassLoader() {
+        return this.pluginClassLoader;
     }
 }

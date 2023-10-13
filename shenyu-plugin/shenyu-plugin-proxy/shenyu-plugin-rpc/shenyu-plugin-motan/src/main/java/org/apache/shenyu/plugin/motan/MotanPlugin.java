@@ -40,7 +40,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,7 +52,7 @@ public class MotanPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(MotanPlugin.class);
 
-    private final MotanProxyService motanProxyService;
+    private MotanProxyService motanProxyService;
 
     /**
      * Instantiates a new motan plugin.
@@ -59,6 +60,13 @@ public class MotanPlugin extends AbstractShenyuPlugin {
      * @param motanProxyService the motan proxy service
      */
     public MotanPlugin(final MotanProxyService motanProxyService) {
+        this.motanProxyService = motanProxyService;
+    }
+
+    public MotanPlugin() {
+    }
+
+    public void setMotanProxyService(MotanProxyService motanProxyService) {
         this.motanProxyService = motanProxyService;
     }
 
@@ -127,7 +135,14 @@ public class MotanPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    public List<String> getRegisterClassNames() {
-        return Arrays.asList(MotanProxyService.class.getName(), MotanPlugin.class.getName(), MotanPluginDataHandler.class.getName(), MotanMetaDataHandler.class.getName(), MotanShenyuContextDecorator.class.getName());
+    public List<Object> init() throws Throwable {
+        List<Object> result = new ArrayList<>();
+        MotanProxyService motanProxyService = new MotanProxyService();
+        this.setMotanProxyService(motanProxyService);
+        result.add(this);
+        result.add(new MotanMetaDataHandler());
+        result.add(new MotanPluginDataHandler());
+        result.add(new MotanShenyuContextDecorator());
+        return result;
     }
 }

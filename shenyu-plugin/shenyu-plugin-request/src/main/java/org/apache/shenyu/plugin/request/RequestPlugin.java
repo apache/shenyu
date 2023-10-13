@@ -211,9 +211,11 @@ public class RequestPlugin extends AbstractShenyuPlugin {
         headers.set(shenyuHeader.getKey(), shenyuHeader.getValue());
     }
 
-
     @Override
-    public List<String> getRegisterClassNames() {
-        return Arrays.asList(RequestPlugin.class.getName(), RequestPluginHandler.class.getName());
+    public List<Object> init() throws Throwable {
+        List<Object> result = new ArrayList<>();
+        result.add(new RequestPlugin());
+        result.add(new RequestPluginHandler());
+        return result;
     }
 }

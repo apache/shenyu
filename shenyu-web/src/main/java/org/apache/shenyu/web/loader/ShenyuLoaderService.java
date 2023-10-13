@@ -26,7 +26,6 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.cache.CommonMetaDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
@@ -36,11 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
 import java.net.URLClassLoader;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -61,7 +56,7 @@ public class ShenyuLoaderService {
 
     private final ShenyuConfig shenyuConfig;
 
-    private final ShenyuContextBuilder builder;
+    private final ShenyuContextBuilder contextBuilder;
 
     private final CommonMetaDataSubscriber metaDataSubscriber;
 
@@ -69,27 +64,16 @@ public class ShenyuLoaderService {
     /**
      * Instantiates a new Shenyu loader service.
      *
-     * @param webHandler   the web handler
-     * @param subscriber   the subscriber
-     * @param shenyuConfig the shenyu config
+     * @param webHandler         the web handler
+     * @param subscriber         the subscriber
+     * @param shenyuConfig       the shenyu config
+     * @param builder            the shenyu context builder
+     * @param metaDataSubscriber the metaData subsrciber
      */
-    public ShenyuLoaderService(final ShenyuWebHandler webHandler, final CommonPluginDataSubscriber subscriber, final ShenyuConfig shenyuConfig) {
-        this.subscriber = subscriber;
-        this.webHandler = webHandler;
-        this.builder = null;
-        this.metaDataSubscriber = null;
-        this.shenyuConfig = shenyuConfig;
-        ExtPlugin config = shenyuConfig.getExtPlugin();
-        if (config.getEnabled()) {
-            ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(config.getThreads(), ShenyuThreadFactory.create("plugin-ext-loader", true));
-            executor.scheduleAtFixedRate(this::loaderExtPlugins, config.getScheduleDelay(), config.getScheduleTime(), TimeUnit.SECONDS);
-        }
-    }
-
     public ShenyuLoaderService(final ShenyuWebHandler webHandler, final CommonPluginDataSubscriber subscriber, final ShenyuConfig shenyuConfig, final ShenyuContextBuilder builder, final CommonMetaDataSubscriber metaDataSubscriber) {
         this.subscriber = subscriber;
         this.webHandler = webHandler;
-        this.builder = builder;
+        this.contextBuilder = builder;
         this.metaDataSubscriber = metaDataSubscriber;
         this.shenyuConfig = shenyuConfig;
         ExtPlugin config = shenyuConfig.getExtPlugin();
@@ -150,29 +134,20 @@ public class ShenyuLoaderService {
         subscriber.putExtendPluginDataHandler(handlers);
     }
 
-    public void loaderPlugins(final List<String> registerClassNames, URLClassLoader classLoader) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        if (Objects.isNull(registerClassNames)) {
-            return;
-        }
-
-        for (String className : registerClassNames) {
-            Class<?> clazz = Class.forName(className, false, classLoader);
-
-            if (ShenyuPlugin.class.isAssignableFrom(clazz)) {
-                AbstractShenyuPlugin plugin = getOrCreateSpringBean(className, classLoader);
-                plugin.setClassLoader(classLoader);
-                webHandler.putExtPlugins(Arrays.asList(plugin));
-            } else if (PluginDataHandler.class.isAssignableFrom(clazz)) {
-                PluginDataHandler pluginDataHandler = getOrCreateSpringBean(className, classLoader);
-                subscriber.putExtendPluginDataHandler(Arrays.asList(pluginDataHandler));
-            } else if (ShenyuContextDecorator.class.isAssignableFrom(clazz)) {
-                ShenyuContextDecorator decorator = getOrCreateSpringBean(className, classLoader);
-                builder.addDecorator(decorator);
-            } else if (MetaDataHandler.class.isAssignableFrom(clazz)) {
-                MetaDataHandler metaDataHandler = getOrCreateSpringBean(className, classLoader);
-                metaDataSubscriber.addHander(metaDataHandler);
-            } else {
-                getOrCreateSpringBean(className, classLoader);
+    public void initPlugin(List<Object> instances, PluginData pluginData, URLClassLoader pluginClassLoader) throws Throwable {
+        for (Object instance : instances) {
+            if (ShenyuPlugin.class.isAssignableFrom(instance.getClass())) {
+                webHandler.putExtPlugins(Arrays.asList((ShenyuPlugin) instance));
+            } else if (PluginDataHandler.class.isAssignableFrom(instance.getClass())) {
+                PluginDataHandler handler = (PluginDataHandler) instance;
+                subscriber.putExtendPluginDataHandler(Arrays.asList(handler));
+                handler.handlerPlugin(pluginData);
+            } else if (ShenyuContextDecorator.class.isAssignableFrom(instance.getClass())) {
+                contextBuilder.addDecorator((ShenyuContextDecorator) instance);
+            } else if (MetaDataHandler.class.isAssignableFrom(instance.getClass())) {
+                MetaDataHandler handler = (MetaDataHandler) instance;
+                handler.setPluginClassLoader(pluginClassLoader);
+                metaDataSubscriber.addHander(handler);
             }
         }
     }

@@ -18,9 +18,6 @@
 package org.apache.shenyu.plugin.sofa;
 
 import com.alipay.sofa.rpc.context.RpcInvokeContext;
-
-import java.util.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -38,12 +35,15 @@ import org.apache.shenyu.plugin.sofa.context.SofaShenyuContextDecorator;
 import org.apache.shenyu.plugin.sofa.handler.SofaMetaDataHandler;
 import org.apache.shenyu.plugin.sofa.handler.SofaPluginDataHandler;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
+import org.apache.shenyu.plugin.sofa.param.SofaParamResolveServiceImpl;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.*;
 
 /**
  * The sofa plugin.
@@ -52,7 +52,7 @@ public class SofaPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(SofaPlugin.class);
 
-    private final SofaProxyService sofaProxyService;
+    private SofaProxyService sofaProxyService;
 
     /**
      * Instantiates a new Sofa plugin.
@@ -64,7 +64,10 @@ public class SofaPlugin extends AbstractShenyuPlugin {
     }
 
     public SofaPlugin() {
-        this.sofaProxyService = new SofaProxyService(null);
+    }
+
+    public void setSofaProxyService(SofaProxyService sofaProxyService) {
+        this.sofaProxyService = sofaProxyService;
     }
 
     @Override
@@ -132,8 +135,15 @@ public class SofaPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    public List<String> getRegisterClassNames() {
-        return Arrays.asList(SofaPlugin.class.getName(), SofaMetaDataHandler.class.getName(), SofaParamResolveService.class.getName(), SofaPluginDataHandler.class.getName(), SofaShenyuContextDecorator.class.getName());
+    public List<Object> init() throws Throwable {
+        List<Object> result = new ArrayList<>();
+        SofaParamResolveService sofaParamResolveService = new SofaParamResolveServiceImpl();
+        SofaProxyService sofaProxyService = new SofaProxyService(sofaParamResolveService);
+        this.setSofaProxyService(sofaProxyService);
+        result.add(this);
+        result.add(new SofaMetaDataHandler());
+        result.add(new SofaPluginDataHandler());
+        result.add(new SofaShenyuContextDecorator());
+        return result;
     }
-
 }

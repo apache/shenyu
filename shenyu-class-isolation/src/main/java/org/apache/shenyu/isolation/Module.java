@@ -15,13 +15,11 @@ public interface Module {
 
     /**
      * Module init.
+     * @return instances.
      * @throws Throwable
      */
-    void init() throws Throwable;
+    List<Object> init() throws Throwable;
 
-    List<String> getRegisterClassNames();
-
-    //    String getPath();
 //
 //    Configuration[] getConfigurations();
 //

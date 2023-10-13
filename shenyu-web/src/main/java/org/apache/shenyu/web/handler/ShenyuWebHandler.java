@@ -206,7 +206,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
         // init plugin, 暂时先初始化request插件
         if (Arrays.asList("request", "motan", "sofa").contains(pluginData.getName())) {
-            initPluginClassLoader(pluginData.getName());
+            loadPluginBySPI(pluginData);
         }
 
         if (StringUtils.isNoneBlank(pluginData.getPluginJar())) {
@@ -222,7 +222,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         this.plugins = sortPlugins(newPluginList);
     }
 
-    private void initPluginClassLoader(String pluginName) {
+    private void loadPluginBySPI(PluginData pluginData) {
+        String pluginName = pluginData.getName();
         try {
             // load plugin
             String pluginJarDir = String.format(PLUGIN_PATH, pluginName);
@@ -248,7 +249,9 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 return;
             }
 
-            shenyuLoaderService.loaderPlugins(plugin.getRegisterClassNames(), pluginClassLoader);
+            plugin.setClassLoader(pluginClassLoader);
+            List<Object> instances = plugin.init();
+            shenyuLoaderService.initPlugin(instances, pluginData, pluginClassLoader);
             LOG.info("load {} plugin success, path: {}", pluginName, pluginJarDir);
         } catch (Throwable e) {
             LOG.error("load {} plugin classloader failed.", pluginName);

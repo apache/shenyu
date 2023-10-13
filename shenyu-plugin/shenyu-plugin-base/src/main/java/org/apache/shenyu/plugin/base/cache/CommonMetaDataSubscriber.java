@@ -25,10 +25,7 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -58,7 +55,20 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
         Optional.ofNullable(handlerMap.get(metaData.getRpcType()))
                 .ifPresent(handler -> {
                     LOG.info("subscribe metaData: {}", JsonUtils.toJson(metaData));
-                    handler.handle(metaData);
+
+                    if (Objects.nonNull(handler.getPluginClassLoader())) {
+                        ClassLoader current = Thread.currentThread().getContextClassLoader();
+                        try {
+                            Thread.currentThread().setContextClassLoader(handler.getPluginClassLoader());
+                            handler.handle(metaData);
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        } finally {
+                            Thread.currentThread().setContextClassLoader(current);
+                        }
+                    } else {
+                        handler.handle(metaData);
+                    }
                 });
     }
 

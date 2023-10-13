@@ -93,10 +93,10 @@ public class ShenyuLoaderServiceTest {
         extPlugin.setEnabled(false);
         final ShenyuConfig shenyuConfig = new ShenyuConfig();
         shenyuConfig.setExtPlugin(extPlugin);
-        new ShenyuLoaderService(shenyuWebHandler, commonPluginDataSubscriber, shenyuConfig);
+        new ShenyuLoaderService(shenyuWebHandler, commonPluginDataSubscriber, shenyuConfig, null, null);
         extPlugin.setEnabled(true);
         extPlugin.setPath(path.toString());
-        ShenyuLoaderService shenyuLoaderService = new ShenyuLoaderService(shenyuWebHandler, commonPluginDataSubscriber, shenyuConfig);
+        ShenyuLoaderService shenyuLoaderService = new ShenyuLoaderService(shenyuWebHandler, commonPluginDataSubscriber, shenyuConfig, null, null);
 
         final Method loaderExtPlugins = ShenyuLoaderService.class.getDeclaredMethod("loaderExtPlugins");
         loaderExtPlugins.setAccessible(true);
