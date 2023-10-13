@@ -112,6 +112,8 @@ jobs:
             script: e2e-http-mysql
           - case: shenyu-e2e-case-http
             script: e2e-http-postgres
+          - case: shenyu-e2e-case-grpc
+            script: e2e-grpc-sync.sh
     steps:
       - uses: actions/checkout@v2
         with:
