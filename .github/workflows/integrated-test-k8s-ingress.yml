@@ -114,6 +114,7 @@ jobs:
 
       - name: Wait for k8s Cluster Start up
         if: steps.filter.outputs.changed == 'true'
+        timeout-minutes: 15
         run: |
           bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
 
