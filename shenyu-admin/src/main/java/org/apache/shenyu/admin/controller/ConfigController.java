@@ -26,6 +26,8 @@ import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,7 +37,8 @@ import java.util.Map;
 /**
  * This Controller only when HttpLongPollingDataChangedListener exist, will take effect.
  */
-@RestApi("/configs")
+@ResponseBody
+@RequestMapping("/configs")
 public class ConfigController {
     
     private final HttpLongPollingDataChangedListener longPollingListener;

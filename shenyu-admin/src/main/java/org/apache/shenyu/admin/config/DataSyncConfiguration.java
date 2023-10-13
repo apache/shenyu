@@ -82,7 +82,7 @@ public class DataSyncConfiguration {
      * http long polling.
      */
     @Configuration
-    @ConditionalOnProperty(name = "shenyu.sync.http.enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(name = "shenyu.sync.http.enabled", havingValue = "true")
     @EnableConfigurationProperties(HttpSyncProperties.class)
     static class HttpLongPollingListener {
         
