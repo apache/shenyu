@@ -44,10 +44,10 @@ for sync in ${SYNC_ARRAY[@]}; do
     kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-"${sync}".yml
     sleep 10s
   fi
-  kubectl apply -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
+  kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:31095/actuator/health
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:30761/actuator/health
-  kubectl apply -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
+  kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:31195/actuator/health
   kubectl apply -f "${PRGDIR}"/shenyu-examples-springcloud.yml
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:30884/actuator/health
@@ -68,8 +68,8 @@ for sync in ${SYNC_ARRAY[@]}; do
     exit 1
   fi
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-mysql.yml
-  kubectl delete -f "${PRGDIR}"/shenyu-admin-"${sync}".yml
-  kubectl delete -f "${PRGDIR}"/shenyu-bootstrap-"${sync}".yml
+  kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
+  kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
   kubectl delete -f "${PRGDIR}"/shenyu-examples-springcloud.yml
   # shellcheck disable=SC2199
   # shellcheck disable=SC2076
