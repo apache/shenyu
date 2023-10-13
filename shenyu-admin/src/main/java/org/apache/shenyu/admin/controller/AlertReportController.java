@@ -17,25 +17,21 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.common.dto.AlarmContent;
+import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.AlertDispatchService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.dto.AlarmContent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 
 /**
  * Alert report Controller.
  */
-@Validated
-@RestController
-@RequestMapping("/alert/report")
+@@RestApi("/alert/report")
 public class AlertReportController {
     
     @Autowired

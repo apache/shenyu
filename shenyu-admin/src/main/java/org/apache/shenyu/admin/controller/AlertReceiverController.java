@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AlertReceiverQuery;
@@ -25,16 +26,13 @@ import org.apache.shenyu.admin.service.AlertReceiverService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -45,9 +43,7 @@ import java.util.List;
 /**
  * Alert Receiver Controller.
  */
-@Validated
-@RestController
-@RequestMapping("/alert/receiver")
+@@RestApi("/alert/receiver")
 public class AlertReceiverController {
     
     @Autowired
@@ -103,7 +99,7 @@ public class AlertReceiverController {
     
     /**
      * query receiver.
-     * @param currentPage current page 
+     * @param currentPage current page
      * @param pageSize page size
      * @return receiver
      */
@@ -116,7 +112,7 @@ public class AlertReceiverController {
     
     /**
      * send test message to receiver.
-     * @param alertReceiverDTO receiver 
+     * @param alertReceiverDTO receiver
      * @return send result
      */
     @PostMapping(path = "/test")
@@ -127,7 +123,7 @@ public class AlertReceiverController {
                 return ShenyuAdminResult.success();
             } else {
                 return ShenyuAdminResult.error("Notify service not available, please check config!");
-            }   
+            }
         } catch (Exception e) {
             return ShenyuAdminResult.error("Notify service error: " + e.getMessage());
         }
