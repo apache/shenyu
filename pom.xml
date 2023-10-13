@@ -25,7 +25,7 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.6.0-SNAPSHOT</version>
+    <version>2.6.1-SNAPSHOT</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
@@ -88,24 +88,23 @@
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
-        <maven-javadoc-plugin.version>2.10.3</maven-javadoc-plugin.version>
+        <maven-javadoc-plugin.version>3.6.0</maven-javadoc-plugin.version>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
         <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
-        <apache-rat-plugin.version>0.13</apache-rat-plugin.version>
+        <apache-rat-plugin.version>0.15</apache-rat-plugin.version>
         <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
         <frontend-maven-plugin.node.version>v12.14.1</frontend-maven-plugin.node.version>
         <!-- maven plugin version end -->
 
         <!-- dependency version start -->
         <jasypt.version>1.9.2</jasypt.version>
-        <springfox.version>2.6.1</springfox.version>
         <mybatis.starter.version>2.2.2</mybatis.starter.version>
         <mysql.version>8.0.29</mysql.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
-        <guava.version>31.1-jre</guava.version>
+        <guava.version>32.0.0-jre</guava.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
         <disruptor.version>3.4.0</disruptor.version>
@@ -116,12 +115,12 @@
         <kryo.version>4.0.0</kryo.version>
         <pagehelper.version>5.3.3</pagehelper.version>
         <alibaba.dubbo.version>2.6.12</alibaba.dubbo.version>
-        <apache.dubbo.version>3.1.1</apache.dubbo.version>
+        <apache.dubbo.version>3.2.5</apache.dubbo.version>
         <gson.version>2.9.0</gson.version>
         <okhttp.version>4.9.3</okhttp.version>
         <prometheus-java-client.version>0.15.0</prometheus-java-client.version>
         <prometheus-jmx.version>0.15.0</prometheus-jmx.version>
-        <swagger.version>2.9.2</swagger.version>
+        <springdoc.version>1.7.0</springdoc.version>
         <sofa.rpc.version>5.7.6</sofa.rpc.version>
         <tars.version>1.7.2</tars.version>
         <skipTests>false</skipTests>
@@ -152,7 +151,7 @@
         <jackson-databind.version>2.12.3</jackson-databind.version>
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
-        <kafka-clients.version>3.2.0</kafka-clients.version>
+        <kafka-clients.version>3.4.0</kafka-clients.version>
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>1.10.17</eureka.version>
         <javatuples.version>1.2</javatuples.version>
@@ -196,6 +195,12 @@
                 <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.nacos</groupId>
+                <artifactId>nacos-client</artifactId>
+                <version>${nacos-client.version}</version>
             </dependency>
 
             <dependency>
@@ -423,15 +428,9 @@
             </dependency>
 
             <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger2</artifactId>
-                <version>${swagger.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger-ui</artifactId>
-                <version>${swagger.version}</version>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-ui</artifactId>
+                <version>${springdoc.version}</version>
             </dependency>
 
             <dependency>
@@ -593,6 +592,12 @@
                 <artifactId>client-java-spring-integration</artifactId>
                 <version>${k8s-client.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>${kafka-clients.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -691,6 +696,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
+                    <source>${java.version}</source>
                     <sourcepath>src/main/java</sourcepath>
                     <detectJavaApiLink>false</detectJavaApiLink>
                     <detectOfflineLinks>false</detectOfflineLinks>

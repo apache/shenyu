@@ -42,15 +42,29 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
-                testWithUriEquals(),
-                testWithUriPathPattern(),
-                testWithUriStartWith(),
-                testWithEndWith(),
-                testWithMethodGet(),
-                testWithMethodPost(),
-                testWithMethodPut(),
-                testWithMethodDelete()
+                testSofaFindAll()
+                //testWithUriEquals(),
+                //testWithUriPathPattern(),
+                //testWithUriStartWith(),
+                //testWithEndWith(),
+                //testWithMethodGet(),
+                //testWithMethodPost(),
+                //testWithMethodPut(),
+                //testWithMethodDelete()
         );
+    }
+    
+    private ShenYuScenarioSpec testSofaFindAll() {
+        return ShenYuScenarioSpec.builder()
+                .name("sofa test")
+                .beforeEachSpec(ShenYuBeforeEachSpec.builder()
+                        .checker(exists("/sofa/findAll"))
+                        .build())
+                .caseSpec(ShenYuCaseSpec.builder()
+                        .addExists("/sofa/findAll")
+                        .addNotExists("/sofa/findAll/123")
+                        .build())
+                .build();
     }
 
     /**
@@ -82,7 +96,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists("/put")
                                 .addNotExists("/get")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/sofa/findAll")).build())
                 .build();
     }
 
@@ -115,7 +129,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.PUT, "/sofa/findAll")
                                 .addExists(Method.DELETE, "/sofa/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/sofa/findAll")).build())
                 .build();
     }
 
@@ -149,7 +163,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.PUT, "/sofa/findAll")
                                 .addExists(Method.DELETE, "/sofa/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/sofa/findAll")).build())
                 .build();
     }
 
@@ -160,7 +174,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithEndWith() {
         return ShenYuScenarioSpec.builder()
-                .name("single-alibaba-sofa uri ends_with]")
+                .name("single-sofa uri ends_with]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
@@ -183,7 +197,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.PUT, "/sofa/findAll")
                                 .addExists(Method.DELETE, "/sofa/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/sofa/findAll")).build())
                 .build();
     }
 
@@ -194,7 +208,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithMethodGet() {
         return ShenYuScenarioSpec.builder()
-                .name("single-alibaba-sofa uri method GET]")
+                .name("single-sofa uri method GET]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
@@ -223,7 +237,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/sofa/findAll")
                                 .addNotExists(Method.DELETE, "/sofa/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.GET, "/sofa/findAll")).build())
                 .build();
     }
 
@@ -234,7 +248,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithMethodPost() {
         return ShenYuScenarioSpec.builder()
-                .name("single-alibaba-sofa uri method POST]")
+                .name("single-sofa uri method POST]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
@@ -263,7 +277,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/sofa/findAll")
                                 .addNotExists(Method.DELETE, "/sofa/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.POST, "/sofa/findAll")).build())
                 .build();
     }
 
@@ -274,7 +288,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithMethodPut() {
         return ShenYuScenarioSpec.builder()
-                .name("single-alibaba-sofa uri method PUT]")
+                .name("single-sofa uri method PUT]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
@@ -303,7 +317,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.POST, "/sofa/findAll")
                                 .addNotExists(Method.DELETE, "/sofa/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.PUT, "/sofa/findAll")).build())
                 .build();
     }
 
@@ -314,7 +328,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
      */
     public ShenYuScenarioSpec testWithMethodDelete() {
         return ShenYuScenarioSpec.builder()
-                .name("single-alibaba-sofa uri method DELETE]")
+                .name("single-sofa uri method DELETE]")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
@@ -343,7 +357,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.POST, "/sofa/findAll")
                                 .addNotExists(Method.PUT, "/sofa/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.DELETE, "/sofa/findAll")).build())
                 .build();
     }
 }

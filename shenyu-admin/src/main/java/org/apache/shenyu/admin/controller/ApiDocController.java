@@ -22,9 +22,9 @@ import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.DocVO;
-import org.apache.shenyu.admin.model.vo.MenuDocItem;
-import org.apache.shenyu.admin.model.vo.MenuModule;
-import org.apache.shenyu.admin.model.vo.MenuProject;
+import org.apache.shenyu.admin.model.vo.MenuDocItemVO;
+import org.apache.shenyu.admin.model.vo.MenuModuleVO;
+import org.apache.shenyu.admin.model.vo.MenuProjectVO;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.manager.DocManager;
@@ -60,11 +60,11 @@ public class ApiDocController {
     @GetMapping("/getDocMenus")
     public ShenyuAdminResult getAllDoc() {
         Collection<DocInfo> docInfos = docManager.listAll();
-        List<MenuProject> menuProjects = docInfos.stream()
+        List<MenuProjectVO> menuProjectList = docInfos.stream()
             .map(getMenuAndDocInfo())
             .collect(Collectors.toList());
         DocVO docVO = new DocVO();
-        docVO.setMenuProjects(menuProjects);
+        docVO.setMenuProjects(menuProjectList);
         List<ShenyuDictVO> dictVOList = shenyuDictService.list(AdminConstants.DICT_TYPE_API_DOC_ENV);
         List<DocVO.EnvConfig> envConfigs = dictVOList.stream()
             .filter(ShenyuDictVO::getEnabled)
@@ -83,27 +83,27 @@ public class ApiDocController {
         return ShenyuAdminResult.success(docVO);
     }
 
-    private Function<DocInfo, MenuProject> getMenuAndDocInfo() {
+    private Function<DocInfo, MenuProjectVO> getMenuAndDocInfo() {
         return docInfo -> {
-            MenuProject menuProject = new MenuProject();
-            menuProject.setLabel(docInfo.getTitle());
-            List<MenuModule> menuModules = docInfo.getDocModuleList()
+            MenuProjectVO menuProjectVO = new MenuProjectVO();
+            menuProjectVO.setLabel(docInfo.getTitle());
+            List<MenuModuleVO> menuProjectList = docInfo.getDocModuleList()
                 .stream()
                 .map(docModule -> {
-                    MenuModule menuModule = new MenuModule();
-                    menuModule.setLabel(docModule.getModule());
-                    List<MenuDocItem> docItems = docModule.getDocItems().stream()
+                    MenuModuleVO menuModuleVO = new MenuModuleVO();
+                    menuModuleVO.setLabel(docModule.getModule());
+                    List<MenuDocItemVO> docItems = docModule.getDocItems().stream()
                         .map(docItem -> {
-                            MenuDocItem menuDocItem = new MenuDocItem();
-                            menuDocItem.setLabel(docItem.getSummary());
-                            menuDocItem.setName(docItem.getName());
-                            return menuDocItem;
+                            MenuDocItemVO menuDocItemVO = new MenuDocItemVO();
+                            menuDocItemVO.setLabel(docItem.getSummary());
+                            menuDocItemVO.setName(docItem.getName());
+                            return menuDocItemVO;
                         }).collect(Collectors.toList());
-                    menuModule.setChildren(docItems);
-                    return menuModule;
+                    menuModuleVO.setChildren(docItems);
+                    return menuModuleVO;
                 }).collect(Collectors.toList());
-            menuProject.setChildren(menuModules);
-            return menuProject;
+            menuProjectVO.setChildren(menuProjectList);
+            return menuProjectVO;
         };
     }
 

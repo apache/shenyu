@@ -24,6 +24,7 @@ import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.base.utils.MediaTypeUtils;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
@@ -36,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ResponseStatusException;
@@ -129,8 +131,12 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
             logInfo.setStatus(getStatusCode().value());
         }
         logInfo.setResponseHeader(LogCollectUtils.getHeaders(getHeaders()));
-        BodyWriter writer = new BodyWriter();
         logInfo.setTraceId(getTraceId());
+        final MediaType mediaType = exchange.getResponse().getHeaders().getContentType();
+        if (MediaTypeUtils.isByteType(mediaType)) {
+            return Flux.from(body).doFinally(signal -> logResponse(shenyuContext, null));
+        }
+        BodyWriter writer = new BodyWriter();
         return Flux.from(body).doOnNext(buffer -> {
             if (LogCollectUtils.isNotBinaryType(getHeaders())) {
                 writer.write(buffer.asByteBuffer().asReadOnlyBuffer());
@@ -148,7 +154,7 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         if (StringUtils.isNotBlank(getHeaders().getFirst(HttpHeaders.CONTENT_LENGTH))) {
             String size = StringUtils.defaultIfEmpty(getHeaders().getFirst(HttpHeaders.CONTENT_LENGTH), "0");
             logInfo.setResponseContentLength(Integer.parseInt(size));
-        } else {
+        } else if (Objects.nonNull(writer)) {
             logInfo.setResponseContentLength(writer.size());
         }
         logInfo.setTimeLocal(shenyuContext.getStartDateTime().format(DATE_TIME_FORMATTER));
@@ -160,11 +166,16 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         if (StringUtils.isNotBlank(shenyuContext.getRpcType())) {
             logInfo.setUpstreamIp(getUpstreamIp());
         }
-        int size = writer.size();
-        String body = writer.output();
-        if (size > 0 && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
-            logInfo.setResponseBody(body);
+        if (Objects.nonNull(writer)) {
+            int size = writer.size();
+            String body = writer.output();
+            if (size > 0 && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
+                logInfo.setResponseBody(body);
+            }
+        } else {
+            logInfo.setResponseBody("[bytes]");
         }
+
         // collect log
         if (Objects.nonNull(logCollector)) {
             // desensitize log

@@ -73,7 +73,7 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
      */
     private String formatError(final Throwable throwable, final ServerHttpRequest request) {
         String reason = throwable.getClass().getSimpleName() + ": " + throwable.getMessage();
-        return "Resolved [" + reason + "] for HTTP " + request.getMethod() + " " + request.getPath();
+        return "Resolved [" + reason + "] for HTTP " + request.getMethod() + " " + request.getURI().getRawPath();
     }
 }
 

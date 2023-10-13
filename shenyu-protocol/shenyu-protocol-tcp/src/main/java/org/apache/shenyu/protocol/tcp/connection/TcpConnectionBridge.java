@@ -21,8 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.Disposable;
 import reactor.core.Disposables;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 import reactor.netty.NettyInbound;
 import reactor.netty.NettyOutbound;
@@ -46,8 +44,7 @@ public class TcpConnectionBridge implements Bridge {
     }
 
     private Disposable bridge(final NettyInbound inbound, final NettyOutbound outbound) {
-        Flux<byte[]> flux = inbound.receive().asByteArray();
-        return flux.concatMap(next -> outbound.sendByteArray(Mono.just(next))).subscribe();
+        return outbound.send(inbound.receive().retain()).then().subscribe();
     }
 
 }

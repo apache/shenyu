@@ -220,7 +220,6 @@ The text of each license is the standard Apache 2.0 license.
     annotations 4.1.1.4: http://source.android.com, Apache 2.0
     attoparser 2.0.5.RELEASE: http://www.attoparser.org, Apache 2.0
     audience-annotations 0.5.0: https://yetus.apache.org/audience-annotations, Apache 2.0
-    byte-buddy 1.12.6: https://bytebuddy.net/byte-buddy, Apache 2.0
     caffeine 2.9.3 https://github.com/ben-manes/caffeine, Apache 2.0
     classmate 1.5.1: https://github.com/FasterXML/java-classmate, Apache 2.0
     commons-beanutils 1.9.4: https://github.com/apache/commons-beanutils, Apache 2.0
@@ -272,7 +271,7 @@ The text of each license is the standard Apache 2.0 license.
     listenablefuture 9999.0-empty-to-avoid-conflict-with-guava: https://github.com/google/guava, Apache 2.0
     log4j-api 2.17.2: https://logging.apache.org/log4j/2.x/log4j-api, Apache 2.0
     log4j-to-slf4j 2.17.2: https://logging.apache.org/log4j/2.x/log4j-to-slf4j, Apache 2.0
-    mapstruct 1.2.0.Final: https://github.com/mapstruct/mapstruct, Apache 2.0
+    logging-interceptor 4.9.3: https://github.com/square/okhttp, Apache 2.0
     micrometer-core 1.9.12: https://github.com/micrometer-metrics/micrometer, Apache 2.0
     micrometer-registry-prometheus 1.9.12: https://github.com/micrometer-metrics/micrometer, Apache 2.0
     mybatis 3.5.9: http://www.mybatis.org/mybatis-3, Apache 2.0
@@ -350,26 +349,22 @@ The text of each license is the standard Apache 2.0 license.
     spring-core 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-context-support, Apache 2.0
     spring-data-commons 2.7.13: https://mvnrepository.com/artifact/org.springframework.data/spring-data-commons, Apache 2.0
 	spring-data-ldap 2.7.13: https://mvnrepository.com/artifact/org.springframework.data/spring-data-ldap, Apache 2.0
+	springdoc-openapi-common 1.7.0: https://github.com/springdoc/springdoc-openapi, Apache 2.0
+	springdoc-openapi-ui 1.7.0: https://github.com/springdoc/springdoc-openapi, Apache 2.0
+	springdoc-openapi-webmvc-core 1.7.0: https://github.com/springdoc/springdoc-openapi, Apache 2.0
     spring-expression 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-expression, Apache 2.0
-    springfox-core 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-core, Apache 2.0
-    springfox-schema 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-schema, Apache 2.0
-    springfox-spi 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-spi, Apache 2.0
-    springfox-spring-web 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-spring-web/2.9.2, Apache 2.0
-    springfox-swagger2 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-swagger2/2.9.2, Apache 2.0
-    springfox-swagger-common 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-swagger-common/2.9.2, Apache 2.0
-    springfox-swagger-ui 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui/2.9.2, Apache 2.0
     spring-jcl 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-jcl, Apache 2.0
     spring-jdbc 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-jdbc, Apache 2.0
     spring-ldap-core 2.4.1: https://mvnrepository.com/artifact/org.springframework.ldap/spring-ldap-core, Apache 2.0
     spring-messaging 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-messaging, Apache 2.0
-    spring-plugin-core 1.2.0.RELEASE: https://mvnrepository.com/artifact/org.springframework.plugin/spring-plugin-core, Apache 2.0
-    spring-plugin-metadata 1.2.0.RELEASE: https://mvnrepository.com/artifact/org.springframework.plugin/spring-plugin-metadata, Apache 2.0
     spring-tx 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-tx, Apache 2.0
     spring-web 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-web, Apache 2.0
     spring-webmvc 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-webmvc, Apache 2.0
     spring-websocket 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-websocket, Apache 2.0
-    swagger-annotations 1.5.20: https://github.com/swagger-api/swagger-core/modules/swagger-annotations, Apache 2.0
-    swagger-models 1.5.20: https://github.com/swagger-api/swagger-core/modules/swagger-models, Apache 2.0
+    swagger-annotations 2.2.9: https://github.com/swagger-api/swagger-core, Apache 2.0
+    swagger-core 2.2.9: https://github.com/swagger-api/swagger-core, Apache 2.0
+    swagger-models 2.2.9: https://github.com/swagger-api/swagger-core, Apache 2.0
+    swagger-ui 4.18.2: https://github.com/swagger-api/swagger-ui, Apache 2.0
     thymeleaf 3.0.15.RELEASE: http://www.thymeleaf.org, Apache 2.0
     thymeleaf-extras-java8time-3.0.4.RELEASE: http://www.thymeleaf.org, Apache 2.0
     thymeleaf-spring5-3.0.15.RELEASE: http://www.thymeleaf.org, Apache 2.0
@@ -391,6 +386,7 @@ The text of each license is the standard Apache 2.0 license.
     reactor-netty-core 1.0.33 https://github.com/reactor/reactor/blob/main/LICENSE, Apache 2.0
     reactor-netty-http 1.0.33 https://github.com/reactor/reactor-netty/blob/main/LICENSE, Apache 2.0
     javax.inject 1 http://www.apache.org/licenses/LICENSE-2.0, Apache 2.0
+    jackson-dataformat-yaml 2.13.5: https://github.com/FasterXML/jackson-dataformats-text, Apache 2.0
     kotlin-stdlib 1.6.21 https://kotlinlang.org, Apache 2.0
     kotlin-stdlib-common 1.6.21 https://kotlinlang.org, Apache 2.0
     reactor-core 3.4.30 https://github.com/reactor/reactor-core/blob/main/LICENSE, Apache 2.0
@@ -409,6 +405,8 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     qs 6.5.0: https://github.com/ljharb/qs, BSD 3-Clause
     react-intl-universal 2.4.2: https://github.com/alibaba/react-intl-universal, BSD 3-Clause
     encoder 1.2.2: https://www.owasp.org/index.php/OWASP_Java_Encoder_Project/encoder, BSD 3-Clause
+    jakarta.activation-api 1.2.2: https://github.com/jakartaee/jaf-api, BSD 3-Clause
+    jakarta.xml.bind-api 2.3.3: https://github.com/jakartaee/jaxb-api, BSD 3-Clause
     kryo-shaded 4.0.0: https://github.com/EsotericSoftware/kryo/kryo-shaded, BSD 2-Clause
     minlog 1.3.0: https://github.com/EsotericSoftware/minlog, BSD 2-Clause
     postgresql 42.3.8: https://github.com/pgjdbc/pgjdbc, BSD 2-Clause

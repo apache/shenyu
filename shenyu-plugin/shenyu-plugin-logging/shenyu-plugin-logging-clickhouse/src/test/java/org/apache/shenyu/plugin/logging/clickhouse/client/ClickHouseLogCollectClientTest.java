@@ -48,7 +48,7 @@ public class ClickHouseLogCollectClientTest {
     public void setUp() {
         clickHouseLogCollectClient = new ClickHouseLogCollectClient();
         pluginData.setEnabled(true);
-        pluginData.setConfig("{\"host\":\"127.0.0.1\",\"port\":\"8123\",\"database\":\"shenyu-gateway\",\"username\":\"foo\",\"password\":\"bar\"}");
+        pluginData.setConfig("{\"host\":\"127.0.0.1\",\"port\":\"8123\",\"database\":\"shenyu-gateway\",\"username\":\"foo\",\"password\":\"bar\", \"ttl\":\"30\"}");
         clickHouseLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), ClickHouseLogCollectConfig.ClickHouseLogConfig.class);
         shenyuRequestLog.setClientIp("127.0.0.1");
         shenyuRequestLog.setTimeLocal("2022-08-10 16:21:05.508");

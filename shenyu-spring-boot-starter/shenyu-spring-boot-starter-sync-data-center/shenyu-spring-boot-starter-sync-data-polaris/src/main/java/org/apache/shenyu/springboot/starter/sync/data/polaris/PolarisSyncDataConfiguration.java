@@ -21,6 +21,7 @@ import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.factory.ConfigFileServiceFactory;
 import com.tencent.polaris.factory.ConfigAPIFactory;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
@@ -58,18 +59,20 @@ public class PolarisSyncDataConfiguration {
      * @param metaSubscribers  the meta subscribers
      * @param authSubscribers  the auth subscribers
      * @param proxySelectorSubscribers   the auth subscribers
+     * @param discoveryUpstreamDataSubscribers discoveryUpstreamDataSubscribers
      * @return the sync data service
      */
     @Bean
-    public SyncDataService polarisSyncDataService(final PolarisConfig polarisConfig, final ObjectProvider<ConfigFileService> configFileServices,
+    public SyncDataService polarisSyncDataService(final ObjectProvider<PolarisConfig> polarisConfig, final ObjectProvider<ConfigFileService> configFileServices,
                                                   final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                                   final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
                                                   final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
-                                                  final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers) {
+                                                  final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers,
+                                                  final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
         LOGGER.info("you use polaris sync shenyu data.......");
-        return new PolarisSyncDataService(polarisConfig, configFileServices.getIfAvailable(), pluginSubscriber.getIfAvailable(),
+        return new PolarisSyncDataService(polarisConfig.getIfAvailable(), configFileServices.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
-                proxySelectorSubscribers.getIfAvailable());
+                proxySelectorSubscribers.getIfAvailable(), discoveryUpstreamDataSubscribers.getIfAvailable());
     }
 
     /**

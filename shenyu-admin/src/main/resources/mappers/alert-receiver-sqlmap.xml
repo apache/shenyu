@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.AlertReceiverMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
+        <!--@mbg.generated-->
+        <!--@Table alert_receiver-->
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="enable" jdbcType="TINYINT" property="enable"/>
+        <result column="type" jdbcType="TINYINT" property="type"/>
+        <result column="phone" jdbcType="VARCHAR" property="phone"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="hook_url" jdbcType="VARCHAR" property="hookUrl"/>
+        <result column="wechat_id" jdbcType="VARCHAR" property="wechatId"/>
+        <result column="access_token" jdbcType="VARCHAR" property="accessToken"/>
+        <result column="tg_bot_token" jdbcType="VARCHAR" property="tgBotToken"/>
+        <result column="tg_user_id" jdbcType="VARCHAR" property="tgUserId"/>
+        <result column="slack_web_hook_url" jdbcType="VARCHAR" property="slackWebHookUrl"/>
+        <result column="corp_id" jdbcType="VARCHAR" property="corpId"/>
+        <result column="agent_id" jdbcType="VARCHAR" property="agentId"/>
+        <result column="app_secret" jdbcType="VARCHAR" property="appSecret"/>
+        <result column="discord_channel_id" jdbcType="VARCHAR" property="discordChannelId"/>
+        <result column="discord_bot_token" jdbcType="VARCHAR" property="discordBotToken"/>
+        <result column="smn_ak" jdbcType="VARCHAR" property="smnAk"/>
+        <result column="smn_sk" jdbcType="VARCHAR" property="smnSk"/>
+        <result column="smn_project_id" jdbcType="VARCHAR" property="smnProjectId"/>
+        <result column="smn_region" jdbcType="VARCHAR" property="smnRegion"/>
+        <result column="smn_topic_urn" jdbcType="VARCHAR" property="smnTopicUrn"/>
+        <result column="match_all" jdbcType="TINYINT" property="matchAll"/>
+        <result column="labels" jdbcType="VARCHAR" property="labels" javaType="java.util.Map" typeHandler="org.apache.shenyu.admin.mybatis.handler.MapStringTypeHandler"/>
+        <result column="levels" jdbcType="VARCHAR" property="levels" javaType="java.util.List"  typeHandler="org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, `name`, enable, `type`, phone, email, hook_url, wechat_id, access_token, tg_bot_token, tg_user_id, slack_web_hook_url, 
+        corp_id, agent_id, app_secret, discord_channel_id, discord_bot_token, smn_ak, smn_sk, smn_project_id, smn_region, 
+        smn_topic_urn, match_all, labels, levels, date_created, date_updated
+    </sql>
+    <select id="selectAll" resultType="org.apache.shenyu.alert.model.AlertReceiverDTO">
+        select
+        <include refid="Base_Column_List"/>
+        from alert_receiver
+    </select>
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
+        <!--@mbg.generated-->
+        insert into alert_receiver (id, `name`, enable, `type`, phone, email, hook_url, wechat_id, access_token, tg_bot_token, tg_user_id, slack_web_hook_url,
+        corp_id, agent_id, app_secret, discord_channel_id, discord_bot_token, smn_ak, smn_sk, smn_project_id, smn_region,
+        smn_topic_urn, match_all, labels, levels, date_created, date_updated)
+        values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{enable,jdbcType=TINYINT},
+        #{type,jdbcType=TINYINT}, #{phone,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR},
+        #{hookUrl,jdbcType=VARCHAR}, #{wechatId,jdbcType=VARCHAR}, #{accessToken,jdbcType=TINYINT},
+        #{tgBotToken,jdbcType=VARCHAR}, #{tgUserId,jdbcType=VARCHAR}, #{slackWebHookUrl,jdbcType=VARCHAR},
+        #{corpId,jdbcType=VARCHAR}, #{agentId,jdbcType=VARCHAR}, #{appSecret,jdbcType=VARCHAR},
+        #{discordChannelId,jdbcType=VARCHAR}, #{discordBotToken,jdbcType=VARCHAR}, #{smnAk,jdbcType=VARCHAR},
+        #{smnSk,jdbcType=VARCHAR}, #{smnProjectId,jdbcType=VARCHAR}, #{smnRegion,jdbcType=VARCHAR},
+        #{smnTopicUrn,jdbcType=VARCHAR}, #{matchAll,jdbcType=TINYINT}, #{labels,jdbcType=VARCHAR,javaType=java.util.Map,typeHandler=org.apache.shenyu.admin.mybatis.handler.MapStringTypeHandler},
+        #{levels,jdbcType=VARCHAR,javaType=java.util.List,typeHandler=org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
+    </insert>
+    <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
+        update alert_receiver
+        set
+            name = #{name,jdbcType=VARCHAR},
+            enable = #{enable,jdbcType=TINYINT},
+            type = #{type,jdbcType=TINYINT},
+            phone = #{phone,jdbcType=VARCHAR},
+            email = #{email,jdbcType=VARCHAR},
+            hook_url = #{hookUrl,jdbcType=VARCHAR},
+            wechat_id = #{wechatId,jdbcType=VARCHAR},
+            access_token = #{accessToken,jdbcType=TINYINT},
+            tg_bot_token = #{tgBotToken,jdbcType=VARCHAR},
+            tg_user_id = #{tgUserId,jdbcType=VARCHAR},
+            slack_web_hook_url = #{slackWebHookUrl,jdbcType=VARCHAR},
+            corp_id = #{corpId,jdbcType=VARCHAR},
+            agent_id = #{agentId,jdbcType=VARCHAR},
+            app_secret = #{appSecret,jdbcType=VARCHAR},
+            discord_channel_id = #{discordChannelId,jdbcType=VARCHAR},
+            discord_bot_token = #{discordBotToken,jdbcType=VARCHAR},
+            smn_ak = #{smnAk,jdbcType=VARCHAR},
+            smn_sk = #{smnSk,jdbcType=VARCHAR},
+            smn_project_id = #{smnProjectId,jdbcType=VARCHAR},
+            smn_region = #{smnRegion,jdbcType=VARCHAR},
+            smn_topic_urn = #{smnTopicUrn,jdbcType=VARCHAR},
+            match_all = #{matchAll,jdbcType=TINYINT},
+            labels = #{labels,jdbcType=VARCHAR,typeHandler=org.apache.shenyu.admin.mybatis.handler.MapStringTypeHandler},
+            levels = #{levels,jdbcType=VARCHAR,typeHandler=org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler},
+            date_created = #{dateCreated,jdbcType=TIMESTAMP},
+            date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=VARCHAR}
+
+    </update>
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.AlertReceiverQuery"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM alert_receiver
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM alert_receiver
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from alert_receiver where id = #{id} limit 1
+    </select>
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM alert_receiver WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+</mapper>

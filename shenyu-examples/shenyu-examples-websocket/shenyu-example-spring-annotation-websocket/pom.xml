@@ -21,7 +21,7 @@
     <parent>
         <artifactId>shenyu-examples-websocket</artifactId>
         <groupId>org.apache.shenyu</groupId>
-        <version>2.6.0-SNAPSHOT</version>
+        <version>2.6.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-example-spring-annotation-websocket</artifactId>
@@ -61,12 +61,58 @@
     </dependencies>
 
     <build>
+        <finalName>shenyu-example-spring-annotation-websocket</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>org.apache.shenyu.examples.websocket.TestAnnotationWebsocketApplication</mainClass>
+                    <executable>true</executable>
+                </configuration>
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>example</id>
+            <properties>
+                <docker.buildArg.APP_NAME>shenyu-example-spring-annotation-websocket</docker.buildArg.APP_NAME>
+                <docker.image.tag.repo>shenyu-example-spring-annotation-websocket</docker.image.tag.repo>
+                <docker.image.tag.tagName>latest</docker.image.tag.tagName>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>${docker-maven-plugin.version}</version>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>shenyu-example-spring-annotation-websocket</name>
+                                    <build>
+                                        <contextDir>${project.basedir}</contextDir>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>start</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
