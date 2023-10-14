@@ -25,7 +25,7 @@ import org.apache.shenyu.client.core.register.extractor.RpcApiBeansExtractor;
 import org.apache.shenyu.client.core.register.matcher.ApiDocProcessorImpl;
 import org.apache.shenyu.client.core.register.matcher.ApiRegisterProcessor;
 import org.apache.shenyu.client.core.register.registrar.ApiRegistrar;
-import org.apache.shenyu.client.core.register.registrar.MateDataApiRegistrarImplImpl;
+import org.apache.shenyu.client.core.register.registrar.MateDataApiRegistrarImpl;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -57,8 +57,8 @@ public class ClientRegisterConfiguration {
      * @return register
      */
     @Bean
-    public MateDataApiRegistrarImplImpl mateDataApiRegistrarImpl(final ClientRegisterConfig clientRegisterConfig, final List<ApiRegisterProcessor> processor) {
-        final MateDataApiRegistrarImplImpl apiRegistrarImpl = new MateDataApiRegistrarImplImpl(clientRegisterConfig);
+    public MateDataApiRegistrarImpl mateDataApiRegistrarImpl(final ClientRegisterConfig clientRegisterConfig, final List<ApiRegisterProcessor> processor) {
+        final MateDataApiRegistrarImpl apiRegistrarImpl = new MateDataApiRegistrarImpl(clientRegisterConfig);
         for (ApiRegisterProcessor apiProcessor : processor) {
             apiRegistrarImpl.addApiProcessor(apiProcessor);
         }
