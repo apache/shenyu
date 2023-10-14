@@ -47,13 +47,13 @@ import java.util.stream.Collectors;
  *
  * @see ApiDocRegisterDTO
  */
-public class ApiDocRegistrarImplImpl extends BaseApiRegistrarImpl {
+public class ApiDocRegistrarImpl extends BaseApiRegistrarImpl {
     
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
     
     private final ClientRegisterConfig clientRegisterConfig;
     
-    public ApiDocRegistrarImplImpl(final ClientRegisterConfig clientRegisterConfig) {
+    public ApiDocRegistrarImpl(final ClientRegisterConfig clientRegisterConfig) {
         this.clientRegisterConfig = clientRegisterConfig;
     }
     
@@ -178,7 +178,7 @@ public class ApiDocRegistrarImplImpl extends BaseApiRegistrarImpl {
     
     private String getProduce(final ApiBean.ApiDefinition api) {
         final String produce = api.getPropertiesValue("produce");
-        if (StringUtils.isNotBlank(produce)) {
+        if (StringUtils.isBlank(produce)) {
             return ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
         }
         return produce;
@@ -186,7 +186,7 @@ public class ApiDocRegistrarImplImpl extends BaseApiRegistrarImpl {
     
     private static String getConsume(final ApiBean.ApiDefinition api) {
         final String consume = api.getPropertiesValue("consume");
-        if (StringUtils.isNotBlank(consume)) {
+        if (StringUtils.isBlank(consume)) {
             return ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
         }
         return consume;
