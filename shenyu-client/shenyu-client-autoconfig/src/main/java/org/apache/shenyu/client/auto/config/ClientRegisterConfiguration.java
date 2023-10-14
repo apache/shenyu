@@ -65,6 +65,7 @@ public class ClientRegisterConfiguration {
         }
         return apiRegistrarImpl;
     }
+
     /**
      * api doc register.
      *
