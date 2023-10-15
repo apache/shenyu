@@ -139,6 +139,8 @@ public class IngressReconciler implements Reconciler {
             enablePlugin(shenyuCacheRepository, PluginEnum.SPRING_CLOUD, null);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
             enablePlugin(shenyuCacheRepository, PluginEnum.WEB_SOCKET, null);
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_BRPC_ENABLED), "true")) {
+            enablePlugin(shenyuCacheRepository, PluginEnum.BRPC, null);
         }
         if (Objects.isNull(v1Ingress)) {
             if (Objects.nonNull(oldIngress)) {
@@ -211,6 +213,8 @@ public class IngressReconciler implements Reconciler {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.SPRING_CLOUD.getName(), "");
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName(), "");
+        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_BRPC_ENABLED), "true")) {
+            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.BRPC.getName(), "");
         } else {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName(), "");
         }
@@ -223,6 +227,8 @@ public class IngressReconciler implements Reconciler {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.SPRING_CLOUD.getName());
             } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName());
+            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_BRPC_ENABLED), "true")) {
+                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.BRPC.getName());
             } else {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName());
             }
