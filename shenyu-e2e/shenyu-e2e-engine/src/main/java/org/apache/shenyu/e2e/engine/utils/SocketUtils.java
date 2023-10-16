@@ -1,0 +1,70 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.shenyu.e2e.engine.utils;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.InetSocketAddress;
+import java.net.Socket;
+
+/**
+ * socket utils.
+ */
+public class SocketUtils {
+    
+    private static final String HTTP = "http://";
+    
+    private static final String HTTPS = "https://";
+    
+    private static final Logger LOG = LoggerFactory.getLogger(SocketUtils.class);
+    
+    /**
+     * Check url boolean.
+     *
+     * @param url     the url
+     * @param timeout timeout
+     * @return the boolean
+     */
+    public static boolean checkUrl(final String url, final int timeout) {
+        if (StringUtils.isBlank(url)) {
+            return false;
+        }
+        String[] hostPort;
+        if (url.startsWith(HTTP) || url.startsWith(HTTPS)) {
+            final String[] http = StringUtils.split(url, "\\/\\/");
+            hostPort = StringUtils.split(http[1], ":");
+        } else {
+            hostPort = StringUtils.split(url, ":");
+        }
+        final boolean isHttps = url.startsWith(HTTPS);
+        final int port = hostPort.length > 1 ? Integer.parseInt(hostPort[1].trim()) : isHttps ? 443 : 80;
+        return isHostConnector(hostPort[0].trim(), port, timeout);
+    }
+    
+    private static boolean isHostConnector(final String host, final int port, final int timeout) {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(host, port), timeout);
+        } catch (Exception e) {
+            LOG.error("socket connect is error. host:{} port:{} timeout:{}", host, port, timeout, e);
+            return false;
+        }
+        return true;
+    }
+}

@@ -1,0 +1,104 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: shenyu-nacos
+  labels:
+    app: shenyu-nacos
+spec:
+  serviceName: shenyu-nacos
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shenyu-nacos
+  template:
+    metadata:
+      labels:
+        app: shenyu-nacos
+      annotations:
+        pod.alpha.kubernetes.io/initialized: "true"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                      - nacos
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - image: nacos/nacos-server:v2.2.3
+          name: shenyu-nacos
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["NET_ADMIN"]
+          resources: { }
+          args:
+            - -Xmx768m -Xms768m
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+            - name: SERVICE_NAME
+              value: "shenyu-nacos"
+            - name: NACOS_SERVER_PORT
+              value: "8848"
+            - name: NACOS_APPLICATION_PORT
+              value: "8848"
+            - name: MODE
+              value: standalone
+            - name: PREFER_HOST_MODE
+              value: hostname
+          ports:
+            - name: client
+              containerPort: 8848
+            - name: server
+              containerPort: 9848
+            - name: raft
+              containerPort: 9849
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shenyu-nacos
+  labels:
+    app: shenyu-nacos
+spec:
+  selector:
+    app: shenyu-nacos
+  type: ClusterIP
+  publishNotReadyAddresses: true
+  clusterIP: None
+  ports:
+    - port: 8848
+      name: server
+      targetPort: 8848
+    - port: 9848
+      name: client-rpc
+      targetPort: 9848
+    - port: 9849
+      name: raft-rpc
+      targetPort: 9849
+    ## 兼容1.4.x版本的选举端口.
+    - port: 7848
+      name: old-raft-rpc
+      targetPort: 7848
