@@ -21,10 +21,12 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ObjectTypeUtils;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
+import reactor.netty.http.client.HttpClientResponse;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -69,7 +71,12 @@ public interface ShenyuResult<T> {
      * @return the context type
      */
     default MediaType contentType(ServerWebExchange exchange, Object formatted) {
-        final ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+        final Object webHandlerClientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+        if (Objects.nonNull(webHandlerClientResponse) && webHandlerClientResponse instanceof HttpClientResponse) {
+            final HttpClientResponse httpClientResponse = (HttpClientResponse) webHandlerClientResponse;
+            return MediaType.parseMediaType(httpClientResponse.responseHeaders().get(HttpHeaders.CONTENT_TYPE));
+        }
+        final ResponseEntity<Flux<DataBuffer>> fluxResponseEntity =  exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
         if (Objects.nonNull(fluxResponseEntity) && Optional.ofNullable(fluxResponseEntity.getHeaders().getContentType()).isPresent()) {
             return fluxResponseEntity.getHeaders().getContentType();
         }
