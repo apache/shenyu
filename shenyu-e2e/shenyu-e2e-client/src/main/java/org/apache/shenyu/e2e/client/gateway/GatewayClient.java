@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.apache.shenyu.e2e.annotation.ShenYuGatewayClient;
+import org.apache.shenyu.e2e.client.BaseClient;
 import org.apache.shenyu.e2e.common.RequestLogConsumer;
 import org.apache.shenyu.e2e.model.data.MetaData;
 import org.apache.shenyu.e2e.model.data.RuleCacheData;
@@ -29,7 +30,6 @@ import org.apache.shenyu.e2e.model.data.SelectorCacheData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -46,11 +46,11 @@ import static io.restassured.RestAssured.given;
  * A client to connect to ShenYu bootstrap(Gateway) server over HTTP.
  */
 @ShenYuGatewayClient
-public class GatewayClient {
+public class GatewayClient extends BaseClient {
 
     private static final Logger log = LoggerFactory.getLogger(GatewayClient.class);
     
-    private static final RestTemplate TEMPLATE = new RestTemplateBuilder().build();
+    private static final RestTemplate TEMPLATE = new RestTemplate();
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     
@@ -58,10 +58,14 @@ public class GatewayClient {
 
     private final String baseUrl;
     
+    private final String serviceName;
+    
     private final Properties properties;
 
-    public GatewayClient(final String scenarioId, final String baseUrl, final Properties properties) {
+    public GatewayClient(final String scenarioId, final String serviceName, final String baseUrl, final Properties properties) {
+        super(serviceName);
         this.scenarioId = scenarioId;
+        this.serviceName = serviceName;
         this.baseUrl = baseUrl;
         this.properties = properties;
     }
@@ -157,5 +161,15 @@ public class GatewayClient {
             }
         }
         return ruleDataList;
+    }
+
+    /**
+     * get enable plugins.
+     * @return Map Map
+     */
+    public Map<String, Integer> getPlugins() {
+        ResponseEntity<List> response = TEMPLATE.exchange(baseUrl + "/actuator/plugins", HttpMethod.GET, null, List.class);
+        List body = response.getBody();
+        return (Map<String, Integer>) body.get(0);
     }
 }

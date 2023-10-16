@@ -20,6 +20,7 @@ package org.apache.shenyu.springboot.starter.client.common.config;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
+import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +61,13 @@ public class ShenyuClientCommonBeanConfigurationTest {
                         "shenyu.client.dubbo.props[contextPath]=/common",
                         "shenyu.client.dubbo.props[appName]=common",
                         "shenyu.client.dubbo.props[host]=localhost",
-                        "shenyu.client.dubbo.props[port]=20888"
+                        "shenyu.discovery.name=local",
+                        "shenyu.discovery.enable=true",
+                        "shenyu.discovery.type=local",
+                        "shenyu.discovery.serverList=20888",
+                        "shenyu.discovery.props[sleep]=1000",
+                        "shenyu.discovery.props[maxRetry]=3"
+
                 );
     }
 
@@ -95,6 +102,18 @@ public class ShenyuClientCommonBeanConfigurationTest {
             ShenyuClientConfig config = context.getBean("shenyuClientConfig", ShenyuClientConfig.class);
             assertNotNull(config);
             assertThat(config.getClient()).containsKey("dubbo");
+        });
+        registerUtilsMockedStatic.close();
+    }
+
+    @Test
+    public void testShenyuDiscoveryConfig() {
+        MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
+        applicationContextRunner.run(context -> {
+            ShenyuDiscoveryConfig config = context.getBean("shenyuDiscoveryConfig", ShenyuDiscoveryConfig.class);
+            assertNotNull(config);
+            assertThat(config.getType()).isEqualTo("local");
         });
         registerUtilsMockedStatic.close();
     }

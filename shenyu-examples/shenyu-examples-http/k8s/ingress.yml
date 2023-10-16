@@ -20,6 +20,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: shenyu
     shenyu.apache.org/loadbalancer: p2c
+    shenyu.apache.org/upstreams-protocol: http://,http://
   name: demo-ingress
 spec:
   rules:

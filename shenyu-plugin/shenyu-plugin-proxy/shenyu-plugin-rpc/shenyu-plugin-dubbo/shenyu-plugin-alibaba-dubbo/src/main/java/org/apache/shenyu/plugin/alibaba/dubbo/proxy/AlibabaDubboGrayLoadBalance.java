@@ -50,9 +50,9 @@ public class AlibabaDubboGrayLoadBalance implements LoadBalance {
         DubboRuleHandle dubboRuleHandle = AlibabaDubboPluginDataHandler.RULE_CACHED_HANDLE.get().obtainHandle(shenyuRuleId);
         // if gray list is not empty,just use load balance to choose one.
         if (CollectionUtils.isNotEmpty(dubboUpstreams)) {
-            Upstream upstream = LoadBalancerFactory.selector(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(shenyuSelectorId), dubboRuleHandle.getLoadbalance(), remoteAddressIp);
+            Upstream upstream = LoadBalancerFactory.selector(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(shenyuSelectorId), dubboRuleHandle.getLoadBalance(), remoteAddressIp);
             if (StringUtils.isBlank(upstream.getUrl()) && StringUtils.isBlank(upstream.getGroup()) && StringUtils.isBlank(upstream.getVersion())) {
-                return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(dubboRuleHandle.getLoadbalance()).select(invokers, url, invocation);
+                return select(invokers, url, invocation, dubboRuleHandle.getLoadBalance());
             }
             // url is the first level, then is group, the version is the lowest.
             final List<Invoker<T>> invokerGrays = invokers.stream().filter(each -> {
@@ -75,11 +75,11 @@ public class AlibabaDubboGrayLoadBalance implements LoadBalance {
                 return true;
             }).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(invokerGrays)) {
-                return select(invokers, url, invocation, dubboRuleHandle.getLoadbalance());
+                return select(invokers, url, invocation, dubboRuleHandle.getLoadBalance());
             }
-            return select(invokerGrays, url, invocation, dubboRuleHandle.getLoadbalance());
+            return select(invokerGrays, url, invocation, dubboRuleHandle.getLoadBalance());
         }
-        return select(invokers, url, invocation, dubboRuleHandle.getLoadbalance());
+        return select(invokers, url, invocation, dubboRuleHandle.getLoadBalance());
     }
 
     private <T> Invoker<T> select(final List<Invoker<T>> invokers, final URL url, final Invocation invocation, final String loadbalance) {

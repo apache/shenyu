@@ -24,13 +24,13 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
-import org.apache.shenyu.plugin.base.utils.ResponseUtils;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.web.reactive.function.BodyExtractors;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
@@ -68,25 +68,24 @@ public class WebClientMessageWriter implements MessageWriter {
     public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange).then(Mono.defer(() -> {
             ServerHttpResponse response = exchange.getResponse();
-            ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-            if (Objects.isNull(clientResponse)) {
+
+            ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+            if (Objects.isNull(fluxResponseEntity)) {
                 Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR);
                 return WebFluxResultUtils.result(exchange, error);
             }
-            this.redrawResponseHeaders(response, clientResponse);
-            // image, pdf or stream does not do format processing.
-            if (clientResponse.headers().contentType().isPresent()) {
-                final String media = clientResponse.headers().contentType().get().toString().toLowerCase();
-                if (COMMON_BIN_MEDIA_TYPE_PATTERN.matcher(media).matches()) {
-                    return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()))
-                            .doOnCancel(() -> clean(exchange));
-                }
-            }
-            clientResponse = ResponseUtils.buildClientResponse(response, clientResponse.body(BodyExtractors.toDataBuffers()));
 
-            Mono<Void> responseMono = clientResponse.bodyToMono(byte[].class)
-                    .flatMap(originData -> WebFluxResultUtils.result(exchange, originData))
-                    .doOnCancel(() -> clean(exchange));
+            this.redrawResponseHeaders(response, fluxResponseEntity);
+
+            Mono<Void> responseMono;
+            if (Objects.nonNull(fluxResponseEntity.getBody())) {
+                responseMono = exchange.getResponse().writeWith(fluxResponseEntity.getBody())
+                        .onErrorResume(error -> releaseIfNotConsumed(fluxResponseEntity, error))
+                        .doOnCancel(() -> clean(exchange));
+            } else {
+                responseMono = exchange.getResponse().writeWith(Mono.empty());
+            }
+
             exchange.getAttributes().put(Constants.RESPONSE_MONO, responseMono);
             // watcher httpStatus
             final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);
@@ -97,13 +96,13 @@ public class WebClientMessageWriter implements MessageWriter {
 
     @Override
     public List<String> supportTypes() {
-        return Lists.newArrayList(RpcTypeEnum.HTTP.getName(), RpcTypeEnum.SPRING_CLOUD.getName());
+        return Lists.newArrayList(RpcTypeEnum.HTTP.getName(), RpcTypeEnum.SPRING_CLOUD.getName(), RpcTypeEnum.WEB_SOCKET.getName());
     }
 
     private void redrawResponseHeaders(final ServerHttpResponse response,
-                                       final ClientResponse clientResponse) {
+                                       final ResponseEntity<Flux<DataBuffer>> fluxResponseEntity) {
         // cookies are also headers, and adding them will result in duplicate headers
-        HttpHeaders httpHeaders = clientResponse.headers().asHttpHeaders();
+        HttpHeaders httpHeaders = fluxResponseEntity.getHeaders();
         // if the client response has cors header remove cors header from response that crossfilter put
         if (CORS_HEADERS.stream().anyMatch(httpHeaders::containsKey)) {
             CORS_HEADERS.forEach(header -> response.getHeaders().remove(header));
@@ -121,10 +120,14 @@ public class WebClientMessageWriter implements MessageWriter {
         response.getHeaders().putAll(httpHeaders);
     }
 
+    private static <T> Mono<T> releaseIfNotConsumed(final ResponseEntity<Flux<DataBuffer>> fluxResponseEntity, final Throwable ex) {
+        return fluxResponseEntity.getBody().onErrorResume(ex2 -> Mono.empty()).then(Mono.error(ex));
+    }
+
     private void clean(final ServerWebExchange exchange) {
-        ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-        if (Objects.nonNull(clientResponse)) {
-            clientResponse.bodyToMono(Void.class).subscribe();
+        ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+        if (Objects.nonNull(fluxResponseEntity) && Objects.nonNull(fluxResponseEntity.getBody())) {
+            fluxResponseEntity.getBody().subscribe();
         }
     }
 

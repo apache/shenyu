@@ -411,6 +411,9 @@
         <!-- shenyu spring cloud alibaba dubbo end-->
 
         <!--shenyu motan plugin start-->
+        <!--If you plan to use the motan plugin and want to use the hessian serialization,
+        please check the sofa plugin related dependencies.In particular, the reliance on sofa-hessian should be excluded.
+        Because sofa-hessian and caucho-hessian can cause class loading conflicts and cause some unexpected problems-->
         <dependency>
             <groupId>com.weibo</groupId>
             <artifactId>motan-core</artifactId>
@@ -591,17 +594,17 @@
 
 
         <!-- shenyu brpc plugin start -->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-brpc</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.shenyu</groupId>-->
+<!--            <artifactId>shenyu-spring-boot-starter-plugin-brpc</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>ch.qos.logback</groupId>-->
+<!--                    <artifactId>logback-classic</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
         <!-- shenyu brpc plugin end -->
 
         <!-- shenyu kubernetes controller starter -->

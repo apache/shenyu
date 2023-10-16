@@ -34,7 +34,11 @@ spring:
   messages:
     basename: message/i18n
 
+
 management:
+  health:
+    mail:
+      enabled: off
   endpoints:
     web:
       exposure:
@@ -46,6 +50,7 @@ management:
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
   mapper-locations: classpath:/mappers/*.xml
+  type-handlers-package: org.apache.shenyu.admin.mybatis.handler
 
 shenyu:
   register:
@@ -76,19 +81,19 @@ shenyu:
 #      url: localhost:2181
 #      sessionTimeout: 5000
 #      connectionTimeout: 2000
-#      http:
-#        enabled: true
-#      nacos:
-#        url: localhost:8848
-#        namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-#        username:
-#        password:
-#        acm:
-#          enabled: false
-#          endpoint: acm.aliyun.com
-#          namespace:
-#          accessKey:
-#          secretKey:
+#    http:
+#      enabled: true
+#    nacos:
+#      url: localhost:8848
+#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+#      username:
+#      password:
+#      acm:
+#        enabled: false
+#        endpoint: acm.aliyun.com
+#        namespace:
+#        accessKey:
+#        secretKey:
 #    polaris:
 #      url: 127.0.0.1:8093
 #      namespace:
@@ -120,12 +125,11 @@ shenyu:
       - /actuator/health/** # /actuator/health/readiness /actuator/health/liveness
       - /actuator/prometheus
       - /swagger-ui.html
+      - /swagger-ui/**
       - /webjars/**
-      - /swagger-resources/**
-      - /v2/api-docs
+      - /v3/api-docs/**
       - /csrf
-  swagger:
-    enable: true
+      - /alert/report
   dashboard:
     core:
       onlySuperAdminPermission:
@@ -141,6 +145,15 @@ shenyu:
         - system:resource:editMenu
         - system:resource:deleteButton
         - system:resource:deleteMenu
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    tags-sorter: alpha
+  packages-to-scan: org.apache.shenyu.admin.controller
+  paths-to-match: /**
 
 logging:
   level:

@@ -35,6 +35,9 @@ spring:
     basename: message/i18n
 
 management:
+  health:
+    mail:
+      enabled: off
   endpoints:
     web:
       exposure:
@@ -91,6 +94,7 @@ shenyu:
       - /swagger-resources/**
       - /v2/api-docs
       - /csrf
+      - /alert/report
   swagger:
     enable: true
   dashboard:

@@ -21,19 +21,22 @@ import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressRule;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.shenyu.k8s.common.IngressConstants;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Parser of Ingress.
  */
-public class IngressParser implements K8sResourceParser<V1Ingress> {
+public class IngressParser implements K8sResourceListParser<V1Ingress> {
 
     private static final Logger LOG = LoggerFactory.getLogger(IngressParser.class);
 
@@ -44,7 +47,7 @@ public class IngressParser implements K8sResourceParser<V1Ingress> {
     /**
      * IngressParser Constructor.
      *
-     * @param serviceInformer serviceInformer
+     * @param serviceInformer   serviceInformer
      * @param endpointsInformer endpointsInformer
      */
     public IngressParser(final SharedIndexInformer<V1Service> serviceInformer, final SharedIndexInformer<V1Endpoints> endpointsInformer) {
@@ -55,18 +58,68 @@ public class IngressParser implements K8sResourceParser<V1Ingress> {
     /**
      * Parse ingress to ShenyuMemoryConfig.
      *
-     * @param ingress ingress resource
+     * @param ingress   ingress resource
      * @param coreV1Api coreV1Api
      * @return ShenyuMemoryConfig
      */
     @Override
-    public ShenyuMemoryConfig parse(final V1Ingress ingress, final CoreV1Api coreV1Api) {
-        if (Objects.equals(ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+    public List<ShenyuMemoryConfig> parse(final V1Ingress ingress, final CoreV1Api coreV1Api) {
+        List<ShenyuMemoryConfig> shenyuMemoryConfigList = new ArrayList<>();
+        boolean dubboEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_DUBBO_ENABLED);
+        boolean motanEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_MOTAN_ENABLED);
+        boolean springCloudEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED);
+        boolean webSocketEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
+        boolean brpcEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_BRPC_ENABLED);
+
+        if (!dubboEnabled || !motanEnabled) {
+            contextPathParse(ingress, shenyuMemoryConfigList, coreV1Api);
+        }
+        if (dubboEnabled) {
             DubboIngressParser dubboIngressParser = new DubboIngressParser(serviceLister, endpointsLister);
-            return dubboIngressParser.parse(ingress, coreV1Api);
+            shenyuMemoryConfigList.add(dubboIngressParser.parse(ingress, coreV1Api));
+        } else if (motanEnabled) {
+            MotanIngressParser motanIngressParser = new MotanIngressParser(serviceLister, endpointsLister);
+            shenyuMemoryConfigList.add(motanIngressParser.parse(ingress, coreV1Api));
+        } else if (springCloudEnabled) {
+            SpringCloudParser springCloudParser = new SpringCloudParser(serviceLister, endpointsLister);
+            shenyuMemoryConfigList.add(springCloudParser.parse(ingress, coreV1Api));
+        } else if (webSocketEnabled) {
+            WebSocketParser webSocketParser = new WebSocketParser(serviceLister, endpointsLister);
+            shenyuMemoryConfigList.add(webSocketParser.parse(ingress, coreV1Api));
+        } else if (brpcEnabled) {
+            BrpcParser brpcParser = new BrpcParser(serviceLister, endpointsLister);
+            shenyuMemoryConfigList.add(brpcParser.parse(ingress, coreV1Api));
         } else {
             DivideIngressParser divideIngressParser = new DivideIngressParser(serviceLister, endpointsLister);
-            return divideIngressParser.parse(ingress, coreV1Api);
+            shenyuMemoryConfigList.add(divideIngressParser.parse(ingress, coreV1Api));
         }
+        return shenyuMemoryConfigList;
+    }
+
+    private boolean getBooleanAnnotation(final V1Ingress ingress, final String annotationKey) {
+        String annotationValue = ingress.getMetadata().getAnnotations().get(annotationKey);
+        return annotationValue != null && Boolean.parseBoolean(annotationValue);
+    }
+
+    private void contextPathParse(final V1Ingress ingress, final List<ShenyuMemoryConfig> shenyuMemoryConfigList, final CoreV1Api coreV1Api) {
+        List<V1IngressRule> rules = ingress.getSpec().getRules();
+        for (V1IngressRule rule : rules) {
+            List<V1HTTPIngressPath> paths = rule.getHttp().getPaths();
+            for (V1HTTPIngressPath path : paths) {
+                if ("Prefix".equals(path.getPathType())) {
+                    ContextPathParser contextPathParser = new ContextPathParser(serviceLister, endpointsLister);
+                    shenyuMemoryConfigList.add(contextPathParser.parse(ingress, coreV1Api));
+                }
+            }
+        }
+    }
+
+
+    /**
+     * get endpointsLister.
+     * @return endpointsLister
+     */
+    public Lister<V1Endpoints> getEndpointsLister() {
+        return endpointsLister;
     }
 }

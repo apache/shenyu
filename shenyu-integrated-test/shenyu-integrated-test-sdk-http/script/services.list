@@ -17,3 +17,4 @@
 http://localhost:9095/actuator/health
 http://localhost:9195/actuator/health
 http://localhost:8899/actuator/health
+http://localhost:8898/actuator/health
