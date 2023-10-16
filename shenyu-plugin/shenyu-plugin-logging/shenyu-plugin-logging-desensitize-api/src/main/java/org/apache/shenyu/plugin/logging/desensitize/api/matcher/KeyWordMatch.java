@@ -39,7 +39,7 @@ public class KeyWordMatch {
             if (tempKeyWord.length() <= 6) {
                 sb.append(tempKeyWord);
             } else {
-                sb.append("^" + tempKeyWord.substring(0, 3) + "(.*?)" + tempKeyWord.substring(tempKeyWord.length() - 3) + "$");
+                sb.append("^").append(tempKeyWord.substring(0, 3)).append("(.*?)").append(tempKeyWord.substring(tempKeyWord.length() - 3)).append("$");
             }
             sb.append("||");
         });
