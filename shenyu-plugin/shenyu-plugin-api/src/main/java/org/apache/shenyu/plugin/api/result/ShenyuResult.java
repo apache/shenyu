@@ -74,7 +74,8 @@ public interface ShenyuResult<T> {
         final Object webHandlerClientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
         if (Objects.nonNull(webHandlerClientResponse) && webHandlerClientResponse instanceof HttpClientResponse) {
             final HttpClientResponse httpClientResponse = (HttpClientResponse) webHandlerClientResponse;
-            return MediaType.parseMediaType(httpClientResponse.responseHeaders().get(HttpHeaders.CONTENT_TYPE));
+            final String contentType = httpClientResponse.responseHeaders().get(HttpHeaders.CONTENT_TYPE);
+            return Optional.ofNullable(contentType).map(MediaType::parseMediaType).orElse(MediaType.APPLICATION_JSON);
         }
         final ResponseEntity<Flux<DataBuffer>> fluxResponseEntity =  exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
         if (Objects.nonNull(fluxResponseEntity) && Optional.ofNullable(fluxResponseEntity.getHeaders().getContentType()).isPresent()) {
