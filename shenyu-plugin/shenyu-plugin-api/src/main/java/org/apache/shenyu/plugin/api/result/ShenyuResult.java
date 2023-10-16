@@ -77,7 +77,8 @@ public interface ShenyuResult<T> {
             final String contentType = httpClientResponse.responseHeaders().get(HttpHeaders.CONTENT_TYPE);
             return Optional.ofNullable(contentType).map(MediaType::parseMediaType).orElse(MediaType.APPLICATION_JSON);
         }
-        final ResponseEntity<Flux<DataBuffer>> fluxResponseEntity =  exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+
+        final ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
         if (Objects.nonNull(fluxResponseEntity) && Optional.ofNullable(fluxResponseEntity.getHeaders().getContentType()).isPresent()) {
             return fluxResponseEntity.getHeaders().getContentType();
         }
