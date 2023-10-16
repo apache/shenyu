@@ -21,5 +21,6 @@ kind load docker-image "shenyu-examples-springcloud:latest"
 kind load docker-image "apache/shenyu-integrated-test-k8s-ingress-spring-cloud:latest"
 kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-spring-cloud/deploy/deploy-shenyu.yaml
 kubectl apply -f ./shenyu-examples/shenyu-examples-eureka/k8s/shenyu-examples-eureka.yml
+kubectl wait --for=condition=Ready pod -l app=shenyu-examples-eureka-deployment -n shenyu-ingress
 kubectl apply -f ./shenyu-examples/shenyu-examples-springcloud/k8s/shenyu-examples-springcloud.yml
 kubectl apply -f ./shenyu-examples/shenyu-examples-springcloud/k8s/ingress.yml
