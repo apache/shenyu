@@ -17,10 +17,10 @@
 #
 
 kind load docker-image "shenyu-examples-apache-dubbo-service:latest"
-          kind load docker-image "apache/shenyu-integrated-test-k8s-ingress-apache-dubbo:latest"
-          kubectl apply -f ./shenyu-examples/shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service/k8s/shenyu-zookeeper.yml
-          kubectl wait --for=condition=Ready pod -l app=shenyu-zk -n shenyu-ingress
-          kubectl apply -f ./shenyu-examples/shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service/k8s/shenyu-examples-dubbo.yml
-          kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-apache-dubbo/deploy/deploy-shenyu.yaml
-          kubectl apply -f ./shenyu-examples/shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service/k8s/ingress.yml
+kind load docker-image "apache/shenyu-integrated-test-k8s-ingress-apache-dubbo:latest"
+kubectl apply -f ./shenyu-examples/shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service/k8s/shenyu-zookeeper.yml
+kubectl wait --for=condition=Ready pod -l app=shenyu-zk -n shenyu-ingress
+kubectl apply -f ./shenyu-examples/shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service/k8s/shenyu-examples-dubbo.yml
+kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-apache-dubbo/deploy/deploy-shenyu.yaml
+kubectl apply -f ./shenyu-examples/shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service/k8s/ingress.yml
 
