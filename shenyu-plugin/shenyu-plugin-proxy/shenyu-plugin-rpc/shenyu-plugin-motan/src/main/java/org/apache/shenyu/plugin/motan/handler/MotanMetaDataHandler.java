@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.motan.handler;
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.plugin.base.handler.AbstractMetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.motan.cache.ApplicationConfigCache;
 import org.slf4j.Logger;
@@ -32,14 +33,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * The motan metadata handler.
  */
-public class MotanMetaDataHandler implements MetaDataHandler {
-
-    private URLClassLoader pluginClassLoader;
-
-    @Override
-    public void setPluginClassLoader(URLClassLoader classLoader) {
-        this.pluginClassLoader = classLoader;
-    }
+public class MotanMetaDataHandler extends AbstractMetaDataHandler {
 
     /**
      * logger.
@@ -77,10 +71,5 @@ public class MotanMetaDataHandler implements MetaDataHandler {
     @Override
     public String rpcType() {
         return RpcTypeEnum.MOTAN.getName();
-    }
-
-    @Override
-    public URLClassLoader getPluginClassLoader() {
-        return this.pluginClassLoader;
     }
 }

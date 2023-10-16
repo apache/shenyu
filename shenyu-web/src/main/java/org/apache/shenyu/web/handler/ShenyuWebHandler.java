@@ -249,7 +249,6 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 return;
             }
 
-            plugin.setClassLoader(pluginClassLoader);
             List<Object> instances = plugin.init();
             shenyuLoaderService.initPlugin(instances, pluginData, pluginClassLoader);
             LOG.info("load {} plugin success, path: {}", pluginName, pluginJarDir);

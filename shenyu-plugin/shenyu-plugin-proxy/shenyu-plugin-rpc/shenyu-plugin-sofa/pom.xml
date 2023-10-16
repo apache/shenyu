@@ -89,11 +89,12 @@
                                 shenyu-plugin-api,
                                 shenyu-spi,
                                 shenyu-sync-data-api,
+                                gson
                             </excludeArtifactIds>
                             <excludeGroupIds>
                                 org.slf4j,
                                 org.springframework,
-                                io.projectreactor
+                                io.projectreactor,
                             </excludeGroupIds>
                             <outputDirectory>${main.basedir}/plugins/sofa</outputDirectory>
                             <overWriteReleases>false</overWriteReleases>

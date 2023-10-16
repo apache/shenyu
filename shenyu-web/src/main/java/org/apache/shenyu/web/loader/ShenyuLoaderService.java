@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.cache.CommonMetaDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
@@ -137,7 +138,9 @@ public class ShenyuLoaderService {
     public void initPlugin(List<Object> instances, PluginData pluginData, URLClassLoader pluginClassLoader) throws Throwable {
         for (Object instance : instances) {
             if (ShenyuPlugin.class.isAssignableFrom(instance.getClass())) {
-                webHandler.putExtPlugins(Arrays.asList((ShenyuPlugin) instance));
+                AbstractShenyuPlugin plugin = (AbstractShenyuPlugin) instance;
+                plugin.setClassLoader(pluginClassLoader);
+                webHandler.putExtPlugins(Arrays.asList(plugin));
             } else if (PluginDataHandler.class.isAssignableFrom(instance.getClass())) {
                 PluginDataHandler handler = (PluginDataHandler) instance;
                 subscriber.putExtendPluginDataHandler(Arrays.asList(handler));

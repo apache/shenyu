@@ -94,6 +94,7 @@
                                 shenyu-spi,
                                 shenyu-sync-data-api,
                                 commons-lang3,
+                                gson
                             </excludeArtifactIds>
                             <excludeGroupIds>
                                 org.slf4j,
