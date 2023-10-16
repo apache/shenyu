@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.entity.OperationRecordLog;
 import org.apache.shenyu.admin.model.query.RecordLogQueryCondition;
 import org.apache.shenyu.admin.model.result.AdminResult;
@@ -26,12 +27,9 @@ import org.apache.shenyu.admin.utils.ResultUtil;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 import java.util.List;
@@ -39,9 +37,7 @@ import java.util.List;
 /**
  * OperationRecordLogController.
  */
-@Validated
-@RestController
-@RequestMapping("/operation-record/log")
+@RestApi("/operation-record/log")
 public class OperationRecordLogController implements PagedController<RecordLogQueryCondition, OperationRecordLog> {
     
     private final OperationRecordLogService recordLogService;
