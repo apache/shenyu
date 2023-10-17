@@ -152,7 +152,7 @@ shenyu:
   #            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
   #            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
   #  httpclient:
-  #    strategy: webClient # netty
+  #    strategy: netty # webClient
   #    connectTimeout: 45000
   #    responseTimeout: 3000
   #    readerIdleTime: 3000
