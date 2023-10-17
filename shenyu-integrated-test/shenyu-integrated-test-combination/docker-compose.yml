@@ -51,7 +51,7 @@ services:
     environment:
       - shenyu.register.serverLists=http://shenyu-admin:9095
     healthcheck:
-      test: [ "CMD", "wget", "http://shenyu-examples-http:8189/test/path/123?name=tom" ]
+      test: ["CMD-SHELL", "wget -q -O - http://shenyu-examples-http:8189/actuator/health | grep UP || exit 1"]
       timeout: 2s
       retries: 30
     ports:
