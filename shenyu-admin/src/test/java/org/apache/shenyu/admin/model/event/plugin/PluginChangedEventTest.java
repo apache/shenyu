@@ -17,14 +17,14 @@
 
 package org.apache.shenyu.admin.model.event.plugin;
 
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.sql.Timestamp;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * test cast for {@link PluginChangedEvent}.
@@ -92,7 +92,6 @@ public class PluginChangedEventTest {
         PluginChangedEvent pluginUpdateEventNotSameDO = new PluginChangedEvent(withoutChangePluginDO, pluginDO, EventTypeEnum.PLUGIN_UPDATE, "test-operator");
         assertEquals(context, pluginUpdateEventNotSameDO.buildContext());
 
-        PluginChangedEvent pluginUpdateEventChange = new PluginChangedEvent(changePluginDO, pluginDO, EventTypeEnum.PLUGIN_UPDATE, "test-operator");
         final StringBuilder contrast = new StringBuilder();
         contrast.append(String.format("name[%s => %s] ", pluginDO.getName(), changePluginDO.getName()));
         contrast.append(String.format("config[%s => %s] ", pluginDO.getConfig(), changePluginDO.getConfig()));
@@ -100,6 +99,8 @@ public class PluginChangedEventTest {
         contrast.append(String.format("enable[%s => %s] ", pluginDO.getEnabled(), changePluginDO.getEnabled()));
         contrast.append(String.format("sort[%s => %s] ", pluginDO.getSort(), changePluginDO.getSort()));
         String changeContext = String.format("the plugin [%s] is %s : %s", changePluginDO.getName(), eventTypeStr, contrast);
+
+        PluginChangedEvent pluginUpdateEventChange = new PluginChangedEvent(changePluginDO, pluginDO, EventTypeEnum.PLUGIN_UPDATE, "test-operator");
         assertEquals(changeContext, pluginUpdateEventChange.buildContext());
     }
 }
