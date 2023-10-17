@@ -43,13 +43,8 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-e2e-engine</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-e2e-client</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 </project>
