@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -26,14 +27,11 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
 import org.apache.shenyu.admin.service.DataPermissionService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -41,9 +39,7 @@ import javax.validation.constraints.NotNull;
 /**
  * this is dataPermission controller.
  */
-@Validated
-@RestController
-@RequestMapping("/data-permission")
+@RestApi("/data-permission")
 public class DataPermissionController {
     
     private final DataPermissionService dataPermissionService;

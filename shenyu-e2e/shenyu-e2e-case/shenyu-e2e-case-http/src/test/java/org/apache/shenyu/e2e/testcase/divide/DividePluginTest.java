@@ -17,17 +17,15 @@
 
 package org.apache.shenyu.e2e.testcase.divide;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
-import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
-import org.apache.shenyu.e2e.engine.annotation.ShenYuTest.Parameter;
-import org.apache.shenyu.e2e.engine.annotation.ShenYuTest.ServiceConfigure;
-import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.Mode;
-import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.ServiceType;
 import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
+import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.ResourcesData.Resource;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
@@ -35,36 +33,35 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import java.util.List;
 
-@ShenYuTest(
-        mode = Mode.DOCKER,
-        services = {
-                @ServiceConfigure(
-                        serviceName = "admin",
-                        port = 9095,
-                        baseUrl = "http://{hostname:localhost}:9095",
+@ShenYuTest(environments = {
+        @ShenYuTest.Environment(
+                serviceName = "shenyu-e2e-admin",
+                service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31095",
+                        type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
-                                @Parameter(key = "username", value = "admin"),
-                                @Parameter(key = "password", value = "123456")
+                                @ShenYuTest.Parameter(key = "username", value = "admin"),
+                                @ShenYuTest.Parameter(key = "password", value = "123456")
                         }
-                ),
-                @ServiceConfigure(
-                        serviceName = "gateway",
-                        port = 9195,
-                        baseUrl = "http://{hostname:localhost}:9195",
-                        type = ServiceType.SHENYU_GATEWAY
                 )
-        },
-        dockerComposeFile = "classpath:./docker-compose.{storage:h2}.yml"
-)
+        ),
+        @ShenYuTest.Environment(
+                serviceName = "shenyu-e2e-gateway",
+                service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31195",
+                        type = ServiceTypeEnum.SHENYU_GATEWAY
+                )
+        )
+})
+
 public class DividePluginTest {
     private List<String> selectorIds = Lists.newArrayList();
     
     @BeforeAll
-    static void setup(final AdminClient client) {
+    void setup(final AdminClient client) {
         client.login();
         client.deleteAllSelectors();
     }
@@ -77,7 +74,6 @@ public class DividePluginTest {
         for (Resource res : resources.getResources()) {
             SelectorDTO dto = client.create(res.getSelector());
             selectorIds.add(dto.getId());
-            
             res.getRules().forEach(rule -> {
                 rule.setSelectorId(dto.getId());
                 client.create(rule);
