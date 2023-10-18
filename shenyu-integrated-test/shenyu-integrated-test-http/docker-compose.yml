@@ -17,12 +17,12 @@ version: "3.9"
 services:
   shenyu-zk:
     container_name: shenyu-zk
-    image: zookeeper:3.5
+    image: zookeeper:latest
     restart: always
     networks:
       - shenyu
   shenyu-redis:
-    image: redis:6.0-alpine
+    image: redis:latest
     container_name: shenyu-redis
     restart: always
     command: redis-server --requirepass abc
