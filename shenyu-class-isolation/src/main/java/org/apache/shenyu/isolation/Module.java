@@ -13,12 +13,12 @@ public interface Module {
      */
     void setClassLoader(URLClassLoader classLoader);
 
+
     /**
-     * Module init.
-     * @return instances.
-     * @throws Throwable
+     * Get register classNames.
+     * @return RegisterClassNames
      */
-    List<Object> init() throws Throwable;
+    List<String> getRegisterClassNames();
 
 //
 //    Configuration[] getConfigurations();

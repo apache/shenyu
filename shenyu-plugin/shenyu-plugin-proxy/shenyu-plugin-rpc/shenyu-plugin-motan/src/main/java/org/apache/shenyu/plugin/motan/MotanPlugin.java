@@ -36,14 +36,12 @@ import org.apache.shenyu.plugin.motan.handler.MotanPluginDataHandler;
 import org.apache.shenyu.plugin.motan.proxy.MotanProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Motan plugin.
@@ -52,6 +50,7 @@ public class MotanPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(MotanPlugin.class);
 
+    @Autowired
     private MotanProxyService motanProxyService;
 
     /**
@@ -135,14 +134,9 @@ public class MotanPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    public List<Object> init() throws Throwable {
-        List<Object> result = new ArrayList<>();
-        MotanProxyService motanProxyService = new MotanProxyService();
-        this.setMotanProxyService(motanProxyService);
-        result.add(this);
-        result.add(new MotanMetaDataHandler());
-        result.add(new MotanPluginDataHandler());
-        result.add(new MotanShenyuContextDecorator());
-        return result;
+    public List<String> getRegisterClassNames() {
+        return Arrays.asList(MotanProxyService.class.getName(), MotanPlugin.class.getName(), MotanMetaDataHandler.class.getName(), MotanPluginDataHandler.class.getName(), MotanShenyuContextDecorator.class.getName());
     }
+
+
 }

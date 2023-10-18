@@ -55,21 +55,24 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
         Optional.ofNullable(handlerMap.get(metaData.getRpcType()))
                 .ifPresent(handler -> {
                     LOG.info("subscribe metaData: {}", JsonUtils.toJson(metaData));
-
-                    if (Objects.nonNull(handler.getPluginClassLoader())) {
-                        ClassLoader current = Thread.currentThread().getContextClassLoader();
-                        try {
-                            Thread.currentThread().setContextClassLoader(handler.getPluginClassLoader());
-                            handler.handle(metaData);
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                        } finally {
-                            Thread.currentThread().setContextClassLoader(current);
-                        }
-                    } else {
-                        handler.handle(metaData);
-                    }
+                    handleMetaData(handler, metaData);
                 });
+    }
+
+    private void handleMetaData(final MetaDataHandler handler, final MetaData metaData) {
+        if (Objects.nonNull(handler.getPluginClassLoader())) {
+            ClassLoader current = Thread.currentThread().getContextClassLoader();
+            try {
+                Thread.currentThread().setContextClassLoader(handler.getPluginClassLoader());
+                handler.handle(metaData);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            } finally {
+                Thread.currentThread().setContextClassLoader(current);
+            }
+        } else {
+            handler.handle(metaData);
+        }
     }
 
     @Override

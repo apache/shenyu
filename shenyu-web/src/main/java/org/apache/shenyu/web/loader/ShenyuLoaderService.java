@@ -135,8 +135,10 @@ public class ShenyuLoaderService {
         subscriber.putExtendPluginDataHandler(handlers);
     }
 
-    public void initPlugin(List<Object> instances, PluginData pluginData, URLClassLoader pluginClassLoader) throws Throwable {
-        for (Object instance : instances) {
+    public void initPlugin(List<String> classNames, PluginData pluginData, URLClassLoader pluginClassLoader) throws Throwable {
+        if (CollectionUtils.isEmpty(classNames)) return;
+        for (String className : classNames) {
+            Object instance = getOrCreateSpringBean(className, pluginClassLoader);
             if (ShenyuPlugin.class.isAssignableFrom(instance.getClass())) {
                 AbstractShenyuPlugin plugin = (AbstractShenyuPlugin) instance;
                 plugin.setClassLoader(pluginClassLoader);
@@ -166,20 +168,12 @@ public class ShenyuLoaderService {
             T inst = SpringBeanUtils.getInstance().getBeanByClassName(className);
             if (Objects.isNull(inst)) {
                 Class<?> clazz = Class.forName(className, false, classLoader);
-                //Exclude ShenyuPlugin subclass and PluginDataHandler subclass
-                // without adding @Component @Service annotation
-                boolean next = ShenyuPlugin.class.isAssignableFrom(clazz)
-                        || PluginDataHandler.class.isAssignableFrom(clazz)
-                        || ShenyuContextDecorator.class.isAssignableFrom(clazz)
-                        || MetaDataHandler.class.isAssignableFrom(clazz);
-                if (next) {
-                    GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
-                    beanDefinition.setBeanClassName(className);
-                    beanDefinition.setAutowireCandidate(true);
-                    beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-                    String beanName = SpringBeanUtils.getInstance().registerBean(beanDefinition, classLoader);
-                    inst = SpringBeanUtils.getInstance().getBeanByClassName(beanName);
-                }
+                GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+                beanDefinition.setBeanClassName(className);
+                beanDefinition.setAutowireCandidate(true);
+                beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+                String beanName = SpringBeanUtils.getInstance().registerBean(beanDefinition, classLoader);
+                inst = SpringBeanUtils.getInstance().getBeanByClassName(beanName);
             }
             return inst;
         } finally {

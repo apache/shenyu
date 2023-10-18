@@ -54,8 +54,16 @@ public interface MetaDataHandler {
      */
     String rpcType();
 
+    /**
+     * Set plugin classLoader.
+     * @param urlClassLoader
+     */
     default void setPluginClassLoader(URLClassLoader urlClassLoader) {}
 
+    /**
+     * Get plugin classLoader.
+     * @return
+     */
     default URLClassLoader getPluginClassLoader() {
         return null;
     }

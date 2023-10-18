@@ -39,6 +39,7 @@ import org.apache.shenyu.plugin.sofa.param.SofaParamResolveServiceImpl;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -52,6 +53,7 @@ public class SofaPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(SofaPlugin.class);
 
+    @Autowired
     private SofaProxyService sofaProxyService;
 
     /**
@@ -64,10 +66,6 @@ public class SofaPlugin extends AbstractShenyuPlugin {
     }
 
     public SofaPlugin() {
-    }
-
-    public void setSofaProxyService(SofaProxyService sofaProxyService) {
-        this.sofaProxyService = sofaProxyService;
     }
 
     @Override
@@ -114,12 +112,12 @@ public class SofaPlugin extends AbstractShenyuPlugin {
     public boolean skip(final ServerWebExchange exchange) {
         return skipExcept(exchange, RpcTypeEnum.SOFA);
     }
-    
+
     @Override
     protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noSelectorResult(pluginName, exchange);
     }
-    
+
     @Override
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
@@ -135,15 +133,16 @@ public class SofaPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    public List<Object> init() throws Throwable {
-        List<Object> result = new ArrayList<>();
-        SofaParamResolveService sofaParamResolveService = new SofaParamResolveServiceImpl();
-        SofaProxyService sofaProxyService = new SofaProxyService(sofaParamResolveService);
-        this.setSofaProxyService(sofaProxyService);
-        result.add(this);
-        result.add(new SofaMetaDataHandler());
-        result.add(new SofaPluginDataHandler());
-        result.add(new SofaShenyuContextDecorator());
-        return result;
+    public List<String> getRegisterClassNames() {
+        return Arrays.asList(
+                SofaParamResolveServiceImpl.class.getName(),
+                SofaProxyService.class.getName(),
+                SofaPlugin.class.getName(),
+                SofaMetaDataHandler.class.getName(),
+                SofaPluginDataHandler.class.getName(),
+                SofaShenyuContextDecorator.class.getName()
+        );
     }
+
+
 }

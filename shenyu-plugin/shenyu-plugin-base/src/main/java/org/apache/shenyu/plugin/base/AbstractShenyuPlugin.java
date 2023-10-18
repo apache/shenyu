@@ -459,7 +459,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin, Module {
         return named();
     }
 
-
     @Override
     public void setClassLoader(URLClassLoader classLoader) {
         this.pluginClassLoader = classLoader;
@@ -467,7 +466,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin, Module {
     }
 
     @Override
-    public List<Object> init() throws Throwable {
+    public List<String> getRegisterClassNames() {
         return Collections.emptyList();
     }
 }

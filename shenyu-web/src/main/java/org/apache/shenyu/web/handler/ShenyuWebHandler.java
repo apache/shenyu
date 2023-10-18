@@ -204,10 +204,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     private synchronized void onPluginEnabled(final PluginData pluginData) {
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
-        // init plugin, 暂时先初始化request插件
-        if (Arrays.asList("request", "motan", "sofa").contains(pluginData.getName())) {
-            loadPluginBySPI(pluginData);
-        }
+        // SPI load plugin from the specified path
+        SPILoadPlugin(pluginData);
 
         if (StringUtils.isNoneBlank(pluginData.getPluginJar())) {
             LOG.info("shenyu start load plugin [{}] from upload plugin jar", pluginData.getName());
@@ -222,14 +220,15 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         this.plugins = sortPlugins(newPluginList);
     }
 
-    private void loadPluginBySPI(PluginData pluginData) {
+    private void SPILoadPlugin(PluginData pluginData) {
         String pluginName = pluginData.getName();
         try {
             // load plugin
             String pluginJarDir = String.format(PLUGIN_PATH, pluginName);
             URLClassLoader pluginClassLoader = ModuleManager.initClassLoader(new File(pluginJarDir));
             if (Objects.isNull(pluginClassLoader)) {
-                LOG.info("fail to find the plugin path: {}, plugin: {}", pluginJarDir, pluginName);
+                LOG.info("fail to find the plugin path: {}, plugin: {}, Attempting to load from current classpath", pluginJarDir, pluginName);
+                return;
             }
 
             // init plugin
@@ -245,12 +244,12 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
             }
 
             if (plugin == null) {
-                LOG.error("failed to find plugin: {}", pluginName);
+                LOG.error("SPI load plugin failed, plugin: {}", pluginName);
                 return;
             }
 
-            List<Object> instances = plugin.init();
-            shenyuLoaderService.initPlugin(instances, pluginData, pluginClassLoader);
+            List<String> classNames = plugin.getRegisterClassNames();
+            shenyuLoaderService.initPlugin(classNames, pluginData, pluginClassLoader);
             LOG.info("load {} plugin success, path: {}", pluginName, pluginJarDir);
         } catch (Throwable e) {
             LOG.error("load {} plugin classloader failed.", pluginName);
