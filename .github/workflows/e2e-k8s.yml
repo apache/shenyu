@@ -211,7 +211,7 @@ jobs:
             script: e2e-apache-dubbo-manual
           - case: shenyu-e2e-case-grpc
             script: e2e-grpc-manual
-          - case: shenyu-e2e-case-grpc
+          - case: shenyu-e2e-case-sofa
             script: e2e-sofa-manual
     steps:
       - uses: actions/checkout@v2
