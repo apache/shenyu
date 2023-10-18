@@ -56,7 +56,7 @@ public class SofaPluginManualTest {
     private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeAll
-    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
+    public void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
@@ -74,7 +74,7 @@ public class SofaPluginManualTest {
     }
     
     @ShenYuScenario(provider = SofaPluginManualCases.class)
-    void testSofa(final GatewayClient gateway, final CaseSpec spec) {
+    public void testSofa(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 }
