@@ -15,22 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.sofa;
+package org.apache.shenyu.e2e.testcase.apachedubbo.sync;
 
-import com.google.common.collect.Lists;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
-import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
-import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
-import org.junit.jupiter.api.BeforeAll;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
+/**
+ * Testing the correctness of Http data synchronization method.
+ */
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
@@ -51,30 +47,13 @@ import java.util.List;
                 )
         )
 })
-public class SofaPluginTest {
-    private List<String> selectorIds = Lists.newArrayList();
+public class DataSynTest {
 
-    @BeforeAll
-    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
+    @Test
+    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "11");
-        formData.add("name", "sofa");
-        formData.add("enabled", "true");
-        formData.add("role", "Proxy");
-        formData.add("sort", "310");
-        formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zookeeper:2181\"}");
-        adminClient.changePluginStatus("11", formData);
-        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
-    }
-    
-    @ShenYuScenario(provider = SofaPluginCases.class)
-    void testSofa(final GatewayClient gateway, final CaseSpec spec) {
-        spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 }
-

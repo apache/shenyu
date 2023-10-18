@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.apachedubbo;
+package org.apache.shenyu.e2e.testcase.apachedubbo.sync;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.grpc;
+package org.apache.shenyu.e2e.testcase.springcloud.sync;
 
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
@@ -24,10 +24,15 @@ import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+/**
+ * Testing spring-cloud plugin.
+ */
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
@@ -48,29 +53,31 @@ import org.springframework.util.MultiValueMap;
                 )
         )
 })
-public class GrpcPluginTest {
+public class SpringCloudPluginTest {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudPluginTest.class);
 
-    @BeforeAll
-    void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
-
+    @BeforeEach
+    public void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-
+        LOG.info("start spring cloud plugin");
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "15");
-        formData.add("name", "grpc");
+        formData.add("id", "8");
+        formData.add("name", "springCloud");
         formData.add("enabled", "true");
         formData.add("role", "Proxy");
-        formData.add("sort", "310");
-        formData.add("config", "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}");
-        adminClient.changePluginStatus("15", formData);
-        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.grpc.GrpcPlugin");
+        formData.add("sort", "200");
+        adminClient.changePluginStatus("8", formData);
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.springcloud.SpringCloudPlugin");
     }
 
-    @ShenYuScenario(provider = GrpcPluginCases.class)
-    void testGrpc(final GatewayClient gateway, final CaseSpec spec) {
+    @ShenYuScenario(provider = SpringCloudPluginCases.class)
+    void testSpringCloud(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 }
+

@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.grpc;
+package org.apache.shenyu.e2e.testcase.grpc.manual;
 
 import com.google.common.collect.Lists;
-import io.restassured.http.Method;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuAfterEachSpec;
@@ -32,7 +31,7 @@ import org.apache.shenyu.e2e.model.handle.GrpcSelectorHandle;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
+import io.restassured.http.Method;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExists;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newCondition;
@@ -40,42 +39,20 @@ import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
 
-public class GrpcPluginCases implements ShenYuScenarioProvider {
+public class GrpcPluginManualCases implements ShenYuScenarioProvider {
 
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
-                testGrpc()
-                //testWithUriEquals(),
-                //testWithUriPathPattern(),
-                //testWithUriStartWith(),
-                //testWithEndWith(),
-                //testWithMethodGet(),
-                //testWithMethodPost(),
-                //testWithMethodPut(),
-                //testWithMethodDelete()
+                testWithUriEquals(),
+                testWithUriPathPattern(),
+                testWithUriStartWith(),
+                testWithEndWith(),
+                testWithMethodGet(),
+                testWithMethodPost(),
+                testWithMethodPut(),
+                testWithMethodDelete()
         );
-    }
-
-    private ShenYuScenarioSpec testGrpc() {
-        Map<String, List<MessageData>> body = new ConcurrentHashMap<>();
-        body.put("data", Lists.newArrayList(new MessageData("hello grpc")));
-        return ShenYuScenarioSpec.builder()
-                .name("test grpc invoker")
-                .beforeEachSpec(
-                        ShenYuBeforeEachSpec.builder()
-                                .checker(notExists("/sofa/findAll"))
-                                .checker(exists(Method.POST, "/grpc/echo", body))
-                                .build()
-                )
-                .caseSpec(
-                        ShenYuCaseSpec.builder()
-                                .addExists(Method.POST, "/grpc/echo", body)
-                                .addNotExists("/grpc/fin")
-                                .addNotExists("/put")
-                                .addNotExists("/get")
-                                .build())
-                .build();
     }
     
     /**

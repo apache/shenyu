@@ -207,6 +207,12 @@ jobs:
             script: e2e-sofa-sync
           - case: shenyu-e2e-case-grpc
             script: e2e-grpc-sync
+          - case: shenyu-e2e-case-apache-dubbo
+            script: e2e-apache-dubbo-manual
+          - case: shenyu-e2e-case-grpc
+            script: e2e-grpc-manual
+          - case: shenyu-e2e-case-grpc
+            script: e2e-sofa-manual
     steps:
       - uses: actions/checkout@v2
         with:

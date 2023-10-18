@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.springcloud;
+package org.apache.shenyu.e2e.testcase.apachedubbo.sync;
 
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
@@ -30,9 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-/**
- * Testing spring-cloud plugin.
- */
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
@@ -53,30 +50,32 @@ import org.springframework.util.MultiValueMap;
                 )
         )
 })
-public class SpringCloudPluginTest {
+public class ApacheDubboPluginTest {
     
-    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudPluginTest.class);
-
+    private static final Logger LOG = LoggerFactory.getLogger(ApacheDubboPluginTest.class);
+    
     @BeforeEach
     public void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        LOG.info("start spring cloud plugin");
+        LOG.info("start dubbo plugin");
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "8");
-        formData.add("name", "springCloud");
+        formData.add("id", "6");
+        formData.add("name", "dubbo");
         formData.add("enabled", "true");
         formData.add("role", "Proxy");
-        formData.add("sort", "200");
-        adminClient.changePluginStatus("8", formData);
-        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.springcloud.SpringCloudPlugin");
+        formData.add("sort", "310");
+        formData.add("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\","
+                + "\"threadpool\":\"shared\",\"threads\":2147483647,\"register\":\"zookeeper://shenyu-zookeeper:2181\"}");
+        adminClient.changePluginStatus("6", formData);
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin");
+        LOG.info("start dubbo plugin success!");
     }
-
-    @ShenYuScenario(provider = SpringCloudPluginCases.class)
-    void testSpringCloud(final GatewayClient gateway, final CaseSpec spec) {
+    
+    @ShenYuScenario(provider = ApacheDubboPluginCases.class)
+    void testDubbo(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 }

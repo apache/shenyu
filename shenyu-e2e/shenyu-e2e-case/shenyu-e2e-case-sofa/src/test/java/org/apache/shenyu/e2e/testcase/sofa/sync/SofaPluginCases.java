@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.sofa;
+package org.apache.shenyu.e2e.testcase.sofa.sync;
 
 import com.google.common.collect.Lists;
 import io.restassured.http.Method;
