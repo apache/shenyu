@@ -73,7 +73,7 @@ public class GrpcPluginTest {
         formData.add("config", "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}");
         adminClient.changePluginStatus("15", formData);
         Map<String, Integer> plugins = gatewayClient.getPlugins();
-        LOGGER.info("shenyu e2e plugin list ={}" , plugins);
+        LOGGER.info("shenyu e2e plugin list ={}", plugins);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.grpc.GrpcPlugin");
     }
 
