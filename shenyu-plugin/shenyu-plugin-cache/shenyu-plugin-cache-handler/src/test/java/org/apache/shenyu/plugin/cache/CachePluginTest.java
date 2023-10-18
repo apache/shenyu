@@ -22,6 +22,9 @@ import org.apache.shenyu.common.dto.convert.rule.impl.CacheRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.cache.handler.CachePluginDataHandler;
 import org.apache.shenyu.plugin.cache.memory.MemoryCache;
@@ -29,6 +32,7 @@ import org.apache.shenyu.plugin.cache.utils.CacheUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.client.reactive.MockClientHttpResponse;
@@ -43,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * CachePluginTest.
@@ -70,6 +75,10 @@ public class CachePluginTest {
 
     @Test
     public void httpResponseTest() {
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        final DefaultShenyuResult shenyuResult = new DefaultShenyuResult();
+        when(context.getBean(ShenyuResult.class)).thenReturn(shenyuResult);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         MockClientHttpResponse clientResponse = new MockClientHttpResponse(HttpStatus.OK);
         clientResponse.setBody("body");

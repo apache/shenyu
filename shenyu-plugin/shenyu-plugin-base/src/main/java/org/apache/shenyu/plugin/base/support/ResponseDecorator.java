@@ -17,15 +17,16 @@
 
 package org.apache.shenyu.plugin.base.support;
 
-import org.apache.shenyu.plugin.base.utils.ResponseUtils;
+import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
+import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 /**
@@ -47,8 +48,13 @@ public class ResponseDecorator extends ServerHttpResponseDecorator {
     @Override
     @NonNull
     public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-        ClientResponse clientResponse = ResponseUtils.buildClientResponse(this.getDelegate(), body);
-        Mono<String> mono = clientResponse.bodyToMono(String.class).map(convert);
-        return ResponseUtils.writeWith(clientResponse, this.exchange, mono, String.class);
+        final Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(body);
+        return dataBufferMono.flatMap(dataBuffer -> {
+            byte[] bytes = new byte[dataBuffer.readableByteCount()];
+            dataBuffer.read(bytes);
+            String bodyString = new String(bytes, StandardCharsets.UTF_8);
+            final String convertStr = convert.apply(bodyString);
+            return WebFluxResultUtils.result(this.exchange, convertStr);
+        });
     }
 }

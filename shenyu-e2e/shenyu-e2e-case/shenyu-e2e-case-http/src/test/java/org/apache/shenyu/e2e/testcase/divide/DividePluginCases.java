@@ -65,7 +65,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("httpbin", Plugin.DIVIDE)
-                                                .handle(newUpstreamsBuilder("httpbin:80"))
+                                                .handle(newUpstreamsBuilder("httpbin.org"))
                                                 .conditionList(newConditions(ParamType.URI, Operator.EQUAL, ANYTHING))
                                                 .build(),
                                         newRuleBuilder("rule")
@@ -100,7 +100,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("httpbin", Plugin.DIVIDE)
-                                                .handle(newUpstreamsBuilder("httpbin:80"))
+                                                .handle(newUpstreamsBuilder("httpbin.org"))
                                                 .conditionList(newConditions(ParamType.URI, Operator.PATH_PATTERN, "/anything/xx/**"))
                                                 .build(),
                                         newRuleBuilder("rule")
@@ -138,7 +138,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("httpbin", Plugin.DIVIDE)
-                                                .handle(newUpstreamsBuilder("httpbin:80"))
+                                                .handle(newUpstreamsBuilder("httpbin.org"))
                                                 .conditionList(newConditions(ParamType.URI, Operator.STARTS_WITH, ANYTHING + "/xx"))
                                                 .build(),
                                         newRuleBuilder("rule")
@@ -175,7 +175,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("httpbin", Plugin.DIVIDE)
-                                                .handle(newUpstreamsBuilder("httpbin:80"))
+                                                .handle(newUpstreamsBuilder("httpbin.org"))
                                                 .conditionList(newConditions(ParamType.URI, Operator.ENDS_WITH, "/200"))
                                                 .build(),
                                         newRuleBuilder("rule")
@@ -214,7 +214,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("httpbin", Plugin.DIVIDE)
-                                                .handle(newUpstreamsBuilder("httpbin:80"))
+                                                .handle(newUpstreamsBuilder("httpbin.org"))
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(ParamType.METHOD, Operator.EQUAL, "GET"),
                                                         newCondition(ParamType.URI, Operator.EQUAL, ANYTHING)
@@ -258,7 +258,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("httpbin", Plugin.DIVIDE)
-                                                .handle(newUpstreamsBuilder("httpbin:80"))
+                                                .handle(newUpstreamsBuilder("httpbin.org"))
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(ParamType.METHOD, Operator.EQUAL, "POST"),
                                                         newCondition(ParamType.URI, Operator.EQUAL, ANYTHING)
@@ -302,7 +302,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("httpbin", Plugin.DIVIDE)
-                                                .handle(newUpstreamsBuilder("httpbin:80"))
+                                                .handle(newUpstreamsBuilder("httpbin.org"))
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(ParamType.METHOD, Operator.EQUAL, "PUT"),
                                                         newCondition(ParamType.URI, Operator.EQUAL, ANYTHING)
@@ -346,7 +346,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("httpbin", Plugin.DIVIDE)
-                                                .handle(newUpstreamsBuilder("httpbin:80"))
+                                                .handle(newUpstreamsBuilder("httpbin.org"))
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(ParamType.METHOD, Operator.EQUAL, "DELETE"),
                                                         newCondition(ParamType.URI, Operator.EQUAL, ANYTHING)
