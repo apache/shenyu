@@ -152,7 +152,7 @@ shenyu:
 #            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
 #            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
 #  httpclient:
-#    strategy: webClient # netty
+#    strategy: netty # webClient
 #    connectTimeout: 45000
 #    responseTimeout: 3000
 #    readerIdleTime: 3000
@@ -195,6 +195,10 @@ shenyu:
 #      selectCount: 1
 #      workerCount: 8
 #      daemon: true
+  duplicate-response-header:
+    strategy: RETAIN_FIRST
+    headers:
+      - Access-Control-Allow-Origin
   register:
     enabled: false
     registerType: zookeeper #etcd #consul
@@ -284,7 +288,7 @@ shenyu:
       - /health_check
   alert:
     enabled: true
-    reportUrl: http://localhost:9095/alert/report
+    admins: localhost:9095
   extPlugin:
     path:
     enabled: true
