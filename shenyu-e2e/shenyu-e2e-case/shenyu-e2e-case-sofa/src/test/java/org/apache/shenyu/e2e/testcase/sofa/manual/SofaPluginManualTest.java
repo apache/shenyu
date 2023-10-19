@@ -25,7 +25,6 @@ import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
-import org.apache.shenyu.e2e.testcase.sofa.sync.SofaPluginCases;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -73,6 +72,12 @@ public class SofaPluginManualTest {
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
     }
     
+    /**
+     * test sofa.
+     *
+     * @param gateway gateway client.
+     * @param spec test case spec.
+     */
     @ShenYuScenario(provider = SofaPluginManualCases.class)
     public void testSofa(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));

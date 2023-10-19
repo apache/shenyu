@@ -48,9 +48,16 @@ import org.junit.jupiter.api.Test;
         )
 })
 public class DataSynTest {
-
+    
+    /**
+     * Test case for data synchronization.
+     *
+     * @param adminClient adminClient
+     * @param gatewayClient gatewayClient
+     * @throws Exception exception
+     */
     @Test
-    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
+    public void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
