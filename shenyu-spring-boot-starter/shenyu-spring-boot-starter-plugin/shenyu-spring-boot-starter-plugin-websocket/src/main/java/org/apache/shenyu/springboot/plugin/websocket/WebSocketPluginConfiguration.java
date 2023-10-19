@@ -23,6 +23,7 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.websocket.WebSocketPlugin;
 import org.apache.shenyu.plugin.websocket.context.WebSocketShenyuContextDecorator;
 import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
+import org.apache.shenyu.plugin.websocket.handler.WebSocketUpstreamDataHandler;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -89,6 +90,16 @@ public class WebSocketPluginConfiguration {
     @Bean
     public WebSocketService webSocketService() {
         return new HandshakeWebSocketService();
+    }
+
+    /**
+     * websocket discovery upstream data handler.
+     *
+     * @return the websocket upstream data handler
+     */
+    @Bean
+    public WebSocketUpstreamDataHandler divideUpstreamDataHandler() {
+        return new WebSocketUpstreamDataHandler();
     }
 
     /**

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
@@ -35,13 +36,10 @@ import org.apache.shenyu.admin.service.provider.AppKeyProvider;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -52,9 +50,7 @@ import java.util.List;
 /**
  * this is application authority controller.
  */
-@Validated
-@RestController
-@RequestMapping("/appAuth")
+@RestApi("/appAuth")
 public class AppAuthController implements PagedController<AppAuthQuery, AppAuthVO> {
     
     private final AppAuthService appAuthService;
