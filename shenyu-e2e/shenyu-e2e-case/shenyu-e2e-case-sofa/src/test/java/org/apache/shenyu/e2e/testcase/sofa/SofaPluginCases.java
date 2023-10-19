@@ -28,7 +28,9 @@ import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
 import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.data.Condition;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExists;
@@ -55,13 +57,12 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
     }
     
     private ShenYuScenarioSpec testSofaFindAll() {
+        Map<String, String> body = new HashMap<>();
+        body.put("id", "123");
         return ShenYuScenarioSpec.builder()
                 .name("sofa test")
-                .beforeEachSpec(ShenYuBeforeEachSpec.builder()
-                        .checker(exists("/sofa/findAll"))
-                        .build())
                 .caseSpec(ShenYuCaseSpec.builder()
-                        .addExists("/sofa/findAll")
+                        .addExists(Method.GET, "/sofa/findById", body)
                         .addNotExists("/sofa/findAll/123")
                         .build())
                 .build();
