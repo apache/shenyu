@@ -148,7 +148,6 @@ public final class PermissionServiceTest {
                     Collections.singletonList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SHENYU.BUTTON.PLUGIN.SYNCHRONIZE", null)));
             String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhZG1pbiIsImlhdCI6MTYxMTc5MjEzOX0.eFORUk5kZawKLTsfRYojy-uaaDySo9kWtcfgxISS_3g";
             final PermissionMenuVO result = permissionServiceImplUnderTest.getPermissionMenu(token);
-            //assertThat(result, is(expectedResult));
             assertThat(result.getCurrentAuth(), containsInAnyOrder(expectedResult.getCurrentAuth().toArray()));
             assertThat(result.getAllAuth(), containsInAnyOrder(expectedResult.getAllAuth().toArray()));
             assertThat(result.getMenu(), containsInAnyOrder(expectedResult.getMenu().toArray()));
