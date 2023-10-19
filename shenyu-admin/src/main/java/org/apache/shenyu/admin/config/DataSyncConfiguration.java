@@ -77,7 +77,7 @@ import java.util.Properties;
  */
 @Configuration
 public class DataSyncConfiguration {
-
+    
     /**
      * http long polling.
      */
@@ -85,20 +85,20 @@ public class DataSyncConfiguration {
     @ConditionalOnProperty(name = "shenyu.sync.http.enabled", havingValue = "true")
     @EnableConfigurationProperties(HttpSyncProperties.class)
     static class HttpLongPollingListener {
-
+        
         @Bean
         @ConditionalOnMissingBean(HttpLongPollingDataChangedListener.class)
         public HttpLongPollingDataChangedListener httpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
             return new HttpLongPollingDataChangedListener(httpSyncProperties);
         }
-
+        
         @Bean
         @ConditionalOnMissingBean(ConfigController.class)
         public ConfigController configController(final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener) {
             return new ConfigController(httpLongPollingDataChangedListener);
         }
     }
-
+    
     /**
      * The type Zookeeper listener.
      */
@@ -106,7 +106,7 @@ public class DataSyncConfiguration {
     @ConditionalOnProperty(prefix = "shenyu.sync.zookeeper", name = "url")
     @EnableConfigurationProperties(ZookeeperProperties.class)
     static class ZookeeperListener {
-
+        
         /**
          * register ZookeeperClient in spring ioc.
          *
@@ -125,7 +125,7 @@ public class DataSyncConfiguration {
             client.start();
             return client;
         }
-
+        
         /**
          * Config event listener data changed listener.
          *
@@ -137,11 +137,11 @@ public class DataSyncConfiguration {
         public DataChangedListener zookeeperDataChangedListener(final ZookeeperClient zkClient) {
             return new ZookeeperDataChangedListener(zkClient);
         }
-
+        
         /**
          * Zookeeper data init zookeeper data init.
          *
-         * @param zkClient        the zk client
+         * @param zkClient the zk client
          * @return the zookeeper data init
          */
         @Bean
@@ -150,7 +150,7 @@ public class DataSyncConfiguration {
             return new ZookeeperDataChangedInit(zkClient);
         }
     }
-
+    
     /**
      * The type Nacos listener.
      */
@@ -158,7 +158,7 @@ public class DataSyncConfiguration {
     @ConditionalOnProperty(prefix = "shenyu.sync.nacos", name = "url")
     @EnableConfigurationProperties(NacosProperties.class)
     static class NacosListener {
-
+        
         /**
          * register configService in spring ioc.
          *
@@ -191,7 +191,7 @@ public class DataSyncConfiguration {
             }
             return NacosFactory.createConfigService(properties);
         }
-
+        
         /**
          * Data changed listener data changed listener.
          *
@@ -203,7 +203,7 @@ public class DataSyncConfiguration {
         public DataChangedListener nacosDataChangedListener(final ConfigService configService) {
             return new NacosDataChangedListener(configService);
         }
-
+        
         /**
          * Nacos data init nacos data init.
          *
@@ -216,7 +216,7 @@ public class DataSyncConfiguration {
             return new NacosDataChangedInit(configService);
         }
     }
-
+    
     /**
      * The type Polaris listener.
      */
@@ -224,7 +224,7 @@ public class DataSyncConfiguration {
     @ConditionalOnProperty(prefix = "shenyu.sync.polaris", name = "url")
     @EnableConfigurationProperties(PolarisProperties.class)
     static class PolarisListener {
-
+        
         /**
          * register configFileService in spring ioc.
          *
@@ -237,7 +237,7 @@ public class DataSyncConfiguration {
             configuration.getConfigFile().getServerConnector().setAddresses(Collections.singletonList(polarisProperties.getUrl()));
             return ConfigFileServiceFactory.createConfigFileService(configuration);
         }
-
+        
         /**
          * register configFilePublishService in spring ioc.
          *
@@ -250,7 +250,7 @@ public class DataSyncConfiguration {
             configuration.getConfigFile().getServerConnector().setAddresses(Collections.singletonList(polarisProperties.getUrl()));
             return ConfigFileServicePublishFactory.createConfigFilePublishService(configuration);
         }
-
+        
         /**
          * Data changed listener data changed listener.
          *
@@ -263,7 +263,7 @@ public class DataSyncConfiguration {
                                                               final ConfigFilePublishService configFilePublishService) {
             return new PolarisDataChangedListener(polarisProperties, configFileService, configFilePublishService);
         }
-
+        
         /**
          * Polaris data init polaris data init.
          *
@@ -275,9 +275,9 @@ public class DataSyncConfiguration {
         public DataChangedInit polarisDataChangedInit(final PolarisProperties polarisProperties, final ConfigFileService configFileService) {
             return new PolarisDataChangedInit(polarisProperties, configFileService);
         }
-
+        
     }
-
+    
     /**
      * The WebsocketListener(default strategy).
      */
@@ -285,7 +285,7 @@ public class DataSyncConfiguration {
     @ConditionalOnProperty(name = "shenyu.sync.websocket.enabled", havingValue = "true", matchIfMissing = true)
     @EnableConfigurationProperties(WebsocketSyncProperties.class)
     static class WebsocketListener {
-
+        
         /**
          * Config event listener data changed listener.
          *
@@ -296,7 +296,7 @@ public class DataSyncConfiguration {
         public DataChangedListener websocketDataChangedListener() {
             return new WebsocketDataChangedListener();
         }
-
+        
         /**
          * Websocket collector.
          *
@@ -307,7 +307,7 @@ public class DataSyncConfiguration {
         public WebsocketCollector websocketCollector() {
             return new WebsocketCollector();
         }
-
+        
         /**
          * Server endpoint exporter server endpoint exporter.
          *
@@ -319,7 +319,7 @@ public class DataSyncConfiguration {
             return new ServerEndpointExporter();
         }
     }
-
+    
     /**
      * The type Etcd listener.
      */
@@ -327,7 +327,7 @@ public class DataSyncConfiguration {
     @ConditionalOnProperty(prefix = "shenyu.sync.etcd", name = "url")
     @EnableConfigurationProperties(EtcdProperties.class)
     static class EtcdListener {
-
+        
         /**
          * Init etcd client.
          *
@@ -341,7 +341,7 @@ public class DataSyncConfiguration {
                     .build();
             return new EtcdClient(client);
         }
-
+        
         /**
          * Config event listener data changed listener.
          *
@@ -353,11 +353,11 @@ public class DataSyncConfiguration {
         public DataChangedListener etcdDataChangedListener(final EtcdClient etcdClient) {
             return new EtcdDataDataChangedListener(etcdClient);
         }
-
+        
         /**
          * data init.
          *
-         * @param etcdClient        the etcd client
+         * @param etcdClient the etcd client
          * @return the etcd data init
          */
         @Bean
@@ -366,7 +366,7 @@ public class DataSyncConfiguration {
             return new EtcdDataChangedInit(etcdClient);
         }
     }
-
+    
     /**
      * The type Consul listener.
      */
@@ -374,9 +374,10 @@ public class DataSyncConfiguration {
     @ConditionalOnProperty(prefix = "shenyu.sync.consul", name = "url")
     @EnableConfigurationProperties(ConsulProperties.class)
     static class ConsulListener {
-
+        
         /**
          * init Consul client.
+         *
          * @param consulProperties the consul properties
          * @return Consul client
          */
@@ -393,7 +394,7 @@ public class DataSyncConfiguration {
                 throw new ShenyuException("sync.consul.url formatter is not incorrect.");
             }
         }
-
+        
         /**
          * Config event listener data changed listener.
          *
@@ -405,7 +406,7 @@ public class DataSyncConfiguration {
         public DataChangedListener consulDataChangedListener(final ConsulClient consulClient) {
             return new ConsulDataChangedListener(consulClient);
         }
-
+        
         /**
          * Consul data init.
          *
@@ -418,7 +419,7 @@ public class DataSyncConfiguration {
             return new ConsulDataChangedInit(consulClient);
         }
     }
-
+    
     /**
      * the type apollo listener.
      */
@@ -426,7 +427,7 @@ public class DataSyncConfiguration {
     @ConditionalOnProperty(prefix = "shenyu.sync.apollo", name = "meta")
     @EnableConfigurationProperties(ApolloProperties.class)
     static class ApolloListener {
-
+        
         /**
          * init Consul client.
          *
@@ -437,7 +438,7 @@ public class DataSyncConfiguration {
         public ApolloClient apolloClient(final ApolloProperties apolloProperties) {
             return new ApolloClient(apolloProperties);
         }
-
+        
         /**
          * Config event listener data changed listener.
          *
@@ -449,7 +450,7 @@ public class DataSyncConfiguration {
         public DataChangedListener apolloDataChangeListener(final ApolloClient apolloClient) {
             return new ApolloDataChangedListener(apolloClient);
         }
-
+        
         /**
          * apollo data init.
          *
@@ -461,7 +462,7 @@ public class DataSyncConfiguration {
         public DataChangedInit apolloDataChangeInit(final ApolloClient apolloClient) {
             return new ApolloDataChangedInit(apolloClient);
         }
-
+        
     }
 }
 
