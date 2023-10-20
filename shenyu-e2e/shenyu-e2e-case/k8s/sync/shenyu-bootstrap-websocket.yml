@@ -35,6 +35,24 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9195
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 9195
+              path: /actuator/health
+          readinessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 9195
+              path: /actuator/health
           env:
             - name: TZ
               value: Asia/Beijing
