@@ -204,6 +204,7 @@ public final class ApplicationConfigCache {
         reference.setRegistry(registryConfig);
         reference.setInterfaceId(metaData.getServiceName());
         reference.setProtocol(RpcConstants.PROTOCOL_TYPE_BOLT);
+        reference.setSerialization(RpcConstants.SERIALIZE_PROTOBUF);
         reference.setInvokeType(RpcConstants.INVOKER_TYPE_CALLBACK);
         reference.setRepeatedReferLimit(-1);
         String rpcExt = metaData.getRpcExt();
