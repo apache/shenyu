@@ -32,6 +32,7 @@ public class ShenyuBootstrapApplication {
      * @param args startup arguments
      */
     public static void main(final String[] args) {
+        System.setProperty("logger.impl", "com.alipay.sofa.rpc.log.SLF4JLoggerImpl");
         SpringApplication.run(ShenyuBootstrapApplication.class, args);
     }
 }
