@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.bootstrap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -26,12 +28,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class ShenyuBootstrapApplication {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuBootstrapApplication.class);
+
     /**
      * Main Entrance.
      *
      * @param args startup arguments
      */
     public static void main(final String[] args) {
+        LOG.info("ShenyuBootstrapApplication loading...");
         System.setProperty("logger.impl", "com.alipay.sofa.rpc.log.SLF4JLoggerImpl");
         SpringApplication.run(ShenyuBootstrapApplication.class, args);
     }
