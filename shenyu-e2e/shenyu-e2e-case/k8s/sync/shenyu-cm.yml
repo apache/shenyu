@@ -536,7 +536,7 @@ data:
     shenyu:
       sync:
         http:
-          url: http://shenyu-admin.default.svc.cluster:31095
+          url: http://shenyu-admin.default.svc.cluster.local:31095
           username: admin
           password: 123456
 
