@@ -70,6 +70,7 @@ public class SofaPluginTest {
         formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zookeeper:2181\"}");
         adminClient.changePluginStatus("11", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
+        Thread.sleep(5000L);
     }
     
     @ShenYuScenario(provider = SofaPluginCases.class)
