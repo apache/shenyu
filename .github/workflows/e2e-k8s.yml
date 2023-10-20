@@ -132,6 +132,7 @@ jobs:
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
           rm -rf /tmp/shenyu
+          mkdir -p /tmp/shenyu
 
       - uses: dorny/paths-filter@v2
         id: filter
@@ -221,6 +222,7 @@ jobs:
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
           rm -rf /tmp/shenyu
+          mkdir -p /tmp/shenyu
 
       - uses: dorny/paths-filter@v2
         id: filter
