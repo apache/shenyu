@@ -32,7 +32,7 @@ spec:
         app: shenyu-zookeeper
     spec:
       containers:
-        - image: zookeeper:latest
+        - image: zookeeper:3.8.0
           name: shenyu-zookeeper
           resources: {}
           ports:
