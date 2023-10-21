@@ -121,7 +121,6 @@ public final class ApplicationConfigCache {
             registryConfig.setProtocol(sofaRegisterConfig.getProtocol());
             registryConfig.setId(shenyuProxy);
             registryConfig.setRegister(false);
-            registryConfig.setSubscribe(true);
             registryConfig.setAddress(sofaRegisterConfig.getRegister());
         }
         if (StringUtils.isNotBlank(sofaRegisterConfig.getThreadpool())) {
