@@ -254,15 +254,15 @@
                     <artifactId>grpc-core</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>com.caucho</groupId>
+                    <groupId>com.alipay.sofa</groupId>
                     <artifactId>hessian</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.caucho</groupId>
+            <groupId>com.alipay.sofa</groupId>
             <artifactId>hessian</artifactId>
-            <version>4.0.38</version>
+            <version>3.5.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>

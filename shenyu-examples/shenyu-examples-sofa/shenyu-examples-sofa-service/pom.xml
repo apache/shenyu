@@ -31,7 +31,6 @@
         <rpc-sofa-boot-starter.version>3.12.1</rpc-sofa-boot-starter.version>
 <!--        <curator.version>4.3.0</curator.version>-->
         <micrometer.version>1.8.6</micrometer.version>
-        <hessian.version>4.0.38</hessian.version>
     </properties>
 
     <dependencyManagement>
@@ -56,16 +55,7 @@
                     <groupId>io.grpc</groupId>
                     <artifactId>grpc-core</artifactId>
                 </exclusion>
-                <exclusion>
-                    <groupId>com.caucho</groupId>
-                    <artifactId>hessian</artifactId>
-                </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.caucho</groupId>
-            <artifactId>hessian</artifactId>
-            <version>${hessian.version}</version>
         </dependency>
 
 <!--        <dependency>-->
