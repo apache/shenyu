@@ -102,7 +102,7 @@ jobs:
 
       - name: Build integrated tests
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Pit -DskipTests am -f ./shenyu-integrated-test/pom.xml
+        run: ./mvnw -B clean install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
 
       - name: Build examples
         if: steps.filter.outputs.changed == 'true'
