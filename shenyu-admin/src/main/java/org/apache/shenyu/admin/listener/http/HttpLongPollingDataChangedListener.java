@@ -359,11 +359,11 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         @Override
         public void run() {
             try {
-                this.asyncTimeoutFuture = scheduler.schedule(() -> {
+                this.asyncTimeoutFuture = scheduler.scheduleWithFixedDelay(() -> {
                     clients.remove(LongPollingClient.this);
                     List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
                     sendResponse(changedGroups);
-                }, timeoutTime, TimeUnit.MILLISECONDS);
+                }, 0, timeoutTime, TimeUnit.MILLISECONDS);
                 clients.add(this);
             } catch (Exception ex) {
                 log.error("add long polling client error", ex);

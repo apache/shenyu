@@ -129,7 +129,7 @@ public class HttpSyncDataService implements SyncDataService {
         }
     }
 
-    private void doFetchGroupConfig(final String server, final ConfigGroupEnum... groups) {
+    private synchronized void doFetchGroupConfig(final String server, final ConfigGroupEnum... groups) {
         StringBuilder params = new StringBuilder();
         for (ConfigGroupEnum groupKey : groups) {
             params.append("groupKeys").append("=").append(groupKey.name()).append("&");
@@ -155,7 +155,7 @@ public class HttpSyncDataService implements SyncDataService {
         }
         // not updated. it is likely that the current config server has not been updated yet. wait a moment.
         LOG.info("The config of the server[{}] has not been updated or is out of date. Wait for listening for changes again.", server);
-        ThreadUtils.sleep(TimeUnit.SECONDS, 3);
+        ThreadUtils.sleep(TimeUnit.SECONDS, 30);
     }
 
 
@@ -180,6 +180,7 @@ public class HttpSyncDataService implements SyncDataService {
                 params.put(group.name(), Lists.newArrayList(value));
             }
         }
+        LOG.debug("listener params: [{}]", params);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.set(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken());
