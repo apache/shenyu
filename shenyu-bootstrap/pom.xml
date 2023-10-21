@@ -423,6 +423,12 @@
             <groupId>com.weibo</groupId>
             <artifactId>motan-transport-netty4</artifactId>
             <version>${motan.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.weibo</groupId>
+                    <artifactId>motan-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.weibo</groupId>
@@ -437,12 +443,22 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.weibo</groupId>
+                    <artifactId>motan-core</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>com.weibo</groupId>
             <artifactId>motan-springsupport</artifactId>
             <version>${motan.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.weibo</groupId>
+                    <artifactId>motan-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
