@@ -223,7 +223,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         if (latest != serverCache) {
             return !StringUtils.equals(clientMd5, latest.getMd5());
         }
-        synchronized (this) {
+        synchronized (CACHE) {
             latest = CACHE.get(serverCache.getGroup());
             if (latest != serverCache) {
                 return !StringUtils.equals(clientMd5, latest.getMd5());
