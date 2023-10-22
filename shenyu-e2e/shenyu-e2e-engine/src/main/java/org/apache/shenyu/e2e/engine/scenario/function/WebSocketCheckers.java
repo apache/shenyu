@@ -1,0 +1,61 @@
+package org.apache.shenyu.e2e.engine.scenario.function;
+
+import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.exceptions.WebsocketNotConnectedException;
+import org.junit.jupiter.api.Assertions;
+
+import java.lang.reflect.Field;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+
+public class WebSocketCheckers {
+
+    public static final ArrayBlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(1);
+
+    public static WebSocketChecker exists(final String endpoint, final String sendMessage, final String receiveMessage) {
+        return (websocketClient, gatewayClient) -> {
+            try {
+                updateWebSocketClientURI(websocketClient, endpoint);
+
+                websocketClient.connectBlocking();
+                websocketClient.send(sendMessage);
+                Optional.of(websocketClient)
+                        .filter(WebSocketClient::isOpen)
+                        .ifPresent(client -> Assertions.assertEquals(receiveMessage, gatewayClient.getWebSocketMessage()));
+            } catch (AssertionError | InterruptedException | RuntimeException error) {
+                Assertions.fail("websocket endpoint '" + endpoint + "' not exists", error);
+            } catch (NoSuchFieldException | IllegalAccessException | URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    public static WebSocketChecker notExists(final String endpoint, final String message) {
+        return (websocketClient, gatewayClient) -> {
+            try {
+                updateWebSocketClientURI(websocketClient, endpoint);
+
+                websocketClient.connectBlocking();
+                Optional.of(websocketClient)
+                        .filter(WebSocketClient::isOpen)
+                        .ifPresent(client -> Assertions.fail("websocket endpoint '" + endpoint + "' exists"));
+            } catch (AssertionError | InterruptedException | WebsocketNotConnectedException error) {
+                Assertions.fail("websocket endpoint '" + endpoint + "' not exists", error);
+            } catch (URISyntaxException | NoSuchFieldException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    private static void updateWebSocketClientURI(WebSocketClient client, String endpoint)
+            throws NoSuchFieldException, IllegalAccessException, URISyntaxException {
+        Field uriField = WebSocketClient.class.getDeclaredField("uri");
+        uriField.setAccessible(true);
+        URI originalUri = client.getURI();
+        URI updatedUri = new URI(originalUri + endpoint);
+        uriField.set(client, updatedUri);
+    }
+}

@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import io.restassured.http.Method;
 import org.apache.shenyu.e2e.engine.scenario.function.Verifier;
+import org.apache.shenyu.e2e.engine.scenario.function.WebSocketCheckers;
+import org.apache.shenyu.e2e.engine.scenario.function.WebSocketVerifier;
 import org.hamcrest.Matcher;
 
 import java.util.List;
@@ -38,9 +40,12 @@ public class ShenYuCaseSpec implements CaseSpec {
     
     private final List<Verifier> verifiers;
 
-    public ShenYuCaseSpec(final String name, final List<Verifier> verifiers) {
+    private final List<WebSocketVerifier> webSocketVerifiers;
+
+    public ShenYuCaseSpec(final String name, final List<Verifier> verifiers, final List<WebSocketVerifier> webSocketVerifiers) {
         this.name = name;
         this.verifiers = verifiers;
+        this.webSocketVerifiers = webSocketVerifiers;
     }
 
     /**
@@ -61,6 +66,11 @@ public class ShenYuCaseSpec implements CaseSpec {
     @Override
     public List<Verifier> getVerifiers() {
         return verifiers;
+    }
+
+    @Override
+    public List<WebSocketVerifier> getWebSocketVerifiers() {
+        return webSocketVerifiers;
     }
     
     /**
@@ -85,6 +95,8 @@ public class ShenYuCaseSpec implements CaseSpec {
         private String name;
 
         private final Builder<Verifier> builder = ImmutableList.builder();
+
+        private final Builder<WebSocketVerifier> webSocketBuilder = ImmutableList.builder();
 
         public ShenYuTestCaseSpecBuilder() {
         }
@@ -112,6 +124,16 @@ public class ShenYuCaseSpec implements CaseSpec {
             builder.add(verifier);
             return this;
         }
+
+        /**
+         * websocket builder add verifier.
+         * @param webSocketVerifier webSocketVerifier
+         * @return ShenYuTestCaseSpecBuilder
+         */
+        public ShenYuTestCaseSpecBuilder add(final WebSocketVerifier webSocketVerifier) {
+            webSocketBuilder.add(webSocketVerifier);
+            return this;
+        }
         
         /**
          * add verifier case spec.
@@ -133,7 +155,7 @@ public class ShenYuCaseSpec implements CaseSpec {
          * @return ShenYuTestCaseSpecBuilder
          */
         public ShenYuTestCaseSpecBuilder addVerifier(final Method method, final String endpoint, final Matcher<?> matcher, final Matcher<?>... matchers) {
-            return add(supplier -> supplier.when().request(method, endpoint).then().assertThat().body(matcher, matchers));
+            return add((Verifier) supplier -> supplier.when().request(method, endpoint).then().assertThat().body(matcher, matchers));
         }
         
         /**
@@ -153,6 +175,17 @@ public class ShenYuCaseSpec implements CaseSpec {
          */
         public ShenYuTestCaseSpecBuilder addExists(final Method method, final String endpoint) {
             return add(exists(method, endpoint));
+        }
+
+        /**
+         * add exist method endpoint case spec.
+         * @param endpoint endpoint
+         * @param sendMessage sendMessage
+         * @param receiveMessage receiveMessage
+         * @return ShenYuTestCaseSpecBuilder
+         */
+        public ShenYuTestCaseSpecBuilder addExists(final String endpoint, final String sendMessage, final String receiveMessage) {
+            return add(WebSocketCheckers.exists(endpoint, sendMessage, receiveMessage));
         }
 
 
@@ -186,13 +219,23 @@ public class ShenYuCaseSpec implements CaseSpec {
         public ShenYuTestCaseSpecBuilder addNotExists(final Method method, final String endpoint) {
             return add(notExists(method, endpoint));
         }
-        
+
+        /**
+         * add not exists case spec.
+         * @param endpoint endpoint
+         * @param endpoint endpoint
+         * @return ShenYuTestCaseSpecBuilder
+         */
+        public ShenYuTestCaseSpecBuilder addNotExists(final String endpoint, final String message) {
+            return add(WebSocketCheckers.notExists(endpoint, message));
+        }
+
         /**
          * build.
          * @return ShenYuCaseSpec
          */
         public ShenYuCaseSpec build() {
-            return new ShenYuCaseSpec(name, builder.build());
+            return new ShenYuCaseSpec(name, builder.build(), webSocketBuilder.build());
         }
     }
 }

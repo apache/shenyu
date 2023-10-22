@@ -17,25 +17,27 @@
 
 package org.apache.shenyue.e2e.testcase.websocket;
 
-import com.google.common.collect.Lists;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
-import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
-import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
-import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
+import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.apache.shenyu.e2e.model.data.MetaData;
+import org.apache.shenyu.e2e.model.data.RuleCacheData;
+import org.apache.shenyu.e2e.model.data.SelectorCacheData;
+import org.apache.shenyu.e2e.model.response.MetaDataDTO;
+import org.apache.shenyu.e2e.model.response.RuleDTO;
+import org.apache.shenyu.e2e.model.response.SelectorDTO;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+/**
+ * Testing the correctness of etcd data synchronization method.
+ */
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
@@ -56,33 +58,13 @@ import java.util.List;
                 )
         )
 })
-/**
- * Testing websocket plugin.
- */
-public class WebSocketPluginTest {
+public class DataSynTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(WebSocketPluginTest.class);
-
-    @BeforeAll
-    static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
+    @Test
+    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        LOG.info("start websocket plugin");
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "1");
-        formData.add("name", "websocket");
-        formData.add("enabled", "true");
-        formData.add("role", "Proxy");
-        formData.add("sort", "140");
-        adminClient.changePluginStatus("8", formData);
-        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.websocket.WebSocketPlugin");
-    }
-
-    @ShenYuScenario(provider = WebSocketPluginCases.class)
-    void testWebSocket(final GatewayClient gateway, final CaseSpec spec) {
-        spec.getWebSocketVerifiers().forEach(webSocketVerifier -> webSocketVerifier.verify(gateway.getWebSocketClientSupplier().get(), gateway));
     }
 }

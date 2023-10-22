@@ -27,6 +27,8 @@ import org.apache.shenyu.e2e.common.RequestLogConsumer;
 import org.apache.shenyu.e2e.model.data.MetaData;
 import org.apache.shenyu.e2e.model.data.RuleCacheData;
 import org.apache.shenyu.e2e.model.data.SelectorCacheData;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -34,10 +36,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static io.restassured.RestAssured.given;
@@ -53,7 +59,9 @@ public class GatewayClient extends BaseClient {
     private static final RestTemplate TEMPLATE = new RestTemplate();
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    
+
+    private static final ArrayBlockingQueue<String> BLOCKING_QUEUE = new ArrayBlockingQueue<>(1);
+
     private final String scenarioId;
 
     private final String baseUrl;
@@ -103,6 +111,41 @@ public class GatewayClient extends BaseClient {
                     return response;
                 })
                 .when();
+    }
+
+    /**
+     * get websocket client.
+     * @return Supplier
+     */
+    public Supplier<WebSocketClient> getWebSocketClientSupplier() {
+        return () -> {
+            try {
+                return new WebSocketClient(new URI(getBaseUrl().replaceAll("http", "ws"))) {
+                    @Override
+                    public void onOpen(ServerHandshake handshakeData) {
+                        log.info("Open websocket connection successfully");
+                    }
+
+                    @Override
+                    public void onMessage(String message) {
+                        BLOCKING_QUEUE.add(message);
+                        log.info("Receive Message: " + message);
+                    }
+
+                    @Override
+                    public void onClose(int code, String reason, boolean remote) {
+                    }
+
+                    @Override
+                    public void onError(Exception ex) {
+                        ex.printStackTrace();
+                    }
+                };
+            } catch (URISyntaxException e) {
+                throw new RuntimeException("Invalid WebSocket URI", e);
+            }
+        };
+
     }
     
     /**
@@ -171,5 +214,13 @@ public class GatewayClient extends BaseClient {
         ResponseEntity<List> response = TEMPLATE.exchange(baseUrl + "/actuator/plugins", HttpMethod.GET, null, List.class);
         List body = response.getBody();
         return (Map<String, Integer>) body.get(0);
+    }
+
+    public String getWebSocketMessage() {
+        try {
+            return BLOCKING_QUEUE.poll(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

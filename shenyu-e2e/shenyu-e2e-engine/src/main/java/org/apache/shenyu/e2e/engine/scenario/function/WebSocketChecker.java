@@ -15,32 +15,30 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.engine.scenario.specification;
+package org.apache.shenyu.e2e.engine.scenario.function;
 
-import org.apache.shenyu.e2e.engine.annotation.ShenYuScenarioParameter;
-import org.apache.shenyu.e2e.engine.scenario.function.Verifier;
-import org.apache.shenyu.e2e.engine.scenario.function.WebSocketVerifier;
+import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+import org.java_websocket.client.WebSocketClient;
+import org.slf4j.MDC;
 
-import java.util.List;
+import java.util.function.Supplier;
 
-@ShenYuScenarioParameter
-public interface CaseSpec {
-    
-    /**
-     * get case spec name.
-     * @return String
-     */
-    String getName();
-    
-    /**
-     * get case spec verifiers.
-     * @return List
-     */
-    List<Verifier> getVerifiers();
+@FunctionalInterface
+public interface WebSocketChecker extends Checker, WebSocketVerifier {
+
+    default void check(GatewayClient client) {
+        check(client.getWebSocketClientSupplier(), client);
+    }
 
     /**
-     * get case spec websocket verifiers.
-     * @return List
+     * check request specification.
+     * @param supplier supplier
      */
-    List<WebSocketVerifier> getWebSocketVerifiers();
+    default void check(Supplier<WebSocketClient> supplier, GatewayClient client) {
+        try {
+            verify(supplier.get(), client);
+        } catch (AssertionError e) {
+            throw new AssertionError("failed to request " + MDC.get("endpoint"), e);
+        }
+    }
 }
