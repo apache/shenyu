@@ -480,6 +480,7 @@ data:
         org.springframework.web.reactive: info
         reactor.ipc.netty: info
         reactor.netty: info
+        org.apache.shenyu.sync.data.http: debug
 
   application-admin-sync-websocket.yml: |
     shenyu:
