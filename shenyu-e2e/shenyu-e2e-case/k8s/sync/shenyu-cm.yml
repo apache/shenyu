@@ -141,6 +141,7 @@ data:
         org.apache.shenyu.bonuspoint: info
         org.apache.shenyu.lottery: info
         org.apache.shenyu: info
+        org.apache.shenyu.admin.listener.http: debug
     #    org.apache.shenyu.admin.utils.HttpUtils: debug
     
 
