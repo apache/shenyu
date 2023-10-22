@@ -41,7 +41,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Motan plugin.
@@ -65,7 +67,11 @@ public class MotanPlugin extends AbstractShenyuPlugin {
     public MotanPlugin() {
     }
 
-    public void setMotanProxyService(MotanProxyService motanProxyService) {
+    /**
+     * Set motan proxy service.
+     * @param motanProxyService Proxy service.
+     */
+    public void setMotanProxyService(final MotanProxyService motanProxyService) {
         this.motanProxyService = motanProxyService;
     }
 
@@ -130,13 +136,19 @@ public class MotanPlugin extends AbstractShenyuPlugin {
     }
 
     private boolean checkMetaData(final MetaData metaData) {
-        return Objects.nonNull(metaData) && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
+        return Objects.nonNull(metaData)
+                && !StringUtils.isBlank(metaData.getMethodName())
+                && !StringUtils.isBlank(metaData.getServiceName());
     }
 
     @Override
     public List<String> getRegisterClassNames() {
-        return Arrays.asList(MotanProxyService.class.getName(), MotanPlugin.class.getName(), MotanMetaDataHandler.class.getName(), MotanPluginDataHandler.class.getName(), MotanShenyuContextDecorator.class.getName());
+        return Arrays.asList(
+                MotanProxyService.class.getName(),
+                MotanPlugin.class.getName(),
+                MotanMetaDataHandler.class.getName(),
+                MotanPluginDataHandler.class.getName(),
+                MotanShenyuContextDecorator.class.getName());
     }
-
 
 }

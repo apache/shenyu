@@ -61,7 +61,6 @@ public class ShenyuLoaderService {
 
     private final CommonMetaDataSubscriber metaDataSubscriber;
 
-
     /**
      * Instantiates a new Shenyu loader service.
      *
@@ -135,8 +134,19 @@ public class ShenyuLoaderService {
         subscriber.putExtendPluginDataHandler(handlers);
     }
 
-    public void initPlugin(List<String> classNames, PluginData pluginData, URLClassLoader pluginClassLoader) throws Throwable {
-        if (CollectionUtils.isEmpty(classNames)) return;
+    /**
+     * Init plugin.
+     * @param classNames class names
+     * @param pluginData plugin data
+     * @param pluginClassLoader plugin classloader
+     * @throws ClassNotFoundException exception
+     * @throws IllegalAccessException exception
+     * @throws InstantiationException exception
+     */
+    public void initPlugin(List<String> classNames, PluginData pluginData, URLClassLoader pluginClassLoader) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        if (CollectionUtils.isEmpty(classNames)) {
+            return;
+        }
         for (String className : classNames) {
             Object instance = getOrCreateSpringBean(className, pluginClassLoader);
             if (ShenyuPlugin.class.isAssignableFrom(instance.getClass())) {

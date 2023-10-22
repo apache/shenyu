@@ -205,7 +205,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     private synchronized void onPluginEnabled(final PluginData pluginData) {
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
         // SPI load plugin from the specified path
-        SPILoadPlugin(pluginData);
+        spiLoadPlugin(pluginData);
 
         if (StringUtils.isNoneBlank(pluginData.getPluginJar())) {
             LOG.info("shenyu start load plugin [{}] from upload plugin jar", pluginData.getName());
@@ -220,7 +220,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         this.plugins = sortPlugins(newPluginList);
     }
 
-    private void SPILoadPlugin(PluginData pluginData) {
+    private void spiLoadPlugin(final PluginData pluginData) {
         String pluginName = pluginData.getName();
         try {
             // load plugin
@@ -252,8 +252,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
             shenyuLoaderService.initPlugin(classNames, pluginData, pluginClassLoader);
             LOG.info("load {} plugin success, path: {}", pluginName, pluginJarDir);
         } catch (Throwable e) {
-            LOG.error("load {} plugin classloader failed.", pluginName);
-            e.printStackTrace();
+            LOG.error("load {} plugin classloader failed. exception: {}", pluginName, e);
         }
     }
 

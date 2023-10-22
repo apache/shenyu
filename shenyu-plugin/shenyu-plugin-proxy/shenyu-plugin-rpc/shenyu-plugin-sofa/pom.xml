@@ -26,12 +26,6 @@
     <artifactId>shenyu-plugin-sofa</artifactId>
 
     <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>com.alipay.sofa</groupId>-->
-<!--            <artifactId>sofa-rpc-all</artifactId>-->
-<!--            <scope>provided</scope>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>

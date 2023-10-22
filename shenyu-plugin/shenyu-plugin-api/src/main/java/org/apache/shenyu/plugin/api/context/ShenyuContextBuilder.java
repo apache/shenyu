@@ -32,5 +32,9 @@ public interface ShenyuContextBuilder {
      */
     ShenyuContext build(ServerWebExchange exchange);
 
+    /**
+     * Add decorator.
+     * @param decorator
+     */
     void addDecorator(ShenyuContextDecorator decorator);
 }

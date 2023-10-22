@@ -46,7 +46,12 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -173,7 +178,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin, Module {
             Thread.currentThread().setContextClassLoader(pluginClassLoader);
             return doExecute(exchange, chain, selector, rule);
         } catch (Throwable e) {
-            e.printStackTrace();
+            LogUtils.info(LOG, "Plugin class isolation execute failed. plugin: {}, exception: {}", named(), e);
         } finally {
             Thread.currentThread().setContextClassLoader(current);
         }
@@ -460,7 +465,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin, Module {
     }
 
     @Override
-    public void setClassLoader(URLClassLoader classLoader) {
+    public void setClassLoader(final URLClassLoader classLoader) {
         this.pluginClassLoader = classLoader;
         LOG.info(pluginClassLoader.toString());
     }

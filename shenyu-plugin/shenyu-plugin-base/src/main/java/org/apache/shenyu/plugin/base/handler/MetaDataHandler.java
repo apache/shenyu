@@ -56,13 +56,13 @@ public interface MetaDataHandler {
 
     /**
      * Set plugin classLoader.
-     * @param urlClassLoader
+     * @param urlClassLoader Plugin classloader.
      */
-    default void setPluginClassLoader(URLClassLoader urlClassLoader) {}
+    default void setPluginClassLoader(final URLClassLoader urlClassLoader) { }
 
     /**
      * Get plugin classLoader.
-     * @return
+     * @return Plugin classloader.
      */
     default URLClassLoader getPluginClassLoader() {
         return null;

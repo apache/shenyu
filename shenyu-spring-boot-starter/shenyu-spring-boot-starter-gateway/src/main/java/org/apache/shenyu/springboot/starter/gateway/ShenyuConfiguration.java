@@ -145,6 +145,8 @@ public class ShenyuConfiguration {
      * @param shenyuWebHandler the shenyu web handler
      * @param pluginDataSubscriber the plugin data subscriber
      * @param config the config
+     * @param builder the shenyu context builder
+     * @param metaDataSubscriber the metaData subscriber
      * @return the shenyu loader service
      */
     @Bean

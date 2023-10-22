@@ -46,7 +46,11 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
         this.handlerMap.putAll(metaDataHandlerList.stream().collect(Collectors.toConcurrentMap(MetaDataHandler::rpcType, e -> e)));
     }
 
-    public void addHander(MetaDataHandler handler) {
+    /**
+     * Add handler.
+     * @param handler
+     */
+    public void addHander(final MetaDataHandler handler) {
         this.handlerMap.put(handler.rpcType(), handler);
     }
 
@@ -66,6 +70,7 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
                 Thread.currentThread().setContextClassLoader(handler.getPluginClassLoader());
                 handler.handle(metaData);
             } catch (Throwable e) {
+                LOG.error("handle metaData failed, metaData: {}", JsonUtils.toJson(metaData));
                 e.printStackTrace();
             } finally {
                 Thread.currentThread().setContextClassLoader(current);

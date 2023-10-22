@@ -34,7 +34,6 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.sofa.context.SofaShenyuContextDecorator;
 import org.apache.shenyu.plugin.sofa.handler.SofaMetaDataHandler;
 import org.apache.shenyu.plugin.sofa.handler.SofaPluginDataHandler;
-import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveServiceImpl;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
 import org.slf4j.Logger;
@@ -44,7 +43,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * The sofa plugin.
@@ -143,6 +146,5 @@ public class SofaPlugin extends AbstractShenyuPlugin {
                 SofaShenyuContextDecorator.class.getName()
         );
     }
-
 
 }
