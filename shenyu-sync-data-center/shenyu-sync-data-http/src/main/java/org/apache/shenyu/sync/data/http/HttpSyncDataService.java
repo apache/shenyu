@@ -39,11 +39,11 @@ import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.apache.shenyu.sync.data.http.refresh.DataRefreshFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpMethod;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -56,7 +56,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import okhttp3.Headers;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -142,7 +141,12 @@ public class HttpSyncDataService implements SyncDataService {
         String url = server + Constants.SHENYU_ADMIN_PATH_CONFIGS_FETCH + "?" + StringUtils.removeEnd(params.toString(), "&");
         LOG.info("request configs: [{}]", url);
         String json;
-        Request request = createRequest(url, new Headers.Builder().build(), RequestBody.create("", null), HttpMethod.GET.name());
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
+                .get()
+                .build();
+                //createRequest(url, new Headers.Builder().build(), RequestBody.create("", null), HttpMethod.GET.name());
         try (Response response = okHttpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 String message = String.format("fetch config fail from server[%s], http status code[%s]", url, response.code());
@@ -196,15 +200,21 @@ public class HttpSyncDataService implements SyncDataService {
         }
         LOG.debug("listener params: [{}]", params);
         Headers headers = new Headers.Builder()
+                .add(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
                 .add("Content-Type", "application/x-www-form-urlencoded")
                 .build();
-        RequestBody requestBody = RequestBody.create(GsonUtils.getGson().toJson(params), MediaType.parse("application/json"));
+        String uri = UriComponentsBuilder.fromHttpUrl(server + Constants.SHENYU_ADMIN_PATH_CONFIGS_LISTENER).queryParams(params).build(true).toUriString();
+        //RequestBody requestBody = RequestBody.create(JsonUtils.toJson(params), MediaType.parse("application/json"));
         //HttpHeaders headers = new HttpHeaders();
         //headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         //headers.set(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken());
         //HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
         String listenerUrl = server + Constants.SHENYU_ADMIN_PATH_CONFIGS_LISTENER;
-        Request request = createRequest(listenerUrl, headers, requestBody, HttpMethod.POST.name());
+        Request request = new Request.Builder()
+                .url(uri)
+                .headers(headers)
+                .post(RequestBody.create("", null))
+                .build();
 
         JsonArray groupJson;
         try (Response response = okHttpClient.newCall(request).execute()) {
