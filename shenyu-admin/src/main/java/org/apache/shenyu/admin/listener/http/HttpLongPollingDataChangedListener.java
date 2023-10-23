@@ -364,6 +364,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                     clients.remove(LongPollingClient.this);
                     List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
                     sendResponse(changedGroups);
+                    log.info("LongPollingClient {} ", GsonUtils.getInstance().toJson(changedGroups));
                 }, timeoutTime, TimeUnit.MILLISECONDS);
                 clients.add(this);
             } catch (Exception ex) {
