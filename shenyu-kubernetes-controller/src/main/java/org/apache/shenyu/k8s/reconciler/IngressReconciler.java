@@ -141,6 +141,8 @@ public class IngressReconciler implements Reconciler {
             enablePlugin(shenyuCacheRepository, PluginEnum.WEB_SOCKET, null);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_BRPC_ENABLED), "true")) {
             enablePlugin(shenyuCacheRepository, PluginEnum.BRPC, null);
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
+            enablePlugin(shenyuCacheRepository, PluginEnum.GRPC, null);
         }
         if (Objects.isNull(v1Ingress)) {
             if (Objects.nonNull(oldIngress)) {
@@ -215,6 +217,8 @@ public class IngressReconciler implements Reconciler {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName(), "");
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_BRPC_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.BRPC.getName(), "");
+        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
+            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.GRPC.getName(), "");
         } else {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName(), "");
         }
@@ -229,6 +233,8 @@ public class IngressReconciler implements Reconciler {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName());
             } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_BRPC_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.BRPC.getName());
+            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
+                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.GRPC.getName());
             } else {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName());
             }
@@ -277,6 +283,8 @@ public class IngressReconciler implements Reconciler {
                 return "{\"registerProtocol\":\"zk\",\"registerAddress\":\"" + zookeeperUrl + "\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"shared\"}";
             case WEB_SOCKET:
                 return "{multiSelectorHandle: 1}";
+            case GRPC:
+                return "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}";
             default:
                 return null;
         }
@@ -552,6 +560,8 @@ public class IngressReconciler implements Reconciler {
         String pluginMotanEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED);
         String pluginSpringCloudEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED);
         String pluginWebSocketEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
+        String pluginBrpcEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_BRPC_ENABLED);
+        String pluginGrpcEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED);
         if ((Boolean.TRUE.toString()).equals(pluginDubboEnabled)) {
             pluginName = PluginEnum.DUBBO.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginMotanEnabled)) {
@@ -560,6 +570,10 @@ public class IngressReconciler implements Reconciler {
             pluginName = PluginEnum.SPRING_CLOUD.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginWebSocketEnabled)) {
             pluginName = PluginEnum.WEB_SOCKET.getName();
+        } else if ((Boolean.TRUE.toString()).equals(pluginBrpcEnabled)) {
+            pluginName = PluginEnum.BRPC.getName();
+        } else if ((Boolean.TRUE.toString()).equals(pluginGrpcEnabled)) {
+            pluginName = PluginEnum.GRPC.getName();
         } else {
             pluginName = PluginEnum.DIVIDE.getName();
         }
