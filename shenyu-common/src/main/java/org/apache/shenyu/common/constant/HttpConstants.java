@@ -34,12 +34,12 @@ public final class HttpConstants {
     /**
      * The maximum timeout of server block is 60s.
      */
-    public static final long SERVER_MAX_HOLD_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
+    public static final long SERVER_MAX_HOLD_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 
     /**
      * Default connection timeout is 10s.
      */
-    public static final long CLIENT_POLLING_CONNECT_TIMEOUT = TimeUnit.SECONDS.toMillis(20);
+    public static final long CLIENT_POLLING_CONNECT_TIMEOUT = TimeUnit.SECONDS.toMillis(90);
 
     /**
      * Default write timeout is 90s.
