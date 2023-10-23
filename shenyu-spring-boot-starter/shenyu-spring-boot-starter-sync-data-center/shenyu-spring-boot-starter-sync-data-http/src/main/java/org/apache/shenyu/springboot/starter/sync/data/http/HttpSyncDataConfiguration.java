@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.sync.data.http;
 
-import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -35,7 +34,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
@@ -69,14 +67,14 @@ public class HttpSyncDataConfiguration {
      * @param httpConfig the http config
      * @return the rest template
      */
-    @Bean
-    public RestTemplate restTemplate(final HttpConfig httpConfig) {
-        OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
-        factory.setConnectTimeout(Objects.isNull(httpConfig.getConnectionTimeout()) ? (int) HttpConstants.CLIENT_POLLING_CONNECT_TIMEOUT : httpConfig.getConnectionTimeout());
-        factory.setReadTimeout(Objects.isNull(httpConfig.getReadTimeout()) ? (int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT : httpConfig.getReadTimeout());
-        factory.setWriteTimeout(Objects.isNull(httpConfig.getWriteTimeout()) ? (int) HttpConstants.CLIENT_POLLING_WRITE_TIMEOUT : httpConfig.getWriteTimeout());
-        return new RestTemplate(factory);
-    }
+    //@Bean
+    //public RestTemplate restTemplate(final HttpConfig httpConfig) {
+    //    OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
+    //    factory.setConnectTimeout(Objects.isNull(httpConfig.getConnectionTimeout()) ? (int) HttpConstants.CLIENT_POLLING_CONNECT_TIMEOUT : httpConfig.getConnectionTimeout());
+    //    factory.setReadTimeout(Objects.isNull(httpConfig.getReadTimeout()) ? (int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT : httpConfig.getReadTimeout());
+    //    factory.setWriteTimeout(Objects.isNull(httpConfig.getWriteTimeout()) ? (int) HttpConstants.CLIENT_POLLING_WRITE_TIMEOUT : httpConfig.getWriteTimeout());
+    //    return new RestTemplate(factory);
+    //}
 
     /**
      * AccessTokenManager.
@@ -95,7 +93,6 @@ public class HttpSyncDataConfiguration {
      *
      * @param httpConfig         the http config
      * @param pluginSubscriber   the plugin subscriber
-     * @param restTemplate       the rest template
      * @param metaSubscribers    the meta subscribers
      * @param authSubscribers    the auth subscribers
      * @param accessTokenManager the access token manager
@@ -106,7 +103,6 @@ public class HttpSyncDataConfiguration {
     @Bean
     public SyncDataService httpSyncDataService(final ObjectProvider<HttpConfig> httpConfig,
                                                final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
-                                               final ObjectProvider<RestTemplate> restTemplate,
                                                final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
                                                final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                                final ObjectProvider<AccessTokenManager> accessTokenManager,
@@ -116,7 +112,6 @@ public class HttpSyncDataConfiguration {
         return new HttpSyncDataService(
                 Objects.requireNonNull(httpConfig.getIfAvailable()),
                 Objects.requireNonNull(pluginSubscriber.getIfAvailable()),
-                Objects.requireNonNull(restTemplate.getIfAvailable()),
                 metaSubscribers.getIfAvailable(Collections::emptyList),
                 authSubscribers.getIfAvailable(Collections::emptyList),
                 proxySelectorDataSubscribers.getIfAvailable(Collections::emptyList),

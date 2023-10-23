@@ -130,7 +130,7 @@ public final class HttpSyncDataServiceTest {
         RestTemplate restTemplate = new RestTemplate(factory);
 
         AccessTokenManager accessTokenManager = new AccessTokenManager(restTemplate, httpConfig);
-        this.httpSyncDataService = new HttpSyncDataService(httpConfig, pluginDataSubscriber, restTemplate,
+        this.httpSyncDataService = new HttpSyncDataService(httpConfig, pluginDataSubscriber,
                 Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber), Collections.singletonList(proxySelectorDataSubscriber),
                 Collections.singletonList(discoveryUpstreamDataSubscriber), accessTokenManager);
     }

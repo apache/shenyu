@@ -39,15 +39,14 @@ import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.apache.shenyu.sync.data.http.refresh.DataRefreshFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -56,6 +55,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import okhttp3.Headers;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 /**
  * HTTP long polling implementation.
@@ -69,11 +75,6 @@ public class HttpSyncDataService implements SyncDataService {
 
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
-    /**
-     * only use for http long polling.
-     */
-    private final RestTemplate restTemplate;
-
     private ExecutorService executor;
 
     private final List<String> serverList;
@@ -81,10 +82,15 @@ public class HttpSyncDataService implements SyncDataService {
     private final DataRefreshFactory factory;
 
     private final AccessTokenManager accessTokenManager;
+    
+    private final OkHttpClient okHttpClient = new OkHttpClient.Builder()
+            .readTimeout(Duration.ofSeconds(60))
+            .connectTimeout(Duration.ofSeconds(30))
+            .writeTimeout(Duration.ofSeconds(30))
+            .build();
 
     public HttpSyncDataService(final HttpConfig httpConfig,
                                final PluginDataSubscriber pluginDataSubscriber,
-                               final RestTemplate restTemplate,
                                final List<MetaDataSubscriber> metaDataSubscribers,
                                final List<AuthDataSubscriber> authDataSubscribers,
                                final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
@@ -93,7 +99,6 @@ public class HttpSyncDataService implements SyncDataService {
         this.accessTokenManager = accessTokenManager;
         this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
-        this.restTemplate = restTemplate;
         this.start();
     }
 
@@ -137,12 +142,21 @@ public class HttpSyncDataService implements SyncDataService {
         String url = server + Constants.SHENYU_ADMIN_PATH_CONFIGS_FETCH + "?" + StringUtils.removeEnd(params.toString(), "&");
         LOG.info("request configs: [{}]", url);
         String json;
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.set(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken());
-            HttpEntity<String> httpEntity = new HttpEntity<>(headers);
-            json = this.restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class).getBody();
-        } catch (RestClientException e) {
+        Request request = createRequest(url, new Headers.Builder().build(), RequestBody.create("", null), HttpMethod.GET.name());
+        try (Response response = okHttpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                String message = String.format("fetch config fail from server[%s], http status code[%s]", url, response.code());
+                LOG.warn(message);
+                throw new ShenyuException(message);
+            }
+            ResponseBody responseBody = response.body();
+            Assert.notNull(responseBody, "Resolve response responseBody failed.");
+            json = responseBody.string();
+            //HttpHeaders headers = new HttpHeaders();
+            //headers.set(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken());
+            //HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+            //json = this.okHttpClient.exchange(url, HttpMethod.GET, httpEntity, String.class).getBody();
+        } catch (RestClientException | IOException e) {
             String message = String.format("fetch config fail from server[%s], %s", url, e.getMessage());
             LOG.warn(message);
             throw new ShenyuException(message, e);
@@ -181,29 +195,54 @@ public class HttpSyncDataService implements SyncDataService {
             }
         }
         LOG.debug("listener params: [{}]", params);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.set(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken());
-        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
+        Headers headers = new Headers.Builder()
+                .add("Content-Type", "application/x-www-form-urlencoded")
+                .build();
+        RequestBody requestBody = RequestBody.create(GsonUtils.getGson().toJson(params), MediaType.parse("application/json"));
+        //HttpHeaders headers = new HttpHeaders();
+        //headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        //headers.set(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken());
+        //HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
         String listenerUrl = server + Constants.SHENYU_ADMIN_PATH_CONFIGS_LISTENER;
+        Request request = createRequest(listenerUrl, headers, requestBody, HttpMethod.POST.name());
 
         JsonArray groupJson;
-        try {
-            String json = this.restTemplate.postForEntity(listenerUrl, httpEntity, String.class).getBody();
+        try (Response response = okHttpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                String message = String.format("listener configs fail, server:[%s], http status code[%s]", server, response.code());
+                throw new ShenyuException(message);
+            }
+            ResponseBody responseBody = response.body();
+            Assert.notNull(responseBody, "Resolve response responseBody failed.");
+            String json = responseBody.string();
+            //String json = this.restTemplate.postForEntity(listenerUrl, httpEntity, String.class).getBody();
             LOG.info("listener result: [{}]", json);
             JsonObject responseFromServer = GsonUtils.getGson().fromJson(json, JsonObject.class);
             groupJson = responseFromServer.getAsJsonArray("data");
         } catch (RestClientException e) {
             String message = String.format("listener configs fail, server:[%s], %s", server, e.getMessage());
             throw new ShenyuException(message, e);
+        } catch (IOException e) {
+            throw new ShenyuException(e);
         }
-
+        
         if (Objects.nonNull(groupJson) && !groupJson.isEmpty()) {
             // fetch group configuration async.
             ConfigGroupEnum[] changedGroups = GsonUtils.getGson().fromJson(groupJson, ConfigGroupEnum[].class);
             LOG.info("Group config changed: {}", Arrays.toString(changedGroups));
             this.doFetchGroupConfig(server, changedGroups);
         }
+    }
+    
+    private Request createRequest(final String url, final Headers headers,
+                                  final RequestBody requestBody, final String method) {
+        return new Request.Builder()
+                .url(url)
+                .headers(headers)
+                .addHeader("Content-Type", "application/json")
+                .addHeader(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
+                .method(method, requestBody)
+                .build();
     }
 
     @Override
