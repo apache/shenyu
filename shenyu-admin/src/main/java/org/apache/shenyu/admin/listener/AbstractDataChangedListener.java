@@ -277,12 +277,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param data  the new config data
      */
     protected <T> void updateCache(final ConfigGroupEnum group, final List<T> data) {
-        synchronized (CACHE) {
-            String json = GsonUtils.getInstance().toJson(data);
-            ConfigDataCache newVal = new ConfigDataCache(group.name(), json, DigestUtils.md5Hex(json), System.currentTimeMillis());
-            ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
-            LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
-        }
+        String json = GsonUtils.getInstance().toJson(data);
+        ConfigDataCache newVal = new ConfigDataCache(group.name(), json, DigestUtils.md5Hex(json), System.currentTimeMillis());
+        ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
+        LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
     }
     
     /**

@@ -224,7 +224,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         if (latest != serverCache) {
             return !StringUtils.equals(clientMd5, latest.getMd5());
         }
-        synchronized (CACHE) {
+        synchronized (this) {
             latest = CACHE.get(serverCache.getGroup());
             if (latest != serverCache) {
                 return !StringUtils.equals(clientMd5, latest.getMd5());
@@ -364,7 +364,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                     clients.remove(LongPollingClient.this);
                     List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
                     sendResponse(changedGroups);
-                    log.info("LongPollingClient {} ", GsonUtils.getInstance().toJson(changedGroups));
+                    log.debug("LongPollingClient {} ", GsonUtils.getInstance().toJson(changedGroups));
                 }, timeoutTime, TimeUnit.MILLISECONDS);
                 clients.add(this);
             } catch (Exception ex) {
