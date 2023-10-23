@@ -39,7 +39,6 @@ import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.apache.shenyu.sync.data.http.refresh.DataRefreshFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -61,7 +60,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * HTTP long polling implementation.
  */
-public class HttpSyncDataService implements SyncDataService, InitializingBean {
+public class HttpSyncDataService implements SyncDataService {
 
     /**
      * logger.
@@ -95,6 +94,7 @@ public class HttpSyncDataService implements SyncDataService, InitializingBean {
         this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
         this.restTemplate = restTemplate;
+        this.start();
     }
 
     private void start() {
@@ -215,12 +215,7 @@ public class HttpSyncDataService implements SyncDataService, InitializingBean {
             executor = null;
         }
     }
-    
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        this.start();
-    }
-    
+
     class HttpLongPollingTask implements Runnable {
 
         private final String server;
