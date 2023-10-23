@@ -46,7 +46,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -82,14 +81,11 @@ public class HttpSyncDataService implements SyncDataService {
 
     private final AccessTokenManager accessTokenManager;
     
-    private final OkHttpClient okHttpClient = new OkHttpClient.Builder()
-            .readTimeout(Duration.ofSeconds(60))
-            .connectTimeout(Duration.ofSeconds(30))
-            .writeTimeout(Duration.ofSeconds(30))
-            .build();
+    private final OkHttpClient okHttpClient;
 
     public HttpSyncDataService(final HttpConfig httpConfig,
                                final PluginDataSubscriber pluginDataSubscriber,
+                               final OkHttpClient okHttpClient,
                                final List<MetaDataSubscriber> metaDataSubscribers,
                                final List<AuthDataSubscriber> authDataSubscribers,
                                final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
@@ -98,6 +94,7 @@ public class HttpSyncDataService implements SyncDataService {
         this.accessTokenManager = accessTokenManager;
         this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
+        this.okHttpClient = okHttpClient;
         this.start();
     }
 
@@ -141,12 +138,10 @@ public class HttpSyncDataService implements SyncDataService {
         String url = server + Constants.SHENYU_ADMIN_PATH_CONFIGS_FETCH + "?" + StringUtils.removeEnd(params.toString(), "&");
         LOG.info("request configs: [{}]", url);
         String json;
-        Request request = new Request.Builder()
-                .url(url)
+        Request request = new Request.Builder().url(url)
                 .addHeader(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
                 .get()
                 .build();
-                //createRequest(url, new Headers.Builder().build(), RequestBody.create("", null), HttpMethod.GET.name());
         try (Response response = okHttpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 String message = String.format("fetch config fail from server[%s], http status code[%s]", url, response.code());
@@ -156,10 +151,6 @@ public class HttpSyncDataService implements SyncDataService {
             ResponseBody responseBody = response.body();
             Assert.notNull(responseBody, "Resolve response responseBody failed.");
             json = responseBody.string();
-            //HttpHeaders headers = new HttpHeaders();
-            //headers.set(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken());
-            //HttpEntity<String> httpEntity = new HttpEntity<>(headers);
-            //json = this.okHttpClient.exchange(url, HttpMethod.GET, httpEntity, String.class).getBody();
         } catch (RestClientException | IOException e) {
             String message = String.format("fetch config fail from server[%s], %s", url, e.getMessage());
             LOG.warn(message);
@@ -203,13 +194,8 @@ public class HttpSyncDataService implements SyncDataService {
                 .add(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
                 .add("Content-Type", "application/x-www-form-urlencoded")
                 .build();
-        String uri = UriComponentsBuilder.fromHttpUrl(server + Constants.SHENYU_ADMIN_PATH_CONFIGS_LISTENER).queryParams(params).build(true).toUriString();
-        //RequestBody requestBody = RequestBody.create(JsonUtils.toJson(params), MediaType.parse("application/json"));
-        //HttpHeaders headers = new HttpHeaders();
-        //headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        //headers.set(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken());
-        //HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
         String listenerUrl = server + Constants.SHENYU_ADMIN_PATH_CONFIGS_LISTENER;
+        String uri = UriComponentsBuilder.fromHttpUrl(listenerUrl).queryParams(params).build(true).toUriString();
         Request request = new Request.Builder()
                 .url(uri)
                 .headers(headers)
@@ -223,9 +209,8 @@ public class HttpSyncDataService implements SyncDataService {
                 throw new ShenyuException(message);
             }
             ResponseBody responseBody = response.body();
-            Assert.notNull(responseBody, "Resolve response responseBody failed.");
+            Assert.notNull(responseBody, "Resolve response body failed.");
             String json = responseBody.string();
-            //String json = this.restTemplate.postForEntity(listenerUrl, httpEntity, String.class).getBody();
             LOG.info("listener result: [{}]", json);
             JsonObject responseFromServer = GsonUtils.getGson().fromJson(json, JsonObject.class);
             groupJson = responseFromServer.getAsJsonArray("data");
@@ -242,17 +227,6 @@ public class HttpSyncDataService implements SyncDataService {
             LOG.info("Group config changed: {}", Arrays.toString(changedGroups));
             this.doFetchGroupConfig(server, changedGroups);
         }
-    }
-    
-    private Request createRequest(final String url, final Headers headers,
-                                  final RequestBody requestBody, final String method) {
-        return new Request.Builder()
-                .url(url)
-                .headers(headers)
-                .addHeader("Content-Type", "application/json")
-                .addHeader(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
-                .method(method, requestBody)
-                .build();
     }
 
     @Override
