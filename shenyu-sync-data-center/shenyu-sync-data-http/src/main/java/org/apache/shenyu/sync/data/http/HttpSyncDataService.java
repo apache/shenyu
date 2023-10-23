@@ -129,7 +129,7 @@ public class HttpSyncDataService implements SyncDataService {
         }
     }
 
-    private synchronized void doFetchGroupConfig(final String server, final ConfigGroupEnum... groups) {
+    private void doFetchGroupConfig(final String server, final ConfigGroupEnum... groups) {
         StringBuilder params = new StringBuilder();
         for (ConfigGroupEnum groupKey : groups) {
             params.append("groupKeys").append("=").append(groupKey.name()).append("&");
