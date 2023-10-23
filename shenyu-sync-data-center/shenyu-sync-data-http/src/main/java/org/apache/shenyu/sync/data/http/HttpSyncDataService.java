@@ -151,7 +151,7 @@ public class HttpSyncDataService implements SyncDataService {
             ResponseBody responseBody = response.body();
             Assert.notNull(responseBody, "Resolve response responseBody failed.");
             json = responseBody.string();
-        } catch (RestClientException | IOException e) {
+        } catch (IOException e) {
             String message = String.format("fetch config fail from server[%s], %s", url, e.getMessage());
             LOG.warn(message);
             throw new ShenyuException(message, e);
@@ -214,11 +214,9 @@ public class HttpSyncDataService implements SyncDataService {
             LOG.info("listener result: [{}]", json);
             JsonObject responseFromServer = GsonUtils.getGson().fromJson(json, JsonObject.class);
             groupJson = responseFromServer.getAsJsonArray("data");
-        } catch (RestClientException e) {
+        } catch (IOException e) {
             String message = String.format("listener configs fail, server:[%s], %s", server, e.getMessage());
             throw new ShenyuException(message, e);
-        } catch (IOException e) {
-            throw new ShenyuException(e);
         }
         
         if (Objects.nonNull(groupJson) && !groupJson.isEmpty()) {
