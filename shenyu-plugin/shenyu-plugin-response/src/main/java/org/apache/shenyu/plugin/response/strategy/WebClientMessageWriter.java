@@ -25,6 +25,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -80,7 +81,7 @@ public class WebClientMessageWriter implements MessageWriter {
             Mono<Void> responseMono;
             if (Objects.nonNull(fluxResponseEntity.getBody())) {
                 responseMono = exchange.getResponse().writeWith(fluxResponseEntity.getBody())
-                        .onErrorResume(error -> releaseIfNotConsumed(fluxResponseEntity, error))
+                        .onErrorResume(error -> releaseIfNotConsumed(fluxResponseEntity.getBody(), error))
                         .doOnCancel(() -> clean(exchange));
             } else {
                 responseMono = exchange.getResponse().writeWith(Mono.empty());
@@ -120,14 +121,14 @@ public class WebClientMessageWriter implements MessageWriter {
         response.getHeaders().putAll(httpHeaders);
     }
 
-    private static <T> Mono<T> releaseIfNotConsumed(final ResponseEntity<Flux<DataBuffer>> fluxResponseEntity, final Throwable ex) {
-        return fluxResponseEntity.getBody().onErrorResume(ex2 -> Mono.empty()).then(Mono.error(ex));
+    private static <T> Mono<T> releaseIfNotConsumed(final Flux<DataBuffer> dataBufferDody, final Throwable ex) {
+        return dataBufferDody.map(DataBufferUtils::release).then(Mono.error(ex));
     }
 
     private void clean(final ServerWebExchange exchange) {
         ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
         if (Objects.nonNull(fluxResponseEntity) && Objects.nonNull(fluxResponseEntity.getBody())) {
-            fluxResponseEntity.getBody().subscribe();
+            fluxResponseEntity.getBody().map(DataBufferUtils::release).subscribe();
         }
     }
 
