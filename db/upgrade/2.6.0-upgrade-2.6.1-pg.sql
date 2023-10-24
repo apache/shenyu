@@ -95,3 +95,7 @@ COMMENT ON COLUMN "public"."alert_receiver"."type" IS 'notice type 0-SMS 1-Email
 COMMENT ON COLUMN "public"."alert_receiver"."match_all" IS 'match all or not';
 COMMENT ON COLUMN "public"."alert_receiver"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."alert_receiver"."date_updated" IS 'update time';
+
+
+UPDATE "public"."plugin_handle" SET label = 'flowRuleEnable 1 or 0' WHERE id = '1529403902770941954';
+UPDATE "public"."plugin_handle" SET label = 'degradeRuleEnable 1 or 0' WHERE id = '1529403902770941956';

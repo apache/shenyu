@@ -70,7 +70,7 @@ public class PluginHandleChangedEvent extends AdminDataModelChangedEvent {
             builder.append(String.format("type[%s => %s] ", before.getType(), after.getType()));
         }
         if (!Objects.equals(before.getDataType(), after.getDataType())) {
-            builder.append(String.format("dataType[%s => %s] ", before.getDateCreated(), after.getDataType()));
+            builder.append(String.format("dataType[%s => %s] ", before.getDataType(), after.getDataType()));
         }
         if (!Objects.equals(before.getSort(), after.getSort())) {
             builder.append(String.format("sort[%s => %s] ", before.getSort(), after.getSort()));
