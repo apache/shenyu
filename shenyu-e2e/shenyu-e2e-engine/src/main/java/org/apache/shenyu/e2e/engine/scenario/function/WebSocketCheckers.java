@@ -32,8 +32,6 @@ import java.util.concurrent.ArrayBlockingQueue;
  */
 public class WebSocketCheckers {
 
-    public static final ArrayBlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(1);
-
     /**
      * exist endpoint.
      * @param endpoint endpoint
