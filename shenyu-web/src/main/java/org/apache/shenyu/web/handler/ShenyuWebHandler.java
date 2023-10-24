@@ -26,6 +26,7 @@ import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.isolation.ReverseClassLoader;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.PluginHandlerEvent;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -226,6 +227,11 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
 
     private void spiLoadPlugin(final PluginData pluginData) {
         String pluginName = pluginData.getName();
+        final Object pluginBean = SpringBeanUtils.getInstance().getBeanByClassName(pluginName + "Plugin");
+        if (Objects.nonNull(pluginBean) && pluginBean instanceof ShenyuPlugin) {
+            this.putExtPlugins(Collections.singletonList((ShenyuPlugin) pluginBean));
+            return;
+        }
         try {
             // load plugin
             String pluginJarDir = String.format(PLUGIN_PATH, pluginName);
