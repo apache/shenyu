@@ -18,6 +18,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: shenyu-examples-dubbo-deployment
+  namespace: shenyu-ingress
   labels:
     app: shenyu-examples-dubbo
     all: shenyu-examples-dubbo
@@ -35,20 +36,23 @@ spec:
         all: shenyu-examples-dubbo
     spec:
       containers:
-        - image: shenyu-examples-dubbo
+        - image: shenyu-examples-apache-dubbo-service
           name: shenyu-examples-dubbo
           livenessProbe:
             exec:
               command:
-                - wget -q -O - http://localhost:8189/actuator/health | grep UP || exit 1
+                - wget -q -O - http://localhost:8081/actuator/health | grep UP || exit 1
             initialDelaySeconds: 10
             failureThreshold: 3
             timeoutSeconds: 2
           env:
             - name: shenyu.register.serverLists
               value: http://shenyu-admin:9095
+            - name: dubbo.registry.address
+              value: zookeeper://shenyu-zk:2181
           ports:
-            - containerPort: 8189
+            - containerPort: 8011
+            - containerPort: 20888
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
 status: {}
@@ -58,6 +62,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: shenyu-examples-apache-dubbo-service
+  namespace: shenyu-ingress
   labels:
     app: shenyu-examples-dubbo
     all: shenyu-examples-dubbo
@@ -67,9 +72,9 @@ spec:
     all: shenyu-examples-dubbo
   type: NodePort
   ports:
-    - name: "8189"
-      port: 8189
-      targetPort: 8189
-      nodePort: 31190
+    - name: "8011"
+      port: 8011
+      targetPort: 8011
+      nodePort: 31187
 status:
   loadBalancer: {}

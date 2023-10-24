@@ -1,0 +1,112 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shenyu-admin
+spec:
+  selector:
+    matchLabels:
+      app: shenyu-admin
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: shenyu-admin
+    spec:
+      containers:
+        - name: shenyu-admin
+          image: apache/shenyu-admin:latest
+          args:
+            - -Xmx768m -Xms768m
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9095
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 9095
+              path: /actuator/health
+          readinessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: 9095
+              path: /actuator/health
+          env:
+            - name: 'TZ'
+              value: 'Asia/Beijing'
+            - name: SPRING_PROFILES_ACTIVE
+              value: mysql, admin-sync-http
+          volumeMounts:
+            - name: mysql-connector-volume
+              mountPath: /opt/shenyu-admin/ext-lib
+            - name: shenyu-admin-application
+              mountPath: /opt/shenyu-admin/conf/application.yml
+              subPath: shenyu-admin-application.yml
+            - name: shenyu-admin-application-mysql
+              mountPath: /opt/shenyu-admin/conf/application-mysql.yml
+              subPath: shenyu-admin-application-mysql.yml
+            - name: shenyu-admin-sync-http
+              mountPath: /opt/shenyu-admin/conf/application-admin-sync-http.yml
+              subPath: application-admin-sync-http.yml
+      restartPolicy: Always
+      volumes:
+        - name: mysql-connector-volume
+          hostPath:
+            path: /tmp/shenyu-e2e/mysql/driver
+        - name: shenyu-admin-application
+          configMap:
+            name: shenyu-configmap
+            items:
+              - key: shenyu-admin-application.yml
+                path: shenyu-admin-application.yml
+        - name: shenyu-admin-application-mysql
+          configMap:
+            name: shenyu-configmap
+            items:
+              - key: shenyu-admin-application-mysql.yml
+                path: shenyu-admin-application-mysql.yml
+        - name: shenyu-admin-sync-http
+          configMap:
+            name: shenyu-configmap
+            items:
+              - key: application-admin-sync-http.yml
+                path: application-admin-sync-http.yml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shenyu-admin
+  labels:
+    app: shenyu-admin
+spec:
+  type: NodePort
+  selector:
+    app: shenyu-admin
+  ports:
+    - name: "9095"
+      port: 9095
+      targetPort: 9095
+      nodePort: 31095

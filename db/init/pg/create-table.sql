@@ -898,6 +898,11 @@ INSERT INTO "public"."permission" VALUES ('1572525965658820617', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1572525965658820618', '1346358560427216896', '1572525965625266186', '2023-07-07 23:26:37.388', '2023-07-07 23:26:37.388');
 
 INSERT INTO "public"."permission" VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176', '2022-09-28 11:50:58', '2022-09-28 11:50:58');
+INSERT INTO "public"."permission" VALUES ('1697141926281318400', '1346358560427216896', '1697141926247763968', '2023-08-31 14:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1697145808239693824', '1346358560427216896', '1697145808210333696', '2023-08-31 15:14:26', '2023-08-31 07:14:26');
+INSERT INTO "public"."permission" VALUES ('1697146375754190848', '1346358560427216896', '1697146375729025024', '2023-08-31 15:16:42', '2023-08-31 07:16:42');
+INSERT INTO "public"."permission" VALUES ('1697146617543233536', '1346358560427216896', '1697146617513873408', '2023-08-31 15:17:39', '2023-08-31 07:17:39');
+INSERT INTO "public"."permission" VALUES ('1697146860569595904', '1346358560427216896', '1697146860540235776', '2023-08-31 15:18:37', '2023-08-31 07:18:37');
 -- ----------------------------
 -- Table structure for plugin
 -- ----------------------------
@@ -934,7 +939,7 @@ INSERT INTO "public"."plugin" VALUES ('13', 'tars', '{"multiSelectorHandle":"1",
 INSERT INTO "public"."plugin" VALUES ('14', 'contextPath', NULL, 'HttpProcess', 80, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('15', 'grpc', '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}', 'Proxy', 310, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('16', 'redirect', NULL, 'HttpProcess', 110, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
-INSERT INTO "public"."plugin" VALUES ('17', 'motan', '{"registerProtocol":"direct",registerAddress":"127.0.0.1:2181","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}', 'Proxy', 310, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
+INSERT INTO "public"."plugin" VALUES ('17', 'motan', '{"registerProtocol":"direct","registerAddress":"127.0.0.1:2181","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}', 'Proxy', 310, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('18', 'loggingConsole', NULL, 'Logging', 160, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('19', 'jwt', '{"secretKey":"key"}', 'Authentication', 30, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('2', 'waf', '{"model":"black"}', 'Authentication', 50, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
@@ -999,9 +1004,9 @@ COMMENT ON COLUMN "public"."plugin_handle"."date_updated" IS 'update time';
 -- ----------------------------
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902770941952', '10', 'flowRuleGrade', 'flowRuleGrade', 3, 2, 8, '{"required":"1","defaultValue":"1","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902770941953', '10', 'flowRuleControlBehavior', 'flowRuleControlBehavior', 3, 2, 5, '{"required":"1","defaultValue":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902770941954', '10', 'flowRuleEnable', 'flowRuleEnable 1 or 0)', 1, 2, 7, '{"required":"1","defaultValue":"1","rule":"/^[01]$/"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902770941954', '10', 'flowRuleEnable', 'flowRuleEnable 1 or 0', 1, 2, 7, '{"required":"1","defaultValue":"1","rule":"/^[01]$/"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902770941955', '10', 'flowRuleCount', 'flowRuleCount', 1, 2, 6, '{"required":"1","defaultValue":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902770941956', '10', 'degradeRuleEnable', 'degradeRuleEnable 1 or 0)', 1, 2, 2, '{"required":"1","defaultValue":"1","rule":"/^[01]$/"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902770941956', '10', 'degradeRuleEnable', 'degradeRuleEnable 1 or 0', 1, 2, 2, '{"required":"1","defaultValue":"1","rule":"/^[01]$/"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902770941957', '10', 'degradeRuleGrade', 'degradeRuleGrade', 3, 2, 3, '{"required":"1","defaultValue":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136256', '10', 'degradeRuleCount', 'degradeRuleCount', 1, 2, 1, '{"required":"1","defaultValue":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136257', '10', 'degradeRuleTimeWindow', 'degradeRuleTimeWindow', 1, 2, 4, '{"required":"1","defaultValue":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -1015,6 +1020,7 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136264', '4', 'replen
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136265', '4', 'burstCapacity', 'burstCapacity', 2, 2, 3, '{"required":"1","defaultValue":"100","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136266', '3', 'regex', 'regex', 2, 2, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136267', '3', 'replace', 'replace', 2, 2, 2, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1697146860569596304', '3', 'percentage', 'percentage', 1, 2, 3, NULL, '2023-09-15 20:25:53', '2023-09-15 20:25:53');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136268', '16', 'redirectURI', 'redirectURI', 2, 2, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136269', '8', 'path', 'path', 2, 2, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136270', '8', 'timeout', 'timeout ms)', 1, 2, 2, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -1784,6 +1790,11 @@ INSERT INTO "public"."resource" VALUES ('1572525965625266185', '1572525965625266
 INSERT INTO "public"."resource" VALUES ('1572525965625266186', '1572525965625266177', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLts:modify', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
 
 INSERT INTO "public"."resource" VALUES ('1572525965625266176', '1346777449787125760', 'SHENYU.BUTTON.SYSTEM.RESOURCE', '', '', '', 2, 6, '', 1, 0, 'system:plugin:resource', 1, '2022-09-28 11:50:58', '2022-09-28 11:50:58');
+INSERT INTO "public"."resource" VALUES ('1697141926247763968','1346776175553376256','SHENYU.MENU.SYSTEM.MANAGMENT.ALERT','','/system/alert','',1,3,'alert',0,0,'',1,'2023-08-31 14:59:01','2023-08-31 06:59:01');
+INSERT INTO "public"."resource" VALUES ('1697146375729025024', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 0, 'unordered-list', 1, 0, 'system:alert:list', 1, '2023-08-31 15:16:42', '2023-08-31 07:22:07');
+INSERT INTO "public"."resource" VALUES ('1697145808210333696','1697141926247763968','SHENYU.BUTTON.SYSTEM.ADD','','','',2,0,'plus',1,0,'system:alert:add',1,'2023-08-31 15:14:26','2023-08-31 07:14:26');
+INSERT INTO "public"."resource" VALUES ('1697146617513873408','1697141926247763968','SHENYU.BUTTON.SYSTEM.DELETE','','','',2,0,'delete',1,0,'system:alert:delete',1,'2023-08-31 15:17:39','2023-08-31 07:22:07');
+INSERT INTO "public"."resource" VALUES ('1697146860540235776','1697141926247763968','SHENYU.BUTTON.SYSTEM.EDIT','','','',2,0,'edit',1,0,'system:alert:edit',1,'2023-08-31 15:18:37','2023-08-31 07:18:37');
 -- ----------------------------
 -- Table structure for role
 -- ----------------------------

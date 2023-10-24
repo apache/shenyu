@@ -1549,7 +1549,12 @@ public class ShenyuConfig {
          * max frame pay load size mb.
          */
         private Integer maxFramePayloadSize = 10;
-    
+
+        /**
+         * whether enable ping.
+         */
+        private Boolean enableProxyPing = false;
+
         /**
          * Get max frame payload size.
          *
@@ -1558,7 +1563,7 @@ public class ShenyuConfig {
         public Integer getMaxFramePayloadSize() {
             return maxFramePayloadSize;
         }
-    
+
         /**
          * Set max frame payload size.
          *
@@ -1566,6 +1571,22 @@ public class ShenyuConfig {
          */
         public void setMaxFramePayloadSize(final Integer maxFramePayloadSize) {
             this.maxFramePayloadSize = maxFramePayloadSize;
+        }
+
+        /**
+         * Get whether enable ping.
+         * @return whether ping is enabled
+         */
+        public Boolean getEnableProxyPing() {
+            return enableProxyPing;
+        }
+
+        /**
+         * enable ping or disable ping.
+         * @param enableProxyPing enable ping or disable ping
+         */
+        public void setEnableProxyPing(final boolean enableProxyPing) {
+            this.enableProxyPing = enableProxyPing;
         }
     }
     
@@ -1959,7 +1980,7 @@ public class ShenyuConfig {
     public static class AlertConfig {
         private Boolean enabled = Boolean.TRUE;
         
-        private String reportUrl = "http://localhost:9095/alert/report";
+        private String admins = "localhost:9095";
         
         /**
          * get shenyu spring cloud cache status.
@@ -1978,19 +1999,20 @@ public class ShenyuConfig {
         }
         
         /**
-         * Get shenyu admin alert report url.
-         * @return url
+         * Get shenyu admin alert report urls.
+         * eg: localhost:9095,localhost:9093
+         * @return admin alert report server list
          */
-        public String getReportUrl() {
-            return reportUrl;
+        public String getAdmins() {
+            return admins;
         }
         
         /**
          * Set shenyu admin alert report url.
-         * @param reportUrl admin url
+         * @param admins admin url
          */
-        public void setReportUrl(final String reportUrl) {
-            this.reportUrl = reportUrl;
+        public void setAdmins(final String admins) {
+            this.admins = admins;
         }
     }
 }

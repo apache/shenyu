@@ -152,7 +152,7 @@ shenyu:
   #            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
   #            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
   #  httpclient:
-  #    strategy: webClient # netty
+  #    strategy: netty # webClient
   #    connectTimeout: 45000
   #    responseTimeout: 3000
   #    readerIdleTime: 3000
@@ -277,7 +277,7 @@ shenyu:
       - /health_check
   alert:
     enabled: true
-    reportUrl: http://admin:9095/alert/report
+    admins: localhost:9095
   extPlugin:
     path:
     enabled: true

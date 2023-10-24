@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.e2e.annotation.ShenYuAdminClient;
+import org.apache.shenyu.e2e.client.BaseClient;
 import org.apache.shenyu.e2e.common.IdManagers.Rules;
 import org.apache.shenyu.e2e.common.IdManagers.Selectors;
 import org.apache.shenyu.e2e.common.NameUtils;
@@ -49,7 +50,6 @@ import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -69,7 +69,7 @@ import static org.apache.shenyu.e2e.model.data.SearchCondition.QUERY_ALL;
  * A client to connect to ShenYu Admin.
  */
 @ShenYuAdminClient
-public class AdminClient {
+public class AdminClient extends BaseClient {
 
     private static final Logger log = LoggerFactory.getLogger(AdminClient.class);
     
@@ -90,22 +90,25 @@ public class AdminClient {
 
     private final MultiValueMap<String, String> basicAuth = new HttpHeaders();
 
-    private final RestTemplate template = new RestTemplateBuilder().build();
+    private final RestTemplate template = new RestTemplate();
 
     private final ObjectMapper mapper = new ObjectMapper();
     
     private final String scenarioId;
 
     private final String baseURL;
+    
+    private String serviceName;
 
     private final ImmutableMap<String, String> loginInfo;
     
-    public AdminClient(final String scenarioId, final String baseURL, final Properties properties) {
+    public AdminClient(final String scenarioId, final String serviceName, final String baseURL, final Properties properties) {
+        super(serviceName);
         Preconditions.checkArgument(properties.containsKey("username"), "Property username does not exist");
         Preconditions.checkArgument(properties.containsKey("password"), "Property password does not exist");
-        
         this.baseURL = baseURL;
         this.scenarioId = scenarioId;
+        this.serviceName = serviceName;
         this.loginInfo = ImmutableMap.<String, String>builder()
                 .put("username", properties.getProperty("username"))
                 .put("password", properties.getProperty("password"))
@@ -468,7 +471,7 @@ public class AdminClient {
      * @param formData formData
      */
     public void changePluginStatus(final String id, final MultiValueMap<String, String> formData) {
-        putResource("/plugin", id, SelectorDTO.class, formData);
+        putResource("/plugin", id, PluginDTO.class, formData);
     }
     
     private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final MultiValueMap<String, String> formData) {
@@ -511,6 +514,7 @@ public class AdminClient {
     public void syncPluginAll() {
         HttpEntity<SearchCondition> entity = new HttpEntity<>(basicAuth);
         template.postForEntity(baseURL + "/plugin/syncPluginAll", entity, ShenYuResult.class);
+        log.warn("admin syncPluginAll");
     }
 
     @FunctionalInterface

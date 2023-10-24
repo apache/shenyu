@@ -320,6 +320,6 @@ public class ShenyuConfiguration {
     @Bean
     public AlarmService shenyuAlarmService(final ShenyuConfig shenyuConfig, final RestTemplate restTemplate) {
         ShenyuConfig.AlertConfig alertConfig = shenyuConfig.getAlert();
-        return new AlarmServiceImpl(restTemplate, alertConfig.getReportUrl(), alertConfig.getEnabled());
+        return new AlarmServiceImpl(restTemplate, alertConfig.getAdmins(), alertConfig.getEnabled());
     }
 }

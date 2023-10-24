@@ -25,13 +25,7 @@ import java.lang.annotation.Target;
 
 @Inherited
 @ShenYuInjectable
-@Target(ElementType.PARAMETER)
+@Target({ElementType.PARAMETER, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExternalService {
-    
-    /**
-     * service name.
-     * @return String
-     */
-    String serviceName() default "";
 }

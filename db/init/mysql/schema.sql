@@ -771,6 +771,11 @@ INSERT INTO `permission` VALUES ('1572525965658820617', '1346358560427216896', '
 INSERT INTO `permission` VALUES ('1572525965658820618', '1346358560427216896', '1676471945124278280', '2023-07-07 23:26:37.388', '2023-07-07 23:26:37.388');
 
 INSERT INTO `permission` VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176', '2022-09-28 11:50:58', '2022-09-28 11:50:58');
+INSERT INTO `permission` VALUES ('1697141926281318400','1346358560427216896','1697141926247763968', '2023-08-31 14:59:01', '2023-08-31 06:59:01');
+INSERT INTO `permission` VALUES ('1697145808239693824','1346358560427216896','1697145808210333696', '2023-08-31 15:14:26', '2023-08-31 07:14:26');
+INSERT INTO `permission` VALUES ('1697146375754190848','1346358560427216896','1697146375729025024', '2023-08-31 15:16:42', '2023-08-31 07:16:42');
+INSERT INTO `permission` VALUES ('1697146617543233536','1346358560427216896','1697146617513873408', '2023-08-31 15:17:39', '2023-08-31 07:17:39');
+INSERT INTO `permission` VALUES ('1697146860569595904','1346358560427216896','1697146860540235776', '2023-08-31 15:18:37', '2023-08-31 07:18:37');
 -- ----------------------------
 -- Table structure for plugin
 -- ----------------------------
@@ -856,9 +861,9 @@ CREATE TABLE `plugin_handle`  (
 -- ----------------------------
 INSERT INTO `plugin_handle` VALUES ('1529402613195784246', '10', 'flowRuleGrade', 'flowRuleGrade', 3, 2, 8, '{\"required\":\"1\",\"defaultValue\":\"1\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978496', '10', 'flowRuleControlBehavior', 'flowRuleControlBehavior', 3, 2, 5, '{\"required\":\"1\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin_handle` VALUES ('1529402613199978497', '10', 'flowRuleEnable', 'flowRuleEnable 1 or 0)', 1, 2, 7, '{\"required\":\"1\",\"defaultValue\":\"1\",\"rule\":\"/^[01]$/\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613199978497', '10', 'flowRuleEnable', 'flowRuleEnable 1 or 0', 1, 2, 7, '{\"required\":\"1\",\"defaultValue\":\"1\",\"rule\":\"/^[01]$/\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978498', '10', 'flowRuleCount', 'flowRuleCount', 1, 2, 6, '{\"required\":\"1\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin_handle` VALUES ('1529402613199978499', '10', 'degradeRuleEnable', 'degradeRuleEnable 1 or 0)', 1, 2, 2, '{\"required\":\"1\",\"defaultValue\":\"1\",\"rule\":\"/^[01]$/\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613199978499', '10', 'degradeRuleEnable', 'degradeRuleEnable 1 or 0', 1, 2, 2, '{\"required\":\"1\",\"defaultValue\":\"1\",\"rule\":\"/^[01]$/\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978500', '10', 'degradeRuleGrade', 'degradeRuleGrade', 3, 2, 3, '{\"required\":\"1\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978501', '10', 'degradeRuleCount', 'degradeRuleCount', 1, 2, 1, '{\"required\":\"1\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978502', '10', 'degradeRuleTimeWindow', 'degradeRuleTimeWindow', 1, 2, 4, '{\"required\":\"1\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -872,6 +877,7 @@ INSERT INTO `plugin_handle` VALUES ('1529402613199978509', '4', 'replenishRate',
 INSERT INTO `plugin_handle` VALUES ('1529402613199978510', '4', 'burstCapacity', 'burstCapacity', 2, 2, 3, '{\"required\":\"1\",\"defaultValue\":\"100\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978511', '3', 'regex', 'regex', 2, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978512', '3', 'replace', 'replace', 2, 2, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1697146860569596304', '3', 'percentage', 'percentage', 1, 2, 3, NULL, '2023-09-15 20:25:53', '2023-09-15 20:25:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978513', '16', 'redirectURI', 'redirectURI', 2, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978514', '8', 'path', 'path', 2, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978515', '8', 'timeout', 'timeout ms)', 1, 2, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -1618,6 +1624,11 @@ INSERT INTO `resource` VALUES ('1676471945124278279', '1676471945048780800', 'SH
 INSERT INTO `resource` VALUES ('1676471945124278280', '1676471945048780800', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLts:modify', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
 
 INSERT INTO `resource` VALUES ('1572525965625266176', '1346777449787125760', 'SHENYU.BUTTON.SYSTEM.RESOURCE', '', '', '',2, 6, '', 1, 0, 'system:plugin:resource', 1, '2022-09-28 11:50:58', '2022-09-28 11:50:58');
+INSERT INTO `resource` VALUES ('1697141926247763968', '1346776175553376256', 'SHENYU.MENU.SYSTEM.MANAGMENT.ALERT', '', '/system/alert', '', 1, 3, 'alert', 0, 0, '', 1, '2023-08-31 14:59:01', '2023-08-31 06:59:01');
+INSERT INTO `resource` VALUES ('1697146375729025024', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 0, 'unordered-list', 1, 0, 'system:alert:list', 1, '2023-08-31 15:16:42', '2023-08-31 07:22:07');
+INSERT INTO `resource` VALUES ('1697145808210333696', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.ADD', '', '', '', 2, 0, 'plus', 1, 0, 'system:alert:add', 1, '2023-08-31 15:14:26', '2023-08-31 07:14:26');
+INSERT INTO `resource` VALUES ('1697146617513873408', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.DELETE', '', '', '', 2, 0, 'delete', 1, 0, 'system:alert:delete', 1, '2023-08-31 15:17:39', '2023-08-31 07:22:07');
+INSERT INTO `resource` VALUES ('1697146860540235776', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.EDIT', '', '', '', 2, 0, 'edit', 1, 0, 'system:alert:edit', 1, '2023-08-31 15:18:37', '2023-08-31 07:18:37');
 -- ----------------------------
 -- Table structure for role
 -- ----------------------------
