@@ -26,7 +26,7 @@ bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_mysql.sh
 CUR_PATH=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$CUR_PATH")
 echo "$PRGDIR"
-kubectl apply -f "${PRGDIR}"/shenyu-cm.yml
+kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-cm.yml
 
 # init shenyu sync
 SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
@@ -45,11 +45,10 @@ for sync in ${SYNC_ARRAY[@]}; do
   fi
   kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:31095/actuator/health
-  sh "${CUR_PATH}"/healthcheck.sh http://localhost:30761/actuator/health
   kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:31195/actuator/health
-  kubectl apply -f "${PRGDIR}"/shenyu-examples-springcloud.yml
-  sh "${CUR_PATH}"/healthcheck.sh http://localhost:30884/actuator/health
+  kubectl apply -f "${PRGDIR}"/shenyu-examples-websocket.yml
+  sh "${CUR_PATH}"/healthcheck.sh http://localhost:31191/actuator/health
   sleep 10s
   kubectl get pod -o wide
 
