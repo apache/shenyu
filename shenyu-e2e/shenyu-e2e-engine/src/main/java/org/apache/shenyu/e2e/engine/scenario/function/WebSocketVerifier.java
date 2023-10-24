@@ -20,8 +20,9 @@ package org.apache.shenyu.e2e.engine.scenario.function;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.java_websocket.client.WebSocketClient;
 
-import java.util.concurrent.ArrayBlockingQueue;
-
+/**
+ * WebSocket Verifier interface.
+ */
 public interface WebSocketVerifier {
 
     WebSocketVerifier DEFAULT = (webSocketClient, gatewayClient) -> {

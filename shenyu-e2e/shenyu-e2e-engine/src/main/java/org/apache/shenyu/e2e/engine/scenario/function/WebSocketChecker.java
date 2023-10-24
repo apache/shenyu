@@ -23,6 +23,9 @@ import org.slf4j.MDC;
 
 import java.util.function.Supplier;
 
+/**
+ * WebSocket Checker interface.
+ */
 @FunctionalInterface
 public interface WebSocketChecker extends Checker, WebSocketVerifier {
 
