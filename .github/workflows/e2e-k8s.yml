@@ -207,6 +207,8 @@ jobs:
             script: e2e-sofa-sync
           - case: shenyu-e2e-case-grpc
             script: e2e-grpc-sync
+          - case: shenyu-e2e-case-websocket
+            script: e2e-websocket-sync
     steps:
       - uses: actions/checkout@v2
         with:
