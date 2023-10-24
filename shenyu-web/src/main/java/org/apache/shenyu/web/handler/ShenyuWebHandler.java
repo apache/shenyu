@@ -240,22 +240,25 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
 
             URL[] classPath = new URL[jars.length + 1];
             classPath[0] = pluginJarFiles.toURI().toURL();
-            File pluginJarFile = null;
+            List<File> pluginJarFileList = new ArrayList<>(2);
             for (int i = 1; i < classPath.length; i++) {
                 final File jarFile = jars[i - 1];
                 classPath[i] = jarFile.toURI().toURL();
-                final String pluginJarName = String.join(Constants.DELIMITER, Constants.SHENYU, Constants.PLUGIN, pluginName);
-                if (jarFile.getName().contains(pluginJarName)) {
-                    pluginJarFile = jarFile;
+                if (jarFile.getName().contains(Constants.SHENYU) && jarFile.getName().contains(Constants.PLUGIN)) {
+                    pluginJarFileList.add(jarFile);
                 }
             }
             final ReverseClassLoader urlClassLoader = new ReverseClassLoader(classPath, this.getClass().getClassLoader());
-            if (Objects.nonNull(pluginJarFile)) {
-
-                final List<ShenyuLoaderResult> shenyuLoaderResults = shenyuLoaderService.loadJarPlugins(Files.newInputStream(pluginJarFile.toPath()), urlClassLoader);
-
-                List<PluginDataHandler> handlers = shenyuLoaderResults.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
-                handlers.forEach(handler -> handler.handlerPlugin(pluginData));
+            if (!CollectionUtils.isEmpty(pluginJarFileList)) {
+                pluginJarFileList.stream().sorted(Comparator.reverseOrder()).forEach(pluginJarFile -> {
+                    try {
+                        final List<ShenyuLoaderResult> shenyuLoaderResults = shenyuLoaderService.loadJarPlugins(Files.newInputStream(pluginJarFile.toPath()), urlClassLoader);
+                        List<PluginDataHandler> handlers = shenyuLoaderResults.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
+                        handlers.forEach(handler -> handler.handlerPlugin(pluginData));
+                    } catch (Exception e) {
+                        LOG.error("load {} plugin classloader failed. ex ", pluginJarFile.getAbsolutePath(), e);
+                    }
+                });
             }
             LOG.info("load {} plugin success, path: {}", pluginName, pluginJarDir);
         } catch (Throwable e) {

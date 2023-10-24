@@ -37,7 +37,6 @@ import java.util.Map;
 /**
  * The type Default generic param resolve service.
  */
-@Service
 public class SofaParamResolveServiceImpl implements SofaParamResolveService {
 
     @Override

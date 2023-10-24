@@ -44,7 +44,6 @@ import java.util.concurrent.CompletableFuture;
 /**
  * sofa proxy service is use GenericService.
  */
-@Service
 public class SofaProxyService {
     
     private final SofaParamResolveService sofaParamResolveService;

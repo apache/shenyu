@@ -19,23 +19,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-spring-boot-starter-plugin</artifactId>
+        <artifactId>shenyu-spring-boot-starter</artifactId>
         <version>2.6.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-spring-boot-starter-plugin-sofa</artifactId>
+    <artifactId>shenyu-spring-boot-starter-isolation-plugin</artifactId>
+    <packaging>pom</packaging>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-sofa</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alipay.sofa</groupId>
-            <artifactId>sofa-rpc-all</artifactId>
-            <version>5.7.6</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+    <modules>
+        <module>shenyu-spring-boot-starter-isolation-plugin-sofa</module>
+    </modules>
 </project>

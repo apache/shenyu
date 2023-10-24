@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -157,15 +158,11 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
                 Class<?> clazz = Class.forName(className, false, classLoader);
                 //Exclude ShenyuPlugin subclass and PluginDataHandler subclass
                 // without adding @Component @Service annotation
-                boolean next = ShenyuPlugin.class.isAssignableFrom(clazz)
-                        || PluginDataHandler.class.isAssignableFrom(clazz);
+                boolean next = shenyuClasss.stream().anyMatch(shenyuClass -> shenyuClass.isAssignableFrom(clazz));
                 if (!next) {
                     Annotation[] annotations = clazz.getAnnotations();
                     next = Arrays.stream(annotations).anyMatch(e -> e.annotationType().equals(Component.class)
-                            || e.annotationType().equals(Service.class));
-                }
-                if (!next) {
-                    next = shenyuClasss.stream().anyMatch(shenyuClass -> shenyuClass.isAssignableFrom(clazz));
+                            || e.annotationType().equals(Service.class) || e.annotationType().equals(Configuration.class));
                 }
                 if (next) {
                     GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
