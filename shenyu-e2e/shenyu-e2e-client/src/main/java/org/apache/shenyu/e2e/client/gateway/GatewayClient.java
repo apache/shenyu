@@ -122,23 +122,23 @@ public class GatewayClient extends BaseClient {
             try {
                 return new WebSocketClient(new URI(getBaseUrl().replaceAll("http", "ws"))) {
                     @Override
-                    public void onOpen(ServerHandshake handshakeData) {
+                    public void onOpen(final ServerHandshake handshakeData) {
                         log.info("Open websocket connection successfully");
                     }
 
                     @Override
-                    public void onMessage(String message) {
+                    public void onMessage(final String message) {
                         BLOCKING_QUEUE.add(message);
                         log.info("Receive Message: " + message);
                     }
 
                     @Override
-                    public void onClose(int code, String reason, boolean remote) {
+                    public void onClose(final int code, final String reason, final boolean remote) {
                     }
 
                     @Override
-                    public void onError(Exception ex) {
-                        ex.printStackTrace();
+                    public void onError(final Exception ex) {
+                        log.error(ex.getMessage());
                     }
                 };
             } catch (URISyntaxException e) {
@@ -216,6 +216,10 @@ public class GatewayClient extends BaseClient {
         return (Map<String, Integer>) body.get(0);
     }
 
+    /**
+     * get the return message from the server.
+     * @return String String
+     */
     public String getWebSocketMessage() {
         try {
             return BLOCKING_QUEUE.poll(10, TimeUnit.SECONDS);
