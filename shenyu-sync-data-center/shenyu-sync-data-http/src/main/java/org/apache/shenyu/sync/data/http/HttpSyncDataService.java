@@ -163,7 +163,7 @@ public class HttpSyncDataService implements SyncDataService {
         }
         // not updated. it is likely that the current config server has not been updated yet. wait a moment.
         LOG.info("The config of the server[{}] has not been updated or is out of date. Wait for listening for changes again.", server);
-        ThreadUtils.sleep(TimeUnit.SECONDS, 30);
+        ThreadUtils.sleep(TimeUnit.SECONDS, 5);
     }
 
 
