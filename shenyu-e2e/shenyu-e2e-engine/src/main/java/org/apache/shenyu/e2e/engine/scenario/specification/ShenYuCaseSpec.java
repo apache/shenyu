@@ -223,7 +223,7 @@ public class ShenYuCaseSpec implements CaseSpec {
         /**
          * add not exists case spec.
          * @param endpoint endpoint
-         * @param endpoint endpoint
+         * @param message message
          * @return ShenYuTestCaseSpecBuilder
          */
         public ShenYuTestCaseSpecBuilder addNotExists(final String endpoint, final String message) {

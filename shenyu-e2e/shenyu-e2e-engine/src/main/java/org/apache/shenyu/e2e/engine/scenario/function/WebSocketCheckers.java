@@ -34,6 +34,13 @@ public class WebSocketCheckers {
 
     public static final ArrayBlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(1);
 
+    /**
+     * exist endpoint.
+     * @param endpoint endpoint
+     * @param sendMessage sendMessage
+     * @param receiveMessage receiveMessage
+     * @return WebSocketChecker
+     */
     public static WebSocketChecker exists(final String endpoint, final String sendMessage, final String receiveMessage) {
         return (websocketClient, gatewayClient) -> {
             try {
@@ -52,6 +59,12 @@ public class WebSocketCheckers {
         };
     }
 
+    /**
+     * not exist endpoint.
+     * @param endpoint endpoint
+     * @param message message
+     * @return WebSocketChecker
+     */
     public static WebSocketChecker notExists(final String endpoint, final String message) {
         return (websocketClient, gatewayClient) -> {
             try {
@@ -69,6 +82,12 @@ public class WebSocketCheckers {
         };
     }
 
+
+    /**
+     * update websocket client uri.
+     * @param client client
+     * @param endpoint endpoint
+     */
     private static void updateWebSocketClientURI(WebSocketClient client, String endpoint)
             throws NoSuchFieldException, IllegalAccessException, URISyntaxException {
         Field uriField = WebSocketClient.class.getDeclaredField("uri");

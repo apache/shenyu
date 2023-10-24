@@ -31,6 +31,7 @@ public interface WebSocketVerifier {
     /**
      * Verify WebSocketClient.
      * @param client WebSocketClient
+     * @param gatewayClient GatewayClient
      */
     void verify(WebSocketClient client, GatewayClient gatewayClient);
 }
