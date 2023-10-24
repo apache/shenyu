@@ -189,5 +189,33 @@ public class IngressConstants {
     //The configuration key to specify the Brpc parameter type for the plugin, in string
     public static final String PLUGIN_BRPC_PARAMETER_TYPE = "shenyu.apache.org/plugin-grpc-parameter-type";
 
+    //The configuration key to specify the Grpc application name for the plugin, in string
+    public static final String PLUGIN_GRPC_APP_NAME = "shenyu.apache.org/plugin-grpc-app-name";
 
+    //The configuration key to specify the Grpc service name for the plugin, in string
+    public static final String PLUGIN_GRPC_SERVICE_NAME = "shenyu.apache.org/plugin-grpc-service-name";
+
+    //The configuration key to specify the Grpc method name for the plugin, in string
+    public static final String PLUGIN_GRPC_METHOD_NAME = "shenyu.apache.org/plugin-grpc-method-name";
+
+    //The configuration key to specify the Grpc params type for the plugin, in string
+    public static final String PLUGIN_GRPC_PARAMS_TYPE = "shenyu.apache.org/plugin-grpc-params-type";
+
+    //The configuration key to specify the Grpc rpc type for the plugin, in string
+    public static final String PLUGIN_GRPC_RPC_TYPE = "shenyu.apache.org/plugin-grpc-rpc-type";
+
+    //The configuration key to specify the Grpc context path for the plugin, in string
+    public static final String PLUGIN_GRPC_CONTEXT_PATH = "shenyu.apache.org/plugin-grpc-context-path";
+
+    //The configuration key to specify the Grpc path for the plugin, in string
+    public static final String PLUGIN_GRPC_PATH = "shenyu.apache.org/plugin-grpc-path";
+
+    //The configuration key to specify the Grpc enabled for the plugin, in string
+    public static final String PLUGIN_GRPC_ENABLED = "shenyu.apache.org/plugin-grpc-enabled";
+
+    //The configuration key to specify the Grpc rpc expand for the plugin, in string
+    public static final String PLUGIN_GRPC_RPC_EXPAND = "shenyu.apache.org/plugin-grpc-rpc-expand";
+
+    //The configuration key to specify the Grpc parameter type for the plugin, in string
+    public static final String PLUGIN_GRPC_PARAMETER_TYPE = "shenyu.apache.org/plugin-grpc-parameter-type";
 }
