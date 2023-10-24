@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-docker save shenyu-examples-eureka:latest shenyu-examples-springcloud:latest | sudo k3s ctr images import -
+docker shenyu-examples-websocket:latest | sudo k3s ctr images import -
 
 # init kubernetes for mysql
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
@@ -34,10 +34,9 @@ SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
 MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
 for sync in ${SYNC_ARRAY[@]}; do
   echo -e "------------------\n"
-  kubectl apply -f "${PRGDIR}"/shenyu-examples-eureka.yml
   kubectl apply -f "$SHENYU_TESTCASE_DIR"/k8s/shenyu-mysql.yml
   sleep 30s
-  echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
+  echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-websocket.yml"
   # shellcheck disable=SC2199
   # shellcheck disable=SC2076
   if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" ]]; then
@@ -55,7 +54,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   kubectl get pod -o wide
 
   ## run e2e-test
-  ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test
+  ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-websocket -am test
   # shellcheck disable=SC2181
   if (($?)); then
     echo "${sync}-sync-e2e-test failed"
@@ -70,11 +69,11 @@ for sync in ${SYNC_ARRAY[@]}; do
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-mysql.yml
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
-  kubectl delete -f "${PRGDIR}"/shenyu-examples-springcloud.yml
+  kubectl delete -f "${PRGDIR}"/shenyu-examples-websocket.yml
   # shellcheck disable=SC2199
   # shellcheck disable=SC2076
   if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" ]]; then
     kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-"${sync}".yml
   fi
-  echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
+  echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-websocket.yml"
 done
