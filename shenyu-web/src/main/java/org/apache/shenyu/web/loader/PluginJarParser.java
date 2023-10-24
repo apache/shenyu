@@ -22,6 +22,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -36,12 +37,12 @@ public class PluginJarParser {
     /**
      * parseJar.
      *
-     * @param jarBytes jarBytes
+     * @param parseJarInputStream parseJarInputStream
      * @return PluginJar
      */
-    public static PluginJar parseJar(final byte[] jarBytes) {
+    public static PluginJar parseJar(final InputStream parseJarInputStream) {
         PluginJar pluginJar = new PluginJar();
-        try (JarInputStream jarInputStream = new JarInputStream(new ByteArrayInputStream(jarBytes))) {
+        try (JarInputStream jarInputStream = new JarInputStream(parseJarInputStream)) {
             JarEntry jarEntry;
             while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
                 String entryName = jarEntry.getName();

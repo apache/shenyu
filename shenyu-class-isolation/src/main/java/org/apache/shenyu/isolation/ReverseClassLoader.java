@@ -47,15 +47,13 @@ public class ReverseClassLoader extends URLClassLoader {
     @Override
     protected Class<?> loadClass(final String name, final boolean resolve) throws ClassNotFoundException {
         synchronized (getClassLoadingLock(name)) {
-            Class<?> c = null;
-            if (c == null) {
-                c = findLoadedClass(name);
-                try {
-                    if (c == null) {
-                        c = findClass(name);
-                    }
-                } catch (ClassNotFoundException e) {
+            Class<?> c = findLoadedClass(name);
+            try {
+                if (c == null) {
+                    c = findClass(name);
                 }
+            } catch (ClassNotFoundException e) {
+                // ignore
             }
             if (c == null) {
                 c = super.loadClass(name, resolve);

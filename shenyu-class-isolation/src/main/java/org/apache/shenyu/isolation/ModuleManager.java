@@ -33,13 +33,7 @@ public class ModuleManager {
      * @throws MalformedURLException Exception.
      */
     public static URLClassLoader initClassLoader(final File dir) throws MalformedURLException {
-        File[] jars = dir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(final File dir, final String name) {
-                return name.endsWith(".jar");
-            }
-        });
-
+        File[] jars = dir.listFiles((dir1, name) -> name.endsWith(".jar"));
         if (Objects.isNull(jars) || jars.length == 0) {
             return null;
         }
@@ -50,7 +44,6 @@ public class ModuleManager {
         for (int i = 1; i < classPath.length; i++) {
             classPath[i] = jars[i - 1].toURI().toURL();
         }
-
-        return new ReverseClassLoader(classPath, ModuleManager.class.getClassLoader());
+        return new URLClassLoader(classPath, ModuleManager.class.getClassLoader());
     }
 }

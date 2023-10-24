@@ -28,6 +28,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,7 @@ import java.util.Map;
 /**
  * The type Default generic param resolve service.
  */
+@Service
 public class SofaParamResolveServiceImpl implements SofaParamResolveService {
 
     @Override

@@ -20,14 +20,16 @@ package org.apache.shenyu.web.handler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
-import org.apache.shenyu.isolation.Module;
-import org.apache.shenyu.isolation.ModuleManager;
+import org.apache.shenyu.isolation.ReverseClassLoader;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.PluginHandlerEvent;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.web.loader.ShenyuLoaderResult;
 import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +42,9 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.File;
+import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -209,7 +213,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
 
         if (StringUtils.isNoneBlank(pluginData.getPluginJar())) {
             LOG.info("shenyu start load plugin [{}] from upload plugin jar", pluginData.getName());
-            shenyuLoaderService.loadUploadedJarPlugins(pluginData);
+            shenyuLoaderService.loadUploadedJarPlugins(pluginData.getPluginJar());
         }
         final List<ShenyuPlugin> enabledPlugins = this.sourcePlugins.stream().filter(plugin -> plugin.named().equals(pluginData.getName())
                 && pluginData.getEnabled()).collect(Collectors.toList());
@@ -225,34 +229,37 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         try {
             // load plugin
             String pluginJarDir = String.format(PLUGIN_PATH, pluginName);
-            URLClassLoader pluginClassLoader = ModuleManager.initClassLoader(new File(pluginJarDir));
-            if (Objects.isNull(pluginClassLoader)) {
-                LOG.info("fail to find the plugin path: {}, plugin: {}, Attempting to load from current classpath", pluginJarDir, pluginName);
+            final File pluginJarFiles = new File(pluginJarDir);
+            if (pluginJarFiles.mkdirs()) {
+                return;
+            }
+            File[] jars = pluginJarFiles.listFiles((dir1, name) -> name.endsWith(".jar"));
+            if (Objects.isNull(jars) || jars.length == 0) {
                 return;
             }
 
-            // init plugin
-            ServiceLoader<Module> loader = ServiceLoader.load(Module.class, pluginClassLoader);
-            Iterator<Module> it = loader.iterator();
-            Module plugin = null;
-            while (it.hasNext()) {
-                Module module = it.next();
-                if (module.name().equals(pluginName)) {
-                    plugin = module;
-                    break;
+            URL[] classPath = new URL[jars.length + 1];
+            classPath[0] = pluginJarFiles.toURI().toURL();
+            File pluginJarFile = null;
+            for (int i = 1; i < classPath.length; i++) {
+                final File jarFile = jars[i - 1];
+                classPath[i] = jarFile.toURI().toURL();
+                final String pluginJarName = String.join(Constants.DELIMITER, Constants.SHENYU, Constants.PLUGIN, pluginName);
+                if (jarFile.getName().contains(pluginJarName)) {
+                    pluginJarFile = jarFile;
                 }
             }
+            final ReverseClassLoader urlClassLoader = new ReverseClassLoader(classPath, this.getClass().getClassLoader());
+            if (Objects.nonNull(pluginJarFile)) {
 
-            if (plugin == null) {
-                LOG.error("SPI load plugin failed, plugin: {}", pluginName);
-                return;
+                final List<ShenyuLoaderResult> shenyuLoaderResults = shenyuLoaderService.loadJarPlugins(Files.newInputStream(pluginJarFile.toPath()), urlClassLoader);
+
+                List<PluginDataHandler> handlers = shenyuLoaderResults.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
+                handlers.forEach(handler -> handler.handlerPlugin(pluginData));
             }
-
-            List<String> classNames = plugin.getRegisterClassNames();
-            shenyuLoaderService.initPlugin(classNames, pluginData, pluginClassLoader);
             LOG.info("load {} plugin success, path: {}", pluginName, pluginJarDir);
         } catch (Throwable e) {
-            LOG.error("load {} plugin classloader failed. exception: {}", pluginName, e);
+            LOG.error("load {} plugin classloader failed. ex ", pluginName, e);
         }
     }
 

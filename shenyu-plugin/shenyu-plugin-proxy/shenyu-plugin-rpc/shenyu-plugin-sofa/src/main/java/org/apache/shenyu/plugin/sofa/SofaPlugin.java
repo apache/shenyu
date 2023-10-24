@@ -56,8 +56,7 @@ public class SofaPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(SofaPlugin.class);
 
-    @Autowired
-    private SofaProxyService sofaProxyService;
+    private final SofaProxyService sofaProxyService;
 
     /**
      * Instantiates a new Sofa plugin.
@@ -66,9 +65,6 @@ public class SofaPlugin extends AbstractShenyuPlugin {
      */
     public SofaPlugin(final SofaProxyService sofaProxyService) {
         this.sofaProxyService = sofaProxyService;
-    }
-
-    public SofaPlugin() {
     }
 
     @Override

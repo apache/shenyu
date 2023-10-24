@@ -34,14 +34,12 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.GenericBeanDefinition;
 
-import java.net.URLClassLoader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -90,7 +88,7 @@ public class ShenyuLoaderService {
             for (PluginJarParser.PluginJar extPath : uploadPluginJars) {
                 LOG.info("shenyu extPlugin find new {} to load", extPath.getAbsolutePath());
                 ShenyuPluginClassLoader extPathClassLoader = ShenyuPluginClassloaderHolder.getSingleton().createExtPathClassLoader(extPath);
-                extendPlugins.addAll(extPathClassLoader.loadUploadedJarPlugins());
+                extendPlugins.addAll(extPathClassLoader.loadUploadedJarPlugins(this.getClass().getClassLoader()));
             }
             loaderPlugins(extendPlugins);
         } catch (Exception e) {
@@ -101,21 +99,35 @@ public class ShenyuLoaderService {
     /**
      * loadUploadedJarPlugins.
      *
-     * @param uploadedJarResource uploadedJarResource
+     * @param uploadedJarResourceBase64 uploadedJarResourceBase64
      */
-    public void loadUploadedJarPlugins(final PluginData uploadedJarResource) {
+    public void loadUploadedJarPlugins(final String uploadedJarResourceBase64) {
+        loadJarPlugins(new ByteArrayInputStream(Base64.getDecoder().decode(uploadedJarResourceBase64)), this.getClass().getClassLoader());
+    }
+
+
+    /**
+     * loadJarPlugins.
+     *
+     * @param parseJarInputStream parseJarInputStream
+     * @param classLoader classLoader
+     * @return {@link List<ShenyuLoaderResult>}
+     */
+    public List<ShenyuLoaderResult> loadJarPlugins(final InputStream parseJarInputStream, ClassLoader classLoader) {
         try {
-            PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(Base64.getDecoder().decode(uploadedJarResource.getPluginJar()));
+            PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(parseJarInputStream);
             ShenyuPluginClassLoader shenyuPluginClassLoader = ShenyuPluginClassloaderHolder.getSingleton().getUploadClassLoader(pluginJar);
             if (Objects.nonNull(shenyuPluginClassLoader) && shenyuPluginClassLoader.compareVersion(pluginJar.getVersion())) {
                 LOG.info("shenyu uploadPlugin has same version don't reload it");
-                return;
+                return Collections.emptyList();
             }
             shenyuPluginClassLoader = ShenyuPluginClassloaderHolder.getSingleton().recreateUploadClassLoader(pluginJar);
-            List<ShenyuLoaderResult> uploadPlugins = shenyuPluginClassLoader.loadUploadedJarPlugins();
+            List<ShenyuLoaderResult> uploadPlugins = shenyuPluginClassLoader.loadUploadedJarPlugins(classLoader);
             loaderPlugins(uploadPlugins);
+            return uploadPlugins;
         } catch (Exception e) {
-            LOG.error("shenyu upload plugins load has error ", e);
+            LOG.error("Shenyu upload plugins load has error ", e);
+            return Collections.emptyList();
         }
     }
 
@@ -132,62 +144,9 @@ public class ShenyuLoaderService {
         webHandler.putExtPlugins(shenyuExtendPlugins);
         List<PluginDataHandler> handlers = results.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
         subscriber.putExtendPluginDataHandler(handlers);
-    }
-
-    /**
-     * Init plugin.
-     * @param classNames class names
-     * @param pluginData plugin data
-     * @param pluginClassLoader plugin classloader
-     * @throws ClassNotFoundException exception
-     * @throws IllegalAccessException exception
-     * @throws InstantiationException exception
-     */
-    public void initPlugin(List<String> classNames, PluginData pluginData, URLClassLoader pluginClassLoader) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        if (CollectionUtils.isEmpty(classNames)) {
-            return;
-        }
-        for (String className : classNames) {
-            Object instance = getOrCreateSpringBean(className, pluginClassLoader);
-            if (ShenyuPlugin.class.isAssignableFrom(instance.getClass())) {
-                AbstractShenyuPlugin plugin = (AbstractShenyuPlugin) instance;
-                plugin.setClassLoader(pluginClassLoader);
-                webHandler.putExtPlugins(Arrays.asList(plugin));
-            } else if (PluginDataHandler.class.isAssignableFrom(instance.getClass())) {
-                PluginDataHandler handler = (PluginDataHandler) instance;
-                subscriber.putExtendPluginDataHandler(Arrays.asList(handler));
-                handler.handlerPlugin(pluginData);
-            } else if (ShenyuContextDecorator.class.isAssignableFrom(instance.getClass())) {
-                contextBuilder.addDecorator((ShenyuContextDecorator) instance);
-            } else if (MetaDataHandler.class.isAssignableFrom(instance.getClass())) {
-                MetaDataHandler handler = (MetaDataHandler) instance;
-                handler.setPluginClassLoader(pluginClassLoader);
-                metaDataSubscriber.addHander(handler);
-            }
-        }
-    }
-
-    private final ReentrantLock lock = new ReentrantLock();
-
-    private <T> T getOrCreateSpringBean(final String className, final ClassLoader classLoader) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        if (SpringBeanUtils.getInstance().existBean(className)) {
-            return SpringBeanUtils.getInstance().getBeanByClassName(className);
-        }
-        lock.lock();
-        try {
-            T inst = SpringBeanUtils.getInstance().getBeanByClassName(className);
-            if (Objects.isNull(inst)) {
-                Class<?> clazz = Class.forName(className, false, classLoader);
-                GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
-                beanDefinition.setBeanClassName(className);
-                beanDefinition.setAutowireCandidate(true);
-                beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-                String beanName = SpringBeanUtils.getInstance().registerBean(beanDefinition, classLoader);
-                inst = SpringBeanUtils.getInstance().getBeanByClassName(beanName);
-            }
-            return inst;
-        } finally {
-            lock.unlock();
-        }
+        final List<MetaDataHandler> metaDataHandlers = results.stream().map(ShenyuLoaderResult::getMetaDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
+        metaDataSubscriber.addHandlers(metaDataHandlers);
+        final List<ShenyuContextDecorator> contextDecorators = results.stream().map(ShenyuLoaderResult::getShenyuContextDecorator).filter(Objects::nonNull).collect(Collectors.toList());
+        contextBuilder.addDecorators(contextDecorators);
     }
 }

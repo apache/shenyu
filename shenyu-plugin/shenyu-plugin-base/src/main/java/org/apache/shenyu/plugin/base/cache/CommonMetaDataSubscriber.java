@@ -47,11 +47,13 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
     }
 
     /**
-     * Add handler.
-     * @param handler
+     * Add handlers.
+     * @param handlers
      */
-    public void addHander(final MetaDataHandler handler) {
-        this.handlerMap.put(handler.rpcType(), handler);
+    public void addHandlers(final List<MetaDataHandler> handlers) {
+        handlers.forEach(metaDataHandler -> {
+            this.handlerMap.put(metaDataHandler.rpcType(), metaDataHandler);
+        });
     }
 
     @Override
@@ -64,19 +66,14 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
     }
 
     private void handleMetaData(final MetaDataHandler handler, final MetaData metaData) {
-        if (Objects.nonNull(handler.getPluginClassLoader())) {
-            ClassLoader current = Thread.currentThread().getContextClassLoader();
-            try {
-                Thread.currentThread().setContextClassLoader(handler.getPluginClassLoader());
-                handler.handle(metaData);
-            } catch (Throwable e) {
-                LOG.error("handle metaData failed, metaData: {}", JsonUtils.toJson(metaData));
-                e.printStackTrace();
-            } finally {
-                Thread.currentThread().setContextClassLoader(current);
-            }
-        } else {
+        ClassLoader current = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(handler.getClass().getClassLoader());
             handler.handle(metaData);
+        } catch (Throwable e) {
+            LOG.error("handle metaData failed, metaData: {}", JsonUtils.toJson(metaData));
+        } finally {
+            Thread.currentThread().setContextClassLoader(current);
         }
     }
 

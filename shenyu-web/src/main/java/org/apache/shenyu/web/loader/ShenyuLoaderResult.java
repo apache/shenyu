@@ -18,6 +18,8 @@
 package org.apache.shenyu.web.loader;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 
 /**
@@ -30,6 +32,10 @@ public class ShenyuLoaderResult {
     private ShenyuPlugin shenyuPlugin;
     
     private PluginDataHandler pluginDataHandler;
+
+    private MetaDataHandler metaDataHandler;
+
+    private ShenyuContextDecorator shenyuContextDecorator;
 
     public String getClassName() {
         return className;
@@ -73,5 +79,41 @@ public class ShenyuLoaderResult {
      */
     public void setPluginDataHandler(final PluginDataHandler pluginDataHandler) {
         this.pluginDataHandler = pluginDataHandler;
+    }
+
+    /**
+     * metaDataHandler.
+     *
+     * @return MetaDataHandler
+     */
+    public MetaDataHandler getMetaDataHandler() {
+        return metaDataHandler;
+    }
+
+    /**
+     * set metaDataHandler.
+     *
+     * @param metaDataHandler metaDataHandler
+     */
+    public void setMetaDataHandler(final MetaDataHandler metaDataHandler) {
+        this.metaDataHandler = metaDataHandler;
+    }
+
+    /**
+     * shenyuContextDecorator.
+     *
+     * @return ShenyuContextDecorator
+     */
+    public ShenyuContextDecorator getShenyuContextDecorator() {
+        return shenyuContextDecorator;
+    }
+
+    /**
+     * set shenyuContextDecorator.
+     *
+     * @param shenyuContextDecorator shenyuContextDecorator
+     */
+    public void setShenyuContextDecorator(final ShenyuContextDecorator shenyuContextDecorator) {
+        this.shenyuContextDecorator = shenyuContextDecorator;
     }
 }
