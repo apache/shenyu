@@ -18,11 +18,11 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
-import org.apache.shenyu.common.cache.MemorySafeLRUMap;
-import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.cache.WindowTinyLFUMap;
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.utils.PathMatchUtils;
+import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -45,7 +45,7 @@ public final class MetaDataCache {
      */
     private static final ConcurrentMap<String, MetaData> META_DATA_MAP = Maps.newConcurrentMap();
 
-    private static final MemorySafeLRUMap<String, MetaData> CACHE = new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16);
+    private static final WindowTinyLFUMap<String, MetaData> CACHE = new WindowTinyLFUMap<>(1 << 16, Integer.MAX_VALUE, Boolean.FALSE);
 
     /**
      * pathPattern -> path.
@@ -154,5 +154,23 @@ public final class MetaDataCache {
             paths = MAPPING.get(metaPath);
         }
         paths.add(path);
+    }
+    
+    /**
+     * get metaDataMap.
+     *
+     * @return metaDataMap
+     */
+    public Map<String, MetaData> getMetaDataMap() {
+        return META_DATA_MAP;
+    }
+    
+    /**
+     * get metadata cache.
+     *
+     * @return cache map
+     */
+    public Map<String, MetaData> getMetaDataCache() {
+        return CACHE;
     }
 }

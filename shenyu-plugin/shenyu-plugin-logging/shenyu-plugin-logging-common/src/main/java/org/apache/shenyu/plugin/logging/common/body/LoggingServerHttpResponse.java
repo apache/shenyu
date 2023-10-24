@@ -24,17 +24,20 @@ import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.base.utils.MediaTypeUtils;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ResponseStatusException;
@@ -49,34 +52,48 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * decorate ServerHttpResponse for read body.
  */
-public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
+public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends ServerHttpResponseDecorator {
 
     private static final Logger LOG = LoggerFactory.getLogger(LoggingServerHttpResponse.class);
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
-    private final ShenyuRequestLog logInfo;
+    private final L logInfo;
 
     private ServerWebExchange exchange;
 
-    private final LogCollector logCollector;
+    private final LogCollector<L> logCollector;
+
+    private final boolean desensitized;
+
+    private final String dataDesensitizeAlg;
+
+    private final KeyWordMatch keyWordMatch;
 
     /**
      * Constructor LoggingServerHttpResponse.
      *
-     * @param delegate     delegate ServerHttpResponse
-     * @param logInfo      access log
-     * @param logCollector LogCollector  instance
+     * @param delegate delegate ServerHttpResponse
+     * @param logInfo access log
+     * @param logCollector LogCollector instance
+     * @param desensitized desensitize flag
+     * @param keyWordSet user keyWord set
+     * @param dataDesensitizeAlg desensitize function
      */
-    public LoggingServerHttpResponse(final ServerHttpResponse delegate, final ShenyuRequestLog logInfo,
-                                     final LogCollector logCollector) {
+    public LoggingServerHttpResponse(final ServerHttpResponse delegate, final L logInfo,
+                                     final LogCollector<L> logCollector, final boolean desensitized,
+                                     final Set<String> keyWordSet, final String dataDesensitizeAlg) {
         super(delegate);
         this.logInfo = logInfo;
         this.logCollector = logCollector;
+        this.desensitized = desensitized;
+        this.dataDesensitizeAlg = dataDesensitizeAlg;
+        this.keyWordMatch = new KeyWordMatch(keyWordSet);
     }
 
     /**
@@ -114,8 +131,12 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
             logInfo.setStatus(getStatusCode().value());
         }
         logInfo.setResponseHeader(LogCollectUtils.getHeaders(getHeaders()));
-        BodyWriter writer = new BodyWriter();
         logInfo.setTraceId(getTraceId());
+        final MediaType mediaType = exchange.getResponse().getHeaders().getContentType();
+        if (MediaTypeUtils.isByteType(mediaType)) {
+            return Flux.from(body).doFinally(signal -> logResponse(shenyuContext, null));
+        }
+        BodyWriter writer = new BodyWriter();
         return Flux.from(body).doOnNext(buffer -> {
             if (LogCollectUtils.isNotBinaryType(getHeaders())) {
                 writer.write(buffer.asByteBuffer().asReadOnlyBuffer());
@@ -133,7 +154,7 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
         if (StringUtils.isNotBlank(getHeaders().getFirst(HttpHeaders.CONTENT_LENGTH))) {
             String size = StringUtils.defaultIfEmpty(getHeaders().getFirst(HttpHeaders.CONTENT_LENGTH), "0");
             logInfo.setResponseContentLength(Integer.parseInt(size));
-        } else {
+        } else if (Objects.nonNull(writer)) {
             logInfo.setResponseContentLength(writer.size());
         }
         logInfo.setTimeLocal(shenyuContext.getStartDateTime().format(DATE_TIME_FORMATTER));
@@ -145,13 +166,22 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
         if (StringUtils.isNotBlank(shenyuContext.getRpcType())) {
             logInfo.setUpstreamIp(getUpstreamIp());
         }
-        int size = writer.size();
-        String body = writer.output();
-        if (size > 0 && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
-            logInfo.setResponseBody(body);
+        if (Objects.nonNull(writer)) {
+            int size = writer.size();
+            String body = writer.output();
+            if (size > 0 && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
+                logInfo.setResponseBody(body);
+            }
+        } else {
+            logInfo.setResponseBody("[bytes]");
         }
+
         // collect log
         if (Objects.nonNull(logCollector)) {
+            // desensitize log
+            if (desensitized) {
+                logCollector.desensitize(logInfo, keyWordMatch, dataDesensitizeAlg);
+            }
             logCollector.collect(logInfo);
         }
     }
@@ -234,6 +264,10 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
         }
         // collect log
         if (Objects.nonNull(logCollector)) {
+            // desensitize log
+            if (desensitized) {
+                logCollector.desensitize(logInfo, keyWordMatch, dataDesensitizeAlg);
+            }
             logCollector.collect(logInfo);
         }
     }

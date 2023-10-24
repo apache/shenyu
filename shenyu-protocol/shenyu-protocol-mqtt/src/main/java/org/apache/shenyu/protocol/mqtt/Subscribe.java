@@ -30,7 +30,7 @@ import io.netty.handler.codec.mqtt.MqttSubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.util.CharsetUtil;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
@@ -71,7 +71,7 @@ public class Subscribe extends MessageType {
 
         for (String ackTopic : ackTopics) {
             String message = Singleton.INST.get(TopicRepository.class).get(ackTopic);
-            if (Strings.isNotEmpty(message)) {
+            if (StringUtils.isNotEmpty(message)) {
                 sendSubMessage(ackTopic, message, packetId, channel);
             }
         }

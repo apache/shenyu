@@ -101,20 +101,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
         if (doSubmit(selectorDO.getId(), canAddList)) {
             return null;
         }
-
-        List<GrpcUpstream> handleList;
-        if (CollectionUtils.isEmpty(existList)) {
-            handleList = addList;
-        } else {
-            List<GrpcUpstream> aliveList;
-            if (isEventDeleted) {
-                aliveList = existList.stream().filter(e -> e.isStatus() && !e.equals(addList.get(0))).collect(Collectors.toList());
-            } else {
-                aliveList = addList;
-            }
-            handleList = grpcSelectorHandleConverter.updateStatusAndFilter(existList, aliveList);
-        }
-        return GsonUtils.getInstance().toJson(handleList);
+        return GsonUtils.getInstance().toJson(CollectionUtils.isEmpty(existList) ? canAddList : existList);
     }
 
     private List<GrpcUpstream> buildGrpcUpstreamList(final List<URIRegisterDTO> uriList) {

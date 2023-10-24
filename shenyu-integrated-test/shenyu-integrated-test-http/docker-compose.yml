@@ -17,12 +17,12 @@ version: "3.9"
 services:
   shenyu-zk:
     container_name: shenyu-zk
-    image: zookeeper:3.5
+    image: zookeeper:latest
     restart: always
     networks:
       - shenyu
   shenyu-redis:
-    image: redis:6.0-alpine
+    image: redis:latest
     container_name: shenyu-redis
     restart: always
     command: redis-server --requirepass abc
@@ -120,7 +120,7 @@ services:
       - "9200:9200"
       - "9300:9300"
     environment:
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
       - discovery.type=single-node
       - xpack.security.enabled=false
     healthcheck:
@@ -146,6 +146,19 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  shenyu-pulsar:
+    image: apachepulsar/pulsar:2.10.1
+    container_name: shenyu-pulsar
+    restart: always
+    command: bin/pulsar standalone
+    depends_on:
+      shenyu-integrated-test-http:
+        condition: service_healthy
+    networks:
+      - shenyu
+    ports:
+      - "6650:6650"    
 
   shenyu-rocketmq:
     image: apache/rocketmq:4.9.3

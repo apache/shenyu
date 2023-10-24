@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.DetailMapper">
+
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.DetailDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="field_id" jdbcType="VARCHAR" property="fieldId"/>
+        <result column="is_example" jdbcType="TINYINT" property="example"/>
+        <result column="field_value" jdbcType="VARCHAR" property="fieldValue"/>
+        <result column="value_desc" jdbcType="VARCHAR" property="valueDesc"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        field_id,
+        is_example,
+        field_value,
+        value_desc,
+        date_created,
+        date_updated
+    </sql>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+        FROM detail
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DetailDO">
+        insert into detail (
+        id,
+        field_id,
+        is_example,
+        field_value,
+        value_desc,
+        date_created,
+        date_updated
+        )values (
+        #{id, jdbcType=VARCHAR},
+        #{fieldId, jdbcType=VARCHAR},
+        #{example, jdbcType=TINYINT},
+        #{fieldValue, jdbcType=VARCHAR},
+        #{valueDesc, jdbcType=VARCHAR},
+        #{dateCreated, jdbcType=TIMESTAMP},
+        #{dateUpdated, jdbcType=TIMESTAMP}
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DetailDO">
+        INSERT INTO detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="fieldId != null">
+                field_id,
+            </if>
+            <if test="example != null">
+                is_example,
+            </if>
+            <if test="fieldValue != null">
+                field_value,
+            </if>
+            <if test="valueDesc != null">
+                value_desc,
+            </if>
+            <if test="dateCreated != null">
+                date_created,
+            </if>
+            <if test="dateUpdated != null">
+                date_updated,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id, jdbcType=VARCHAR},
+            <if test="fieldId != null">
+                #{fieldId, jdbcType=VARCHAR},
+            </if>
+            <if test="example != null">
+                #{example, jdbcType=TINYINT},
+            </if>
+            <if test="fieldValue != null">
+                #{fieldValue, jdbcType=VARCHAR},
+            </if>
+            <if test="valueDesc != null">
+                #{valueDesc, jdbcType=VARCHAR},
+            </if>
+            <if test="dateCreated != null">
+                #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="org.apache.shenyu.admin.model.entity.DetailDO">
+        UPDATE detail
+        <set>
+            <if test="fieldId != null">
+                field_id = #{fieldId, jdbcType=VARCHAR},
+            </if>
+            <if test="example != null">
+                is_example = #{example, jdbcType=TINYINT},
+            </if>
+            <if test="fieldValue != null">
+                field_value = #{fieldValue, jdbcType=VARCHAR},
+            </if>
+            <if test="valueDesc != null">
+                value_desc = #{valueDesc, jdbcType=VARCHAR},
+            </if>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.DetailDO">
+        update detail
+        set
+        field_id = #{fieldId,jdbcType=VARCHAR},
+        is_example = #{example,jdbcType=TINYINT},
+        field_value = #{fieldValue,jdbcType=VARCHAR},
+        value_desc = #{valueDesc,jdbcType=VARCHAR},
+        date_created = #{dateCreated,jdbcType=TIMESTAMP},
+        date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <delete id="batchDelete">
+        DELETE FROM detail
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        DELETE FROM detail
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </delete>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM detail
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByQuery" resultMap="BaseResultMap">
+        SElECT
+        <include refid="Base_Column_List"/>
+        FROM detail
+        <where>
+            <if test="fieldValue != null">
+                and field_value = #{fieldValue, jdbcType=VARCHAR}
+            </if>
+            <if test="valueDesc != null">
+                and value_desc = #{valueDesc, jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+</mapper>

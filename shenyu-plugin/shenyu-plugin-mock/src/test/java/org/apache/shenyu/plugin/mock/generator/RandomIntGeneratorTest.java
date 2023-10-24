@@ -17,27 +17,28 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.junit.jupiter.api.Test;
+
+import java.util.Objects;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.Test;
 
 /**
  * The test case for {@link RandomIntGenerator}.
  */
 public final class RandomIntGeneratorTest {
-    
+
     private final RandomIntGenerator generator = new RandomIntGenerator();
-    
+
     @Test
     public void generate() {
         int min = 10;
         int max = 15;
-        generator.parseRule(String.format("int|%d-%d", min, max));
-        Integer generate = generator.generate();
-        assertTrue(generate != null && generate >= min && generate <= max);
+        Integer generate = generator.generate(String.format("int|%d-%d", min, max), null);
+        assertTrue(Objects.nonNull(generate) && generate >= min && generate <= max);
     }
-    
+
     @Test
     public void match() {
         assertTrue(generator.match("int|10-15"));

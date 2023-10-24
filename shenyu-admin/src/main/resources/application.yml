@@ -29,10 +29,28 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+  jackson:
+    time-zone: GMT+8 # GMT , Asia/Shanghai
+  messages:
+    basename: message/i18n
+
+
+management:
+  health:
+    mail:
+      enabled: off
+  endpoints:
+    web:
+      exposure:
+        include:
+          - 'health'
+          - 'prometheus'
+    enabled-by-default: true
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
   mapper-locations: classpath:/mappers/*.xml
+  type-handlers-package: org.apache.shenyu.admin.mybatis.handler
 
 shenyu:
   register:
@@ -42,6 +60,7 @@ shenyu:
       sessionTimeout: 5000
       connectionTimeout: 2000
       checked: true
+      zombieCheckThreads: 10
       zombieCheckTimes: 5
       scheduledTime: 10
       nacosNameSpace: ShenyuRegisterCenter
@@ -50,23 +69,35 @@ shenyu:
       enabled: true
       messageMaxSize: 10240
       allowOrigins: ws://localhost:9095;ws://localhost:9195;
-#      zookeeper:
-#        url: localhost:2181
-#        sessionTimeout: 5000
-#        connectionTimeout: 2000
-#      http:
-#        enabled: true
-#      nacos:
-#        url: localhost:8848
-#        namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-#        username:
-#        password:
-#        acm:
-#          enabled: false
-#          endpoint: acm.aliyun.com
-#          namespace:
-#          accessKey:
-#          secretKey:
+#    apollo:
+#      meta: http://localhost:8080
+#      appId: shenyu
+#      portalUrl: http://localhost:8070
+#      env: dev
+#      clusterName: test
+#      namespace: application
+#      token: 0fff5645fc74ee5e0d63a6389433c8c8afc0beea31eed0279ecc1c8961d12da9
+#    zookeeper:
+#      url: localhost:2181
+#      sessionTimeout: 5000
+#      connectionTimeout: 2000
+#    http:
+#      enabled: true
+#    nacos:
+#      url: localhost:8848
+#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+#      username:
+#      password:
+#      acm:
+#        enabled: false
+#        endpoint: acm.aliyun.com
+#        namespace:
+#        accessKey:
+#        secretKey:
+#    polaris:
+#      url: 127.0.0.1:8093
+#      namespace:
+#      fileGroup:
 #    etcd:
 #      url: http://localhost:2379
 #    consul:
@@ -91,13 +122,38 @@ shenyu:
       - /websocket
       - /error
       - /actuator/health
+      - /actuator/health/** # /actuator/health/readiness /actuator/health/liveness
+      - /actuator/prometheus
       - /swagger-ui.html
+      - /swagger-ui/**
       - /webjars/**
-      - /swagger-resources/**
-      - /v2/api-docs
+      - /v3/api-docs/**
       - /csrf
-  swagger:
-    enable: true
+      - /alert/report
+  dashboard:
+    core:
+      onlySuperAdminPermission:
+        - system:manager:add
+        - system:manager:edit
+        - system:manager:delete
+        - system:role:add
+        - system:role:edit
+        - system:role:delete
+        - system:resource:addButton
+        - system:resource:addMenu
+        - system:resource:editButton
+        - system:resource:editMenu
+        - system:resource:deleteButton
+        - system:resource:deleteMenu
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    tags-sorter: alpha
+  packages-to-scan: org.apache.shenyu.admin.controller
+  paths-to-match: /**
 
 logging:
   level:
@@ -107,3 +163,4 @@ logging:
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
+#    org.apache.shenyu.admin.utils.HttpUtils: debug

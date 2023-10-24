@@ -21,10 +21,11 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerServiceDefinition;
 import org.apache.shenyu.client.grpc.GrpcClientEventListener;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,7 +33,7 @@ import java.util.List;
 /**
  * Add grpc service and start grpc server.
  */
-public class GrpcServerRunner implements ApplicationRunner {
+public class GrpcServerRunner implements ApplicationListener<ContextRefreshedEvent> {
 
     private static final Logger LOG = LoggerFactory.getLogger(GrpcServerRunner.class);
 
@@ -45,9 +46,9 @@ public class GrpcServerRunner implements ApplicationRunner {
         this.grpcServerBuilder = grpcServerBuilder;
         this.grpcClientEventListener = grpcClientEventListener;
     }
-
+    
     @Override
-    public void run(final ApplicationArguments args) {
+    public void onApplicationEvent(@NotNull final ContextRefreshedEvent event) {
         startGrpcServer();
     }
 

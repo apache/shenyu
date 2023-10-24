@@ -64,25 +64,9 @@ public final class ExtensionLoader<T> {
     
     private String cachedDefaultName;
     
-    private final Comparator<Holder<Object>> holderComparator = (o1, o2) -> {
-        if (o1.getOrder() > o2.getOrder()) {
-            return 1;
-        } else if (o1.getOrder() < o2.getOrder()) {
-            return -1;
-        } else {
-            return 0;
-        }
-    };
+    private final Comparator<Holder<Object>> holderComparator = Comparator.comparing(Holder::getOrder);
     
-    private final Comparator<ClassEntity> classEntityComparator = (o1, o2) -> {
-        if (o1.getOrder() > o2.getOrder()) {
-            return 1;
-        } else if (o1.getOrder() < o2.getOrder()) {
-            return -1;
-        } else {
-            return 0;
-        }
-    };
+    private final Comparator<ClassEntity> classEntityComparator = Comparator.comparing(ClassEntity::getOrder);
     
     /**
      * Instantiates a new Extension loader.
@@ -167,11 +151,12 @@ public final class ExtensionLoader<T> {
             synchronized (cachedInstances) {
                 value = objectHolder.getValue();
                 if (Objects.isNull(value)) {
-                    Holder<T> pair = createExtension(name);
-                    value = pair.getValue();
-                    int order = pair.getOrder();
-                    objectHolder.setValue(value);
-                    objectHolder.setOrder(order);
+                    createExtension(name, objectHolder);
+                    value = objectHolder.getValue();
+                    if (!objectHolder.isSingleton()) {
+                        Holder<Object> removeObj = cachedInstances.remove(name);
+                        removeObj = null;
+                    }
                 }
             }
         }
@@ -206,27 +191,30 @@ public final class ExtensionLoader<T> {
     }
     
     @SuppressWarnings("unchecked")
-    private Holder<T> createExtension(final String name) {
+    private void createExtension(final String name, final Holder<Object> holder) {
         ClassEntity classEntity = getExtensionClassesEntity().get(name);
         if (Objects.isNull(classEntity)) {
-            throw new IllegalArgumentException("name is error");
+            throw new IllegalArgumentException(name + "name is error");
         }
         Class<?> aClass = classEntity.getClazz();
         Object o = joinInstances.get(aClass);
         if (Objects.isNull(o)) {
             try {
-                joinInstances.putIfAbsent(aClass, aClass.newInstance());
-                o = joinInstances.get(aClass);
+                if (classEntity.isSingleton()) {
+                    joinInstances.putIfAbsent(aClass, aClass.newInstance());
+                    o = joinInstances.get(aClass);
+                } else {
+                    o = aClass.newInstance();
+                }
             } catch (InstantiationException | IllegalAccessException e) {
                 throw new IllegalStateException("Extension instance(name: " + name + ", class: "
                         + aClass + ")  could not be instantiated: " + e.getMessage(), e);
                 
             }
         }
-        Holder<T> objectHolder = new Holder<>();
-        objectHolder.setOrder(classEntity.getOrder());
-        objectHolder.setValue((T) o);
-        return objectHolder;
+        holder.setOrder(classEntity.getOrder());
+        holder.setValue(o);
+        holder.setSingleton(classEntity.isSingleton());
     }
     
     /**
@@ -318,7 +306,7 @@ public final class ExtensionLoader<T> {
         ClassEntity oldClassEntity = classes.get(name);
         if (Objects.isNull(oldClassEntity)) {
             Join joinAnnotation = subClass.getAnnotation(Join.class);
-            ClassEntity classEntity = new ClassEntity(name, joinAnnotation.order(), subClass);
+            ClassEntity classEntity = new ClassEntity(name, joinAnnotation.order(), subClass, joinAnnotation.isSingleton());
             classes.put(name, classEntity);
         } else if (!Objects.equals(oldClassEntity.getClazz(), subClass)) {
             throw new IllegalStateException("load extension resources error,Duplicate class " + clazz.getName() + " name "
@@ -331,11 +319,13 @@ public final class ExtensionLoader<T> {
      *
      * @param <T> the type parameter.
      */
-    public static class Holder<T> {
+    private static final class Holder<T> {
         
         private volatile T value;
         
         private Integer order;
+        
+        private boolean isSingleton;
         
         /**
          * Gets value.
@@ -372,9 +362,27 @@ public final class ExtensionLoader<T> {
         public Integer getOrder() {
             return order;
         }
+        
+        /**
+         * Is it a singleton object.
+         *
+         * @return true or false.
+         */
+        public boolean isSingleton() {
+            return isSingleton;
+        }
+        
+        /**
+         * Is it a singleton object.
+         *
+         * @param singleton true or false.
+         */
+        public void setSingleton(final boolean singleton) {
+            isSingleton = singleton;
+        }
     }
     
-    static final class ClassEntity {
+    private static final class ClassEntity {
         
         /**
          * name.
@@ -386,15 +394,18 @@ public final class ExtensionLoader<T> {
          */
         private Integer order;
         
+        private Boolean isSingleton;
+        
         /**
          * class.
          */
         private Class<?> clazz;
         
-        private ClassEntity(final String name, final Integer order, final Class<?> clazz) {
+        private ClassEntity(final String name, final Integer order, final Class<?> clazz, final boolean isSingleton) {
             this.name = name;
             this.order = order;
             this.clazz = clazz;
+            this.isSingleton = isSingleton;
         }
         
         /**
@@ -428,9 +439,20 @@ public final class ExtensionLoader<T> {
          * get order.
          *
          * @return order.
+         * @see Join#order()
          */
         public Integer getOrder() {
             return order;
+        }
+        
+        /**
+         * Obtaining this class requires creating a singleton object, or multiple instances.
+         *
+         * @return true or false.
+         * @see Join#isSingleton()
+         */
+        public Boolean isSingleton() {
+            return isSingleton;
         }
     }
 }

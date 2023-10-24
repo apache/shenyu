@@ -33,7 +33,7 @@ public final class CacheKeyUtilsTest {
 
     @Test
     public void getKey() {
-        RuleData ruleData = RuleData.builder().selectorId(MOCK_SELECTOR_ID).name(MOCK_NAME).build();
+        RuleData ruleData = RuleData.builder().selectorId(MOCK_SELECTOR_ID).id(MOCK_NAME).build();
         assert MOCK_CACHE_KEY_UTILS_GET_KEY_RESULT.equals(CacheKeyUtils.INST.getKey(ruleData));
     }
 }

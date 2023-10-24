@@ -28,6 +28,6 @@
     <dubbo:registry address="${dubbo.registry.address}"/>
     <dubbo:protocol name="dubbo" port="20888"/>
 
-    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboTestService" ref="dubboTestService"/>
-    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboMultiParamService" ref="dubboMultiParamService"/>
+    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboTestService" ref="dubboTestService" version="v0.0.2"/>
+    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboMultiParamService" ref="dubboMultiParamService" version="v0.0.2"/>
 </beans>

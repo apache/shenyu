@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -69,6 +70,11 @@ public final class RuleDO extends BaseDO {
      * process logic.
      */
     private String handle;
+    
+    /**
+     * match restful.
+     */
+    private Boolean matchRestful;
 
     public RuleDO() {
     }
@@ -79,7 +85,8 @@ public final class RuleDO extends BaseDO {
                   final Boolean enabled,
                   final Boolean loged,
                   final Integer sort,
-                  final String handle) {
+                  final String handle,
+                  final Boolean matchRestful) {
         this.selectorId = selectorId;
         this.matchMode = matchMode;
         this.name = name;
@@ -87,6 +94,7 @@ public final class RuleDO extends BaseDO {
         this.loged = loged;
         this.sort = sort;
         this.handle = handle;
+        this.matchRestful = matchRestful;
     }
 
     /**
@@ -214,7 +222,25 @@ public final class RuleDO extends BaseDO {
     public void setHandle(final String handle) {
         this.handle = handle;
     }
-
+    
+    /**
+     * get match restful uri.
+     *
+     * @return matchRestful
+     */
+    public Boolean getMatchRestful() {
+        return matchRestful;
+    }
+    
+    /**
+     * set match restful.
+     *
+     * @param matchRestful matchRestful
+     */
+    public void setMatchRestful(final Boolean matchRestful) {
+        this.matchRestful = matchRestful;
+    }
+    
     /**
      * builder method.
      *
@@ -241,6 +267,7 @@ public final class RuleDO extends BaseDO {
                     .loged(item.getLoged())
                     .sort(item.getSort())
                     .handle(item.getHandle())
+                    .matchRestful(item.getMatchRestful())
                     .dateUpdated(currentTime)
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
@@ -259,9 +286,10 @@ public final class RuleDO extends BaseDO {
      * @param ruleDO            the rule do
      * @param pluginName        the plugin name
      * @param conditionDataList the condition data list
+     * @param beforeConditionDataList the before condition data list
      * @return the rule data
      */
-    public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList) {
+    public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList, final List<ConditionData> beforeConditionDataList) {
         return RuleData.builder()
                 .id(ruleDO.getId())
                 .name(ruleDO.getName())
@@ -272,8 +300,23 @@ public final class RuleDO extends BaseDO {
                 .enabled(ruleDO.getEnabled())
                 .loged(ruleDO.getLoged())
                 .handle(ruleDO.getHandle())
+                .matchRestful(ruleDO.getMatchRestful())
                 .conditionDataList(conditionDataList)
+                .beforeConditionDataList(beforeConditionDataList)
                 .build();
+    }
+
+    /**
+     * Trans from rule data.
+     *
+     * @param ruleDO            the rule do
+     * @param pluginName        the plugin name
+     * @param conditionDataList the condition data list
+     *
+     * @return ruleData
+     */
+    public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList) {
+        return transFrom(ruleDO, pluginName, conditionDataList, Collections.emptyList());
     }
 
     @Override
@@ -294,12 +337,13 @@ public final class RuleDO extends BaseDO {
                 && Objects.equals(enabled, ruleDO.enabled)
                 && Objects.equals(loged, ruleDO.loged)
                 && Objects.equals(sort, ruleDO.sort)
-                && Objects.equals(handle, ruleDO.handle);
+                && Objects.equals(handle, ruleDO.handle)
+                && Objects.equals(matchRestful, ruleDO.matchRestful);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), selectorId, matchMode, name, enabled, loged, sort, handle);
+        return Objects.hash(super.hashCode(), selectorId, matchMode, name, enabled, loged, sort, handle, matchRestful);
     }
 
     public static final class RuleDOBuilder {
@@ -323,6 +367,8 @@ public final class RuleDO extends BaseDO {
         private Integer sort;
 
         private String handle;
+        
+        private Boolean matchRestful;
 
         private RuleDOBuilder() {
         }
@@ -436,6 +482,17 @@ public final class RuleDO extends BaseDO {
             this.handle = handle;
             return this;
         }
+    
+        /**
+         * matchRestful.
+         *
+         * @param matchRestful matchRestful
+         * @return RuleDOBuilder
+         */
+        public RuleDOBuilder matchRestful(final Boolean matchRestful) {
+            this.matchRestful = matchRestful;
+            return this;
+        }
 
         /**
          * build method.
@@ -454,6 +511,7 @@ public final class RuleDO extends BaseDO {
             ruleDO.setLoged(loged);
             ruleDO.setSort(sort);
             ruleDO.setHandle(handle);
+            ruleDO.setMatchRestful(matchRestful);
             return ruleDO;
         }
     }

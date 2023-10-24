@@ -40,15 +40,15 @@ public class ShenyuRequestLog {
 
     private String responseBody;
 
-    private int responseContentLength;
+    private Integer responseContentLength;
 
     private String rpcType;
 
-    private int status;
+    private Integer status;
 
     private String upstreamIp;
 
-    private long upstreamResponseTime;
+    private Long upstreamResponseTime;
 
     private String userAgent;
 
@@ -86,7 +86,7 @@ public class ShenyuRequestLog {
      *
      * @return ResponseContentLength
      */
-    public int getResponseContentLength() {
+    public Integer getResponseContentLength() {
         return responseContentLength;
     }
 
@@ -95,7 +95,7 @@ public class ShenyuRequestLog {
      *
      * @param responseContentLength ResponseContentLength
      */
-    public void setResponseContentLength(final int responseContentLength) {
+    public void setResponseContentLength(final Integer responseContentLength) {
         this.responseContentLength = responseContentLength;
     }
 
@@ -320,7 +320,7 @@ public class ShenyuRequestLog {
      *
      * @return status
      */
-    public int getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
@@ -329,7 +329,7 @@ public class ShenyuRequestLog {
      *
      * @param status status
      */
-    public void setStatus(final int status) {
+    public void setStatus(final Integer status) {
         this.status = status;
     }
 
@@ -356,7 +356,7 @@ public class ShenyuRequestLog {
      *
      * @return upstreamResponseTime
      */
-    public long getUpstreamResponseTime() {
+    public Long getUpstreamResponseTime() {
         return upstreamResponseTime;
     }
 
@@ -365,7 +365,7 @@ public class ShenyuRequestLog {
      *
      * @param upstreamResponseTime upstreamResponseTime
      */
-    public void setUpstreamResponseTime(final long upstreamResponseTime) {
+    public void setUpstreamResponseTime(final Long upstreamResponseTime) {
         this.upstreamResponseTime = upstreamResponseTime;
     }
 
@@ -403,5 +403,30 @@ public class ShenyuRequestLog {
      */
     public void setPath(final String path) {
         this.path = path;
+    }
+
+    @Override
+    public String toString() {
+        return "ShenyuRequestLog{"
+                + "timeLocal='" + timeLocal + '\''
+                + ", clientIp='" + clientIp + '\''
+                + ", method=" + method
+                + ", requestHeader=" + requestHeader
+                + ", responseHeader=" + responseHeader
+                + ", queryParams=" + queryParams
+                + ", requestBody=" + requestBody
+                + ", requestUri=" + requestUri
+                + ", responseBody=" + responseBody
+                + ", responseContentLength=" + responseContentLength
+                + ", rpcType=" + rpcType
+                + ", status=" + status
+                + ", upstreamIp=" + upstreamIp
+                + ", upstreamResponseTime=" + upstreamResponseTime
+                + ", userAgent=" + userAgent
+                + ", host=" + host
+                + ", module=" + module
+                + ", traceId=" + traceId
+                + ", path=" + path
+                + '}';
     }
 }

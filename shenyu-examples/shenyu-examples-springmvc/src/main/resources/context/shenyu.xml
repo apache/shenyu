@@ -19,7 +19,8 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    <bean id="SpringMvcClientEventListener"
+    
+    <bean id="springMvcClientEventListener"
           class="org.apache.shenyu.client.springmvc.init.SpringMvcClientEventListener">
         <constructor-arg ref="clientPropertiesConfig"/>
         <constructor-arg ref="clientRegisterRepository"/>
@@ -46,6 +47,7 @@
                 <entry key="appName" value="springmvc"/>
                 <entry key="port" value="8289"/>
                 <entry key="isFull" value="false"/>
+                <entry key="addPrefixed" value="false"/>
             </map>
         </property>
     </bean>
@@ -59,8 +61,5 @@
         <constructor-arg ref="shenyuRegisterCenterConfig"/>
         <constructor-arg ref="clientRegisterRepository"/>
     </bean>
-
-    <bean id="contextRegisterListener" class="org.apache.shenyu.client.springmvc.init.ContextRegisterListener">
-        <constructor-arg ref="clientPropertiesConfig"/>
-    </bean>
+    
 </beans>

@@ -50,6 +50,7 @@
             <include refid="Base_Column_List"/>
           FROM dashboard_user
          WHERE user_name = #{userName, jdbcType=VARCHAR}
+        limit 1
     </select>
 
     <select id="findByQuery" resultMap="BaseResultMap">

@@ -19,10 +19,12 @@ package org.apache.shenyu.admin.listener;
 
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
@@ -67,6 +69,12 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                     break;
                 case META_DATA:
                     listener.onMetaDataChanged((List<MetaData>) event.getSource(), event.getEventType());
+                    break;
+                case PROXY_SELECTOR:
+                    listener.onProxySelectorChanged((List<ProxySelectorData>) event.getSource(), event.getEventType());
+                    break;
+                case DISCOVER_UPSTREAM:
+                    listener.onDiscoveryUpstreamChanged((List<DiscoverySyncData>) event.getSource(), event.getEventType());
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + event.getGroupKey());

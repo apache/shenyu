@@ -61,7 +61,7 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
     }
 
     @Override
-    public void close() {
+    public void closeRepository() {
         client.close();
     }
 

@@ -24,7 +24,7 @@ import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -36,7 +36,7 @@ public final class RegisterClientConsumerExecutor<T extends DataTypeParent> exte
     private final Map<DataType, ExecutorTypeSubscriber<T>> subscribers;
     
     private RegisterClientConsumerExecutor(final Map<DataType, ExecutorTypeSubscriber<T>> executorSubscriberMap) {
-        this.subscribers = new HashMap<>(executorSubscriberMap);
+        this.subscribers = new EnumMap<>(executorSubscriberMap);
     }
 
     @Override

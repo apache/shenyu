@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.dto.CreateResourceDTO;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -41,22 +41,12 @@ public interface ResourceService {
     int createResourceBatch(List<ResourceDO> resourceDOList);
     
     /**
-     * create or update resource.
-     *
-     * @param resourceDTO {@linkplain ResourceDTO}
-     * @return rows int
-     */
-    default int createOrUpdate(final ResourceDTO resourceDTO) {
-        return StringUtils.isBlank(resourceDTO.getId()) ? create(resourceDTO) : update(resourceDTO);
-    }
-    
-    /**
      * create resource.
      *
-     * @param resourceDTO {@linkplain ResourceDTO}
+     * @param createResourceDTO {@linkplain CreateResourceDTO}
      * @return rows int
      */
-    int create(ResourceDTO resourceDTO);
+    int create(CreateResourceDTO createResourceDTO);
     
     /**
      * update resource.
@@ -65,13 +55,6 @@ public interface ResourceService {
      * @return rows int
      */
     int update(ResourceDTO resourceDTO);
-    
-    /**
-     * create Resource.
-     *
-     * @param resourceDO {@linkplain ResourceDO}
-     */
-    void createResource(ResourceDO resourceDO);
     
     /**
      * delete resource by id.

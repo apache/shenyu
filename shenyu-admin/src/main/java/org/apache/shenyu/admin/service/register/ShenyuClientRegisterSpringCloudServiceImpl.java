@@ -98,20 +98,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextP
         if (doSubmit(selectorDO.getId(), canAddList)) {
             return null;
         }
-
-        List<DivideUpstream> handleList;
-        if (CollectionUtils.isEmpty(existList)) {
-            handleList = addList;
-        } else {
-            List<DivideUpstream> aliveList;
-            if (isEventDeleted) {
-                aliveList = existList.stream().filter(e -> e.isStatus() && !e.equals(addList.get(0))).collect(Collectors.toList());
-            } else {
-                aliveList = addList;
-            }
-            handleList = springCloudSelectorHandleConverter.updateStatusAndFilter(existList, aliveList);
-        }
-        springCloudSelectorHandle.setDivideUpstreams(handleList);
+        springCloudSelectorHandle.setDivideUpstreams(CollectionUtils.isEmpty(existList) ? canAddList : existList);
         return GsonUtils.getInstance().toJson(springCloudSelectorHandle);
     }
 

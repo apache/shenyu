@@ -42,6 +42,8 @@ public class DubboRpcExt implements Serializable {
 
     private String cluster;
 
+    private String protocol;
+
     /**
      * constructor without parameter.
      */
@@ -59,6 +61,7 @@ public class DubboRpcExt implements Serializable {
      * @param url url
      * @param sent sent
      * @param cluster cluster
+     * @param protocol protocol
      */
     public DubboRpcExt(final String group,
                        final String version,
@@ -67,7 +70,8 @@ public class DubboRpcExt implements Serializable {
                        final Integer timeout,
                        final String url,
                        final Boolean sent,
-                       final String cluster) {
+                       final String cluster,
+                       final String protocol) {
         this.group = group;
         this.version = version;
         this.loadbalance = loadbalance;
@@ -76,6 +80,7 @@ public class DubboRpcExt implements Serializable {
         this.url = url;
         this.sent = sent;
         this.cluster = cluster;
+        this.protocol = protocol;
     }
 
     /**
@@ -222,6 +227,24 @@ public class DubboRpcExt implements Serializable {
         this.cluster = cluster;
     }
 
+    /**
+     * get cluster.
+     *
+     * @return protocol
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+    /**
+     * set protocol.
+     *
+     * @param protocol protocol
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
+    }
+
     @Override
     public String toString() {
         return "DubboRpcExt{"
@@ -233,6 +256,7 @@ public class DubboRpcExt implements Serializable {
                 + ", url='" + url + '\''
                 + ", sent=" + sent
                 + ", cluster='" + cluster + '\''
+                + ", protocol='" + protocol + '\''
                 + '}';
     }
 
@@ -265,6 +289,8 @@ public class DubboRpcExt implements Serializable {
         private Boolean sent;
 
         private String cluster;
+
+        private String protocol;
 
         /**
          * constructor without parameter.
@@ -361,6 +387,17 @@ public class DubboRpcExt implements Serializable {
         }
 
         /**
+         * set protocol.
+         *
+         * @param protocol protocol
+         * @return Builder
+         */
+        public Builder protocol(final String protocol) {
+            this.protocol = protocol;
+            return this;
+        }
+
+        /**
          * build DubboRpcExt.
          *
          * @return DubboRpcExt
@@ -375,6 +412,7 @@ public class DubboRpcExt implements Serializable {
             dubboRpcExt.setUrl(url);
             dubboRpcExt.setSent(sent);
             dubboRpcExt.setCluster(cluster);
+            dubboRpcExt.setProtocol(protocol);
             return dubboRpcExt;
         }
     }

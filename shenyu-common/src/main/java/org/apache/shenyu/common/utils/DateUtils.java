@@ -29,7 +29,9 @@ import java.time.temporal.ChronoUnit;
 public final class DateUtils {
     
     public static final String DATE_FORMAT_DATETIME = "yyyy-MM-dd HH:mm:ss";
-    
+
+    public static final String DATE_FORMAT_DATETIME_MILLISECOND = "yyyy-MM-dd HH:mm:ss.SSS";
+
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_DATETIME);
     
     private DateUtils() {
@@ -46,7 +48,7 @@ public final class DateUtils {
     public static LocalDateTime parseLocalDateTime(final String dataTime) {
         return LocalDateTime.parse(dataTime, DateTimeFormatter.ofPattern(DATE_FORMAT_DATETIME));
     }
-    
+
     /**
      * Parse local date time local date time.
      *

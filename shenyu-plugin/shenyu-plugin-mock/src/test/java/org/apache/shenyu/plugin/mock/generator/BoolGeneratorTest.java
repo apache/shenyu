@@ -17,31 +17,30 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The test case for {@link BoolGenerator}.
  */
 public final class BoolGeneratorTest {
-    
+
     private final BoolGenerator boolGenerator = new BoolGenerator();
-    
+
     @Test
     public void testGenerate() {
-        boolGenerator.parseRule("bool");
-        Boolean generate = boolGenerator.generate();
+        Boolean generate = boolGenerator.generate("bool", null);
         Assertions.assertNotNull(generate);
-        
+
     }
-    
+
     @Test
     public void testMatch() {
         assertTrue(boolGenerator.match("bool"));
         assertFalse(boolGenerator.match("boolean"));
-        
+
     }
 }

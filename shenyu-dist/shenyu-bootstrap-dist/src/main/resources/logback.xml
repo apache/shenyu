@@ -26,7 +26,7 @@
     <property name="MAX_LOG_FILE_HISTORY" value="${log.max-log-file-history:-7}"/>
     <property name="LOG_FILE_TOTAL_CAPACITY" value="${log.log-file-total-capacity:-10GB}"/>
     <property name="ASYNC_DISCARDING_THRESHOLD" value="${log.async.discarding-threshold:-0}"/>
-    <property name="ASYNC_LOG_QUEUE_SIZE" value="${log.async.queue-size:-256}"/>
+    <property name="ASYNC_LOG_QUEUE_SIZE" value="${log.async.queue-size:-512}"/>
 
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger - %msg%n"/>
 
@@ -47,7 +47,7 @@
     <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
         <discardingThreshold>${ASYNC_DISCARDING_THRESHOLD}</discardingThreshold>
         <queueSize>${ASYNC_LOG_QUEUE_SIZE}</queueSize>
-        <includeCallerData>true</includeCallerData>
+        <includeCallerData>false</includeCallerData>
         <appender-ref ref="FILE"/>
     </appender>
 
@@ -72,7 +72,7 @@
     <appender name="ASYNC_ERROR_FILE" class="ch.qos.logback.classic.AsyncAppender">
         <discardingThreshold>${ASYNC_DISCARDING_THRESHOLD}</discardingThreshold>
         <queueSize>${ASYNC_LOG_QUEUE_SIZE}</queueSize>
-        <includeCallerData>true</includeCallerData>
+        <includeCallerData>false</includeCallerData>
         <appender-ref ref="ERROR_FILE"/>
     </appender>
 

@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.MockRequestRecordMapper">
+    <resultMap id="MockRequestRecordMap" type="org.apache.shenyu.admin.model.entity.MockRequestRecordDO">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="apiId" column="api_id" jdbcType="VARCHAR"/>
+        <result property="host" column="host" jdbcType="VARCHAR"/>
+        <result property="port" column="port" jdbcType="INTEGER"/>
+        <result property="pathVariable" column="path_variable" jdbcType="VARCHAR"/>
+        <result property="query" column="query" jdbcType="VARCHAR"/>
+        <result property="header" column="header" jdbcType="VARCHAR"/>
+        <result property="body" column="body" jdbcType="VARCHAR"/>
+        <result property="dateCreated" column="date_created" jdbcType="TIMESTAMP"/>
+        <result property="dateUpdated" column="date_updated" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, api_id, host, port, url, path_variable, query, header, body, date_created, date_updated
+    </sql>
+
+    <select id="queryById" resultMap="MockRequestRecordMap">
+        select
+        <include refid="Base_Column_List"/>
+        from mock_request_record
+        where id = #{id}
+    </select>
+
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.MockRequestRecordQuery"
+            resultMap="MockRequestRecordMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM mock_request_record
+        <where>
+            <if test="apiId != null">
+               and api_id = #{apiId, jdbcType=VARCHAR}
+            </if>
+            <if test="host != null">
+              and  `host` = #{host, jdbcType=VARCHAR}
+            </if>
+            <if test="url != null">
+              and  `url` = #{url, jdbcType=VARCHAR}
+            </if>
+            <if test="pathVariable != null">
+              and  path_variable = #{pathVariable, jdbcType=VARCHAR}
+            </if>
+            <if test="header != null">
+              and  `header` = #{header, jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryAll" resultMap="MockRequestRecordMap">
+        select
+        <include refid="Base_Column_List"/>
+        from mock_request_record
+        <where>
+            <if test="item.id != null and item.id != ''">
+                and id = #{item.id}
+            </if>
+            <if test="item.apiId != null and item.apiId != ''">
+                and api_id = #{item.apiId}
+            </if>
+            <if test="item.host != null and item.host != ''">
+                and host = #{item.host}
+            </if>
+            <if test="item.port != null">
+                and port = #{item.port}
+            </if>
+            <if test="item.url != null and item.url != ''">
+                and url = #{item.url}
+            </if>
+            <if test="item.pathVariable != null and item.pathVariable != ''">
+                and path_variable = #{item.pathVariable}
+            </if>
+            <if test="item.query != null and item.query != ''">
+                and query = #{item.query}
+            </if>
+            <if test="item.header != null and item.header != ''">
+                and header = #{item.header}
+            </if>
+            <if test="item.body != null and item.body != ''">
+                and body = #{item.body}
+            </if>
+            <if test="item.dateCreated != null">
+                and date_created = #{item.dateCreated}
+            </if>
+            <if test="item.dateUpdated != null">
+                and date_updated = #{item.dateUpdated}
+            </if>
+        </where>
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from mock_request_record
+        <where>
+            <if test="id != null and id != ''">
+                and id = #{id}
+            </if>
+            <if test="apiId != null and apiId != ''">
+                and api_id = #{apiId}
+            </if>
+            <if test="host != null and host != ''">
+                and host = #{host}
+            </if>
+            <if test="port != null">
+                and port = #{port}
+            </if>
+            <if test="url != null and url != ''">
+                and url = #{url}
+            </if>
+            <if test="pathVariable != null and pathVariable != ''">
+                and path_variable = #{pathVariable}
+            </if>
+            <if test="query != null and query != ''">
+                and query = #{query}
+            </if>
+            <if test="header != null and header != ''">
+                and header = #{header}
+            </if>
+            <if test="body != null and body != ''">
+                and body = #{body}
+            </if>
+            <if test="dateCreated != null">
+                and date_created = #{dateCreated}
+            </if>
+            <if test="dateUpdated != null">
+                and date_updated = #{dateUpdated}
+            </if>
+        </where>
+    </select>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+        FROM mock_request_record
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into mock_request_record(
+            id,
+            api_id,
+            host,
+            port,
+            url,
+            path_variable,
+            query,
+            header,
+            body,
+            date_created,
+            date_updated
+        )
+        values (
+            #{id},
+            #{apiId},
+            #{host},
+            #{port},
+            #{url},
+            #{pathVariable},
+            #{query},
+            #{header},
+            #{body},
+            #{dateCreated},
+            #{dateUpdated}
+        )
+    </insert>
+
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" useGeneratedKeys="true">
+        insert into mock_request_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            api_id,
+            host,
+            port,
+            url,
+            <if test="pathVariable != null">path_variable,</if>
+            <if test="query != null">query,</if>
+            <if test="header != null">header,</if>
+            <if test="body != null">body,</if>
+            <if test="dateCreated != null">date_created,</if>
+            <if test="dateUpdated != null">date_updated,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id,jdbcType=VARCHAR},
+            #{apiId,jdbcType=VARCHAR},
+            #{host,jdbcType=VARCHAR},
+            #{port,jdbcType=INTEGER},
+            #{url,jdbcType=VARCHAR},
+            <if test="pathVariable != null">#{pathVariable,jdbcType=VARCHAR},</if>
+            <if test="query != null">#{query,jdbcType=VARCHAR},</if>
+            <if test="header != null">#{header,jdbcType=VARCHAR},</if>
+            <if test="body != null">#{body,jdbcType=VARCHAR},</if>
+            <if test="dateCreated != null">#{dateCreated,jdbcType=TIMESTAMP},</if>
+            <if test="dateUpdated != null">#{dateUpdated,jdbcType=TIMESTAMP},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into mock_request_record(
+            id,
+            api_id,
+            host,
+            port,
+            url,
+            path_variable,
+            query,
+            header,
+            body,
+            date_created,
+            date_updated
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+        (
+            #{item.id},
+            #{item.apiId},
+            #{item.host},
+            #{item.port},
+            #{item.url},
+            #{item.pathVariable},
+            #{item.query},
+            #{item.header},
+            #{item.body},
+            #{item.dateCreated},
+            #{item.dateUpdated}
+        )
+        </foreach>
+    </insert>
+
+    <update id="update">
+        update mock_request_record
+        <set>
+            <if test="apiId != null and apiId != ''">
+                api_id = #{apiId},
+            </if>
+            <if test="host != null and host != ''">
+                host = #{host},
+            </if>
+            <if test="port != null">
+                port = #{port},
+            </if>
+            <if test="url != null and url != ''">
+                url = #{url},
+            </if>
+            <if test="pathVariable != null and pathVariable != ''">
+                path_variable = #{pathVariable},
+            </if>
+            <if test="query != null and query != ''">
+                query = #{query},
+            </if>
+            <if test="header != null and header != ''">
+                header = #{header},
+            </if>
+            <if test="body != null and body != ''">
+                body = #{body},
+            </if>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from mock_request_record where id = #{id}
+    </delete>
+
+    <delete id="batchDelete" parameterType="java.util.List">
+        DELETE FROM mock_request_record
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
+</mapper>
+

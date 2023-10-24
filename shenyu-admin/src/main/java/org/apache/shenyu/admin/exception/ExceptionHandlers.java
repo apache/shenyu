@@ -24,7 +24,10 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -52,17 +55,10 @@ public class ExceptionHandlers {
     
     private static final Logger LOG = LoggerFactory.getLogger(ExceptionHandlers.class);
     
-    @ExceptionHandler(Exception.class)
-    protected ShenyuAdminResult handleExceptionHandler(final Exception exception) {
-        LOG.error(exception.getMessage(), exception);
-        String message;
-        if (exception instanceof ShenyuException) {
-            ShenyuException shenyuException = (ShenyuException) exception;
-            message = shenyuException.getMessage();
-        } else {
-            message = "The system is busy, please try again later";
-        }
-        return ShenyuAdminResult.error(message);
+    private final MessageSource messageSource;
+    
+    public ExceptionHandlers(final MessageSource messageSource) {
+        this.messageSource = messageSource;
     }
     
     @ExceptionHandler(DuplicateKeyException.class)
@@ -125,9 +121,26 @@ public class ExceptionHandlers {
                 .collect(Collectors.joining("| ")));
     }
     
-    @ExceptionHandler(ShenyuAdminException.class)
-    protected ShenyuAdminResult handleShenyuException(final ShenyuAdminException exception) {
-        LOG.error("shenyu admin exception ", exception);
-        return ShenyuAdminResult.error(CommonErrorCode.ERROR, exception.getMessage());
+    @ExceptionHandler(ShenyuException.class)
+    protected ShenyuAdminResult handleShenyuException(final ShenyuException exception) {
+        String message = exception.getCause() == null ? null : exception.getCause().getMessage();
+        if (!StringUtils.hasText(message)) {
+            message = exception.getMessage();
+        }
+        LOG.error(exception.getMessage());
+        return ShenyuAdminResult.error(message);
+    }
+    
+    @ExceptionHandler(Exception.class)
+    protected ShenyuAdminResult handleExceptionHandler(final Exception exception) {
+        LOG.error(exception.getMessage(), exception);
+        String message = "The system is busy, please try again later";
+        return ShenyuAdminResult.error(message);
+    }
+    
+    @ExceptionHandler(WebI18nException.class)
+    protected ShenyuAdminResult webI18nException(final WebI18nException exception) {
+        final String message = messageSource.getMessage(exception.getMessage(), exception.getArgs(), LocaleContextHolder.getLocale());
+        return ShenyuAdminResult.error(CommonErrorCode.ERROR, message);
     }
 }

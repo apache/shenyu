@@ -28,6 +28,8 @@ public class PathUtilsTest {
 
     private static final String URI = "springCloud/test";
 
+    private static final String URI_SLASH = "springCloud/test/";
+
     @Test
     public void testDecoratorPath() {
         String uri = PathUtils.decoratorPath(URI);
@@ -44,5 +46,14 @@ public class PathUtilsTest {
 
         uri = PathUtils.decoratorContextPath(URI_WRAPPER);
         assertThat(uri, is(URI));
+    }
+
+    @Test
+    public void testDecoratorPathWithSlash() {
+        String uri = PathUtils.decoratorPathWithSlash(URI);
+        assertThat(uri, is(URI + AdminConstants.URI_SLASH_SUFFIX));
+
+        uri = PathUtils.decoratorContextPath(URI_SLASH);
+        assertThat(uri, is(URI + AdminConstants.URI_SLASH_SUFFIX));
     }
 }

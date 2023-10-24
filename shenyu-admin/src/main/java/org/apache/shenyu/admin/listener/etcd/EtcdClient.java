@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Etcd client of Admin.
@@ -62,7 +63,7 @@ public class EtcdClient {
             List<KeyValue> keyValues = client.getKVClient().get(ByteSequence.from(key, StandardCharsets.UTF_8), option).get().getKvs();
             return !keyValues.isEmpty();
         } catch (Exception e) {
-            LOG.error("check node exists error.", e);
+            LOG.error("check node exists error. {}", e.getMessage());
             throw new ShenyuException(e.getMessage());
         }
     }
@@ -97,6 +98,11 @@ public class EtcdClient {
         DeleteOption option = DeleteOption.newBuilder()
                 .withPrefix(ByteSequence.from(path, StandardCharsets.UTF_8))
                 .build();
-        client.getKVClient().delete(ByteSequence.from(path, StandardCharsets.UTF_8), option);
+        try {
+            client.getKVClient().delete(ByteSequence.from(path, StandardCharsets.UTF_8), option).get(10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            LOG.error("delete node of recursive error.", e);
+            throw new ShenyuException(e.getMessage());
+        }
     }
 }

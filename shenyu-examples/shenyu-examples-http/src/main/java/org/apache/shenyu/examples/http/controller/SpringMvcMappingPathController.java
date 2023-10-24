@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.http.controller;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @ShenyuSpringMvcClient(desc = "spring annotation register")
+@ApiModule(value = "springMvcMappingPathController")
 public class SpringMvcMappingPathController {
     
     private static final String HELLO_SUFFIX = "I'm Shenyu-Gateway System. Welcome!";
@@ -37,6 +40,7 @@ public class SpringMvcMappingPathController {
      * @return result
      */
     @RequestMapping("hello")
+    @ApiDoc(desc = "hello")
     public String hello() {
         return "hello! " + HELLO_SUFFIX;
     }
@@ -48,6 +52,7 @@ public class SpringMvcMappingPathController {
      * @return result
      */
     @RequestMapping("hi")
+    @ApiDoc(desc = "hi")
     public String hello(final String name) {
         return "hi! " + name + "! " + HELLO_SUFFIX;
     }
@@ -59,6 +64,7 @@ public class SpringMvcMappingPathController {
      * @return result
      */
     @PostMapping("post/hi")
+    @ApiDoc(desc = "post/hi")
     public String post(final String name) {
         return "[post method result]:hi! " + name + "! " + HELLO_SUFFIX;
     }

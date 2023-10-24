@@ -26,9 +26,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -66,9 +69,8 @@ public class GsonUtilsTest {
     @Test
     public void testToJson() {
         TestObject testObject = generateTestObject();
-        JsonParser parser = new JsonParser();
-        JsonElement expectedJson = parser.parse(EXPECTED_JSON);
-        JsonElement objectJson = parser.parse(GsonUtils.getInstance().toJson(testObject));
+        JsonElement expectedJson = JsonParser.parseString(EXPECTED_JSON);
+        JsonElement objectJson = JsonParser.parseString(GsonUtils.getInstance().toJson(testObject));
 
         assertEquals(expectedJson, objectJson);
     }
@@ -80,7 +82,7 @@ public class GsonUtilsTest {
     public void testFromJsonAboutJsonElement() {
         TestObject testObject = generateTestObject();
 
-        JsonObject jsonObject = new JsonParser().parse(EXPECTED_JSON).getAsJsonObject();
+        JsonObject jsonObject = JsonParser.parseString(EXPECTED_JSON).getAsJsonObject();
         TestObject parseObject = GsonUtils.getInstance().fromJson(jsonObject, TestObject.class);
 
         assertEquals(testObject, parseObject);
@@ -313,6 +315,28 @@ public class GsonUtilsTest {
                     }
                 })
                 .build();
+    }
+
+    @Test
+    public void testDurationGson() {
+        LocalDateTime start = LocalDateTime.of(2022, 1, 1, 1, 1, 1);
+        LocalDateTime end = LocalDateTime.of(2022, 1, 2, 2, 2, 2);
+        Duration expectDuration = Duration.between(start, end);
+        String testStringDuration = "PT25H1M1S";
+        Duration testDuration = GsonUtils.getInstance().fromJson(testStringDuration, Duration.class);
+        assertEquals(expectDuration, testDuration);
+    }
+
+    @Test
+    public void testFromCurrentList() {
+        Map<String, Object> map = ImmutableMap.of("id", "123", "name", "test", "data", "测试");
+        List<Map<String, Object>> list = ImmutableList.of(ImmutableMap.copyOf(map), ImmutableMap.copyOf(map),
+                ImmutableMap.copyOf(map));
+        String json = "[{\"name\":\"test\",\"id\":\"123\",\"data\":\"测试\"},"
+                + "{\"name\":\"test\",\"id\":\"123\",\"data\":\"测试\"},"
+                + "{\"name\":\"test\",\"id\":\"123\",\"data\":\"测试\"}]";
+        List<? extends Map> testList = GsonUtils.getInstance().fromCurrentList(json, map.getClass());
+        Assertions.assertEquals(list, testList);
     }
 
     private static class TestObject {

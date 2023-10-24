@@ -30,17 +30,17 @@ import java.util.function.Supplier;
  */
 public final class RewritePluginDataHandlerTest {
 
-    private RewritePluginDataHandler rewritePluginDataHandler = new RewritePluginDataHandler();
+    private final RewritePluginDataHandler rewritePluginDataHandler = new RewritePluginDataHandler();
 
-    private RuleData ruleData = new RuleData();
+    private final RuleData ruleData = new RuleData();
 
     @Test
     public void testHandlerRule() {
         ruleData.setSelectorId("1");
         ruleData.setHandle("{\"urlPath\":\"test\"}");
-        ruleData.setName("test");
+        ruleData.setId("test");
         rewritePluginDataHandler.handlerRule(ruleData);
-        Supplier<CommonHandleCache<String, RewriteHandle>> cache = rewritePluginDataHandler.CACHED_HANDLE;
+        Supplier<CommonHandleCache<String, RewriteHandle>> cache = RewritePluginDataHandler.CACHED_HANDLE;
         Assertions.assertNotNull(cache.get().obtainHandle("1_test"));
     }
 
@@ -48,8 +48,8 @@ public final class RewritePluginDataHandlerTest {
     public void testRemoveRule() {
         ruleData.setSelectorId("1");
         ruleData.setHandle("{\"urlPath\":\"test\"}");
-        ruleData.setName("test");
-        Supplier<CommonHandleCache<String, RewriteHandle>> cache = rewritePluginDataHandler.CACHED_HANDLE;
+        ruleData.setId("test");
+        Supplier<CommonHandleCache<String, RewriteHandle>> cache = RewritePluginDataHandler.CACHED_HANDLE;
         cache.get().cachedHandle("1_test", new RewriteHandle());
         Assertions.assertNotNull(cache.get().obtainHandle("1_test"));
         rewritePluginDataHandler.removeRule(ruleData);

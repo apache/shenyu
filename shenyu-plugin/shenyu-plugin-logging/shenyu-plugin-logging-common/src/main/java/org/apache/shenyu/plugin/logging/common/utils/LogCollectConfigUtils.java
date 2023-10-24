@@ -38,8 +38,7 @@ public final class LogCollectConfigUtils {
 
     private static GenericGlobalConfig genericGlobalConfig;
 
-    private static final GenericGlobalConfig DEFAULT_GLOBAL_LOG_CONFIG =
-            new GenericGlobalConfig();
+    private static final GenericGlobalConfig DEFAULT_GLOBAL_LOG_CONFIG = new GenericGlobalConfig();
 
     private static Map<String, Sampler> apiSamplerMap = new HashMap<>();
 
@@ -85,7 +84,7 @@ public final class LogCollectConfigUtils {
      * @return whether sample
      */
     public static boolean isSampled(final ServerHttpRequest request) {
-        String path = request.getURI().getPath();
+        String path = request.getURI().getRawPath();
         for (Map.Entry<String, Sampler> entry : apiSamplerMap.entrySet()) {
             String pattern = entry.getKey();
             if (MATCHER.match(pattern, path)) {

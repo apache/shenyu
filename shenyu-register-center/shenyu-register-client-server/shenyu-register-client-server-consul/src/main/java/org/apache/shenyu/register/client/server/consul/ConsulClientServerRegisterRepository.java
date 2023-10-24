@@ -24,7 +24,9 @@ import com.ecwid.consul.v1.kv.model.GetValue;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -64,7 +66,13 @@ public class ConsulClientServerRegisterRepository implements ShenyuClientServerR
     public void init(final ShenyuClientServerRegisterPublisher publisher,
                      final ShenyuRegisterCenterConfig config) {
         this.publisher = publisher;
-        consulClient = new ConsulClient(config.getServerLists());
+
+        final String serverList = config.getServerLists();
+        if (StringUtils.isBlank(serverList)) {
+            throw new ShenyuException("serverList can not be null.");
+        }
+        final String[] addresses = splitAndCheckAddress(serverList);
+        consulClient = new ConsulClient(addresses[0], Integer.parseInt(addresses[1]));
     }
     
     /**
@@ -96,6 +104,14 @@ public class ConsulClientServerRegisterRepository implements ShenyuClientServerR
                 publishMetadata(getValue.getDecodedValue());
             }
         });
+    }
+
+    private String[] splitAndCheckAddress(final String serverList) {
+        final String[] addresses = serverList.split(":");
+        if (addresses.length != 2) {
+            throw new ShenyuException("serverList formatter is not incorrect.");
+        }
+        return addresses;
     }
 
     private void publishMetadata(final String data) {

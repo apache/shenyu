@@ -32,9 +32,9 @@ public class SaveFileImpl implements SaveFile {
 
     @Override
     public boolean saveFileFromBytes(final byte[] b, final Map<String, Object> map) {
-        //从map中获取file对象
+        // get the file object from the map
         File file = (File) map.get("file");
-        //判断路径是否存在，不存在就创建
+        // determine whether the path exists, create it if it does not exist
         if (!file.getParentFile().exists()) {
             file.getParentFile().mkdirs();
         }

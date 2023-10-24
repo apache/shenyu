@@ -94,6 +94,7 @@ public final class SelectorUtil {
                 .enabled(Boolean.TRUE)
                 .loged(Boolean.TRUE)
                 .continued(Boolean.TRUE)
+                .matchRestful(Boolean.FALSE)
                 .sort(1)
                 .build();
     }

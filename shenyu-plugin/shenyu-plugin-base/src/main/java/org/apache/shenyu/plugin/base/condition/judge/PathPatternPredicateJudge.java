@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.base.condition.judge;
 
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
-import org.apache.shenyu.common.utils.PathMatchUtils;
+import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
 import org.apache.shenyu.spi.Join;
 
 import java.util.Objects;

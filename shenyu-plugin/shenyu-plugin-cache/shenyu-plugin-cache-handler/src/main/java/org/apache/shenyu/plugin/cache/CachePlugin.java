@@ -22,16 +22,17 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.CacheRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.cache.handler.CachePluginDataHandler;
 import org.apache.shenyu.plugin.cache.utils.CacheUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.annotation.NonNull;
@@ -61,11 +62,11 @@ public class CachePlugin extends AbstractShenyuPlugin {
                             return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes))
                                     .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
                         }
-                        CacheRuleHandle cacheRuleHandle = CachePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+                        CacheRuleHandle cacheRuleHandle = buildRuleHandle(rule);
                         return chain.execute(exchange.mutate().response(new CacheHttpResponse(exchange, cacheRuleHandle)).build());
                     });
         }
-        CacheRuleHandle cacheRuleHandle = CachePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        CacheRuleHandle cacheRuleHandle = buildRuleHandle(rule);
         return chain.execute(exchange.mutate().response(new CacheHttpResponse(exchange, cacheRuleHandle)).build());
     }
 
@@ -77,6 +78,10 @@ public class CachePlugin extends AbstractShenyuPlugin {
     @Override
     public String named() {
         return PluginEnum.CACHE.getName();
+    }
+    
+    private CacheRuleHandle buildRuleHandle(final RuleData rule) {
+        return CachePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
 
     static class CacheHttpResponse extends ServerHttpResponseDecorator {
@@ -95,21 +100,24 @@ public class CachePlugin extends AbstractShenyuPlugin {
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-            return super.writeWith(cacheResponse(body));
+            final Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(body);
+            return dataBufferMono.flatMap(dataBuffer -> {
+                byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                dataBuffer.read(bytes);
+                return WebFluxResultUtils.result(this.exchange, cacheResponse(bytes));
+            });
         }
 
         @NonNull
-        private Flux<? extends DataBuffer> cacheResponse(final Publisher<? extends DataBuffer> body) {
+        private byte[] cacheResponse(final byte[] bodyBytes) {
             final ICache cache = CacheUtils.getCache();
             if (Objects.nonNull(cache)) {
                 final MediaType contentType = this.getHeaders().getContentType();
-                return Flux.from(body).doOnNext(buffer -> {
-                    cache.cacheData(CacheUtils.dataKey(this.exchange), buffer.asByteBuffer().array(),
-                            this.cacheRuleHandle.getTimeoutSeconds()).subscribeOn(Schedulers.boundedElastic()).subscribe();
-                    cache.cacheContentType(CacheUtils.contentTypeKey(this.exchange), contentType, this.cacheRuleHandle.getTimeoutSeconds());
-                });
+                cache.cacheData(CacheUtils.dataKey(this.exchange), bodyBytes,
+                        this.cacheRuleHandle.getTimeoutSeconds()).subscribeOn(Schedulers.boundedElastic()).subscribe();
+                cache.cacheContentType(CacheUtils.contentTypeKey(this.exchange), contentType, this.cacheRuleHandle.getTimeoutSeconds());
             }
-            return Flux.from(body);
+            return bodyBytes;
         }
     }
 }

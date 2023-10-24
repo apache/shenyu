@@ -21,6 +21,7 @@ import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.QueryParams;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.kv.model.GetValue;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.slf4j.Logger;
@@ -81,38 +82,36 @@ public class ShenyuConsulConfigWatch implements SmartLifecycle {
     }
 
     private void watchConfigKeyValues() {
-        if (this.running.get()) {
-            for (String context : this.consulIndexes.keySet()) {
-                try {
-                    Long currentIndex = this.consulIndexes.get(context);
-                    if (currentIndex == null) {
-                        currentIndex = -1L;
-                    }
-                    Response<List<GetValue>> response = this.consul.getKVValues(context, null, new QueryParams(waitTime, currentIndex));
-                    if (response.getValue() != null && !response.getValue().isEmpty()) {
-                        Long newIndex = response.getConsulIndex();
-
-                        if (Objects.nonNull(newIndex) && !newIndex.equals(currentIndex)) {
-                            if (!this.consulIndexes.containsValue(newIndex)
-                                    && !currentIndex.equals(-1L)) {
-                                LOGGER.trace("Context {} has new index {}", context, newIndex);
-                                Map<String, GetValue> valueMap = extractGetValue(response);
-                                publisher.publishEvent(new ConsulConfigChangedEvent(this, newIndex, valueMap));
-                            } else if (LOGGER.isTraceEnabled()) {
-                                LOGGER.info("Event for index already published for context {}", context);
-                            }
-                            this.consulIndexes.put(context, newIndex);
-                        } else if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Same index for context {}", context);
-                        }
-                    } else if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("No value for context {}", context);
-                    }
-                } catch (Exception e) {
-                    LOGGER.warn("Error querying consul Key/Values for context '{}'. Message: {}", context, e.getMessage());
-                }
-            }
+        if (!this.running.get()) {
+            return;
         }
+        consulIndexes.keySet().forEach(context -> {
+            try {
+                Long currentIndex = this.consulIndexes.computeIfAbsent(context, k -> -1L);
+                Response<List<GetValue>> response = this.consul.getKVValues(context, null, new QueryParams(waitTime, currentIndex));
+                if (CollectionUtils.isNotEmpty(response.getValue())) {
+                    Long newIndex = response.getConsulIndex();
+
+                    if (Objects.nonNull(newIndex) && !newIndex.equals(currentIndex)) {
+                        if (!this.consulIndexes.containsValue(newIndex)
+                                && !currentIndex.equals(-1L)) {
+                            LOGGER.trace("Context {} has new index {}", context, newIndex);
+                            Map<String, GetValue> valueMap = extractGetValue(response);
+                            publisher.publishEvent(new ConsulConfigChangedEvent(this, newIndex, valueMap));
+                        } else if (LOGGER.isTraceEnabled()) {
+                            LOGGER.info("Event for index already published for context {}", context);
+                        }
+                        this.consulIndexes.put(context, newIndex);
+                    } else if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Same index for context {}", context);
+                    }
+                } else if (LOGGER.isTraceEnabled()) {
+                    LOGGER.warn("No value for context {}", context);
+                }
+            } catch (Exception e) {
+                LOGGER.error("Error querying consul Key/Values for context '{}'. Message: {}", context, e.getMessage());
+            }
+        });
     }
 
     @Override

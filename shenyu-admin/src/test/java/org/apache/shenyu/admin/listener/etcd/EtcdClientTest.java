@@ -86,6 +86,7 @@ public class EtcdClientTest {
 
     @Test
     public void deleteEtcdPathRecursive() {
+        when(client.getKVClient().delete(any(ByteSequence.class), any(DeleteOption.class))).thenReturn(mock(CompletableFuture.class));
         etcdClient.deleteEtcdPathRecursive(TEST_KEY);
         verify(client.getKVClient(), times(1)).delete(any(ByteSequence.class), any(DeleteOption.class));
     }

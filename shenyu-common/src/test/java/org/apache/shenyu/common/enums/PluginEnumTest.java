@@ -43,7 +43,7 @@ public final class PluginEnumTest {
     @Test
     public void testGetUpstreamNames() {
         List<String> list = PluginEnum.getUpstreamNames();
-        assert list.size() > 0;
+        assert !list.isEmpty();
     }
 
     @Test

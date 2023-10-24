@@ -50,6 +50,18 @@ public final class SpringBeanUtils {
     public <T> T getBean(final Class<T> type) {
         return applicationContext.getBean(type);
     }
+    
+    /**
+     * get bean by name and type.
+     *
+     * @param <T> the type
+     * @param name the bean name
+     * @param type the bean type
+     * @return bean bean
+     */
+    public <T> T getBean(final String name, final Class<T> type) {
+        return applicationContext.getBean(name, type);
+    }
 
     /**
      * set application context.

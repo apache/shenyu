@@ -113,7 +113,7 @@ public final class AppAuthMapperTest extends AbstractSpringIntegrationTest {
 
     @Test
     public void testUpdateAppSecretByAppKey() {
-        String appSecret = SignUtils.getInstance().generateKey();
+        String appSecret = SignUtils.generateKey();
         appAuthDO.setAppSecret(appSecret);
         int count = appAuthMapper.updateAppSecretByAppKey(appAuthDO.getAppKey(), appSecret);
         assertEquals(1, count);
@@ -138,8 +138,8 @@ public final class AppAuthMapperTest extends AbstractSpringIntegrationTest {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         return AppAuthDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
-                .appKey(SignUtils.getInstance().generateKey())
-                .appSecret(SignUtils.getInstance().generateKey())
+                .appKey(SignUtils.generateKey())
+                .appSecret(SignUtils.generateKey())
                 .extInfo("{\"extInfo\":\"json\"}")
                 .open(true)
                 .enabled(false)

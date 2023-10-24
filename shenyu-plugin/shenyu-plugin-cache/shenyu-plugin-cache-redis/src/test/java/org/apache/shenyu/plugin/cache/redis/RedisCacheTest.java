@@ -27,11 +27,18 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.connection.ReactiveRedisClusterConnection;
+import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import redis.embedded.RedisServer;
 
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * RedisCacheTest.
@@ -64,6 +71,23 @@ public class RedisCacheTest {
                 .subscribe(v -> assertEquals(Boolean.TRUE, v));
         cache.isExist(testKey).subscribe(s -> assertEquals(Boolean.TRUE, s));
         cache.getData(testKey).subscribe(data -> assertEquals(testKey, new String(data, StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    public void closeCache() throws NoSuchFieldException, IllegalAccessException {
+        final ICache cache = new RedisCache(getConfig());
+        cache.close();
+        final Field redisTemplate = RedisCache.class.getDeclaredField("redisTemplate");
+        redisTemplate.setAccessible(true);
+        redisTemplate.set(cache, null);
+        cache.close();
+        final ReactiveRedisTemplate reactiveRedisTemplate = mock(ReactiveRedisTemplate.class);
+        final ReactiveRedisConnectionFactory redisConnectionFactory = mock(ReactiveRedisConnectionFactory.class);
+        redisTemplate.set(cache, reactiveRedisTemplate);
+        when(reactiveRedisTemplate.getConnectionFactory()).thenReturn(redisConnectionFactory);
+        when(redisConnectionFactory.getReactiveClusterConnection()).thenReturn(mock(ReactiveRedisClusterConnection.class));
+        when(redisConnectionFactory.getReactiveConnection()).thenReturn(mock(ReactiveRedisConnection.class));
+        cache.close();
     }
 
     @Test

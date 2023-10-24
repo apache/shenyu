@@ -17,13 +17,17 @@
 
 package org.apache.shenyu.admin.mapper;
 
+import com.google.common.collect.Lists;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * RuleConditionMapper.
@@ -53,8 +57,19 @@ public interface RuleConditionMapper {
      * @param ruleIdSet a set of ruleIds
      * @return a list of {@linkplain RuleConditionDO}
      */
-    List<RuleConditionDO> selectByRuleIdSet(@Param("ruleIdSet") Set<String> ruleIdSet);
-    
+    default List<RuleConditionDO> selectByRuleIdSet(@Param("ruleIdSet") Set<String> ruleIdSet) {
+        final List<List<String>> ruleIdSetPartition = Lists.partition(new ArrayList<>(ruleIdSet), 500);
+        return ruleIdSetPartition.stream().map(this::selectByRuleIdSet0).flatMap(Collection::stream).collect(Collectors.toList());
+    }
+
+    /**
+     * select list of rule conditions by a set of ruleIds.
+     *
+     * @param ruleIdSet a set of ruleIds
+     * @return a list of {@linkplain RuleConditionDO}
+     */
+    List<RuleConditionDO> selectByRuleIdSet0(@Param("ruleIdSet") List<String> ruleIdSet);
+
     /**
      * insert rule condition.
      *

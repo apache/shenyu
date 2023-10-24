@@ -40,5 +40,5 @@ public enum PluginHandlerEventEnum {
     /**
      * plugin sorted.
      */
-    SORTED;
+    SORTED
 }

@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.logging.elasticsearch.config;
 
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -59,7 +60,31 @@ public class ElasticSearchLogCollectConfig {
 
         private String port;
 
+        private String username;
+
+        private String password;
+
+        private Boolean authCache;
+
         private String compressAlg;
+
+        private String indexName;
+
+        /**
+         * getIndexName.
+         * @return indexName
+         */
+        public String getIndexName() {
+            return indexName;
+        }
+
+        /**
+         * setIndexName.
+         * @param indexName indexName
+         */
+        public void setIndeName(final String indexName) {
+            this.indexName = indexName;
+        }
 
         /**
          * whether compress.
@@ -115,6 +140,82 @@ public class ElasticSearchLogCollectConfig {
             this.port = port;
         }
 
+        /**
+         * get userName.
+         * @return userName
+         */
+        public String getUsername() {
+            return username;
+        }
+
+        /**
+         * set userName.
+         *
+         * @param username userName
+         */
+        public void setUsername(final String username) {
+            this.username = username;
+        }
+
+        /**
+         * get password.
+         * @return password
+         */
+        public String getPassword() {
+            return password;
+        }
+
+        /**
+         * set password.
+         *
+         * @param password password
+         */
+        public void setPassword(final String password) {
+            this.password = password;
+        }
+
+        /**
+         * get authCache.
+         * @return authCache
+         */
+        public Boolean getAuthCache() {
+            return authCache;
+        }
+
+        /**
+         * set authCache.
+         *
+         * @param authCache authCache
+         */
+        public void setAuthCache(final Boolean authCache) {
+            this.authCache = authCache;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return Boolean.TRUE;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return Boolean.FALSE;
+            }
+
+            ElasticSearchLogConfig that = (ElasticSearchLogConfig) o;
+            return Objects.equals(getHost(), that.getHost())
+                    && Objects.equals(getCompressAlg(), that.getCompressAlg())
+                    && Objects.equals(getPort(), that.getPort())
+                    && Objects.equals(getSampleRate(), that.getSampleRate())
+                    && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
+                    && Objects.equals(getMaxResponseBody(), that.getMaxRequestBody())
+                    && Objects.equals(getMaxRequestBody(), that.getMaxResponseBody())
+                    && Objects.equals(getIndexName(), that.getIndexName());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(host, compressAlg, port);
+        }
     }
 
     /**

@@ -34,24 +34,35 @@ import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.Assert;
-import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.JarDependencyUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of the {@link org.apache.shenyu.admin.service.PluginService}.
+ * Implementation of the {@link PluginService}.
  */
 @Service
 public class PluginServiceImpl implements PluginService {
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(PluginServiceImpl.class);
     
     private final PluginMapper pluginMapper;
     
@@ -79,7 +90,19 @@ public class PluginServiceImpl implements PluginService {
     public String createOrUpdate(final PluginDTO pluginDTO) {
         return StringUtils.isBlank(pluginDTO.getId()) ? this.create(pluginDTO) : this.update(pluginDTO);
     }
-    
+
+    /**
+     * create plugin resource.
+     *
+     * @param pluginDTO the plugin dto
+     * @return result message
+     */
+    @Override
+    public String createPluginResource(final PluginDTO pluginDTO) {
+        pluginEventPublisher.onCreated(PluginDO.buildPluginDO(pluginDTO));
+        return ShenyuResultMessage.CREATE_SUCCESS;
+    }
+
     /**
      * delete plugins.
      *
@@ -199,6 +222,9 @@ public class PluginServiceImpl implements PluginService {
      */
     private String create(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), AdminConstants.PLUGIN_NAME_IS_EXIST);
+        if (!Objects.isNull(pluginDTO.getFile())) {
+            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.PLUGIN_JAR_IS_NOT_RIGHT);
+        }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         if (pluginMapper.insertSelective(pluginDO) > 0) {
             // publish create event. init plugin data
@@ -206,7 +232,8 @@ public class PluginServiceImpl implements PluginService {
         }
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
-    
+
+
     /**
      * update plugin.<br>
      *
@@ -215,6 +242,9 @@ public class PluginServiceImpl implements PluginService {
      */
     private String update(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), AdminConstants.PLUGIN_NAME_IS_EXIST);
+        if (!Objects.isNull(pluginDTO.getFile())) {
+            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.PLUGIN_JAR_IS_NOT_RIGHT);
+        }
         final PluginDO before = pluginMapper.selectById(pluginDTO.getId());
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         if (pluginMapper.updateSelective(pluginDO) > 0) {
@@ -222,5 +252,20 @@ public class PluginServiceImpl implements PluginService {
             pluginEventPublisher.onUpdated(pluginDO, before);
         }
         return ShenyuResultMessage.UPDATE_SUCCESS;
+    }
+
+    /**
+     * check jar.
+     * @param file file
+     * @return true is right
+     */
+    private boolean checkFile(final MultipartFile file) {
+        try {
+            Set<String> dependencyTree = JarDependencyUtils.getDependencyTree(file.getBytes());
+            return dependencyTree.contains(AdminConstants.PLUGIN_ABSTRACR_PATH) || dependencyTree.contains(AdminConstants.PLUGIN_INTERFACE_PATH);
+        } catch (Exception e) {
+            LOG.error("check plugin jar error:{}", e.getMessage());
+            throw new ShenyuException(e);
+        }
     }
 }

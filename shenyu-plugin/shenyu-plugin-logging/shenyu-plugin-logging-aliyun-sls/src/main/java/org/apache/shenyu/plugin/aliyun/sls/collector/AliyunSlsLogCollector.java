@@ -17,29 +17,35 @@
 
 package org.apache.shenyu.plugin.aliyun.sls.collector;
 
+import org.apache.shenyu.plugin.aliyun.sls.client.AliyunSlsLogCollectClient;
 import org.apache.shenyu.plugin.aliyun.sls.handler.LoggingAliyunSlsPluginDataHandler;
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 
 /**
  * aliyun sls log collector，depend a LogConsumeClient for consume logs.
  */
-public class AliyunSlsLogCollector extends AbstractLogCollector {
+public class AliyunSlsLogCollector extends AbstractLogCollector<AliyunSlsLogCollectClient, ShenyuRequestLog> {
 
-    private static final LogCollector INSTANCE = new AliyunSlsLogCollector();
+    private static final LogCollector<ShenyuRequestLog> INSTANCE = new AliyunSlsLogCollector();
 
     /**
      * get LogCollector instance.
      *
      * @return LogCollector instance
      */
-    public static LogCollector getInstance() {
+    public static LogCollector<ShenyuRequestLog> getInstance() {
         return INSTANCE;
     }
 
     @Override
-    protected LogConsumeClient getLogConsumeClient() {
+    protected AliyunSlsLogCollectClient getLogConsumeClient() {
         return LoggingAliyunSlsPluginDataHandler.getAliyunSlsLogCollectClient();
+    }
+
+    @Override
+    protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
     }
 }

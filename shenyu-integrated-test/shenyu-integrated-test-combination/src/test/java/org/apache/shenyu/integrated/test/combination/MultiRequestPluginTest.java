@@ -509,6 +509,7 @@ public final class MultiRequestPluginTest extends AbstractPluginDataInit {
         cryptorRuleHandler.setStrategyName("rsa");
         cryptorRuleHandler.setFieldNames("userName");
         cryptorRuleHandler.setWay("encrypt");
+        cryptorRuleHandler.setMapType("all");
         return Collections.singletonList(buildRuleLocalData(JsonUtils.toJson(cryptorRuleHandler)));
     }
 

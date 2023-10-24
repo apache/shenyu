@@ -22,6 +22,7 @@ import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The type Meta data dto.
@@ -60,24 +61,27 @@ public class MetaDataRegisterDTO implements DataTypeParent {
 
     private long timeMillis;
 
+    private boolean addPrefixed;
+
     /**
      * Instantiates a new Meta data register dto.
      *
-     * @param appName the app name
-     * @param contextPath the context path
-     * @param path the path
-     * @param pathDesc the path desc
-     * @param rpcType the rpc type
-     * @param serviceName the service name
-     * @param methodName the method name
-     * @param ruleName the rule name
-     * @param parameterTypes the parameter types
-     * @param rpcExt the rpc ext
-     * @param enabled the enabled
-     * @param host the host
-     * @param port the port
-     * @param pluginNames the plugin names
+     * @param appName          the app name
+     * @param contextPath      the context path
+     * @param path             the path
+     * @param pathDesc         the path desc
+     * @param rpcType          the rpc type
+     * @param serviceName      the service name
+     * @param methodName       the method name
+     * @param ruleName         the rule name
+     * @param parameterTypes   the parameter types
+     * @param rpcExt           the rpc ext
+     * @param enabled          the enabled
+     * @param host             the host
+     * @param port             the port
+     * @param pluginNames      the plugin names
      * @param registerMetaData the register meta data
+     * @param addPrefixed      the prefix forward status
      */
     public MetaDataRegisterDTO(final String appName, final String contextPath,
                                final String path, final String pathDesc,
@@ -86,7 +90,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
                                final String parameterTypes, final String rpcExt,
                                final boolean enabled, final String host,
                                final Integer port, final List<String> pluginNames,
-                               final boolean registerMetaData) {
+                               final boolean registerMetaData, final boolean addPrefixed) {
         this.appName = appName;
         this.contextPath = contextPath;
         this.path = path;
@@ -103,8 +107,9 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         this.pluginNames = pluginNames;
         this.registerMetaData = registerMetaData;
         this.timeMillis = System.currentTimeMillis();
+        this.addPrefixed = addPrefixed;
     }
-    
+
     /**
      * Instantiates a new Meta data register dto.
      */
@@ -128,8 +133,9 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         pluginNames = builder.pluginNames;
         registerMetaData = builder.registerMetaData;
         timeMillis = System.currentTimeMillis();
+        addPrefixed = builder.addPrefixed;
     }
-    
+
     /**
      * builder.
      *
@@ -143,7 +149,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public DataType getType() {
         return DataType.META_DATA;
     }
-    
+
     /**
      * getAppName.
      *
@@ -152,7 +158,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public String getAppName() {
         return appName;
     }
-    
+
     /**
      * setAppName.
      *
@@ -161,7 +167,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setAppName(final String appName) {
         this.appName = appName;
     }
-    
+
     /**
      * getContextPath.
      *
@@ -170,7 +176,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public String getContextPath() {
         return contextPath;
     }
-    
+
     /**
      * setContextPath.
      *
@@ -179,7 +185,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setContextPath(final String contextPath) {
         this.contextPath = contextPath;
     }
-    
+
     /**
      * getPath.
      *
@@ -188,7 +194,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public String getPath() {
         return path;
     }
-    
+
     /**
      * setPath.
      *
@@ -197,7 +203,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setPath(final String path) {
         this.path = path;
     }
-    
+
     /**
      * getPathDesc.
      *
@@ -206,7 +212,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public String getPathDesc() {
         return pathDesc;
     }
-    
+
     /**
      * setPath.
      *
@@ -215,7 +221,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setPathDesc(final String pathDesc) {
         this.pathDesc = pathDesc;
     }
-    
+
     /**
      * getRpcType.
      *
@@ -224,7 +230,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public String getRpcType() {
         return rpcType;
     }
-    
+
     /**
      * setPath.
      *
@@ -233,7 +239,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setRpcType(final String rpcType) {
         this.rpcType = rpcType;
     }
-    
+
     /**
      * getServiceName.
      *
@@ -242,7 +248,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public String getServiceName() {
         return serviceName;
     }
-    
+
     /**
      * setPath.
      *
@@ -251,7 +257,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setServiceName(final String serviceName) {
         this.serviceName = serviceName;
     }
-    
+
     /**
      * getMethodName.
      *
@@ -260,7 +266,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public String getMethodName() {
         return methodName;
     }
-    
+
     /**
      * setPath.
      *
@@ -269,7 +275,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setMethodName(final String methodName) {
         this.methodName = methodName;
     }
-    
+
     /**
      * getRuleName.
      *
@@ -278,7 +284,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public String getRuleName() {
         return ruleName;
     }
-    
+
     /**
      * setPath.
      *
@@ -287,7 +293,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setRuleName(final String ruleName) {
         this.ruleName = ruleName;
     }
-    
+
     /**
      * getParameterTypes.
      *
@@ -296,7 +302,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public String getParameterTypes() {
         return parameterTypes;
     }
-    
+
     /**
      * setPath.
      *
@@ -305,7 +311,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setParameterTypes(final String parameterTypes) {
         this.parameterTypes = parameterTypes;
     }
-    
+
     /**
      * getRpcExt.
      *
@@ -314,7 +320,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public String getRpcExt() {
         return rpcExt;
     }
-    
+
     /**
      * setPath.
      *
@@ -323,7 +329,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setRpcExt(final String rpcExt) {
         this.rpcExt = rpcExt;
     }
-    
+
     /**
      * isEnabled.
      *
@@ -332,7 +338,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public boolean isEnabled() {
         return enabled;
     }
-    
+
     /**
      * setPath.
      *
@@ -341,7 +347,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
-    
+
     /**
      * getHost.
      *
@@ -350,7 +356,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public String getHost() {
         return host;
     }
-    
+
     /**
      * setPath.
      *
@@ -359,7 +365,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setHost(final String host) {
         this.host = host;
     }
-    
+
     /**
      * getPort.
      *
@@ -368,7 +374,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public Integer getPort() {
         return port;
     }
-    
+
     /**
      * setPort.
      *
@@ -377,7 +383,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setPort(final Integer port) {
         this.port = port;
     }
-    
+
     /**
      * getPluginNames.
      *
@@ -386,7 +392,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public List<String> getPluginNames() {
         return pluginNames;
     }
-    
+
     /**
      * setPluginNames.
      *
@@ -395,7 +401,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setPluginNames(final List<String> pluginNames) {
         this.pluginNames = pluginNames;
     }
-    
+
     /**
      * isRegisterMetaData.
      *
@@ -404,7 +410,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public boolean isRegisterMetaData() {
         return registerMetaData;
     }
-    
+
     /**
      * setRegisterMetaData.
      *
@@ -432,44 +438,91 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         this.timeMillis = timeMillis;
     }
 
+    /**
+     * get prefix forward status.
+     *
+     * @return prefix forward status
+     */
+    public boolean getAddPrefixed() {
+        return addPrefixed;
+    }
+
+    /**
+     * set prefix forward status.
+     *
+     * @param prefixForwardEnable prefixForwardEnabled
+     */
+    public void setAddPrefixed(final boolean prefixForwardEnable) {
+        this.addPrefixed = prefixForwardEnable;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MetaDataRegisterDTO that = (MetaDataRegisterDTO) o;
+        return Objects.equals(appName, that.appName) && Objects.equals(contextPath, that.contextPath)
+                && Objects.equals(path, that.path) && Objects.equals(pathDesc, that.pathDesc)
+                && Objects.equals(rpcType, that.rpcType) && Objects.equals(serviceName, that.serviceName)
+                && Objects.equals(methodName, that.methodName) && Objects.equals(ruleName, that.ruleName)
+                && Objects.equals(parameterTypes, that.parameterTypes) && Objects.equals(rpcExt, that.rpcExt)
+                && Objects.equals(enabled, that.enabled) && Objects.equals(host, that.host)
+                && Objects.equals(port, that.port) && Objects.equals(pluginNames, that.pluginNames)
+                && Objects.equals(registerMetaData, that.registerMetaData)
+                && Objects.equals(addPrefixed, that.addPrefixed);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(appName, contextPath, path, pathDesc, rpcType, serviceName, methodName,
+                ruleName, parameterTypes, rpcExt, enabled, host, port, pluginNames,
+                registerMetaData, addPrefixed);
+    }
+
     @Override
     public String toString() {
-        return "MetaDataRegisterDTO{" 
-                + "appName='" 
+        return "MetaDataRegisterDTO{"
+                + "appName='"
                 + appName
-                + ", contextPath='" 
+                + ", contextPath='"
                 + contextPath
                 + ", path='"
                 + path
-                + ", pathDesc='" 
+                + ", pathDesc='"
                 + pathDesc
-                + ", rpcType='" 
+                + ", rpcType='"
                 + rpcType
-                + ", serviceName='" 
+                + ", serviceName='"
                 + serviceName
-                + ", methodName='" 
+                + ", methodName='"
                 + methodName
                 + ", ruleName='"
                 + ruleName
-                + ", parameterTypes='" 
+                + ", parameterTypes='"
                 + parameterTypes
-                + ", rpcExt='" 
+                + ", rpcExt='"
                 + rpcExt
-                + ", enabled=" 
-                + enabled 
-                + ", host='" 
+                + ", enabled="
+                + enabled
+                + ", host='"
                 + host
-                + ", port=" 
-                + port 
-                + ", pluginNames=" 
+                + ", port="
+                + port
+                + ", pluginNames="
                 + pluginNames
-                + ", registerMetaData=" 
+                + ", registerMetaData="
                 + registerMetaData
                 + ", timeMillis="
                 + timeMillis
+                + ", addPrefixed="
+                + addPrefixed
                 + '}';
     }
-    
+
     /**
      * The type Builder.
      */
@@ -507,9 +560,11 @@ public class MetaDataRegisterDTO implements DataTypeParent {
 
         private long timeMillis;
 
+        private boolean addPrefixed;
+
         private Builder() {
         }
-    
+
         /**
          * appName.
          *
@@ -520,7 +575,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.appName = appName;
             return this;
         }
-    
+
         /**
          * contextPath.
          *
@@ -531,7 +586,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.contextPath = contextPath;
             return this;
         }
-    
+
         /**
          * path.
          *
@@ -542,7 +597,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.path = path;
             return this;
         }
-    
+
         /**
          * pathDesc.
          *
@@ -553,7 +608,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.pathDesc = pathDesc;
             return this;
         }
-    
+
         /**
          * rpcType.
          *
@@ -564,7 +619,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.rpcType = rpcType;
             return this;
         }
-    
+
         /**
          * serviceName.
          *
@@ -575,7 +630,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.serviceName = serviceName;
             return this;
         }
-    
+
         /**
          * methodName.
          *
@@ -586,7 +641,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.methodName = methodName;
             return this;
         }
-    
+
         /**
          * ruleName.
          *
@@ -597,7 +652,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.ruleName = ruleName;
             return this;
         }
-    
+
         /**
          * parameterTypes.
          *
@@ -608,7 +663,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.parameterTypes = parameterTypes;
             return this;
         }
-    
+
         /**
          * rpcExt.
          *
@@ -619,7 +674,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.rpcExt = rpcExt;
             return this;
         }
-    
+
         /**
          * enabled.
          *
@@ -630,7 +685,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.enabled = enabled;
             return this;
         }
-    
+
         /**
          * appName.
          *
@@ -641,7 +696,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.host = host;
             return this;
         }
-    
+
         /**
          * port.
          *
@@ -652,7 +707,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.port = port;
             return this;
         }
-    
+
         /**
          * pluginNames.
          *
@@ -663,7 +718,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.pluginNames = pluginNames;
             return this;
         }
-    
+
         /**
          * registerMetaData.
          *
@@ -683,6 +738,17 @@ public class MetaDataRegisterDTO implements DataTypeParent {
          */
         public Builder timeMillis(final long timeMillis) {
             this.timeMillis = timeMillis;
+            return this;
+        }
+
+        /**
+         * prefixForward status.
+         *
+         * @param addPrefixed addPrefixed
+         * @return Builder builder
+         */
+        public Builder addPrefixed(final boolean addPrefixed) {
+            this.addPrefixed = addPrefixed;
             return this;
         }
 

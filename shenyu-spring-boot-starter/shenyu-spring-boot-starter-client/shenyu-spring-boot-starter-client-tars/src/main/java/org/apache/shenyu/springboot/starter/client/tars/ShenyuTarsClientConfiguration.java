@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.springboot.starter.client.tars;
 
-import org.apache.shenyu.client.tars.TarsContextRefreshedEventListener;
 import org.apache.shenyu.client.tars.TarsServiceBeanEventListener;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
@@ -36,6 +36,10 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(value = "shenyu.register.enabled", matchIfMissing = true, havingValue = "true")
 public class ShenyuTarsClientConfiguration {
 
+    static {
+        VersionUtils.checkDuplicate(ShenyuTarsClientConfiguration.class);
+    }
+
     /**
      * Tars service bean post processor.
      *
@@ -46,16 +50,5 @@ public class ShenyuTarsClientConfiguration {
     @Bean
     public TarsServiceBeanEventListener tarsServiceBeanEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         return new TarsServiceBeanEventListener(clientConfig.getClient().get(RpcTypeEnum.TARS.getName()), shenyuClientRegisterRepository);
-    }
-
-    /**
-     * Tars context refreshed event listener.
-     *
-     * @param clientConfig the client config
-     * @return the tars context refreshed event listener
-     */
-    @Bean
-    public TarsContextRefreshedEventListener tarsContextRefreshedEventListener(final ShenyuClientConfig clientConfig) {
-        return new TarsContextRefreshedEventListener(clientConfig.getClient().get(RpcTypeEnum.TARS.getName()));
     }
 }

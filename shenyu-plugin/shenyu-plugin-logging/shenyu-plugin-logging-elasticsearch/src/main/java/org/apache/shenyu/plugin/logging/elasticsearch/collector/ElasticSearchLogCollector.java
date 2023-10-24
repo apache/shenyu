@@ -17,29 +17,41 @@
 
 package org.apache.shenyu.plugin.logging.elasticsearch.collector;
 
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
 import org.apache.shenyu.plugin.logging.elasticsearch.handler.LoggingElasticSearchPluginDataHandler;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 
 /**
  * elastic search log collector，depend a LogConsumeClient for consume logs.
  */
-public class ElasticSearchLogCollector extends AbstractLogCollector {
+public class ElasticSearchLogCollector extends AbstractLogCollector<ElasticSearchLogCollectClient, ShenyuRequestLog> {
 
-    private static final LogCollector INSTANCE = new ElasticSearchLogCollector();
+    private static final LogCollector<ShenyuRequestLog> INSTANCE = new ElasticSearchLogCollector();
 
     /**
      * get LogCollector instance.
      *
      * @return LogCollector instance
      */
-    public static LogCollector getInstance() {
+    public static LogCollector<ShenyuRequestLog> getInstance() {
         return INSTANCE;
     }
 
     @Override
-    protected LogConsumeClient getLogConsumeClient() {
+    protected ElasticSearchLogCollectClient getLogConsumeClient() {
         return LoggingElasticSearchPluginDataHandler.getElasticSearchLogCollectClient();
+    }
+
+    /**
+     * desensitize log.
+     * @param log log entity
+     * @param keyWordMatch keyWordMatch
+     * @param desensitizeAlg data desensitize algorithm
+     */
+    @Override
+    protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
     }
 }

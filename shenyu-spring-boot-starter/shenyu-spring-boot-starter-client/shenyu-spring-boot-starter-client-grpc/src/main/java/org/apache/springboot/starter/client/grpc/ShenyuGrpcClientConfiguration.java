@@ -18,10 +18,10 @@
 package org.apache.springboot.starter.client.grpc;
 
 import org.apache.shenyu.client.grpc.GrpcClientEventListener;
-import org.apache.shenyu.client.grpc.GrpcContextRefreshedEventListener;
 import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
 import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
@@ -37,7 +37,11 @@ import org.springframework.context.annotation.Configuration;
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 @ConditionalOnProperty(value = "shenyu.register.enabled", matchIfMissing = true, havingValue = "true")
 public class ShenyuGrpcClientConfiguration {
-    
+
+    static {
+        VersionUtils.checkDuplicate(ShenyuGrpcClientConfiguration.class);
+    }
+
     /**
      * Grpc client event listener.
      *
@@ -49,17 +53,6 @@ public class ShenyuGrpcClientConfiguration {
     public GrpcClientEventListener grpcClientEventListener(final ShenyuClientConfig clientConfig,
                                                                 final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         return new GrpcClientEventListener(clientConfig.getClient().get(RpcTypeEnum.GRPC.getName()), shenyuClientRegisterRepository);
-    }
-    
-    /**
-     * Grpc context refreshed event listener.
-     *
-     * @param clientConfig the client config
-     * @return the grpc context refreshed event listener
-     */
-    @Bean
-    public GrpcContextRefreshedEventListener grpcContextRefreshedEventListener(final ShenyuClientConfig clientConfig) {
-        return new GrpcContextRefreshedEventListener(clientConfig.getClient().get(RpcTypeEnum.GRPC.getName()));
     }
     
     /**

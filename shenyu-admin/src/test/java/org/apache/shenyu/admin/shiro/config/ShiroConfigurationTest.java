@@ -39,6 +39,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -87,9 +88,9 @@ public final class ShiroConfigurationTest {
     
     @Test
     public void testGetDefaultAdvisorAutoProxyCreator() {
-        DefaultAdvisorAutoProxyCreator creator = shiroConfiguration.getDefaultAdvisorAutoProxyCreator();
+        DefaultAdvisorAutoProxyCreator creator = ShiroConfiguration.getDefaultAdvisorAutoProxyCreator();
         assertNotNull(creator);
-        assertEquals(true, creator.isProxyTargetClass());
+        assertTrue(creator.isProxyTargetClass());
     }
     
     @Test

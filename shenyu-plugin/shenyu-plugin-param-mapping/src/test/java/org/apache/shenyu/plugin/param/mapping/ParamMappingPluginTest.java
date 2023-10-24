@@ -37,6 +37,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -75,7 +76,7 @@ public class ParamMappingPluginTest {
         this.paramMappingPluginDataHandler = new ParamMappingPluginDataHandler();
         Map<String, Operator> operatorMap = new HashMap<>(4);
         operatorMap.put(Constants.DEFAULT, new DefaultOperator());
-        operatorMap.put(MediaType.APPLICATION_JSON.toString(), new JsonOperator());
+        operatorMap.put(MediaType.APPLICATION_JSON.toString(), new JsonOperator(HandlerStrategies.builder().build().messageReaders()));
         operatorMap.put(MediaType.APPLICATION_FORM_URLENCODED.toString(), new FormDataOperator());
         this.paramMappingPlugin = new ParamMappingPlugin(operatorMap);
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest

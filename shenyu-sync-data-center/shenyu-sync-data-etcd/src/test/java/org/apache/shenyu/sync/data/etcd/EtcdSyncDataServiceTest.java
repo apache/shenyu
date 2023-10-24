@@ -17,33 +17,21 @@
 
 package org.apache.shenyu.sync.data.etcd;
 
-import com.google.protobuf.ByteString;
-import io.etcd.jetcd.ByteSequence;
-import io.etcd.jetcd.Client;
-import io.etcd.jetcd.KV;
-import io.etcd.jetcd.KeyValue;
-import io.etcd.jetcd.Watch;
-import io.etcd.jetcd.kv.GetResponse;
-import io.etcd.jetcd.options.WatchOption;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
+import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,73 +40,29 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 public class EtcdSyncDataServiceTest {
-    
-    private static final String MOCK_PLUGIN_PATH = "/shenyu/plugin/divide";
-
-    private static final String MOCK_PLUGIN_NAME = "divide";
-
-    private EtcdSyncDataService etcdSyncDataService;
-
-    @InjectMocks
-    private EtcdClient etcdClient;
-
-    @Mock
-    private Client client;
-
-    @Mock
-    private Watch.Watcher watcher;
-
-    @BeforeEach
-    public void setUp() {
-        PluginData pluginData = PluginData.builder().name(MOCK_PLUGIN_NAME).enabled(Boolean.FALSE).build();
-        KV kv = mock(KV.class);
-        CompletableFuture<GetResponse> future = mock(CompletableFuture.class);
-        GetResponse getResponse = mock(GetResponse.class);
-        final List<KeyValue> keyValues = new ArrayList<>(2);
-        KeyValue keyValue1 = mock(KeyValue.class);
-        keyValues.add(keyValue1);
-        final ByteString key1 = ByteString.copyFromUtf8(MOCK_PLUGIN_PATH);
-        final ByteString value1 = ByteString.copyFromUtf8(GsonUtils.getInstance().toJson(pluginData));
-
-        /**
-         *  mock get method.
-         */
-        when(client.getKVClient()).thenReturn(kv);
-        when(kv.get(any())).thenReturn(future);
-        try {
-            when(future.get()).thenReturn(getResponse);
-        } catch (Exception e) {
-            throw new ShenyuException(e.getCause());
-        }
-        when(getResponse.getKvs()).thenReturn(keyValues);
-        when(keyValue1.getValue()).thenReturn(ByteSequence.from(value1));
-        /**
-         * mock getChildrenKeys method.
-         */
-        when(kv.get(any(), any())).thenReturn(future);
-        when(keyValue1.getKey()).thenReturn(ByteSequence.from(key1));
-        /**
-         * mock watchDataChange method.
-         */
-        Watch watch = mock(Watch.class);
-        when(client.getWatchClient()).thenReturn(watch);
-        when(watch.watch(any(ByteSequence.class), any(Watch.Listener.class))).thenReturn(watcher);
-        /**
-         * mock watchChildChange method.
-         */
-        when(watch.watch(any(ByteSequence.class), any(WatchOption.class), any(Watch.Listener.class))).thenReturn(watcher);
-    }
 
     @Test
-    public void testWatchPluginWhenInit() {
-        final List<PluginData> subscribeList = new ArrayList<>(1);
-        etcdSyncDataService = new EtcdSyncDataService(etcdClient, new PluginDataSubscriber() {
-            @Override
-            public void onSubscribe(final PluginData pluginData) {
-                subscribeList.add(pluginData);
-            }
-        }, Collections.emptyList(), Collections.emptyList());
-        assertThat(subscribeList.size(), is(1));
-        assertThat(subscribeList.get(0).getName(), is("divide"));
+    public void testZookeeperInstanceRegisterRepository() throws Exception {
+
+        EtcdClient etcdClient = mock(EtcdClient.class);
+        PluginDataSubscriber pluginDataSubscriber = mock(PluginDataSubscriber.class);
+        doAnswer(invocationOnMock -> {
+            BiConsumer<String, String> updateHandler = invocationOnMock.getArgument(1);
+            updateHandler.accept("updateData", "{}");
+            Consumer<String> deleteHandler = invocationOnMock.getArgument(2);
+            String pluginName = invocationOnMock.getArgument(0);
+            deleteHandler.accept(pluginName + "removeKey");
+            return null;
+        }).when(etcdClient).watchChildChange(any(), any(), any());
+        when(etcdClient.getChildrenKeys(any(), any())).thenReturn(Collections.singletonList("test"));
+        final AuthDataSubscriber authDataSubscriber = mock(AuthDataSubscriber.class);
+        final MetaDataSubscriber metaDataSubscriber = mock(MetaDataSubscriber.class);
+        final ProxySelectorDataSubscriber proxySelectorDataSubscriber = mock(ProxySelectorDataSubscriber.class);
+        final DiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
+        final EtcdSyncDataService zookeeperSyncDataService = new EtcdSyncDataService(etcdClient,
+                pluginDataSubscriber, Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber),
+                Collections.singletonList(proxySelectorDataSubscriber), Collections.singletonList(discoveryUpstreamDataSubscriber));
+
+        zookeeperSyncDataService.close();
     }
 }

@@ -1,0 +1,59 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+version: "3.9"
+services:
+  shenyu-admin:
+    image: apache/shenyu-integrated-test-admin:latest
+    container_name: shenyu-admin
+    restart: always
+    networks:
+      - shenyu
+    ports:
+      - "9095:9095"
+    environment:
+      - SPRING_PROFILES_ACTIVE=h2
+      - shenyu.database.init_script=sql-script/h2/schema.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1" ]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+
+  shenyu-integrated-test-upload-plugin-case:
+    container_name: shenyu-integrated-test-upload-plugin-case
+    image: apache/shenyu-integrated-test-upload-plugin-case:latest
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    environment:
+      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
+    depends_on:
+      shenyu-admin:
+        condition: service_healthy
+    ports:
+      - "9195:9195"
+    networks:
+      - shenyu
+    healthcheck:
+      test: [ "CMD", "wget", "http://shenyu-integrated-test-upload-plugin-case:9195/actuator/health" ]
+      timeout: 2s
+      retries: 30
+
+networks:
+  shenyu:
+    name: shenyu

@@ -202,7 +202,7 @@ public final class AppAuthServiceTest {
 
     @Test
     public void testUpdateAppSecretByAppKey() {
-        String newAppSecret = SignUtils.getInstance().generateKey();
+        String newAppSecret = SignUtils.generateKey();
         appAuthDO.setAppSecret(newAppSecret);
         given(this.appAuthMapper.updateAppSecretByAppKey(appAuthDO.getAppKey(), appAuthDO.getAppSecret())).willReturn(1);
         ShenyuAdminResult result = this.appAuthService.updateAppSecretByAppKey(appAuthDO.getAppKey(), appAuthDO.getAppSecret());

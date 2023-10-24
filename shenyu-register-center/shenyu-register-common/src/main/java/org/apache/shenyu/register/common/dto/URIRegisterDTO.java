@@ -41,6 +41,7 @@ public class URIRegisterDTO implements DataTypeParent {
     private Integer port;
 
     private EventType eventType;
+
     
     /**
      * Instantiates a new Uri register dto.
@@ -54,8 +55,8 @@ public class URIRegisterDTO implements DataTypeParent {
      * @param eventType the event type
      */
     public URIRegisterDTO(final String protocol, final String appName, final String contextPath,
-                          final String rpcType, final String host,
-                          final Integer port, final EventType eventType) {
+                          final String rpcType, final String host, final Integer port,
+                          final EventType eventType, final Integer prefixForwardEnable) {
         this.protocol = protocol;
         this.appName = appName;
         this.contextPath = contextPath;
@@ -389,7 +390,7 @@ public class URIRegisterDTO implements DataTypeParent {
             this.eventType = eventType;
             return this;
         }
-    
+
         /**
          * build.
          *

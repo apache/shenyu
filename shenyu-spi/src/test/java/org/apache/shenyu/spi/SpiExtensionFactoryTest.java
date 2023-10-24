@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.spi;
 
+import org.apache.shenyu.spi.fixture.JdbcSPI;
 import org.apache.shenyu.spi.fixture.MysqlSPI;
 import org.junit.jupiter.api.Test;
 
@@ -28,5 +29,6 @@ public final class SpiExtensionFactoryTest {
     public void testNull() {
         SpiExtensionFactory spiExtensionFactory = new SpiExtensionFactory();
         assertNull(spiExtensionFactory.getExtension("testNull", MysqlSPI.class));
+        assertNull(spiExtensionFactory.getExtension("jdbcSPI", JdbcSPI.class));
     }
 }

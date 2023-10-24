@@ -36,9 +36,13 @@ public final class NacosPropertiesTest extends AbstractConfigurationTest {
     public void testNacosPropertiesDefault() {
         load(NacosPropertiesTest.NacosPropertiesConfiguration.class);
         NacosProperties nacosProperties = getContext().getBean(NacosProperties.class);
+        nacosProperties.setPassword("password");
+        nacosProperties.setUsername("username");
         assertNull(nacosProperties.getUrl());
         assertNull(nacosProperties.getNamespace());
         assertNull(nacosProperties.getAcm());
+        assertEquals(nacosProperties.getPassword(), "password");
+        assertEquals(nacosProperties.getUsername(), "username");
     }
 
     @Test
@@ -48,7 +52,12 @@ public final class NacosPropertiesTest extends AbstractConfigurationTest {
         NacosProperties.NacosACMProperties acm = new NacosProperties.NacosACMProperties();
         acm.setEnabled(false);
         acm.setEndpoint("acm.aliyun.com");
-
+        acm.setAccessKey("accessKey");
+        acm.setNamespace("namespace");
+        acm.setSecretKey("secretKey");
+        assertEquals(acm.getAccessKey(), "accessKey");
+        assertEquals(acm.getNamespace(), "namespace");
+        assertEquals(acm.getSecretKey(), "secretKey");
         load(NacosPropertiesTest.NacosPropertiesConfiguration.class, "shenyu.sync.nacos.url=localhost:8848",
                 "shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c",
                 "shenyu.sync.nacos.acm.enabled=false",

@@ -88,9 +88,9 @@ public interface SelectorMapper extends ExistProvider {
      * select select by name.
      *
      * @param name the name
-     * @return selector do
+     * @return selector do list
      */
-    SelectorDO selectByName(String name);
+    List<SelectorDO> selectByName(String name);
     
     /**
      * Find by name and plugin id selector do.

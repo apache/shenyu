@@ -28,6 +28,7 @@ env:
 jobs:
   dockerhub:
     runs-on: ubuntu-latest
+    if: (github.repository == 'apache/shenyu')
     permissions:
       contents: read
       packages: write
@@ -53,17 +54,19 @@ jobs:
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
 
-      - name: Cache Maven Repos
-        uses: actions/cache@v2
+      - name: Restore ShenYu Maven Repos
+        id: restore-maven-cache
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - uses: actions/setup-java@v1
+      - uses: actions/setup-java@v3
         with:
           java-version: 8
+          distribution: 'temurin'
 
       - name: Build with Maven
         run: ./mvnw -B clean -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package
@@ -72,6 +75,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./shenyu-dist/shenyu-admin-dist
+          file: ./shenyu-dist/shenyu-admin-dist/docker/Dockerfile
           build-args: APP_NAME=apache-shenyu-*-admin-bin
           platforms: linux/amd64,linux/arm64
           push: true
@@ -83,6 +87,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./shenyu-dist/shenyu-bootstrap-dist
+          file: ./shenyu-dist/shenyu-bootstrap-dist/docker/Dockerfile
           build-args: APP_NAME=apache-shenyu-*-bootstrap-bin
           platforms: linux/amd64,linux/arm64
           push: true

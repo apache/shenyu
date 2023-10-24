@@ -72,7 +72,7 @@ public class ShenyuPatchMappingTest {
         
         @ShenyuPatchMapping(value = "/patch", ruleName = "divide", enabled = false, desc = "it`s test.")
         public String patch(@RequestBody final String operator) {
-            return "" + operator;
+            return operator;
         }
 
     }

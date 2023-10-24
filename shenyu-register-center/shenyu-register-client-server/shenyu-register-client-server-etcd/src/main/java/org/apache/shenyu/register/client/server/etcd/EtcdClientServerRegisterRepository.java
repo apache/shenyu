@@ -100,9 +100,7 @@ public class EtcdClientServerRegisterRepository implements ShenyuClientServerReg
     private void subscribeURI(final String rpcType) {
         String rpcPath = RegisterPathConstants.buildURIContextPathParent(rpcType);
         Set<String> contextList = new HashSet<>();
-        client.getChildren(rpcPath).forEach(dataPath -> {
-            contextList.add(getContext(dataPath));
-        });
+        client.getChildren(rpcPath).forEach(dataPath -> contextList.add(getContext(dataPath)));
         contextList.forEach(context -> registerUriChildrenList(rpcPath, context, rpcType));
         LOGGER.info("subscribe uri change: {}", rpcPath);
         client.subscribeChildChanges(rpcPath, new EtcdListenHandler() {

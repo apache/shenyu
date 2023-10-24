@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.register;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 
@@ -42,6 +43,13 @@ public interface ShenyuClientRegisterService {
      * @return the string
      */
     String register(MetaDataRegisterDTO metaDataRegisterDTO);
+
+    /**
+     * registerApiDoc.
+     * @param apiDocRegisterDTO apiDocRegisterDTO
+     * @return String
+     */
+    String registerApiDoc(ApiDocRegisterDTO apiDocRegisterDTO);
     
     /**
      * Register uri string.
@@ -51,6 +59,17 @@ public interface ShenyuClientRegisterService {
      * @return the string
      */
     default String registerURI(final String selectorName, final List<URIRegisterDTO> uriList) {
+        return Constants.SUCCESS;
+    }
+    
+    /**
+     * offline.
+     *
+     * @param selectorName the selector name
+     * @param uriList the uri list
+     * @return the string
+     */
+    default String offline(final String selectorName, final List<URIRegisterDTO> uriList) {
         return Constants.SUCCESS;
     }
     

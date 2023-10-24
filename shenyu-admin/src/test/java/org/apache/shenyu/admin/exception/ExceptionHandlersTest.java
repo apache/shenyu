@@ -85,7 +85,7 @@ public final class ExceptionHandlersTest {
 
     @BeforeEach
     public void setUp() {
-        exceptionHandlersUnderTest = new ExceptionHandlers();
+        exceptionHandlersUnderTest = new ExceptionHandlers(null);
     }
 
     @Test
@@ -98,10 +98,10 @@ public final class ExceptionHandlersTest {
 
     @Test
     public void testServerExceptionHandlerByShenyuException() {
-        Exception shenyuException = new ShenyuException("Test shenyuException message!");
-        ShenyuAdminResult result = exceptionHandlersUnderTest.handleExceptionHandler(shenyuException);
+        ShenyuException shenyuException = new ShenyuException(new Throwable("Test shenyuException message!"));
+        ShenyuAdminResult result = exceptionHandlersUnderTest.handleShenyuException(shenyuException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
-        assertEquals(result.getMessage(), shenyuException.getMessage());
+        assertEquals(result.getMessage(), shenyuException.getCause().getMessage());
     }
 
     @Test

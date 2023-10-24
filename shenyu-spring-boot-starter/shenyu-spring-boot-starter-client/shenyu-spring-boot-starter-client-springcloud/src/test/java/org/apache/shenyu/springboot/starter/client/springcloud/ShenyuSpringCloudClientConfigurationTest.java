@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.client.springcloud;
 
-import org.apache.shenyu.client.springcloud.init.ContextRegisterListener;
 import org.apache.shenyu.client.springcloud.init.SpringCloudClientEventListener;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,17 +66,6 @@ public class ShenyuSpringCloudClientConfigurationTest {
         applicationContextRunner.run(context -> {
             SpringCloudClientEventListener repository = context.getBean("springCloudClientEventListener", SpringCloudClientEventListener.class);
             assertNotNull(repository);
-        });
-        registerUtilsMockedStatic.close();
-    }
-
-    @Test
-    public void testContextRegisterListener() {
-        MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
-        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
-        applicationContextRunner.run(context -> {
-            ContextRegisterListener listener = context.getBean("contextRegisterListener", ContextRegisterListener.class);
-            assertNotNull(listener);
         });
         registerUtilsMockedStatic.close();
     }

@@ -17,19 +17,7 @@
 
 package org.apache.shenyu.client.grpc.json;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.ReflectUtils;
-import org.apache.shenyu.protocol.grpc.constant.GrpcConstants;
-import org.apache.shenyu.protocol.grpc.message.JsonMessage;
-
 import com.google.common.collect.Maps;
-
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.MethodDescriptor.PrototypeMarshaller;
@@ -38,6 +26,16 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerMethodDefinition;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.ServiceDescriptor;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.ReflectUtils;
+import org.apache.shenyu.protocol.grpc.constant.GrpcConstants;
+import org.apache.shenyu.protocol.grpc.message.JsonMessage;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Support json invoke.
@@ -80,7 +78,7 @@ public class JsonServerServiceInterceptor {
         for (final ServerMethodDefinition<?, ?> definition : serviceDef.getMethods()) {
             MethodDescriptor.Marshaller<?> requestMarshaller = definition.getMethodDescriptor().getRequestMarshaller();
             Field defaultInstanceField = ReflectUtils.getField(requestMarshaller.getClass(), "defaultInstance");
-            Class grpcRequestParamClass = null;
+            Class<?> grpcRequestParamClass = null;
             if (Objects.isNull(defaultInstanceField)) {
                 // Compatible with lower versions. eg: grpc 1.6.0
                 if (requestMarshaller instanceof MethodDescriptor.PrototypeMarshaller) {

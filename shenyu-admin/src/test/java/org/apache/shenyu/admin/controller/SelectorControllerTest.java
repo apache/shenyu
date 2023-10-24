@@ -81,7 +81,7 @@ public final class SelectorControllerTest {
     
     private final SelectorVO selectorVO = new SelectorVO("1", "2", "selector-1", MatchModeEnum.AND.getCode(),
             MatchModeEnum.AND.getName(), SelectorTypeEnum.FULL_FLOW.getCode(), SelectorTypeEnum.FULL_FLOW.getName(),
-            1, true, true, true, "handle", Collections.emptyList(),
+            1, true, true, true, false, "handle", Collections.emptyList(),
             DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
 
     private final CommonPager<SelectorVO> commonPager = new CommonPager<>(new PageParameter(), Collections.singletonList(selectorVO));
@@ -89,7 +89,7 @@ public final class SelectorControllerTest {
     @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(selectorController)
-                .setControllerAdvice(new ExceptionHandlers())
+                .setControllerAdvice(new ExceptionHandlers(null))
                 .build();
         // mock login user
         final UserInfo mockLoginUser = new UserInfo();
@@ -118,6 +118,7 @@ public final class SelectorControllerTest {
                 .type(1)
                 .loged(true)
                 .enabled(true)
+                .matchRestful(false)
                 .pluginId("2")
                 .sort(1)
                 .build();
@@ -144,6 +145,7 @@ public final class SelectorControllerTest {
                 .type(1)
                 .loged(true)
                 .enabled(true)
+                .matchRestful(false)
                 .pluginId("2")
                 .sort(1)
                 .build();

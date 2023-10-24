@@ -38,43 +38,68 @@ jobs:
             os: ubuntu-latest
           - java: 16
             os: ubuntu-latest
+          - java: 17
+            os: ubuntu-latest
     runs-on: ${{ matrix.os }}
+    if: (github.repository == 'apache/shenyu')
     steps:
       - name: Support longpaths
         if: ${{ matrix.os == 'windows-latest'}}
         run: git config --system core.longpaths true
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Set Skip Env Var
-        uses: ./.github/actions/skip-ci
-      - name: Cache Maven Repos
-        if: env.SKIP_CI != 'true'
-        uses: actions/cache@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: '.github/filters.yml'
+          list-files: json
+      - name: Restore ShenYu Maven Repos
+        if: steps.filter.outputs.changed == 'true'
+        id: restore-maven-cache
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
       - uses: actions/setup-java@v1
-        if: env.SKIP_CI != 'true'
+        if: steps.filter.outputs.changed == 'true'
         with:
           java-version: ${{ matrix.java }}
       - name: Build with Maven
-        if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install -Prelease
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean test -Prelease
       - uses: codecov/codecov-action@v1
-        if: env.SKIP_CI != 'true'
+        if: steps.filter.outputs.changed == 'true'
+      - name: Save ShenYu Maven Repos
+        if: steps.filter.outputs.changed == 'true' && steps.restore-maven-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
   check-license-header:
-    name: Check License Header
+    name: check-license-header
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - name: Check License Header
         uses: apache/skywalking-eyes@9bd5feb86b5817aa6072b008f9866a2c3bbc8587
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  requirement:
+    name: build
+    if: always()
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: checking job status
+        run: |
+          [[ "${{ needs.build.result }}" == "success" ]] || exit -1
+

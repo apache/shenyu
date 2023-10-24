@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.common.client;
 
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 
 import java.util.List;
@@ -24,7 +25,7 @@ import java.util.List;
 /**
  * Used to collect logs, which can be stored in remote or local files or databases, or others.
  */
-public interface LogConsumeClient extends AutoCloseable {
+public interface LogConsumeClient<C extends GenericGlobalConfig, L extends ShenyuRequestLog> extends AutoCloseable {
     
     /**
      * collect logs.
@@ -32,5 +33,11 @@ public interface LogConsumeClient extends AutoCloseable {
      * @param logs list of log
      * @throws Exception produce exception
      */
-    void consume(List<ShenyuRequestLog> logs) throws Exception;
+    void consume(List<L> logs) throws Exception;
+
+    /**
+     * init client by config.
+     * @param config logClientConfig
+     */
+    void initClient(C config);
 }

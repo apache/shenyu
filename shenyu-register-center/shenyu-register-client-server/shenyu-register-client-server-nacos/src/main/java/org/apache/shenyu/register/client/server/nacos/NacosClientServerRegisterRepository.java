@@ -26,12 +26,14 @@ import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
+import com.alibaba.nacos.common.utils.StringUtils;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -124,8 +126,8 @@ public class NacosClientServerRegisterRepository implements ShenyuClientServerRe
                 metadataConfigCache.add(serviceConfigName);
                 String metadata = healthyInstance.getMetadata().get("uriMetadata");
                 URIRegisterDTO uriRegisterDTO = GsonUtils.getInstance().fromJson(metadata, URIRegisterDTO.class);
-                services.computeIfAbsent(contextPath, k -> new ArrayList<>()).add(uriRegisterDTO);
-                uriServiceCache.computeIfAbsent(serviceName, k -> new ConcurrentSkipListSet<>()).add(contextPath);
+                MapUtils.computeIfAbsent(services, contextPath, k -> new ArrayList<>()).add(uriRegisterDTO);
+                MapUtils.computeIfAbsent(uriServiceCache, serviceName, k -> new ConcurrentSkipListSet<>()).add(contextPath);
             });
             if (RPC_URI_TYPE_SET.contains(rpcType)) {
                 services.values().forEach(this::publishRegisterURI);
@@ -136,7 +138,7 @@ public class NacosClientServerRegisterRepository implements ShenyuClientServerRe
                     List<Instance> instances = ((NamingEvent) event).getInstances();
                     instances.forEach(instance -> {
                         String contextPath = instance.getMetadata().get("contextPath");
-                        uriServiceCache.computeIfAbsent(serviceName, k -> new ConcurrentSkipListSet<>()).add(contextPath);
+                        MapUtils.computeIfAbsent(uriServiceCache, serviceName, k -> new ConcurrentSkipListSet<>()).add(contextPath);
                     });
                     refreshURIService(rpcType, serviceName);
                 }
@@ -147,7 +149,11 @@ public class NacosClientServerRegisterRepository implements ShenyuClientServerRe
     }
 
     private void subscribeMetadata(final String serviceConfigName) {
-        registerMetadata(readData(serviceConfigName));
+        String content = readData(serviceConfigName);
+        if (StringUtils.isEmpty(content)) {
+            return;
+        }
+        registerMetadata(content);
         LOGGER.info("subscribe metadata: {}", serviceConfigName);
         try {
             configService.addListener(serviceConfigName, defaultGroup, new Listener() {

@@ -82,6 +82,7 @@
                 <exclude>shenyu-dashboard/**</exclude>
                 <exclude>shenyu-admin/src/main/resources/static/*.css</exclude>
                 <exclude>shenyu-admin/src/main/resources/static/*.js</exclude>
+                <exclude>shenyu-e2e</exclude>
             </excludes>
         </fileSet>
     </fileSets>

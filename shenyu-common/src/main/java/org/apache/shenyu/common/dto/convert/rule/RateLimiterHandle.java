@@ -53,16 +53,31 @@ public class RateLimiterHandle {
      * key resolver name.
      */
     private String keyResolverName;
-
+    
+    /**
+     * New default instance rate limiter handle.
+     *
+     * @return the rate limiter handle
+     */
+    public static RateLimiterHandle newDefaultInstance() {
+        RateLimiterHandle rateLimiterHandle = new RateLimiterHandle();
+        rateLimiterHandle.setAlgorithmName("tokenBucket");
+        rateLimiterHandle.setReplenishRate(1.0);
+        rateLimiterHandle.setBurstCapacity(100.0);
+        rateLimiterHandle.setRequestCount(1.0);
+        rateLimiterHandle.setLoged(false);
+        return rateLimiterHandle;
+    }
+    
     /**
      * get algorithmName.
      *
-     * @return algorithmName
+     * @return algorithmName algorithm name
      */
     public String getAlgorithmName() {
         return algorithmName;
     }
-
+    
     /**
      * set algorithmName.
      *
@@ -71,16 +86,16 @@ public class RateLimiterHandle {
     public void setAlgorithmName(final String algorithmName) {
         this.algorithmName = algorithmName;
     }
-
+    
     /**
      * get replenishRate.
      *
-     * @return replenishRate
+     * @return replenishRate replenish rate
      */
     public double getReplenishRate() {
         return replenishRate;
     }
-
+    
     /**
      * set replenishRate.
      *
@@ -89,16 +104,16 @@ public class RateLimiterHandle {
     public void setReplenishRate(final double replenishRate) {
         this.replenishRate = replenishRate;
     }
-
+    
     /**
      * get burstCapacity.
      *
-     * @return burstCapacity
+     * @return burstCapacity burst capacity
      */
     public double getBurstCapacity() {
         return burstCapacity;
     }
-
+    
     /**
      * set burstCapacity.
      *
@@ -107,16 +122,16 @@ public class RateLimiterHandle {
     public void setBurstCapacity(final double burstCapacity) {
         this.burstCapacity = burstCapacity;
     }
-
+    
     /**
      * get requestCount.
      *
-     * @return requestCount
+     * @return requestCount request count
      */
     public double getRequestCount() {
         return requestCount;
     }
-
+    
     /**
      * set requestCount.
      *
@@ -125,16 +140,16 @@ public class RateLimiterHandle {
     public void setRequestCount(final double requestCount) {
         this.requestCount = requestCount;
     }
-
+    
     /**
      * get loged.
      *
-     * @return loged
+     * @return loged boolean
      */
     public boolean isLoged() {
         return loged;
     }
-
+    
     /**
      * set loged.
      *
@@ -143,16 +158,16 @@ public class RateLimiterHandle {
     public void setLoged(final boolean loged) {
         this.loged = loged;
     }
-
+    
     /**
      * get keyResolverName.
      *
-     * @return keyResolverName
+     * @return keyResolverName key resolver name
      */
     public String getKeyResolverName() {
         return keyResolverName;
     }
-
+    
     /**
      * set keyResolverName.
      *

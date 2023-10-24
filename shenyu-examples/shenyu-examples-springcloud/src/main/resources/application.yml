@@ -51,10 +51,12 @@ shenyu:
     props:
       username: admin
       password: 123456
+      nacosNameSpace: ShenyuRegisterCenter
   client:
     springCloud:
       props:
         contextPath: /springcloud
+        addPrefixed: false
 #        port: 8884
 
 logging:

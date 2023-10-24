@@ -48,6 +48,8 @@ public class PluginNameAdapter {
                 return PluginEnum.WEB_SOCKET.getName();
             case MOTAN:
                 return PluginEnum.MOTAN.getName();
+            case BRPC:
+                return PluginEnum.BRPC.getName();
             case HTTP:
             default:
                 return PluginEnum.DIVIDE.getName();

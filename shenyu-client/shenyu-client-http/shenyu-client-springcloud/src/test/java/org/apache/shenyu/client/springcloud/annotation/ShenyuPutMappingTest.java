@@ -71,7 +71,7 @@ public class ShenyuPutMappingTest {
 
         @ShenyuPutMapping(value = "/put", ruleName = "divide", enabled = false, desc = "it`s test.")
         public String put(@RequestBody final String body) {
-            return "" + body;
+            return body;
         }
     }
 }

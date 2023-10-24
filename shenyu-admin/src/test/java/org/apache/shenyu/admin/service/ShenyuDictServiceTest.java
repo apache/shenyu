@@ -41,6 +41,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.comparesEqualTo;
@@ -142,11 +144,7 @@ public final class ShenyuDictServiceTest {
         pageParameter.setTotalCount(10);
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
         ShenyuDictQuery shenyuDictQuery = new ShenyuDictQuery("1", "t", "t_n", pageParameter);
-        List<ShenyuDictDO> shenyuDictDOList = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            ShenyuDictDO shenyuDictVO = buildShenyuDictDO();
-            shenyuDictDOList.add(shenyuDictVO);
-        }
+        List<ShenyuDictDO> shenyuDictDOList = IntStream.range(0, 10).mapToObj(i -> buildShenyuDictDO()).collect(Collectors.toList());
         given(this.shenyuDictMapper.selectByQuery(shenyuDictQuery)).willReturn(shenyuDictDOList);
         final CommonPager<ShenyuDictVO> pluginDOCommonPager = this.shenyuDictService.listByPage(shenyuDictQuery);
         assertEquals(pluginDOCommonPager.getDataList().size(), shenyuDictDOList.size());

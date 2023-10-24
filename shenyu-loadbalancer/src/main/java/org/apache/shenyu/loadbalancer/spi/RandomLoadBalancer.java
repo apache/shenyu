@@ -17,11 +17,10 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
-import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.spi.Join;
-
 import java.security.SecureRandom;
 import java.util.List;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.spi.Join;
 
 /**
  * random algorithm impl.
@@ -33,51 +32,53 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
 
     @Override
     public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
-        int totalWeight = calculateTotalWeight(upstreamList);
-        boolean sameWeight = isAllUpStreamSameWeight(upstreamList);
-        if (totalWeight > 0 && !sameWeight) {
-            return random(totalWeight, upstreamList);
+        int length = upstreamList.size();
+        // every upstream has the same weight?
+        boolean sameWeight = true;
+        // the weight of every upstream
+        int[] weights = new int[length];
+        int firstUpstreamWeight = getWeight(upstreamList.get(0));
+        weights[0] = firstUpstreamWeight;
+        // init the totalWeight
+        int totalWeight = firstUpstreamWeight;
+        int halfLengthTotalWeight = 0;
+        for (int i = 1; i < length; i++) {
+            int currentUpstreamWeight = getWeight(upstreamList.get(i));
+            if (i <= (length + 1) / 2) {
+                halfLengthTotalWeight = totalWeight;
+            }
+            weights[i] = currentUpstreamWeight;
+            totalWeight += currentUpstreamWeight;
+            if (sameWeight && currentUpstreamWeight != firstUpstreamWeight) {
+                // Calculate whether the weight of ownership is the same.
+                sameWeight = false;
+            }
         }
-        // If the weights are the same or the weights are 0 then random.
+        if (totalWeight > 0 && !sameWeight) {
+            return random(totalWeight, halfLengthTotalWeight, weights, upstreamList);
+        }
         return random(upstreamList);
     }
 
-    private boolean isAllUpStreamSameWeight(final List<Upstream> upstreamList) {
-        boolean sameWeight = true;
-        int length = upstreamList.size();
-        for (int i = 0; i < length; i++) {
-            int weight = getWeight(upstreamList.get(i));
-            if (i > 0 && weight != getWeight(upstreamList.get(i - 1))) {
-                // Calculate whether the weight of ownership is the same.
-                sameWeight = false;
-                break;
-            }
-        }
-        return sameWeight;
-    }
-
-    private int calculateTotalWeight(final List<Upstream> upstreamList) {
-        // total weight.
-        int totalWeight = 0;
-        for (Upstream upstream : upstreamList) {
-            int weight = getWeight(upstream);
-            // Cumulative total weight.
-            totalWeight += weight;
-        }
-        return totalWeight;
-    }
-
-    private Upstream random(final int totalWeight, final List<Upstream> upstreamList) {
+    private Upstream random(final int totalWeight, final int halfLengthTotalWeight, final int[] weights, final List<Upstream> upstreamList) {
         // If the weights are not the same and the weights are greater than 0, then random by the total number of weights.
         int offset = RANDOM.nextInt(totalWeight);
+        int index = 0;
+        int end = weights.length;
+        if (offset >= halfLengthTotalWeight) {
+            index = (weights.length + 1) / 2;
+            offset -= halfLengthTotalWeight;
+        } else {
+            end = (weights.length + 1) / 2;
+        }
         // Determine which segment the random value falls on
-        for (Upstream upstream : upstreamList) {
-            offset -= getWeight(upstream);
+        for (; index < end; index++) {
+            offset -= weights[index];
             if (offset < 0) {
-                return upstream;
+                return upstreamList.get(index);
             }
         }
-        return upstreamList.get(0);
+        return random(upstreamList);
     }
 
     private Upstream random(final List<Upstream> upstreamList) {

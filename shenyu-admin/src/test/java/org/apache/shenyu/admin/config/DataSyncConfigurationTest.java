@@ -17,13 +17,21 @@
 
 package org.apache.shenyu.admin.config;
 
+import com.alibaba.nacos.api.NacosFactory;
+import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.client.config.NacosConfigService;
 import com.ecwid.consul.v1.ConsulClient;
+import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
+import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.admin.AbstractConfigurationTest;
 import org.apache.shenyu.admin.config.properties.ConsulProperties;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
+import org.apache.shenyu.admin.config.properties.NacosProperties;
+import org.apache.shenyu.admin.config.properties.PolarisProperties;
+import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
 import org.apache.shenyu.admin.listener.etcd.EtcdClient;
+import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
@@ -35,17 +43,25 @@ import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
 import org.apache.shenyu.register.client.server.zookeeper.ZookeeperConfig;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.Properties;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
@@ -77,6 +93,9 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     @Mock
     private MetaDataService metaDataService;
 
+    @Mock
+    private DiscoveryService discoveryService;
+
     @BeforeAll
     public static void setUpBeforeClass() throws Exception {
         zkServer = new TestingServer();
@@ -98,6 +117,18 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     }
 
     @Test
+    public void zookeeperClientTest() {
+        try (MockedConstruction<ZookeeperClient> zookeeperClientMockedConstruction = mockConstruction(ZookeeperClient.class)) {
+            final ZookeeperProperties zookeeperProperties = new ZookeeperProperties();
+            DataSyncConfiguration.ZookeeperListener zookeeperListener = new DataSyncConfiguration.ZookeeperListener();
+            assertNotNull(zookeeperListener.zookeeperClient(zookeeperProperties));
+            zookeeperProperties.setSessionTimeout(3000);
+            zookeeperProperties.setConnectionTimeout(3000);
+            assertNotNull(zookeeperListener.zookeeperClient(zookeeperProperties));
+        }
+    }
+
+    @Test
     public void testZookeeperDataChangedListener() {
         DataSyncConfiguration.ZookeeperListener zookeeperListener = new DataSyncConfiguration.ZookeeperListener();
         assertNotNull(zookeeperListener.zookeeperDataChangedListener(zkClient));
@@ -106,7 +137,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     @Test
     public void testZookeeperDataInit() {
         final SyncDataService syncDataService = new SyncDataServiceImpl(appAuthService, pluginService, selectorService,
-                ruleService, eventPublisher, metaDataService);
+                ruleService, eventPublisher, metaDataService, discoveryService);
         DataSyncConfiguration.ZookeeperListener zookeeperListener = new DataSyncConfiguration.ZookeeperListener();
         assertNotNull(zookeeperListener.zookeeperDataChangedInit(zkClient));
     }
@@ -140,8 +171,57 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     public void testNacosDataInit() {
         DataSyncConfiguration.NacosListener nacosListener = new DataSyncConfiguration.NacosListener();
         NacosConfigService configService = mock(NacosConfigService.class);
-        SyncDataService syncDataService = mock(SyncDataService.class);
         assertNotNull(nacosListener.nacosDataChangedInit(configService));
+    }
+
+    @Test
+    public void nacosConfigServiceTest() {
+        try (MockedStatic<NacosFactory> nacosFactoryMockedStatic = mockStatic(NacosFactory.class)) {
+            final NacosProperties nacosProperties = new NacosProperties();
+            final NacosProperties.NacosACMProperties nacosACMProperties = new NacosProperties.NacosACMProperties();
+            nacosProperties.setAcm(nacosACMProperties);
+            nacosFactoryMockedStatic.when(() -> NacosFactory.createConfigService(any(Properties.class))).thenReturn(mock(ConfigService.class));
+            DataSyncConfiguration.NacosListener nacosListener = new DataSyncConfiguration.NacosListener();
+            nacosProperties.setUrl("url");
+            Assertions.assertDoesNotThrow(() -> nacosListener.nacosConfigService(nacosProperties));
+            nacosProperties.setNamespace("url");
+            nacosProperties.setUsername("username");
+            nacosProperties.setPassword("password");
+            Assertions.assertDoesNotThrow(() -> nacosListener.nacosConfigService(nacosProperties));
+            nacosACMProperties.setEnabled(true);
+            nacosACMProperties.setEndpoint("acm.aliyun.com");
+            nacosACMProperties.setAccessKey("accessKey");
+            nacosACMProperties.setNamespace("namespace");
+            nacosACMProperties.setSecretKey("secretKey");
+            Assertions.assertDoesNotThrow(() -> nacosListener.nacosConfigService(nacosProperties));
+        }
+    }
+
+    @Test
+    public void testPolarisDataChangedListener() {
+        DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        PolarisProperties polarisProperties = mock(PolarisProperties.class);
+        ConfigFileService polarisConfigFileService = mock(ConfigFileService.class);
+        ConfigFilePublishService polarisConfigFilePublishService = mock(ConfigFilePublishService.class);
+        assertNotNull(polarisListener.polarisDataChangedListener(polarisProperties, polarisConfigFileService, polarisConfigFilePublishService));
+    }
+
+    @Test
+    public void testPolarisDataInit() {
+        DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        PolarisProperties polarisProperties = mock(PolarisProperties.class);
+        ConfigFileService polarisConfigFileService = mock(ConfigFileService.class);
+        assertNotNull(polarisListener.polarisDataChangedInit(polarisProperties, polarisConfigFileService));
+    }
+
+    @Test
+    public void polarisConfigServiceTest() {
+        final PolarisProperties polarisProperties = new PolarisProperties();
+        polarisProperties.setUrl("127.0.0.1:8093");
+        polarisProperties.setNamespace("namespace");
+        DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        assertNotNull(polarisListener.polarisConfigFileService(polarisProperties));
+        assertNotNull(polarisListener.polarisConfigFilePublishService(polarisProperties));
     }
 
     @Test
@@ -163,7 +243,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     public void testConsulClient() {
         DataSyncConfiguration.ConsulListener consulListener = new DataSyncConfiguration.ConsulListener();
         ConsulProperties consulProperties = mock(ConsulProperties.class);
-        when(consulProperties.getUrl()).thenReturn("127.0.0.1");
+        when(consulProperties.getUrl()).thenReturn("http://127.0.0.1:8500");
         assertNotNull(consulListener.consulClient(consulProperties));
     }
 

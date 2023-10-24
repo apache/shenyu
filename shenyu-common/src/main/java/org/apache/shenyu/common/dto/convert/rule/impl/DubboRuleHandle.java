@@ -47,22 +47,31 @@ public class DubboRuleHandle implements RuleHandle {
      * the loadbalance.
      * {@linkplain LoadBalanceEnum}
      */
-    private String loadbalance = LoadBalanceEnum.RANDOM.getName();
+    private String loadBalance = LoadBalanceEnum.RANDOM.getName();
 
     /**
      * timeout is required.
      */
     private long timeout = Constants.TIME_OUT;
-
+    
+    /**
+     * New instance dubbo rule handle.
+     *
+     * @return the dubbo rule handle
+     */
+    public static DubboRuleHandle newInstance() {
+        return new DubboRuleHandle();
+    }
+    
     /**
      * get version.
      *
-     * @return version
+     * @return version version
      */
     public String getVersion() {
         return version;
     }
-
+    
     /**
      * set version.
      *
@@ -71,16 +80,16 @@ public class DubboRuleHandle implements RuleHandle {
     public void setVersion(final String version) {
         this.version = version;
     }
-
+    
     /**
      * get group.
      *
-     * @return group
+     * @return group group
      */
     public String getGroup() {
         return group;
     }
-
+    
     /**
      * set group.
      *
@@ -89,16 +98,16 @@ public class DubboRuleHandle implements RuleHandle {
     public void setGroup(final String group) {
         this.group = group;
     }
-
+    
     /**
      * get retries.
      *
-     * @return retries
+     * @return retries retries
      */
     public Integer getRetries() {
         return retries;
     }
-
+    
     /**
      * set retries.
      *
@@ -107,34 +116,34 @@ public class DubboRuleHandle implements RuleHandle {
     public void setRetries(final Integer retries) {
         this.retries = retries;
     }
-
+    
     /**
      * Gets the value of loadbalance.
      *
      * @return the value of loadbalance
      */
-    public String getLoadbalance() {
-        return loadbalance;
+    public String getLoadBalance() {
+        return loadBalance;
     }
-
+    
     /**
      * Sets the loadbalance.
      *
-     * @param loadbalance loadbalance
+     * @param loadBalance loadbalance
      */
-    public void setLoadbalance(final String loadbalance) {
-        this.loadbalance = loadbalance;
+    public void setLoadBalance(final String loadBalance) {
+        this.loadBalance = loadBalance;
     }
-
+    
     /**
      * get timeout.
      *
-     * @return timeout
+     * @return timeout timeout
      */
     public long getTimeout() {
         return timeout;
     }
-
+    
     /**
      * set timeout.
      *
@@ -157,12 +166,12 @@ public class DubboRuleHandle implements RuleHandle {
                 && Objects.equals(version, that.version)
                 && Objects.equals(group, that.group)
                 && Objects.equals(retries, that.retries)
-                && Objects.equals(loadbalance, that.loadbalance);
+                && Objects.equals(loadBalance, that.loadBalance);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(version, group, retries, loadbalance, timeout);
+        return Objects.hash(version, group, retries, loadBalance, timeout);
     }
 
     @Override
@@ -171,7 +180,7 @@ public class DubboRuleHandle implements RuleHandle {
                 + "version='" + version + '\''
                 + ", group='" + group + '\''
                 + ", retries=" + retries
-                + ", loadbalance='" + loadbalance + '\''
+                + ", loadbalance='" + loadBalance + '\''
                 + ", timeout=" + timeout
                 + '}';
     }

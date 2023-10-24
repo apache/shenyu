@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.PluginHandlerEvent;
+import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,7 +58,9 @@ public final class ShenyuWebHandlerTest {
 
     @Mock
     private ShenyuWebHandler shenyuWebHandler;
-    
+
+    private ShenyuLoaderService shenyuLoaderService;
+
     private final List<ShenyuPlugin> listPlugins = new ArrayList<>();
 
     private final ShenyuPlugin plugin1 = new TestPlugin1();
@@ -68,7 +71,8 @@ public final class ShenyuWebHandlerTest {
     public void setUp() {
         listPlugins.add(plugin1);
         listPlugins.add(plugin2);
-        shenyuWebHandler = new ShenyuWebHandler(listPlugins, new ShenyuConfig());
+        shenyuLoaderService = mock(ShenyuLoaderService.class);
+        shenyuWebHandler = new ShenyuWebHandler(listPlugins, shenyuLoaderService, new ShenyuConfig());
     }
 
     @Test
@@ -80,6 +84,7 @@ public final class ShenyuWebHandlerTest {
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{key:value}");
         Mono<Void> handle = shenyuWebHandler.handle(exchange);
         StepVerifier.create(handle).expectSubscription().verifyComplete();
+
     }
 
     @Test
@@ -96,11 +101,11 @@ public final class ShenyuWebHandlerTest {
                 .build());
         ShenyuConfig shenyuConfig = new ShenyuConfig();
         shenyuConfig.getScheduler().setEnabled(true);
-        ShenyuWebHandler shenyuWebHandler1 = new ShenyuWebHandler(listPlugins, shenyuConfig);
+        ShenyuWebHandler shenyuWebHandler1 = new ShenyuWebHandler(listPlugins, shenyuLoaderService, shenyuConfig);
         Mono<Void> handle = shenyuWebHandler1.handle(exchange);
         assertNotNull(handle);
         shenyuConfig.getScheduler().setType("elastic");
-        ShenyuWebHandler shenyuWebHandler2 = new ShenyuWebHandler(listPlugins, shenyuConfig);
+        ShenyuWebHandler shenyuWebHandler2 = new ShenyuWebHandler(listPlugins, shenyuLoaderService, shenyuConfig);
         Mono<Void> handle2 = shenyuWebHandler2.handle(exchange);
         assertNotNull(handle2);
     }

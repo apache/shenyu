@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.5.1-SNAPSHOT</version>
+        <version>2.6.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-admin</artifactId>
@@ -28,6 +28,7 @@
     <properties>
         <commons-io.version>2.11.0</commons-io.version>
         <orai18n.version>19.7.0.0</orai18n.version>
+        <polaris-all.version>1.13.0</polaris-all.version>
     </properties>
 
     <dependencies>
@@ -46,6 +47,12 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-register-client-server-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-register-client-server-polaris</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -78,6 +85,23 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-register-client-server-nacos</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <artifactId>grpc-netty</artifactId>
+            <groupId>io.grpc</groupId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-register-client-server-apollo</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-alert</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -125,11 +149,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.projectreactor</groupId>
-            <artifactId>reactor-spring</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -161,8 +180,19 @@
         </dependency>
 
         <dependency>
+            <groupId>com.tencent.polaris</groupId>
+            <artifactId>polaris-all</artifactId>
+            <version>${polaris-all.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.etcd</groupId>
             <artifactId>jetcd-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.ctrip.framework.apollo</groupId>
+            <artifactId>apollo-openapi</artifactId>
         </dependency>
 
         <dependency>
@@ -203,12 +233,8 @@
         </dependency>
 
         <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger-ui</artifactId>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
         </dependency>
 
         <dependency>
@@ -227,6 +253,13 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.opengauss</groupId>
+            <artifactId>opengauss-jdbc</artifactId>
+            <version>${opengauss-jdbc.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -255,17 +288,33 @@
         </dependency>
 
         <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>logging-interceptor</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${commons-io.version}</version>
         </dependency>
 
         <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-discovery-zookeeper</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
-    
+
     <profiles>
         <profile>
             <id>release</id>
@@ -282,10 +331,11 @@
             </build>
         </profile>
     </profiles>
-    
+
     <build>
         <finalName>shenyu-admin</finalName>
         <plugins>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

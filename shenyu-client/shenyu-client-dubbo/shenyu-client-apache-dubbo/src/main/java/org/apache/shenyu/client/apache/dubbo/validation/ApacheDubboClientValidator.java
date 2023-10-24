@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.apache.dubbo.validation;
 
+import java.util.Objects;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtField;
@@ -84,7 +85,7 @@ public class ApacheDubboClientValidator implements Validator {
         this.clazz = ReflectUtils.forName(url.getServiceInterface());
         String shenyuValidation = url.getParameter("shenyuValidation");
         ValidatorFactory factory;
-        if (shenyuValidation != null && shenyuValidation.length() > 0) {
+        if (Objects.nonNull(shenyuValidation) && shenyuValidation.length() > 0) {
             factory = Validation.byProvider((Class) ReflectUtils.forName(shenyuValidation)).configure().buildValidatorFactory();
         } else {
             factory = Validation.buildDefaultValidatorFactory();
@@ -136,7 +137,7 @@ public class ApacheDubboClientValidator implements Validator {
                 LOG.error(neglect.getMessage(), neglect);
             }
 
-            if (null == ctClass) {
+            if (Objects.isNull(ctClass)) {
                 ctClass = pool.makeClass(parameterClassName);
                 ClassFile classFile = ctClass.getClassFile();
                 classFile.setVersionToJava5();
@@ -158,7 +159,7 @@ public class ApacheDubboClientValidator implements Validator {
                                         && member.getParameterTypes().length == 0
                                         && member.getDeclaringClass() == annotation.annotationType()) {
                                     Object value = member.invoke(annotation);
-                                    if (null != value) {
+                                    if (Objects.nonNull(value)) {
                                         MemberValue memberValue = createMemberValue(
                                                 classFile.getConstPool(), pool.get(member.getReturnType().getName()), value);
                                         ja.addMemberValue(member.getName(), memberValue);
@@ -196,12 +197,10 @@ public class ApacheDubboClientValidator implements Validator {
 
     private static boolean hasConstraintParameter(final Method method) {
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-        if (parameterAnnotations.length > 0) {
-            for (Annotation[] annotations : parameterAnnotations) {
-                for (Annotation annotation : annotations) {
-                    if (annotation.annotationType().isAnnotationPresent(Constraint.class)) {
-                        return true;
-                    }
+        for (Annotation[] annotations : parameterAnnotations) {
+            for (Annotation annotation : annotations) {
+                if (annotation.annotationType().isAnnotationPresent(Constraint.class)) {
+                    return true;
                 }
             }
         }
@@ -254,7 +253,7 @@ public class ApacheDubboClientValidator implements Validator {
     public void validate(final String methodName, final Class<?>[] parameterTypes, final Object[] arguments) throws Exception {
         List<Class<?>> groups = new ArrayList<>();
         Class<?> methodClass = methodClass(methodName);
-        if (methodClass != null) {
+        if (Objects.nonNull(methodClass)) {
             groups.add(methodClass);
         }
         Set<ConstraintViolation<?>> violations = new HashSet<>();
@@ -290,7 +289,7 @@ public class ApacheDubboClientValidator implements Validator {
     }
 
     private void validate(final Set<ConstraintViolation<?>> violations, final Object arg, final Class<?>... groups) {
-        if (arg != null && !ReflectUtils.isPrimitives(arg.getClass())) {
+        if (Objects.nonNull(arg) && !ReflectUtils.isPrimitives(arg.getClass())) {
             if (arg instanceof Object[]) {
                 for (Object item : (Object[]) arg) {
                     validate(violations, item, groups);
@@ -314,7 +313,7 @@ public class ApacheDubboClientValidator implements Validator {
         Class<?> methodClass = null;
         String methodClassName = clazz.getName() + "$" + toUpperMethoName(methodName);
         Class<?> cached = methodClassMap.get(methodClassName);
-        if (cached != null) {
+        if (Objects.nonNull(cached)) {
             return cached == clazz ? null : cached;
         }
         try {

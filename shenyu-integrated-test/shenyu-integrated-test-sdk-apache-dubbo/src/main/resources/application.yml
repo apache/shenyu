@@ -1,0 +1,152 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+server:
+  port: 9195
+  address: 0.0.0.0
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: shenyu-bootstrap
+
+management:
+  health:
+    defaults:
+      enabled: false
+
+shenyu:
+  matchCache:
+    selectorEnabled: false
+    ruleEnabled: true
+    maxSelectorFreeMemory: 256 # 256MB
+    maxRuleFreeMemory: 256 # 256MB
+  netty:
+    http:
+      # set to false, user can custom the netty tcp server config.
+      webServerFactoryEnabled: true
+      selectCount: 1
+      workerCount: 4
+      accessLog: false
+      serverSocketChannel:
+        soRcvBuf: 87380
+        soBackLog: 128
+        soReuseAddr: false
+        connectTimeoutMillis: 10000
+        writeBufferHighWaterMark: 65536
+        writeBufferLowWaterMark: 32768
+        writeSpinCount: 16
+        autoRead: false
+        allocType: "pooled"
+        messageSizeEstimator: 8
+        singleEventExecutorPerGroup: true
+      socketChannel:
+        soKeepAlive: false
+        soReuseAddr: false
+        soLinger: -1
+        tcpNoDelay: true
+        soRcvBuf: 87380
+        soSndBuf: 16384
+        ipTos: 0
+        allowHalfClosure: false
+        connectTimeoutMillis: 10000
+        writeBufferHighWaterMark: 65536
+        writeBufferLowWaterMark: 32768
+        writeSpinCount: 16
+        autoRead: false
+        allocType: "pooled"
+        messageSizeEstimator: 8
+        singleEventExecutorPerGroup: true
+  register:
+    enabled: true
+    registerType: zookeeper #etcd #consul
+    serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
+    props:
+  cross:
+    enabled: true
+    allowedHeaders:
+    allowedMethods: "*"
+    allowedAnyOrigin: true # the same of Access-Control-Allow-Origin: "*"
+    allowedExpose: ""
+    maxAge: "18000"
+    allowCredentials: true
+
+  switchConfig:
+    local: true
+  file:
+    enabled: true
+    maxSize : 10
+  sync:
+    websocket:
+      urls: ws://localhost:9095/websocket
+      allowOrigin: ws://localhost:9195
+  exclude:
+    enabled: true
+    paths:
+      - /favicon.ico
+      - /actuator/health
+  fallback:
+    enabled: false
+    paths:
+      - /fallback/hystrix
+      - /fallback/resilience4j
+  health:
+    enabled: false
+    paths:
+      - /actuator/health
+      - /health_check
+  extPlugin:
+    path:
+    enabled: true
+    threads: 1
+    scheduleTime: 300
+    scheduleDelay: 30
+  scheduler:
+    enabled: false
+    type: fixed
+    threads: 16
+  upstreamCheck:
+    enabled: false
+    timeout: 3000
+    healthyThreshold: 1
+    unhealthyThreshold: 1
+    interval: 5000
+    printEnabled: true
+    printInterval: 60000
+  ribbon:
+    serverListRefreshInterval: 10000
+  metrics:
+    enabled: false
+    name : prometheus
+    host: 127.0.0.1
+    port: 8090
+    jmxConfig:
+    props:
+      jvm_enabled: true
+  #  plugins:
+  #    rate-limiter.enabled: false
+  local:
+    enabled: true
+    sha512Key: "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548BAEAE6956DF346EC8C17F5EA10F35EE3CBC514797ED7DDD3145464E2A0BAB413"
+
+logging:
+  level:
+    root: info
+    org.springframework.boot: info
+    org.apache.ibatis: info
+    org.apache.shenyu.bonuspoint: info
+    org.apache.shenyu.lottery: info
+    org.apache.shenyu: info

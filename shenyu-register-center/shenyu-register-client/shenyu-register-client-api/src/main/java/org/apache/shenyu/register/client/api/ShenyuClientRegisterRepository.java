@@ -18,6 +18,7 @@
 package org.apache.shenyu.register.client.api;
 
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.spi.SPI;
@@ -50,10 +51,27 @@ public interface ShenyuClientRegisterRepository {
      */
     default void persistURI(URIRegisterDTO registerDTO) {
     }
+
+    /**
+     * Node active offline when shutdown.
+     *
+     * @param offlineDTO the offline dto
+     */
+    default void offline(URIRegisterDTO offlineDTO) {
+    }
+
+    /**
+     * persistApiDoc.
+     * @param apiDocRegisterDTO apiDocRegisterDTO
+     */
+    default void persistApiDoc(ApiDocRegisterDTO apiDocRegisterDTO) {
+    }
     
     /**
-     * Close.
+     * closeRepository.
+     * If the close method is used, Spring will call it by default when the bean is destroyed,
+     * So its method name is closeRepository to avoid being called by default when the bean is destroyed.
      */
-    default void close() {
+    default void closeRepository() {
     }
 }

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin;
 
+import java.util.Objects;
 import org.junit.jupiter.api.Test;
 
 import java.beans.IntrospectionException;
@@ -26,7 +27,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -87,7 +87,7 @@ public abstract class AbstractReflectGetterSetterTest {
     protected abstract Class<?> getTargetClass();
 
     protected Set<String> getExcludeFields() {
-        return new HashSet<>(Arrays.asList("serialVersionUID"));
+        return new HashSet<>(Collections.singletonList("serialVersionUID"));
     }
 
     /**
@@ -96,6 +96,7 @@ public abstract class AbstractReflectGetterSetterTest {
      * @throws Exception maybe throw reflect Exception.
      */
     @Test
+    @SuppressWarnings("all")
     public void testGetAndSet() throws Exception {
         Class<?> clazz = getTargetClass();
         Object target = clazz.getDeclaredConstructor().newInstance();
@@ -107,7 +108,7 @@ public abstract class AbstractReflectGetterSetterTest {
                     if (f.isSynthetic()) {
                         return;
                     }
-                    if (excludeFields != null && excludeFields.contains(f.getName())) {
+                    if (Objects.nonNull(excludeFields) && excludeFields.contains(f.getName())) {
                         return;
                     }
                     try {
@@ -132,7 +133,7 @@ public abstract class AbstractReflectGetterSetterTest {
 
     private Object defaultValue(final Class<?> clazz) throws IllegalAccessException, InstantiationException {
         final Object obj = DEFAULT_MAPPERS.get(clazz);
-        if (obj != null) {
+        if (Objects.nonNull(obj)) {
             return obj;
         }
 

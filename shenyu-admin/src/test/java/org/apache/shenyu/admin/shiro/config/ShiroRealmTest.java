@@ -21,10 +21,10 @@ import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.PermissionService;
-import org.apache.shenyu.admin.shiro.bean.StatelessToken;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.authc.BearerToken;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.junit.jupiter.api.Test;
@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -66,8 +67,8 @@ public final class ShiroRealmTest {
 
     @Test
     public void testSupports() {
-        StatelessToken token = mock(StatelessToken.class);
-        assertEquals(true, shiroRealm.supports(token));
+        BearerToken token = mock(BearerToken.class);
+        assertTrue(shiroRealm.supports(token));
     }
 
     @Test

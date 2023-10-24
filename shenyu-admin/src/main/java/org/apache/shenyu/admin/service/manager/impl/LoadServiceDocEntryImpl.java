@@ -41,7 +41,7 @@ import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
-import org.apache.shenyu.admin.service.manager.ServiceDocManager;
+import org.apache.shenyu.admin.service.manager.PullSwaggerDocService;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
@@ -61,7 +61,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     private static final Logger LOG = LoggerFactory.getLogger(LoadServiceDocEntryImpl.class);
 
     @SuppressWarnings("unchecked")
-    private static Map<String, String> supportSwaggerPluginMap = Collections.EMPTY_MAP;
+    private static Map<String, String> supportSwaggerPluginMap = Collections.emptyMap();
 
     private final SelectorService selectorService;
 
@@ -69,19 +69,19 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
 
     private final PluginMapper pluginMapper;
 
-    private final ServiceDocManager serviceDocManager;
+    private final PullSwaggerDocService pullSwaggerDocService;
 
     private final ShenyuDictService shenyuDictService;
 
     public LoadServiceDocEntryImpl(final SelectorService selectorService,
                                    final SelectorHandleConverterFactor converterFactor,
                                    final PluginMapper pluginMapper,
-                                   final ServiceDocManager serviceDocManager,
+                                   final PullSwaggerDocService pullSwaggerDocService,
                                    final ShenyuDictService shenyuDictService) {
         this.selectorService = selectorService;
         this.converterFactor = converterFactor;
         this.pluginMapper = pluginMapper;
-        this.serviceDocManager = serviceDocManager;
+        this.pullSwaggerDocService = pullSwaggerDocService;
         this.shenyuDictService = shenyuDictService;
     }
 
@@ -96,8 +96,8 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             return;
         }
         final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
-        LOG.info("load api document  serviceList={}", JsonUtils.toJson(currentServices));
-        serviceDocManager.pullApiDocument(currentServices);
+        LOG.info("load api document, serviceList={}", JsonUtils.toJson(currentServices));
+        pullSwaggerDocService.pullApiDocument(currentServices);
     }
 
     @Override
@@ -112,8 +112,8 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                 return;
             }
             final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
-            LOG.info("loadDocOnSelectorChanged serviceList={}", JsonUtils.toJson(currentServices));
-            serviceDocManager.pullApiDocument(currentServices);
+            LOG.info("loadDocOnSelectorChanged, serviceList={}", JsonUtils.toJson(currentServices));
+            pullSwaggerDocService.pullApiDocument(currentServices);
         }
     }
 
@@ -143,8 +143,8 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
      * @return List
      */
     private List<UpstreamInstance> getAllClusterLastUpdateInstanceList() {
-        List<String> pluginNames = new ArrayList<>();
-        RpcTypeEnum.acquireSupportSwaggers().forEach(rpcTypeEnum -> pluginNames.add(PluginNameAdapter.rpcTypeAdapter(rpcTypeEnum.getName())));
+        List<String> pluginNames = RpcTypeEnum.acquireSupportSwaggers().stream().map(
+            rpcTypeEnum -> PluginNameAdapter.rpcTypeAdapter(rpcTypeEnum.getName())).collect(Collectors.toList());
         final List<PluginDO> pluginDOList = pluginMapper.selectByNames(pluginNames);
         if (CollectionUtils.isEmpty(pluginDOList)) {
             return Collections.emptyList();
@@ -155,7 +155,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(Lists.newArrayList(supportSwaggerPluginMap.keySet()), null, new PageParameter(1, Integer.MAX_VALUE)));
         List<SelectorVO> clusterList = commonPager.getDataList();
         if (CollectionUtils.isEmpty(clusterList)) {
-            LOG.info("getAllClusterLastUpdateInstanceList, Not loaded into available backend services.");
+            LOG.info("getAllClusterLastUpdateInstanceList. Not loaded into available backend services.");
             return Collections.emptyList();
         }
         return clusterList.parallelStream()
@@ -174,7 +174,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
 
     private UpstreamInstance getClusterLastUpdateInstance(final SelectorData selectorData) {
         if (!supportSwaggerPluginMap.containsKey(selectorData.getPluginId())) {
-            LOG.info("getClusterLastUpdateInstance. pluginNae={} does not support pulling API documents.", selectorData.getPluginName());
+            LOG.info("getClusterLastUpdateInstance. pluginName={} does not support pulling API documents.", selectorData.getPluginName());
             return null;
         }
         List<UpstreamInstance> allInstances = getInstances(selectorData.getPluginId(), selectorData.getHandle(), selectorData.getName(), selectorData.getEnabled());
@@ -195,8 +195,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                 .orElse(null);
     }
 
-    private List<UpstreamInstance> getInstances(final String pluginId, final String handle, final String contextPath,
-        final boolean enabled) {
+    private List<UpstreamInstance> getInstances(final String pluginId, final String handle, final String contextPath, final boolean enabled) {
         List<UpstreamInstance> allInstances = null;
         // Get service instance.
         if (StringUtils.isNotEmpty(handle)) {
@@ -216,7 +215,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                 }
             } catch (Exception e) {
                 LOG.error("Error getting cluster instance list. contextPath={} error={}", contextPath, e);
-                return null;
+                return Collections.emptyList();
             }
         }
         return allInstances;

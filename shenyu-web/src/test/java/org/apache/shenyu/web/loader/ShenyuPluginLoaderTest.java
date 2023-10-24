@@ -18,6 +18,7 @@
 package org.apache.shenyu.web.loader;
 
 import com.google.common.collect.Lists;
+import com.google.common.io.CharStreams;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.Test;
@@ -33,10 +34,15 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
@@ -58,11 +64,11 @@ public final class ShenyuPluginLoaderTest {
 
     @TempDir
     private static Path folder;
-    
+
     private ShenyuPluginLoader shenyuPluginLoader;
 
     private Path path;
-    
+
     @BeforeEach
     public void setUp() throws IOException, NoSuchFieldException, IllegalAccessException {
         shenyuPluginLoader = ShenyuPluginLoader.getInstance();
@@ -86,12 +92,13 @@ public final class ShenyuPluginLoaderTest {
         ApplicationContext mockApplication =
                 mock(ApplicationContext.class);
         when(mockApplication.getBean("dividePlugin")).thenReturn(new Object());
+        when(mockApplication.getBean("customPlugin")).thenReturn(new Object());
         when(mockApplication.getAutowireCapableBeanFactory()).thenReturn(mock(DefaultListableBeanFactory.class));
         when(mockApplication.containsBean("dividePlugin")).thenReturn(true);
         SpringBeanUtils instance = SpringBeanUtils.getInstance();
         instance.setApplicationContext(mockApplication);
     }
-    
+
     @Test
     public void testGetBean() {
         boolean exist = SpringBeanUtils.getInstance().existBean("dividePlugin");
@@ -99,12 +106,12 @@ public final class ShenyuPluginLoaderTest {
         Object dividePlugin = SpringBeanUtils.getInstance().getBean("dividePlugin");
         assertNotNull(dividePlugin);
     }
-    
+
     @Test
     public void testGetInstance() {
         assertThat(shenyuPluginLoader, is(ShenyuPluginLoader.getInstance()));
     }
-    
+
     @Test
     public void testGetPluginPathWithNoJar() throws IOException {
         List<ShenyuLoaderResult> pluginList = shenyuPluginLoader.loadExtendPlugins("test");
@@ -142,6 +149,34 @@ public final class ShenyuPluginLoaderTest {
         Manifest manifest = mock(Manifest.class);
         when(manifest.getMainAttributes()).thenReturn(mock(Attributes.class));
         definePackageInternal.invoke(ShenyuPluginLoader.getInstance(), "org.apache.shenyu.plugin.DividePlugin", manifest);
+    }
+
+    @Test
+    public void testLoadSameJarTwice() throws IOException, NoSuchFieldException, IllegalAccessException {
+        ShenyuPluginLoader loader = ShenyuPluginLoader.getInstance();
+        Field field = ShenyuPluginLoader.class.getDeclaredField("jars");
+        field.setAccessible(true);
+        field.set(loader, Lists.newArrayList());
+        List<ShenyuLoaderResult> pluginList = loader.loadExtendPlugins(path.toString());
+        assertThat(pluginList.size(), is(1));
+        List<ShenyuLoaderResult> neoPluginList = loader.loadExtendPlugins(path.toString());
+        assertThat(neoPluginList.size(), is(0));
+        loader.close();
+    }
+
+    @Test
+    public void testLoadUploadPluginJar() throws IOException, NoSuchFieldException, IllegalAccessException {
+        testLoadSameJarTwice();
+        ShenyuPluginLoader loader = ShenyuPluginLoader.getInstance();
+        Field field = ShenyuPluginLoader.class.getDeclaredField("names");
+        field.setAccessible(true);
+        field.set(loader, new HashSet<>());
+        InputStream is = this.getClass().getResourceAsStream("/plugin-jar-base64.txt");
+        assertNotNull(is);
+        String jarTxt = CharStreams.toString(new InputStreamReader(is, StandardCharsets.UTF_8));
+        List<ShenyuLoaderResult> shenyuLoaderResults = loader.loadUploadedJarPlugins(Collections.singletonList(jarTxt));
+        assertThat(shenyuLoaderResults.size(), is(1));
+        loader.close();
     }
 
     @Component

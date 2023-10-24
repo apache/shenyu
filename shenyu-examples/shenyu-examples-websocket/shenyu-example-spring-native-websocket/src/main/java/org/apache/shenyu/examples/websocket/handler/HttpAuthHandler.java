@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.examples.websocket.handler;
 
+import java.util.Objects;
 import org.apache.shenyu.examples.websocket.config.WsSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +43,9 @@ public class HttpAuthHandler extends TextWebSocketHandler {
      */
     @Override
     public void afterConnectionEstablished(final WebSocketSession session) throws Exception {
+        LOG.info("The connection has been established successfully.");
         Object token = session.getAttributes().get("token");
-        if (token != null) {
+        if (Objects.nonNull(token)) {
             // The user is successfully connected and put into the online user cache.
             WsSessionManager.add(token.toString(), session);
         } else {
@@ -63,21 +65,28 @@ public class HttpAuthHandler extends TextWebSocketHandler {
         // Get the message from the client.
         String payload = message.getPayload();
         Object token = session.getAttributes().get("token");
-        LOG.info("server received " + token + " sent " + payload);
-        session.sendMessage(new TextMessage("apache shenyu server send to " + token + " message : -> " + payload));
+        LOG.info("server received {}, sent {}", token, payload);
+        boolean isTestClose = (Objects.nonNull(token) && Objects.equals(token, "testCloseStatus"))
+            || (Objects.nonNull(payload) && Objects.equals(payload, "testCloseStatus"));
+        if (isTestClose) {
+            session.close(new CloseStatus(4400, "test:apache shenyu server close, return closeStatus"));
+        } else {
+            session.sendMessage(new TextMessage("apache shenyu server send to " + token + " message : -> " + payload));
+        }
     }
 
     /**
      * when socket disconnected.
      *
-     * @param session  session
+     * @param session session
      * @param status  close status
      * @throws Exception exception
      */
     @Override
     public void afterConnectionClosed(final WebSocketSession session, final CloseStatus status) throws Exception {
         Object token = session.getAttributes().get("token");
-        if (token != null) {
+        LOG.info("closed with status: {}" + status);
+        if (Objects.nonNull(token)) {
             // The user exits and removes the cache.
             WsSessionManager.remove(token.toString());
         }

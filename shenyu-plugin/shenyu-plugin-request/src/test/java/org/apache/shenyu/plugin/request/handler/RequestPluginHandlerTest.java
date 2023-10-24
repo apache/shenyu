@@ -63,7 +63,7 @@ public class RequestPluginHandlerTest {
         this.requestPluginHandler.handlerRule(this.ruleData);
         RuleData ruleData = new RuleData();
         ruleData.setSelectorId("test");
-        ruleData.setName("test");
+        ruleData.setId("test");
         this.requestPluginHandler.removeRule(this.ruleData);
         assertNull(RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
         this.requestPluginHandler.removeRule(ruleData);

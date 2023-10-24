@@ -18,13 +18,16 @@
 package org.apache.shenyu.client.core.disruptor.subcriber;
 
 import com.google.common.base.Stopwatch;
+import org.apache.shenyu.client.core.shutdown.ShutdownHookManager;
 import org.apache.shenyu.client.core.shutdown.ShenyuClientShutdownHook;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -81,6 +84,12 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
             }
             ShenyuClientShutdownHook.delayOtherHooks();
             shenyuClientRegisterRepository.persistURI(uriRegisterDTO);
+            ShutdownHookManager.get().addShutdownHook(new Thread(() -> {
+                final URIRegisterDTO offlineDTO = new URIRegisterDTO();
+                BeanUtils.copyProperties(uriRegisterDTO, offlineDTO);
+                offlineDTO.setEventType(EventType.OFFLINE);
+                shenyuClientRegisterRepository.offline(offlineDTO);
+            }), 2);
         }
     }
 }

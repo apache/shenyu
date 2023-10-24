@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
@@ -37,7 +38,7 @@ import org.apache.shenyu.admin.model.vo.RoleEditVO.ResourceInfo;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.RoleService;
 import org.apache.shenyu.admin.service.publish.RoleEventPublisher;
-import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +62,8 @@ public class RoleServiceImpl implements RoleService {
     
     private final RoleMapper roleMapper;
     
+    private final DashboardProperties properties;
+    
     private final PermissionMapper permissionMapper;
     
     private final ResourceMapper resourceMapper;
@@ -68,10 +71,12 @@ public class RoleServiceImpl implements RoleService {
     private final RoleEventPublisher roleEventPublisher;
     
     public RoleServiceImpl(final RoleMapper roleMapper,
+                           final DashboardProperties properties,
                            final PermissionMapper permissionMapper,
                            final ResourceMapper resourceMapper,
                            final RoleEventPublisher roleEventPublisher) {
         this.roleMapper = roleMapper;
+        this.properties = properties;
         this.permissionMapper = permissionMapper;
         this.resourceMapper = resourceMapper;
         this.roleEventPublisher = roleEventPublisher;
@@ -183,7 +188,11 @@ public class RoleServiceImpl implements RoleService {
      * @return {@linkplain PermissionInfo}
      */
     private PermissionInfo getAllPermissions() {
-        final List<ResourceVO> resourceVOList = ListUtil.map(resourceMapper.selectAll(), ResourceVO::buildResourceVO);
+        List<ResourceVO> resourceVOList = resourceMapper.selectAll()
+                .stream()
+                .filter(r -> !properties.getOnlySuperAdminPermission().contains(r.getPerms()))
+                .map(ResourceVO::buildResourceVO)
+                .collect(Collectors.toList());
         return PermissionInfo.builder()
                 .treeList(getTreeModelList(resourceVOList))
                 .permissionIds(ListUtil.map(resourceVOList, ResourceVO::getId))
@@ -222,12 +231,7 @@ public class RoleServiceImpl implements RoleService {
             if (CollectionUtils.isNotEmpty(children)) {
                 ResourceInfo resourceInfo = resourceInfoMap.get(parent);
                 List<ResourceInfo> targetList = Objects.isNull(resourceInfo) ? retList : resourceInfo.getChildren();
-                children.forEach(child -> {
-                    ResourceInfo data = resourceInfoMap.get(child);
-                    if (Objects.nonNull(data)) {
-                        targetList.add(data);
-                    }
-                });
+                children.stream().map(resourceInfoMap::get).filter(Objects::nonNull).forEach(targetList::add);
             }
         });
         return retList;

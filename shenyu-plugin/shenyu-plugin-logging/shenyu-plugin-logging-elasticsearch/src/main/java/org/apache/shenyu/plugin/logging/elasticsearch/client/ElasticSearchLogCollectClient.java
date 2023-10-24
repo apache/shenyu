@@ -23,26 +23,32 @@ import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.shenyu.common.utils.LogUtils;
+import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.elasticsearch.config.ElasticSearchLogCollectConfig;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * queue-based logging collector.
  */
-public class ElasticSearchLogCollectClient implements LogConsumeClient {
+public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<ElasticSearchLogCollectConfig.ElasticSearchLogConfig, ShenyuRequestLog> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchLogCollectClient.class);
 
@@ -52,47 +58,62 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
 
     private ElasticsearchClient client;
 
-    private final AtomicBoolean isStarted = new AtomicBoolean(false);
+    private String indexName = GenericLoggingConstant.INDEX;
 
     /**
      * init elasticsearch client.
      *
-     * @param props elasticsearch client properties
+     * @param config elasticsearch client config
      */
-    public void initClient(final Properties props) {
-        restClient = RestClient
-                .builder(new HttpHost(props.getProperty(GenericLoggingConstant.HOST), Integer.parseInt(props.getProperty(GenericLoggingConstant.PORT))))
-                .build();
+    @Override
+    public void initClient0(@NonNull final ElasticSearchLogCollectConfig.ElasticSearchLogConfig config) {
+        RestClientBuilder builder = RestClient
+                .builder(new HttpHost(config.getHost(), Integer.parseInt(config.getPort())));
+
+        // authentication and config auth cathe.
+        if (StringUtils.isNoneBlank(config.getUsername()) && StringUtils.isNoneBlank(config.getPassword())) {
+            final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(AuthScope.ANY,
+                    new UsernamePasswordCredentials(config.getUsername(), config.getPassword()));
+            builder.setHttpClientConfigCallback(asyncClientBuilder -> {
+                if (Boolean.FALSE.equals(config.getAuthCache())) {
+                    asyncClientBuilder.disableAuthCaching();
+                }
+                return asyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+            });
+        }
+
+        restClient = builder.build();
         transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         client = new ElasticsearchClient(transport);
-        LOG.info("init ElasticSearchLogCollectClient success");
+        indexName = StringUtils.isNoneBlank(config.getIndexName()) ? config.getIndexName() : GenericLoggingConstant.INDEX;
+        LogUtils.info(LOG, "init ElasticSearchLogCollectClient success");
         // Determine whether the index exists, and create it if it does not exist
-        if (!existsIndex(GenericLoggingConstant.INDEX)) {
-            createIndex(GenericLoggingConstant.INDEX);
-            LOG.info("create index success");
+        if (!existsIndex(indexName)) {
+            createIndex(indexName);
+            LogUtils.info(LOG, "create index success");
         }
-        isStarted.set(true);
-        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
+    /**
+     * consume logs.
+     * @param logs logs
+     */
     @Override
-    public void consume(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
-            return;
-        }
+    public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
         List<BulkOperation> bulkOperations = new ArrayList<>();
         logs.forEach(log -> {
             try {
-                bulkOperations.add(new BulkOperation.Builder().create(d -> d.document(log).index(GenericLoggingConstant.INDEX)).build());
+                bulkOperations.add(new BulkOperation.Builder().create(d -> d.document(log).index(indexName)).build());
             } catch (Exception e) {
-                LOG.error("add logs error", e);
+                LogUtils.error(LOG, "add logs error: ", e);
             }
         });
         // Bulk storage
         try {
-            client.bulk(e -> e.index(GenericLoggingConstant.INDEX).operations(bulkOperations));
+            client.bulk(e -> e.index(indexName).operations(bulkOperations));
         } catch (Exception e) {
-            LOG.error("elasticsearch store logs error", e);
+            LogUtils.error(LOG, "elasticsearch store logs error: ", e);
         }
     }
 
@@ -107,7 +128,7 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
             BooleanResponse existsResponse = client.indices().exists(c -> c.index(indexName));
             return existsResponse.value();
         } catch (Exception e) {
-            LOG.error("fail to check the index exists");
+            LogUtils.error(LOG, "fail to check the index exists, error:", e);
         }
         return true;
     }
@@ -121,7 +142,7 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
         try {
             client.indices().create(c -> c.index(indexName));
         } catch (IOException e) {
-            LOG.error("create index error");
+            LogUtils.error(LOG, "create index error:", e);
         }
     }
 
@@ -129,19 +150,18 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
      * close client.
      */
     @Override
-    public void close() {
-        if (Objects.nonNull(restClient) && isStarted.get()) {
+    public void close0() {
+        if (Objects.nonNull(restClient)) {
             try {
                 transport.close();
             } catch (IOException e) {
-                LOG.error("transport close has IOException : ", e);
+                LogUtils.error(LOG, "transport close has IOException : ", e);
             }
             try {
                 restClient.close();
             } catch (IOException e) {
-                LOG.error("restClient close has IOException : ", e);
+                LogUtils.error(LOG, "restClient close has IOException : ", e);
             }
-            isStarted.set(false);
         }
     }
 }

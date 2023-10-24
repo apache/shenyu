@@ -21,7 +21,6 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.aliyun.sls.client.AliyunSlsLogCollectClient;
 import org.apache.shenyu.plugin.aliyun.sls.config.AliyunLogCollectConfig;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +29,6 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * test cases for AliyunSlsLogCollectClient.
@@ -38,8 +36,6 @@ import java.util.Properties;
 public class AliyunSlsLogCollectClientTest {
 
     private AliyunSlsLogCollectClient aliyunSlsLogCollectClient;
-
-    private final Properties props = new Properties();
 
     private final PluginData pluginData = new PluginData();
 
@@ -57,16 +53,6 @@ public class AliyunSlsLogCollectClientTest {
                 + "\"host\":\"cn-guangzhou.log.aliyuncs.com\", \"projectName\":\"shenyu-test\", \"logStoreName\":\"shenyu-test-logstore\"}");
         aliyunSlsLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
                 AliyunLogCollectConfig.AliyunSlsLogConfig.class);
-        props.setProperty(GenericLoggingConstant.HOST, aliyunSlsLogConfig.getHost());
-        props.setProperty(GenericLoggingConstant.ACCESS_ID, aliyunSlsLogConfig.getAccessId());
-        props.setProperty(GenericLoggingConstant.ACCESS_KEY, aliyunSlsLogConfig.getAccessKey());
-        props.setProperty(GenericLoggingConstant.PROJECT_NAME, aliyunSlsLogConfig.getProjectName().trim());
-        props.setProperty(GenericLoggingConstant.LOG_STORE, aliyunSlsLogConfig.getLogStoreName().trim());
-        props.setProperty(GenericLoggingConstant.TTL_IN_DAY, String.valueOf(aliyunSlsLogConfig.getTtlInDay()));
-        props.setProperty(GenericLoggingConstant.SHARD_COUNT, String.valueOf(aliyunSlsLogConfig.getShardCount()));
-        props.setProperty(GenericLoggingConstant.TOPIC, aliyunSlsLogConfig.getTopic().trim());
-        props.setProperty(GenericLoggingConstant.SEND_THREAD_COUNT, String.valueOf(aliyunSlsLogConfig.getSendThreadCount()));
-        props.setProperty(GenericLoggingConstant.IO_THREAD_COUNT, String.valueOf(aliyunSlsLogConfig.getIoThreadCount()));
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
         logs.add(shenyuRequestLog);
@@ -74,7 +60,7 @@ public class AliyunSlsLogCollectClientTest {
 
     @Test
     public void testInitClient() throws NoSuchFieldException, IllegalAccessException {
-        aliyunSlsLogCollectClient.initClient(props);
+        aliyunSlsLogCollectClient.initClient(aliyunSlsLogConfig);
         Field field = aliyunSlsLogCollectClient.getClass().getDeclaredField("topic");
         field.setAccessible(true);
         Assertions.assertEquals(field.get(aliyunSlsLogCollectClient), "shenyu-topic-test");
@@ -88,7 +74,7 @@ public class AliyunSlsLogCollectClientTest {
     public void testConsume() {
         String msg = "";
         AliyunLogCollectConfig.INSTANCE.setAliyunSlsLogConfig(aliyunSlsLogConfig);
-        aliyunSlsLogCollectClient.initClient(props);
+        aliyunSlsLogCollectClient.initClient(aliyunSlsLogConfig);
         try {
             aliyunSlsLogCollectClient.consume(logs);
         } catch (Exception e) {

@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.AbstractConfigurationTest;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -41,7 +42,11 @@ public final class WebsocketSyncPropertiesTest extends AbstractConfigurationTest
     public void testWebsocketSyncPropertiesSetValue() {
         load(WebsocketSyncPropertiesConfiguration.class, "shenyu.sync.websocket.enabled=false");
         WebsocketSyncProperties websocketSyncProperties = getContext().getBean(WebsocketSyncProperties.class);
+        websocketSyncProperties.setMessageMaxSize(0);
+        websocketSyncProperties.setAllowOrigins("allowOrigins");
         assertThat(websocketSyncProperties.isEnabled(), comparesEqualTo(false));
+        Assertions.assertEquals(websocketSyncProperties.getMessageMaxSize(), 0);
+        Assertions.assertEquals(websocketSyncProperties.getAllowOrigins(), "allowOrigins");
     }
 
     @Configuration

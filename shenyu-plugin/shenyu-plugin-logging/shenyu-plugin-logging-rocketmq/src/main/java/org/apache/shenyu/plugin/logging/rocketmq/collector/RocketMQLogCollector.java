@@ -17,29 +17,35 @@
 
 package org.apache.shenyu.plugin.logging.rocketmq.collector;
 
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
+import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
 import org.apache.shenyu.plugin.logging.rocketmq.handler.LoggingRocketMQPluginDataHandler;
 
 /**
  * default log collector，depend a LogConsumeClient for consume logs.
  */
-public class RocketMQLogCollector extends AbstractLogCollector {
+public class RocketMQLogCollector extends AbstractLogCollector<RocketMQLogCollectClient, ShenyuRequestLog> {
 
-    private static final LogCollector INSTANCE = new RocketMQLogCollector();
+    private static final LogCollector<ShenyuRequestLog> INSTANCE = new RocketMQLogCollector();
 
     /**
      * get LogCollector instance.
      *
      * @return LogCollector instance
      */
-    public static LogCollector getInstance() {
+    public static LogCollector<ShenyuRequestLog> getInstance() {
         return INSTANCE;
     }
 
     @Override
-    protected LogConsumeClient getLogConsumeClient() {
+    protected RocketMQLogCollectClient getLogConsumeClient() {
         return LoggingRocketMQPluginDataHandler.getRocketMqLogCollectClient();
+    }
+
+    @Override
+    protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
     }
 }

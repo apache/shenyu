@@ -40,10 +40,11 @@ shenyu:
       package-path: org.apache.shenyu.examples.motan.service
       basicServiceConfig:
         exportPort: 8002
-
+      protocol:
+        name: motan2
 motan:
   registry:
-    protocol: zookeeper
+    protocol: zk
     address: 127.0.0.1:2181
 
 logging:

@@ -6,6 +6,7 @@ target/
 *.zip
 *.tar
 *.tar.gz
+.flattened-pom.xml
 dependency-reduced-pom.xml
 
 # maven plugin ignore
@@ -20,6 +21,8 @@ cobertura.ser
 
 # idea ignore
 .idea/
+!/.idea/icon.svg
+!/.idea/vcs.xml
 *.ipr
 *.iml
 *.iws

@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shiro.authc.BearerToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.AccessControlFilter;
 import org.slf4j.Logger;
@@ -64,7 +65,7 @@ public class StatelessAuthFilter extends AccessControlFilter {
             return false;
         }
 
-        StatelessToken token = new StatelessToken(tokenValue);
+        BearerToken token = new BearerToken(tokenValue);
 
         Subject subject = getSubject(servletRequest, servletResponse);
 

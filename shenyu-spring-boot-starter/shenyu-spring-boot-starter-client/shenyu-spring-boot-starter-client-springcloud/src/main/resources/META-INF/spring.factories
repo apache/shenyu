@@ -16,4 +16,5 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.springboot.starter.client.springcloud.ShenyuSpringCloudClientConfiguration
+org.apache.shenyu.springboot.starter.client.springcloud.ShenyuSpringCloudClientConfiguration,\
+org.apache.shenyu.springboot.starter.client.springcloud.ShenyuSpringCloudClientInfoRegisterConfiguration

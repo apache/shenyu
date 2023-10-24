@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.matchesRegex;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.Test;
 
 /**
  * The test case for {@link PhoneGenerator }.
@@ -28,20 +30,19 @@ import org.junit.jupiter.api.Test;
  * @date 2022/6/20 14:48
  */
 public final class PhoneGeneratorTest {
-    
+
     private final PhoneGenerator generator = new PhoneGenerator();
-    
+
     @Test
     void testGenerate() {
-        generator.parseRule("phone");
-        String phone = generator.generate();
-        assertTrue(phone.matches("^1[3-9]\\d{9}$"));
+        String phone = generator.generate("phone", null);
+        assertThat(phone, matchesRegex("^1[3-9]\\d{9}$"));
     }
-    
+
     @Test
     void match() {
         assertTrue(generator.match("phone"));
         assertFalse(generator.match("mobile"));
-        
+
     }
 }

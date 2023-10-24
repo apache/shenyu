@@ -17,44 +17,39 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import org.apache.shenyu.plugin.mock.util.RandomUtil;
+import org.apache.shenyu.plugin.mock.api.MockRequest;
+import org.apache.shenyu.plugin.mock.util.MockUtil;
 import org.apache.shenyu.spi.Join;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Specify the in-list data generator.
  */
 @Join
 public class RangeDataGenerator implements Generator<String> {
-    
-    private List<String> data;
-    
+
     @Override
     public String getName() {
         return "list";
     }
-    
+
     @Override
-    public String generate() {
-        return data.get(RandomUtil.randomInt(0, data.size() - 1));
+    public String doGenerate(final List<String> params, final String rule, final MockRequest mockRequest) {
+        String rangeData = params.get(0).replaceAll("\\[(.+)]", "$1");
+        String[] data = Arrays.stream(rangeData.split("(?<!\\\\),"))
+                .map(_data -> _data.replace("\\,", ","))
+                .toArray(String[]::new);
+
+        return MockUtil.oneOf(data).toString();
     }
-    
+
     @Override
     public int getParamSize() {
         return 0;
     }
-    
-    @Override
-    public void initParam(final List<String> params, final String rule) {
-        String rangeData = params.get(0).replaceAll("\\[(.+)]", "$1");
-        data = Arrays.stream(rangeData.split("(?<!\\\\),"))
-                .map(data -> data.replace("\\,", ","))
-                .collect(Collectors.toList());
-    }
-    
+
     @Override
     public boolean match(final String rule) {
         boolean matches = rule.matches("^list\\|\\[.+]$");
@@ -64,7 +59,7 @@ public class RangeDataGenerator implements Generator<String> {
         }
         return false;
     }
-    
+
     @Override
     public String[] getPrefixAndSuffix() {
         return new String[]{"\"", "\""};

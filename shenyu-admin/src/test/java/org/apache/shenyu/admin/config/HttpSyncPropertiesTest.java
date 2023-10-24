@@ -29,6 +29,7 @@ import java.time.Duration;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.comparesEqualTo;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Test cases for HttpSyncProperties.
@@ -40,7 +41,9 @@ public final class HttpSyncPropertiesTest extends AbstractConfigurationTest {
     public void testDefault() {
         load(HttpSyncPropertiesConfiguration.class);
         HttpSyncProperties httpSyncProperties = getContext().getBean(HttpSyncProperties.class);
+        httpSyncProperties.setNotifyBatchSize(0);
         assertThat(httpSyncProperties.isEnabled(), comparesEqualTo(true));
+        assertEquals(httpSyncProperties.getNotifyBatchSize(), 0);
         assertThat(httpSyncProperties.getRefreshInterval(), comparesEqualTo(Duration.ofMinutes(5)));
     }
 

@@ -19,28 +19,26 @@ package org.apache.shenyu.register.client.server.zookeeper;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
-import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.PathMatchUtils;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -116,8 +114,9 @@ public class ZookeeperClientServerRegisterRepository implements ShenyuClientServ
     private void publishRegisterURI(final List<URIRegisterDTO> registerDTOList) {
         publisher.publish(registerDTOList);
     }
+    
+    abstract static class AbstractRegisterListener implements TreeCacheListener {
 
-    abstract class AbstractRegisterListener implements TreeCacheListener {
         @Override
         public final void childEvent(final CuratorFramework client, final TreeCacheEvent event) {
             ChildData childData = event.getData();
@@ -145,7 +144,7 @@ public class ZookeeperClientServerRegisterRepository implements ShenyuClientServ
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
-            if (!PathMatchUtils.match(RegisterPathConstants.REGISTER_METADATA_INSTANCE_PATH, path)) {
+            if (!path.contains(RegisterPathConstants.ROOT_PATH)) {
                 return;
             }
             Optional.ofNullable(data)
@@ -158,29 +157,30 @@ public class ZookeeperClientServerRegisterRepository implements ShenyuClientServ
     }
 
     class URICacheListener extends AbstractRegisterListener {
+
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
-            // if not uri register path, return.
-            if (!PathMatchUtils.match(RegisterPathConstants.REGISTER_URI_INSTANCE_PATH, path)) {
+            // Non-leaf node, return directly
+            if (data.getData() == null || data.getData().length == 0) {
                 return;
             }
-            // get children under context path
-            int lastSepIndex = path.lastIndexOf(Constants.PATH_SEPARATOR);
-            String contextPath = path.substring(0, lastSepIndex);
-            List<String> childrenList = client.getChildren(contextPath);
-
-            List<URIRegisterDTO> registerDTOList = new LinkedList<>();
-            childrenList.forEach(addPath -> {
-                String realPath = RegisterPathConstants.buildRealNode(contextPath, addPath);
-                registerDTOList.add(GsonUtils.getInstance().fromJson(client.get(realPath), URIRegisterDTO.class));
-            });
-
-            if (CollectionUtils.isEmpty(registerDTOList)) {
-                String[] paths = contextPath.split(Constants.PATH_SEPARATOR);
-                URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath(Constants.PATH_SEPARATOR + paths[paths.length - 1]).rpcType(paths[paths.length - 2]).build();
-                registerDTOList.add(uriRegisterDTO);
+            URIRegisterDTO uriRegisterDTO = GsonUtils.getInstance()
+                    .fromJson(new String(data.getData()), URIRegisterDTO.class);
+            if (uriRegisterDTO == null) {
+                return;
             }
-            publishRegisterURI(registerDTOList);
+            switch (type) {
+                case NODE_ADDED:
+                    uriRegisterDTO.setEventType(EventType.REGISTER);
+                    publishRegisterURI(Collections.singletonList(uriRegisterDTO));
+                    break;
+                case NODE_REMOVED:
+                    uriRegisterDTO.setEventType(EventType.OFFLINE);
+                    publishRegisterURI(Collections.singletonList(uriRegisterDTO));
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

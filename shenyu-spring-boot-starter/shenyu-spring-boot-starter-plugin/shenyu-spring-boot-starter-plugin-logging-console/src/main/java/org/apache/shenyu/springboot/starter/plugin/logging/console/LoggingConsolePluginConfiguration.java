@@ -18,7 +18,9 @@
 package org.apache.shenyu.springboot.starter.plugin.logging.console;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.logging.console.LoggingConsolePlugin;
+import org.apache.shenyu.plugin.logging.console.handler.LoggingConsolePluginDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +31,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnProperty(value = {"shenyu.plugins.logging-console.enabled"}, havingValue = "true", matchIfMissing = true)
 public class LoggingConsolePluginConfiguration {
+
+    /**
+     * logging console plugin data handler.
+     *
+     * @return LoggingConsolePluginDataHandler
+     */
+    @Bean
+    public PluginDataHandler loggingPluginDataHandler() {
+        return new LoggingConsolePluginDataHandler();
+    }
 
     /**
      * Logging console plugin.

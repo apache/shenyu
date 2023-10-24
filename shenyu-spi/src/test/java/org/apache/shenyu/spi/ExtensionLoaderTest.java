@@ -44,6 +44,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -76,6 +77,30 @@ public final class ExtensionLoaderTest {
         assertThat(joins1.get(0).getClass().getName(), is(LinkedListSPI.class.getName()));
         assertThat(joins1.get(1).getClass().getName(), is(TreeListSPI.class.getName()));
         assertThat(joins1.get(2).getClass().getName(), is(ArrayListSPI.class.getName()));
+    }
+    
+    @Test
+    public void testSPIList2() {
+        List<ListSPI> joins = ExtensionLoader.getExtensionLoader(ListSPI.class).getJoins();
+        assertEquals(joins.size(), 3);
+        assertThat(joins.get(0).getClass().getName(), is(LinkedListSPI.class.getName()));
+        assertThat(joins.get(1).getClass().getName(), is(TreeListSPI.class.getName()));
+        assertThat(joins.get(2).getClass().getName(), is(ArrayListSPI.class.getName()));
+        
+        List<ListSPI> joins2 = ExtensionLoader.getExtensionLoader(ListSPI.class).getJoins();
+        assertEquals(joins.size(), 3);
+        assertEquals(joins.get(0), joins2.get(0));
+        assertEquals(joins.get(1), joins2.get(1));
+        assertNotEquals(joins.get(2), joins2.get(2));
+        ListSPI arrayList = ExtensionLoader.getExtensionLoader(ListSPI.class).getJoin("arrayList");
+        assertNotEquals(arrayList, joins2.get(2));
+        ListSPI arrayList2 = ExtensionLoader.getExtensionLoader(ListSPI.class).getJoin("arrayList");
+        assertNotEquals(arrayList, arrayList2);
+        
+        ListSPI linkedList = ExtensionLoader.getExtensionLoader(ListSPI.class).getJoin("linkedList");
+        assertEquals(linkedList, joins2.get(0));
+        ListSPI linkedList2 = ExtensionLoader.getExtensionLoader(ListSPI.class).getJoin("linkedList");
+        assertEquals(linkedList, linkedList2);
     }
     
     /**

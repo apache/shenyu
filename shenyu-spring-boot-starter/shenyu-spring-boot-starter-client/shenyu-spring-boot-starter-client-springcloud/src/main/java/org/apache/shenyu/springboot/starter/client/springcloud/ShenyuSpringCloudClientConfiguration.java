@@ -17,13 +17,15 @@
 
 package org.apache.shenyu.springboot.starter.client.springcloud;
 
-import org.apache.shenyu.client.springcloud.init.ContextRegisterListener;
+import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
 import org.apache.shenyu.client.springcloud.init.SpringCloudClientEventListener;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -36,7 +38,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 @ConditionalOnProperty(value = "shenyu.register.enabled", matchIfMissing = true, havingValue = "true")
 public class ShenyuSpringCloudClientConfiguration {
-    
+
+    static {
+        VersionUtils.checkDuplicate(ShenyuSpringCloudClientConfiguration.class);
+    }
+
     /**
      * Spring cloud client bean post processor.
      *
@@ -46,21 +52,10 @@ public class ShenyuSpringCloudClientConfiguration {
      * @return the spring cloud client bean post processor
      */
     @Bean
+    @ConditionalOnMissingBean(ClientRegisterConfiguration.class)
     public SpringCloudClientEventListener springCloudClientEventListener(final ShenyuClientConfig clientConfig,
                                                                         final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
                                                                         final Environment env) {
         return new SpringCloudClientEventListener(clientConfig.getClient().get(RpcTypeEnum.SPRING_CLOUD.getName()), shenyuClientRegisterRepository, env);
-    }
-    
-    /**
-     * Context register listener.
-     *
-     * @param clientConfig the client config
-     * @param env the env
-     * @return the context register listener
-     */
-    @Bean
-    public ContextRegisterListener contextRegisterListener(final ShenyuClientConfig clientConfig, final Environment env) {
-        return new ContextRegisterListener(clientConfig.getClient().get(RpcTypeEnum.SPRING_CLOUD.getName()), env);
     }
 }

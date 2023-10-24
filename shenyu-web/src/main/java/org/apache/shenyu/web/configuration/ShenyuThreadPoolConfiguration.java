@@ -28,6 +28,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -54,6 +55,7 @@ public class ShenyuThreadPoolConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(TaskQueue.class)
+    @Qualifier("taskQueue")
     @ConditionalOnProperty("shenyu.shared-pool.max-work-queue-memory")
     public TaskQueue<Runnable> memoryLimitedTaskQueue(final ShenyuConfig shenyuConfig) {
         final Instrumentation instrumentation = ByteBuddyAgent.install();
@@ -73,6 +75,7 @@ public class ShenyuThreadPoolConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(TaskQueue.class)
+    @Qualifier("taskQueue")
     @ConditionalOnProperty("shenyu.shared-pool.max-free-memory")
     public TaskQueue<Runnable> memorySafeTaskQueue(final ShenyuConfig shenyuConfig) {
         final ShenyuConfig.SharedPool sharedPool = shenyuConfig.getSharedPool();
@@ -93,7 +96,7 @@ public class ShenyuThreadPoolConfiguration {
     @Bean
     @ConditionalOnProperty(name = "shenyu.shared-pool.enable", havingValue = "true", matchIfMissing = true)
     public ShenyuThreadPoolExecutor shenyuThreadPoolExecutor(final ShenyuConfig shenyuConfig,
-                                                             final ObjectProvider<TaskQueue<Runnable>> provider) {
+                                                             final @Qualifier("taskQueue") ObjectProvider<TaskQueue<Runnable>> provider) {
         final ShenyuConfig.SharedPool sharedPool = shenyuConfig.getSharedPool();
         final Integer corePoolSize = sharedPool.getCorePoolSize();
         final Integer maximumPoolSize = sharedPool.getMaximumPoolSize();

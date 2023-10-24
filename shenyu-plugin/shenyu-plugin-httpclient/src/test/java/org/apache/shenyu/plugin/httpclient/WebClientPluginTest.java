@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -76,7 +78,7 @@ public final class WebClientPluginTest {
         when(context.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
 
         WebClient webClient = mockWebClientOK();
-        webClientPlugin = new WebClientPlugin(webClient);
+        webClientPlugin = new WebClientPlugin(webClient, new DuplicateResponseHeaderProperties());
     }
 
     /**
@@ -89,7 +91,7 @@ public final class WebClientPluginTest {
         ServerWebExchange exchangeNoPathTest = MockServerWebExchange
                 .from(MockServerHttpRequest.get("/test").build());
         exchangeNoPathTest.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
-        WebClientPlugin webClientPluginNoPathTest = new WebClientPlugin(webClientNoPathTest);
+        WebClientPlugin webClientPluginNoPathTest = new WebClientPlugin(webClientNoPathTest, new DuplicateResponseHeaderProperties());
         Mono<Void> monoNoPathTest = webClientPluginNoPathTest.execute(exchangeNoPathTest, chainNoPathTest);
         StepVerifier.create(monoNoPathTest).expectSubscription().verifyComplete();
 
@@ -99,19 +101,19 @@ public final class WebClientPluginTest {
                 .from(MockServerHttpRequest.post("/test123?param=1").build());
         exchangePostTest.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         exchangePostTest.getAttributes().put(Constants.HTTP_URI, URI.create("/test123?param=1"));
-        WebClientPlugin webClientPluginPostTest = new WebClientPlugin(webClientPostTest);
+        WebClientPlugin webClientPluginPostTest = new WebClientPlugin(webClientPostTest, new DuplicateResponseHeaderProperties());
         Mono<Void> monoPostTest = webClientPluginPostTest.execute(exchangePostTest, chainPostTest);
         StepVerifier.create(monoPostTest).expectSubscription().verifyError();
 
         final ShenyuPluginChain chainOkTest = mock(ShenyuPluginChain.class);
         final WebClient webClientOkTest = mockWebClientOK();
-        WebClientPlugin webClientPluginOkTest = new WebClientPlugin(webClientOkTest);
+        WebClientPlugin webClientPluginOkTest = new WebClientPlugin(webClientOkTest, new DuplicateResponseHeaderProperties());
         Mono<Void> monoOkTest = webClientPluginOkTest.execute(generateServerWebExchange(), chainOkTest);
         StepVerifier.create(monoOkTest).expectSubscription().verifyError();
 
         final ShenyuPluginChain chainErrorTest = mock(ShenyuPluginChain.class);
         final WebClient webClientErrorTest = mockWebClientError();
-        WebClientPlugin webClientPluginErrorTest = new WebClientPlugin(webClientErrorTest);
+        WebClientPlugin webClientPluginErrorTest = new WebClientPlugin(webClientErrorTest, new DuplicateResponseHeaderProperties());
         Mono<Void> monoErrorTest = webClientPluginErrorTest.execute(generateServerWebExchange(), chainErrorTest);
         StepVerifier.create(monoErrorTest).expectSubscription().verifyError();
     }
@@ -159,8 +161,14 @@ public final class WebClientPluginTest {
     }
 
     private WebClient mockWebClientOK() {
+        final ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
+        when(headers.asHttpHeaders()).thenReturn(new HttpHeaders());
+        
         final ClientResponse mockResponse = mock(ClientResponse.class);
         when(mockResponse.statusCode()).thenReturn(HttpStatus.OK);
+        when(mockResponse.headers()).thenReturn(headers);
+        when(mockResponse.bodyToMono(byte[].class)).thenReturn(Mono.just("{\"test\":\"ok\"}".getBytes()));
+        when(mockResponse.releaseBody()).thenReturn(Mono.empty());
         given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(mockResponse));
         return WebClient.builder().baseUrl("/test")
                 .exchangeFunction(this.exchangeFunction)
@@ -170,8 +178,14 @@ public final class WebClientPluginTest {
     }
 
     private WebClient mockWebClientError() {
+        final ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
+        when(headers.asHttpHeaders()).thenReturn(new HttpHeaders());
+        
         final ClientResponse mockResponse = mock(ClientResponse.class);
         when(mockResponse.statusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
+        when(mockResponse.headers()).thenReturn(headers);
+        when(mockResponse.bodyToMono(byte[].class)).thenReturn(Mono.just(new byte[0]));
+        when(mockResponse.releaseBody()).thenReturn(Mono.empty());
         given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(mockResponse));
         return WebClient.builder().baseUrl("/test")
                 .exchangeFunction(this.exchangeFunction)

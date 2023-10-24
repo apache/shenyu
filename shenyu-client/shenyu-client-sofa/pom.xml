@@ -20,13 +20,13 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-client</artifactId>
-        <version>2.5.1-SNAPSHOT</version>
+        <version>2.6.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-client-sofa</artifactId>
 
     <properties>
-       <runtime-sofa-boot-starter.version>3.1.4</runtime-sofa-boot-starter.version> 
+        <runtime-sofa-boot-starter.version>3.1.4</runtime-sofa-boot-starter.version>
     </properties>
     
     <dependencies>
@@ -34,6 +34,12 @@
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-client-core</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>grpc-netty</artifactId>
+                    <groupId>io.grpc</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.alipay.sofa</groupId>

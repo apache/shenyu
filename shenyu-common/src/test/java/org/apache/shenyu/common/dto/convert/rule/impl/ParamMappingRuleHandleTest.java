@@ -18,9 +18,10 @@
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
 import com.google.common.collect.ImmutableSet;
+import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle.ParamMapInfo;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -51,8 +52,8 @@ public class ParamMappingRuleHandleTest {
         ParamMappingRuleHandle handle = new ParamMappingRuleHandle();
     
         handle.setRemoveParameterKeys(new HashSet<>());
-        handle.setReplaceParameterKeys(Arrays.asList(new ParamMappingRuleHandle.ParamMapInfo()));
-        handle.setAddParameterKeys(Arrays.asList(new ParamMappingRuleHandle.ParamMapInfo()));
+        handle.setReplaceParameterKeys(Collections.singletonList(new ParamMapInfo()));
+        handle.setAddParameterKeys(Collections.singletonList(new ParamMapInfo()));
     
         assertThat(handle.getRemoveParameterKeys(), is(notNullValue()));
         assertThat(handle.getReplaceParameterKeys(), is(notNullValue()));

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.concurrent;
 
+import java.util.Queue;
+
 /**
  * RejectHandler, it works when you need to custom reject action in
  * {@link org.apache.shenyu.common.concurrent.MemorySafeLinkedBlockingQueue}.
@@ -39,5 +41,5 @@ public interface Rejector<E> {
      * @param queue the queue attempting to add this element
      * @throws RejectException if there is no more memory
      */
-    void reject(E e, MemorySafeLinkedBlockingQueue<E> queue);
+    void reject(E e, Queue<E> queue);
 }

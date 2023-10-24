@@ -24,6 +24,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * RedisConfigProperties default value test.
@@ -83,5 +85,31 @@ public final class RedisConfigPropertiesTest {
     public void equalsTest() {
         RedisConfigProperties defaultConfig = new RedisConfigProperties();
         assertEquals(defaultConfig, this.redisConfigProperties);
+        defaultConfig.setMaster("master");
+        defaultConfig.setDatabase(2);
+        defaultConfig.setPassword("password");
+        defaultConfig.setMaxIdle(30);
+        defaultConfig.setMinIdle(10);
+        defaultConfig.setMaxActive(100);
+        defaultConfig.setMaxWait(-1);
+        defaultConfig.setUrl("url");
+        defaultConfig.setMode("mode");
+        RedisConfigProperties defaultConfig2 = new RedisConfigProperties();
+        defaultConfig2.setMaster("master");
+        defaultConfig2.setDatabase(2);
+        defaultConfig2.setPassword("password");
+        defaultConfig2.setMaxIdle(30);
+        defaultConfig2.setMinIdle(10);
+        defaultConfig2.setMaxActive(100);
+        defaultConfig2.setMaxWait(-1);
+        defaultConfig2.setUrl("url");
+        defaultConfig2.setMode("mode");
+        assertNotEquals(defaultConfig, this.redisConfigProperties);
+        assertEquals(defaultConfig, defaultConfig2);
+        assertEquals(defaultConfig, defaultConfig);
+        assertNotEquals(defaultConfig, "String");
+        assertNotEquals(defaultConfig, null);
+        assertEquals(defaultConfig.getMaster(), "master");
+        assertTrue(defaultConfig.hashCode() != 0);
     }
 }

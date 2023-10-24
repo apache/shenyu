@@ -32,11 +32,48 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class MapperConfigTest {
 
     @InjectMocks
-    private MapperConfig mapperConfig;
+    private MapperConfig.OracleSQLConfig oracleSQLConfig;
+
+    @InjectMocks
+    private MapperConfig.PostgreSQLConfig postgreSQLConfig;
+
+    @InjectMocks
+    private MapperConfig.OpenGaussSQLConfig openGaussSQLConfig;
     
     @Test
     public void testPostgreSQLQueryInterceptor() {
-        PostgreSQLQueryInterceptor postgreSQLQueryInterceptor = mapperConfig.postgreSqlQueryInterceptor();
+        PostgreSQLQueryInterceptor postgreSQLQueryInterceptor = postgreSQLConfig.postgreSqlQueryInterceptor();
         assertNotNull(postgreSQLQueryInterceptor);
     }
+
+    @Test
+    public void postgreSqlPrepareInterceptorTest() {
+        assertNotNull(postgreSQLConfig.postgreSqlPrepareInterceptor());
+    }
+
+    @Test
+    public void oracleSqlPrepareInterceptorTest() {
+        assertNotNull(oracleSQLConfig.oracleSqlPrepareInterceptor());
+    }
+
+    @Test
+    public void oracleSqlUpdateInterceptorTest() {
+        assertNotNull(oracleSQLConfig.oracleSqlUpdateInterceptor());
+    }
+
+    @Test
+    public void openGaussSqlPrepareInterceptorTest() {
+        assertNotNull(openGaussSQLConfig.openGaussSqlPrepareInterceptor());
+    }
+
+    @Test
+    public void openGaussSqlUpdateInterceptorTest() {
+        assertNotNull(openGaussSQLConfig.openGaussSqlUpdateInterceptor());
+    }
+
+    @Test
+    public void openGaussSqlQueryInterceptorTest() {
+        assertNotNull(openGaussSQLConfig.openGaussSqlQueryInterceptor());
+    }
+
 }

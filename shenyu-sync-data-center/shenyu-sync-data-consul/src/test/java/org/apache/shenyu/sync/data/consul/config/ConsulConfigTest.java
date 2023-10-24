@@ -24,6 +24,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * add test case for {@link ConsulConfig}.
@@ -72,5 +73,10 @@ public class ConsulConfigTest {
         assertEquals(Objects.hash(consulConfig.getUrl(), consulConfig.getWaitTime(),
                         consulConfig.getWatchDelay()),
                 consulConfig.hashCode());
+    }
+
+    @Test
+    public void testToString() {
+        assertNotNull(consulConfig.toString());
     }
 }

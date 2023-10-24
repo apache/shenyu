@@ -52,13 +52,13 @@ public final class ContextPathPluginTest extends AbstractPluginDataInit {
 
         Map<String, Object> response = HttpHelper.INSTANCE.getFromGateway("/http/order/findById?id=1001", Map.class);
         assertThat(response.get("error"), is("Not Found"));
-        assertThat(response.get("path"), is("/error/order/findById"));
+        assertThat(response.get("path"), is("/error/http/order/findById"));
     }
 
     private void setupErrorConfiguration() throws IOException {
         String pluginResult = initPlugin(PluginEnum.CONTEXT_PATH.getName(), "");
         assertThat(pluginResult, CoreMatchers.is("success"));
-        final String ruleHandle = "{\"contextPath\":\"/http\", \"addPrefix\":\"/error\"}";
+        final String ruleHandle = "{\"contextPath\":\"\", \"addPrefix\":\"/error\"}";
         String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(ruleHandle));
         assertThat(message, is("success"));
     }

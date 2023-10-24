@@ -18,12 +18,15 @@
 package org.apache.shenyu.plugin.cache;
 
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.cache.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.handler.CachePluginDataHandler;
 import org.apache.shenyu.plugin.cache.redis.RedisConfigProperties;
 import org.apache.shenyu.plugin.cache.utils.CacheUtils;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,11 +74,49 @@ public class CachePluginDataHandlerTest {
     public void testMemoryCache() {
         final CacheConfig cacheConfig = new CacheConfig();
         cacheConfig.setCacheType("memory");
+        cacheConfig.setConfig("config");
         final CachePluginDataHandler cacheHandler = new CachePluginDataHandler();
         final PluginData pluginData = new PluginData();
         pluginData.setConfig(GsonUtils.getInstance().toJson(cacheConfig));
+        Assertions.assertEquals(cacheConfig.getConfig(), "config");
+        Assertions.assertTrue(cacheConfig.hashCode() != 0);
+        Assertions.assertEquals(cacheConfig, cacheConfig);
         cacheHandler.handlerPlugin(pluginData);
         testCacheData("memory-cache-data");
+    }
+
+    @Test
+    public void handlerPluginTest() {
+        final CacheConfig cacheConfig = new CacheConfig();
+        final CachePluginDataHandler cacheHandler = new CachePluginDataHandler();
+        Assertions.assertDoesNotThrow(() -> cacheHandler.handlerPlugin(null));
+        final PluginData pluginData = new PluginData();
+        pluginData.setEnabled(false);
+        Assertions.assertDoesNotThrow(() -> cacheHandler.handlerPlugin(pluginData));
+        pluginData.setConfig(null);
+        pluginData.setEnabled(true);
+        Assertions.assertDoesNotThrow(() -> cacheHandler.handlerPlugin(pluginData));
+        pluginData.setConfig(GsonUtils.getInstance().toJson(cacheConfig));
+        Assertions.assertDoesNotThrow(() -> cacheHandler.handlerPlugin(pluginData));
+        Assertions.assertDoesNotThrow(() -> cacheHandler.handlerPlugin(pluginData));
+    }
+
+    @Test
+    public void pluginNamedTest() {
+        final CachePluginDataHandler cacheHandler = new CachePluginDataHandler();
+        Assertions.assertEquals(PluginEnum.CACHE.getName(), cacheHandler.pluginNamed());
+    }
+
+    @Test
+    public void handlerRuleTest() {
+        final CachePluginDataHandler cacheHandler = new CachePluginDataHandler();
+        cacheHandler.handlerRule(RuleData.builder().handle("{}").build());
+    }
+
+    @Test
+    public void removeRuleTest() {
+        final CachePluginDataHandler cacheHandler = new CachePluginDataHandler();
+        cacheHandler.removeRule(RuleData.builder().handle("{}").build());
     }
 
     private void testCacheData(final String testKey) {

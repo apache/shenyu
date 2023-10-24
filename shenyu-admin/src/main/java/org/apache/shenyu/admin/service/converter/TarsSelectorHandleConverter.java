@@ -52,7 +52,7 @@ public class TarsSelectorHandleConverter extends AbstractSelectorHandleConverter
     @Override
     protected Object doHandle(final String handle, final List<CommonUpstream> aliveList) {
         List<TarsUpstream> existList = updateStatusAndFilter(convert(handle), aliveList);
-        aliveList.stream().filter(alive -> !existList.stream().anyMatch(valid -> valid.getUpstreamUrl().equals(alive.getUpstreamUrl())))
+        aliveList.stream().filter(alive -> existList.stream().noneMatch(valid -> valid.getUpstreamUrl().equals(alive.getUpstreamUrl())))
                 .forEach(alive -> existList.add(CommonUpstreamUtils.buildAliveTarsUpstream(alive.getUpstreamUrl())));
         existList.removeIf(e -> aliveList.stream().noneMatch(alive -> alive.getUpstreamUrl().equals(e.getUpstreamUrl())));
         return existList;

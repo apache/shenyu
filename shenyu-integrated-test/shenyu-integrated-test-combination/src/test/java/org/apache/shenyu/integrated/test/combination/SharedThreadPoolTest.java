@@ -57,7 +57,7 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         pluginResult = initPlugin(PluginEnum.GRPC.getName(), "{\"register\":\"zookeeper://shenyu-zk:2181\",\"threadpool\": \"shared\"}");
         assertThat(pluginResult, is("success"));
         // for motan
-        pluginResult = initPlugin(PluginEnum.MOTAN.getName(), "{\"register\":\"shenyu-zk:2181\",\"threadpool\": \"shared\"}");
+        pluginResult = initPlugin(PluginEnum.MOTAN.getName(), "{\"registerProtocol\": \"zk\", \"registerAddress\":\"shenyu-zk:2181\",\"threadpool\": \"shared\"}");
         assertThat(pluginResult, is("success"));
         // for sofa
         pluginResult = initPlugin(PluginEnum.SOFA.getName(), "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zk:2181\",\"threadpool\": \"shared\"}");

@@ -133,7 +133,9 @@ public final class BaseDataCache {
     public void removeSelectData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData).ifPresent(data -> {
             final List<SelectorData> selectorDataList = SELECTOR_MAP.get(data.getPluginName());
-            Optional.ofNullable(selectorDataList).ifPresent(list -> list.removeIf(e -> e.getId().equals(data.getId())));
+            synchronized (SELECTOR_MAP) {
+                Optional.ofNullable(selectorDataList).ifPresent(list -> list.removeIf(e -> e.getId().equals(data.getId())));
+            }
         });
     }
     
@@ -189,7 +191,9 @@ public final class BaseDataCache {
     public void removeRuleData(final RuleData ruleData) {
         Optional.ofNullable(ruleData).ifPresent(data -> {
             final List<RuleData> ruleDataList = RULE_MAP.get(data.getSelectorId());
-            Optional.ofNullable(ruleDataList).ifPresent(list -> list.removeIf(rule -> rule.getId().equals(data.getId())));
+            synchronized (RULE_MAP) {
+                Optional.ofNullable(ruleDataList).ifPresent(list -> list.removeIf(rule -> rule.getId().equals(data.getId())));
+            }
         });
     }
     
@@ -227,6 +231,34 @@ public final class BaseDataCache {
     public List<RuleData> obtainRuleData(final String selectorId) {
         return RULE_MAP.get(selectorId);
     }
+    
+    /**
+     * Gets plugin map.
+     *
+     * @return the plugin map
+     */
+    public ConcurrentMap<String, PluginData> getPluginMap() {
+        return PLUGIN_MAP;
+    }
+    
+    /**
+     * Gets selector map.
+     *
+     * @return the selector map
+     */
+    public ConcurrentMap<String, List<SelectorData>> getSelectorMap() {
+        return SELECTOR_MAP;
+    }
+    
+    /**
+     * Gets rule map.
+     *
+     * @return the rule map
+     */
+    public ConcurrentMap<String, List<RuleData>> getRuleMap() {
+        return RULE_MAP;
+    }
+    
 
     /**
      *  cache rule data.

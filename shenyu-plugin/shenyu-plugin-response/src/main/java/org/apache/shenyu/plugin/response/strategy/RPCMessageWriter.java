@@ -24,11 +24,14 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * The type Rpc message writer.
@@ -43,13 +46,18 @@ public class RPCMessageWriter implements MessageWriter {
                 Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR);
                 return WebFluxResultUtils.result(exchange, error);
             }
-            return WebFluxResultUtils.result(exchange, result);
+            Mono<Void> responseMono = WebFluxResultUtils.result(exchange, result);
+            exchange.getAttributes().put(Constants.RESPONSE_MONO, responseMono);
+            // watcher httpStatus
+            final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);
+            Optional.ofNullable(consumer).ifPresent(c -> c.accept(exchange.getResponse().getStatusCode()));
+            return responseMono;
         }));
     }
     
     @Override
     public List<String> supportTypes() {
         return Lists.newArrayList(RpcTypeEnum.DUBBO.getName(), RpcTypeEnum.SOFA.getName(), 
-                RpcTypeEnum.GRPC.getName(), RpcTypeEnum.MOTAN.getName(), RpcTypeEnum.TARS.getName());
+                RpcTypeEnum.GRPC.getName(), RpcTypeEnum.MOTAN.getName(), RpcTypeEnum.TARS.getName(), RpcTypeEnum.BRPC.getName());
     }
 }
