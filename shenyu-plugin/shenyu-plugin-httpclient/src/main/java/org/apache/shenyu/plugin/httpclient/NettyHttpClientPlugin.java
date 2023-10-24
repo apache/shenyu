@@ -18,10 +18,12 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.handler.codec.http.HttpMethod;
-import java.util.Objects;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties;
+import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties.DuplicateResponseHeaderStrategy;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -35,8 +37,8 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
 import java.net.URI;
-import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * The type Netty http client plugin.
@@ -45,27 +47,34 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
 
     private final HttpClient httpClient;
 
+    private final DuplicateResponseHeaderProperties properties;
+
     /**
      * Instantiates a new Netty http client plugin.
      *
      * @param httpClient the http client
+     * @param properties proerties
      */
-    public NettyHttpClientPlugin(final HttpClient httpClient) {
+    public NettyHttpClientPlugin(final HttpClient httpClient, final DuplicateResponseHeaderProperties properties) {
         this.httpClient = httpClient;
+        this.properties = properties;
     }
 
     @Override
-    protected Mono<HttpClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri,
-                                final HttpHeaders httpHeaders, final Flux<DataBuffer> body) {
-        return Mono.from(httpClient.headers(headers -> httpHeaders.forEach(headers::add))
-                .request(HttpMethod.valueOf(httpMethod)).uri(uri.toASCIIString())
+    protected Mono<HttpClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod,
+                                                 final URI uri, final Flux<DataBuffer> body) {
+        return Mono.from(httpClient.headers(headers -> {
+            exchange.getRequest().getHeaders().forEach(headers::add);
+            headers.remove(HttpHeaders.HOST);
+        }).request(HttpMethod.valueOf(httpMethod)).uri(uri.toASCIIString())
                 .send((req, nettyOutbound) -> nettyOutbound.send(body.map(dataBuffer -> ((NettyDataBuffer) dataBuffer).getNativeBuffer())))
                 .responseConnection((res, connection) -> {
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_CONN_ATTR, connection);
-                    ServerHttpResponse response = exchange.getResponse();
+                    final ServerHttpResponse response = exchange.getResponse();
                     HttpHeaders headers = new HttpHeaders();
                     res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
+                    this.duplicate(headers);
                     String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
                     if (StringUtils.isNotBlank(contentTypeValue)) {
                         exchange.getAttributes().put(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
@@ -79,11 +88,19 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                         throw new IllegalStateException("Unable to set status code on response: " + res.status().code() + ", " + response.getClass());
                     }
                     response.getHeaders().putAll(headers);
-                    // watcher httpStatus
-                    final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);
-                    Optional.ofNullable(consumer).ifPresent(c -> c.accept(response.getStatusCode()));
                     return Mono.just(res);
                 }));
+    }
+
+    private void duplicate(final HttpHeaders headers) {
+        List<String> duplicateHeaders = properties.getHeaders();
+        if (CollectionUtils.isEmpty(duplicateHeaders)) {
+            return;
+        }
+        DuplicateResponseHeaderStrategy strategy = properties.getStrategy();
+        for (String headerKey : duplicateHeaders) {
+            duplicateHeaders(headers, headerKey, strategy);
+        }
     }
 
     @Override

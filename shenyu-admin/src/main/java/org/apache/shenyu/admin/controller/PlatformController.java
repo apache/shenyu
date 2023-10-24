@@ -17,22 +17,20 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.EnumService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 
 /**
  * this is platform controller.
  */
-@RestController
-@RequestMapping("/platform")
+@RestApi("/platform")
 public class PlatformController {
 
     private final DashboardUserService dashboardUserService;

@@ -601,17 +601,27 @@ public interface Constants {
      * The constant API_DOC_TYPE.
      */
     String API_DOC_TYPE = "apiDoc";
-    
+
     /**
      * The constant API_DOC_PATH.
      */
     String API_DOC_PATH = "/shenyu-client/register-apiDoc";
-    
+
+    /**
+     * The constant DISCOVERY_CONFIG_TYPE.
+     */
+    String DISCOVERY_CONFIG_TYPE = "discovery";
+
+    /**
+     * The constant DISCOVERY_CONFIG_PATH.
+     */
+    String DISCOVERY_CONFIG_PATH = "/shenyu-client/register-discoveryConfig";
+
     /**
      * When register by http, the login path.
      */
     String LOGIN_PATH = "/platform/login";
-    
+
     /**
      * When register by http, admin username.
      */

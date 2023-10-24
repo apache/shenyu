@@ -35,6 +35,11 @@ public class RewriteHandle {
     private String replace;
 
     /**
+     * percentage of rewritten traffic.
+     */
+    private Integer percentage;
+
+    /**
      * get regex.
      *
      * @return regex
@@ -70,6 +75,24 @@ public class RewriteHandle {
         this.replace = replace;
     }
 
+    /**
+     * get percentage.
+     *
+     * @return percentage
+     */
+    public Integer getPercentage() {
+        return percentage;
+    }
+
+    /**
+     * set percentage.
+     *
+     * @param percentage percentage
+     */
+    public void setPercentage(final Integer percentage) {
+        this.percentage = percentage;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -95,6 +118,9 @@ public class RewriteHandle {
                 + '\''
                 + ", replace='"
                 + replace
+                + '\''
+                + ", percentage='"
+                + percentage
                 + '\''
                 + '}';
     }
