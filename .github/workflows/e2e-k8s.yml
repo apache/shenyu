@@ -131,6 +131,8 @@ jobs:
           docker rmi $(docker image ls --all --quiet)
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
+          rm -rf /tmp/shenyu
+          mkdir -p /tmp/shenyu
 
       - uses: dorny/paths-filter@v2
         id: filter
@@ -164,13 +166,13 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: shenyu-images
-          path: /tmp/
+          path: /tmp/shenyu/
 
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
         run: |
-          sudo k3s ctr images import /tmp/apache-shenyu-admin.tar
-          sudo k3s ctr images import /tmp/apache-shenyu-bootstrap.tar
+          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
+          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
 #      - name: Setup Debug Session
 #        uses: mxschmitt/action-tmate@v3
@@ -225,6 +227,8 @@ jobs:
           docker rmi $(docker image ls --all --quiet)
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
+          rm -rf /tmp/shenyu
+          mkdir -p /tmp/shenyu
 
       - uses: dorny/paths-filter@v2
         id: filter
@@ -269,13 +273,13 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: shenyu-images
-          path: /tmp/
+          path: /tmp/shenyu/
 
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
         run: |
-          sudo k3s ctr images import /tmp/apache-shenyu-admin.tar
-          sudo k3s ctr images import /tmp/apache-shenyu-bootstrap.tar
+          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
+          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
 #      - name: Setup Debug Session
 #        uses: mxschmitt/action-tmate@v3

@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.plugin.websocket;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.websocket.WebSocketPlugin;
 import org.apache.shenyu.plugin.websocket.context.WebSocketShenyuContextDecorator;
@@ -98,7 +99,7 @@ public class WebSocketPluginConfiguration {
      * @return the websocket upstream data handler
      */
     @Bean
-    public WebSocketUpstreamDataHandler divideUpstreamDataHandler() {
+    public DiscoveryUpstreamDataHandler webSocketUpstreamDataHandler() {
         return new WebSocketUpstreamDataHandler();
     }
 

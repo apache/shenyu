@@ -17,10 +17,13 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.discovery.DiscoveryLevel;
+import org.apache.shenyu.admin.discovery.DiscoveryMode;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.discovery.DiscoveryLevel;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
@@ -28,6 +31,7 @@ import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 import org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
@@ -60,15 +64,19 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private final DiscoveryHandlerMapper discoveryHandlerMapper;
 
+    private final DiscoveryRelMapper discoveryRelMapper;
+
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
     public DiscoveryServiceImpl(final DiscoveryMapper discoveryMapper,
                                 final ProxySelectorMapper proxySelectorMapper,
+                                final DiscoveryRelMapper discoveryRelMapper,
                                 final DiscoveryHandlerMapper discoveryHandlerMapper,
                                 final DiscoveryProcessorHolder discoveryProcessorHolder) {
         this.discoveryMapper = discoveryMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.proxySelectorMapper = proxySelectorMapper;
+        this.discoveryRelMapper = discoveryRelMapper;
         this.discoveryHandlerMapper = discoveryHandlerMapper;
     }
 
@@ -192,5 +200,42 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 discoveryProcessor.fetchAll(discoveryHandlerDO.getId());
             });
         });
+    }
+
+    @Override
+    public DiscoveryHandlerDTO findDiscoveryHandlerBySelectorId(final String selectorId) {
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
+        return DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO);
+    }
+
+    @Override
+    public String registerDefaultDiscovery(final String selectorId, final String pluginName) {
+        DiscoveryHandlerDO discoveryHandlerDB = discoveryHandlerMapper.selectBySelectorId(selectorId);
+        if (Objects.nonNull(discoveryHandlerDB)) {
+            return discoveryHandlerDB.getId();
+        }
+        DiscoveryDO discoveryDO = new DiscoveryDO();
+        String discoveryId = UUIDUtils.getInstance().generateShortUuid();
+        discoveryDO.setLevel(DiscoveryLevel.PLUGIN.getCode());
+        discoveryDO.setName(pluginName + "_default_discovery");
+        discoveryDO.setPluginName(pluginName);
+        discoveryDO.setType(DiscoveryMode.LOCAL.name().toLowerCase());
+        discoveryDO.setId(discoveryId);
+        discoveryMapper.insertSelective(discoveryDO);
+        DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
+        String discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();
+        discoveryHandlerDO.setId(discoveryHandlerId);
+        discoveryHandlerDO.setDiscoveryId(discoveryId);
+        discoveryHandlerDO.setHandler("{}");
+        discoveryHandlerDO.setProps("{}");
+        discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
+        DiscoveryRelDO discoveryRelDO = new DiscoveryRelDO();
+        String discoveryRelId = UUIDUtils.getInstance().generateShortUuid();
+        discoveryRelDO.setDiscoveryHandlerId(discoveryHandlerId);
+        discoveryRelDO.setId(discoveryRelId);
+        discoveryRelDO.setSelectorId(selectorId);
+        discoveryRelDO.setPluginName(pluginName);
+        discoveryRelMapper.insertSelective(discoveryRelDO);
+        return discoveryHandlerId;
     }
 }

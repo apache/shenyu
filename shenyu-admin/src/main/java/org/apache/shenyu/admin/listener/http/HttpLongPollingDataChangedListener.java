@@ -135,6 +135,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             LOG.info("send response with the changed group, ip={}, group={}", clientIp, changedGroup);
             return;
         }
+        LOG.debug("no changed group, ip={}, waiting for compare cache changed", clientIp);
         // listen for configuration changed.
         final AsyncContext asyncContext = request.startAsync();
         // AsyncContext.settimeout() does not timeout properly, so you have to control it yourself
@@ -363,6 +364,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                     clients.remove(LongPollingClient.this);
                     List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
                     sendResponse(changedGroups);
+                    log.debug("LongPollingClient {} ", GsonUtils.getInstance().toJson(changedGroups));
                 }, timeoutTime, TimeUnit.MILLISECONDS);
                 clients.add(this);
             } catch (Exception ex) {

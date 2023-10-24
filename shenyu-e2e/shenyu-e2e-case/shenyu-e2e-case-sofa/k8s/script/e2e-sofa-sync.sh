@@ -64,6 +64,9 @@ for sync in ${SYNC_ARRAY[@]}; do
     echo "shenyu-bootstrap log:"
     echo "------------------"
     kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
+    echo "shenyu-examples-sofa log:"
+    echo "------------------"
+    kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-sofa | awk '{print $1}')"
     exit 1
   fi
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-mysql.yml
