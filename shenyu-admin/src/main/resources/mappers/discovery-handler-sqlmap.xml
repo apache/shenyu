@@ -76,6 +76,18 @@
         where discovery_id = #{discoveryId , jdbcType=LONGVARCHAR}
     </select>
 
+    <select id="selectBySelectorId" resultType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        SELECT
+        dh.id,
+        dh.date_created,
+        dh.date_updated,
+        dh.discovery_id,
+        dh.handler,
+        dh.listener_node
+        FROM discovery_handler dh inner join discovery_rel dr on dh.id = dr.discovery_handler_id
+        WHERE dr.selector_id = #{selectorId, jdbcType=VARCHAR}
+    </select>
+
     <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
             parameterType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
         INSERT INTO discovery_handler
