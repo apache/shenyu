@@ -63,19 +63,19 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
             }
         }
     }
-    
+
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         if (!selectorData.getContinued()) {
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), RateLimiterHandle.newDefaultInstance());
         }
     }
-    
+
     @Override
     public void removeSelector(final SelectorData selectorData) {
         CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
     }
-    
+
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {

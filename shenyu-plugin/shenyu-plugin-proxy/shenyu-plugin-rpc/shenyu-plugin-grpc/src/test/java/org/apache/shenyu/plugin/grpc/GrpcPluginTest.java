@@ -78,6 +78,7 @@ public class GrpcPluginTest {
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
 
         when(selector.getName()).thenReturn("/grpc");
+        when(selector.getId()).thenReturn("grpcId");
     }
 
     @Test

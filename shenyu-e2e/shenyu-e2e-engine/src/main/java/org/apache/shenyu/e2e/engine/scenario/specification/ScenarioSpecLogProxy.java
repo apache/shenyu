@@ -93,6 +93,12 @@ public class ScenarioSpecLogProxy implements ScenarioSpec {
                 MDC.put("operate", "postCheck");
                 return spec.getPostChecker();
             }
+
+            @Override
+            public Waiting deleteWaiting() {
+                MDC.put("operate", "deleteWaiting");
+                return spec.deleteWaiting();
+            }
         };
     }
     

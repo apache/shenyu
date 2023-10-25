@@ -35,7 +35,7 @@ spec:
         all: shenyu-examples-http
     spec:
       containers:
-        - image: zookeeper:3.5
+        - image: zookeeper:latest
           name: shenyu-zk
           resources: {}
           ports:

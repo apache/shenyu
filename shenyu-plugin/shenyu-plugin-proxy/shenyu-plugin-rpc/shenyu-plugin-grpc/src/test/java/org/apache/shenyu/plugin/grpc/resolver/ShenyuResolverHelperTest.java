@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.grpc.resolver;
 
+import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,15 +31,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @ExtendWith(MockitoExtension.class)
 public class ShenyuResolverHelperTest {
 
-    private ShenyuServiceInstance serviceInstance;
+    private GrpcUpstream grpcUpstream;
 
     @BeforeEach
     public void setUp() {
-        serviceInstance = new ShenyuServiceInstance("localhost", 8080);
+        grpcUpstream = GrpcUpstream.builder().upstreamHost("localhost:38888").upstreamUrl("localhost:38888").status(true).build();
     }
 
     @Test
     public void convertToEquivalentAddressGroup() {
-        assertNotNull(ShenyuResolverHelper.convertToEquivalentAddressGroup(serviceInstance));
+        assertNotNull(ShenyuResolverHelper.convertToEquivalentAddressGroup(grpcUpstream));
     }
 }

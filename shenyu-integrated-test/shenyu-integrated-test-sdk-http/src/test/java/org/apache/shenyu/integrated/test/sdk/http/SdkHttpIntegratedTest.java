@@ -17,30 +17,39 @@
 
 package org.apache.shenyu.integrated.test.sdk.http;
 
+import java.util.stream.Stream;
 import org.apache.shenyu.integrated.test.sdk.http.dto.SdkTestDto;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class SdkHttpIntegratedTest extends AbstractPluginDataInit {
 
-    @Test
-    public void testFindById() throws IOException {
-        SdkTestDto sdkTestDto = HttpHelper.INSTANCE.getHttpService("http://localhost:8899/sdk/http/findById?id=10", null, SdkTestDto.class);
+    @ParameterizedTest(name = "{index} => test {0}")
+    @MethodSource("contextPortKeys")
+    public void testFindById(final String context, final String port) throws IOException {
+        SdkTestDto sdkTestDto = HttpHelper.INSTANCE.getHttpService("http://localhost:" + port + "/sdk/" + context + "/findById?id=10", null, SdkTestDto.class);
         assertEquals("sdk-currentToken", sdkTestDto.getName());
     }
 
-    @Test
-    public void testSdkAnno() throws IOException {
+    @ParameterizedTest(name = "{index} => test {0}")
+    @MethodSource("contextPortKeys")
+    public void testSdkAnno(final String context, final String port) throws IOException {
         SdkTestDto request = new SdkTestDto();
         request.setId("1");
         request.setName("shenyu-sdk");
-        SdkTestDto sdkTestDto = HttpHelper.INSTANCE.postHttpService("http://localhost:8899/sdk/http/annoTest", null, request, SdkTestDto.class);
+        SdkTestDto sdkTestDto = HttpHelper.INSTANCE.postHttpService("http://localhost:" + port + "/sdk/" + context + "/annoTest", null, request, SdkTestDto.class);
         assertEquals("name=shenyu-sdk,Cookie=cookie,header=header", sdkTestDto.getName());
+    }
+
+    private static Stream<Arguments> contextPortKeys() {
+        return Stream.of(Arguments.of("http", "8899"), Arguments.of("feign", "8898"));
     }
 
 }

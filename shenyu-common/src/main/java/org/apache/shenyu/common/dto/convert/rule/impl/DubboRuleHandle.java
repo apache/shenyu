@@ -47,7 +47,7 @@ public class DubboRuleHandle implements RuleHandle {
      * the loadbalance.
      * {@linkplain LoadBalanceEnum}
      */
-    private String loadbalance = LoadBalanceEnum.RANDOM.getName();
+    private String loadBalance = LoadBalanceEnum.RANDOM.getName();
 
     /**
      * timeout is required.
@@ -122,17 +122,17 @@ public class DubboRuleHandle implements RuleHandle {
      *
      * @return the value of loadbalance
      */
-    public String getLoadbalance() {
-        return loadbalance;
+    public String getLoadBalance() {
+        return loadBalance;
     }
     
     /**
      * Sets the loadbalance.
      *
-     * @param loadbalance loadbalance
+     * @param loadBalance loadbalance
      */
-    public void setLoadbalance(final String loadbalance) {
-        this.loadbalance = loadbalance;
+    public void setLoadBalance(final String loadBalance) {
+        this.loadBalance = loadBalance;
     }
     
     /**
@@ -166,12 +166,12 @@ public class DubboRuleHandle implements RuleHandle {
                 && Objects.equals(version, that.version)
                 && Objects.equals(group, that.group)
                 && Objects.equals(retries, that.retries)
-                && Objects.equals(loadbalance, that.loadbalance);
+                && Objects.equals(loadBalance, that.loadBalance);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(version, group, retries, loadbalance, timeout);
+        return Objects.hash(version, group, retries, loadBalance, timeout);
     }
 
     @Override
@@ -180,7 +180,7 @@ public class DubboRuleHandle implements RuleHandle {
                 + "version='" + version + '\''
                 + ", group='" + group + '\''
                 + ", retries=" + retries
-                + ", loadbalance='" + loadbalance + '\''
+                + ", loadbalance='" + loadBalance + '\''
                 + ", timeout=" + timeout
                 + '}';
     }

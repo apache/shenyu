@@ -93,7 +93,7 @@
 17. Refactor the custom plugin support hot load
 18. Refactor ShenyuWebHandler putPlugin methods
 19. Refactor Shenyu webfilter
-20. Reactor oauth2 plguin
+20. Reactor oauth2 plugin
 21. Refactor shenyu selector data continued field
 22. Refactor shenyu selector and rule cache
 23. Removed unused generics in shenyu client
