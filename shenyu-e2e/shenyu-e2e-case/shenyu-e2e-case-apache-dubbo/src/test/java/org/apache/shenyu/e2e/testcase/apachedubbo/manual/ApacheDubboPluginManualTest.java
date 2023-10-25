@@ -24,6 +24,7 @@ import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,9 +58,12 @@ public class ApacheDubboPluginManualTest {
     @BeforeEach
     public void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
+        Assertions.assertEquals(0, adminClient.listAllSelectors().size());
+        Assertions.assertEquals(0, adminClient.listAllRules().size());
+        Assertions.assertEquals(0, adminClient.listAllMetaData().size());
+        Assertions.assertEquals(0, gatewayClient.getSelectorCache().size());
+        Assertions.assertEquals(0, gatewayClient.getRuleCache().size());
+        Assertions.assertEquals(0, gatewayClient.getMetaDataCache().size());
         LOG.info("start dubbo plugin");
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "6");
