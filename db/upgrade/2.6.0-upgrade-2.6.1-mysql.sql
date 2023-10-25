@@ -85,3 +85,7 @@ CREATE TABLE IF NOT EXISTS `alert_receiver`
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+
+UPDATE `shenyu`.`plugin_handle` SET `label` = 'flowRuleEnable 1 or 0' WHERE `id` = '1529402613199978497';
+UPDATE `shenyu`.`plugin_handle` SET `label` = 'degradeRuleEnable 1 or 0' WHERE `id` = '1529402613199978499';

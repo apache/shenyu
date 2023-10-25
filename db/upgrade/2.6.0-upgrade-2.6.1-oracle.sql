@@ -126,3 +126,9 @@ on column alert_receiver.date_created
 comment
 on column alert_receiver.date_updated
   is 'update time';
+
+
+update plugin_handle set label = 'flowRuleEnable 1 or 0'
+where id = '1518229897206079534';
+update plugin_handle set label = 'degradeRuleEnable 1 or 0'
+where id = '1518229897206079536';

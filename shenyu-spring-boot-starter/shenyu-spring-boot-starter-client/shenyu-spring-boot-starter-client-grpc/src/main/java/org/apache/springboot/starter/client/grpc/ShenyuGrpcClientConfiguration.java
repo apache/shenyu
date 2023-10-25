@@ -17,6 +17,7 @@
 
 package org.apache.springboot.starter.client.grpc;
 
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.grpc.GrpcClientEventListener;
 import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
 import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
@@ -29,6 +30,9 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+
+import java.util.Properties;
 
 /**
  * Grpc type client bean postprocessor.
@@ -45,13 +49,21 @@ public class ShenyuGrpcClientConfiguration {
     /**
      * Grpc client event listener.
      *
-     * @param clientConfig the client config
+     * @param clientConfig                   the client config
+     * @param env                            env
      * @param shenyuClientRegisterRepository the shenyu client register repository
      * @return the grpc client bean post processor
      */
     @Bean
     public GrpcClientEventListener grpcClientEventListener(final ShenyuClientConfig clientConfig,
-                                                                final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+                                                           final Environment env,
+                                                           final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        ShenyuClientConfig.ClientPropertiesConfig clientPropertiesConfig = clientConfig.getClient().get(RpcTypeEnum.GRPC.getName());
+        Properties props = clientPropertiesConfig == null ? null : clientPropertiesConfig.getProps();
+        String discoveryMode = env.getProperty("shenyu.discovery.mode", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
+        if (props != null) {
+            props.setProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.valueOf(ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode)).toString());
+        }
         return new GrpcClientEventListener(clientConfig.getClient().get(RpcTypeEnum.GRPC.getName()), shenyuClientRegisterRepository);
     }
     
