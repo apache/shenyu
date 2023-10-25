@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.springmvc.init;
 
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
@@ -140,6 +141,7 @@ public class SpringMvcClientEventListenerTest {
         }
         properties.setProperty("username", "admin");
         properties.setProperty("password", "123456");
+        properties.setProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.TRUE.toString());
         PropertiesConfig config = new PropertiesConfig();
         config.setProps(properties);
         ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();

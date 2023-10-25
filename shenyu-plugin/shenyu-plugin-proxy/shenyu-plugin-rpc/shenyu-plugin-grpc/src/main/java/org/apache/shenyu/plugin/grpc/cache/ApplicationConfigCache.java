@@ -62,7 +62,7 @@ public final class ApplicationConfigCache {
             });
 
     private final Map<String, Consumer<Object>> watchUpstreamListener = new ConcurrentHashMap<>();
-    
+
     private ApplicationConfigCache() {
     }
 
@@ -79,7 +79,7 @@ public final class ApplicationConfigCache {
             throw new ShenyuException(e.getCause());
         }
     }
-    
+
     /**
      * handlerSelector.
      *
@@ -97,7 +97,25 @@ public final class ApplicationConfigCache {
             consumer.accept(System.currentTimeMillis());
         }
     }
-    
+
+    /**
+     * handlerUpstream.
+     *
+     * @param selectorId   selectorId
+     * @param upstreamList upstreamList
+     */
+    public void handlerUpstream(final String selectorId, final List<GrpcUpstream> upstreamList) {
+        if (CollectionUtils.isEmpty(upstreamList)) {
+            invalidate(selectorId);
+            return;
+        }
+        grpcUpstreamCachedHandle.get().cachedHandle(selectorId, upstreamList);
+        Consumer<Object> consumer = watchUpstreamListener.get(selectorId);
+        if (Objects.nonNull(consumer)) {
+            consumer.accept(System.currentTimeMillis());
+        }
+    }
+
     /**
      * invalidate client.
      *
@@ -110,7 +128,7 @@ public final class ApplicationConfigCache {
         ruleCachedHandle.get().removeHandle(CacheKeyUtils.INST.getKey(selectorId, Constants.DEFAULT_RULE));
         GrpcClientCache.removeClient(selectorId);
     }
-    
+
     /**
      * Refresh.
      *
@@ -120,7 +138,7 @@ public final class ApplicationConfigCache {
     public void watch(final String key, final Consumer<Object> consumer) {
         watchUpstreamListener.put(key, consumer);
     }
-    
+
     /**
      * Gets instance.
      *
@@ -179,9 +197,9 @@ public final class ApplicationConfigCache {
          * The Instance.
          */
         static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
-        
+
         private ApplicationConfigCacheInstance() {
-        
+
         }
     }
 }

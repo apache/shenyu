@@ -63,11 +63,12 @@ public class ShenyuSpringMvcClientConfiguration {
     @Bean
     @ConditionalOnMissingBean(ClientRegisterConfiguration.class)
     public SpringMvcClientEventListener springHttpClientEventListener(final ShenyuClientConfig clientConfig,
-                                                                          final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
-                                                                          final Environment env) {
+                                                                      final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
+                                                                      final Environment env) {
         ClientPropertiesConfig clientPropertiesConfig = clientConfig.getClient().get(RpcTypeEnum.HTTP.getName());
         Properties props = clientPropertiesConfig == null ? null : clientPropertiesConfig.getProps();
         String applicationName = env.getProperty("spring.application.name");
+        String discoveryMode = env.getProperty("shenyu.discovery.mode", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
         if (props != null) {
             String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
             if (StringUtils.isBlank(appName)) {
@@ -77,6 +78,7 @@ public class ShenyuSpringMvcClientConfiguration {
             if (StringUtils.isBlank(contextPath)) {
                 props.setProperty(ShenyuClientConstants.CONTEXT_PATH, String.format("/%s", applicationName));
             }
+            props.setProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.valueOf(ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode)).toString());
         }
         return new SpringMvcClientEventListener(clientPropertiesConfig, shenyuClientRegisterRepository, env);
     }
@@ -84,7 +86,7 @@ public class ShenyuSpringMvcClientConfiguration {
     /**
      * clientDiscoveryConfigRefreshedEventListener Bean.
      *
-     * @param shenyuDiscoveryConfig shenyuDiscoveryConfig
+     * @param shenyuDiscoveryConfig        shenyuDiscoveryConfig
      * @param httpClientRegisterRepository httpClientRegisterRepository
      * @return ClientDiscoveryConfigRefreshedEventListener
      */
