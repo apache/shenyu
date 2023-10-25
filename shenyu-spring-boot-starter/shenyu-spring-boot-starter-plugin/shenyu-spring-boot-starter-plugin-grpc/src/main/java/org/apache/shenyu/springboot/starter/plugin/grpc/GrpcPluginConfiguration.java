@@ -19,9 +19,11 @@ package org.apache.shenyu.springboot.starter.plugin.grpc;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.grpc.GrpcPlugin;
 import org.apache.shenyu.plugin.grpc.context.GrpcShenyuContextDecorator;
+import org.apache.shenyu.plugin.grpc.handler.GrpcDiscoveryUpstreamDataHandler;
 import org.apache.shenyu.plugin.grpc.handler.GrpcPluginDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -53,6 +55,17 @@ public class GrpcPluginConfiguration {
     public PluginDataHandler grpcPluginDataHandler() {
         return new GrpcPluginDataHandler();
     }
+
+    /**
+     * Grpc data handler.
+     *
+     * @return the plugin data handler
+     */
+    @Bean
+    public DiscoveryUpstreamDataHandler grpcDiscoveryUpstreamDataHandler() {
+        return new GrpcDiscoveryUpstreamDataHandler();
+    }
+
 
     /**
      * Grpc shenyu context decorator.
