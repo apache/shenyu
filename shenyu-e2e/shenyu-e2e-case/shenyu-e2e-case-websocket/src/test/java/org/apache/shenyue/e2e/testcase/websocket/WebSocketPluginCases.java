@@ -30,8 +30,6 @@ import static org.apache.shenyu.e2e.engine.scenario.function.WebSocketCheckers.e
 
 public class WebSocketPluginCases implements ShenYuScenarioProvider {
 
-    private static final String WEBSOCKET_URI = "ws://localhost:9195/ws-annotation/myWs?token=Jack";
-
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
@@ -48,11 +46,11 @@ public class WebSocketPluginCases implements ShenYuScenarioProvider {
         return ShenYuScenarioSpec.builder()
                 .name("single-websocket uri starts_with]")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()
-                        .checker(exists("/ws-annotation/myWs", "Hello ShenYu", "server send message：Hello ShenYu"))
+                        .checker(exists("/ws-native/myWebSocket?token=Jack", "Hello ShenYu", "apache shenyu server send to Jack message : -> Hello ShenYu"))
                         .build())
                 .caseSpec(ShenYuCaseSpec.builder()
-                        .addExists("/ws-annotation/myWs", "Hello ShenYu", "server send message：Hello ShenYu")
-                        .addNotExists("/ws-native/myWs", "Hello ShenYu")
+                        .addExists("/ws-native/myWebSocket?token=Jack", "Hello ShenYu", "apache shenyu server send to Jack message : -> Hello ShenYu")
+                        .addNotExists("/ws-annotation/myWs", "Hello ShenYu")
                         .build())
                 .build();
     }

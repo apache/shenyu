@@ -37,7 +37,7 @@ spec:
           livenessProbe:
             exec:
               command:
-                - wget -q -O - http://localhost:8001/actuator/health | grep UP || exit 1
+                - wget -q -O - http://localhost:8868/actuator/health | grep UP || exit 1
             initialDelaySeconds: 30
             failureThreshold: 3
             timeoutSeconds: 2
@@ -64,9 +64,9 @@ spec:
     app: shenyu-examples-websocket
   type: NodePort
   ports:
-    - name: "8001"
-      port: 8001
-      targetPort: 8001
-      nodePort: 31191
+    - name: "8868"
+      port: 8868
+      targetPort: 8868
+      nodePort: 31188
 status:
   loadBalancer: {}
