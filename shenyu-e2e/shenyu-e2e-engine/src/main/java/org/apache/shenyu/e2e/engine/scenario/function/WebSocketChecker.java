@@ -29,6 +29,10 @@ import java.util.function.Supplier;
 @FunctionalInterface
 public interface WebSocketChecker extends Checker, WebSocketVerifier {
 
+    /***
+     * check websocket client
+     * @param client client
+     */
     default void check(GatewayClient client) {
         check(client.getWebSocketClientSupplier(), client);
     }
@@ -36,6 +40,7 @@ public interface WebSocketChecker extends Checker, WebSocketVerifier {
     /**
      * check request specification.
      * @param supplier supplier
+     * @param client client
      */
     default void check(Supplier<WebSocketClient> supplier, GatewayClient client) {
         try {

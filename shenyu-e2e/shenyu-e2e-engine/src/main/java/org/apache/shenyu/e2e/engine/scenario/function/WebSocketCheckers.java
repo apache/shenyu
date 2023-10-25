@@ -25,7 +25,6 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
-import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Check if the endpoint exists.
@@ -86,7 +85,7 @@ public class WebSocketCheckers {
      * @param client client
      * @param endpoint endpoint
      */
-    private static void updateWebSocketClientURI(WebSocketClient client, String endpoint)
+    private static void updateWebSocketClientURI(final WebSocketClient client, final String endpoint)
             throws NoSuchFieldException, IllegalAccessException, URISyntaxException {
         Field uriField = WebSocketClient.class.getDeclaredField("uri");
         uriField.setAccessible(true);

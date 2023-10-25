@@ -47,7 +47,7 @@ spec:
             - name: websocket.registry.address
               value: zookeeper://shenyu-zookeeper:2181
           ports:
-            - containerPort: 8848
+            - containerPort: 8001
             - containerPort: 31188
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
@@ -65,9 +65,9 @@ spec:
     app: shenyu-examples-websocket
   type: NodePort
   ports:
-    - name: "8848"
-      port: 8848
-      targetPort: 8848
+    - name: "8001"
+      port: 8001
+      targetPort: 8001
       nodePort: 31191
 status:
   loadBalancer: {}
