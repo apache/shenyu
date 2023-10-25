@@ -32,7 +32,7 @@ spec:
         app: shenyu-examples-websocket
     spec:
       containers:
-        - image: shenyu-examples-websocket:latest
+        - image: shenyu-example-spring-annotation-websocket:latest
           name: shenyu-examples-websocket
           livenessProbe:
             exec:
@@ -48,7 +48,6 @@ spec:
               value: zookeeper://shenyu-zookeeper:2181
           ports:
             - containerPort: 8001
-            - containerPort: 31188
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
 status: {}

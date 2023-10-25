@@ -40,7 +40,7 @@ public class WebSocketPluginCases implements ShenYuScenarioProvider {
     }
 
     /**
-     * test websocket
+     * test websocket.
      *
      * @return ShenYuScenarioSpec
      */
