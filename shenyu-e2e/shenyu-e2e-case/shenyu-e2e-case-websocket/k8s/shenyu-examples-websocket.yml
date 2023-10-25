@@ -32,7 +32,7 @@ spec:
         app: shenyu-examples-websocket
     spec:
       containers:
-        - image: shenyu-example-spring-annotation-websocket:latest
+        - image: shenyu-example-spring-native-websocket:latest
           name: shenyu-examples-websocket
           livenessProbe:
             exec:
