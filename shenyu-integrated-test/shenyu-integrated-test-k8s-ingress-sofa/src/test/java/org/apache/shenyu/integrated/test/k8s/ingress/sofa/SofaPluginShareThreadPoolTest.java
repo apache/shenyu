@@ -38,7 +38,6 @@ public class SofaPluginShareThreadPoolTest extends AbstractPluginDataInit {
         HTTP_HELPER.setGatewayEndpoint("http://localhost:30095");
     }
 
-
     @Test
     public void testHelloWorld() throws IOException {
         SofaTestData response = HttpHelper.INSTANCE.getFromGateway("/sofa/findById?id=1001", new TypeToken<SofaTestData>() { }.getType());
