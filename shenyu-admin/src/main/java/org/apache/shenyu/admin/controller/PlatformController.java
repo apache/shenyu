@@ -24,7 +24,9 @@ import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.EnumService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 
+import java.util.Base64;
 import java.util.Optional;
 
 /**
@@ -59,6 +61,30 @@ public class PlatformController {
                     }
                     return ShenyuAdminResult.error(ShenyuResultMessage.LOGIN_USER_DISABLE_ERROR);
                 }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.PLATFORM_LOGIN_ERROR));
+    }
+
+    /**
+     * basic auth login.
+     *
+     * @param authorization authorization
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @GetMapping("/basicAuth")
+    public ShenyuAdminResult httpBasicAuth(@RequestHeader("Authorization") final String authorization) {
+        String[] userAndPass = new String(Base64.getDecoder().decode(authorization.split(" ")[1])).split(":");
+        return Optional.of(userAndPass).map(s -> {
+            if (s.length < 2) {
+                return ShenyuAdminResult.error(ShenyuResultMessage.PLATFORM_LOGIN_ERROR);
+            }
+            LoginDashboardUserVO loginVO = dashboardUserService.login(userAndPass[0], userAndPass[1]);
+            return Optional.ofNullable(loginVO)
+                .map(loginStatus -> {
+                    if (loginStatus.getEnabled()) {
+                        return ShenyuAdminResult.success(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO);
+                    }
+                    return ShenyuAdminResult.error(ShenyuResultMessage.LOGIN_USER_DISABLE_ERROR);
+                }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.PLATFORM_LOGIN_ERROR));
+        }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.PLATFORM_LOGIN_ERROR));
     }
 
     /**
