@@ -141,14 +141,4 @@ public class MotanPlugin extends AbstractShenyuPlugin {
                 && !StringUtils.isBlank(metaData.getServiceName());
     }
 
-    @Override
-    public List<String> getRegisterClassNames() {
-        return Arrays.asList(
-                MotanProxyService.class.getName(),
-                MotanPlugin.class.getName(),
-                MotanMetaDataHandler.class.getName(),
-                MotanPluginDataHandler.class.getName(),
-                MotanShenyuContextDecorator.class.getName());
-    }
-
 }

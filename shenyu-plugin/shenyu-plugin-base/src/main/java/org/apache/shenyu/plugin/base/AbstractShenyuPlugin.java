@@ -31,7 +31,6 @@ import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.LogUtils;
-import org.apache.shenyu.isolation.Module;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -45,7 +44,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -57,7 +55,7 @@ import java.util.stream.Collectors;
 /**
  * abstract shenyu plugin please extends.
  */
-public abstract class AbstractShenyuPlugin implements ShenyuPlugin, Module {
+public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
 
@@ -70,8 +68,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin, Module {
     private ShenyuConfig.SelectorMatchCache selectorMatchConfig;
     
     private ShenyuConfig.RuleMatchCache ruleMatchConfig;
-
-    private URLClassLoader pluginClassLoader;
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -459,19 +455,4 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin, Module {
         }
     }
 
-    @Override
-    public String name() {
-        return named();
-    }
-
-    @Override
-    public void setClassLoader(final URLClassLoader classLoader) {
-        this.pluginClassLoader = classLoader;
-        LOG.info(pluginClassLoader.toString());
-    }
-
-    @Override
-    public List<String> getRegisterClassNames() {
-        return Collections.emptyList();
-    }
 }

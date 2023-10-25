@@ -131,16 +131,4 @@ public class SofaPlugin extends AbstractShenyuPlugin {
         return Objects.nonNull(metaData) && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
     }
 
-    @Override
-    public List<String> getRegisterClassNames() {
-        return Arrays.asList(
-                SofaParamResolveServiceImpl.class.getName(),
-                SofaProxyService.class.getName(),
-                SofaPlugin.class.getName(),
-                SofaMetaDataHandler.class.getName(),
-                SofaPluginDataHandler.class.getName(),
-                SofaShenyuContextDecorator.class.getName()
-        );
-    }
-
 }

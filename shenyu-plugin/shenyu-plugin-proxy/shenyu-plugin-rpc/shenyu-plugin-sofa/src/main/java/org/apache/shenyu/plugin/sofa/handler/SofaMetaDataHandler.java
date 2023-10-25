@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.sofa.handler;
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.base.handler.AbstractMetaDataHandler;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 
 import java.util.Objects;
@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * The sofa metadata handler.
  */
-public class SofaMetaDataHandler extends AbstractMetaDataHandler {
+public class SofaMetaDataHandler implements MetaDataHandler {
 
     private static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();
     
