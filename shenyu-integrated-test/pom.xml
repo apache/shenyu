@@ -52,6 +52,7 @@
         <module>shenyu-integrated-test-k8s-ingress-apache-dubbo</module>
         <module>shenyu-integrated-test-k8s-ingress-websocket</module>
         <module>shenyu-integrated-test-k8s-ingress-brpc</module>
+        <module>shenyu-integrated-test-k8s-ingress-grpc</module>
     </modules>
 
     <properties>

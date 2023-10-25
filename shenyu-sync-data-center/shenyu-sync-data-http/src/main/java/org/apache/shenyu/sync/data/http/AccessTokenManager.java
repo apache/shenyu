@@ -26,14 +26,18 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.util.Assert;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 /**
  * AccessTokenManager.
@@ -62,7 +66,7 @@ public class AccessTokenManager {
      */
     private long tokenRefreshWindow;
 
-    private final RestTemplate restTemplate;
+    private final OkHttpClient okHttpClient;
 
     private final HttpConfig httpConfig;
 
@@ -71,11 +75,11 @@ public class AccessTokenManager {
     /**
      * Construct.
      *
-     * @param restTemplate the rest template.
+     * @param okHttpClient the rest okHttpClient.
      * @param httpConfig   the config.
      */
-    public AccessTokenManager(final RestTemplate restTemplate, final HttpConfig httpConfig) {
-        this.restTemplate = restTemplate;
+    public AccessTokenManager(final OkHttpClient okHttpClient, final HttpConfig httpConfig) {
+        this.okHttpClient = okHttpClient;
         this.httpConfig = httpConfig;
         this.executorService = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("http-long-polling-client-token-refresh", true));
         this.start(Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl())));
@@ -101,8 +105,15 @@ public class AccessTokenManager {
     private Boolean doLogin(final String server) {
         String param = Constants.LOGIN_NAME + "=" + httpConfig.getUsername() + "&" + Constants.PASS_WORD + "=" + httpConfig.getPassword();
         String url = String.join("?", server + Constants.LOGIN_PATH, param);
-        try {
-            String result = this.restTemplate.getForObject(url, String.class);
+        Request request = new Request.Builder().url(url).build();
+        try (Response response = this.okHttpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                LOG.warn(String.format("get token from server : [%s] error", server));
+                return false;
+            }
+            ResponseBody responseBody = response.body();
+            Assert.notNull(responseBody, "Resolve response body failed.");
+            String result = responseBody.string();
             Map<String, Object> resultMap = GsonUtils.getInstance().convertToMap(result);
             if (!String.valueOf(CommonErrorCode.SUCCESSFUL).equals(String.valueOf(resultMap.get(Constants.ADMIN_RESULT_CODE)))) {
                 LOG.warn(String.format("get token from server : [%s] error", server));
@@ -115,7 +126,7 @@ public class AccessTokenManager {
             this.tokenExpiredTime = (long) tokenMap.get(Constants.ADMIN_RESULT_EXPIRED_TIME);
             this.tokenRefreshWindow = this.tokenExpiredTime / 10;
             return true;
-        } catch (RestClientException e) {
+        } catch (IOException e) {
             LOG.error(String.format("get token from server : [%s] error", server), e);
             return false;
         }
