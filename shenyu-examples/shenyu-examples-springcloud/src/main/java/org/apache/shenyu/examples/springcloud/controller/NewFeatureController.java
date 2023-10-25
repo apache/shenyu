@@ -52,9 +52,9 @@ public class NewFeatureController {
      *
      * @return result
      */
-    @RequestMapping("/requst/mapping/path")
+    @RequestMapping("/request/mapping/path")
     @ShenyuSpringCloudClient
-    @ApiDoc(desc = "requst/mapping/path")
+    @ApiDoc(desc = "request/mapping/path")
     public EntityResult requestMappingUrl() {
         return new EntityResult(200, "Do not use shenyu annotation path. used request mapping path");
     }
