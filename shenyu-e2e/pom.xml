@@ -254,11 +254,6 @@
                 <version>3.1.2</version>
                 <dependencies>
                     <dependency>
-                        <groupId>org.junit.platform</groupId>
-                        <artifactId>junit-platform-surefire-provider</artifactId>
-                        <version>1.1.0-RC1</version>
-                    </dependency>
-                    <dependency>
                         <groupId>me.fabriciorby</groupId>
                         <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
                         <version>0.1.0</version>
