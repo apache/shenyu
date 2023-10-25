@@ -259,6 +259,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Build ShenYu E2E Engine
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-engine -am clean install
+
 #      - name: Restore ShenYu E2E Maven Repos
 #        uses: actions/cache/restore@v3
 #        with:
