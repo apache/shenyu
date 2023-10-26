@@ -56,13 +56,13 @@ Content-Type: application/json
 
 ## must is fail
 
-### shengyu getway proxy used requst mapping path
-POST http://localhost:9195/springcloud/new/feature/requst/mapping/path
+### shengyu getway proxy used request mapping path
+POST http://localhost:9195/springcloud/new/feature/request/mapping/path
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy used requst mapping path
-GET http://localhost:9195/springcloud/new/feature/requst/mapping/path
+### shengyu getway proxy used request mapping path
+GET http://localhost:9195/springcloud/new/feature/request/mapping/path
 Accept: application/json
 Content-Type: application/json
 

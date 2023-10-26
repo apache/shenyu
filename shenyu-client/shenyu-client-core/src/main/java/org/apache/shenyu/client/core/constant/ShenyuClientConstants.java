@@ -21,22 +21,26 @@ package org.apache.shenyu.client.core.constant;
  * ShenyuClientConstants.
  */
 public final class ShenyuClientConstants {
-    
+
     /**
      * the constant of APP_NAME.
      */
     public static final String APP_NAME = "appName";
-    
+
     /**
      * the constant of CONTEXT_PATH.
      */
     public static final String CONTEXT_PATH = "contextPath";
-    
+
+    public static final String DISCOVERY_LOCAL_MODE_KEY = "discoveryLocalMode";
+
+    public static final String DISCOVERY_LOCAL_MODE = "local";
+
     /**
      * the constant of IS_FULL.
      */
     public static final String IS_FULL = "isFull";
-    
+
     /**
      * The constant HTTP.
      */
@@ -51,22 +55,22 @@ public final class ShenyuClientConstants {
      * The constant PROTOCOL.
      */
     public static final String PROTOCOL = "protocol";
-    
+
     /**
      * the constant of HOST.
      */
     public static final String HOST = "host";
-    
+
     /**
      * the constant of PORT.
      */
     public static final String PORT = "port";
-    
+
     /**
      * the constant of IP_PORT.
      */
     public static final String IP_PORT = "ipAndPort";
-    
+
     /**
      * the constant of SERVICE_NAME.
      */
