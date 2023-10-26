@@ -32,9 +32,9 @@ public interface ExtendDataHandler<T> {
     /**
      * addHandlers.
      *
-     * @param dataSubscriber dataSubscriber
+     * @param extendDatas extendDatas
      */
-    void addHandlers(List<T> dataSubscriber);
+    void addHandlers(List<T> extendDatas);
 
     /**
      * addHandlers.
