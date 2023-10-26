@@ -47,7 +47,7 @@ spec:
             - name: websocket.registry.address
               value: zookeeper://shenyu-zookeeper:2181
           ports:
-            - containerPort: 8001
+            - containerPort: 8868
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
 status: {}
