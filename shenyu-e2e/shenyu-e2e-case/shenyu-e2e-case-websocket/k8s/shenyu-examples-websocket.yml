@@ -67,6 +67,6 @@ spec:
     - name: "8868"
       port: 8868
       targetPort: 8868
-      nodePort: 31188
+      nodePort: 31191
 status:
   loadBalancer: {}

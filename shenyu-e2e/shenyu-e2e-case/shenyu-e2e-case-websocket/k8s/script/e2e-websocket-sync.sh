@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-docker shenyu-examples-websocket:latest | sudo k3s ctr images import -
+docker save shenyu-example-spring-native-websocket:latest | sudo k3s ctr images import -
 
 # init kubernetes for mysql
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
@@ -48,7 +48,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
   sh "${CUR_PATH}"/healthcheck.sh http://localhost:31195/actuator/health
   kubectl apply -f "${PRGDIR}"/shenyu-examples-websocket.yml
-  sh "${CUR_PATH}"/healthcheck.sh http://localhost:31188/actuator/health
+  sh "${CUR_PATH}"/healthcheck.sh http://localhost:31191/actuator/health
   sleep 10s
   kubectl get pod -o wide
 
