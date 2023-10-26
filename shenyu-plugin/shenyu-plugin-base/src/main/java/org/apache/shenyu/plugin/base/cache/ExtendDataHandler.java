@@ -60,15 +60,6 @@ public interface ExtendDataHandler<T> {
     }
 
     /**
-     * supportClass.
-     */
-    default Class<?> supportClass() {
-        ParameterizedType parameterizedType = (ParameterizedType) this.getClass().getGenericSuperclass();
-        Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-        return actualTypeArguments[0].getClass();
-    }
-
-    /**
      * Refresh.
      */
     default void refresh() {

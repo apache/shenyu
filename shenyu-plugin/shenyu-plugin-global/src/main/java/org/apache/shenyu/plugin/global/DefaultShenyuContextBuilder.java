@@ -65,7 +65,7 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder, Extend
     }
 
     @Override
-    public void addHandlers(List<ShenyuContextDecorator> decorators) {
+    public void addHandlers(final List<ShenyuContextDecorator> decorators) {
         decorators.forEach(shenyuContextDecorator -> {
             this.decoratorMap.put(shenyuContextDecorator.rpcType(), shenyuContextDecorator);
         });
