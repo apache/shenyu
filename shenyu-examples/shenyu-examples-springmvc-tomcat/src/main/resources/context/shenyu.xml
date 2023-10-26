@@ -31,7 +31,7 @@
         </property>
     </bean>
 
-    <!-- conifig ShenyuRegisterCenterConfig according to your registerType -->
+    <!-- config ShenyuRegisterCenterConfig according to your registerType -->
     <bean id="shenyuRegisterCenterConfig" class="org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig">
         <property name="registerType" value="http"/>
         <property name="serverLists" value="http://localhost:9095"/>
