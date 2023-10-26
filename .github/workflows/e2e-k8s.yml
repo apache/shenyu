@@ -119,6 +119,8 @@ jobs:
             script: e2e-http-mysql
           - case: shenyu-e2e-case-http
             script: e2e-http-postgres
+          - case: shenyu-e2e-case-motan
+            script: e2e-moton-sync
     steps:
       - uses: actions/checkout@v2
         with:
