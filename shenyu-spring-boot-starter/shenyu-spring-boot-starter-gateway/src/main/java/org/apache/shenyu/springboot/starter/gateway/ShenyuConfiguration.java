@@ -22,7 +22,6 @@ import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
 import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.base.alert.AlarmService;
 import org.apache.shenyu.plugin.base.alert.AlarmServiceImpl;
 import org.apache.shenyu.plugin.base.cache.CommonMetaDataSubscriber;
@@ -31,6 +30,7 @@ import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrieListener;
+import org.apache.shenyu.plugin.base.cache.ExtendDataHandler;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.configuration.ErrorHandlerConfiguration;
@@ -143,19 +143,15 @@ public class ShenyuConfiguration {
      * Shenyu loader service.
      *
      * @param shenyuWebHandler the shenyu web handler
-     * @param pluginDataSubscriber the plugin data subscriber
      * @param config the config
-     * @param builder the shenyu context builder
-     * @param metaDataSubscriber the metaData subscriber
+     * @param extendDataHandlers addDataHandlers
      * @return the shenyu loader service
      */
     @Bean
     public ShenyuLoaderService shenyuLoaderService(final ShenyuWebHandler shenyuWebHandler,
-                                                   final PluginDataSubscriber pluginDataSubscriber,
                                                    final ShenyuConfig config,
-                                                   final ShenyuContextBuilder builder,
-                                                   final CommonMetaDataSubscriber metaDataSubscriber) {
-        return new ShenyuLoaderService(shenyuWebHandler, (CommonPluginDataSubscriber) pluginDataSubscriber, config, builder, metaDataSubscriber);
+                                                   final List<ExtendDataHandler<?>> extendDataHandlers) {
+        return new ShenyuLoaderService(shenyuWebHandler, config, extendDataHandlers);
     }
     
     /**

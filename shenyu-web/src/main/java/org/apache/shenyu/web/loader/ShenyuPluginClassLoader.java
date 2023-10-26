@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.loader;
 
+import org.apache.shenyu.plugin.api.ExtendDataBase;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -32,12 +33,12 @@ import org.springframework.stereotype.Service;
 
 import java.io.Closeable;
 import java.lang.annotation.Annotation;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -149,7 +150,7 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
 
     private <T> String registerBeanDefinition(final String className, final ClassLoader classLoader) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         if (SpringBeanUtils.getInstance().existBean(className)) {
-            return SpringBeanUtils.getInstance().getBeanByClassName(className);
+            return SpringBeanUtils.getInstance().getBeanName(className);
         }
         lock.lock();
         try {
@@ -159,8 +160,8 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
                 //Exclude ShenyuPlugin subclass and PluginDataHandler subclass
                 // without adding @Component @Service annotation
                 boolean next = shenyuClasss.stream().anyMatch(shenyuClass -> shenyuClass.isAssignableFrom(clazz));
+                Annotation[] annotations = clazz.getAnnotations();
                 if (!next) {
-                    Annotation[] annotations = clazz.getAnnotations();
                     next = Arrays.stream(annotations).anyMatch(e -> e.annotationType().equals(Component.class)
                             || e.annotationType().equals(Service.class) || e.annotationType().equals(Configuration.class));
                 }
@@ -182,12 +183,8 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
         ShenyuLoaderResult result = new ShenyuLoaderResult();
         if (instance instanceof ShenyuPlugin) {
             result.setShenyuPlugin((ShenyuPlugin) instance);
-        } else if (instance instanceof PluginDataHandler) {
-            result.setPluginDataHandler((PluginDataHandler) instance);
-        } else if (instance instanceof MetaDataHandler) {
-            result.setMetaDataHandler((MetaDataHandler) instance);
-        } else if (instance instanceof ShenyuContextDecorator) {
-            result.setShenyuContextDecorator((ShenyuContextDecorator) instance);
+        } else if (instance instanceof ExtendDataBase) {
+            result.setExtendDataBase((ExtendDataBase) instance);
         }
         return result;
     }

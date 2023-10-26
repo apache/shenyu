@@ -18,11 +18,12 @@
 package org.apache.shenyu.plugin.base.handler;
 
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.plugin.api.ExtendDataBase;
 
 /**
  * The interface meta data handler.
  */
-public interface MetaDataHandler {
+public interface MetaDataHandler extends ExtendDataBase {
 
     /**
      * Handle metaData.

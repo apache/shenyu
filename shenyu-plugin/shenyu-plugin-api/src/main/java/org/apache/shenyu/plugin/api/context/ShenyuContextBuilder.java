@@ -19,8 +19,6 @@ package org.apache.shenyu.plugin.api.context;
 
 import org.springframework.web.server.ServerWebExchange;
 
-import java.util.List;
-
 /**
  * The interface shenyu context builder.
  */
@@ -33,10 +31,4 @@ public interface ShenyuContextBuilder {
      * @return the shenyu context
      */
     ShenyuContext build(ServerWebExchange exchange);
-
-    /**
-     * Add decorators.
-     * @param decorators decorator
-     */
-    void addDecorators(List<ShenyuContextDecorator> decorators);
 }

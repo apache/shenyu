@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 /**
  * The type Common plugin data subscriber.
  */
-public class CommonPluginDataSubscriber implements PluginDataSubscriber {
+public class CommonPluginDataSubscriber implements PluginDataSubscriber, ExtendDataHandler<PluginDataHandler> {
     
     private static final Logger LOG = LoggerFactory.getLogger(CommonPluginDataSubscriber.class);
     
@@ -97,7 +97,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
      *
      * @param handlers the handlers
      */
-    public void putExtendPluginDataHandler(final List<PluginDataHandler> handlers) {
+    @Override
+    public void addHandlers(final List<PluginDataHandler> handlers) {
         if (CollectionUtils.isEmpty(handlers)) {
             return;
         }

@@ -20,6 +20,7 @@ package org.apache.shenyu.web.loader;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.plugin.api.ExtendDataBase;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -361,8 +362,8 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
         ShenyuLoaderResult result = new ShenyuLoaderResult();
         if (instance instanceof ShenyuPlugin) {
             result.setShenyuPlugin((ShenyuPlugin) instance);
-        } else if (instance instanceof PluginDataHandler) {
-            result.setPluginDataHandler((PluginDataHandler) instance);
+        } else if (instance instanceof ExtendDataBase) {
+            result.setExtendDataBase((ExtendDataBase) instance);
         }
         return result;
     }

@@ -20,7 +20,6 @@ package org.apache.shenyu.web.loader;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
@@ -44,9 +43,9 @@ import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test for ShenyuLoaderServiceTest.
@@ -93,10 +92,10 @@ public class ShenyuLoaderServiceTest {
         extPlugin.setEnabled(false);
         final ShenyuConfig shenyuConfig = new ShenyuConfig();
         shenyuConfig.setExtPlugin(extPlugin);
-        new ShenyuLoaderService(shenyuWebHandler, commonPluginDataSubscriber, shenyuConfig, null, null);
+        new ShenyuLoaderService(shenyuWebHandler, shenyuConfig, null);
         extPlugin.setEnabled(true);
         extPlugin.setPath(path.toString());
-        ShenyuLoaderService shenyuLoaderService = new ShenyuLoaderService(shenyuWebHandler, commonPluginDataSubscriber, shenyuConfig, null, null);
+        ShenyuLoaderService shenyuLoaderService = new ShenyuLoaderService(shenyuWebHandler, shenyuConfig, null);
 
         final Method loaderExtPlugins = ShenyuLoaderService.class.getDeclaredMethod("loaderExtPlugins");
         loaderExtPlugins.setAccessible(true);

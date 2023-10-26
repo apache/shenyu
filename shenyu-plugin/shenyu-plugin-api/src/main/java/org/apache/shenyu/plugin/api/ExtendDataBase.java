@@ -15,31 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.api.context;
-
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.plugin.api.ExtendDataBase;
+package org.apache.shenyu.plugin.api;
 
 /**
- * The interface shenyu context decorator.
+ * ExtendDataBase.
  */
-public interface ShenyuContextDecorator extends ExtendDataBase {
-    
-    /**
-     * Decorator shenyu context.
-     *
-     * @param shenyuContext the shenyu context
-     * @param metaData the meta data
-     * @return the shenyu context
-     */
-    ShenyuContext decorator(ShenyuContext shenyuContext, MetaData metaData);
-    
-    /**
-     * Rpc type string.
-     *
-     * @return the string
-     */
-    default String rpcType() {
-        return "http";
-    }
+public interface ExtendDataBase {
 }

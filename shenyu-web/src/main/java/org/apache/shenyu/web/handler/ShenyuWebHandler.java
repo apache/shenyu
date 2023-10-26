@@ -24,6 +24,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.isolation.ReverseClassLoader;
+import org.apache.shenyu.plugin.api.ExtendDataBase;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -44,9 +45,14 @@ import reactor.core.scheduler.Schedulers;
 
 import java.io.File;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -259,8 +265,12 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 pluginJarFileList.stream().sorted(Comparator.reverseOrder()).forEach(pluginJarFile -> {
                     try {
                         final List<ShenyuLoaderResult> shenyuLoaderResults = shenyuLoaderService.loadJarPlugins(Files.newInputStream(pluginJarFile.toPath()), urlClassLoader);
-                        List<PluginDataHandler> handlers = shenyuLoaderResults.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
-                        handlers.forEach(handler -> handler.handlerPlugin(pluginData));
+                        List<ExtendDataBase> handlers = shenyuLoaderResults.stream().map(ShenyuLoaderResult::getExtendDataBase).filter(Objects::nonNull).collect(Collectors.toList());
+                        handlers.forEach(extendDataBase -> {
+                            if (extendDataBase instanceof PluginDataHandler) {
+                                ((PluginDataHandler) extendDataBase).handlerPlugin(pluginData);
+                            }
+                        });
                     } catch (Exception e) {
                         LOG.error("load {} plugin classloader failed. ex ", pluginJarFile.getAbsolutePath(), e);
                     }

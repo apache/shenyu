@@ -17,10 +17,8 @@
 
 package org.apache.shenyu.web.loader;
 
+import org.apache.shenyu.plugin.api.ExtendDataBase;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
-import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 
 /**
  * The type of ShenYu Loader result.
@@ -31,11 +29,7 @@ public class ShenyuLoaderResult {
     
     private ShenyuPlugin shenyuPlugin;
     
-    private PluginDataHandler pluginDataHandler;
-
-    private MetaDataHandler metaDataHandler;
-
-    private ShenyuContextDecorator shenyuContextDecorator;
+    private ExtendDataBase extendDataBase;
 
     public String getClassName() {
         return className;
@@ -62,58 +56,22 @@ public class ShenyuLoaderResult {
     public void setShenyuPlugin(final ShenyuPlugin shenyuPlugin) {
         this.shenyuPlugin = shenyuPlugin;
     }
-    
+
     /**
-     * Gets plugin data handler.
+     * extendDataBase.
      *
-     * @return the plugin data handler
+     * @return ExtendDataBase
      */
-    public PluginDataHandler getPluginDataHandler() {
-        return pluginDataHandler;
-    }
-    
-    /**
-     * Sets plugin data handler.
-     *
-     * @param pluginDataHandler the plugin data handler
-     */
-    public void setPluginDataHandler(final PluginDataHandler pluginDataHandler) {
-        this.pluginDataHandler = pluginDataHandler;
+    public ExtendDataBase getExtendDataBase() {
+        return extendDataBase;
     }
 
     /**
-     * metaDataHandler.
+     * set extendDataBase.
      *
-     * @return MetaDataHandler
+     * @param extendDataBase extendDataBase
      */
-    public MetaDataHandler getMetaDataHandler() {
-        return metaDataHandler;
-    }
-
-    /**
-     * set metaDataHandler.
-     *
-     * @param metaDataHandler metaDataHandler
-     */
-    public void setMetaDataHandler(final MetaDataHandler metaDataHandler) {
-        this.metaDataHandler = metaDataHandler;
-    }
-
-    /**
-     * shenyuContextDecorator.
-     *
-     * @return ShenyuContextDecorator
-     */
-    public ShenyuContextDecorator getShenyuContextDecorator() {
-        return shenyuContextDecorator;
-    }
-
-    /**
-     * set shenyuContextDecorator.
-     *
-     * @param shenyuContextDecorator shenyuContextDecorator
-     */
-    public void setShenyuContextDecorator(final ShenyuContextDecorator shenyuContextDecorator) {
-        this.shenyuContextDecorator = shenyuContextDecorator;
+    public void setExtendDataBase(final ExtendDataBase extendDataBase) {
+        this.extendDataBase = extendDataBase;
     }
 }

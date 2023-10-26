@@ -21,23 +21,20 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.config.ShenyuConfig.ExtPlugin;
-import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.plugin.api.ExtendDataBase;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
-import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.base.cache.CommonMetaDataSubscriber;
-import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
-import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.cache.ExtendDataHandler;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -51,28 +48,20 @@ public class ShenyuLoaderService {
 
     private final ShenyuWebHandler webHandler;
 
-    private final CommonPluginDataSubscriber subscriber;
-
     private final ShenyuConfig shenyuConfig;
 
-    private final ShenyuContextBuilder contextBuilder;
-
-    private final CommonMetaDataSubscriber metaDataSubscriber;
+    private final List<ExtendDataHandler<?>> extendDataHandlers;
 
     /**
      * Instantiates a new Shenyu loader service.
      *
      * @param webHandler         the web handler
-     * @param subscriber         the subscriber
      * @param shenyuConfig       the shenyu config
-     * @param builder            the shenyu context builder
-     * @param metaDataSubscriber the metaData subsrciber
+     * @param extendDataHandlers       addDataHandlers
      */
-    public ShenyuLoaderService(final ShenyuWebHandler webHandler, final CommonPluginDataSubscriber subscriber, final ShenyuConfig shenyuConfig, final ShenyuContextBuilder builder, final CommonMetaDataSubscriber metaDataSubscriber) {
-        this.subscriber = subscriber;
+    public ShenyuLoaderService(final ShenyuWebHandler webHandler, final ShenyuConfig shenyuConfig, final List<ExtendDataHandler<?>> extendDataHandlers) {
         this.webHandler = webHandler;
-        this.contextBuilder = builder;
-        this.metaDataSubscriber = metaDataSubscriber;
+        this.extendDataHandlers = extendDataHandlers;
         this.shenyuConfig = shenyuConfig;
         ExtPlugin config = shenyuConfig.getExtPlugin();
         if (config.getEnabled()) {
@@ -142,11 +131,8 @@ public class ShenyuLoaderService {
         }
         List<ShenyuPlugin> shenyuExtendPlugins = results.stream().map(ShenyuLoaderResult::getShenyuPlugin).filter(Objects::nonNull).collect(Collectors.toList());
         webHandler.putExtPlugins(shenyuExtendPlugins);
-        List<PluginDataHandler> handlers = results.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
-        subscriber.putExtendPluginDataHandler(handlers);
-        final List<MetaDataHandler> metaDataHandlers = results.stream().map(ShenyuLoaderResult::getMetaDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
-        metaDataSubscriber.addHandlers(metaDataHandlers);
-        final List<ShenyuContextDecorator> contextDecorators = results.stream().map(ShenyuLoaderResult::getShenyuContextDecorator).filter(Objects::nonNull).collect(Collectors.toList());
-        contextBuilder.addDecorators(contextDecorators);
+        List<ExtendDataBase> handlers = results.stream().map(ShenyuLoaderResult::getExtendDataBase)
+                .filter(Objects::nonNull).collect(Collectors.toList());
+        extendDataHandlers.forEach(addDataHandlers1 -> addDataHandlers1.putExtendDataHandler(handlers));
     }
 }

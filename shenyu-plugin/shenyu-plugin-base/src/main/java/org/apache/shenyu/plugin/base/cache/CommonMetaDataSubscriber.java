@@ -25,13 +25,16 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * The type common meta data subscriber.
  */
-public class CommonMetaDataSubscriber implements MetaDataSubscriber {
+public class CommonMetaDataSubscriber implements MetaDataSubscriber, ExtendDataHandler<MetaDataHandler> {
 
     private static final Logger LOG = LoggerFactory.getLogger(CommonMetaDataSubscriber.class);
 
@@ -46,11 +49,8 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
         this.handlerMap.putAll(metaDataHandlerList.stream().collect(Collectors.toConcurrentMap(MetaDataHandler::rpcType, e -> e)));
     }
 
-    /**
-     * Add handlers.
-     * @param handlers
-     */
-    public void addHandlers(final List<MetaDataHandler> handlers) {
+    @Override
+    public void addHandlers(List<MetaDataHandler> handlers) {
         handlers.forEach(metaDataHandler -> {
             this.handlerMap.put(metaDataHandler.rpcType(), metaDataHandler);
         });

@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
+import org.apache.shenyu.plugin.base.cache.ExtendDataHandler;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -40,7 +41,7 @@ import java.util.Optional;
 /**
  * The type Default Shenyu context builder.
  */
-public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
+public class DefaultShenyuContextBuilder implements ShenyuContextBuilder, ExtendDataHandler<ShenyuContextDecorator> {
 
     private static final String RPC_TYPE = "rpc_type";
 
@@ -63,16 +64,13 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         return decoratorMap.get(buildData.getLeft()).decorator(buildDefaultContext(exchange.getRequest()), buildData.getRight());
     }
 
-    /**
-     * Add decorator.
-     * @param decorators
-     */
-    public void addDecorators(final List<ShenyuContextDecorator> decorators) {
+    @Override
+    public void addHandlers(List<ShenyuContextDecorator> decorators) {
         decorators.forEach(shenyuContextDecorator -> {
             this.decoratorMap.put(shenyuContextDecorator.rpcType(), shenyuContextDecorator);
         });
     }
-    
+
     private Pair<String, MetaData> buildData(final ServerWebExchange exchange) {
         ServerHttpRequest request = exchange.getRequest();
         HttpHeaders headers = request.getHeaders();
