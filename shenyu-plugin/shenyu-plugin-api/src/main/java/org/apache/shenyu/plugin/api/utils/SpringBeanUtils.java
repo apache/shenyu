@@ -84,6 +84,7 @@ public final class SpringBeanUtils {
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
         beanFactory.setBeanClassLoader(classLoader);
         beanFactory.registerBeanDefinition(beanName, beanDefinition);
+        beanFactory.applyBeanPostProcessorsAfterInitialization(getBeanByClassName(beanName), beanName);
         return beanName;
     }
     

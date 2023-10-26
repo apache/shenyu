@@ -100,7 +100,7 @@ public class ShenyuLoaderService {
      *
      * @param parseJarInputStream parseJarInputStream
      * @param classLoader classLoader
-     * @return {@link List<ShenyuLoaderResult>}
+     * @return a list of ShenyuLoaderResult
      */
     public List<ShenyuLoaderResult> loadJarPlugins(final InputStream parseJarInputStream, ClassLoader classLoader) {
         try {

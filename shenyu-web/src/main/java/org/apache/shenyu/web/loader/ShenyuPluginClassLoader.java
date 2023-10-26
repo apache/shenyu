@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
