@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.e2e.engine.scenario.function;
 
-import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.junit.jupiter.api.Assertions;
