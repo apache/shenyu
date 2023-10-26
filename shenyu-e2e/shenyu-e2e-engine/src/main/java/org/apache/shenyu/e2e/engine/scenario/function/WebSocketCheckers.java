@@ -17,9 +17,12 @@
 
 package org.apache.shenyu.e2e.engine.scenario.function;
 
+import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.junit.jupiter.api.Assertions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -30,6 +33,11 @@ import java.util.Optional;
  * Check if the endpoint exists.
  */
 public class WebSocketCheckers {
+
+    /**
+     * log.
+     */
+    private static final Logger log = LoggerFactory.getLogger(WebSocketCheckers.class);
 
     /**
      * exist endpoint.
@@ -50,6 +58,7 @@ public class WebSocketCheckers {
                         .ifPresent(client -> Assertions.assertEquals(receiveMessage, gatewayClient.getWebSocketMessage()));
             } catch (AssertionError | InterruptedException | RuntimeException error) {
                 Assertions.fail("websocket endpoint '" + endpoint + "' not exists", error);
+
             } catch (NoSuchFieldException | IllegalAccessException | URISyntaxException e) {
                 throw new RuntimeException(e);
             }
@@ -72,6 +81,7 @@ public class WebSocketCheckers {
                         .filter(WebSocketClient::isOpen)
                         .ifPresent(client -> Assertions.fail("websocket endpoint '" + endpoint + "' exists"));
             } catch (AssertionError | InterruptedException | WebsocketNotConnectedException error) {
+                log.error("websocket exception", error);
                 Assertions.fail("websocket endpoint '" + endpoint + "' not exists", error);
             } catch (URISyntaxException | NoSuchFieldException | IllegalAccessException e) {
                 throw new RuntimeException(e);
