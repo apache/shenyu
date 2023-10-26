@@ -60,7 +60,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   if (($?)); then
     echo "${sync}-sync-e2e-test failed"
     echo "shenyu-admin log:"
-    echo "-------------------"
+    echo "------------------"
     kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
     echo "shenyu-bootstrap log:"
     echo "------------------"
