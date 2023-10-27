@@ -46,11 +46,11 @@ public class WebSocketPluginCases implements ShenYuScenarioProvider {
         return ShenYuScenarioSpec.builder()
                 .name("single-websocket test]")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()
-                        .checker(exists("ws-native/myWebSocket?token=Jack", "Hello ShenYu", "apache shenyu server send to Jack message : -> Hello ShenYu"))
+                        .checker(exists("/ws-native/myWebSocket?token=Jack", "Hello ShenYu", "apache shenyu server send to Jack message : -> Hello ShenYu"))
                         .build())
                 .caseSpec(ShenYuCaseSpec.builder()
-                        .addExists("ws-native/myWebSocket?token=Mask", "Hello ShenYu", "apache shenyu server send to Mask message : -> Hello ShenYu")
-                        .addNotExists("ws-annotation/myWs", "Hello ShenYu")
+                        .addExists("/ws-native/myWebSocket?token=Mask", "Hello ShenYu", "apache shenyu server send to Mask message : -> Hello ShenYu")
+                        .addNotExists("/ws-annotation/myWs", "Hello ShenYu")
                         .build())
                 .build();
     }

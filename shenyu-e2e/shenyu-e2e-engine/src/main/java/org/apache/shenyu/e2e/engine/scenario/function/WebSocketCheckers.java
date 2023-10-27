@@ -49,7 +49,7 @@ public class WebSocketCheckers {
                         .filter(WebSocketClient::isOpen)
                         .ifPresent(client -> Assertions.assertEquals(receiveMessage, gatewayClient.getWebSocketMessage()));
             } catch (AssertionError | InterruptedException | RuntimeException error) {
-                Assertions.fail("websocket endpoint '" + endpoint + "' not exists", error);
+                Assertions.fail("websocket endpoint '" + websocketClient.getURI() + "' not exists", error);
             } catch (NoSuchFieldException | IllegalAccessException | URISyntaxException e) {
                 throw new RuntimeException(e);
             }
