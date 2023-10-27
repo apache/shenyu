@@ -20,8 +20,6 @@ package org.apache.shenyu.e2e.engine.scenario.function;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.junit.jupiter.api.Assertions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.net.URI;
