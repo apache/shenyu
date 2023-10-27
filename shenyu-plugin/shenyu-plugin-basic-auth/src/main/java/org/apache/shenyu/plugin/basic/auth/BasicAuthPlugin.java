@@ -21,18 +21,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.basic.auth.config.BasicAuthConfig;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.basic.auth.handle.BasicAuthPluginDataHandler;
+import org.apache.shenyu.plugin.basic.auth.rule.BasicAuthRuleHandle;
+import org.apache.shenyu.plugin.basic.auth.strategy.BasicAuthAuthenticationStrategy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.Base64;
 
 /**
  * basic-auth Plugin.
@@ -50,17 +50,11 @@ public class BasicAuthPlugin extends AbstractShenyuPlugin {
      */
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        BasicAuthConfig basicAuthConfig = Singleton.INST.get(BasicAuthConfig.class);
-        String authorization = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        String[] userAndPass = new String(Base64.getDecoder().decode(authorization.split(" ")[1])).split(":");
+        String authorization = StringUtils.defaultString(exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION), exchange.getRequest().getURI().getUserInfo());
+        BasicAuthRuleHandle basicAuthRuleHandle = BasicAuthPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        BasicAuthAuthenticationStrategy authenticationStrategy = basicAuthRuleHandle == null ? null : basicAuthRuleHandle.getBasicAuthAuthenticationStrategy();
 
-        // check authorization
-        if (userAndPass.length < 2) {
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SECRET_KEY_MUST_BE_CONFIGURED);
-            return WebFluxResultUtils.result(exchange, error);
-        }
-
-        if (StringUtils.equals(basicAuthConfig.getUsername(), userAndPass[0]) && StringUtils.equals(basicAuthConfig.getPassword(), userAndPass[1])) {
+        if (authenticationStrategy != null && authenticationStrategy.authenticate(basicAuthRuleHandle, authorization)) {
             return chain.execute(exchange);
         }
         return WebFluxResultUtils.result(exchange, ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_TOKEN));

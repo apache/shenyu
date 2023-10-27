@@ -20,10 +20,11 @@ package org.apache.shenyu.plugin.basic.auth.handle;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.rule.impl.JwtRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
@@ -32,31 +33,35 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.basic.auth.config.BasicAuthConfig;
+import org.apache.shenyu.plugin.basic.auth.rule.BasicAuthRuleHandle;
 
 /**
  * Configuration data of the basic auth plugin.
  */
 public class BasicAuthPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<CommonHandleCache<String, JwtRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, BasicAuthRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         Map<String, String> configMap = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);
-        String username = Optional.ofNullable(configMap.get(Constants.USER_NAME)).orElse("");
-        String password = Optional.ofNullable(configMap.get(Constants.PASS_WORD)).orElse("");
-
+        String defaultHandleJson = Optional.ofNullable(configMap.get(Constants.DEFAULT_HANDLE_JSON)).orElse("");
         BasicAuthConfig basicAuthConfig = new BasicAuthConfig();
-        basicAuthConfig.setUsername(username);
-        basicAuthConfig.setPassword(password);
+        basicAuthConfig.setDefaultHandleJson(defaultHandleJson);
         Singleton.INST.single(BasicAuthConfig.class, basicAuthConfig);
     }
 
     @Override
+    public void removeRule(final RuleData ruleData) {
+        CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
+    }
+
+    @Override
     public void handlerRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            JwtRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(s, JwtRuleHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), ruleHandle);
+        BasicAuthConfig basicAuthConfig = Singleton.INST.get(BasicAuthConfig.class);
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(ruleHandle -> {
+            BasicAuthRuleHandle basicAuthRuleHandle = BasicAuthRuleHandle.newInstance(StringUtils.defaultString(ruleHandle, basicAuthConfig.getDefaultHandleJson()));
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), basicAuthRuleHandle);
         });
     }
 

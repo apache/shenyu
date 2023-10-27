@@ -24,48 +24,26 @@ import java.io.Serializable;
  */
 public class BasicAuthConfig implements Serializable {
     /**
-     * private key.
+     * defaultHandleJson.
      */
-    private String username;
+    private String defaultHandleJson;
 
     /**
-     * private password.
-     */
-    private String password;
-
-    /**
-     * get username.
+     * get defaultHandleJson.
      *
-     * @return username.
+     * @return defaultHandleJson.
      */
-    public String getUsername() {
-        return username;
+    public String getDefaultHandleJson() {
+        return defaultHandleJson;
     }
 
     /**
-     * get password.
+     * set defaultHandleJson.
      *
-     * @return password.
+     * @param defaultHandleJson defaultHandleJson.
      */
-    public String getPassword() {
-        return password;
+    public void setDefaultHandleJson(final String defaultHandleJson) {
+        this.defaultHandleJson = defaultHandleJson;
     }
 
-    /**
-     * set username.
-     *
-     * @param username username.
-     */
-    public void setUsername(final String username) {
-        this.username = username;
-    }
-
-    /**
-     * set password.
-     *
-     * @param password password.
-     */
-    public void setPassword(final String password) {
-        this.password = password;
-    }
 }
