@@ -57,6 +57,8 @@ public class WebSocketCheckers {
                         .ifPresent(client -> Assertions.assertEquals(receiveMessage, gatewayClient.getWebSocketMessage()));
             } catch (AssertionError | InterruptedException | RuntimeException error) {
                 log.error("websocket exception", error);
+                log.warn("websocket endpoint is: " + websocketClient.getURI());
+                log.warn("websocket port is: " + websocketClient.getSocket().getPort());
                 Assertions.fail("websocket endpoint '" + endpoint + "' not exists", error);
             } catch (NoSuchFieldException | IllegalAccessException | URISyntaxException e) {
                 throw new RuntimeException(e);
