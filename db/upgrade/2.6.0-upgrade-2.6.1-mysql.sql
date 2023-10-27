@@ -89,3 +89,7 @@ CREATE TABLE IF NOT EXISTS `alert_receiver`
 
 UPDATE `shenyu`.`plugin_handle` SET `label` = 'flowRuleEnable 1 or 0' WHERE `id` = '1529402613199978497';
 UPDATE `shenyu`.`plugin_handle` SET `label` = 'degradeRuleEnable 1 or 0' WHERE `id` = '1529402613199978499';
+
+
+INSERT INTO `plugin` VALUES ('44', 'basicAuth', '{"defaultHandleJson":"{\"authorization\":\"test:test123\"}"}', 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00');
+INSERT INTO `plugin_handle` VALUES ('1678997557628272643', '44', 'defaultHandleJson', 'defaultHandleJson', 2, 3, 2, '{"required":"0","defaultValue":"{\"authorization\":\"test:test123\"}","placeholder":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
