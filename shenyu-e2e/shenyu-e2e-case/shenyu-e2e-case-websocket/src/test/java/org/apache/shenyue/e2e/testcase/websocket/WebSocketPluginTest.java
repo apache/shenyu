@@ -70,8 +70,8 @@ public class WebSocketPluginTest {
         formData.add("name", "websocket");
         formData.add("enabled", "true");
         formData.add("role", "Proxy");
-        formData.add("sort", "140");
-        adminClient.changePluginStatus("8", formData);
+        formData.add("sort", "200");
+        adminClient.changePluginStatus("26", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.websocket.WebSocketPlugin");
     }
 
