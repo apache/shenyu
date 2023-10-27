@@ -31,11 +31,21 @@ public class ShenyuLoaderResult {
     
     private ExtendDataBase extendDataBase;
 
+    /**
+     * getClassName.
+     *
+     * @return {@link String}
+     */
     public String getClassName() {
         return className;
     }
 
-    public void setClassName(String className) {
+    /**
+     * setClassName.
+     *
+     * @param className className
+     */
+    public void setClassName(final String className) {
         this.className = className;
     }
 

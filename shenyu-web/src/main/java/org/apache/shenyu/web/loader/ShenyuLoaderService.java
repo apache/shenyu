@@ -57,7 +57,7 @@ public class ShenyuLoaderService {
      *
      * @param webHandler         the web handler
      * @param shenyuConfig       the shenyu config
-     * @param extendDataHandlers       addDataHandlers
+     * @param extendDataHandlers addDataHandlers
      */
     public ShenyuLoaderService(final ShenyuWebHandler webHandler, final ShenyuConfig shenyuConfig, final List<ExtendDataHandler<?>> extendDataHandlers) {
         this.webHandler = webHandler;
@@ -100,9 +100,9 @@ public class ShenyuLoaderService {
      *
      * @param parseJarInputStream parseJarInputStream
      * @param classLoader classLoader
-     * @return {@link List<ShenyuLoaderResult>}
+     * @return List ShenyuLoaderResult
      */
-    public List<ShenyuLoaderResult> loadJarPlugins(final InputStream parseJarInputStream, ClassLoader classLoader) {
+    public List<ShenyuLoaderResult> loadJarPlugins(final InputStream parseJarInputStream, final ClassLoader classLoader) {
         try {
             PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(parseJarInputStream);
             ShenyuPluginClassLoader shenyuPluginClassLoader = ShenyuPluginClassloaderHolder.getSingleton().getUploadClassLoader(pluginJar);
