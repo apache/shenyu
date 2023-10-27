@@ -837,7 +837,7 @@ INSERT INTO `plugin` VALUES ('40', 'keyAuth', NULL, 'Authentication', 150, 0, '2
 INSERT INTO `plugin` VALUES ('41', 'brpc', '{\"address\":\"127.0.0.1\", \"port\":\"8005\", \"corethreads\":0, \"threads\":2147483647, \"queues\":0, \"threadpool\":\"shared\"}', 'Proxy', 310, 0, '2023-01-10 10:08:01', '2023-01-10 10:08:01',null);
 INSERT INTO `plugin` VALUES ('42', 'tcp', NULL, 'Proxy', 320, 1, '2023-05-30 18:02:53', '2022-05-30 18:02:53',null);
 INSERT INTO `plugin` VALUES ('43', 'loggingHuaweiLts', '{\"totalSizeInBytes\":\"104857600\",\"maxBlockMs\":\"0\",\"ioThreadCount\":\"1\",\"batchSizeThresholdInBytes\":\"524288\",\"batchCountThreshold\":\"4096\",\"lingerMs\":\"2000\",\"retries\":\"100\",\"baseRetryBackoffMs\":\"100\",\"maxRetryBackoffMs\":\"100\",\"enableLocalTest\":\"true\",\"setGiveUpExtraLongSingleLog\":\"false\"}', 'Logging', 177, 0, '2023-07-05 14:03:53.686', '2023-07-06 12:42:07.234', NULL);
-INSERT INTO `plugin` VALUES ('44', 'basicAuth', '{"username": "admin", "password": "123456"}', 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00');
+INSERT INTO `plugin` VALUES ('44', 'basicAuth', '{"defaultHandleJson":"{\"authorization\":\"test:test123\"}"}', 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00');
 -- ----------------------------
 -- Table structure for plugin_handle
 -- ----------------------------
@@ -1172,6 +1172,8 @@ INSERT INTO `plugin_handle` VALUES ('1678997557628272640', '42', 'clientPendingA
 INSERT INTO `plugin_handle` VALUES ('1678997557628272641', '17', 'registerAddress', 'registerAddress', 2, 3, 1, '{\"required\":\"0\",\"defaultValue\":\"127.0.0.1:2181\",\"placeholder\":\"registerAddress\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 
 INSERT INTO `plugin_handle` VALUES ('1678997557628272642', '15', 'loadBalance', 'loadBalance', 3, 2, 3, '{\"required\":\"0\",\"defaultValue\":\"random\",\"rule\":\"\"}', '2023-09-05 18:02:53', '2023-09-05 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1678997557628272643', '44', 'defaultHandleJson', 'defaultHandleJson', 2, 3, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
