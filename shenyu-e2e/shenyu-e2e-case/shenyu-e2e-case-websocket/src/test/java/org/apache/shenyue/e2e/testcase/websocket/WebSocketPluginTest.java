@@ -34,7 +34,7 @@ import org.springframework.util.MultiValueMap;
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
                 service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:9095",
+                        baseUrl = "http://localhost:31095",
                         type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
                                 @ShenYuTest.Parameter(key = "username", value = "admin"),
@@ -45,7 +45,7 @@ import org.springframework.util.MultiValueMap;
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-gateway",
                 service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:9195",
+                        baseUrl = "http://localhost:31195",
                         type = ServiceTypeEnum.SHENYU_GATEWAY
                 )
         )
@@ -66,13 +66,14 @@ public class WebSocketPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         LOG.info("start websocket plugin");
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "1");
+        formData.add("id", "26");
         formData.add("name", "websocket");
         formData.add("enabled", "true");
         formData.add("role", "Proxy");
-        formData.add("sort", "140");
-        adminClient.changePluginStatus("8", formData);
+        formData.add("sort", "200");
+        adminClient.changePluginStatus("1", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.websocket.WebSocketPlugin");
+
     }
 
     @ShenYuScenario(provider = WebSocketPluginCases.class)
