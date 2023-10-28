@@ -132,7 +132,6 @@ shenyu:
       - /alert/report
   dashboard:
     core:
-      enablePrintApiLog: true
       onlySuperAdminPermission:
         - system:manager:add
         - system:manager:edit

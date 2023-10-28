@@ -176,7 +176,6 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         String discoveryId = discoveryHandlerDO.getDiscoveryId();
         if (discoveryServiceCache.containsKey(discoveryId)) {
             ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryId);
-            // TODO 如果列表为空？
             List<String> childData = shenyuDiscoveryService.getRegisterData(buildProxySelectorKey(discoveryHandlerDO.getListenerNode()));
             List<DiscoveryUpstreamData> discoveryUpstreamDataList = childData.stream().map(s -> GsonUtils.getGson().fromJson(s, DiscoveryUpstreamData.class))
                     .collect(Collectors.toList());

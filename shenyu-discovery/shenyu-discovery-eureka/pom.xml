@@ -44,12 +44,6 @@
             <groupId>com.netflix.eureka</groupId>
             <artifactId>eureka-client</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.alibaba.fastjson2</groupId>
-            <artifactId>fastjson2</artifactId>
-            <version>2.0.14</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 
 </project>

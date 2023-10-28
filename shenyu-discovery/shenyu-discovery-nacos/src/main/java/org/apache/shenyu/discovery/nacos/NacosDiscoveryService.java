@@ -17,7 +17,8 @@
 
 package org.apache.shenyu.discovery.nacos;
 
-import com.alibaba.fastjson2.JSONObject;
+import com.google.gson.JsonObject;
+import org.apache.shenyu.common.utils.GsonUtils;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -75,7 +77,9 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         nacosProperties.put(PropertyKeyConst.SECRET_KEY, properties.getProperty(PropertyKeyConst.SECRET_KEY, ""));
         try {
             this.namingService = NamingFactory.createNamingService(nacosProperties);
+            LOGGER.info("Nacos naming service initialized success");
         } catch (NacosException e) {
+            LOGGER.error("Error initializing Nacos naming service", e);
             throw new ShenyuException(e);
         }
     }
@@ -100,8 +104,10 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
                 };
                 namingService.subscribe(key, groupName, nacosListener);
                 listenerMap.put(key, nacosListener);
+                LOGGER.info("Subscribed to Nacos updates for key: {}", key);
             }
         } catch (NacosException e) {
+            LOGGER.error("nacosDiscoveryService error watching key: {}", key, e);
             throw new ShenyuException(e);
         }
     }
@@ -110,9 +116,10 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
     public void unwatch(final String key) {
         try {
             EventListener nacosListener = listenerMap.get(key);
-            if (nacosListener != null) {
+            if (Objects.nonNull(nacosListener)) {
                 namingService.unsubscribe(key, groupName, nacosListener);
                 listenerMap.remove(key);
+                LOGGER.info("Nacos Unwatch key: {}", key);
             }
         } catch (NacosException e) {
             LOGGER.error("Error removing Nacos service listener: {}", e.getMessage(), e);
@@ -123,13 +130,9 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void register(final String key, final String value) {
         try {
-            JSONObject jsonValue = JSONObject.parse(value);
-            Instance instance = new Instance();
-            instance.setIp(jsonValue.getString("ip"));
-            instance.setPort(jsonValue.getIntValue("port"));
-            instance.setWeight(jsonValue.getDoubleValue("weight"));
-            instance.setServiceName(jsonValue.getString("serviceName"));
+            Instance instance = GsonUtils.getInstance().fromJson(value, Instance.class);
             namingService.registerInstance(key, groupName, instance);
+            LOGGER.info("Registering service with key: {} and value: {}", key, value);
         } catch (NacosException e) {
             LOGGER.error("Error registering Nacos service instance: {}", e.getMessage(), e);
             throw new ShenyuException(e);
@@ -166,7 +169,7 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void shutdown() {
         try {
-            if (namingService != null) {
+            if (Objects.nonNull(namingService)) {
                 for (Map.Entry<String, EventListener> entry : listenerMap.entrySet()) {
                     String key = entry.getKey();
                     EventListener listener = entry.getValue();
@@ -174,8 +177,10 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
                 }
                 listenerMap.clear();
                 namingService.shutDown();
+                LOGGER.info("Shutting down NacosDiscoveryService");
             }
         } catch (NacosException e) {
+            LOGGER.error("Error shutting down NacosDiscoveryService", e);
             throw new ShenyuException(e);
         }
     }
@@ -197,6 +202,7 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
                 .collect(Collectors.toSet());
         if (!deletedInstances.isEmpty()) {
             for (Instance instance: deletedInstances) {
+                instance.setHealthy(false);
                 DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getServiceName(),
                         buildInstanceInfoJson(instance), DiscoveryDataChangedEvent.Event.DELETED);
                 listener.onChange(dataChangedEvent);
@@ -217,12 +223,13 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
     }
 
     private String buildInstanceInfoJson(final Instance instance) {
-        JSONObject instanceJson = new JSONObject();
-        instanceJson.put("url", instance.getIp() + ":" + instance.getPort());
-        instanceJson.put("status", instance.isHealthy() ? 1 : 0);
-        instanceJson.put("weight", instance.getWeight());
+        JsonObject instanceJson = new JsonObject();
+        instanceJson.addProperty("url", instance.getIp() + ":" + instance.getPort());
+        // status 0:true, 1:false
+        instanceJson.addProperty("status", instance.isHealthy() ? 0 : 1);
+        instanceJson.addProperty("weight", instance.getWeight());
 
-        return instanceJson.toString();
+        return GsonUtils.getInstance().toJson(instanceJson);
     }
 }
 

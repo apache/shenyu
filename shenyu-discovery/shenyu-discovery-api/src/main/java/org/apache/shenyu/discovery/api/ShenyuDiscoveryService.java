@@ -62,7 +62,7 @@ public interface ShenyuDiscoveryService {
     /**
      * getData by key.
      *
-     * @param key keyd
+     * @param key key
      * @return value
      */
     List<String> getRegisterData(String key);

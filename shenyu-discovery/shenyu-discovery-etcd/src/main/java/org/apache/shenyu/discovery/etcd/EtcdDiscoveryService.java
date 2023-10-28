@@ -72,13 +72,13 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
         Properties props = config.getProps();
         this.timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
         this.ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
-        if (this.etcdClient == null) {
+        if (Objects.isNull(etcdClient)) {
             this.etcdClient = Client.builder().endpoints(config.getServerList().split(",")).build();
+            LOGGER.info("Etcd client created with endpoints: {}", config.getServerList());
         }
         if (leaseId == 0) {
             initLease();
         }
-
     }
 
     private void initLease() {
@@ -92,7 +92,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
                 @Override
                 public void onError(final Throwable throwable) {
-                    LOGGER.error("keep alive error", throwable);
+                    LOGGER.error("etcd lease keep alive error", throwable);
                 }
 
                 @Override
@@ -111,6 +111,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
             try {
                 Watch watch = etcdClient.getWatchClient();
                 WatchOption option = WatchOption.newBuilder().isPrefix(true).build();
+
                 Watch.Watcher watcher = watch.watch(bytesOf(key), option, Watch.listener(response -> {
                     for (WatchEvent event : response.getEvents()) {
                         DiscoveryDataChangedEvent dataChangedEvent;
@@ -120,10 +121,13 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
                         }
                         String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
                         String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
+
                         if (Objects.nonNull(event.getKeyValue()) && Objects.nonNull(value)) {
                             switch (event.getEventType()) {
                                 case PUT:
-                                    dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.UPDATED);
+                                    dataChangedEvent = event.getKeyValue().getCreateRevision() == event.getKeyValue().getModRevision()
+                                            ? new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.ADDED)
+                                            : new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.UPDATED);
                                     break;
                                 case DELETE:
                                     dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.DELETED);
@@ -136,7 +140,9 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
                     }
                 }));
                 watchCache.put(key, watcher);
+                LOGGER.info("Added etcd watcher for key: {}", key);
             } catch (Exception e) {
+                LOGGER.error("etcd client watch key: {} error", key, e);
                 throw new ShenyuException(e);
             }
         }
@@ -146,6 +152,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     public void unwatch(final String key) {
         if (watchCache.containsKey(key)) {
             watchCache.remove(key).close();
+            LOGGER.info("Unwatched etcd key: {}", key);
         }
     }
 
@@ -155,8 +162,9 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
             KV kvClient = etcdClient.getKVClient();
             PutOption putOption = PutOption.newBuilder().withLeaseId(leaseId).build();
             kvClient.put(bytesOf(key), bytesOf(value), putOption).get(timeout, TimeUnit.MILLISECONDS);
+            LOGGER.info("etcd client key: {} with value: {}", key, value);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            LOGGER.error("etcd client register success(key:{},value:{}) error.", key, value, e);
+            LOGGER.error("etcd client register (key:{},value:{}) error.", key, value, e);
             throw new ShenyuException(e);
         }
     }
@@ -172,6 +180,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
                     .map(kv -> kv.getValue().toString(StandardCharsets.UTF_8))
                     .collect(Collectors.toList());
         } catch (Exception e) {
+            LOGGER.error("etcd client get registered data with key: {} error", key, e);
             throw new ShenyuException(e);
         }
     }
@@ -195,10 +204,11 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
                 Watch.Watcher watcher = entry.getValue();
                 watcher.close();
             }
-            if (etcdClient != null) {
+            if (Objects.nonNull(etcdClient)) {
                 etcdClient.close();
             }
         } catch (Exception e) {
+            LOGGER.error("etcd client shutdown error", e);
             throw new ShenyuException(e);
         }
     }
