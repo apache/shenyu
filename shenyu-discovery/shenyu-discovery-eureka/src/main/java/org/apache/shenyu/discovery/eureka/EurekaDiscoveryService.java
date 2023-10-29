@@ -20,6 +20,7 @@ package org.apache.shenyu.discovery.eureka;
 import com.google.gson.JsonObject;
 import org.apache.shenyu.common.utils.GsonUtils;
 import com.netflix.appinfo.ApplicationInfoManager;
+import com.netflix.appinfo.MyDataCenterInstanceConfig;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.appinfo.EurekaInstanceConfig;
 import com.netflix.appinfo.providers.EurekaConfigBasedInstanceInfoProvider;
@@ -55,8 +56,6 @@ import java.util.stream.Collectors;
 public class EurekaDiscoveryService implements ShenyuDiscoveryService {
     private static final Logger LOGGER = LoggerFactory.getLogger(EurekaDiscoveryService.class);
 
-    private static CustomedEurekaConfig customedEurekaConfig = new CustomedEurekaConfig();
-
     private ApplicationInfoManager applicationInfoManager;
 
     private EurekaClient eurekaClient;
@@ -72,8 +71,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
         try {
             if (Objects.isNull(eurekaClient)) {
                 ConfigurationManager.loadProperties(getEurekaProperties(config));
-                customedEurekaConfig = new CustomedEurekaConfig();
-                applicationInfoManager = initializeApplicationInfoManager(customedEurekaConfig);
+                applicationInfoManager = initializeApplicationInfoManager(new MyDataCenterInstanceConfig());
                 eurekaClient = initializeEurekaClient(applicationInfoManager, new DefaultEurekaClientConfig());
                 LOGGER.info("Initializing EurekaDiscoveryService success");
             }
@@ -122,11 +120,15 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void register(final String key, final String value) {
-        InstanceInfo instanceInfo = GsonUtils.getInstance().fromJson(value, InstanceInfo.class);
-        customedEurekaConfig.setIpAddress(instanceInfo.getVIPAddress());
-        customedEurekaConfig.setPort(instanceInfo.getPort());
-        customedEurekaConfig.setApplicationName(instanceInfo.getAppName());
-        customedEurekaConfig.setInstanceId(instanceInfo.getInstanceId());
+        InstanceInfo instanceInfoFromJson = GsonUtils.getInstance().fromJson(value, InstanceInfo.class);
+        CustomedEurekaConfig customedEurekaConfig = new CustomedEurekaConfig();
+        customedEurekaConfig.setIpAddress(instanceInfoFromJson.getVIPAddress());
+        customedEurekaConfig.setPort(instanceInfoFromJson.getPort());
+        customedEurekaConfig.setApplicationName(key);
+        customedEurekaConfig.setInstanceId(instanceInfoFromJson.getInstanceId());
+        InstanceInfo instanceInfo = new EurekaConfigBasedInstanceInfoProvider(customedEurekaConfig).get();
+        applicationInfoManager = new ApplicationInfoManager(customedEurekaConfig, instanceInfo);
+        eurekaClient = new DiscoveryClient(applicationInfoManager, new DefaultEurekaClientConfig());
         applicationInfoManager.setInstanceStatus(InstanceInfo.InstanceStatus.UP);
     }
 
@@ -203,7 +205,6 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
     private void clean() {
         eurekaClient = null;
         applicationInfoManager = null;
-        customedEurekaConfig = null;
     }
 
     private String buildInstanceInfoJson(final InstanceInfo instanceInfo) {
