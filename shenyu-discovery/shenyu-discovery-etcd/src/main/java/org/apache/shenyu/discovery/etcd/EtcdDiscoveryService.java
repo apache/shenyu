@@ -74,7 +74,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
         this.ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
         if (Objects.isNull(etcdClient)) {
             this.etcdClient = Client.builder().endpoints(config.getServerList().split(",")).build();
-            LOGGER.info("Etcd client created with endpoints: {}", config.getServerList());
+            LOGGER.info("Etcd Discovery Service initialize successfully");
         }
         if (leaseId == 0) {
             initLease();
