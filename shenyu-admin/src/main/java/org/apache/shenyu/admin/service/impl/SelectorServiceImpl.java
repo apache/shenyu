@@ -23,14 +23,25 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerSelectorAddDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.BaseDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -45,8 +56,10 @@ import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
+import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.SelectorUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -56,12 +69,14 @@ import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.ListUtil;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -88,16 +103,32 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final SelectorEventPublisher selectorEventPublisher;
 
+    private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
+
+    private final DiscoveryHandlerMapper discoveryHandlerMapper;
+
+    private final DiscoveryProcessorHolder discoveryProcessorHolder;
+
+    private final DiscoveryRelMapper discoveryRelMapper;
+
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
                                final ApplicationEventPublisher eventPublisher,
-                               final SelectorEventPublisher selectorEventPublisher) {
+                               final SelectorEventPublisher selectorEventPublisher,
+                               final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                               final DiscoveryHandlerMapper discoveryHandlerMapper,
+                               final DiscoveryProcessorHolder discoveryProcessorHolder,
+                               final DiscoveryRelMapper discoveryRelMapper) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
         this.eventPublisher = eventPublisher;
         this.selectorEventPublisher = selectorEventPublisher;
+        this.discoveryUpstreamMapper = discoveryUpstreamMapper;
+        this.discoveryHandlerMapper = discoveryHandlerMapper;
+        this.discoveryProcessorHolder = discoveryProcessorHolder;
+        this.discoveryRelMapper = discoveryRelMapper;
     }
 
     @Override
@@ -403,4 +434,55 @@ public class SelectorServiceImpl implements SelectorService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String createDiscoveryHandlerSelector(final DiscoveryHandlerSelectorAddDTO discoveryHandlerSelectorAddDTO) {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        String selectorId = discoveryHandlerSelectorAddDTO.getId();
+        String discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();
+        DiscoveryHandlerDO discoveryHandlerDO = DiscoveryHandlerDO.builder()
+                .id(discoveryHandlerId)
+                .discoveryId(discoveryHandlerSelectorAddDTO.getDiscovery().getId())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .listenerNode(discoveryHandlerSelectorAddDTO.getListenerNode())
+                .handler(discoveryHandlerSelectorAddDTO.getHandler() == null ? "" : discoveryHandlerSelectorAddDTO.getHandler())
+                .props(discoveryHandlerSelectorAddDTO.getProps())
+                .build();
+        discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
+        DiscoveryRelDO discoveryRelDO = DiscoveryRelDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .pluginName(discoveryHandlerSelectorAddDTO.getPluginName())
+                .discoveryHandlerId(discoveryHandlerId)
+                .proxySelectorId("")
+                .selectorId(selectorId)
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
+        discoveryRelMapper.insertSelective(discoveryRelDO);
+        DiscoveryHandlerDTO discoveryHandlerDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO);
+        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryHandlerSelectorAddDTO.getDiscovery().getDiscoveryType());
+        discoveryProcessor.createDiscoverySelector(discoveryHandlerDTO, discoveryHandlerSelectorAddDTO);
+        List<DiscoveryUpstreamDO> upstreamDOList = Lists.newArrayList();
+        if (!org.springframework.util.CollectionUtils.isEmpty(discoveryHandlerSelectorAddDTO.getDiscoveryUpstreams())) {
+            discoveryHandlerSelectorAddDTO.getDiscoveryUpstreams().forEach(discoveryUpstream -> {
+                DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
+                        .id(UUIDUtils.getInstance().generateShortUuid())
+                        .discoveryHandlerId(discoveryHandlerId)
+                        .protocol(discoveryUpstream.getProtocol())
+                        .url(discoveryUpstream.getUrl())
+                        .status(discoveryUpstream.getStatus())
+                        .weight(discoveryUpstream.getWeight())
+                        .props(discoveryUpstream.getProps())
+                        .dateCreated(currentTime)
+                        .dateUpdated(currentTime)
+                        .build();
+                upstreamDOList.add(discoveryUpstreamDO);
+            });
+            discoveryUpstreamMapper.saveBatch(upstreamDOList);
+            List<DiscoveryUpstreamDTO> collect = upstreamDOList.stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
+            discoveryProcessor.changeUpstream(discoveryHandlerSelectorAddDTO, collect);
+        }
+        return ShenyuResultMessage.CREATE_SUCCESS;
+    }
 }

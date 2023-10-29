@@ -18,7 +18,11 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
@@ -107,10 +111,24 @@ public final class SelectorServiceTest {
     @Mock
     private SelectorEventPublisher selectorEventPublisher;
 
+    @Mock
+    private DiscoveryUpstreamMapper discoveryUpstreamMapper;
+
+    @Mock
+    private DiscoveryHandlerMapper discoveryHandlerMapper;
+
+    @Mock
+    private DiscoveryProcessorHolder discoveryProcessorHolder;
+
+    @Mock
+    private DiscoveryRelMapper discoveryRelMapper;
+
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
-        selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper, eventPublisher, selectorEventPublisher);
+        selectorService = new SelectorServiceImpl(
+                selectorMapper, selectorConditionMapper, pluginMapper, eventPublisher, selectorEventPublisher,
+                discoveryUpstreamMapper, discoveryHandlerMapper, discoveryProcessorHolder, discoveryRelMapper);
     }
 
     @Test
@@ -166,7 +184,7 @@ public final class SelectorServiceTest {
         List<SelectorConditionVO> selectorConditions = selectorVO.getSelectorConditions();
         selectorConditions.forEach(selectorConditionVO -> assertEquals(selectorConditionVO.getSelectorId(), selectorDO.getId()));
     }
-    
+
     @Test
     public void testFindByName() {
         List<SelectorDO> selectorDO1List = Collections.singletonList(buildSelectorDO());

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.discovery;
 
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerSelectorAddDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
@@ -67,6 +68,13 @@ public interface DiscoveryProcessor {
      */
     void changeUpstream(ProxySelectorDTO proxySelectorDTO, List<DiscoveryUpstreamDTO> upstreamDTOS);
 
+    /**
+     * only use in local mode to sync upstreamDTOS.
+     *
+     * @param discoveryHandlerSelectorAddDTO proxySelectorDTO
+     * @param upstreamDTOS                   upstreamDTOS
+     */
+    void changeUpstream(DiscoveryHandlerSelectorAddDTO discoveryHandlerSelectorAddDTO, List<DiscoveryUpstreamDTO> upstreamDTOS);
 
     /**
      * sync all upstream list to gateway and db.
@@ -75,4 +83,11 @@ public interface DiscoveryProcessor {
      */
     void fetchAll(String discoveryHandlerId);
 
+    /**
+     * createDiscoverySelector.
+     *
+     * @param discoveryHandlerDTO            discoveryHandlerDTO
+     * @param discoveryHandlerSelectorAddDTO discoveryHandlerSelectorAddDTO
+     */
+    void createDiscoverySelector(DiscoveryHandlerDTO discoveryHandlerDTO, DiscoveryHandlerSelectorAddDTO discoveryHandlerSelectorAddDTO);
 }

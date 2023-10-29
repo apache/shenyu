@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerSelectorAddDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
@@ -64,6 +65,11 @@ public class LocalDiscoveryProcessor implements DiscoveryProcessor, ApplicationE
     }
 
     @Override
+    public void createDiscoverySelector(final DiscoveryHandlerDTO discoveryHandlerDTO, final DiscoveryHandlerSelectorAddDTO discoveryHandlerSelectorAddDTO) {
+        LOG.info("shenyu discovery local mode do nothing in createDiscovery");
+    }
+
+    @Override
     public void createProxySelector(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE,
                 Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
@@ -95,6 +101,18 @@ public class LocalDiscoveryProcessor implements DiscoveryProcessor, ApplicationE
     }
 
     @Override
+    public void changeUpstream(final DiscoveryHandlerSelectorAddDTO discoveryHandlerSelectorAddDTO, final List<DiscoveryUpstreamDTO> upstreamDTOS) {
+        DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+        discoverySyncData.setPluginName(discoveryHandlerSelectorAddDTO.getPluginName());
+        discoverySyncData.setSelectorId(discoveryHandlerSelectorAddDTO.getId());
+        discoverySyncData.setSelectorName(discoveryHandlerSelectorAddDTO.getName());
+        List<DiscoveryUpstreamData> upstreamDataList = upstreamDTOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
+        discoverySyncData.setUpstreamDataList(upstreamDataList);
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
+        eventPublisher.publishEvent(dataChangedEvent);
+    }
+
+    @Override
     public void setApplicationEventPublisher(final ApplicationEventPublisher applicationEventPublisher) {
         this.eventPublisher = applicationEventPublisher;
     }
@@ -112,5 +130,4 @@ public class LocalDiscoveryProcessor implements DiscoveryProcessor, ApplicationE
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
         eventPublisher.publishEvent(dataChangedEvent);
     }
-
 }

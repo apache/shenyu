@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerSelectorAddDTO;
+import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -203,4 +205,12 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @return the list
      */
     List<SelectorData> listAll();
+
+    /**
+     * addDiscoveryHandlerSelector.
+     *
+     * @param discoveryHandlerSelectorAddDTO {@link ProxySelectorAddDTO}
+     * @return the result
+     */
+    String createDiscoveryHandlerSelector(DiscoveryHandlerSelectorAddDTO discoveryHandlerSelectorAddDTO);
 }

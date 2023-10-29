@@ -101,7 +101,6 @@ public class ProxySelectorController {
      */
     @PostMapping("addProxySelector")
     public ShenyuAdminResult addProxySelector(@RequestBody @Valid final ProxySelectorAddDTO proxySelectorAddDTO) {
-
         return ShenyuAdminResult.success(proxySelectorService.create(proxySelectorAddDTO), null);
     }
 
@@ -114,7 +113,6 @@ public class ProxySelectorController {
      */
     @PutMapping("fetch/{discoveryHandlerId}")
     public ShenyuAdminResult fetchData(@PathVariable("discoveryHandlerId") final String discoveryHandlerId) {
-
         proxySelectorService.fetchData(discoveryHandlerId);
         return ShenyuAdminResult.success();
     }

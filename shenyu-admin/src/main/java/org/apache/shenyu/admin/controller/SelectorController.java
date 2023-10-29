@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerSelectorAddDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageCondition;
@@ -137,4 +138,17 @@ public class SelectorController implements PagedController<SelectorQueryConditio
     public PageService<SelectorQueryCondition, SelectorVO> pageService() {
         return selectorService;
     }
+
+    /**
+     * add DiscoveryHandler selectors.
+     *
+     * @param discoveryHandlerSelectorAddDTO {@link DiscoveryHandlerSelectorAddDTO}
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PostMapping("/addDiscoveryHandlerSelector")
+    public ShenyuAdminResult addDiscoveryHandlerSelector(@RequestBody @Valid final DiscoveryHandlerSelectorAddDTO discoveryHandlerSelectorAddDTO) {
+
+        return ShenyuAdminResult.success(selectorService.createDiscoveryHandlerSelector(discoveryHandlerSelectorAddDTO), null);
+    }
+
 }

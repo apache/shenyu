@@ -26,6 +26,7 @@ import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerSelectorAddDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
@@ -33,8 +34,8 @@ import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
-import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -55,8 +56,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -136,6 +137,34 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         eventPublisher.publishEvent(dataChangedEvent);
     }
 
+    @Override
+    public void createDiscoverySelector(final DiscoveryHandlerDTO discoveryHandlerDTO, final DiscoveryHandlerSelectorAddDTO discoveryHandlerSelectorAddDTO) {
+        ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
+        String key = buildProxySelectorKey(discoveryHandlerDTO.getListenerNode());
+        if (Objects.isNull(shenyuDiscoveryService)) {
+            throw new ShenyuAdminException(String.format("before start ProxySelector you need init DiscoveryId=%s", discoveryHandlerDTO.getDiscoveryId()));
+        }
+        if (!shenyuDiscoveryService.exits(key)) {
+            throw new ShenyuAdminException(String.format("shenyu discovery start watcher need you has this key %s in Discovery", key));
+        }
+        Set<String> cacheKey = dataChangedEventListenerCache.get(discoveryHandlerDTO.getDiscoveryId());
+        if (Objects.nonNull(cacheKey) && cacheKey.contains(key)) {
+            throw new ShenyuAdminException(String.format("shenyu discovery has watcher key = %s", key));
+        }
+        shenyuDiscoveryService.watcher(key, getDiscoveryDataChangedEventListener(discoveryHandlerDTO, discoveryHandlerSelectorAddDTO));
+        cacheKey.add(key);
+    }
+
+    @Override
+    public void changeUpstream(final DiscoveryHandlerSelectorAddDTO discoveryHandlerSelectorAddDTO, final List<DiscoveryUpstreamDTO> upstreamDTOS) {
+        throw new NotImplementedException("shenyu discovery local mode do nothing in changeUpstream");
+    }
+
+    @Override
+    public void changeUpstream(final ProxySelectorDTO proxySelectorDTO, final List<DiscoveryUpstreamDTO> upstreamDTOS) {
+        throw new NotImplementedException("shenyu discovery local mode do nothing in changeUpstream");
+    }
+
     /**
      * removeDiscovery by ShenyuDiscoveryService#shutdown .
      *
@@ -163,11 +192,6 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE,
                 Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
         eventPublisher.publishEvent(dataChangedEvent);
-    }
-
-    @Override
-    public void changeUpstream(final ProxySelectorDTO proxySelectorDTO, final List<DiscoveryUpstreamDTO> upstreamDTOS) {
-        throw new NotImplementedException("shenyu discovery local mode do nothing in changeUpstream");
     }
 
     @Override
@@ -236,6 +260,23 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
         discoverySyncData.setSelectorName(proxySelectorDTO.getName());
         discoverySyncData.setSelectorId(proxySelectorDTO.getId());
+        return new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper,
+                new CustomDiscoveryUpstreamParser(customMap), discoveryHandlerDTO.getId(), discoverySyncData);
+    }
+
+    /**
+     * getDiscoveryDataChangedEventListener.
+     *
+     * @param discoveryHandlerDTO            discoveryHandlerDTO
+     * @param discoveryHandlerSelectorAddDTO discoveryHandlerSelectorAddDTO
+     * @return DataChangedEventListener
+     */
+    private DataChangedEventListener getDiscoveryDataChangedEventListener(final DiscoveryHandlerDTO discoveryHandlerDTO, final DiscoveryHandlerSelectorAddDTO discoveryHandlerSelectorAddDTO) {
+        final Map<String, String> customMap = GsonUtils.getInstance().toObjectMap(discoveryHandlerDTO.getHandler(), String.class);
+        DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+        discoverySyncData.setPluginName(discoveryHandlerSelectorAddDTO.getPluginName());
+        discoverySyncData.setSelectorName(discoveryHandlerSelectorAddDTO.getName());
+        discoverySyncData.setSelectorId(discoveryHandlerSelectorAddDTO.getId());
         return new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper,
                 new CustomDiscoveryUpstreamParser(customMap), discoveryHandlerDTO.getId(), discoverySyncData);
     }
