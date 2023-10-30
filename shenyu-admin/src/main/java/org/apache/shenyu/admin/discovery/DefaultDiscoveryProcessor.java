@@ -144,14 +144,14 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         if (Objects.isNull(shenyuDiscoveryService)) {
             throw new ShenyuAdminException(String.format("before start ProxySelector you need init DiscoveryId=%s", discoveryHandlerDTO.getDiscoveryId()));
         }
-        if (!shenyuDiscoveryService.exits(key)) {
+        if (!shenyuDiscoveryService.exists(key)) {
             throw new ShenyuAdminException(String.format("shenyu discovery start watcher need you has this key %s in Discovery", key));
         }
         Set<String> cacheKey = dataChangedEventListenerCache.get(discoveryHandlerDTO.getDiscoveryId());
         if (Objects.nonNull(cacheKey) && cacheKey.contains(key)) {
             throw new ShenyuAdminException(String.format("shenyu discovery has watcher key = %s", key));
         }
-        shenyuDiscoveryService.watcher(key, getDiscoveryDataChangedEventListener(discoveryHandlerDTO, discoveryHandlerSelectorAddDTO));
+        shenyuDiscoveryService.watch(key, getDiscoveryDataChangedEventListener(discoveryHandlerDTO, discoveryHandlerSelectorAddDTO));
         cacheKey.add(key);
     }
 
