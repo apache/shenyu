@@ -60,7 +60,7 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
         try {
-            ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin("zookeeper");
+            ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(discoveryConfig.getType());
             discoveryService.init(discoveryConfig);
             discoveryService.register(buildSeqPath(), GsonUtils.getInstance().toJson(currentInstanceUpstream));
         } catch (Exception e) {

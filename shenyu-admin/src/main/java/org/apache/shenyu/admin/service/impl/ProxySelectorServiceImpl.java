@@ -271,6 +271,44 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String bindingDiscoveryHandler(final ProxySelectorAddDTO proxySelectorAddDTO) {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        String selectorId = proxySelectorAddDTO.getId();
+        ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
+        String discoveryId = discovery.getId();
+        String discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();
+        DiscoveryHandlerDO discoveryHandlerDO = DiscoveryHandlerDO.builder()
+                .id(discoveryHandlerId)
+                .discoveryId(discoveryId)
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .listenerNode(proxySelectorAddDTO.getListenerNode())
+                .handler(proxySelectorAddDTO.getHandler() == null ? "" : proxySelectorAddDTO.getHandler())
+                .props(proxySelectorAddDTO.getProps())
+                .build();
+        discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
+        DiscoveryRelDO discoveryRelDO = DiscoveryRelDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .pluginName(proxySelectorAddDTO.getPluginName())
+                .discoveryHandlerId(discoveryHandlerId)
+                .selectorId(selectorId)
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
+        discoveryRelMapper.insertSelective(discoveryRelDO);
+
+        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+        proxySelectorDTO.setPluginName(proxySelectorAddDTO.getPluginName());
+        proxySelectorDTO.setName(proxySelectorAddDTO.getName());
+        proxySelectorDTO.setId(proxySelectorAddDTO.getId());
+        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
+        DiscoveryHandlerDTO discoveryHandlerDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO);
+        discoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO);
+        return ShenyuResultMessage.CREATE_SUCCESS;
+    }
+
     /**
      * update.
      *

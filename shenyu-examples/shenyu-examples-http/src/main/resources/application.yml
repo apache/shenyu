@@ -34,7 +34,11 @@ shenyu:
 #          port: 8189
   discovery:
     name: ZK
+    mode: zookeeper
     type: zookeeper
+    enable: true
+    plugin-name: divide
+    protocol: http
     serverList: 127.0.0.1:2181
     weight: 10
     registerPath: /shenyu/discovery/demo_http

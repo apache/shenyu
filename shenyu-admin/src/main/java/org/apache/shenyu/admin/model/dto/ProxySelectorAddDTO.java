@@ -54,7 +54,6 @@ public class ProxySelectorAddDTO implements Serializable {
     /**
      * proxy forward port.
      */
-    @NotNull
     private Integer forwardPort;
 
     @NotBlank
@@ -84,7 +83,6 @@ public class ProxySelectorAddDTO implements Serializable {
     /**
      * discovery upstream list.
      */
-    @NotNull
     private List<DiscoveryUpstream> discoveryUpstreams;
 
     /**
