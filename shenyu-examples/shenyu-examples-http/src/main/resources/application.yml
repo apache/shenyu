@@ -33,7 +33,6 @@ shenyu:
           appName: http
 #          port: 8189
   discovery:
-    enable: true
     name: ZK
     type: zookeeper
     serverList: 127.0.0.1:2181
