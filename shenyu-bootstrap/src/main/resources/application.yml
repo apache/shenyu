@@ -209,19 +209,19 @@ shenyu:
     allowedHeaders:
     allowedMethods: "*"
     allowedAnyOrigin: true # the same of Access-Control-Allow-Origin: "*"
-      #    allowedOrigin:
-      # format : schema://prefix spacer domain
+#    allowedOrigin:
+    # format : schema://prefix spacer domain
     # Access-Control-Allow-Origin: "http://a.apache.org,http://b.apache.org"
-    #      spacer: "."
-    #      domain: apache.org
-    #      prefixes:
-    #        - a # a.apache.org
-    #        - b # b.apache.org
-    #      origins:
-    #        - c.apache.org
-    #        - d.apache.org
-    #        - http://e.apache.org
-    #      originRegex: ^http(|s)://(.*\.|)abc.com$
+#      spacer: "."
+#      domain: apache.org
+#      prefixes:
+#        - a # a.apache.org
+#        - b # b.apache.org
+#      origins:
+#        - c.apache.org
+#        - d.apache.org
+#        - http://e.apache.org
+#      originRegex: ^http(|s)://(.*\.|)abc.com$
     allowedExpose: ""
     maxAge: "18000"
     allowCredentials: true
@@ -232,45 +232,45 @@ shenyu:
   file:
     enabled: true
     maxSize : 10
-    #  sync:
-    #    websocket:
-    #      urls: ws://localhost:9095/websocket
-    #      allowOrigin: ws://localhost:9195
-    #    apollo:
-    #      appId: shenyu
-    #      meta: http://localhost:8080
-    #      env: dev
-    #      clusterName: test
-    #      namespace: application
+#  sync:
+#    websocket:
+#      urls: ws://localhost:9095/websocket
+#      allowOrigin: ws://localhost:9195
+#    apollo:
+#      appId: shenyu
+#      meta: http://localhost:8080
+#      env: dev
+#      clusterName: test
+#      namespace: application
     zookeeper:
       url: localhost:2181
       sessionTimeout: 5000
       connectionTimeout: 2000
-  #    http:
-  #      url: http://localhost:9095
-  #      username:
-  #      password:
-  #    nacos:
-  #      url: localhost:8848
-  #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-  #      username:
-  #      password:
-  #      acm:
-  #        enabled: false
-  #        endpoint: acm.aliyun.com
-  #        namespace:
-  #        accessKey:
-  #        secretKey:
-  #    polaris:
-  #      url: 127.0.0.1:8093
-  #      namespace:
-  #      fileGroup:
-  #    etcd:
-  #      url: http://localhost:2379
-  #    consul:
-  #      url: http://localhost:8500
-  #      waitTime: 10000
-  #      watchDelay: 10000
+#    http:
+#      url: http://localhost:9095
+#      username:
+#      password:
+#    nacos:
+#      url: localhost:8848
+#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+#      username:
+#      password:
+#      acm:
+#        enabled: false
+#        endpoint: acm.aliyun.com
+#        namespace:
+#        accessKey:
+#        secretKey:
+#    polaris:
+#      url: 127.0.0.1:8093
+#      namespace:
+#      fileGroup:
+#    etcd:
+#      url: http://localhost:2379
+#    consul:
+#      url: http://localhost:8500
+#      waitTime: 10000
+#      watchDelay: 10000
   exclude:
     enabled: false
     paths:
