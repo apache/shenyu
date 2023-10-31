@@ -100,9 +100,9 @@ public class ShenyuLoaderService {
      *
      * @param parseJarInputStream parseJarInputStream
      * @param classLoader classLoader
-     * @return List ShenyuLoaderResult
+     * @return a list of ShenyuLoaderResult
      */
-    public List<ShenyuLoaderResult> loadJarPlugins(final InputStream parseJarInputStream, final ClassLoader classLoader) {
+    public List<ShenyuLoaderResult> loadJarPlugins(final InputStream parseJarInputStream, ClassLoader classLoader) {
         try {
             PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(parseJarInputStream);
             ShenyuPluginClassLoader shenyuPluginClassLoader = ShenyuPluginClassloaderHolder.getSingleton().getUploadClassLoader(pluginJar);
