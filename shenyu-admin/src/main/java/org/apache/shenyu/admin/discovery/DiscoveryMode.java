@@ -36,5 +36,9 @@ public enum DiscoveryMode {
     /**
      * Eureka discovery mode.
      */
-    EUREKA
+    EUREKA,
+    /**
+     * ETCD discovery mode.
+     */
+    ETCD
 }
