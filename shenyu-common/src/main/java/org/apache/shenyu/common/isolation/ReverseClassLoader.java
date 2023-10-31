@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.isolation;
+package org.apache.shenyu.common.isolation;
 
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Objects;
 
+/**
+ * ReverseClassLoader.
+ */
 public class ReverseClassLoader extends URLClassLoader {
 
     public ReverseClassLoader(final URL[] urls, final ClassLoader parent) {

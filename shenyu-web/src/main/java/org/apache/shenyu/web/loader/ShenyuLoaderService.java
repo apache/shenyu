@@ -57,7 +57,7 @@ public class ShenyuLoaderService {
      *
      * @param webHandler         the web handler
      * @param shenyuConfig       the shenyu config
-     * @param extendDataHandlers       addDataHandlers
+     * @param extendDataHandlers addDataHandlers
      */
     public ShenyuLoaderService(final ShenyuWebHandler webHandler, final ShenyuConfig shenyuConfig, final List<ExtendDataHandler<?>> extendDataHandlers) {
         this.webHandler = webHandler;

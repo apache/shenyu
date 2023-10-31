@@ -23,7 +23,7 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
-import org.apache.shenyu.isolation.ReverseClassLoader;
+import org.apache.shenyu.common.isolation.ReverseClassLoader;
 import org.apache.shenyu.plugin.api.ExtendDataBase;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;

@@ -50,7 +50,7 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber, ExtendDataH
     }
 
     @Override
-    public void addHandlers(List<MetaDataHandler> handlers) {
+    public void addHandlers(final List<MetaDataHandler> handlers) {
         handlers.forEach(metaDataHandler -> {
             this.handlerMap.put(metaDataHandler.rpcType(), metaDataHandler);
         });
