@@ -19,7 +19,7 @@ server:
 
 shenyu:
   common:
-    contextPath: ws-native
+    contextPath: /ws-native
     appName: ws-native
     port: 8868
   register:
