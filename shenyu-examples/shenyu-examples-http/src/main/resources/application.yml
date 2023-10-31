@@ -33,10 +33,12 @@ shenyu:
           appName: http
 #          port: 8189
   discovery:
-    name: ZK
-    mode: zookeeper
-    type: zookeeper
+#    name: local_discovery
+#    mode: local
+#    type: local
+    name: zk_discovery
     enable: true
+    type: zookeeper
     plugin-name: divide
     protocol: http
     serverList: 127.0.0.1:2181

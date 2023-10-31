@@ -275,7 +275,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     @Transactional(rollbackFor = Exception.class)
     public String bindingDiscoveryHandler(final ProxySelectorAddDTO proxySelectorAddDTO) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        String selectorId = proxySelectorAddDTO.getId();
+        String selectorId = proxySelectorAddDTO.getSelectorId();
         ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
         String discoveryId = discovery.getId();
         String discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();
@@ -302,7 +302,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
         proxySelectorDTO.setPluginName(proxySelectorAddDTO.getPluginName());
         proxySelectorDTO.setName(proxySelectorAddDTO.getName());
-        proxySelectorDTO.setId(proxySelectorAddDTO.getId());
+        proxySelectorDTO.setId(selectorId);
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
         DiscoveryHandlerDTO discoveryHandlerDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO);
         discoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO);

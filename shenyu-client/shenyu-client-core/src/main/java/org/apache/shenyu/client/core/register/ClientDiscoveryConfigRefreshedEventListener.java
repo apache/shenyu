@@ -52,11 +52,11 @@ public final class ClientDiscoveryConfigRefreshedEventListener implements Applic
         }
         if (StringUtils.isEmpty(shenyuDiscoveryConfig.getServerList())) {
             LOG.error("If using service discovery. The configuration shenyu.discovery.name in xml/yml cannot be null");
-            throw new ShenyuException("The configuration shenyu.discovery.name in xml/yml cannot be null");
+            throw new ShenyuException("The configuration shenyu.discovery.serverList in xml/yml cannot be null");
         }
         if (StringUtils.isEmpty(shenyuDiscoveryConfig.getType())) {
             LOG.error("If using service discovery. The configuration shenyu.discovery.name in xml/yml cannot be null");
-            throw new ShenyuException("The configuration shenyu.discovery.name in xml/yml cannot be null");
+            throw new ShenyuException("The configuration shenyu.discovery.type in xml/yml cannot be null");
         }
         return DiscoveryConfigRegisterDTO.builder()
                 .name(shenyuDiscoveryConfig.getName())

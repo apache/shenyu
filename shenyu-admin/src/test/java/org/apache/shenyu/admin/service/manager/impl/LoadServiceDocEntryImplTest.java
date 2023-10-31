@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.manager.PullSwaggerDocService;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -42,10 +43,7 @@ import org.mockito.quality.Strictness;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -131,19 +129,17 @@ public class LoadServiceDocEntryImplTest {
 
     @Test
     public void testLoadDocOnSelectorChanged() {
-        SelectorData selectorData = new SelectorData();
-        selectorData.setId("1");
-        selectorData.setName("test");
-        selectorData.setEnabled(true);
-        selectorData.setHandle("testHandle");
-        selectorData.setPluginId("1");
-        selectorData.setMatchMode(1);
-        List<SelectorData> changedList = new ArrayList<>();
-        changedList.add(selectorData);
+        DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+        discoverySyncData.setSelectorId("1");
+        discoverySyncData.setPluginName("divide");
+        discoverySyncData.setSelectorName("test");
+        discoverySyncData.setUpstreamDataList(Collections.emptyList());
+        List<DiscoverySyncData> changedList = new ArrayList<>();
+        changedList.add(discoverySyncData);
         DataEventTypeEnum eventType = DataEventTypeEnum.acquireByName("CREATE");
         this.testLoadApiDocument();
         when(shenyuDictService.findByDictCodeName(any(), any())).thenReturn(null);
-        loadServiceDocEntry.loadDocOnSelectorChanged(changedList, eventType);
+        loadServiceDocEntry.loadDocOnUpstreamChanged(changedList, eventType);
         verify(pullSwaggerDocService).pullApiDocument((Set<UpstreamInstance>) any());
     }
 }

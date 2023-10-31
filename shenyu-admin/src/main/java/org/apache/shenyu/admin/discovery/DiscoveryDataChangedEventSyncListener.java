@@ -118,6 +118,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private void fillFullyDiscoverySyncData(final DiscoverySyncData discoverySyncData) {
         List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByProxySelectorId(discoverySyncData.getSelectorId());
+        discoveryUpstreamDOS.addAll(discoveryUpstreamMapper.selectBySelectorId(discoverySyncData.getSelectorId()));
         List<DiscoveryUpstreamData> collect = discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
         discoverySyncData.setUpstreamDataList(collect);
     }
