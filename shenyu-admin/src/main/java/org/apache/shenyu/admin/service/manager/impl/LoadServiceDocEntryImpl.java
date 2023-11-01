@@ -101,7 +101,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     }
 
     @Override
-    public void loadDocOnUpstreamChanged(List<DiscoverySyncData> discoverySyncDataList, DataEventTypeEnum eventType) {
+    public void loadDocOnUpstreamChanged(final List<DiscoverySyncData> discoverySyncDataList, final DataEventTypeEnum eventType) {
         if (Objects.nonNull(eventType) && (eventType == DataEventTypeEnum.CREATE || eventType == DataEventTypeEnum.UPDATE)) {
             List<UpstreamInstance> serviceList = this.getLastUpdateInstanceList(discoverySyncDataList);
             if (CollectionUtils.isEmpty(serviceList)) {
@@ -169,8 +169,9 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
      * @return List
      */
     private List<UpstreamInstance> getAllClusterLastUpdateInstanceList() {
-        List<String> pluginNames = RpcTypeEnum.acquireSupportSwaggers().stream().map(
-                rpcTypeEnum -> PluginNameAdapter.rpcTypeAdapter(rpcTypeEnum.getName())).collect(Collectors.toList());
+        List<String> pluginNames = RpcTypeEnum.acquireSupportSwaggers().stream()
+                .map(rpcTypeEnum -> PluginNameAdapter.rpcTypeAdapter(rpcTypeEnum.getName()))
+                .collect(Collectors.toList());
         final List<PluginDO> pluginDOList = pluginMapper.selectByNames(pluginNames);
         if (CollectionUtils.isEmpty(pluginDOList)) {
             return Collections.emptyList();

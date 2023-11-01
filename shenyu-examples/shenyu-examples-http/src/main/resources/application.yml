@@ -33,9 +33,6 @@ shenyu:
           appName: http
 #          port: 8189
   discovery:
-#    name: local_discovery
-#    mode: local
-#    type: local
 #    name: zk_discovery
 #    enable: true
 #    type: zookeeper

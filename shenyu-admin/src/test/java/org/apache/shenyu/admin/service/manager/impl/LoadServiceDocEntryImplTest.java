@@ -24,13 +24,12 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.ShenyuDictService;
-import org.apache.shenyu.admin.service.converter.SelectorHandleConverter;
-import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.manager.PullSwaggerDocService;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
-import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.junit.jupiter.api.Test;
@@ -43,11 +42,14 @@ import org.mockito.quality.Strictness;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -61,9 +63,6 @@ public class LoadServiceDocEntryImplTest {
     private SelectorService selectorService;
 
     @Mock
-    private SelectorHandleConverterFactor converterFactor;
-
-    @Mock
     private PluginMapper pluginMapper;
 
     @Mock
@@ -71,6 +70,9 @@ public class LoadServiceDocEntryImplTest {
 
     @Mock
     private ShenyuDictService shenyuDictService;
+
+    @Mock
+    private DiscoveryUpstreamService discoveryUpstreamService;
 
     @Test
     public void testLoadApiDocument() {
@@ -115,14 +117,16 @@ public class LoadServiceDocEntryImplTest {
         list.add(selectorVO);
         commonPager.setDataList(list);
         commonPager.setPage(new PageParameter(1, 1));
-        SelectorHandleConverter selectorHandleConverter = mock(SelectorHandleConverter.class);
         List<CommonUpstream> upstreamList = new ArrayList<>();
         upstreamList.add(new CommonUpstream("testProtocol", "testUpstreamHost", "testUrl", true, 1000L));
-
-        when(selectorHandleConverter.convertUpstream(any())).thenReturn(upstreamList);
-        when(converterFactor.newInstance(any())).thenReturn(selectorHandleConverter);
+        DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
+        discoveryUpstreamData.setUrl("127.0.0.1:8080");
+        discoveryUpstreamData.setProps("{}");
+        discoveryUpstreamData.setDiscoveryHandlerId("1");
+        discoveryUpstreamData.setStatus(0);
         when(selectorService.listByPage(any())).thenReturn(commonPager);
         when(pluginMapper.selectByNames(any())).thenReturn(pluginDOList);
+        when(discoveryUpstreamService.findBySelectorId(any())).thenReturn(Collections.singletonList(discoveryUpstreamData));
         loadServiceDocEntry.loadApiDocument();
         verify(pullSwaggerDocService).pullApiDocument((Set<UpstreamInstance>) any());
     }

@@ -38,7 +38,9 @@ public class ProxySelectorAddDTO implements Serializable {
     @Existed(provider = ProxySelectorMapper.class, nullOfIgnore = true, message = "proxy selector not exited")
     private String id;
 
-
+    /**
+     * selector id.
+     */
     private String selectorId;
 
     /**
@@ -268,11 +270,21 @@ public class ProxySelectorAddDTO implements Serializable {
         this.pluginName = pluginName;
     }
 
+    /**
+     * getSelectorId.
+     *
+     * @return selectorId
+     */
     public String getSelectorId() {
         return selectorId;
     }
 
-    public void setSelectorId(String selectorId) {
+    /**
+     * setSelectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void setSelectorId(final String selectorId) {
         this.selectorId = selectorId;
     }
 

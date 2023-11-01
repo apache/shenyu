@@ -170,7 +170,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     @Override
     public List<DiscoveryUpstreamData> findBySelectorId(final String selectorId) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
-        if(Objects.isNull(discoveryHandlerDO)){
+        if (Objects.isNull(discoveryHandlerDO)) {
             return Collections.emptyList();
         }
         List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDO.getId());
