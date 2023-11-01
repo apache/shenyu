@@ -35,7 +35,7 @@ import java.util.List;
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
                 service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:31095",
+                        baseUrl = "http://localhost:9095",
                         type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
                                 @ShenYuTest.Parameter(key = "username", value = "admin"),
@@ -46,7 +46,7 @@ import java.util.List;
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-gateway",
                 service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:31195",
+                        baseUrl = "http://localhost:9195",
                         type = ServiceTypeEnum.SHENYU_GATEWAY
                 )
         )
@@ -67,14 +67,14 @@ public class SofaPluginTest {
         formData.add("enabled", "true");
         formData.add("role", "Proxy");
         formData.add("sort", "310");
-        formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zookeeper:2181\"}");
+        formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"localhost:2181\"}");
         adminClient.changePluginStatus("11", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
     }
     
     @ShenYuScenario(provider = SofaPluginCases.class)
     void testSofa(final GatewayClient gateway, final CaseSpec spec) {
-        //spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
+        spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 }
 
