@@ -34,7 +34,15 @@ shenyu:
           contextPath: /http-swagger2
           appName: http-swagger2
 #          port: 8190
-
+#  discovery:
+#    name: zk_discovery
+#    enable: true
+#    type: zookeeper
+#    plugin-name: divide
+#    protocol: http://
+#    serverList: 127.0.0.1:2181
+#    weight: 10
+#    registerPath: /shenyu/discovery/demo_http
 spring:
   servlet:
     multipart:
