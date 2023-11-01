@@ -230,11 +230,15 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             Optional.ofNullable(dubboParam.getSent()).ifPresent(reference::setSent);
         }
         if (StringUtils.isNotBlank(namespace)) {
-            if (!registryConfig.getAddress().contains(Constants.NAMESPACE)) {
-                reference.setRegistry(new RegistryConfig(registryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + namespace));
+            RegistryConfig registryConfig = new RegistryConfig();
+            registryConfig.setRegister(false);
+            if (!this.registryConfig.getAddress().contains(Constants.NAMESPACE)) {
+                registryConfig.setAddress(this.registryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + namespace);
+                reference.setRegistry(registryConfig);
             } else {
-                String newAddress = registryConfig.getAddress().substring(0, registryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + namespace;
-                reference.setRegistry(new RegistryConfig(newAddress));
+                String newAddress = this.registryConfig.getAddress().substring(0, this.registryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + namespace;
+                registryConfig.setAddress(newAddress);
+                reference.setRegistry(registryConfig);
             }
         } else {
             reference.setRegistry(registryConfig);
