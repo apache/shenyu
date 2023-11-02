@@ -15,32 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.engine.scenario.specification;
+package org.apache.shenyu.e2e.engine.scenario.function;
 
-import org.apache.shenyu.e2e.engine.annotation.ShenYuScenarioParameter;
-import org.apache.shenyu.e2e.engine.scenario.function.Verifier;
-import org.apache.shenyu.e2e.engine.scenario.function.WebSocketVerifier;
+import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+import org.java_websocket.client.WebSocketClient;
 
-import java.util.List;
+/**
+ * WebSocket Verifier interface.
+ */
+public interface WebSocketVerifier {
 
-@ShenYuScenarioParameter
-public interface CaseSpec {
-    
-    /**
-     * get case spec name.
-     * @return String
-     */
-    String getName();
-    
-    /**
-     * get case spec verifiers.
-     * @return List
-     */
-    List<Verifier> getVerifiers();
+    WebSocketVerifier DEFAULT = (webSocketClient, gatewayClient) -> {
+    };
 
     /**
-     * get case spec websocket verifiers.
-     * @return List
+     * Verify WebSocketClient.
+     * @param client WebSocketClient
+     * @param gatewayClient GatewayClient
      */
-    List<WebSocketVerifier> getWebSocketVerifiers();
+    void verify(WebSocketClient client, GatewayClient gatewayClient);
 }
