@@ -57,9 +57,8 @@ public class ResourceChangedEventTest {
 
     @Test
     public void resourceChangeBuildContextTest() {
-        ResourceChangedEvent resourceChangedEvent = new ResourceChangedEvent(after, before, EventTypeEnum.RESOURCE_UPDATE, "test-operator");
 
-        StringBuilder contrast = new StringBuilder();
+        final StringBuilder contrast = new StringBuilder();
         contrast.append(String.format("name[%s => %s] ", before.getName(), after.getName()));
         contrast.append(String.format("component[%s => %s] ", before.getComponent(), after.getComponent()));
         contrast.append(String.format("match icon[%s => %s] ", before.getIcon(), after.getIcon()));
@@ -70,6 +69,7 @@ public class ResourceChangedEventTest {
         String typeStr = StringUtils.lowerCase(EventTypeEnum.RESOURCE_UPDATE.getType().toString());
         String context = String.format("the resource [%s] is %s : %s", after.getTitle(), typeStr, contrast);
 
+        ResourceChangedEvent resourceChangedEvent = new ResourceChangedEvent(after, before, EventTypeEnum.RESOURCE_UPDATE, "test-operator");
         assertEquals(context, resourceChangedEvent.buildContext());
     }
 
