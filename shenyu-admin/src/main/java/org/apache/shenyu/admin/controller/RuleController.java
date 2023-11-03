@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -27,20 +28,17 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
-import org.springframework.validation.annotation.Validated;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -51,9 +49,7 @@ import java.util.List;
 /**
  * this is rule controller.
  */
-@Validated
-@RestController
-@RequestMapping("/rule")
+@RestApi("/rule")
 public class RuleController implements PagedController<RuleQueryCondition, RuleVO> {
     
     private final RuleService ruleService;

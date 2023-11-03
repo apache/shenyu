@@ -39,7 +39,7 @@ dubbo:
   application:
     name: test-dubbo-service
   registry:
-    address: zookeeper://127.0.0.1:2181
+    address: nacos://127.0.0.1:8848
   protocol:
     name: dubbo
     port: 20888

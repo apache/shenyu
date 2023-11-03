@@ -403,7 +403,7 @@ public class HttpClientProperties {
         /**
          * The channel pool map name, defaults to proxy.
          */
-        private String name = "proxy";
+        private String name = "shenyu-proxy";
 
         /**
          * Only for type FIXED, the maximum number of connections before starting pending
@@ -421,6 +421,21 @@ public class HttpClientProperties {
          * if NULL there is no max idle time.
          */
         private Long maxIdleTime;
+        
+        /**
+         * Time in millis after which the channel will be closed.
+         */
+        private Long maxLifeTime;
+        
+        /**
+         * Perform regular eviction checks in the background at a specified interval.
+         */
+        private Long evictionInterval;
+        
+        /**
+         * Enables channel pools metrics to be collected and registered in Micrometer.
+         */
+        private Boolean metrics = Boolean.FALSE;
 
         /**
          * Gets type.
@@ -499,9 +514,8 @@ public class HttpClientProperties {
          *
          * @return the maxIdleTime timeout
          */
-        public Duration getMaxIdleTime() {
-            return Optional.ofNullable(maxIdleTime)
-                    .map(it -> Duration.ofMillis(maxIdleTime)).orElse(Duration.ofMillis(3000L));
+        public Long getMaxIdleTime() {
+            return maxIdleTime;
         }
 
         /**
@@ -511,6 +525,60 @@ public class HttpClientProperties {
          */
         public void setMaxIdleTime(final Long maxIdleTime) {
             this.maxIdleTime = maxIdleTime;
+        }
+        
+        /**
+         * Gets maxLifeTime timeout.
+         *
+         * @param maxLifeTime the maxLifeTime timeout
+         */
+        public void setMaxLifeTime(final Long maxLifeTime) {
+            this.maxLifeTime = maxLifeTime;
+        }
+        
+        /**
+         * Gets maxLifeTime timeout.
+         *
+         * @return the maxLifeTime timeout
+         */
+        public Long getMaxLifeTime() {
+            return maxLifeTime;
+        }
+        
+        /**
+         * Gets eviction interval.
+         *
+         * @return the eviction interval
+         */
+        public Long getEvictionInterval() {
+            return evictionInterval;
+        }
+        
+        /**
+         * Sets eviction interval.
+         *
+         * @param evictionInterval the eviction interval
+         */
+        public void setEvictionInterval(final Long evictionInterval) {
+            this.evictionInterval = evictionInterval;
+        }
+        
+        /**
+         * sets metrics.
+         *
+         * @param metrics the metrics
+         */
+        public void setMetrics(final Boolean metrics) {
+            this.metrics = metrics;
+        }
+        
+        /**
+         * Gets metrics.
+         *
+         * @return the metrics
+         */
+        public Boolean getMetrics() {
+            return metrics;
         }
         
         /**
@@ -764,7 +832,7 @@ public class HttpClientProperties {
          * Installs the netty InsecureTrustManagerFactory. This is insecure and not
          * suitable for production.
          */
-        private boolean useInsecureTrustManager;
+        private boolean useInsecureTrustManager = Boolean.FALSE;
 
         /**
          * Trusted certificates for verifying the remote endpoint's certificate.
@@ -812,7 +880,7 @@ public class HttpClientProperties {
         /**
          * The default ssl configuration type. Defaults to JDK Provider.
          */
-        private SslProvider defaultConfigurationType = SslProvider.JDK;
+        private SslProvider defaultConfigurationType;
     
         /**
          * Is use insecure trust manager boolean.

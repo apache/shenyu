@@ -108,7 +108,7 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         requestInfo.setClientIp(HostAddressUtils.acquireIp(exchange));
         requestInfo.setUserAgent(request.getHeaders().getFirst(GenericLoggingConstant.USER_AGENT));
         requestInfo.setHost(request.getHeaders().getFirst(GenericLoggingConstant.HOST));
-        requestInfo.setPath(request.getURI().getPath());
+        requestInfo.setPath(request.getURI().getRawPath());
         LoggingServerHttpRequest<L> loggingServerHttpRequest = new LoggingServerHttpRequest<>(request, requestInfo);
         LoggingServerHttpResponse<L> loggingServerHttpResponse = new LoggingServerHttpResponse<>(exchange.getResponse(),
                 requestInfo, this.logCollector(), desensitized, keywordSets, dataDesensitizeAlg);
