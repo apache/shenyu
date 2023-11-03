@@ -39,21 +39,6 @@
                             <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <excludeArtifactIds>
-                                shenyu-common,
-                                shenyu-class-isolation,
-                                shenyu-plugin-base,
-                                shenyu-plugin-api,
-                                shenyu-spi,
-                                shenyu-sync-data-api,
-                                commons-lang3,
-                                gson
-                            </excludeArtifactIds>
-                            <excludeGroupIds>
-                                org.slf4j,
-                                org.springframework,
-                                io.projectreactor
-                            </excludeGroupIds>
                             <outputDirectory>${main.basedir}/plugins/motan</outputDirectory>
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>false</overWriteSnapshots>
@@ -62,6 +47,26 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>sh</executable>
+                    <arguments>
+                        <argument>-c</argument>
+                        <argument>${main.basedir}/script/clean_duplicated_jar.sh ${main.basedir}/plugins/lib ${main.basedir}/plugins/motan</argument>
+                    </arguments>
+                </configuration>
             </plugin>
         </plugins>
     </build>

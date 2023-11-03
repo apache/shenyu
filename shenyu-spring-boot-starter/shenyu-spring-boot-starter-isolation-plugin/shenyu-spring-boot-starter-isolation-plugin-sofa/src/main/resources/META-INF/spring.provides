@@ -15,4 +15,4 @@
 # limitations under the License.
 #
 
-provides: shenyu-spring-boot-starter-plugin-sofa
+provides: shenyu-spring-boot-starter-isolation-plugin-sofa
