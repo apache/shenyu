@@ -15,37 +15,29 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-e2e</artifactId>
+        <artifactId>shenyu-e2e-case</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>shenyu-e2e-case</artifactId>
+    <modelVersion>4.0.0</modelVersion>
 
-    <packaging>pom</packaging>
+    <artifactId>shenyu-e2e-case-websocket</artifactId>
 
-    <modules>
-        <module>shenyu-e2e-case-http</module>
-        <module>shenyu-e2e-case-spring-cloud</module>
-        <module>shenyu-e2e-case-alibaba-dubbo</module>
-        <module>shenyu-e2e-case-apache-dubbo</module>
-        <module>shenyu-e2e-case-sofa</module>
-        <module>shenyu-e2e-case-motan</module>
-        <module>shenyu-e2e-case-grpc</module>
-        <module>shenyu-e2e-case-brpc</module>
-        <module>shenyu-e2e-case-websocket</module>
-    </modules>
+    <properties>
+        <websocket.version>1.5.1</websocket.version>
+    </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-e2e-engine</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.3</version>
         </dependency>
-
     </dependencies>
+
 </project>

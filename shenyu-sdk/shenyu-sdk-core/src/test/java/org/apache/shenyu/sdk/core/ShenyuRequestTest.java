@@ -15,32 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.engine.scenario.specification;
+package org.apache.shenyu.sdk.core;
 
-import org.apache.shenyu.e2e.engine.annotation.ShenYuScenarioParameter;
-import org.apache.shenyu.e2e.engine.scenario.function.Verifier;
-import org.apache.shenyu.e2e.engine.scenario.function.WebSocketVerifier;
+import org.junit.Assert;
+import org.junit.Test;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
-@ShenYuScenarioParameter
-public interface CaseSpec {
-    
-    /**
-     * get case spec name.
-     * @return String
-     */
-    String getName();
-    
-    /**
-     * get case spec verifiers.
-     * @return List
-     */
-    List<Verifier> getVerifiers();
+/**
+ * Test for {@link ShenyuRequest}.
+ */
+public class ShenyuRequestTest {
 
-    /**
-     * get case spec websocket verifiers.
-     * @return List
-     */
-    List<WebSocketVerifier> getWebSocketVerifiers();
+    @Test
+    public void testShenyuRequest() {
+        Map<String, Collection<String>> headerMap = new HashMap<>();
+        headerMap.put("header", Arrays.asList("header1", "header2"));
+        ShenyuRequest request = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
+                headerMap, null, null, null);
+        
+        Assert.assertNotNull(request);
+    }
+
 }
