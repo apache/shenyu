@@ -42,7 +42,7 @@ public final class EurekaInstanceRegisterRepositoryTest {
 
     private EurekaInstanceRegisterRepository repository;
 
-    private final String instanceId = "shenyu-instances";
+    private final InstanceEntity instance = new InstanceEntity("shenyu-instances", "shenyu-host", 9195);
 
     private final Map<String, InstanceInfo> instanceStorage = new HashMap<>();
 
@@ -66,11 +66,6 @@ public final class EurekaInstanceRegisterRepositoryTest {
         // mock the function discoveryClient#register().
         discoveryClientMockedConstruction = mockConstruction(DiscoveryClient.class, (mock, context) -> {
             InstanceInfo.Builder builder = repository.instanceInfoBuilder();
-            InstanceEntity instance = InstanceEntity.builder()
-                    .appName(instanceId)
-                    .host("shenyu-host")
-                    .port(9195)
-                    .build();
             builder.setAppName(instance.getAppName())
                     .setIPAddr(instance.getHost())
                     .setHostName(instance.getHost())
@@ -94,22 +89,17 @@ public final class EurekaInstanceRegisterRepositoryTest {
 
     @Test
     public void persistInstance() {
-        InstanceEntity data = InstanceEntity.builder()
-                .appName(instanceId)
-                .host("shenyu-host")
-                .port(9195)
-                .build();
-        repository.persistInstance(data);
-        assertTrue(instanceStorage.containsKey(data.getAppName().toUpperCase()));
-        InstanceInfo instanceInfo = instanceStorage.get(data.getAppName().toUpperCase());
-        assertEquals(data.getHost(), instanceInfo.getHostName());
-        assertEquals(data.getPort(), instanceInfo.getPort());
-        assertEquals(data.getAppName().toUpperCase(), instanceInfo.getAppName());
+        repository.persistInstance(instance);
+        assertTrue(instanceStorage.containsKey(instance.getAppName().toUpperCase()));
+        InstanceInfo instanceInfo = instanceStorage.get(instance.getAppName().toUpperCase());
+        assertEquals(instance.getHost(), instanceInfo.getHostName());
+        assertEquals(instance.getPort(), instanceInfo.getPort());
+        assertEquals(instance.getAppName().toUpperCase(), instanceInfo.getAppName());
     }
 
     @Test
     public void testSelectInstancesAndWatcher() {
-        repository.selectInstances(instanceId);
+        repository.selectInstances(instance.getAppName());
         repository.close();
         assertTrue(eurekaEventStorage.isEmpty());
     }

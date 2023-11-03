@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.registry.eureka;
 
-import com.google.inject.Inject;
 import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.appinfo.DataCenterInfo;
 import com.netflix.appinfo.EurekaInstanceConfig;
@@ -27,10 +26,10 @@ import com.netflix.appinfo.MyDataCenterInstanceConfig;
 import com.netflix.appinfo.RefreshableInstanceConfig;
 import com.netflix.appinfo.UniqueIdentifier;
 import com.netflix.appinfo.providers.Archaius1VipAddressResolver;
-import com.netflix.appinfo.providers.VipAddressResolver;
 import com.netflix.discovery.DefaultEurekaClientConfig;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.discovery.EurekaClient;
+import org.apache.commons.lang.StringUtils;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
@@ -54,9 +53,6 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private EurekaInstanceConfig eurekaInstanceConfig;
 
-    @Inject(optional = true)
-    private VipAddressResolver vipAddressResolver;
-
     @Override
     public void init(final RegisterConfig config) {
         eurekaInstanceConfig = new MyDataCenterInstanceConfig();
@@ -71,12 +67,13 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
     @Override
     public void persistInstance(final InstanceEntity instance) {
         InstanceInfo.Builder instanceInfoBuilder = instanceInfoBuilder();
-        instanceInfoBuilder.setAppName(instance.getAppName())
+        InstanceInfo instanceInfo = instanceInfoBuilder
+                .setAppName(instance.getAppName())
                 .setIPAddr(instance.getHost())
                 .setHostName(instance.getHost())
                 .setPort(instance.getPort())
-                .setStatus(InstanceInfo.InstanceStatus.UP);
-        InstanceInfo instanceInfo = instanceInfoBuilder.build();
+                .setStatus(InstanceInfo.InstanceStatus.UP)
+                .build();
         LeaseInfo.Builder leaseInfoBuilder = LeaseInfo.Builder.newBuilder()
                 .setRenewalIntervalInSecs(eurekaInstanceConfig.getLeaseRenewalIntervalInSeconds())
                 .setDurationInSecs(eurekaInstanceConfig.getLeaseExpirationDurationInSeconds());
@@ -92,17 +89,12 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
      * @return InstanceInfo instance to be registered with eureka server
      */
     public InstanceInfo.Builder instanceInfoBuilder() {
-        // Build the lease information to be passed to the server based on config
-        if (vipAddressResolver == null) {
-            vipAddressResolver = new Archaius1VipAddressResolver();
-        }
-
         // Builder the instance information to be registered with eureka server
-        final InstanceInfo.Builder builder = InstanceInfo.Builder.newBuilder(vipAddressResolver);
+        final InstanceInfo.Builder builder = InstanceInfo.Builder.newBuilder(new Archaius1VipAddressResolver());
 
         // set the appropriate id for the InstanceInfo, falling back to datacenter Id if applicable, else hostname
         String instanceId = eurekaInstanceConfig.getInstanceId();
-        if (instanceId == null || instanceId.isEmpty()) {
+        if (StringUtils.isEmpty(instanceId)) {
             DataCenterInfo dataCenterInfo = eurekaInstanceConfig.getDataCenterInfo();
             if (dataCenterInfo instanceof UniqueIdentifier) {
                 instanceId = ((UniqueIdentifier) dataCenterInfo).getId();
@@ -120,7 +112,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
         }
 
         // fail safe
-        if (defaultAddress == null || defaultAddress.isEmpty()) {
+        if (StringUtils.isEmpty(defaultAddress)) {
             defaultAddress = eurekaInstanceConfig.getIpAddress();
         }
 
@@ -159,7 +151,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
             String key = mapEntry.getKey();
             String value = mapEntry.getValue();
             // only add the metadata if the value is present
-            if (value != null && !value.isEmpty()) {
+            if (StringUtils.isNotEmpty(value)) {
                 builder.add(key, value);
             }
         }
