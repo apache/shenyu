@@ -218,4 +218,37 @@ public class IngressConstants {
 
     //The configuration key to specify the Grpc parameter type for the plugin, in string
     public static final String PLUGIN_GRPC_PARAMETER_TYPE = "shenyu.apache.org/plugin-grpc-parameter-type";
+
+    //The configuration key to specify the Sofa application name for the plugin, in string
+    public static final String PLUGIN_SOFA_APP_NAME = "shenyu.apache.org/plugin-sofa-app-name";
+
+    //The configuration key to specify the Sofa service name for the plugin, in string
+    public static final String PLUGIN_SOFA_SERVICE_NAME = "shenyu.apache.org/plugin-sofa-service-name";
+
+    //The configuration key to specify the Sofa method name for the plugin, in string
+    public static final String PLUGIN_SOFA_METHOD_NAME = "shenyu.apache.org/plugin-sofa-method-name";
+
+    //The configuration key to specify the Sofa params type for the plugin, in string
+    public static final String PLUGIN_SOFA_PARAMS_TYPE = "shenyu.apache.org/plugin-sofa-params-type";
+
+    //The configuration key to specify the Sofa rpc type for the plugin, in string
+    public static final String PLUGIN_SOFA_RPC_TYPE = "shenyu.apache.org/plugin-sofa-rpc-type";
+
+    //The configuration key to specify the Sofa context path for the plugin, in string
+    public static final String PLUGIN_SOFA_CONTEXT_PATH = "shenyu.apache.org/plugin-sofa-context-path";
+
+    //The configuration key to specify the Sofa path for the plugin, in string
+    public static final String PLUGIN_SOFA_PATH = "shenyu.apache.org/plugin-sofa-path";
+
+    //The configuration key to specify the Sofa enabled for the plugin, in string
+    public static final String PLUGIN_SOFA_ENABLED = "shenyu.apache.org/plugin-sofa-enabled";
+
+    //The configuration key to specify the Sofa rpc expand for the plugin, in string
+    public static final String PLUGIN_SOFA_RPC_EXPAND = "shenyu.apache.org/plugin-sofa-rpc-expand";
+
+    //The configuration key to specify the Sofa parameter type for the plugin, in string
+    public static final String PLUGIN_SOFA_PARAMETER_TYPE = "shenyu.apache.org/plugin-sofa-parameter-type";
+
+    //The configuration key to specify the Sofa parameter type for the plugin, in string
+    public static final String PLUGIN_SOFA_RPC_EXT = "shenyu.apache.org/plugin-sofa-rpc-ext";
 }
