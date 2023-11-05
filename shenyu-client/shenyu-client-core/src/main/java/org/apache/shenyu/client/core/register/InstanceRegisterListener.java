@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.core.register;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -60,6 +61,9 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
         try {
+            if (StringUtils.equalsIgnoreCase(discoveryConfig.getType(), "local")) {
+                return;
+            }
             ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(discoveryConfig.getType());
             discoveryService.init(discoveryConfig);
             discoveryService.register(buildSeqPath(), GsonUtils.getInstance().toJson(currentInstanceUpstream));

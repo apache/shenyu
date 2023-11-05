@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(prefix = "shenyu.register", name = "registerType", havingValue = "consul")
+(prefix = "shenyu.register", name = "registerType", havingValue = "consul")
 public class ConsulServerConfiguration {
     /**
      * Register consul client, distinguished from sync consul client.
