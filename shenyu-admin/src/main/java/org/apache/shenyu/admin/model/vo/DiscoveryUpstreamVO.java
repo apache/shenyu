@@ -1,12 +1,32 @@
-package org.apache.shenyu.admin.model.vo;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+package org.apache.shenyu.admin.model.vo;
 
 public class DiscoveryUpstreamVO {
 
+    /**
+     * id.
+     */
     private String id;
 
+    /**
+     * discoveryHandlerId.
+     */
     private String discoveryHandlerId;
 
     /**
@@ -34,61 +54,129 @@ public class DiscoveryUpstreamVO {
      */
     private String props;
 
-
+    /**
+     * getId.
+     *
+     * @return id
+     */
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    /**
+     * setId.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
         this.id = id;
     }
 
-
+    /**
+     * getDiscoveryHandlerId.
+     *
+     * @return discoveryHandlerId
+     */
     public String getDiscoveryHandlerId() {
         return discoveryHandlerId;
     }
 
-    public void setDiscoveryHandlerId(String discoveryHandlerId) {
+    /**
+     * setDiscoveryHandlerId.
+     *
+     * @param discoveryHandlerId discoveryHandlerId
+     */
+    public void setDiscoveryHandlerId(final String discoveryHandlerId) {
         this.discoveryHandlerId = discoveryHandlerId;
     }
 
+    /**
+     * getProtocol.
+     *
+     * @return protocol
+     */
     public String getProtocol() {
         return protocol;
     }
 
-    public void setProtocol(String protocol) {
+    /**
+     * setProtocol.
+     *
+     * @param protocol protocol
+     */
+    public void setProtocol(final String protocol) {
         this.protocol = protocol;
     }
 
+    /**
+     * getUrl.
+     *
+     * @return url
+     */
     public String getUrl() {
         return url;
     }
 
-    public void setUrl(String url) {
+    /**
+     * setUrl.
+     *
+     * @param url url
+     */
+    public void setUrl(final String url) {
         this.url = url;
     }
 
+    /**
+     * getStatus.
+     *
+     * @return status
+     */
     public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(Integer status) {
+    /**
+     * setStatus.
+     *
+     * @param status status
+     */
+    public void setStatus(final Integer status) {
         this.status = status;
     }
 
+    /**
+     * getWeight.
+     *
+     * @return weight
+     */
     public Integer getWeight() {
         return weight;
     }
 
-    public void setWeight(Integer weight) {
+    /**
+     * setWeight.
+     *
+     * @param weight weight
+     */
+    public void setWeight(final Integer weight) {
         this.weight = weight;
     }
 
+    /**
+     * getProps.
+     *
+     * @return props
+     */
     public String getProps() {
         return props;
     }
 
-    public void setProps(String props) {
+    /**
+     * setProps.
+     *
+     * @param props props
+     */
+    public void setProps(final String props) {
         this.props = props;
     }
 }

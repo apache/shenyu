@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
-import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
@@ -88,7 +86,7 @@ public class SelectorVO implements Serializable {
      * whether continued.
      */
     private Boolean continued;
-    
+
     /**
      * match restful.
      */
@@ -111,15 +109,20 @@ public class SelectorVO implements Serializable {
      */
     private String dateUpdated;
 
-
+    /**
+     * discovery handler.
+     */
     private DiscoveryHandlerVO discoveryHandler;
 
-
+    /**
+     * discovery.
+     */
     private DiscoveryVO discoveryVO;
 
-
+    /**
+     * discovery upstream.
+     */
     private List<DiscoveryUpstreamVO> discoveryUpstreams;
-
 
     public SelectorVO() {
     }
@@ -355,7 +358,7 @@ public class SelectorVO implements Serializable {
     public void setContinued(final Boolean continued) {
         this.continued = continued;
     }
-    
+
     /**
      * get match restful value.
      *
@@ -364,7 +367,7 @@ public class SelectorVO implements Serializable {
     public Boolean getMatchRestful() {
         return matchRestful;
     }
-    
+
     /**
      * set matchr restful value.
      *
@@ -373,7 +376,7 @@ public class SelectorVO implements Serializable {
     public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
-    
+
     /**
      * Gets the value of handle.
      *
@@ -410,28 +413,57 @@ public class SelectorVO implements Serializable {
         this.selectorConditions = selectorConditions;
     }
 
-
+    /**
+     * get discovery handler.
+     *
+     * @return discoveryHandler
+     */
     public DiscoveryHandlerVO getDiscoveryHandler() {
         return discoveryHandler;
     }
 
-    public void setDiscoveryHandler(DiscoveryHandlerVO discoveryHandler) {
+    /**
+     * set discovery handler.
+     *
+     * @param discoveryHandler discoveryHandler
+     */
+    public void setDiscoveryHandler(final DiscoveryHandlerVO discoveryHandler) {
         this.discoveryHandler = discoveryHandler;
     }
 
+    /**
+     * get discoveryVO.
+     *
+     * @return discoveryVO
+     */
     public DiscoveryVO getDiscoveryVO() {
         return discoveryVO;
     }
 
-    public void setDiscoveryVO(DiscoveryVO discoveryVO) {
+    /**
+     * set discoveryVO.
+     *
+     * @param discoveryVO discoveryVO
+     */
+    public void setDiscoveryVO(final DiscoveryVO discoveryVO) {
         this.discoveryVO = discoveryVO;
     }
 
+    /**
+     * get discovery upstream.
+     *
+     * @return discoveryUpstream
+     */
     public List<DiscoveryUpstreamVO> getDiscoveryUpstreams() {
         return discoveryUpstreams;
     }
 
-    public void setDiscoveryUpstreams(List<DiscoveryUpstreamVO> discoveryUpstreams) {
+    /**
+     * set discovery upstream.
+     *
+     * @param discoveryUpstreams discoveryUpstream
+     */
+    public void setDiscoveryUpstreams(final List<DiscoveryUpstreamVO> discoveryUpstreams) {
         this.discoveryUpstreams = discoveryUpstreams;
     }
 

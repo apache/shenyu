@@ -103,7 +103,6 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final DiscoveryMapper discoveryMapper;
 
-
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
@@ -117,7 +116,7 @@ public class SelectorServiceImpl implements SelectorService {
         this.pluginMapper = pluginMapper;
         this.discoveryMapper = discoveryMapper;
         this.discoveryHandlerMapper = discoveryHandlerMapper;
-        this.discoveryUpstreamMapper= discoveryUpstreamMapper;
+        this.discoveryUpstreamMapper = discoveryUpstreamMapper;
         this.eventPublisher = eventPublisher;
         this.selectorEventPublisher = selectorEventPublisher;
     }
