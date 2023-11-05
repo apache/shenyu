@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.model.vo;
 
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
@@ -108,6 +110,16 @@ public class SelectorVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
+
+
+    private DiscoveryHandlerVO discoveryHandler;
+
+
+    private DiscoveryVO discoveryVO;
+
+
+    private List<DiscoveryUpstreamVO> discoveryUpstreams;
+
 
     public SelectorVO() {
     }
@@ -396,6 +408,31 @@ public class SelectorVO implements Serializable {
      */
     public void setSelectorConditions(final List<SelectorConditionVO> selectorConditions) {
         this.selectorConditions = selectorConditions;
+    }
+
+
+    public DiscoveryHandlerVO getDiscoveryHandler() {
+        return discoveryHandler;
+    }
+
+    public void setDiscoveryHandler(DiscoveryHandlerVO discoveryHandler) {
+        this.discoveryHandler = discoveryHandler;
+    }
+
+    public DiscoveryVO getDiscoveryVO() {
+        return discoveryVO;
+    }
+
+    public void setDiscoveryVO(DiscoveryVO discoveryVO) {
+        this.discoveryVO = discoveryVO;
+    }
+
+    public List<DiscoveryUpstreamVO> getDiscoveryUpstreams() {
+        return discoveryUpstreams;
+    }
+
+    public void setDiscoveryUpstreams(List<DiscoveryUpstreamVO> discoveryUpstreams) {
+        this.discoveryUpstreams = discoveryUpstreams;
     }
 
     /**

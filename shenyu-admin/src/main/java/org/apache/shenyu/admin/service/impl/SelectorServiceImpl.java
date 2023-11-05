@@ -24,6 +24,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -31,6 +34,9 @@ import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.BaseDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -40,11 +46,14 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
+import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
+import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
+import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.SelectorUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
@@ -88,14 +97,27 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final SelectorEventPublisher selectorEventPublisher;
 
+    private final DiscoveryHandlerMapper discoveryHandlerMapper;
+
+    private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
+
+    private final DiscoveryMapper discoveryMapper;
+
+
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
                                final ApplicationEventPublisher eventPublisher,
+                               final DiscoveryMapper discoveryMapper,
+                               final DiscoveryHandlerMapper discoveryHandlerMapper,
+                               final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                final SelectorEventPublisher selectorEventPublisher) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
+        this.discoveryMapper = discoveryMapper;
+        this.discoveryHandlerMapper = discoveryHandlerMapper;
+        this.discoveryUpstreamMapper= discoveryUpstreamMapper;
         this.eventPublisher = eventPublisher;
         this.selectorEventPublisher = selectorEventPublisher;
     }
@@ -157,6 +179,7 @@ public class SelectorServiceImpl implements SelectorService {
     public int create(final SelectorDTO selectorDTO) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         final int selectorCount = selectorMapper.insertSelective(selectorDO);
+        selectorDTO.setId(selectorDO.getId());
         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
         publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
         if (selectorCount > 0) {
@@ -236,7 +259,21 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public SelectorVO findById(final String id) {
         final List<SelectorConditionVO> conditions = ListUtil.map(selectorConditionMapper.selectByQuery(new SelectorConditionQuery(id)), SelectorConditionVO::buildSelectorConditionVO);
-        return SelectorVO.buildSelectorVO(selectorMapper.selectById(id), conditions);
+        SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorMapper.selectById(id), conditions);
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(id);
+        if (Objects.nonNull(discoveryHandlerDO)) {
+            selectorVO.setDiscoveryHandler(DiscoveryTransfer.INSTANCE.mapToVo(discoveryHandlerDO));
+            String discoveryId = discoveryHandlerDO.getDiscoveryId();
+            DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryId);
+            DiscoveryVO discoveryVO = DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO);
+            selectorVO.setDiscoveryVO(discoveryVO);
+            List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDO.getId());
+            Optional.ofNullable(discoveryUpstreamDOS).ifPresent(list -> {
+                List<DiscoveryUpstreamVO> upstreamVOS = list.stream().map(DiscoveryTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
+                selectorVO.setDiscoveryUpstreams(upstreamVOS);
+            });
+        }
+        return selectorVO;
     }
 
     @Override
