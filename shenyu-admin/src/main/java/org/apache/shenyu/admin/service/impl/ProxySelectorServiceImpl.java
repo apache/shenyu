@@ -46,6 +46,7 @@ import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -206,16 +207,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 fillDiscovery = Objects.nonNull(discoveryDO);
             } else {
                 discoveryId = UUIDUtils.getInstance().generateShortUuid();
-                discoveryDO = DiscoveryDO.builder()
-                        .id(discoveryId)
-                        .name(proxySelectorAddDTO.getName())
-                        .type(proxySelectorAddDTO.getDiscovery().getDiscoveryType())
-                        .serverList(proxySelectorAddDTO.getDiscovery().getServerList())
-                        .level(DiscoveryLevel.SELECTOR.getCode())
-                        .dateCreated(currentTime)
-                        .dateUpdated(currentTime)
-                        .props(proxySelectorAddDTO.getDiscovery().getProps())
-                        .build();
+                discoveryDO = buildDiscovery(proxySelectorAddDTO, currentTime, discoveryId);
                 fillDiscovery = discoveryMapper.insertSelective(discoveryDO) > 0;
                 discoveryProcessor.createDiscovery(discoveryDO);
             }
@@ -246,29 +238,47 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 ProxySelectorDTO proxySelectorDTO = DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO);
                 proxySelectorDTO.setId(proxySelectorId);
                 discoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO);
-                List<DiscoveryUpstreamDO> upstreamDOList = Lists.newArrayList();
-                if (!CollectionUtils.isEmpty(proxySelectorAddDTO.getDiscoveryUpstreams())) {
-                    proxySelectorAddDTO.getDiscoveryUpstreams().forEach(discoveryUpstream -> {
-                        DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
-                                .id(UUIDUtils.getInstance().generateShortUuid())
-                                .discoveryHandlerId(discoveryHandlerId)
-                                .protocol(discoveryUpstream.getProtocol())
-                                .url(discoveryUpstream.getUrl())
-                                .status(discoveryUpstream.getStatus())
-                                .weight(discoveryUpstream.getWeight())
-                                .props(discoveryUpstream.getProps())
-                                .dateCreated(currentTime)
-                                .dateUpdated(currentTime)
-                                .build();
-                        upstreamDOList.add(discoveryUpstreamDO);
-                    });
-                    discoveryUpstreamMapper.saveBatch(upstreamDOList);
-                    List<DiscoveryUpstreamDTO> collect = upstreamDOList.stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
-                    discoveryProcessor.changeUpstream(proxySelectorDTO, collect);
-                }
+                addUpstreamList(proxySelectorAddDTO, currentTime, discoveryProcessor, discoveryHandlerId, proxySelectorDTO);
             }
         }
         return ShenyuResultMessage.CREATE_SUCCESS;
+    }
+
+    private void addUpstreamList(ProxySelectorAddDTO proxySelectorAddDTO, Timestamp currentTime, DiscoveryProcessor discoveryProcessor, String discoveryHandlerId, ProxySelectorDTO proxySelectorDTO) {
+        List<DiscoveryUpstreamDO> upstreamDOList = Lists.newArrayList();
+        if (!CollectionUtils.isEmpty(proxySelectorAddDTO.getDiscoveryUpstreams())) {
+            proxySelectorAddDTO.getDiscoveryUpstreams().forEach(discoveryUpstream -> {
+                DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
+                        .id(UUIDUtils.getInstance().generateShortUuid())
+                        .discoveryHandlerId(discoveryHandlerId)
+                        .protocol(discoveryUpstream.getProtocol())
+                        .url(discoveryUpstream.getUrl())
+                        .status(discoveryUpstream.getStatus())
+                        .weight(discoveryUpstream.getWeight())
+                        .props(discoveryUpstream.getProps())
+                        .dateCreated(currentTime)
+                        .dateUpdated(currentTime)
+                        .build();
+                upstreamDOList.add(discoveryUpstreamDO);
+            });
+            discoveryUpstreamMapper.saveBatch(upstreamDOList);
+            List<DiscoveryUpstreamDTO> collect = upstreamDOList.stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
+            discoveryProcessor.changeUpstream(proxySelectorDTO, collect);
+        }
+    }
+
+    @NotNull
+    private static DiscoveryDO buildDiscovery(ProxySelectorAddDTO proxySelectorAddDTO, Timestamp currentTime, String discoveryId) {
+        return DiscoveryDO.builder()
+                .id(discoveryId)
+                .name(proxySelectorAddDTO.getName())
+                .type(proxySelectorAddDTO.getDiscovery().getDiscoveryType())
+                .serverList(proxySelectorAddDTO.getDiscovery().getServerList())
+                .level(DiscoveryLevel.SELECTOR.getCode())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .props(proxySelectorAddDTO.getDiscovery().getProps())
+                .build();
     }
 
     @Override
@@ -276,8 +286,15 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     public String bindingDiscoveryHandler(final ProxySelectorAddDTO proxySelectorAddDTO) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         String selectorId = proxySelectorAddDTO.getSelectorId();
+        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
         ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
         String discoveryId = discovery.getId();
+        if (!StringUtils.hasLength(discoveryId)) {
+            discoveryId = UUIDUtils.getInstance().generateShortUuid();
+            DiscoveryDO discoveryDO = buildDiscovery(proxySelectorAddDTO, currentTime, discoveryId);
+            discoveryMapper.insertSelective(discoveryDO);
+            discoveryProcessor.createDiscovery(discoveryDO);
+        }
         String discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();
         DiscoveryHandlerDO discoveryHandlerDO = DiscoveryHandlerDO.builder()
                 .id(discoveryHandlerId)
@@ -298,14 +315,13 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 .dateUpdated(currentTime)
                 .build();
         discoveryRelMapper.insertSelective(discoveryRelDO);
-
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
         proxySelectorDTO.setPluginName(proxySelectorAddDTO.getPluginName());
         proxySelectorDTO.setName(proxySelectorAddDTO.getName());
         proxySelectorDTO.setId(selectorId);
-        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
         DiscoveryHandlerDTO discoveryHandlerDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO);
         discoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO);
+        addUpstreamList(proxySelectorAddDTO, currentTime, discoveryProcessor, discoveryHandlerId, proxySelectorDTO);
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
 

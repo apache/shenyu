@@ -137,6 +137,8 @@ public enum DiscoveryTransfer {
         discoveryUpstreamData.setDiscoveryHandlerId(discoveryUpstreamDTO.getDiscoveryHandlerId());
         discoveryUpstreamData.setWeight(discoveryUpstreamDTO.getWeight());
         discoveryUpstreamData.setProps(discoveryUpstreamDTO.getProps());
+        discoveryUpstreamData.setDateCreated(discoveryUpstreamDTO.getDateCreated());
+        discoveryUpstreamData.setDateUpdated(discoveryUpstreamDTO.getDateUpdated());
         return discoveryUpstreamData;
     }
 
@@ -226,6 +228,8 @@ public enum DiscoveryTransfer {
         discoveryUpstreamDTO.setProtocol(discoveryUpstreamDO.getProtocol());
         discoveryUpstreamDTO.setId(discoveryUpstreamDO.getId());
         discoveryUpstreamDTO.setWeight(discoveryUpstreamDO.getWeight());
+        discoveryUpstreamDTO.setDateCreated(discoveryUpstreamDO.getDateCreated());
+        discoveryUpstreamDTO.setDateUpdated(discoveryUpstreamDO.getDateUpdated());
         return discoveryUpstreamDTO;
     }
 
