@@ -264,7 +264,7 @@ public class SofaPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/sofa/findAll")
                                 .addNotExists(Method.DELETE, "/sofa/findAll")
                                 .build())
-//                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.POST, "/sofa/findAll")).build())
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.POST, "/sofa/findAll")).build())
                 .build();
     }
 
