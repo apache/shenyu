@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.waf;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -66,7 +67,8 @@ public class WafPlugin extends AbstractShenyuPlugin {
         }
         if (WafEnum.REJECT.getName().equals(wafHandle.getPermission())) {
             exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-            Object error = ShenyuResultWrap.error(exchange, Integer.parseInt(wafHandle.getStatusCode()), Constants.REJECT_MSG, null);
+            int statusCode = ObjectUtils.firstNonNull(Integer.parseInt(wafHandle.getStatusCode()), HttpStatus.FORBIDDEN.value());
+            Object error = ShenyuResultWrap.error(exchange, statusCode, Constants.REJECT_MSG, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);
