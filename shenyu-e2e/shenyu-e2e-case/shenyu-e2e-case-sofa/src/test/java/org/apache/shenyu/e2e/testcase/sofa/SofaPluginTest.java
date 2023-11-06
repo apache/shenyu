@@ -74,7 +74,7 @@ public class SofaPluginTest {
         formData.add("enabled", "true");
         formData.add("role", "Proxy");
         formData.add("sort", "310");
-        formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"localhost:2181\"}");
+        formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zookeeper:2181\"}");
         adminClient.changePluginStatus("11", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
         adminClient.deleteAllSelectors();
