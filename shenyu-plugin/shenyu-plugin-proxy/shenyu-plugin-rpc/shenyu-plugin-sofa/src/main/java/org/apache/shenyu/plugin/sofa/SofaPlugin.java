@@ -104,7 +104,14 @@ public class SofaPlugin extends AbstractShenyuPlugin {
     public boolean skip(final ServerWebExchange exchange) {
         return skipExcept(exchange, RpcTypeEnum.SOFA);
     }
-    
+
+    /**
+     * handle Selector If Null.
+     * @param pluginName the plugin name
+     * @param exchange the exchange
+     * @param chain the chain
+     * @return noSelectorResult
+     */
     @Override
     protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noSelectorResult(pluginName, exchange);
