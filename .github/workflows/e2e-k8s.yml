@@ -209,6 +209,8 @@ jobs:
             script: e2e-sofa-sync
           - case: shenyu-e2e-case-grpc
             script: e2e-grpc-sync
+          - case: shenyu-e2e-case-websocket
+            script: e2e-websocket-sync
           - case: shenyu-e2e-case-apache-dubbo
             script: e2e-apache-dubbo-manual
           - case: shenyu-e2e-case-grpc
@@ -258,10 +260,6 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
-      - name: Build ShenYu E2E Engine
-        if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-engine -am clean install
 
 #      - name: Restore ShenYu E2E Maven Repos
 #        uses: actions/cache/restore@v3
