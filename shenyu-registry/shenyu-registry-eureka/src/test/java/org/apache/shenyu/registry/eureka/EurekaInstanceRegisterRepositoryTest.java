@@ -21,12 +21,12 @@ import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.discovery.EurekaClient;
 import com.netflix.discovery.EurekaEventListener;
-import com.netflix.discovery.shared.transport.EurekaHttpClient;
-import com.netflix.discovery.shared.transport.EurekaHttpResponse;
-import com.netflix.discovery.shared.transport.jersey.JerseyApplicationClient;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -34,19 +34,21 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 
 public final class EurekaInstanceRegisterRepositoryTest {
 
     private EurekaInstanceRegisterRepository repository;
 
-    private final String instanceId = "shenyu-instances";
+    private final InstanceEntity instance = new InstanceEntity("shenyu-instances", "shenyu-host", 9195);
 
     private final Map<String, InstanceInfo> instanceStorage = new HashMap<>();
 
     private final Map<String, EurekaEventListener> eurekaEventStorage = new HashMap<>();
+
+    private MockedConstruction<DiscoveryClient> discoveryClientMockedConstruction;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -57,18 +59,25 @@ public final class EurekaInstanceRegisterRepositoryTest {
         eurekaClientField.setAccessible(true);
         eurekaClientField.set(repository, mockEurekaClient());
 
-        Field eurekaHttpClientField = clazz.getDeclaredField("eurekaHttpClient");
-        eurekaHttpClientField.setAccessible(true);
-        eurekaHttpClientField.set(repository, mockEurekaHttpClient());
+        RegisterConfig registerConfig = new RegisterConfig();
+        registerConfig.setServerLists("");
+        repository.init(registerConfig);
+
+        // mock the function discoveryClient#register().
+        discoveryClientMockedConstruction = mockConstruction(DiscoveryClient.class, (mock, context) -> {
+            InstanceInfo.Builder builder = repository.instanceInfoBuilder();
+            builder.setAppName(instance.getAppName())
+                    .setIPAddr(instance.getHost())
+                    .setHostName(instance.getHost())
+                    .setPort(instance.getPort())
+                    .setStatus(InstanceInfo.InstanceStatus.UP);
+            InstanceInfo instanceInfo = builder.build();
+            instanceStorage.put(instanceInfo.getAppName(), instanceInfo);
+        });
     }
 
     private EurekaClient mockEurekaClient() {
         DiscoveryClient discoveryClient = mock(DiscoveryClient.class);
-
-        doAnswer(invocationOnMock -> {
-            eurekaEventStorage.put(instanceId, invocationOnMock.getArgument(0));
-            return null;
-        }).when(discoveryClient).registerEventListener(any());
 
         doAnswer(invocationOnMock -> {
             eurekaEventStorage.clear();
@@ -78,36 +87,25 @@ public final class EurekaInstanceRegisterRepositoryTest {
         return discoveryClient;
     }
 
-    private EurekaHttpClient mockEurekaHttpClient() {
-        EurekaHttpClient eurekaHttpClient = mock(JerseyApplicationClient.class);
-        doAnswer(invocationOnMock -> {
-            InstanceInfo instanceInfo = invocationOnMock.getArgument(0);
-            instanceStorage.put(instanceInfo.getAppName(), instanceInfo);
-            return EurekaHttpResponse.anEurekaHttpResponse(204, "response success")
-                    .build();
-        }).when(eurekaHttpClient).register(any());
-        return eurekaHttpClient;
-    }
-
     @Test
     public void persistInstance() {
-        InstanceEntity data = InstanceEntity.builder()
-                .appName(instanceId)
-                .host("shenyu-host")
-                .port(9195)
-                .build();
-        repository.persistInstance(data);
-        assertTrue(instanceStorage.containsKey(data.getAppName().toUpperCase()));
-        InstanceInfo instanceInfo = instanceStorage.get(data.getAppName().toUpperCase());
-        assertEquals(data.getHost(), instanceInfo.getHostName());
-        assertEquals(data.getPort(), instanceInfo.getPort());
-        assertEquals(data.getAppName().toUpperCase(), instanceInfo.getAppName());
+        repository.persistInstance(instance);
+        assertTrue(instanceStorage.containsKey(instance.getAppName().toUpperCase()));
+        InstanceInfo instanceInfo = instanceStorage.get(instance.getAppName().toUpperCase());
+        assertEquals(instance.getHost(), instanceInfo.getHostName());
+        assertEquals(instance.getPort(), instanceInfo.getPort());
+        assertEquals(instance.getAppName().toUpperCase(), instanceInfo.getAppName());
     }
 
     @Test
     public void testSelectInstancesAndWatcher() {
-        repository.selectInstances(instanceId);
+        repository.selectInstances(instance.getAppName());
         repository.close();
         assertTrue(eurekaEventStorage.isEmpty());
+    }
+
+    @AfterEach
+    public void clear() {
+        discoveryClientMockedConstruction.close();
     }
 }
