@@ -23,9 +23,16 @@ import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
+import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.apache.shenyu.e2e.model.ResourcesData;
+import org.apache.shenyu.e2e.model.response.SelectorDTO;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -35,7 +42,7 @@ import java.util.List;
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
                 service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:9095",
+                        baseUrl = "http://localhost:31095",
                         type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
                                 @ShenYuTest.Parameter(key = "username", value = "admin"),
@@ -46,7 +53,7 @@ import java.util.List;
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-gateway",
                 service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:9195",
+                        baseUrl = "http://localhost:31195",
                         type = ServiceTypeEnum.SHENYU_GATEWAY
                 )
         )
@@ -70,11 +77,41 @@ public class SofaPluginTest {
         formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"localhost:2181\"}");
         adminClient.changePluginStatus("11", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
+        adminClient.deleteAllSelectors();
     }
     
     @ShenYuScenario(provider = SofaPluginCases.class)
     void testSofa(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
+    }
+
+    @BeforeEach
+    void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
+        spec.getChecker().check(gateway);
+
+        ResourcesData resources = spec.getResources();
+        for (ResourcesData.Resource res : resources.getResources()) {
+            SelectorDTO dto = client.create(res.getSelector());
+            selectorIds.add(dto.getId());
+            res.getRules().forEach(rule -> {
+                rule.setSelectorId(dto.getId());
+                client.create(rule);
+            });
+        }
+
+        spec.getWaiting().waitFor(gateway);
+    }
+
+    @AfterEach
+    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
+        spec.getDeleter().delete(client, selectorIds);
+        spec.deleteWaiting().waitFor(gateway);
+        selectorIds = Lists.newArrayList();
+    }
+
+    @AfterAll
+    static void down(final AdminClient client) {
+        client.deleteAllSelectors();
     }
 }
 
