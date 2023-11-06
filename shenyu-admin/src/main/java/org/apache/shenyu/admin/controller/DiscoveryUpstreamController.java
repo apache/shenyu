@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import java.util.Collections;
 import java.util.List;
 
 @RestApi("/discovery-upstream")
@@ -54,6 +56,23 @@ public class DiscoveryUpstreamController {
     public ShenyuAdminResult createDiscoveryUpstream(@Valid @RequestBody final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
 
         return ShenyuAdminResult.success(discoveryUpstreamService.createOrUpdate(discoveryUpstreamDTO));
+    }
+
+
+    /**
+     * create discovery upstream list.
+     *
+     * @param discoveryUpstreamDTOList discoveryUpstreamDTO
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PostMapping("batch")
+    public ShenyuAdminResult createDiscoveryUpstreamList(@Valid @RequestBody final List<DiscoveryUpstreamDTO> discoveryUpstreamDTOList) {
+        if (CollectionUtils.isNotEmpty(discoveryUpstreamDTOList)) {
+            for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamDTOList) {
+                discoveryUpstreamService.createOrUpdate(discoveryUpstreamDTO);
+            }
+        }
+        return ShenyuAdminResult.success();
     }
 
     /**
