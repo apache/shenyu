@@ -38,9 +38,11 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -88,6 +90,16 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
         return StringUtils.hasLength(discoveryUpstreamDTO.getId())
                 ? update(discoveryUpstreamDTO) : create(discoveryUpstreamDTO);
+    }
+
+    @Override
+    public void nativeCreateOrUpdate(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+        DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
+        if (StringUtils.hasLength(discoveryUpstreamDTO.getId())) {
+            discoveryUpstreamMapper.updateSelective(discoveryUpstreamDO);
+        } else {
+            discoveryUpstreamMapper.insert(discoveryUpstreamDO);
+        }
     }
 
     /**
@@ -152,6 +164,22 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         discoveryUpstreamMapper.update(discoveryUpstreamDO);
         fetchAll(discoveryUpstreamDTO.getDiscoveryHandlerId());
         return ShenyuResultMessage.UPDATE_SUCCESS;
+    }
+
+    @Override
+    public List<DiscoveryUpstreamData> findBySelectorId(final String selectorId) {
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
+        List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDO.getId());
+        return discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteBySelectorIdAndUrl(final String selectorId, final String url) {
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
+        if (Objects.nonNull(discoveryHandlerDO)) {
+            discoveryUpstreamMapper.deleteByUrl(discoveryHandlerDO.getId(), url);
+        }
     }
 
     private void fetchAll(final String discoveryHandlerId) {

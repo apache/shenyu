@@ -17,11 +17,8 @@
 
 package org.apache.shenyu.admin.controller;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.DocVO;
@@ -33,14 +30,16 @@ import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Api Documet Controller.
  */
-@RestController
-@RequestMapping("/apidoc")
+@RestApi("/apidoc")
 public class ApiDocController {
 
     private final DocManager docManager;

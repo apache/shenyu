@@ -68,6 +68,12 @@
         FROM discovery
     </select>
 
+    <select id="selectByName" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery where name = #{name}
+    </select>
+
     <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
             parameterType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
         INSERT INTO discovery

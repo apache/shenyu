@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -206,6 +207,20 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         @Override
         protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
             return "buildHandle";
+        }
+
+        @Override
+        protected void doDiscoveryLocal(final SelectorDO selectorDO, final String pluginName, final List<URIRegisterDTO> uriList) {
+
+        }
+
+        @Override
+        protected DiscoverySyncData fetch(final String selectorId, final String selectorName, final String pluginName) {
+            return new DiscoverySyncData();
+        }
+
+        @Override
+        protected void removeDiscoveryUpstream(final String selectorId, final String url) {
         }
 
         @Override

@@ -52,7 +52,7 @@ public class LocalDispatcherFilter extends AbstractWebFilter {
     
     @Override
     protected Mono<Boolean> doMatcher(final ServerWebExchange exchange, final WebFilterChain chain) {
-        return Mono.just(exchange.getRequest().getURI().getPath().startsWith(DISPATCHER_PATH));
+        return Mono.just(exchange.getRequest().getURI().getRawPath().startsWith(DISPATCHER_PATH));
     }
     
     @Override

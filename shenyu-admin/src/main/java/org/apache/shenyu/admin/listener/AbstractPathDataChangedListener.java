@@ -85,7 +85,7 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
         for (ProxySelectorData data : changed) {
-            String proxySelectorPath = DefaultPathConstants.buildProxySelectorPath(data.getPluginName(), data.getName());
+            String proxySelectorPath = DefaultPathConstants.buildProxySelectorPath(data.getPluginName(), data.getId());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteNode(proxySelectorPath);
@@ -101,7 +101,7 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
         for (DiscoverySyncData data : changed) {
-            String upstreamPath = DefaultPathConstants.buildDiscoveryUpstreamPath(data.getPluginName(), data.getSelectorName());
+            String upstreamPath = DefaultPathConstants.buildDiscoveryUpstreamPath(data.getPluginName(), data.getSelectorId());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteNode(upstreamPath);

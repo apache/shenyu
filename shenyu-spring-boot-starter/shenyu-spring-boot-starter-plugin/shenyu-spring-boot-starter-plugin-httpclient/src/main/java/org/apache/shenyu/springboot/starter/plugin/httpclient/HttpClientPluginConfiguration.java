@@ -20,10 +20,12 @@ package org.apache.shenyu.springboot.starter.plugin.httpclient;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin;
 import org.apache.shenyu.plugin.httpclient.WebClientPlugin;
+import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,6 +53,17 @@ public class HttpClientPluginConfiguration {
     public HttpClientProperties httpClientProperties() {
         return new HttpClientProperties();
     }
+    
+    /**
+     * http response duplicate response headers config.
+     *
+     * @return the duplicate response header properties
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "shenyu.duplicate-response-header")
+    public DuplicateResponseHeaderProperties responseHeaderProperties() {
+        return new DuplicateResponseHeaderProperties();
+    }
 
     /**
      * Http client loop resource.
@@ -71,13 +84,15 @@ public class HttpClientPluginConfiguration {
      *
      * @param properties the properties
      * @param provider   the loop resources bean provider
+     * @param serverProperties the server properties
      * @return the http client
      */
     @Bean
     @ConditionalOnMissingBean({HttpClient.class, HttpClientFactory.class})
     public HttpClientFactory httpClient(final HttpClientProperties properties,
-                                 final ObjectProvider<LoopResources> provider) {
-        return new HttpClientFactory(properties, provider.getIfAvailable());
+                                        final ObjectProvider<LoopResources> provider,
+                                        final ServerProperties serverProperties) {
+        return new HttpClientFactory(properties, provider.getIfAvailable(), serverProperties);
     }
 
 
@@ -85,7 +100,7 @@ public class HttpClientPluginConfiguration {
      * The type Web client configuration.
      */
     @Configuration
-    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "webClient", matchIfMissing = true)
+    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "webClient")
     static class WebClientConfiguration {
 
         /**
@@ -97,7 +112,8 @@ public class HttpClientPluginConfiguration {
         @Bean
         public ShenyuPlugin webClientPlugin(
                 final HttpClientProperties properties,
-                final ObjectProvider<HttpClient> httpClient) {
+                final ObjectProvider<HttpClient> httpClient,
+                final DuplicateResponseHeaderProperties responseHeaderProperties) {
             WebClient webClient = WebClient.builder()
                     // fix Exceeded limit on max bytes to buffer
                     // detail see https://stackoverflow.com/questions/59326351/configure-spring-codec-max-in-memory-size-when-using-reactiveelasticsearchclient
@@ -106,7 +122,7 @@ public class HttpClientPluginConfiguration {
                             .build())
                     .clientConnector(new ReactorClientHttpConnector(Objects.requireNonNull(httpClient.getIfAvailable())))
                     .build();
-            return new WebClientPlugin(webClient);
+            return new WebClientPlugin(webClient, responseHeaderProperties);
         }
     }
 
@@ -114,7 +130,7 @@ public class HttpClientPluginConfiguration {
      * The type Netty http client configuration.
      */
     @Configuration
-    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "netty")
+    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "netty", matchIfMissing = true)
     static class NettyHttpClientConfiguration {
 
         /**
@@ -124,8 +140,9 @@ public class HttpClientPluginConfiguration {
          * @return the shenyu plugin
          */
         @Bean
-        public ShenyuPlugin nettyHttpClientPlugin(final ObjectProvider<HttpClient> httpClient) {
-            return new NettyHttpClientPlugin(httpClient.getIfAvailable());
+        public ShenyuPlugin nettyHttpClientPlugin(final ObjectProvider<HttpClient> httpClient,
+                                                  final DuplicateResponseHeaderProperties responseHeaderProperties) {
+            return new NettyHttpClientPlugin(httpClient.getIfAvailable(), responseHeaderProperties);
         }
     }
 }

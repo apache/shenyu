@@ -18,11 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import com.google.common.collect.Lists;
-import java.util.List;
-import java.util.Optional;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
+import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
@@ -30,19 +26,20 @@ import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.TagService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@Validated
-@RestController
-@RequestMapping("/tag")
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
+import java.util.Optional;
+
+@RestApi("/tag")
 public class TagController {
 
     private final TagService tagService;
