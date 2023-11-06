@@ -23,13 +23,18 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.discovery.DiscoveryLevel;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
@@ -103,20 +108,28 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final DiscoveryMapper discoveryMapper;
 
+    private final DiscoveryRelMapper discoveryRelMapper;
+
+    private final DiscoveryProcessorHolder discoveryProcessorHolder;
+
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
                                final ApplicationEventPublisher eventPublisher,
                                final DiscoveryMapper discoveryMapper,
                                final DiscoveryHandlerMapper discoveryHandlerMapper,
+                               final DiscoveryRelMapper discoveryRelMapper,
                                final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                               final DiscoveryProcessorHolder discoveryProcessorHolder,
                                final SelectorEventPublisher selectorEventPublisher) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
         this.discoveryMapper = discoveryMapper;
         this.discoveryHandlerMapper = discoveryHandlerMapper;
+        this.discoveryRelMapper = discoveryRelMapper;
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
+        this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.eventPublisher = eventPublisher;
         this.selectorEventPublisher = selectorEventPublisher;
     }
@@ -246,7 +259,32 @@ public class SelectorServiceImpl implements SelectorService {
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
         final List<SelectorDO> selectors = selectorMapper.selectByIdSet(new TreeSet<>(ids));
-        return deleteSelector(selectors, pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId)));
+        List<PluginDO> pluginDOS = pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId));
+        unbindDiscovery(selectors, pluginDOS);
+        return deleteSelector(selectors, pluginDOS);
+    }
+
+    /**
+     * unbind discovery.
+     *
+     * @param selectors selectors
+     */
+    private void unbindDiscovery(final List<SelectorDO> selectors, List<PluginDO> pluginDOS) {
+        Map<String, String> pluginMap = ListUtil.toMap(pluginDOS, PluginDO::getId, PluginDO::getName);
+        for (SelectorDO selector : selectors) {
+            DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selector.getId());
+            discoveryHandlerMapper.delete(discoveryHandlerDO.getId());
+            discoveryRelMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
+            DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+            DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
+            ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+            proxySelectorDTO.setName(selector.getName());
+            proxySelectorDTO.setPluginName(pluginMap.getOrDefault(selector.getId(), ""));
+            discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
+            if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getLevel())) {
+                discoveryProcessor.removeDiscovery(discoveryDO);
+            }
+        }
     }
 
     /**
