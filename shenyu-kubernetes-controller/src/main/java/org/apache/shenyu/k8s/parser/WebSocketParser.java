@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -255,7 +256,7 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
                             .loged(false)
                             .enabled(true).build();
 
-                    res.add(new IngressConfiguration(selectorData, ruleData, null));
+                    res.add(new IngressConfiguration(selectorData, Arrays.asList(ruleData), null));
                 }
             }
         }
@@ -346,6 +347,6 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
                 .enabled(true)
                 .sort(Integer.MAX_VALUE).build();
 
-        return new IngressConfiguration(selectorData, ruleData, null);
+        return new IngressConfiguration(selectorData, Arrays.asList(ruleData), null);
     }
 }

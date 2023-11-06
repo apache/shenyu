@@ -51,7 +51,7 @@ public class BatchMetaDataDeletedEvent extends BatchMetaDataChangedEvent {
                 .stream()
                 .map(s -> ((MetaDataDO) s).getAppName())
                 .collect(Collectors.joining(","));
-        return String.format("the meta data[%s] is %s", metaData, StringUtils.lowerCase(getType().getType().toString()));
+        return String.format("the meta data [%s] is %s", metaData, StringUtils.lowerCase(getType().getType().toString()));
     }
     
     /**

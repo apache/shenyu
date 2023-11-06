@@ -39,8 +39,12 @@ shenyu:
         contextPath: ${shenyu.common.contextPath}
         appName: ${shenyu.common.appName}
         port: ${shenyu.common.port}
-
-
+  discovery:
+    name: ZK
+    type: zookeeper
+    serverList: 127.0.0.1:2181
+    weight: 10
+    registerPath: /shenyu/discovery/demo_ws
 
 logging:
   level:

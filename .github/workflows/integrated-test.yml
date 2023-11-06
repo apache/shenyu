@@ -77,7 +77,7 @@ jobs:
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - name: Build examples
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
       - name: Build integrated tests
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml

@@ -84,7 +84,7 @@ public final class LogCollectConfigUtils {
      * @return whether sample
      */
     public static boolean isSampled(final ServerHttpRequest request) {
-        String path = request.getURI().getPath();
+        String path = request.getURI().getRawPath();
         for (Map.Entry<String, Sampler> entry : apiSamplerMap.entrySet()) {
             String pattern = entry.getKey();
             if (MATCHER.match(pattern, path)) {

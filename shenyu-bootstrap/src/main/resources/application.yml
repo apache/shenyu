@@ -118,7 +118,7 @@ shenyu:
         writeBufferLowWaterMark: 32768
         writeSpinCount: 16
         autoRead: false
-        allocType: "pooled"
+        allocType: "unpooled"
         messageSizeEstimator: 8
         singleEventExecutorPerGroup: true
       socketChannel:
@@ -135,7 +135,7 @@ shenyu:
         writeBufferLowWaterMark: 32768
         writeSpinCount: 16
         autoRead: false
-        allocType: "pooled"
+        allocType: "unpooled"
         messageSizeEstimator: 8
         singleEventExecutorPerGroup: true
       sni:
@@ -152,7 +152,7 @@ shenyu:
 #            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
 #            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
 #  httpclient:
-#    strategy: webClient # netty
+#    strategy: netty # webClient
 #    connectTimeout: 45000
 #    responseTimeout: 3000
 #    readerIdleTime: 3000
@@ -168,7 +168,10 @@ shenyu:
 #      name: proxy
 #      maxConnections: 16
 #      acquireTimeout: 45000
-#      maxIdleTime: 3000
+#      maxIdleTime: 3000 # unit: ms
+#      maxLifeTime:  # unit: ms
+#      evictionInterval:  # unit: ms
+#      metrics: false
 #    proxy:
 #      host:
 #      port:
@@ -192,6 +195,10 @@ shenyu:
 #      selectCount: 1
 #      workerCount: 8
 #      daemon: true
+  duplicate-response-header:
+    strategy: RETAIN_FIRST
+    headers:
+      - Access-Control-Allow-Origin
   register:
     enabled: false
     registerType: zookeeper #etcd #consul
@@ -279,6 +286,9 @@ shenyu:
     paths:
       - /actuator
       - /health_check
+  alert:
+    enabled: true
+    admins: localhost:9095
   extPlugin:
     path:
     enabled: true
@@ -315,6 +325,8 @@ shenyu:
   local:
     enabled: false
     sha512Key: "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548BAEAE6956DF346EC8C17F5EA10F35EE3CBC514797ED7DDD3145464E2A0BAB413"
+  websocket:
+    enableProxyPing: false
 #  sharedPool:
 #    enable: true
 #    prefix: "shenyu-shared"
@@ -334,3 +346,7 @@ logging:
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
+    org.springframework.http.server.reactive: info
+    org.springframework.web.reactive: info
+    reactor.ipc.netty: info
+    reactor.netty: info

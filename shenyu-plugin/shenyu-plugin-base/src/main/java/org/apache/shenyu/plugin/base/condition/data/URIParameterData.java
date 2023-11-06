@@ -28,6 +28,6 @@ public class URIParameterData implements ParameterData {
     
     @Override
     public String builder(final String paramName, final ServerWebExchange exchange) {
-        return exchange.getRequest().getURI().getPath();
+        return exchange.getRequest().getURI().getRawPath();
     }
 }

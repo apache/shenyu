@@ -72,4 +72,10 @@ public final class OrderControllerTest extends AbstractTest {
         OAuth2DTO oAuth2DTO = HttpHelper.INSTANCE.getFromGateway("/http/order/oauth2/test", headers, OAuth2DTO.class);
         assertEquals("order-test", oAuth2DTO.getToken());
     }
+    
+    @Test
+    public void testWhiteSpaceWithUri() throws IOException {
+        OrderDTO orderDTO = HttpHelper.INSTANCE.getFromGateway("/http/order/%20/uri/test", OrderDTO.class);
+        assertEquals("1", orderDTO.getId());
+    }
 }

@@ -74,7 +74,7 @@ public class ResponsePluginConfiguration {
      * The type Web client message writer configuration.
      */
     @Configuration
-    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "webClient", matchIfMissing = true)
+    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "webClient")
     static class WebClientMessageWriterConfiguration {
     
         /**
@@ -92,7 +92,7 @@ public class ResponsePluginConfiguration {
      * The type Netty client message writer configuration.
      */
     @Configuration
-    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "netty")
+    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "netty", matchIfMissing = true)
     static class NettyClientMessageWriterConfiguration {
     
         /**

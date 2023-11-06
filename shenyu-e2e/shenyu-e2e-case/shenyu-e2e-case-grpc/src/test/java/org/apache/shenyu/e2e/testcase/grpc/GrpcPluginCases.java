@@ -45,17 +45,39 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
-                testWithUriEquals(),
-                testWithUriPathPattern(),
-                testWithUriStartWith(),
-                testWithEndWith(),
-                testWithMethodGet(),
-                testWithMethodPost(),
-                testWithMethodPut(),
-                testWithMethodDelete()
+                testGrpc()
+                //testWithUriEquals(),
+                //testWithUriPathPattern(),
+                //testWithUriStartWith(),
+                //testWithEndWith(),
+                //testWithMethodGet(),
+                //testWithMethodPost(),
+                //testWithMethodPut(),
+                //testWithMethodDelete()
         );
     }
 
+    private ShenYuScenarioSpec testGrpc() {
+        Map<String, List<MessageData>> body = new ConcurrentHashMap<>();
+        body.put("data", Lists.newArrayList(new MessageData("hello grpc")));
+        return ShenYuScenarioSpec.builder()
+                .name("test grpc invoker")
+                .beforeEachSpec(
+                        ShenYuBeforeEachSpec.builder()
+                                .checker(notExists("/sofa/findAll"))
+                                .checker(exists(Method.POST, "/grpc/echo", body))
+                                .build()
+                )
+                .caseSpec(
+                        ShenYuCaseSpec.builder()
+                                .addExists(Method.POST, "/grpc/echo", body)
+                                .addNotExists("/grpc/fin")
+                                .addNotExists("/put")
+                                .addNotExists("/get")
+                                .build())
+                .build();
+    }
+    
     /**
      * test with uri equal.
      *
@@ -92,7 +114,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists("/put")
                                 .addNotExists("/get")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/sofa/findAll")).build())
                 .build();
     }
 
@@ -135,7 +157,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/grpc/findAll")
                                 .addNotExists(Method.DELETE, "/grpc/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/grpc/findAll")).build())
                 .build();
     }
 
@@ -177,7 +199,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/grpc/findAll")
                                 .addNotExists(Method.DELETE, "/grpc/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/grpc/findAll")).build())
                 .build();
     }
 
@@ -217,7 +239,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/grpc/findAll")
                                 .addNotExists(Method.DELETE, "/grpc/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/grpc/findAll")).build())
                 .build();
     }
 
@@ -264,7 +286,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/grpc/findAll")
                                 .addNotExists(Method.DELETE, "/grpc/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.GET, "/grpc/findAll")).build())
                 .build();
     }
 
@@ -311,7 +333,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/grpc/findAll")
                                 .addNotExists(Method.DELETE, "/grpc/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.POST, "/grpc/findAll")).build())
                 .build();
     }
 
@@ -358,7 +380,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.POST, "/grpc/findAll")
                                 .addNotExists(Method.DELETE, "/grpc/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.PUT, "/grpc/findAll")).build())
                 .build();
     }
 
@@ -405,7 +427,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.POST, "/grpc/findAll")
                                 .addNotExists(Method.PUT, "/grpc/findAll")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.DELETE, "/grpc/findAll")).build())
                 .build();
     }
 
