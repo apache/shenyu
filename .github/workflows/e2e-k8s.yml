@@ -289,6 +289,9 @@ jobs:
 #        with:
 #          detached: true
 
+      - name: Build ShenYu E2E Engine
+        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-engine -am clean install
+
       - name: Run E2E Tests
         if: steps.filter.outputs.changed == 'true'
         run: |

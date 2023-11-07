@@ -28,8 +28,6 @@ import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.apache.shenyu.e2e.model.ResourcesData;
-import org.apache.shenyu.e2e.model.response.MetaDataDTO;
-import org.apache.shenyu.e2e.model.response.RuleDTO;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -71,7 +69,7 @@ public class ApacheDubboPluginManualTest {
     @BeforeEach
     public void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
+        final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
@@ -93,8 +91,7 @@ public class ApacheDubboPluginManualTest {
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin");
         LOG.info("start dubbo plugin success!");
         adminClient.deleteAllSelectors();
-        selectorDTOList = adminClient.listAllSelectors();
-        Assertions.assertEquals(0, selectorDTOList.size());
+        Assertions.assertEquals(0, adminClient.listAllSelectors().size());
     }
     
     @ShenYuScenario(provider = ApacheDubboPluginManualCases.class)

@@ -18,27 +18,18 @@
 package org.apache.shenyu.e2e.testcase.grpc.sync;
 
 import com.google.common.collect.Lists;
-import io.restassured.http.Method;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
-import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuAfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuCaseSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
-import org.apache.shenyu.e2e.model.Plugin;
-import org.apache.shenyu.e2e.model.data.Condition;
-import org.apache.shenyu.e2e.model.handle.GrpcSelectorHandle;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
+import io.restassured.http.Method;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExists;
-import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newCondition;
-import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
-import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
-import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
 
 public class GrpcPluginCases implements ShenYuScenarioProvider {
 
