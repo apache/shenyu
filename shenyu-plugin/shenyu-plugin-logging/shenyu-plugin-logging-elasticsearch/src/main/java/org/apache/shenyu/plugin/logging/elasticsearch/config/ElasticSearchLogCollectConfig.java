@@ -207,8 +207,8 @@ public class ElasticSearchLogCollectConfig {
                     && Objects.equals(getPort(), that.getPort())
                     && Objects.equals(getSampleRate(), that.getSampleRate())
                     && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
-                    && Objects.equals(getMaxResponseBody(), that.getMaxRequestBody())
-                    && Objects.equals(getMaxRequestBody(), that.getMaxResponseBody())
+                    && Objects.equals(getMaxRequestBody(), that.getMaxRequestBody())
+                    && Objects.equals(getMaxResponseBody(), that.getMaxResponseBody())
                     && Objects.equals(getIndexName(), that.getIndexName());
         }
 
