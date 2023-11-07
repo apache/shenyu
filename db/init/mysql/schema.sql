@@ -837,6 +837,8 @@ INSERT INTO `plugin` VALUES ('40', 'keyAuth', NULL, 'Authentication', 150, 0, '2
 INSERT INTO `plugin` VALUES ('41', 'brpc', '{\"address\":\"127.0.0.1\", \"port\":\"8005\", \"corethreads\":0, \"threads\":2147483647, \"queues\":0, \"threadpool\":\"shared\"}', 'Proxy', 310, 0, '2023-01-10 10:08:01', '2023-01-10 10:08:01',null);
 INSERT INTO `plugin` VALUES ('42', 'tcp', NULL, 'Proxy', 320, 1, '2023-05-30 18:02:53', '2022-05-30 18:02:53',null);
 INSERT INTO `plugin` VALUES ('43', 'loggingHuaweiLts', '{\"totalSizeInBytes\":\"104857600\",\"maxBlockMs\":\"0\",\"ioThreadCount\":\"1\",\"batchSizeThresholdInBytes\":\"524288\",\"batchCountThreshold\":\"4096\",\"lingerMs\":\"2000\",\"retries\":\"100\",\"baseRetryBackoffMs\":\"100\",\"maxRetryBackoffMs\":\"100\",\"enableLocalTest\":\"true\",\"setGiveUpExtraLongSingleLog\":\"false\"}', 'Logging', 177, 0, '2023-07-05 14:03:53.686', '2023-07-06 12:42:07.234', NULL);
+INSERT INTO `plugin` VALUES ('291', 'loggingRabbitmq', '{\"host\":\"127.0.0.1\",\"port\":5672,\"password\":\"admin\",\"username\":\"admin\",\"exchangeName\":\"exchange.logging.plugin\",\"queueName\":\"queue.logging.plugin\",\"routingKey\":\"topic.logging\"}', 'Logging', 171, 1, '2023-11-06 15:49:56.454', '2023-11-07 13:31:42.112');
+
 -- ----------------------------
 -- Table structure for plugin_handle
 -- ----------------------------
@@ -1171,6 +1173,16 @@ INSERT INTO `plugin_handle` VALUES ('1678997557628272640', '42', 'clientPendingA
 INSERT INTO `plugin_handle` VALUES ('1678997557628272641', '17', 'registerAddress', 'registerAddress', 2, 3, 1, '{\"required\":\"0\",\"defaultValue\":\"127.0.0.1:2181\",\"placeholder\":\"registerAddress\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 
 INSERT INTO `plugin_handle` VALUES ('1678997557628272642', '15', 'loadBalance', 'loadBalance', 3, 2, 3, '{\"required\":\"0\",\"defaultValue\":\"random\",\"rule\":\"\"}', '2023-09-05 18:02:53', '2023-09-05 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1721435546642157568', '291', 'host', 'host', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"127.0.0.1\",\"rule\":\"\"}', '2023-11-06 15:53:11.704', '2023-11-07 13:31:41.010');
+INSERT INTO `plugin_handle` VALUES ('1721435708743618560', '291', 'port', 'port', 1, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"15672\",\"rule\":\"\"}', '2023-11-06 15:53:50.352', '2023-11-07 13:31:41.016');
+INSERT INTO `plugin_handle` VALUES ('1721436368046264320', '291', 'password', 'password', 2, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"admin\",\"rule\":\"\"}', '2023-11-06 15:56:27.541', '2023-11-07 13:31:41.021');
+INSERT INTO `plugin_handle` VALUES ('1721436500343001088', '291', 'username', 'username', 2, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"admin\",\"rule\":\"\"}', '2023-11-06 15:56:59.084', '2023-11-07 13:31:41.025');
+INSERT INTO `plugin_handle` VALUES ('1721436639635836928', '291', 'exchangeName', 'exchangeName', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"\",\"rule\":\"\"}', '2023-11-06 15:57:32.295', '2023-11-07 13:31:41.030');
+INSERT INTO `plugin_handle` VALUES ('1721436745583955968', '291', 'queueName', 'queueName', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"\",\"rule\":\"\"}', '2023-11-06 15:57:57.553', '2023-11-07 13:31:41.035');
+INSERT INTO `plugin_handle` VALUES ('1721509996347617280', '291', 'routingKey', 'routingKey', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"\",\"rule\":\"\"}', '2023-11-06 20:49:01.897', '2023-11-07 13:31:41.039');
+INSERT INTO `plugin_handle` VALUES ('1721725585461706752', '291', 'virtualHost', 'virtualHost', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"/\",\"rule\":\"\"}', '2023-11-07 11:05:42.350', '2023-11-07 13:31:41.044');
+INSERT INTO `plugin_handle` VALUES ('1721725662875975680', '291', 'exchangeType', 'exchangeType', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"direct\",\"rule\":\"\"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
@@ -1629,6 +1641,17 @@ INSERT INTO `resource` VALUES ('1697146375729025024', '1697141926247763968', 'SH
 INSERT INTO `resource` VALUES ('1697145808210333696', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.ADD', '', '', '', 2, 0, 'plus', 1, 0, 'system:alert:add', 1, '2023-08-31 15:14:26', '2023-08-31 07:14:26');
 INSERT INTO `resource` VALUES ('1697146617513873408', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.DELETE', '', '', '', 2, 0, 'delete', 1, 0, 'system:alert:delete', 1, '2023-08-31 15:17:39', '2023-08-31 07:22:07');
 INSERT INTO `resource` VALUES ('1697146860540235776', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.EDIT', '', '', '', 2, 0, 'edit', 1, 0, 'system:alert:edit', 1, '2023-08-31 15:18:37', '2023-08-31 07:18:37');
+
+INSERT INTO `resource` VALUES ('1721434727758827520', '1346775491550474240', 'loggingRabbitmq', 'loggingRabbitmq', '/plug/loggingRabbitmq', 'loggingRabbitmq', 1, 0, 'block', 0, 0, '', 1, '2023-11-06 15:49:56.465', '2023-11-06 15:49:56.466');
+INSERT INTO `resource` VALUES ('1721434727809159168', '1721434727758827520', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingRabbitmqSelector:add', 1, '2023-11-06 15:49:56.480', '2023-11-06 15:49:56.480');
+INSERT INTO `resource` VALUES ('1721434727809159169', '1721434727758827520', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingRabbitmqSelector:delete', 1, '2023-11-06 15:49:56.480', '2023-11-06 15:49:56.480');
+INSERT INTO `resource` VALUES ('1721434727809159170', '1721434727758827520', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingRabbitmqSelector:edit', 1, '2023-11-06 15:49:56.480', '2023-11-06 15:49:56.480');
+INSERT INTO `resource` VALUES ('1721434727809159171', '1721434727758827520', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingRabbitmqSelector:query', 1, '2023-11-06 15:49:56.480', '2023-11-06 15:49:56.480');
+INSERT INTO `resource` VALUES ('1721434727809159172', '1721434727758827520', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingRabbitmqRule:add', 1, '2023-11-06 15:49:56.480', '2023-11-06 15:49:56.480');
+INSERT INTO `resource` VALUES ('1721434727809159173', '1721434727758827520', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingRabbitmqRule:delete', 1, '2023-11-06 15:49:56.480', '2023-11-06 15:49:56.480');
+INSERT INTO `resource` VALUES ('1721434727809159174', '1721434727758827520', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingRabbitmqRule:edit', 1, '2023-11-06 15:49:56.480', '2023-11-06 15:49:56.480');
+INSERT INTO `resource` VALUES ('1721434727809159175', '1721434727758827520', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingRabbitmqRule:query', 1, '2023-11-06 15:49:56.480', '2023-11-06 15:49:56.480');
+INSERT INTO `resource` VALUES ('1721434727809159176', '1721434727758827520', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingRabbitmq:modify', 1, '2023-11-06 15:49:56.480', '2023-11-06 15:49:56.480');
 -- ----------------------------
 -- Table structure for role
 -- ----------------------------
