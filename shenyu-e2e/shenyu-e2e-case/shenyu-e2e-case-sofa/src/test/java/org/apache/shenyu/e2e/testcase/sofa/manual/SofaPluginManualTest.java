@@ -66,8 +66,6 @@ public class SofaPluginManualTest {
     @BeforeAll
     public void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
@@ -81,8 +79,7 @@ public class SofaPluginManualTest {
         adminClient.changePluginStatus("11", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
         adminClient.deleteAllSelectors();
-        selectorDTOList = adminClient.listAllSelectors();
-        Assertions.assertEquals(0, selectorDTOList.size());
+        Assertions.assertEquals(0, adminClient.listAllSelectors().size());
     }
     
     /**
