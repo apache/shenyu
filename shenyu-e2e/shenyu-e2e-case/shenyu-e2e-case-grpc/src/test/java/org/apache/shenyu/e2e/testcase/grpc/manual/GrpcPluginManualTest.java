@@ -64,7 +64,7 @@ public class GrpcPluginManualTest {
     private static String conditionId = "";
     
     private List<String> selectorIds = Lists.newArrayList();
-
+    
     @BeforeAll
     void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
@@ -95,12 +95,10 @@ public class GrpcPluginManualTest {
         for (ResourcesData.Resource res : resources.getResources()) {
             SelectorData selector = res.getSelector();
             selector.setId(selectorId);
-            selector.getConditionList().forEach(
-                    condition -> {
-                        condition.setSelectorId(selectorId);
-                        condition.setId(conditionId);
-                    }
-            );
+            selector.getConditionList().forEach(condition -> {
+                condition.setSelectorId(selectorId);
+                condition.setId(conditionId);
+            });
             client.changeSelector(selector.getId(), selector);
             
             res.getRules().forEach(rule -> {
