@@ -35,4 +35,4 @@ sh "${curPath}"/healthcheck.sh h2 http://localhost:31095/actuator/health http://
 
 curl -S "http://localhost:31195/actuator/pluginData"
 
-./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -am test
+./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test
