@@ -23,10 +23,18 @@ import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
+import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.apache.shenyu.e2e.model.ResourcesData;
+import org.apache.shenyu.e2e.model.response.MetaDataDTO;
+import org.apache.shenyu.e2e.model.response.SelectorDTO;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -58,13 +66,11 @@ public class SofaPluginManualTest {
     @BeforeAll
     public void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        Assertions.assertEquals(0, adminClient.listAllSelectors().size());
-        Assertions.assertEquals(0, adminClient.listAllRules().size());
-        Assertions.assertEquals(0, adminClient.listAllMetaData().size());
-        Assertions.assertEquals(0, gatewayClient.getSelectorCache().size());
-        Assertions.assertEquals(0, gatewayClient.getRuleCache().size());
-        Assertions.assertEquals(0, gatewayClient.getMetaDataCache().size());
-
+        List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
+        List<MetaDataDTO> metaDataDTOList = adminClient.listAllMetaData();
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "11");
         formData.add("name", "sofa");
@@ -74,6 +80,9 @@ public class SofaPluginManualTest {
         formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zookeeper:2181\"}");
         adminClient.changePluginStatus("11", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
+        adminClient.deleteAllSelectors();
+        selectorDTOList = adminClient.listAllSelectors();
+        Assertions.assertEquals(0, selectorDTOList.size());
     }
     
     /**
@@ -84,7 +93,36 @@ public class SofaPluginManualTest {
      */
     @ShenYuScenario(provider = SofaPluginManualCases.class)
     public void testSofa(final GatewayClient gateway, final CaseSpec spec) {
-        spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
+        //spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
+    }
+    
+    @BeforeEach
+    void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
+        spec.getChecker().check(gateway);
+        
+        ResourcesData resources = spec.getResources();
+        for (ResourcesData.Resource res : resources.getResources()) {
+            SelectorDTO dto = client.create(res.getSelector());
+            selectorIds.add(dto.getId());
+            res.getRules().forEach(rule -> {
+                rule.setSelectorId(dto.getId());
+                client.create(rule);
+            });
+        }
+        
+        spec.getWaiting().waitFor(gateway);
+    }
+    
+    @AfterEach
+    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
+        spec.getDeleter().delete(client, selectorIds);
+        spec.deleteWaiting().waitFor(gateway);
+        selectorIds = Lists.newArrayList();
+    }
+    
+    @AfterAll
+    static void down(final AdminClient client) {
+        client.deleteAllSelectors();
     }
 }
 

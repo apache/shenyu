@@ -43,7 +43,7 @@ spec:
             timeoutSeconds: 2
           env:
             - name: shenyu.register.enabled
-              value: "false"
+              value: "true"
             - name: shenyu.register.serverLists
               value: http://shenyu-admin:9095
           ports:

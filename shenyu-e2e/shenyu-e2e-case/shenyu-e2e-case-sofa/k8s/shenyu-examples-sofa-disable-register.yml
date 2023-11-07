@@ -36,7 +36,7 @@ spec:
           name: shenyu-examples-sofa
           env:
             - name: shenyu.register.enabled
-              value: "false"
+              value: "true"
             - name: shenyu.register.serverLists
               value: http://shenyu-admin:9095
             - name: com.alipay.sofa.rpc.registry-address

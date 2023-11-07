@@ -74,6 +74,7 @@ public class SofaPluginTest {
     
     @ShenYuScenario(provider = SofaPluginCases.class)
     void testSofa(final GatewayClient gateway, final CaseSpec spec) {
+        // TODO wait for resolve class loader conflict
         //spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 }

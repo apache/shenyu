@@ -17,17 +17,26 @@
 
 package org.apache.shenyu.e2e.testcase.grpc.manual;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.apache.shenyu.e2e.model.ResourcesData;
+import org.apache.shenyu.e2e.model.data.SelectorData;
+import org.apache.shenyu.e2e.model.response.SelectorDTO;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+
+import java.util.List;
 
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
@@ -50,17 +59,24 @@ import org.springframework.util.MultiValueMap;
         )
 })
 public class GrpcPluginManualTest {
+    
+    private static String selectorId = "";
+    
+    private static String conditionId = "";
+    
+    private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeAll
     void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        Assertions.assertEquals(0, adminClient.listAllSelectors().size());
-        Assertions.assertEquals(0, adminClient.listAllRules().size());
-        Assertions.assertEquals(0, adminClient.listAllMetaData().size());
-        Assertions.assertEquals(0, gatewayClient.getSelectorCache().size());
-        Assertions.assertEquals(0, gatewayClient.getRuleCache().size());
-        Assertions.assertEquals(0, gatewayClient.getMetaDataCache().size());
-
+        List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
+        selectorId = selectorDTOList.get(0).getId();
+        selectorIds.add(selectorId);
+        SelectorDTO selector = adminClient.getSelector(selectorId);
+        conditionId = selector.getConditionList().get(0).getId();
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "15");
         formData.add("name", "grpc");
@@ -70,10 +86,47 @@ public class GrpcPluginManualTest {
         formData.add("config", "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}");
         adminClient.changePluginStatus("15", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.grpc.GrpcPlugin");
+        adminClient.deleteAllRules(selectorId);
     }
-
+    
+    @BeforeEach
+    void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
+        spec.getChecker().check(gateway);
+        ResourcesData resources = spec.getResources();
+        for (ResourcesData.Resource res : resources.getResources()) {
+            SelectorData selector = res.getSelector();
+            selector.setId(selectorId);
+            selector.getConditionList().forEach(
+                    condition -> {
+                        condition.setSelectorId(selectorId);
+                        condition.setId(conditionId);
+                    }
+            );
+            client.changeSelector(selector.getId(), selector);
+            
+            res.getRules().forEach(rule -> {
+                rule.setSelectorId(selectorId);
+                client.create(rule);
+            });
+        }
+        
+        spec.getWaiting().waitFor(gateway);
+    }
+    
     @ShenYuScenario(provider = GrpcPluginManualCases.class)
     void testGrpc(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
+    }
+    
+    @AfterAll
+    static void teardown(final AdminClient client) {
+        client.deleteAllSelectors();
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("id", "15");
+        formData.add("name", "grpc");
+        formData.add("enabled", "false");
+        formData.add("role", "Proxy");
+        formData.add("sort", "310");
+        client.changePluginStatus("15", formData);
     }
 }
