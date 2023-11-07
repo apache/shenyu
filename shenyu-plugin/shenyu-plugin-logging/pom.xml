@@ -30,6 +30,7 @@
         <module>shenyu-plugin-logging-common</module>
         <module>shenyu-plugin-logging-console</module>
         <module>shenyu-plugin-logging-rocketmq</module>
+        <module>shenyu-plugin-logging-rabbitmq</module>
         <module>shenyu-plugin-logging-kafka</module>
         <module>shenyu-plugin-logging-elasticsearch</module>
         <module>shenyu-plugin-logging-aliyun-sls</module>
