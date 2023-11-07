@@ -25,6 +25,6 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>shenyu-e2e-case-http</artifactId>
+    <artifactId>shenyu-e2e-case-storage</artifactId>
 
 </project>
