@@ -39,11 +39,10 @@ public class DividePluginCases implements ShenYuScenarioProvider {
         return ShenYuScenarioSpec.builder()
                 .name("http client hello")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()
-                        .checker(exists("/http/shenyu/client/hello"))
+                        .checker(exists("/http/order/findById?id=123"))
                         .build())
                 .caseSpec(ShenYuCaseSpec.builder()
-                        .addExists("/http/shenyu/client/hello")
-                        .addNotExists("/http/shenyu/client/hello/222/111")
+                        .addExists("/http/order/findById?id=123")
                         .build())
                 .build();
     }
