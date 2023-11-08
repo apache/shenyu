@@ -48,7 +48,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
   kubectl apply -f "${PRGDIR}"/shenyu-examples-http.yml
-  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31189//actuator/health
+  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31189/actuator/health
   sleep 10s
   kubectl get pod -o wide
 

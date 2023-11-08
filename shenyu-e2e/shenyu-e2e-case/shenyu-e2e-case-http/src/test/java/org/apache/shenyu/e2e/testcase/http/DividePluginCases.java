@@ -37,7 +37,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
     
     private ShenYuScenarioSpec testDivideHello() {
         return ShenYuScenarioSpec.builder()
-                .name("single-divide uri =]")
+                .name("http client hello")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()
                         .checker(exists("/http/shenyu/client/hello"))
                         .build())
