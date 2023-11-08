@@ -44,11 +44,11 @@ for sync in ${SYNC_ARRAY[@]}; do
     sleep 10s
   fi
   kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
-  sh "${CUR_PATH}"/healthcheck.sh http://localhost:31095/actuator/health
+  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health
   kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
-  sh "${CUR_PATH}"/healthcheck.sh http://localhost:31195/actuator/health
+  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
   kubectl apply -f "${PRGDIR}"/shenyu-examples-websocket.yml
-  sh "${CUR_PATH}"/healthcheck.sh http://localhost:31191/actuator/health
+  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31191/actuator/health
   sleep 10s
   kubectl get pod -o wide
 
