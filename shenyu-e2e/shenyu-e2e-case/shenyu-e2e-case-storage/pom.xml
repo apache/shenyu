@@ -15,16 +15,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<Configuration status="INFO">
-    <Appenders>
-        <Console name="stdout" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p %X{phase}/%X{operate} %m%n"/>
-        </Console>
-    </Appenders>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-    <Loggers>
-        <Root level="INFO">
-            <AppenderRef ref="stdout"/>
-        </Root>
-    </Loggers>
-</Configuration>
+    <parent>
+        <groupId>org.apache.shenyu</groupId>
+        <artifactId>shenyu-e2e-case</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>shenyu-e2e-case-storage</artifactId>
+
+</project>
