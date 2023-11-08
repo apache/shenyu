@@ -201,6 +201,8 @@ jobs:
     strategy:
       matrix:
         include:
+          - case: shenyu-e2e-case-http
+            script: e2e-http-sync
           - case: shenyu-e2e-case-spring-cloud
             script: e2e-springcloud-sync
           - case: shenyu-e2e-case-apache-dubbo
