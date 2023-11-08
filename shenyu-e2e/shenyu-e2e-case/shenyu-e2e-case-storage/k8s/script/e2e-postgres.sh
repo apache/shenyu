@@ -16,24 +16,29 @@
 # limitations under the License.
 #
 
-for loop in $(seq 1 30); do
-  status=$(curl -s -o /dev/null -w %{http_code} -X GET "${1}" -H "accept: */*")
-  echo -e "${loop} curl ${1} response $status"
-  if [ "$status" -eq 200 ]; then
-    break
-  fi
-  sleep 2s
-done
+# init kubernetes for mysql
+shenyuTestCaseDir=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
+echo "$shenyuTestCaseDir"
+bash "$shenyuTestCaseDir"/k8s/script/init/postgres_container_init.sh
 
-status=$(curl -s -o /dev/null -w "%{http_code}" -X GET "${1}" -H "accept: */*")
+curPath=$(readlink -f "$(dirname "$0")")
+PRGDIR=$(dirname "$curPath")
+echo "$PRGDIR"
+kubectl apply -f "${PRGDIR}"/shenyu-deployment-postgres.yml
+kubectl apply -f "${PRGDIR}"/shenyu-app-service-postgres.yml
 
-if [ "$status" -eq 200 ]; then
-  echo -e "\n-------------------"
-  echo -e "Success to ${1} send request: $status"
-  echo -e "\n-------------------"
-  exit 0
-fi
-echo -e "\n-------------------"
-echo -e "Failed to send request from shenyu-admin : $status"
-echo -e "\n-------------------"
-exit 1
+kubectl get pod -o wide
+
+sleep 30s
+
+kubectl get pod -o wide
+
+chmod +x "${curPath}"/healthcheck.sh
+sh "${curPath}"/healthcheck.sh postgres http://localhost:31095/actuator/health http://localhost:31195/actuator/health
+
+## run e2e-test
+
+curl -S "http://localhost:31195/actuator/pluginData"
+
+./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test
+

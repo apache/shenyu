@@ -16,29 +16,23 @@
 # limitations under the License.
 #
 
-# init kubernetes for mysql
-shenyuTestCaseDir=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
-echo "$shenyuTestCaseDir"
-bash "$shenyuTestCaseDir"/k8s/script/init/postgres_container_init.sh
-
+# init kubernetes for h2
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
 echo "$PRGDIR"
-kubectl apply -f "${PRGDIR}"/shenyu-deployment-postgres.yml
-kubectl apply -f "${PRGDIR}"/shenyu-app-service-postgres.yml
-
-kubectl get pod -o wide
+kubectl apply -f "${PRGDIR}"/shenyu-deployment-h2.yml
+kubectl apply -f "${PRGDIR}"/shenyu-app-service-h2.yml
 
 sleep 30s
 
 kubectl get pod -o wide
 
+# execute healthcheck.sh
 chmod +x "${curPath}"/healthcheck.sh
-sh "${curPath}"/healthcheck.sh postgres http://localhost:31095/actuator/health http://localhost:31195/actuator/health
+sh "${curPath}"/healthcheck.sh h2 http://localhost:31095/actuator/health http://localhost:31195/actuator/health
 
 ## run e2e-test
 
 curl -S "http://localhost:31195/actuator/pluginData"
 
-./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -am test
-
+./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test
