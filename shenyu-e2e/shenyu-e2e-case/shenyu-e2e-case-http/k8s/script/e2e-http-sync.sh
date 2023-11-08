@@ -48,12 +48,12 @@ for sync in ${SYNC_ARRAY[@]}; do
   kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
   kubectl apply -f "${PRGDIR}"/shenyu-examples-http.yml
-  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31189/grpc/actuator/health
+  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31189//actuator/health
   sleep 10s
   kubectl get pod -o wide
 
   ## run e2e-test
-  ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-grpc -am test
+  ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -am test
   # shellcheck disable=SC2181
   if (($?)); then
     echo "${sync}-sync-e2e-test failed"
@@ -68,7 +68,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-mysql.yml
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
-  kubectl delete -f "${PRGDIR}"/shenyu-examples-grpc.yml
+  kubectl delete -f "${PRGDIR}"/shenyu-examples-http.yml
   # shellcheck disable=SC2199
   # shellcheck disable=SC2076
   if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" ]]; then
