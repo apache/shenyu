@@ -34,6 +34,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
+
 /**
  * basic-auth Plugin.
  */
@@ -52,7 +54,7 @@ public class BasicAuthPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         String authorization = StringUtils.defaultString(exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION), exchange.getRequest().getURI().getUserInfo());
         BasicAuthRuleHandle basicAuthRuleHandle = BasicAuthPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        BasicAuthAuthenticationStrategy authenticationStrategy = basicAuthRuleHandle == null ? null : basicAuthRuleHandle.getBasicAuthAuthenticationStrategy();
+        BasicAuthAuthenticationStrategy authenticationStrategy = Optional.ofNullable(basicAuthRuleHandle).map(BasicAuthRuleHandle::getBasicAuthAuthenticationStrategy).orElse(null);
 
         if (authenticationStrategy != null && authenticationStrategy.authenticate(basicAuthRuleHandle, authorization)) {
             return chain.execute(exchange);
