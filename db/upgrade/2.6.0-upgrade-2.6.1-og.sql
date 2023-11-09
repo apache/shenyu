@@ -97,3 +97,7 @@ COMMENT ON COLUMN "public"."alert_receiver"."date_updated" IS 'update time';
 
 UPDATE "public"."plugin_handle" SET label = 'flowRuleEnable 1 or 0' WHERE id = '1529403902770941954';
 UPDATE "public"."plugin_handle" SET label = 'degradeRuleEnable 1 or 0' WHERE id = '1529403902770941956';
+
+
+INSERT INTO "public"."plugin" VALUES ('44', 'basicAuth', '{"defaultHandleJson":"{\"authorization\":\"test:test123\"}"}', 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00', null);
+INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312086', '44', 'defaultHandleJson', 'defaultHandleJson', 2, 3, 2, '{"required":"0","defaultValue":"{\"authorization\":\"test:test123\"}","placeholder":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
