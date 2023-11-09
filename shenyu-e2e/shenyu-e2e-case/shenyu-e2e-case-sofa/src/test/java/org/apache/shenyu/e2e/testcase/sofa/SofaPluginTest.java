@@ -59,6 +59,7 @@ import java.util.List;
         )
 })
 public class SofaPluginTest {
+
     private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeAll
