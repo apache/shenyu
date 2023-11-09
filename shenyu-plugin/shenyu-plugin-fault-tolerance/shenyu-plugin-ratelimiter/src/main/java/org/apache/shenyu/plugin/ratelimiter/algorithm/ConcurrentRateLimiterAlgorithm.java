@@ -48,7 +48,7 @@ public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm
     @Override
     public List<String> getKeys(final String id) {
         String hashKeyPart = ".{" + id + "}";
-        String tokenKey = getKeyName() + hashKeyPart +".tokens";
+        String tokenKey = getKeyName() + hashKeyPart + ".tokens";
         String requestKey = UUIDUtils.getInstance().generateShortUuid() + hashKeyPart + ".request";
         return Arrays.asList(tokenKey, requestKey);
     }
