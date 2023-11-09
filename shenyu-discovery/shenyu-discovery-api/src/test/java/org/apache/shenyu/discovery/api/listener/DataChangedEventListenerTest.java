@@ -42,16 +42,21 @@ public class DataChangedEventListenerTest {
                 case ADDED:
                     // added logic...
                     eventResult.set(ADDED.name());
+                    break;
                 case UPDATED:
                     // updated logic...
                     eventResult.set(UPDATED.name());
+                    break;
                 case DELETED:
                     // deleted logic...
                     eventResult.set(DELETED.name());
-
+                    break;
                 case IGNORED:
                     // ignored logic...
                     eventResult.set(IGNORED.name());
+                    break;
+                default:
+                    break;
             }
         };
         DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent("key", "value", IGNORED);

@@ -37,9 +37,12 @@ public class DiscoveryConfigTest {
 
     @Test
     public void testDiscoveryConfigProperties() {
-        String name = "divide_default_discovery"; // the discovery name
-        String type = "local"; // zookeeper nacos etcd consul
-        String serverList = "{\"host\": \"localhost\"}"; // the discovery pops (json) 
+        // the discovery name
+        String name = "divide_default_discovery";
+        // zookeeper nacos etcd consul
+        String type = "local";
+        // the discovery pops (json)
+        String serverList = "{\"host\": \"localhost\"}";  
 
         testGetSet(DiscoveryConfig::getName, DiscoveryConfig::setName, name);
         testGetSet(DiscoveryConfig::getType, DiscoveryConfig::setType, type);
