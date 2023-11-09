@@ -623,6 +623,14 @@
 <!--        </dependency>-->
         <!-- shenyu kubernetes controller end -->
 
+        <!-- shenyu basic-auth plugin start -->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-basic-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu basic-auth plugin end -->
+
     </dependencies>
     <profiles>
         <profile>
