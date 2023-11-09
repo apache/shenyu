@@ -19,33 +19,35 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-spring-boot-starter</artifactId>
+        <artifactId>shenyu-spring-boot-starter-isolation-plugin</artifactId>
         <version>2.6.1-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-spring-boot-starter-isolation-plugin</artifactId>
-    <packaging>pom</packaging>
 
-    <modules>
-        <module>shenyu-spring-boot-starter-isolation-plugin-sofa</module>
-        <module>shenyu-spring-boot-starter-isolation-plugin-motan</module>
-        <module>shenyu-spring-boot-starter-isolation-plugin-request</module>
-    </modules>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>shenyu-spring-boot-starter-isolation-plugin-request</artifactId>
 
     <properties>
-        <plugin.lib.path>/plugins/lib</plugin.lib.path>
+        <plugin.path>/plugins/request</plugin.path>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-base</artifactId>
+            <artifactId>shenyu-plugin-request</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <outputDirectory>${main.basedir}${plugin.path}</outputDirectory>
+                    <finalName>${project.artifactId}-${project.version}</finalName>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -57,7 +59,7 @@
                             <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${main.basedir}/plugins/lib</outputDirectory>
+                            <outputDirectory>${main.basedir}${plugin.path}</outputDirectory>
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>false</overWriteSnapshots>
                             <overWriteIfNewer>true</overWriteIfNewer>
@@ -65,6 +67,26 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>sh</executable>
+                    <arguments>
+                        <argument>-c</argument>
+                        <argument>${main.basedir}/script/clean_duplicated_jar.sh ${main.basedir}${plugin.lib.path} ${main.basedir}${plugin.path}</argument>
+                    </arguments>
+                </configuration>
             </plugin>
         </plugins>
     </build>
