@@ -368,6 +368,11 @@ public interface Constants {
     String SECRET_KEY = "secretKey";
     
     /**
+     * basicAuth handle key for defaultHandleJson.
+     */
+    String DEFAULT_HANDLE_JSON = "defaultHandleJson";
+    
+    /**
      * local key.
      */
     String LOCAL_KEY = "localKey";
