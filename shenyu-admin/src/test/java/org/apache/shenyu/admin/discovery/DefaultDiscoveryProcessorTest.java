@@ -73,7 +73,7 @@ public class DefaultDiscoveryProcessorTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    MockedStatic<ExtensionLoader> mocked;
+
 
     @Before
     public void setUp() {
@@ -95,7 +95,7 @@ public class DefaultDiscoveryProcessorTest {
         discoveryDO.setType(type);
         discoveryDO.setProps(props);
         discoveryDO.setServerList("localhost:2181");
-        mocked = mockStatic(ExtensionLoader.class);
+        MockedStatic<ExtensionLoader> mocked = mockStatic(ExtensionLoader.class);
         ExtensionLoader extensionLoader = mock(ExtensionLoader.class);
         mocked.when(() -> ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class)).thenReturn(extensionLoader);
         when(extensionLoader.getJoin(anyString())).thenReturn(shenyuDiscoveryService);
