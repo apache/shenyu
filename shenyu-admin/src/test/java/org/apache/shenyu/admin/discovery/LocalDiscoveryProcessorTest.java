@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.admin.discovery;
 
-import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
-import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
-import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
+import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,16 +43,12 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class DiscoveryDataChangedEventSyncListenerTest {
+public class LocalDiscoveryProcessorTest {
 
     @InjectMocks
-    private DiscoveryDataChangedEventSyncListener discoveryDataChangedEventSyncListener;
-
-    @Mock
-    private KeyValueParser keyValueParser;
+    private LocalDiscoveryProcessor localDiscoveryProcessor;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -61,33 +57,45 @@ public class DiscoveryDataChangedEventSyncListenerTest {
     private DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
     @Mock
-    private DiscoverySyncData contextInfo;
+    private ProxySelectorMapper proxySelectorMapper;
 
     @BeforeEach
-    public void setUp() {
-        String discoveryHandlerId = "discoveryHandlerId";
-        discoveryDataChangedEventSyncListener = new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper, keyValueParser, discoveryHandlerId, contextInfo);
+    public void setup(){
+        localDiscoveryProcessor=new LocalDiscoveryProcessor(discoveryUpstreamMapper,proxySelectorMapper);
+        localDiscoveryProcessor.setApplicationEventPublisher(eventPublisher);
+    }
+
+
+    @Test
+    public void testCreateProxySelector(){
+        doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
+        localDiscoveryProcessor.createProxySelector(new DiscoveryHandlerDTO(),new ProxySelectorDTO());
+        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 
     @Test
-    public void testOnChange() {
-        List<DiscoveryUpstreamData> discoveryUpstreamDTOS = new ArrayList<>();
-        DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
-        discoveryUpstreamData.setProtocol("http");
-        discoveryUpstreamData.setUrl("1111");
-        discoveryUpstreamDTOS.add(discoveryUpstreamData);
+    public void testRemoveProxySelector(){
         doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
-        when(keyValueParser.parseValue(anyString())).thenReturn(discoveryUpstreamDTOS);
-        DiscoveryDataChangedEvent event = new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.ADDED);
-        discoveryDataChangedEventSyncListener.onChange(event);
-        verify(discoveryUpstreamMapper).insert(any(DiscoveryUpstreamDO.class));
-        DiscoveryDataChangedEvent event2 = new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.UPDATED);
-        discoveryDataChangedEventSyncListener.onChange(event2);
-        verify(discoveryUpstreamMapper).updateDiscoveryHandlerIdAndUrl(any(DiscoveryUpstreamDO.class));
-        DiscoveryDataChangedEvent event3 = new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.DELETED);
+        localDiscoveryProcessor.removeProxySelector(new DiscoveryHandlerDTO(),new ProxySelectorDTO());
+        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
+    }
 
-        discoveryDataChangedEventSyncListener.onChange(event3);
-        verify(discoveryUpstreamMapper).deleteByUrl(anyString(), anyString());
+    @Test
+    public void testChangeUpstream(){
+        doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
+        localDiscoveryProcessor.changeUpstream(new ProxySelectorDTO(),new ArrayList<>());
+        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
+    }
+
+    @Test
+    public void testFetchAll(){
+        List<DiscoveryUpstreamDO> discoveryUpstreamDOS =new ArrayList<>();
+        ProxySelectorDO proxySelectorDO = new ProxySelectorDO();
+
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId(anyString())).thenReturn(discoveryUpstreamDOS);
+        when(proxySelectorMapper.selectByHandlerId(anyString())).thenReturn(proxySelectorDO);
+        localDiscoveryProcessor.fetchAll("discoveryHandlerId");
+        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 
 }
