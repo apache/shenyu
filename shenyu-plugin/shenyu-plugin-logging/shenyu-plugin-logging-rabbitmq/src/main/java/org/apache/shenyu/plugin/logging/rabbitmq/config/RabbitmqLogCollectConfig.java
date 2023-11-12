@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.logging.rabbitmq.config;
 import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
+import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -73,6 +75,86 @@ public class RabbitmqLogCollectConfig {
         private String exchangeType;
 
         private String virtualHost;
+
+        private Boolean durable;
+
+        private Boolean exclusive;
+
+        private Boolean autoDelete;
+
+        private Map<String, Object> args;
+
+        /**
+         * get Durable.
+         *
+         * @return Durable
+         */
+        public Boolean getDurable() {
+            return durable;
+        }
+
+        /**
+         * set Durable.
+         *
+         * @param durable Durable
+         */
+        public void setDurable(final Boolean durable) {
+            this.durable = durable;
+        }
+
+        /**
+         * get Exclusive.
+         *
+         * @return Exclusive
+         */
+        public Boolean getExclusive() {
+            return exclusive;
+        }
+
+        /**
+         * set Exclusive.
+         *
+         * @param exclusive Exclusive
+         */
+        public void setExclusive(final Boolean exclusive) {
+            this.exclusive = exclusive;
+        }
+
+        /**
+         * get AutoDelete.
+         *
+         * @return AutoDelete
+         */
+        public Boolean getAutoDelete() {
+            return autoDelete;
+        }
+
+        /**
+         * set AutoDelete.
+         *
+         * @param autoDelete AutoDelete
+         */
+        public void setAutoDelete(final Boolean autoDelete) {
+            this.autoDelete = autoDelete;
+        }
+
+        /**
+         * get Rabbitmq Args.
+         *
+         * @return Rabbitmq Args
+         */
+        public Map<String, Object> getArgs() {
+            return args;
+        }
+
+        /**
+         * set Rabbitmq Args.
+         *
+         * @param args Rabbitmq Args
+         */
+        public void setArgs(@Nullable final Map<String, Object> args) {
+            this.args = args;
+        }
 
         /**
          * get VirtualHost.
@@ -253,6 +335,10 @@ public class RabbitmqLogCollectConfig {
                     && Objects.equals(getPort(), that.getPort())
                     && Objects.equals(getExchangeType(), that.getExchangeType())
                     && Objects.equals(getVirtualHost(), that.getVirtualHost())
+                    && Objects.equals(getDurable(), that.getDurable())
+                    && Objects.equals(getExclusive(), that.getExclusive())
+                    && Objects.equals(getAutoDelete(), that.getAutoDelete())
+                    && Objects.equals(getArgs(), that.getArgs())
                     && Objects.equals(getSampleRate(), that.getSampleRate())
                     && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
                     && Objects.equals(getMaxResponseBody(), that.getMaxResponseBody())
@@ -261,7 +347,7 @@ public class RabbitmqLogCollectConfig {
 
         @Override
         public int hashCode() {
-            return Objects.hash(routingKey, queueName, exchangeName, host, port, exchangeType, virtualHost);
+            return Objects.hash(routingKey, queueName, exchangeName, host, port, exchangeType, virtualHost, durable, autoDelete, exchangeType, args);
         }
     }
 

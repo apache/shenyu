@@ -21,6 +21,8 @@ import org.apache.shenyu.plugin.logging.rabbitmq.config.RabbitmqLogCollectConfig
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -48,6 +50,14 @@ public class RabbitmqLogCollectConfigTest {
     private final String exchangeType = "direct";
 
     private final String virtualHost = "/";
+    
+    private final Boolean durable = Boolean.TRUE;
+    
+    private final Boolean exclusive = Boolean.FALSE;
+    
+    private final Boolean autoDelete = Boolean.FALSE;
+    
+    private final Map<String, Object> args = new HashMap<>();
 
     @Test
     public void testPropertiesGetSet() {
@@ -60,6 +70,10 @@ public class RabbitmqLogCollectConfigTest {
         testGetSet(RabbitmqLogConfig::getPort, RabbitmqLogConfig::setPort, port);
         testGetSet(RabbitmqLogConfig::getUsername, RabbitmqLogConfig::setUsername, username);
         testGetSet(RabbitmqLogConfig::getPassword, RabbitmqLogConfig::setPassword, password);
+        testGetSet(RabbitmqLogConfig::getDurable, RabbitmqLogConfig::setDurable, durable);
+        testGetSet(RabbitmqLogConfig::getExclusive, RabbitmqLogConfig::setExclusive, exclusive);
+        testGetSet(RabbitmqLogConfig::getAutoDelete, RabbitmqLogConfig::setAutoDelete, autoDelete);
+        testGetSet(RabbitmqLogConfig::getArgs, RabbitmqLogConfig::setArgs, args);
     }
 
     /**

@@ -23,6 +23,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.MessageProperties;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
@@ -33,6 +34,7 @@ import org.springframework.lang.NonNull;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -50,11 +52,11 @@ public class RabbitmqLogCollectClient extends AbstractLogConsumeClient<RabbitmqL
 
     @Override
     public void initClient0(@NonNull final RabbitmqLogCollectConfig.RabbitmqLogConfig config) {
-        if (config.getHost() == null
-                || config.getPort() == null
-                || config.getExchangeName() == null
-                || config.getQueueName() == null
-                || config.getExchangeType() == null) {
+        if (StringUtils.isBlank(config.getHost())
+                || Objects.isNull(config.getPort())
+                || StringUtils.isBlank(config.getExchangeName())
+                || StringUtils.isBlank(config.getQueueName())
+                || StringUtils.isBlank(config.getExchangeType())) {
             LOG.error("rabbitmq prop is empty. failed init rabbit producer");
             return;
         }
@@ -75,7 +77,7 @@ public class RabbitmqLogCollectClient extends AbstractLogConsumeClient<RabbitmqL
             connection = factory.newConnection();
             channel = connection.createChannel();
             channel.exchangeDeclare(exchangeName, config.getExchangeType(), true);
-            channel.queueDeclare(queueName, true, false, false, null);
+            channel.queueDeclare(queueName, config.getDurable(), config.getExclusive(), config.getAutoDelete(), config.getArgs());
             channel.queueBind(queueName, exchangeName, routingKey);
             LOG.info("init rabbitmqLogCollectClient success");
         } catch (IOException e) {

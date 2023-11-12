@@ -150,7 +150,7 @@ public enum PluginEnum {
     /**
      * Logging Rabbitmq plugin enum.
      */
-    LOGGING_RABBITMQ(171, 0, "loggingRabbitmq"),
+    LOGGING_RABBITMQ(171, 0, "loggingRabbitMQ"),
     
     /**
      * Logging AliYun sls enums.
