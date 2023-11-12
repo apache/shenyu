@@ -86,22 +86,22 @@ public class DiscoveryServiceTest {
     }
 
     @Test
-    void testTypeEnums(){
+    void testTypeEnums() {
         List<String> list = discoveryService.typeEnums();
         assertThat(list.size(), greaterThan(0));
     }
 
     @Test
-    void testDiscovery(){
-        DiscoveryDO discoveryDO=new DiscoveryDO("1","datecreated","level","serverlist","name","prop");
+    void testDiscovery() {
+        DiscoveryDO discoveryDO = new DiscoveryDO("1", "datecreated", "level", "serverlist", "name", "prop");
         when(discoveryMapper.selectByPluginNameAndLevel(anyString(), anyString())).thenReturn(discoveryDO);
         DiscoveryVO discovery = discoveryService.discovery("pluginName", "level");
         assertNotNull(discovery);
     }
 
     @Test
-    void testCreateOrUpdate(){
-        DiscoveryDTO discoveryDTO=new DiscoveryDTO();
+    void testCreateOrUpdate() {
+        DiscoveryDTO discoveryDTO = new DiscoveryDTO();
         discoveryDTO.setType("zookeeper");
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(defaultDiscoveryProcessor);
         when(discoveryMapper.insert(any(DiscoveryDO.class))).thenReturn(1);
@@ -109,7 +109,7 @@ public class DiscoveryServiceTest {
         DiscoveryVO orUpdate = discoveryService.createOrUpdate(discoveryDTO);
         assertNotNull(orUpdate);
 
-        DiscoveryDTO discoveryDTO2=new DiscoveryDTO();
+        DiscoveryDTO discoveryDTO2 = new DiscoveryDTO();
         discoveryDTO2.setType("zookeeper");
         discoveryDTO2.setId("11");
         when(discoveryMapper.updateSelective(any(DiscoveryDO.class))).thenReturn(1);
@@ -118,8 +118,8 @@ public class DiscoveryServiceTest {
     }
 
     @Test
-    void testRegisterDiscoveryConfig(){
-        DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO=new DiscoveryConfigRegisterDTO();
+    void testRegisterDiscoveryConfig() {
+        DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO = new DiscoveryConfigRegisterDTO();
         discoveryConfigRegisterDTO.setDiscoveryType("zookeeper");
         discoveryConfigRegisterDTO.setName("zk discovery");
         discoveryConfigRegisterDTO.setPluginName("divide");
@@ -131,15 +131,15 @@ public class DiscoveryServiceTest {
     }
 
     @Test
-    void testDelete(){
-        List<DiscoveryHandlerDO> discoveryHandlerDOS =new ArrayList<>();
-        DiscoveryHandlerDO discoveryHandlerDO=new DiscoveryHandlerDO();
+    void testDelete() {
+        List<DiscoveryHandlerDO> discoveryHandlerDOS = new ArrayList<>();
+        DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
         discoveryHandlerDOS.add(discoveryHandlerDO);
         when(discoveryHandlerMapper.selectByDiscoveryId(anyString())).thenReturn(discoveryHandlerDOS);
-        assertThrows(ShenyuException.class,()->{
+        assertThrows(ShenyuException.class, () -> {
             discoveryService.delete("1");
         });
-        DiscoveryDO discoveryDO =new DiscoveryDO();
+        DiscoveryDO discoveryDO = new DiscoveryDO();
         discoveryDO.setType("zk");
         when(discoveryMapper.selectById(anyString())).thenReturn(discoveryDO);
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(defaultDiscoveryProcessor);

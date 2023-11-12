@@ -177,7 +177,6 @@ class DiscoveryUpstreamServiceTest {
         proxySelectorDO.setName("name");
         proxySelectorDO.setId("111");
 
-
         when(discoveryRelMapper.selectByDiscoveryHandlerId(anyString())).thenReturn(discoveryRelDO2);
         when(proxySelectorMapper.selectById(anyString())).thenReturn(proxySelectorDO);
 

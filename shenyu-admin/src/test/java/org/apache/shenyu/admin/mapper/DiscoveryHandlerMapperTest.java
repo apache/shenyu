@@ -95,7 +95,6 @@ public class DiscoveryHandlerMapperTest extends AbstractSpringIntegrationTest {
         assertNotNull(discoveryHandlerDO);
     }
 
-
     @Test
     public void testSelectAll() {
         List<DiscoveryHandlerDO> discoveryHandlerDOS = discoveryHandlerMapper.selectAll();

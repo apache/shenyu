@@ -36,7 +36,6 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -60,36 +59,35 @@ public class LocalDiscoveryProcessorTest {
     private ProxySelectorMapper proxySelectorMapper;
 
     @BeforeEach
-    public void setup(){
-        localDiscoveryProcessor=new LocalDiscoveryProcessor(discoveryUpstreamMapper,proxySelectorMapper);
+    public void setup() {
+        localDiscoveryProcessor = new LocalDiscoveryProcessor(discoveryUpstreamMapper, proxySelectorMapper);
         localDiscoveryProcessor.setApplicationEventPublisher(eventPublisher);
     }
 
-
     @Test
-    public void testCreateProxySelector(){
+    public void testCreateProxySelector() {
         doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
-        localDiscoveryProcessor.createProxySelector(new DiscoveryHandlerDTO(),new ProxySelectorDTO());
+        localDiscoveryProcessor.createProxySelector(new DiscoveryHandlerDTO(), new ProxySelectorDTO());
         verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 
     @Test
-    public void testRemoveProxySelector(){
+    public void testRemoveProxySelector() {
         doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
-        localDiscoveryProcessor.removeProxySelector(new DiscoveryHandlerDTO(),new ProxySelectorDTO());
+        localDiscoveryProcessor.removeProxySelector(new DiscoveryHandlerDTO(), new ProxySelectorDTO());
         verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 
     @Test
-    public void testChangeUpstream(){
+    public void testChangeUpstream() {
         doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
-        localDiscoveryProcessor.changeUpstream(new ProxySelectorDTO(),new ArrayList<>());
+        localDiscoveryProcessor.changeUpstream(new ProxySelectorDTO(), new ArrayList<>());
         verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 
     @Test
-    public void testFetchAll(){
-        List<DiscoveryUpstreamDO> discoveryUpstreamDOS =new ArrayList<>();
+    public void testFetchAll() {
+        List<DiscoveryUpstreamDO> discoveryUpstreamDOS = new ArrayList<>();
         ProxySelectorDO proxySelectorDO = new ProxySelectorDO();
 
         when(discoveryUpstreamMapper.selectByDiscoveryHandlerId(anyString())).thenReturn(discoveryUpstreamDOS);

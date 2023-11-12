@@ -70,7 +70,6 @@ import static org.mockito.Mockito.when;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class DefaultDiscoveryProcessorTest {
 
-
     @InjectMocks
     private DefaultDiscoveryProcessor defaultDiscoveryProcessor;
 
@@ -83,14 +82,11 @@ public class DefaultDiscoveryProcessorTest {
     @Mock
     private ProxySelectorMapper proxySelectorMapper;
 
-
     @Mock
     private ShenyuDiscoveryService shenyuDiscoveryService;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
-
-
 
     @Before
     public void setUp() {
@@ -101,9 +97,9 @@ public class DefaultDiscoveryProcessorTest {
     public void testCreateDiscovery() {
         defaultDiscoveryProcessor.setApplicationEventPublisher(eventPublisher);
         DiscoveryDO discoveryDO = new DiscoveryDO();
-        String id = "id";
-        String type = "zookeeper";
-        String props = "{\"serverList\":\"localhost:2181\"}";
+        final String id = "id";
+        final String type = "zookeeper";
+        final String props = "{\"serverList\":\"localhost:2181\"}";
         Map<String, String> map = new HashMap<>();
         map.put("serverList", "localhost:2181");
         Properties properties = new Properties();
@@ -146,7 +142,6 @@ public class DefaultDiscoveryProcessorTest {
         mocked.close();
     }
 
-
     @Test
     public void testCreateProxySelector() {
         DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
@@ -165,7 +160,6 @@ public class DefaultDiscoveryProcessorTest {
         defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO);
         verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
-
 
     @Test
     public void testChangeUpstream() {
@@ -200,13 +194,12 @@ public class DefaultDiscoveryProcessorTest {
     @Test
     public void testRemoveProxySelector() {
         DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
-        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+        final ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
         discoveryHandlerDTO.setDiscoveryId("id");
         doNothing().when(shenyuDiscoveryService).unwatch(anyString());
         doNothing().when(eventPublisher).publishEvent(any(Object.class));
         defaultDiscoveryProcessor.removeProxySelector(discoveryHandlerDTO, proxySelectorDTO);
         verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
-
     }
 
     @Test

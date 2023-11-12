@@ -17,31 +17,41 @@
 
 package org.apache.shenyu.admin.discovery.parse;
 
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class CustomDiscoveryUpstreamParserTest {
-    @InjectMocks
-    CustomDiscoveryUpstreamParser customDiscoveryUpstreamParser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+public class CustomDiscoveryUpstreamParserTest {
+
+    @InjectMocks
+    private CustomDiscoveryUpstreamParser customDiscoveryUpstreamParser;
 
     @BeforeEach
-    void setUp(){
-        Map<String, String> conversion=new HashMap<>();
-        customDiscoveryUpstreamParser=new CustomDiscoveryUpstreamParser(conversion);
+    void setUp() {
+        Map<String, String> conversion = new HashMap<>();
+        customDiscoveryUpstreamParser = new CustomDiscoveryUpstreamParser(conversion);
     }
 
     @Test
-    void testDeserialize(){
-
-    }
-
-    @Test
-    void testParseValue(){
+    void testParseValue() {
+        final String jsonString = "{\"protocol\":\"tcp\",\"url\":\"127.0.0.1:8188\",\"status\":1,\"weight\":1}";
+        final List<DiscoveryUpstreamData> expectDiscoveryUpstreamData = new ArrayList<>();
+        DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
+        discoveryUpstreamData.setUrl("127.0.0.1:8188");
+        discoveryUpstreamData.setProtocol("tcp");
+        discoveryUpstreamData.setStatus(1);
+        discoveryUpstreamData.setWeight(1);
+        expectDiscoveryUpstreamData.add(discoveryUpstreamData);
+        List<DiscoveryUpstreamData> actualDiscoveryUpstreamData = customDiscoveryUpstreamParser.parseValue(jsonString);
+        assertEquals(expectDiscoveryUpstreamData, actualDiscoveryUpstreamData);
 
     }
 }

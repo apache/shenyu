@@ -17,20 +17,18 @@
 
 package org.apache.shenyu.admin.discovery;
 
-
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class DiscoveryProcessorHolderTest {
 
     @InjectMocks
-    DiscoveryProcessorHolder processorHolder;
+    private DiscoveryProcessorHolder processorHolder;
 
     @Mock
     private DiscoveryProcessor defaultProcessor;
@@ -56,7 +54,5 @@ public class DiscoveryProcessorHolderTest {
 
         // 测试不支持的模式
         assertThrows(NotImplementedException.class, () -> processorHolder.chooseProcessor("UNKNOWN_MODE"));
-
-
     }
 }
