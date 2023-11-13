@@ -92,7 +92,7 @@ public class LocalDiscoveryProcessorTest {
 
         when(discoveryUpstreamMapper.selectByDiscoveryHandlerId(anyString())).thenReturn(discoveryUpstreamDOS);
         when(proxySelectorMapper.selectByHandlerId(anyString())).thenReturn(proxySelectorDO);
-        localDiscoveryProcessor.fetchAll("discoveryHandlerId");
+        localDiscoveryProcessor.fetchAll("discoveryHandlerId1");
         verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 
