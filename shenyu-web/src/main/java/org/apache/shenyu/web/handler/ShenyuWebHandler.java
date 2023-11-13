@@ -259,9 +259,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                         return this.execute(exchange);
                     }
                     plugin.before(exchange);
-                    Mono<Void> execute = plugin.execute(exchange, this);
-                    plugin.after(exchange);
-                    return execute;
+                    return plugin.execute(exchange, this).doOnSuccess(unused -> plugin.after(exchange));
                 }
                 return Mono.empty();
             });
