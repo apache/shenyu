@@ -46,6 +46,7 @@ public class PolarisSyncConfiguration {
     /**
      * register configFileService in spring ioc.
      *
+     * @param polarisProperties polarisProperties
      * @return ConfigFileService {@linkplain ConfigFileService}
      */
     @Bean
@@ -59,6 +60,7 @@ public class PolarisSyncConfiguration {
     /**
      * register configFilePublishService in spring ioc.
      *
+     * @param polarisProperties polarisProperties
      * @return ConfigFilePublishService {@linkplain ConfigFilePublishService}
      */
     @Bean
@@ -72,6 +74,8 @@ public class PolarisSyncConfiguration {
     /**
      * Data changed listener data changed listener.
      *
+     * @param polarisProperties polarisProperties
+     * @param configFilePublishService configFilePublishService
      * @param configFileService the config service
      * @return the data changed listener
      */
@@ -85,6 +89,7 @@ public class PolarisSyncConfiguration {
     /**
      * Polaris data init polaris data init.
      *
+     * @param polarisProperties polarisProperties
      * @param configFileService the config service
      * @return the polaris data init
      */
