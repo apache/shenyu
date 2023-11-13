@@ -21,7 +21,7 @@ import com.ctrip.framework.apollo.openapi.client.ApolloOpenApiClient;
 import com.ctrip.framework.apollo.openapi.dto.NamespaceReleaseDTO;
 import com.ctrip.framework.apollo.openapi.dto.OpenItemDTO;
 import org.apache.shenyu.admin.config.properties.ApolloProperties;
-import org.apache.shenyu.admin.exception.ShenyuAdminException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +70,7 @@ public class ApolloClient {
         }
         if (openItemDTO.getKey().equals("timeout")) {
             LOG.error("apollo client getItemValue time out");
-            throw new ShenyuAdminException("apollo client getItemValue time out");
+            throw new ShenyuException("apollo client getItemValue time out");
         }
         return openItemDTO.getValue();
     }
