@@ -46,7 +46,7 @@ public class CustomDiscoveryUpstreamParserTest {
         final List<DiscoveryUpstreamData> expectDiscoveryUpstreamData = new ArrayList<>();
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setUrl("127.0.0.1:8188");
-        discoveryUpstreamData.setProtocol("tcp");
+        discoveryUpstreamData.setProtocol("tcp1");
         discoveryUpstreamData.setStatus(1);
         discoveryUpstreamData.setWeight(1);
         expectDiscoveryUpstreamData.add(discoveryUpstreamData);
