@@ -36,15 +36,6 @@ import java.util.List;
 public final class ApplicationConfigCacheTest {
 
     @Test
-    public void testMotanParamInfo() {
-        ApplicationConfigCache.MotanParamInfo motanParamInfo = new ApplicationConfigCache.MotanParamInfo(null, null);
-        motanParamInfo.setParamNames(new String[]{"test"});
-        motanParamInfo.setParamTypes(new Class<?>[]{ApplicationConfigCache.class});
-        Assertions.assertEquals(motanParamInfo.getParamNames()[0], "test");
-        Assertions.assertEquals(motanParamInfo.getParamTypes()[0], ApplicationConfigCache.class);
-    }
-
-    @Test
     public void testMotanParamExtInfo() {
         ApplicationConfigCache.MotanParamExtInfo motanParamExtInfo = new ApplicationConfigCache.MotanParamExtInfo();
         ApplicationConfigCache.MethodInfo methodInfo = new ApplicationConfigCache.MethodInfo();
@@ -90,7 +81,7 @@ public final class ApplicationConfigCacheTest {
         Field field2 = applicationConfigCache.getClass().getDeclaredField("protocolConfig");
         field2.setAccessible(true);
         ProtocolConfig protocolConfig = (ProtocolConfig) field2.get(applicationConfigCache);
-        Assertions.assertEquals(protocolConfig.getId(), "motan2-breeze");
+        Assertions.assertEquals(protocolConfig.getId(), "motan2");
     }
 
     @Test

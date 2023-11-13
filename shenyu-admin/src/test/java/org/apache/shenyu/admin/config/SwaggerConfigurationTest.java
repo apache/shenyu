@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.admin.config;
 
+import io.swagger.v3.oas.models.OpenAPI;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -35,13 +36,11 @@ public final class SwaggerConfigurationTest {
     private SwaggerConfiguration swaggerConfiguration;
 
     @Test
-    public void testCreateRestApi() {
-        assertNotNull(swaggerConfiguration.createRestApi());
-    }
-
-    @Test
-    public void testSwaggerEnable() {
-        ReflectionTestUtils.setField(swaggerConfiguration, "enable", true);
-        assertNotNull(swaggerConfiguration.createRestApi());
+    public void testApiInfo() {
+        OpenAPI actual = swaggerConfiguration.apiInfo();
+        assertNotNull(actual);
+        Assertions.assertEquals(1, actual.getSecurity().size());
+        Assertions.assertEquals(1, actual.getSecurity().get(0).size());
+        Assertions.assertTrue(actual.getSecurity().get(0).containsKey(org.apache.shenyu.common.constant.Constants.X_ACCESS_TOKEN));
     }
 }

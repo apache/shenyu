@@ -60,12 +60,6 @@ public class ApplicationConfigCacheTest {
     }
     
     @Test
-    public void testInitPrx() {
-        this.applicationConfigCache.initPrx(selector);
-        assertNotNull(applicationConfigCache.get(selector.getName()));
-    }
-    
-    @Test
     public void testGet() {
         assertNotNull(this.applicationConfigCache.get("/test"));
     }

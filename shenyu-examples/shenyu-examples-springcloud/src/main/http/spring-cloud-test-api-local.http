@@ -54,13 +54,13 @@ Content-Type: application/json
 
 ## must is success
 
-### example local used requst mapping path
-POST http://localhost:8884/new/feature/requst/mapping/path
+### example local used request mapping path
+POST http://localhost:8884/new/feature/request/mapping/path
 Accept: application/json
 Content-Type: application/json
 
-### example local used requst mapping path
-GET http://localhost:8884/new/feature/requst/mapping/path
+### example local used request mapping path
+GET http://localhost:8884/new/feature/request/mapping/path
 Accept: application/json
 Content-Type: application/json
 

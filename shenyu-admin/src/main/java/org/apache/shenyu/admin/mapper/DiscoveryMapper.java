@@ -103,4 +103,12 @@ public interface DiscoveryMapper extends ExistProvider {
      * @return rows.
      */
     int delete(String id);
+
+    /**
+     * selectByName.
+     *
+     * @param name name
+     * @return DiscoveryDO
+     */
+    DiscoveryDO selectByName(String name);
 }

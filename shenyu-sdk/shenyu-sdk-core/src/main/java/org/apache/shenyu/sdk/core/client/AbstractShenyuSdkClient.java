@@ -40,13 +40,11 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * The type Abstract shenyu sdk client.
@@ -89,10 +87,10 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
         this.registerRepository = instanceRegisterRepository;
         this.requestInterceptors = requestInterceptors;
         Properties props = registerConfig.getProps();
-        Boolean retryEnable = Optional.ofNullable(props.get("retry.enable")).map(e -> Boolean.parseBoolean(e.toString())).orElse(false);
-        Long period = Optional.ofNullable(props.get("retry.period")).map(l -> Long.parseLong(l.toString())).orElse(100L);
-        long maxPeriod = Optional.ofNullable(props.get("retry.maxPeriod")).map(l -> Long.parseLong(l.toString())).orElse(SECONDS.toMillis(1));
-        int maxAttempts = Optional.ofNullable(props.get("retry.maxAttempts")).map(l -> Integer.parseInt(l.toString())).orElse(5);
+        boolean retryEnable = Boolean.parseBoolean(props.getProperty("retry.enable", "false"));
+        long period = Long.parseLong(props.getProperty("retry.period", "100"));
+        long maxPeriod = Long.parseLong(props.getProperty("retry.maxPeriod", "1000"));
+        int maxAttempts = Integer.parseInt(props.getProperty("retry.maxAttempts", "5"));
         this.algorithm = props.getProperty("algorithm", "roundRobin");
         this.scheme = props.getProperty("scheme", "http");
         this.retryer = retryEnable ? new Retryer.DefaultRetry(period, maxPeriod, maxAttempts) : Retryer.NEVER_RETRY;
@@ -178,9 +176,9 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
     private String replaceUrl(final String url, final String sourceUrl) {
         final URI uri = URI.create(sourceUrl);
         if (StringUtils.isEmpty(uri.getQuery())) {
-            return url + uri.getPath();
+            return url + uri.getRawPath();
         } else {
-            return String.format("%s%s?%s", url, uri.getPath(), uri.getQuery());
+            return String.format("%s%s?%s", url, uri.getRawPath(), uri.getQuery());
         }
     }
 
