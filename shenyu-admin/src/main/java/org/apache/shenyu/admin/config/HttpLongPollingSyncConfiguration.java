@@ -34,12 +34,24 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(HttpSyncProperties.class)
 public class HttpLongPollingSyncConfiguration {
 
+    /**
+     * httpLongPollingDataChangedListener.
+     *
+     * @param httpSyncProperties httpSyncProperties
+     * @return {@link HttpLongPollingDataChangedListener}
+     */
     @Bean
     @ConditionalOnMissingBean(HttpLongPollingDataChangedListener.class)
     public HttpLongPollingDataChangedListener httpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
         return new HttpLongPollingDataChangedListener(httpSyncProperties);
     }
 
+    /**
+     * configController.
+     *
+     * @param httpLongPollingDataChangedListener httpLongPollingDataChangedListener
+     * @return {@link ConfigController}
+     */
     @Bean
     @ConditionalOnMissingBean(ConfigController.class)
     public ConfigController configController(final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener) {
