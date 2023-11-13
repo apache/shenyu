@@ -26,13 +26,16 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpStatus;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.dto.TagDTO;
+import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.vo.TagVO;
+import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.TagService;
 import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.admin.service.manager.PullSwaggerDocService;
 import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +71,9 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
 
     @Resource
     private TagService tagService;
+
+    @Resource
+    private RuleService ruleService;
 
     @Override
     public void pullApiDocument(final Set<UpstreamInstance> currentServices) {
@@ -179,9 +185,18 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
         uriComponentsBuilder.scheme("http");
         uriComponentsBuilder.host(instance.getIp());
         uriComponentsBuilder.port(instance.getPort());
-        uriComponentsBuilder.path(instance.getAddPrefixed() ? instance.getContextPath() : StringUtils.EMPTY);
+        RuleDO ruleDO = ruleService.findByName(instance.getContextPath());
+        boolean isAddContextPath = isAddContextPath(ruleDO);
+        uriComponentsBuilder.path(isAddContextPath ? instance.getContextPath() : StringUtils.EMPTY);
         uriComponentsBuilder.path(SWAGGER_V2_PATH);
         return uriComponentsBuilder.build().toUriString();
     }
 
+    private boolean isAddContextPath(final RuleDO ruleDO) {
+        if (Objects.isNull(ruleDO)) {
+            return false;
+        }
+        ContextMappingRuleHandle contextMappingRuleHandle = GsonUtils.getInstance().fromJson(ruleDO.getHandle(), ContextMappingRuleHandle.class);
+        return contextMappingRuleHandle.getAddPrefixed();
+    }
 }

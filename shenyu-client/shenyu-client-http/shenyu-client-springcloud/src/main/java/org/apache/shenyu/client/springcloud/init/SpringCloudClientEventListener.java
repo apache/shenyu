@@ -237,7 +237,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                                                    final @NonNull ShenyuSpringCloudClient shenyuClient,
                                                    final String path, final Class<?> clazz, final Method method) {
         return MetaDataRegisterDTO.builder()
-                .contextPath(StringUtils.defaultIfBlank(getContextPath(), this.servletContextPath))
+                .contextPath(StringUtils.defaultIfBlank(this.servletContextPath, getContextPath()))
                 .addPrefixed(StringUtils.isNotBlank(this.servletContextPath))
                 .appName(getAppName())
                 .serviceName(clazz.getName())

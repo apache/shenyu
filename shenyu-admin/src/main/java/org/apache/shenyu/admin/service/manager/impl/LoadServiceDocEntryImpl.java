@@ -32,13 +32,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
-import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
@@ -46,11 +44,9 @@ import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.admin.service.manager.PullSwaggerDocService;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.slf4j.Logger;
@@ -77,20 +73,16 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
 
     private final ShenyuDictService shenyuDictService;
 
-    private final RuleService ruleService;
-
     public LoadServiceDocEntryImpl(final SelectorService selectorService,
                                    final SelectorHandleConverterFactor converterFactor,
                                    final PluginMapper pluginMapper,
                                    final PullSwaggerDocService pullSwaggerDocService,
-                                   final ShenyuDictService shenyuDictService,
-                                   final RuleService ruleService) {
+                                   final ShenyuDictService shenyuDictService) {
         this.selectorService = selectorService;
         this.converterFactor = converterFactor;
         this.pluginMapper = pluginMapper;
         this.pullSwaggerDocService = pullSwaggerDocService;
         this.shenyuDictService = shenyuDictService;
-        this.ruleService = ruleService;
     }
 
     @Override
@@ -208,8 +200,6 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         // Get service instance.
         if (StringUtils.isNotEmpty(handle)) {
             allInstances = new ArrayList<>();
-            RuleDO roleDo = ruleService.findByName(contextPath);
-            ContextMappingRuleHandle contextMappingRuleHandle = convertRule(roleDo.getHandle());
             try {
                 List<CommonUpstream> upstreamList = this.convert(pluginId, handle);
                 for (CommonUpstream upstream : upstreamList) {
@@ -220,7 +210,6 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                     instance.setPort(upstreamUrlArr.length == 1 ? 80 : Integer.parseInt(upstreamUrlArr[1]));
                     instance.setEnabled(enabled);
                     instance.setHealthy(true);
-                    instance.setAddPrefixed(contextMappingRuleHandle.getAddPrefixed());
                     instance.setStartupTime(upstream.getTimestamp());
                     allInstances.add(instance);
                 }
@@ -237,10 +226,6 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         return converterFactor.newInstance(pluginName).convertUpstream(handle)
             .stream().filter(CommonUpstream::isStatus)
             .collect(Collectors.toList());
-    }
-
-    private ContextMappingRuleHandle convertRule(final String handle) {
-        return GsonUtils.getInstance().fromJson(handle, ContextMappingRuleHandle.class);
     }
 
 }
