@@ -125,10 +125,10 @@ public class RabbitmqLogCollectClient extends AbstractLogConsumeClient<RabbitmqL
     @Override
     public void close0() throws Exception {
         try {
-            if (channel != null) {
+            if (Objects.nonNull(channel)) {
                 channel.close();
             }
-            if (connection != null) {
+            if (Objects.nonNull(connection)) {
                 connection.close();
             }
             LOG.info("close RabbitMQ connection success");
