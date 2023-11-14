@@ -88,11 +88,6 @@
         </dependency>
 
         <dependency>
-            <artifactId>grpc-netty</artifactId>
-            <groupId>io.grpc</groupId>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-register-client-server-apollo</artifactId>
             <version>${project.version}</version>
@@ -200,11 +195,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.caucho</groupId>
-            <artifactId>hessian</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
         </dependency>
@@ -224,7 +214,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -280,6 +270,7 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- shenyu discovery start -->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-discovery-etcd</artifactId>
@@ -309,9 +300,9 @@
             </exclusions>
             <version>${project.version}</version>
         </dependency>
+        <!-- shenyu discovery end -->
 
-        <!--  shenyu-admin-listener start-->
-
+        <!-- shenyu-admin-listener start -->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-admin-listener-apollo</artifactId>
