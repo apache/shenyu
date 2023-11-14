@@ -126,8 +126,9 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      * @param shenyuDiscoveryConfig shenyuDiscoveryConfig
      * @return InstanceRegisterListener
      */
-    @Bean
+    @Bean("springmvcInstanceRegisterListener")
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
+    @ConditionalOnMissingBean(name = "websocketInstanceRegisterListener")
     public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setUrl(clientRegisterConfig.getHost() + ":" + clientRegisterConfig.getPort());

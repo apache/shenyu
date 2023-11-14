@@ -62,7 +62,7 @@ public class ShenyuSpringWebSocketClientConfiguration {
             final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         ShenyuClientConfig.ClientPropertiesConfig clientPropertiesConfig = clientConfig.getClient().get(RpcTypeEnum.WEB_SOCKET.getName());
         Properties props = clientPropertiesConfig == null ? null : clientPropertiesConfig.getProps();
-        String discoveryMode = env.getProperty("shenyu.discovery.mode", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
+        String discoveryMode = env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
         if (props != null) {
             props.setProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.valueOf(ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode)).toString());
         }
@@ -76,7 +76,7 @@ public class ShenyuSpringWebSocketClientConfiguration {
      * @param shenyuDiscoveryConfig discoveryConfig
      * @return InstanceRegisterListener
      */
-    @Bean
+    @Bean("websocketInstanceRegisterListener")
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     public InstanceRegisterListener instanceRegisterListener(final SpringWebSocketClientEventListener eventListener, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();

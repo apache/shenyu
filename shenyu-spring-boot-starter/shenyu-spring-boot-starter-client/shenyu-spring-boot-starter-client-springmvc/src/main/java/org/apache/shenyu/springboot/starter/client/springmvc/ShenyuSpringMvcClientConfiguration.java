@@ -68,7 +68,7 @@ public class ShenyuSpringMvcClientConfiguration {
         ClientPropertiesConfig clientPropertiesConfig = clientConfig.getClient().get(RpcTypeEnum.HTTP.getName());
         Properties props = clientPropertiesConfig == null ? null : clientPropertiesConfig.getProps();
         String applicationName = env.getProperty("spring.application.name");
-        String discoveryMode = env.getProperty("shenyu.discovery.mode", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
+        String discoveryMode = env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
         if (props != null) {
             String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
             if (StringUtils.isBlank(appName)) {

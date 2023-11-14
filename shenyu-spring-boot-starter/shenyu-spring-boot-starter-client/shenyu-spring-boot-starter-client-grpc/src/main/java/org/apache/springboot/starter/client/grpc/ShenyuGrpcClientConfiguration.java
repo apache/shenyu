@@ -60,7 +60,7 @@ public class ShenyuGrpcClientConfiguration {
                                                            final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         ShenyuClientConfig.ClientPropertiesConfig clientPropertiesConfig = clientConfig.getClient().get(RpcTypeEnum.GRPC.getName());
         Properties props = clientPropertiesConfig == null ? null : clientPropertiesConfig.getProps();
-        String discoveryMode = env.getProperty("shenyu.discovery.mode", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
+        String discoveryMode = env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
         if (props != null) {
             props.setProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.valueOf(ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode)).toString());
         }
