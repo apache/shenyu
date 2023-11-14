@@ -112,7 +112,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     @Test
     public void testHttpLongPollingDataChangedListener() {
         final HttpSyncProperties httpSyncProperties = new HttpSyncProperties();
-        DataSyncConfiguration.HttpLongPollingListener httpLongPollingListener = new DataSyncConfiguration.HttpLongPollingListener();
+        HttpLongPollingSyncConfiguration httpLongPollingListener = new HttpLongPollingSyncConfiguration();
         assertNotNull(httpLongPollingListener.httpLongPollingDataChangedListener(httpSyncProperties));
     }
 
@@ -120,7 +120,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     public void zookeeperClientTest() {
         try (MockedConstruction<ZookeeperClient> zookeeperClientMockedConstruction = mockConstruction(ZookeeperClient.class)) {
             final ZookeeperProperties zookeeperProperties = new ZookeeperProperties();
-            DataSyncConfiguration.ZookeeperListener zookeeperListener = new DataSyncConfiguration.ZookeeperListener();
+            ZookeeperSyncConfiguration zookeeperListener = new ZookeeperSyncConfiguration();
             assertNotNull(zookeeperListener.zookeeperClient(zookeeperProperties));
             zookeeperProperties.setSessionTimeout(3000);
             zookeeperProperties.setConnectionTimeout(3000);
@@ -130,7 +130,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
 
     @Test
     public void testZookeeperDataChangedListener() {
-        DataSyncConfiguration.ZookeeperListener zookeeperListener = new DataSyncConfiguration.ZookeeperListener();
+        ZookeeperSyncConfiguration zookeeperListener = new ZookeeperSyncConfiguration();
         assertNotNull(zookeeperListener.zookeeperDataChangedListener(zkClient));
     }
 
@@ -138,38 +138,38 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     public void testZookeeperDataInit() {
         final SyncDataService syncDataService = new SyncDataServiceImpl(appAuthService, pluginService, selectorService,
                 ruleService, eventPublisher, metaDataService, discoveryService);
-        DataSyncConfiguration.ZookeeperListener zookeeperListener = new DataSyncConfiguration.ZookeeperListener();
+        ZookeeperSyncConfiguration zookeeperListener = new ZookeeperSyncConfiguration();
         assertNotNull(zookeeperListener.zookeeperDataChangedInit(zkClient));
     }
 
     @Test
     public void testWebsocketDataChangedListener() {
-        DataSyncConfiguration.WebsocketListener websocketListener = new DataSyncConfiguration.WebsocketListener();
+        WebSocketSyncConfiguration websocketListener = new WebSocketSyncConfiguration();
         assertNotNull(websocketListener.websocketDataChangedListener());
     }
 
     @Test
     public void testWebsocketCollector() {
-        DataSyncConfiguration.WebsocketListener websocketListener = new DataSyncConfiguration.WebsocketListener();
+        WebSocketSyncConfiguration websocketListener = new WebSocketSyncConfiguration();
         assertNotNull(websocketListener.websocketCollector());
     }
 
     @Test
     public void testServerEndpointExporter() {
-        DataSyncConfiguration.WebsocketListener websocketListener = new DataSyncConfiguration.WebsocketListener();
+        WebSocketSyncConfiguration websocketListener = new WebSocketSyncConfiguration();
         assertNotNull(websocketListener.serverEndpointExporter());
     }
 
     @Test
     public void testNacosDataChangedListener() {
-        DataSyncConfiguration.NacosListener nacosListener = new DataSyncConfiguration.NacosListener();
+        NacosSyncConfiguration nacosListener = new NacosSyncConfiguration();
         NacosConfigService configService = mock(NacosConfigService.class);
         assertNotNull(nacosListener.nacosDataChangedListener(configService));
     }
 
     @Test
     public void testNacosDataInit() {
-        DataSyncConfiguration.NacosListener nacosListener = new DataSyncConfiguration.NacosListener();
+        NacosSyncConfiguration nacosListener = new NacosSyncConfiguration();
         NacosConfigService configService = mock(NacosConfigService.class);
         assertNotNull(nacosListener.nacosDataChangedInit(configService));
     }
@@ -181,7 +181,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
             final NacosProperties.NacosACMProperties nacosACMProperties = new NacosProperties.NacosACMProperties();
             nacosProperties.setAcm(nacosACMProperties);
             nacosFactoryMockedStatic.when(() -> NacosFactory.createConfigService(any(Properties.class))).thenReturn(mock(ConfigService.class));
-            DataSyncConfiguration.NacosListener nacosListener = new DataSyncConfiguration.NacosListener();
+            NacosSyncConfiguration nacosListener = new NacosSyncConfiguration();
             nacosProperties.setUrl("url");
             Assertions.assertDoesNotThrow(() -> nacosListener.nacosConfigService(nacosProperties));
             nacosProperties.setNamespace("url");
@@ -199,7 +199,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
 
     @Test
     public void testPolarisDataChangedListener() {
-        DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        PolarisSyncConfiguration polarisListener = new PolarisSyncConfiguration();
         PolarisProperties polarisProperties = mock(PolarisProperties.class);
         ConfigFileService polarisConfigFileService = mock(ConfigFileService.class);
         ConfigFilePublishService polarisConfigFilePublishService = mock(ConfigFilePublishService.class);
@@ -208,7 +208,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
 
     @Test
     public void testPolarisDataInit() {
-        DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        PolarisSyncConfiguration polarisListener = new PolarisSyncConfiguration();
         PolarisProperties polarisProperties = mock(PolarisProperties.class);
         ConfigFileService polarisConfigFileService = mock(ConfigFileService.class);
         assertNotNull(polarisListener.polarisDataChangedInit(polarisProperties, polarisConfigFileService));
@@ -219,21 +219,21 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         final PolarisProperties polarisProperties = new PolarisProperties();
         polarisProperties.setUrl("127.0.0.1:8093");
         polarisProperties.setNamespace("namespace");
-        DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        PolarisSyncConfiguration polarisListener = new PolarisSyncConfiguration();
         assertNotNull(polarisListener.polarisConfigFileService(polarisProperties));
         assertNotNull(polarisListener.polarisConfigFilePublishService(polarisProperties));
     }
 
     @Test
     public void testEtcdDataChangedListener() {
-        DataSyncConfiguration.EtcdListener etcdListener = new DataSyncConfiguration.EtcdListener();
+        EtcdSyncConfiguration etcdListener = new EtcdSyncConfiguration();
         EtcdClient client = mock(EtcdClient.class);
         assertNotNull(etcdListener.etcdDataChangedListener(client));
     }
 
     @Test
     public void testEtcdDataInit() {
-        DataSyncConfiguration.EtcdListener etcdListener = new DataSyncConfiguration.EtcdListener();
+        EtcdSyncConfiguration etcdListener = new EtcdSyncConfiguration();
         EtcdClient client = mock(EtcdClient.class);
         SyncDataService syncDataService = mock(SyncDataService.class);
         assertNotNull(etcdListener.etcdDataChangedInit(client));
@@ -241,7 +241,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
 
     @Test
     public void testConsulClient() {
-        DataSyncConfiguration.ConsulListener consulListener = new DataSyncConfiguration.ConsulListener();
+        ConsulSyncConfiguration consulListener = new ConsulSyncConfiguration();
         ConsulProperties consulProperties = mock(ConsulProperties.class);
         when(consulProperties.getUrl()).thenReturn("http://127.0.0.1:8500");
         assertNotNull(consulListener.consulClient(consulProperties));
@@ -249,14 +249,14 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
 
     @Test
     public void testConsulDataChangedListener() {
-        DataSyncConfiguration.ConsulListener consulListener = new DataSyncConfiguration.ConsulListener();
+        ConsulSyncConfiguration consulListener = new ConsulSyncConfiguration();
         ConsulClient consulClient = mock(ConsulClient.class);
         assertNotNull(consulListener.consulDataChangedListener(consulClient));
     }
 
     @Test
     public void testConsulDataInit() {
-        DataSyncConfiguration.ConsulListener consulListener = new DataSyncConfiguration.ConsulListener();
+        ConsulSyncConfiguration consulListener = new ConsulSyncConfiguration();
         ConsulClient consulClient = mock(ConsulClient.class);
         SyncDataService syncDataService = mock(SyncDataService.class);
         assertNotNull(consulListener.consulDataChangedInit(consulClient));

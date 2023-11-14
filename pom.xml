@@ -29,6 +29,7 @@
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
+        <module>shenyu-admin-listener</module>
         <module>shenyu-common</module>
         <module>shenyu-web</module>
         <module>shenyu-spring-boot-starter</module>
