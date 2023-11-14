@@ -119,7 +119,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         printLog(selectorData, pluginName);
         if (!selectorData.getContinued()) {
             // if continued， not match rules
-            return doExecute(exchange, chain, selectorData, defaultRuleData(selectorData));
+            return doExecute(exchange, chain, selectorData, defaultRuleData(selectorData)).doFirst(() -> after(exchange));
         }
         List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
         if (CollectionUtils.isEmpty(rules)) {
@@ -129,7 +129,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             //get last
             RuleData rule = rules.get(rules.size() - 1);
             printLog(rule, pluginName);
-            return doExecute(exchange, chain, selectorData, rule);
+            return doExecute(exchange, chain, selectorData, rule).doFirst(() -> after(exchange));
         }
         // lru map as L1 cache,the cache is enabled by default.
         // if the L1 cache fails to hit, using L2 cache based on trie cache.
@@ -150,7 +150,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             }
         }
         printLog(ruleData, pluginName);
-        return doExecute(exchange, chain, selectorData, ruleData);
+        return doExecute(exchange, chain, selectorData, ruleData).doFirst(() -> after(exchange));
     }
 
     private void initCacheConfig() {
