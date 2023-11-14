@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.dto;
 
 import java.sql.Timestamp;
+import java.util.Objects;
 
 public class DiscoveryUpstreamData {
 
@@ -228,6 +229,26 @@ public class DiscoveryUpstreamData {
      */
     public void setDateUpdated(final Timestamp dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DiscoveryUpstreamData that = (DiscoveryUpstreamData) o;
+        return status == that.status && weight == that.weight && Objects.equals(id, that.id)
+                && Objects.equals(dateCreated, that.dateCreated) && Objects.equals(dateUpdated, that.dateUpdated)
+                && Objects.equals(discoveryHandlerId, that.discoveryHandlerId) && Objects.equals(protocol, that.protocol)
+                && Objects.equals(url, that.url) && Objects.equals(props, that.props);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, dateCreated, dateUpdated, discoveryHandlerId, protocol, url, status, weight, props);
     }
 
     /**
