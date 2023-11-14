@@ -153,6 +153,7 @@
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
         <kafka-clients.version>3.4.0</kafka-clients.version>
+        <amqp-client.version>5.16.0</amqp-client.version>
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>1.10.17</eureka.version>
         <javatuples.version>1.2</javatuples.version>

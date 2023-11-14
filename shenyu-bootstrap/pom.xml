@@ -542,7 +542,15 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu logging-kafka plugin end-->
-
+        
+        <!--shenyu logging-rabbitmq plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-rabbitmq</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu logging-rabbitmq plugin end-->
+        
         <!--shenyu logging-elasticsearch plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
