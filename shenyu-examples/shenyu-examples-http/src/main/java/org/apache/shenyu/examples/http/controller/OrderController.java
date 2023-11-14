@@ -113,6 +113,18 @@ public class OrderController {
         oAuth2DTO.setToken(Objects.isNull(tokens) ? "no authorization" : tokens.get(0));
         return oAuth2DTO;
     }
+    
+    /**
+     * Test blank uri order dto.
+     *
+     * @return the order dto
+     */
+    @GetMapping("/ /uri/test")
+    @ShenyuSpringMvcClient("/ /uri/test")
+    @ApiDoc(desc = "test")
+    public OrderDTO testWhiteSpaceWithUri() {
+        return build("1", "hello world testBlankUri");
+    }
 
     private OrderDTO build(final String id, final String name) {
         OrderDTO orderDTO = new OrderDTO();

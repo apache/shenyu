@@ -105,6 +105,7 @@ public class EndpointsReconciler implements Reconciler {
         // 2. Update the handler of the selector
         List<SelectorData> totalSelectors = shenyuCacheRepository.findSelectorDataList(PluginEnum.DIVIDE.getName());
         Set<String> needUpdateSelectorId = new HashSet<>();
+        //TODO Adaptation of other plugins
         ingressList.forEach(item -> {
             List<String> selectorIdList = IngressSelectorCache.getInstance().get(item.getLeft(), item.getRight(), PluginEnum.DIVIDE.getName());
             needUpdateSelectorId.addAll(selectorIdList);

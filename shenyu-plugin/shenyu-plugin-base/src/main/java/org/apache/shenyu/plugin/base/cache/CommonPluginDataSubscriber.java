@@ -112,7 +112,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onSubscribe(final PluginData pluginData) {
-        LOG.info("subscribe plugin data for plugin: [id: {}, name: {}]", pluginData.getId(), pluginData.getName());
+        LOG.info("subscribe plugin data for plugin: [id: {}, name: {}, config: {}]", pluginData.getId(), pluginData.getName(), pluginData.getConfig());
         subscribeDataHandler(pluginData, DataEventTypeEnum.UPDATE);
     }
     
@@ -138,13 +138,13 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onSelectorSubscribe(final SelectorData selectorData) {
-        LOG.info("subscribe select data for selector: [id: {}, name: {}]", selectorData.getId(), selectorData.getName());
+        LOG.info("subscribe select data for selector: [id: {}, pluginName: {}, name: {}]", selectorData.getId(), selectorData.getPluginName(), selectorData.getName());
         subscribeDataHandler(selectorData, DataEventTypeEnum.UPDATE);
     }
     
     @Override
     public void unSelectorSubscribe(final SelectorData selectorData) {
-        LOG.info("unSubscribe select data for selector: [id: {}, name: {}]", selectorData.getId(), selectorData.getName());
+        LOG.info("unSubscribe select data for selector: [id: {}, pluginName: {}, name: {}]", selectorData.getId(), selectorData.getPluginName(), selectorData.getName());
         subscribeDataHandler(selectorData, DataEventTypeEnum.DELETE);
     }
     
@@ -167,13 +167,13 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onRuleSubscribe(final RuleData ruleData) {
-        LOG.info("subscribe rule data for rule[id: {}, name: {}]", ruleData.getId(), ruleData.getName());
+        LOG.info("subscribe rule data for rule[id: {}, selectorId: {}, name: {}]", ruleData.getId(), ruleData.getSelectorId(), ruleData.getName());
         subscribeDataHandler(ruleData, DataEventTypeEnum.UPDATE);
     }
     
     @Override
     public void unRuleSubscribe(final RuleData ruleData) {
-        LOG.info("unSubscribe rule data for rule[id: {}, name: {}]", ruleData.getId(), ruleData.getName());
+        LOG.info("unSubscribe rule data for rule[id: {}, selectorId: {}, name: {}]", ruleData.getId(), ruleData.getSelectorId(), ruleData.getName());
         subscribeDataHandler(ruleData, DataEventTypeEnum.DELETE);
     }
     

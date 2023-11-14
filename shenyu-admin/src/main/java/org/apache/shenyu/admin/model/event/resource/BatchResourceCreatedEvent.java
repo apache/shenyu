@@ -53,7 +53,7 @@ public class BatchResourceCreatedEvent extends BatchChangedEvent {
                 .stream()
                 .map(s -> ((ResourceDO) s).getTitle())
                 .collect(Collectors.joining(","));
-        return String.format("the resource[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
+        return String.format("the resource [%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
     }
     
     /**

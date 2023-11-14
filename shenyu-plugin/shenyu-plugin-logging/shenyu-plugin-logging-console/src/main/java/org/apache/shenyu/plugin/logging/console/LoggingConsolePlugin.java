@@ -26,17 +26,19 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.utils.MediaTypeUtils;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.CommonLoggingRuleHandle;
 import org.apache.shenyu.plugin.logging.console.handler.LoggingConsolePluginDataHandler;
+import org.apache.shenyu.plugin.logging.desensitize.api.enums.DataDesensitizeEnum;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils;
-import org.apache.shenyu.plugin.logging.desensitize.api.enums.DataDesensitizeEnum;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -238,6 +240,16 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
             logInfo.append(System.lineSeparator());
             logInfo.append("Response Code: ").append(this.serverHttpResponse.getStatusCode()).append(System.lineSeparator());
             logInfo.append(getResponseHeaders()).append(System.lineSeparator());
+            final MediaType mediaType = serverHttpResponse.getHeaders().getContentType();
+            if (MediaTypeUtils.isByteType(mediaType)) {
+                return Flux.from(body).doFinally(signal -> {
+                    logInfo.append("[Response Body Start]").append(System.lineSeparator());
+                    logInfo.append("[bytes]").append(System.lineSeparator());
+                    logInfo.append("[Response Body End]").append(System.lineSeparator());
+                    // when response, print all request info.
+                    print(logInfo.toString());
+                });
+            }
             BodyWriter writer = new BodyWriter();
             return Flux.from(body).doOnNext(buffer -> writer.write(buffer.asByteBuffer().asReadOnlyBuffer())).doFinally(signal -> {
                 logInfo.append("[Response Body Start]").append(System.lineSeparator());

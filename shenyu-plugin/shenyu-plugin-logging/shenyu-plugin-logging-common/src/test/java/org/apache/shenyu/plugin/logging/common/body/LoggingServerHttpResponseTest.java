@@ -95,7 +95,7 @@ public class LoggingServerHttpResponseTest {
         requestInfo.setClientIp(HostAddressUtils.acquireIp(exchange));
         requestInfo.setUserAgent(serverHttpRequest.getHeaders().getFirst(GenericLoggingConstant.USER_AGENT));
         requestInfo.setHost(serverHttpRequest.getHeaders().getFirst(GenericLoggingConstant.HOST));
-        requestInfo.setPath(serverHttpRequest.getURI().getPath());
+        requestInfo.setPath(serverHttpRequest.getURI().getRawPath());
         Set<String> keyWordSet = new HashSet<>();
         this.loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(), requestInfo,
                 logCollector, false, keyWordSet, "dataMaskByCharReplace");
