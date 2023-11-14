@@ -29,6 +29,10 @@
     <artifactId>shenyu-admin-listener-etcd</artifactId>
 
     <dependencies>
+        <dependency>
+            <artifactId>grpc-netty</artifactId>
+            <groupId>io.grpc</groupId>
+        </dependency>
 
         <dependency>
             <groupId>io.etcd</groupId>

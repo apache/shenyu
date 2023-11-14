@@ -45,11 +45,5 @@
             <artifactId>spring-boot-starter-web</artifactId>
             <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-discovery-nacos</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 </project>
