@@ -5,4 +5,4 @@
    ____) | | | |  __/ | | | |_| | |_| |                Port: ${server.port}
   |_____/|_| |_|\\___|_| |_|\\__, |\\__,_|             Pid: ${pid}
                             __/ |                      SpringBoot Version: ${spring-boot.version}
-                           |___/      
+                           |___/                       Project Version: ${projectVersion}
