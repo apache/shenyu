@@ -44,21 +44,4 @@ public class ComplexObjects {
         this.bigObject = bigObject;
     }
 
-    /**
-     * getUser.
-     *
-     * @return User
-     */
-    public BrpcTest getUser() {
-        return user;
-    }
-
-    /**
-     * setUser.
-     *
-     * @param user User
-     */
-    public void setUser(final BrpcTest user) {
-        this.user = user;
-    }
 }
