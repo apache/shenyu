@@ -135,11 +135,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      */
     @Override
     public String register(final MetaDataRegisterDTO dto) {
-        //handler context path
-        String contextPath = dto.getContextPath();
-        if (StringUtils.isNotEmpty(contextPath)) {
-            registerContextPath(dto);
-        }
         //handler plugin selector
         String selectorHandler = selectorHandler(dto);
         String selectorId = selectorService.registerDefault(dto, PluginNameAdapter.rpcTypeAdapter(rpcType()), selectorHandler);
@@ -149,6 +144,11 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         ruleService.registerDefault(ruleDTO);
         //handler register metadata
         registerMetadata(dto);
+        //handler context path
+        String contextPath = dto.getContextPath();
+        if (StringUtils.isNotEmpty(contextPath)) {
+            registerContextPath(dto);
+        }
         return ShenyuResultMessage.SUCCESS;
     }
 
