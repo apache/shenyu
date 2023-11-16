@@ -361,6 +361,13 @@
 
     <build>
         <finalName>shenyu-admin</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
         <plugins>
 
             <plugin>
