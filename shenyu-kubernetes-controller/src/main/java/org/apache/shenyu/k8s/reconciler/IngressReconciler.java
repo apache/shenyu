@@ -220,8 +220,6 @@ public class IngressReconciler implements Reconciler {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.SPRING_CLOUD.getName(), "");
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName(), "");
-        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_BRPC_ENABLED), "true")) {
-            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.BRPC.getName(), "");
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.GRPC.getName(), "");
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
@@ -239,8 +237,6 @@ public class IngressReconciler implements Reconciler {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.SPRING_CLOUD.getName());
             } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName());
-            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_BRPC_ENABLED), "true")) {
-                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.BRPC.getName());
             } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.GRPC.getName());
             } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
@@ -583,8 +579,6 @@ public class IngressReconciler implements Reconciler {
             pluginName = PluginEnum.SPRING_CLOUD.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginWebSocketEnabled)) {
             pluginName = PluginEnum.WEB_SOCKET.getName();
-        } else if ((Boolean.TRUE.toString()).equals(pluginBrpcEnabled)) {
-            pluginName = PluginEnum.BRPC.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginGrpcEnabled)) {
             pluginName = PluginEnum.GRPC.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginSofaEnabled)) {
