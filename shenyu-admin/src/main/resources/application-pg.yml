@@ -20,7 +20,7 @@ shenyu:
 
 spring:
   datasource:
-    url: jdbc:postgresql://117.72.33.130:5432/shenyu
+    url: jdbc:postgresql://localhost:5432/shenyu
     username: postgres
     password: 123456
     driver-class-name: org.postgresql.Driver
