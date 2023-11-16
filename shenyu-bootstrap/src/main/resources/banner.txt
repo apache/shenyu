@@ -4,5 +4,5 @@
    \\___ \\| '_ \\ / _ \\ '_ \\| | | | | | |           Port: ${server.port}
    ____) | | | |  __/ | | | |_| | |_| |                Pid: ${pid}
   |_____/|_| |_|\\___|_| |_|\\__, |\\__,_|             SpringBoot Version: ${spring-boot.version}
-                            __/ |                      Shenyu Version: ${ShenyuVersion}
+                            __/ |                      ShenYu Version: ${project.version}
                            |___/      
