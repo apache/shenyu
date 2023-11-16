@@ -200,8 +200,6 @@ public class IngressReconciler implements Reconciler {
             enablePlugin(shenyuCacheRepository, PluginEnum.SPRING_CLOUD, null);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
             enablePlugin(shenyuCacheRepository, PluginEnum.WEB_SOCKET, null);
-        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_BRPC_ENABLED), "true")) {
-            enablePlugin(shenyuCacheRepository, PluginEnum.BRPC, null);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
             enablePlugin(shenyuCacheRepository, PluginEnum.GRPC, null);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
