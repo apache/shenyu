@@ -38,6 +38,6 @@ public class RequestPluginConfiguration implements BeanFactoryAware {
     public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
         DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) beanFactory;
         defaultListableBeanFactory.registerSingleton("requestPlugin", new RequestPlugin());
-        defaultListableBeanFactory.registerSingleton("requestPluginDataHandler", new RequestPluginHandler());
+        defaultListableBeanFactory.registerSingleton("requestPluginHandler", new RequestPluginHandler());
     }
 }

@@ -216,7 +216,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     private synchronized void onPluginEnabled(final PluginData pluginData) {
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
         // SPI load plugin from the specified path
-        spiLoadPlugin(pluginData);
+        loadPluginByURL(pluginData);
 
         if (StringUtils.isNoneBlank(pluginData.getPluginJar())) {
             LOG.info("shenyu start load plugin [{}] from upload plugin jar", pluginData.getName());
@@ -231,7 +231,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         this.plugins = sortPlugins(newPluginList);
     }
 
-    private void spiLoadPlugin(final PluginData pluginData) {
+    private void loadPluginByURL(final PluginData pluginData) {
         String pluginName = pluginData.getName();
         final Object pluginBean = SpringBeanUtils.getInstance().getBeanByClassName(pluginName + "Plugin");
         if (Objects.nonNull(pluginBean) && pluginBean instanceof ShenyuPlugin) {

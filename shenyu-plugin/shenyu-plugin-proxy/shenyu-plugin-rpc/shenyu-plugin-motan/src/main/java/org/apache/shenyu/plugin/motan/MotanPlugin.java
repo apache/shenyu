@@ -33,7 +33,6 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.motan.proxy.MotanProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -47,8 +46,7 @@ public class MotanPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(MotanPlugin.class);
 
-    @Autowired
-    private MotanProxyService motanProxyService;
+    private final MotanProxyService motanProxyService;
 
     /**
      * Instantiates a new motan plugin.
@@ -56,17 +54,6 @@ public class MotanPlugin extends AbstractShenyuPlugin {
      * @param motanProxyService the motan proxy service
      */
     public MotanPlugin(final MotanProxyService motanProxyService) {
-        this.motanProxyService = motanProxyService;
-    }
-
-    public MotanPlugin() {
-    }
-
-    /**
-     * Set motan proxy service.
-     * @param motanProxyService Proxy service.
-     */
-    public void setMotanProxyService(final MotanProxyService motanProxyService) {
         this.motanProxyService = motanProxyService;
     }
 

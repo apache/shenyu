@@ -42,6 +42,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * ShenyuUploadPluginClassLoader.
@@ -59,7 +60,7 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
 
     private final PluginJarParser.PluginJar pluginJar;
 
-    private final List<Class<?>> shenyuClasss = Arrays.asList(ShenyuPlugin.class, PluginDataHandler.class,
+    private final List<Class<?>> shenyuClasses = Arrays.asList(ShenyuPlugin.class, PluginDataHandler.class,
             MetaDataHandler.class, ShenyuContextDecorator.class);
 
     public ShenyuPluginClassLoader(final PluginJarParser.PluginJar pluginJar) {
@@ -89,7 +90,7 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
      */
     public List<ShenyuLoaderResult> loadUploadedJarPlugins(final ClassLoader classLoader) {
         List<ShenyuLoaderResult> results = new ArrayList<>();
-        Set<String> names = pluginJar.getClazzMap().keySet();
+        List<String> names = pluginJar.getClazzMap().keySet().stream().sorted((a, b) -> b.contains("Configuration") ? 1 : 0 - (a.contains("Configuration") ? 1 : 0)).distinct().collect(Collectors.toList());
         List<String> beanNames = new ArrayList<>(names.size());
         // register jar all BeanDefinition
         names.forEach(className -> {
@@ -150,6 +151,7 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
     }
 
     private <T> String registerBeanDefinition(final String className, final ClassLoader classLoader) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        LOG.info("loaded class: {}", className);
         if (SpringBeanUtils.getInstance().existBean(className)) {
             return SpringBeanUtils.getInstance().getBeanName(className);
         }
@@ -160,11 +162,11 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
                 Class<?> clazz = Class.forName(className, false, classLoader);
                 //Exclude ShenyuPlugin subclass and PluginDataHandler subclass
                 // without adding @Component @Service annotation
-                boolean next = shenyuClasss.stream().anyMatch(shenyuClass -> shenyuClass.isAssignableFrom(clazz));
+                boolean next = shenyuClasses.stream().anyMatch(shenyuClass -> shenyuClass.isAssignableFrom(clazz));
                 Annotation[] annotations = clazz.getAnnotations();
                 if (!next) {
-                    next = Arrays.stream(annotations).anyMatch(e -> e.annotationType().equals(Component.class)
-                            || e.annotationType().equals(Service.class) || e.annotationType().equals(Configuration.class));
+                    next = (Arrays.stream(annotations).anyMatch(e -> e.annotationType().equals(Component.class)
+                            || e.annotationType().equals(Service.class) || e.annotationType().equals(Configuration.class))) && !clazz.isInterface();
                 }
                 if (next) {
                     GenericBeanDefinition beanDefinition = new GenericBeanDefinition();

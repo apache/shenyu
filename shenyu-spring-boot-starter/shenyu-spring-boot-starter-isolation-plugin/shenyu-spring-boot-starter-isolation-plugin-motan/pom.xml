@@ -20,57 +20,66 @@
             <artifactId>shenyu-plugin-motan</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>jline</groupId>
+            <artifactId>jline</artifactId>
+            <version>2.14.6</version>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <outputDirectory>${main.basedir}${plugin.path}</outputDirectory>
-                    <finalName>${project.artifactId}-${project.version}</finalName>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
                 <executions>
                     <execution>
-                        <id>copy-dependencies</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>copy-dependencies</goal>
+                            <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${main.basedir}${plugin.path}</outputDirectory>
-                            <overWriteReleases>false</overWriteReleases>
-                            <overWriteSnapshots>false</overWriteSnapshots>
-                            <overWriteIfNewer>true</overWriteIfNewer>
-                            <copyPom>false</copyPom>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer">
+                                </transformer>
+                            </transformers>
+                            <outputFile>${main.basedir}${plugin.path}/${project.artifactId}-${project.version}.jar</outputFile>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/versions/9/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.apache.shenyu:shenyu-common</exclude>
+                                    <exclude>org.apache.shenyu:shenyu-plugin-base</exclude>
+                                    <exclude>org.apache.shenyu:shenyu-plugin-api</exclude>
+                                    <exclude>org.apache.shenyu:shenyu-spi</exclude>
+                                    <exclude>org.apache.shenyu:shenyu-sync-data-api</exclude>
+                                    <exclude>org.apache.shenyu:shenyu-plugin-base</exclude>
+                                    <exclude>org.apache.commons:commons-lang3</exclude>
+                                    <exclude>com.google.code.gson:gson</exclude>
+                                    <exclude>com.alibaba:fastjson</exclude>
+                                    <exclude>io.netty:*</exclude>
+                                    <exclude>org.slf4j:*</exclude>
+                                    <exclude>org.apache.log4j:*</exclude>
+                                    <exclude>org.apache.logging.log4j:*</exclude>
+                                    <exclude>ch.qos.logback:*</exclude>
+                                    <exclude>org.springframework:*</exclude>
+                                    <exclude>org.springframework.boot:*</exclude>
+                                    <exclude>io.projectreactor:*</exclude>
+                                    <exclude>io.projectreactor.netty:*</exclude>
+                                    <exclude>org.reactor.netty:*</exclude>
+                                    <exclude>io.micrometer:*</exclude>
+                                </excludes>
+                            </artifactSet>
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <executable>sh</executable>
-                    <arguments>
-                        <argument>-c</argument>
-                        <argument>${main.basedir}/script/clean_duplicated_jar.sh ${main.basedir}${plugin.lib.path} ${main.basedir}${plugin.path}</argument>
-                    </arguments>
-                </configuration>
             </plugin>
         </plugins>
     </build>
