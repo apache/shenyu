@@ -24,8 +24,6 @@ public class ComplexObjects {
 
     private BigObject bigObject;
 
-    private BrpcTest user;
-
     /**
      * getBigObject.
      *
