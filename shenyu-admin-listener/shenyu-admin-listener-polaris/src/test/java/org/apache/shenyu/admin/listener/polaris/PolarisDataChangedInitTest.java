@@ -27,10 +27,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.apache.shenyu.common.constant.PolarisPathConstants.PLUGIN_DATA_FILE_NAME;
-import static org.apache.shenyu.common.constant.PolarisPathConstants.PROXY_SELECTOR_FILE_NAME;
 import static org.apache.shenyu.common.constant.PolarisPathConstants.AUTH_DATA_ID_FILE_NAME;
 import static org.apache.shenyu.common.constant.PolarisPathConstants.META_DATA_FILE_NAME;
+import static org.apache.shenyu.common.constant.PolarisPathConstants.PLUGIN_DATA_FILE_NAME;
+import static org.apache.shenyu.common.constant.PolarisPathConstants.PROXY_SELECTOR_FILE_NAME;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;

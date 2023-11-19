@@ -17,12 +17,6 @@
 
 package org.apache.shenyu.admin.listener.etcd;
 
-import io.etcd.jetcd.ByteSequence;
-import io.etcd.jetcd.Client;
-import io.etcd.jetcd.KV;
-import io.etcd.jetcd.kv.DeleteResponse;
-import io.etcd.jetcd.kv.PutResponse;
-import io.etcd.jetcd.options.DeleteOption;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +26,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
-
+import io.etcd.jetcd.ByteSequence;
+import io.etcd.jetcd.Client;
+import io.etcd.jetcd.KV;
+import io.etcd.jetcd.kv.DeleteResponse;
+import io.etcd.jetcd.kv.PutResponse;
+import io.etcd.jetcd.options.DeleteOption;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
