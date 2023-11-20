@@ -176,6 +176,8 @@ class NacosDiscoveryServiceTest {
         nacosDiscoveryServiceUnderTest.register(key, value);
         // Verify whether the method is called correctly
         verify(namingService).registerInstance(anyString(), anyString(), any(Instance.class));
+        // Mock the wrong json format
+        assertThrows(ShenyuException.class, () -> nacosDiscoveryServiceUnderTest.register(key, "test"));
         // Mock the throwing of registerInstance exception
         doThrow(new NacosException()).when(namingService).registerInstance(anyString(), anyString(), any(Instance.class));
         assertThrows(ShenyuException.class, () -> nacosDiscoveryServiceUnderTest.register(key, value));
@@ -237,4 +239,3 @@ class NacosDiscoveryServiceTest {
     }
 
 }
-
