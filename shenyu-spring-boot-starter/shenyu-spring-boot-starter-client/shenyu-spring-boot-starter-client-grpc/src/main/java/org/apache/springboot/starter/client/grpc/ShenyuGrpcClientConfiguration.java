@@ -18,16 +18,26 @@
 package org.apache.springboot.starter.client.grpc;
 
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.register.ClientDiscoveryConfigRefreshedEventListener;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
+import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
+import org.apache.shenyu.client.core.register.InstanceRegisterListener;
 import org.apache.shenyu.client.grpc.GrpcClientEventListener;
 import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
 import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.client.http.HttpClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
+import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -79,4 +89,48 @@ public class ShenyuGrpcClientConfiguration {
                                        final GrpcClientEventListener grpcClientEventListener) {
         return new GrpcServerRunner(grpcServerBuilder, grpcClientEventListener);
     }
+
+    /**
+     * ClientRegisterConfig Bean.
+     *
+     * @param shenyuClientConfig shenyuClientConfig
+     * @param applicationContext applicationContext
+     * @param env                env
+     * @return clientRegisterConfig
+     */
+    @Bean
+    public ClientRegisterConfig clientRegisterConfig(final ShenyuClientConfig shenyuClientConfig,
+                                                     final ApplicationContext applicationContext,
+                                                     final Environment env) {
+        return new ClientRegisterConfigImpl(shenyuClientConfig, RpcTypeEnum.GRPC, applicationContext, env);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "shenyu.discovery", name = "serverList", matchIfMissing = false)
+    @ConditionalOnBean(ShenyuDiscoveryConfig.class)
+    public ClientDiscoveryConfigRefreshedEventListener clientDiscoveryConfigRefreshedEventListener(final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
+                                                                                                   final HttpClientRegisterRepository httpClientRegisterRepository) {
+        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository);
+    }
+
+
+    /**
+     * InstanceRegisterListener.
+     *
+     * @param clientRegisterConfig  clientRegisterConfig
+     * @param shenyuDiscoveryConfig shenyuDiscoveryConfig
+     * @return InstanceRegisterListener
+     */
+    @Bean("springmvcInstanceRegisterListener")
+    @ConditionalOnBean(ShenyuDiscoveryConfig.class)
+    @ConditionalOnMissingBean(name = "websocketInstanceRegisterListener")
+    public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
+        DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
+        discoveryUpstreamData.setUrl(clientRegisterConfig.getHost() + ":" + clientRegisterConfig.getPort());
+        discoveryUpstreamData.setStatus(0);
+        discoveryUpstreamData.setWeight(Integer.parseInt(shenyuDiscoveryConfig.getWeight()));
+        discoveryUpstreamData.setProtocol(shenyuDiscoveryConfig.getProtocol());
+        return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
+    }
+
 }
