@@ -56,7 +56,7 @@ spec:
               command:
                 - /bin/sh
                 - "-c"
-                - gsql -d ${OPENGAUSS_DB} -U ${OPENGAUSS_USER} -W ${GS_PASSWORD} -h 127.0.0.1 -p 5432  -c "SELECT 1"
+                - gsql -d ${OPENGAUSS_DB} -U ${GS_USERNAME} -W ${GS_PASSWORD} -h 127.0.0.1 -p 5432  -c "SELECT 1"
           readinessProbe:
             initialDelaySeconds: 10
             periodSeconds: 10
