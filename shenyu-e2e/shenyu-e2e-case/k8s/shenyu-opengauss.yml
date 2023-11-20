@@ -40,7 +40,7 @@ spec:
             requests: { cpu: "0.5", memory: "512Mi" }
           }
           env:
-            - name: OPENGAUSS_USER
+            - name: GS_USERNAME
               value: shenyue2e
             - name: GS_PASSWORD
               value: shenyue2e
