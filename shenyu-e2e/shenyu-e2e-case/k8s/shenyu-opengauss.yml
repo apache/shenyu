@@ -44,7 +44,7 @@ spec:
               value: shenyue2e
             - name: GS_PASSWORD
               value: shenyue2e
-            - name: OPENGAUSS_DB
+            - name: GS_DB
               value: postgres
           livenessProbe:
             initialDelaySeconds: 30
@@ -56,7 +56,7 @@ spec:
               command:
                 - /bin/sh
                 - "-c"
-                - gsql -d ${OPENGAUSS_DB} -U ${GS_USERNAME} -W ${GS_PASSWORD} -h 127.0.0.1 -p 5432  -c "SELECT 1"
+                - gsql -d ${GS_DB} -U ${GS_USERNAME} -W ${GS_PASSWORD} -h 127.0.0.1 -p 5432  -c "SELECT 1"
           readinessProbe:
             initialDelaySeconds: 10
             periodSeconds: 10

@@ -26,5 +26,3 @@ bash "$PRGDIR"/script/storage/storage_init_opengauss.sh
 kubectl apply -f "${PRGDIR}"/shenyu-opengauss.yml
 sleep 30s
 kubectl get pod -o wide
-kubectl get pods shenyu-opengauss
-# test postgres
