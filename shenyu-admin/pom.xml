@@ -305,12 +305,6 @@
         <!-- shenyu-admin-listener start -->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-admin-listener-apollo</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-admin-listener-consul</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -338,7 +332,7 @@
             <artifactId>shenyu-admin-listener-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--  shenyu-admin-listener end-->
+        <!-- shenyu-admin-listener end-->
 
     </dependencies>
 
