@@ -18,6 +18,7 @@
 package org.apache.shenyu.discovery.nacos;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.exception.NacosException;
@@ -133,6 +134,9 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
             Instance instance = GsonUtils.getInstance().fromJson(value, Instance.class);
             namingService.registerInstance(key, groupName, instance);
             LOGGER.info("Registering service with key: {} and value: {}", key, value);
+        } catch (JsonSyntaxException jsonSyntaxException) {
+            LOGGER.error("The json format of value is wrong: {}", jsonSyntaxException.getMessage(), jsonSyntaxException);
+            throw new ShenyuException(jsonSyntaxException);
         } catch (NacosException nacosException) {
             LOGGER.error("Error registering Nacos service instance: {}", nacosException.getMessage(), nacosException);
             throw new ShenyuException(nacosException);
