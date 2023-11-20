@@ -45,7 +45,7 @@ spec:
             - name: GS_PASSWORD
               value: shenyue2e
             - name: OPENGAUSS_DB
-              value: shenyu
+              value: postgres
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
