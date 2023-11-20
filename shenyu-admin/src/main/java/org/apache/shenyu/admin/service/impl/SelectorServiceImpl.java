@@ -269,7 +269,7 @@ public class SelectorServiceImpl implements SelectorService {
      *
      * @param selectors selectors
      */
-    private void unbindDiscovery(final List<SelectorDO> selectors, List<PluginDO> pluginDOS) {
+    private void unbindDiscovery(final List<SelectorDO> selectors, final List<PluginDO> pluginDOS) {
         Map<String, String> pluginMap = ListUtil.toMap(pluginDOS, PluginDO::getId, PluginDO::getName);
         for (SelectorDO selector : selectors) {
             DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selector.getId());

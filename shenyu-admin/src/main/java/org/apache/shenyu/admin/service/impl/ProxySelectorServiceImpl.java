@@ -244,7 +244,8 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
 
-    private void addUpstreamList(ProxySelectorAddDTO proxySelectorAddDTO, Timestamp currentTime, DiscoveryProcessor discoveryProcessor, String discoveryHandlerId, ProxySelectorDTO proxySelectorDTO) {
+    private void addUpstreamList(final ProxySelectorAddDTO proxySelectorAddDTO, final Timestamp currentTime, final DiscoveryProcessor discoveryProcessor,
+                                 final String discoveryHandlerId, final ProxySelectorDTO proxySelectorDTO) {
         List<DiscoveryUpstreamDO> upstreamDOList = Lists.newArrayList();
         if (!CollectionUtils.isEmpty(proxySelectorAddDTO.getDiscoveryUpstreams())) {
             proxySelectorAddDTO.getDiscoveryUpstreams().forEach(discoveryUpstream -> {
@@ -268,7 +269,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     }
 
     @NotNull
-    private static DiscoveryDO buildDiscovery(ProxySelectorAddDTO proxySelectorAddDTO, Timestamp currentTime, String discoveryId) {
+    private static DiscoveryDO buildDiscovery(final ProxySelectorAddDTO proxySelectorAddDTO, final Timestamp currentTime, final String discoveryId) {
         return DiscoveryDO.builder()
                 .id(discoveryId)
                 .name(proxySelectorAddDTO.getName())

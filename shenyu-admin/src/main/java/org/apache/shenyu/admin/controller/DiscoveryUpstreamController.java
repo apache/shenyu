@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
-import java.util.Collections;
 import java.util.List;
 
 @RestApi("/discovery-upstream")
