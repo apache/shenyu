@@ -23,7 +23,7 @@ echo "$PRGDIR"
 bash "$PRGDIR"/script/storage/storage_init_opengauss.sh
 
 # init kubernetes for mysql
-kubectl apply -f "${PRGDIR}"/shenyu-postgres.yml
+kubectl apply -f "${PRGDIR}"/shenyu-opengauss.yml
 sleep 30s
 kubectl get pod -o wide
 
