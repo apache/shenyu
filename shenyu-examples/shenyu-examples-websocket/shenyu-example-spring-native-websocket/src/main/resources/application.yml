@@ -40,14 +40,14 @@ shenyu:
         appName: ${shenyu.common.appName}
         port: ${shenyu.common.port}
   discovery:
-    name: zk_discovery
-    enable: true
-    type: zookeeper
-    plugin-name: websocket
-    protocol: ws://
-    serverList: 127.0.0.1:2181
-    weight: 10
-    registerPath: /shenyu/discovery/demo_ws_common
+#    name: zk_discovery
+#    enable: true
+#    type: zookeeper
+#    plugin-name: websocket
+#    protocol: ws://
+#    serverList: 127.0.0.1:2181
+#    weight: 10
+#    registerPath: /shenyu/discovery/demo_ws_common
 
 logging:
   level:
