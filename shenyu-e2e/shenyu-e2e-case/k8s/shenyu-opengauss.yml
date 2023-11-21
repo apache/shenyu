@@ -56,7 +56,7 @@ spec:
               command:
                 - /bin/sh
                 - "-c"
-                - gsql -U ${GS_USERNAME} -h127.0.0.1 -p5432 -d${GS_DB} -W${GS_PASSWORD}  -c "SELECT 2"
+                - gsql -U ${GS_USERNAME} -h127.0.0.1 -p5432 -d${GS_DB} -W${GS_PASSWORD}  -c "SELECT 1"
           readinessProbe:
             initialDelaySeconds: 10
             periodSeconds: 10
