@@ -19,7 +19,7 @@ on:
   pull_request:
   push:
     branches:
-      - feat_openGauss_e2e
+      - master
 
 jobs:
   changes:
@@ -109,7 +109,7 @@ jobs:
     needs:
       - changes
       - build-docker-images
-    if: (github.repository == 'xcsnx/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
     strategy:
       matrix:
         include:
