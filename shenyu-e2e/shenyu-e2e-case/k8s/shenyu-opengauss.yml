@@ -46,6 +46,8 @@ spec:
               value: ShenYuE2E@123
             - name: GS_DB
               value: shenyu
+            - name: GAUSSLOG
+              value: /tmp/shenyu-e2e/opengauss
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10

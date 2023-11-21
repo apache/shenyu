@@ -17,21 +17,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shenyu-admin-oepngauss
+  name: shenyu-admin-opengauss
   labels:
-    app: shenyu-admin-oepngauss
+    app: shenyu-admin-opengauss
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: shenyu-admin-oepngauss
+      app: shenyu-admin-opengauss
   template:
     metadata:
       labels:
-        app: shenyu-admin-oepngauss
+        app: shenyu-admin-opengauss
     spec:
       containers:
-        - name: shenyu-admin-oepngauss
+        - name: shenyu-admin-opengauss
           image: apache/shenyu-admin:latest
           resources: { }
           env:
@@ -40,7 +40,7 @@ spec:
             - name: spring.datasource.username
               value: shenyue2e
             - name: spring.datasource.password
-              value: shenyue2e
+              value: ShenYuE2E@123
             - name: spring.datasource.url
               value: jdbc:opengauss://shenyu-opengauss:5432/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
           ports:
@@ -77,21 +77,21 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shenyu-bootstrap-oepngauss
+  name: shenyu-bootstrap-opengauss
   labels:
-    app: shenyu-bootstrap-oepngauss
+    app: shenyu-bootstrap-opengauss
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: shenyu-bootstrap-oepngauss
+      app: shenyu-bootstrap-opengauss
   template:
     metadata:
       labels:
-        app: shenyu-bootstrap-oepngauss
+        app: shenyu-bootstrap-opengauss
     spec:
       containers:
-        - name: shenyu-bootstrap-oepngauss
+        - name: shenyu-bootstrap-opengauss
           image: apache/shenyu-bootstrap:latest
           resources: { }
           args:
