@@ -76,11 +76,11 @@ public class ShenyuGrpcClientConfiguration {
         }
         return new GrpcClientEventListener(clientConfig.getClient().get(RpcTypeEnum.GRPC.getName()), shenyuClientRegisterRepository);
     }
-    
+
     /**
      * Grpc Server.
      *
-     * @param grpcServerBuilder grpcServerBuilder
+     * @param grpcServerBuilder       grpcServerBuilder
      * @param grpcClientEventListener grpcClientEventListener
      * @return the grpc server
      */
@@ -105,6 +105,13 @@ public class ShenyuGrpcClientConfiguration {
         return new ClientRegisterConfigImpl(shenyuClientConfig, RpcTypeEnum.GRPC, applicationContext, env);
     }
 
+    /**
+     * clientDiscoveryConfigRefreshedEventListener.
+     *
+     * @param shenyuDiscoveryConfig        shenyuDiscoveryConfig
+     * @param httpClientRegisterRepository httpClientRegisterRepository
+     * @return ClientDiscoveryConfigRefreshedEventListener
+     */
     @Bean
     @ConditionalOnProperty(prefix = "shenyu.discovery", name = "serverList", matchIfMissing = false)
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)

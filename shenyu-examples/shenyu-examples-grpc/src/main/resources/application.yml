@@ -38,15 +38,15 @@ shenyu:
         appName: grpc
         ipAndPort: 127.0.0.1:38080
         port: 38080
-  discovery:
-    name: zk_discovery
-    enable: true
-    type: zookeeper
-    plugin-name: grpc
-    protocol: http://
-    serverList: 127.0.0.1:2181
-    weight: 10
-    registerPath: /shenyu/discovery/demo_grpc_common
+#  discovery:
+#    name: zk_discovery
+#    enable: true
+#    type: zookeeper
+#    plugin-name: grpc
+#    protocol: http://
+#    serverList: 127.0.0.1:2181
+#    weight: 10
+#    registerPath: /shenyu/discovery/demo_grpc_common
 
 logging:
   level:
