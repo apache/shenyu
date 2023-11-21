@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.examples.grpc;
 
-import org.apache.shenyu.client.auto.config.EnableClientRegister;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -25,7 +24,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * ShenyuTestGrpcApplication.
  */
 @SpringBootApplication
-@EnableClientRegister
 public class ShenyuTestGrpcApplication {
 
     /**
