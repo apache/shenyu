@@ -43,7 +43,7 @@ spec:
             - name: GS_USERNAME
               value: shenyue2e
             - name: GS_PASSWORD
-              value: shenyue2e
+              value: ShenYuE2E@123
             - name: GS_DB
               value: shenyu
           livenessProbe:
@@ -67,7 +67,7 @@ spec:
               command:
                 - /bin/sh
                 - "-c"
-                - gsql -U ${GS_USERNAME} -h127.0.0.1 -p5432 -d${GS_DB} -W${GS_PASSWORD}  -c "SELECT 2"
+                - gsql -U ${GS_USERNAME} -h127.0.0.1 -p5432 -d${GS_DB} -W${GS_PASSWORD}  -c "SELECT 1"
           volumeMounts:
             - name: opengauss-initdb
               mountPath: /docker-entrypoint-initdb.d
