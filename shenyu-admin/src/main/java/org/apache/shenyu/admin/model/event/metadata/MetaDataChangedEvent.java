@@ -25,7 +25,7 @@ import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
 import java.util.Objects;
 
 /**
- * MetaDatarChangedEvent.
+ * MetaDataChangedEvent.
  */
 public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
     
@@ -70,9 +70,6 @@ public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
         if (!Objects.equals(before.getPathDesc(), after.getPathDesc())) {
             builder.append(String.format("path desc[%s => %s] ", before.getPathDesc(), after.getPathDesc()));
         }
-        if (!Objects.equals(before.getEnabled(), after.getEnabled())) {
-            builder.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));
-        }
         if (!Objects.equals(before.getServiceName(), after.getServiceName())) {
             builder.append(String.format("service[%s => %s] ", before.getServiceName(), after.getServiceName()));
         }
@@ -80,16 +77,16 @@ public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
             builder.append(String.format("method[%s => %s] ", before.getMethodName(), after.getMethodName()));
         }
         if (!Objects.equals(before.getParameterTypes(), after.getParameterTypes())) {
-            builder.append(String.format("parameter type [%s => %s] ", before.getParameterTypes(), after.getParameterTypes()));
+            builder.append(String.format("parameter type[%s => %s] ", before.getParameterTypes(), after.getParameterTypes()));
         }
         if (!Objects.equals(before.getEnabled(), after.getEnabled())) {
-            builder.append(String.format("enable [%s => %s] ", before.getEnabled(), after.getEnabled()));
+            builder.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));
         }
         if (!Objects.equals(before.getRpcType(), after.getRpcType())) {
-            builder.append(String.format("rpc type [%s => %s] ", before.getRpcType(), after.getRpcType()));
+            builder.append(String.format("rpc type[%s => %s] ", before.getRpcType(), after.getRpcType()));
         }
         if (!Objects.equals(before.getRpcExt(), after.getRpcExt())) {
-            builder.append(String.format("rpc ext [%s => %s] ", before.getRpcExt(), after.getRpcExt()));
+            builder.append(String.format("rpc ext[%s => %s] ", before.getRpcExt(), after.getRpcExt()));
         }
         return builder.toString();
     }

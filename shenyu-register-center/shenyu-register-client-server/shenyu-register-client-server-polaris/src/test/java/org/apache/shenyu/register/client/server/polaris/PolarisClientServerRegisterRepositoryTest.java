@@ -159,7 +159,7 @@ public class PolarisClientServerRegisterRepositoryTest {
         String methodString = "subscribe";
         Method method = clazz.getDeclaredMethod(methodString, RpcTypeEnum.class);
         method.setAccessible(true);
-        method.invoke(repository, RpcTypeEnum.BRPC);
+        method.invoke(repository, RpcTypeEnum.GRPC);
 
         verify(publisher, times(0)).publish(localAny());
         assertEquals(listenerStorage.values().size(), 1);

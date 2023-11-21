@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.e2e.engine.scenario.specification;
 
-import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.engine.scenario.function.Checker;
 import org.apache.shenyu.e2e.engine.scenario.function.Deleter;
 import org.apache.shenyu.e2e.engine.scenario.function.Verifier;
 import org.apache.shenyu.e2e.engine.scenario.function.Waiting;
+import org.apache.shenyu.e2e.engine.scenario.function.WebSocketVerifier;
+import org.apache.shenyu.e2e.model.ResourcesData;
 import org.slf4j.MDC;
 
 import java.util.List;
@@ -73,6 +74,12 @@ public class ScenarioSpecLogProxy implements ScenarioSpec {
             public List<Verifier> getVerifiers() {
                 MDC.put("operate", "verify");
                 return spec.getVerifiers();
+            }
+
+            @Override
+            public List<WebSocketVerifier> getWebSocketVerifiers() {
+                MDC.put("operate", "websocketVerify");
+                return spec.getWebSocketVerifiers();
             }
         };
     }
