@@ -19,7 +19,7 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - feat_openGauss_e2e
 
 jobs:
   changes:
