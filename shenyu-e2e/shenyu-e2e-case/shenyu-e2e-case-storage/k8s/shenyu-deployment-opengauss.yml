@@ -70,7 +70,7 @@ spec:
       volumes:
         - name: mysql-connector-volume
           hostPath:
-            path: /tmp/shenyu-e2e/postgres/driver
+            path: /tmp/shenyu-e2e/opengauss/driver
       restartPolicy: Always
 
 ---
