@@ -273,16 +273,21 @@ public class SelectorServiceImpl implements SelectorService {
         Map<String, String> pluginMap = ListUtil.toMap(pluginDOS, PluginDO::getId, PluginDO::getName);
         for (SelectorDO selector : selectors) {
             DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selector.getId());
+            if (Objects.isNull(discoveryHandlerDO)) {
+                continue;
+            }
             discoveryHandlerMapper.delete(discoveryHandlerDO.getId());
             discoveryRelMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
             DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
-            DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
-            ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
-            proxySelectorDTO.setName(selector.getName());
-            proxySelectorDTO.setPluginName(pluginMap.getOrDefault(selector.getId(), ""));
-            discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
-            if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getLevel())) {
-                discoveryProcessor.removeDiscovery(discoveryDO);
+            if (!Objects.isNull(discoveryDO)) {
+                DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
+                ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+                proxySelectorDTO.setName(selector.getName());
+                proxySelectorDTO.setPluginName(pluginMap.getOrDefault(selector.getId(), ""));
+                discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
+                if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getLevel())) {
+                    discoveryProcessor.removeDiscovery(discoveryDO);
+                }
             }
         }
     }
