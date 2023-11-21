@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: shenyu-opengauss
-          image: opengauss/opengauss:5.0.0
+          image: enmotech/opengauss:5.0.0
           ports:
             - containerPort: 5432
           resources: {
