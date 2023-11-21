@@ -65,10 +65,10 @@ spec:
               path: /actuator/health
           imagePullPolicy: IfNotPresent
           volumeMounts:
-            - name: mysql-connector-volume
+            - name: og-connector-volume
               mountPath: /opt/shenyu-admin/ext-lib
       volumes:
-        - name: mysql-connector-volume
+        - name: og-connector-volume
           hostPath:
             path: /tmp/shenyu-e2e/opengauss/driver
       restartPolicy: Always
@@ -98,7 +98,7 @@ spec:
             - -Xmx768m -Xms768m
           env:
             - name: shenyu.sync.websocket.urls
-              value: ws://shenyu-admin-postgres:9095/websocket
+              value: ws://shenyu-admin-opengauss:9095/websocket
           ports:
             - containerPort: 9195
           livenessProbe:
