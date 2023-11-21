@@ -27,7 +27,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>shenyu-plugin-brpc</module>
         <module>shenyu-plugin-dubbo</module>
         <module>shenyu-plugin-general-context</module>
         <module>shenyu-plugin-grpc</module>
