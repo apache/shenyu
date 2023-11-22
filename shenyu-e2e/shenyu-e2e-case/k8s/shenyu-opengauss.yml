@@ -47,7 +47,7 @@ spec:
             - name: GS_DB
               value: shenyu
 #          livenessProbe:
-#            initialDelaySeconds: 30
+#            initialDelaySeconds: 31
 #            periodSeconds: 10
 #            timeoutSeconds: 5
 #            successThreshold: 1
