@@ -47,9 +47,9 @@ public enum DiscoveryTypeEnum {
     ETCD("etcd"),
 
     /**
-     * consul.
+     * eureka.
      */
-    CONSUL("consul");
+    EUREKA("eureka");
 
     /**
      * Discovery type.
