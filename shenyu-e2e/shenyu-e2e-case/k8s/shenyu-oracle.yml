@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: shenyu-oracle
-          image: registry.aliyuncs.com/helowin/oracle_11g
+          image: oraclelinux:9
           ports:
             - containerPort: 1521
           resources: {
