@@ -41,7 +41,7 @@ spec:
           }
           env:
             - name: GS_USERNAME
-              value: omm
+              value: ShenYuE2EUser
             - name: GS_PASSWORD
               value: ShenYuE2E@123
             - name: GS_DB
