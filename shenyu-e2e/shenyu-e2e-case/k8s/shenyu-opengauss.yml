@@ -46,28 +46,28 @@ spec:
               value: ShenYuE2E@123
             - name: GS_DB
               value: shenyu
-          livenessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-            exec:
-              command:
-                - /bin/sh
-                - "-c"
-                - gsql -U gaussdb -h127.0.0.1 -p5432 -d${GS_DB} -W${GS_PASSWORD}  -c "SELECT 1"
-          readinessProbe:
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-            exec:
-              command:
-                - /bin/sh
-                - "-c"
-                - gsql -U gaussdb -h127.0.0.1 -p5432 -d${GS_DB} -W${GS_PASSWORD}  -c "SELECT 1"
+#          livenessProbe:
+#            initialDelaySeconds: 30
+#            periodSeconds: 10
+#            timeoutSeconds: 5
+#            successThreshold: 1
+#            failureThreshold: 3
+#            exec:
+#              command:
+#                - /bin/sh
+#                - "-c"
+#                - gsql -U gaussdb -h127.0.0.1 -p5432 -d${GS_DB} -W${GS_PASSWORD}  -c "SELECT 1"
+#          readinessProbe:
+#            initialDelaySeconds: 10
+#            periodSeconds: 10
+#            timeoutSeconds: 5
+#            successThreshold: 1
+#            failureThreshold: 3
+#            exec:
+#              command:
+#                - /bin/sh
+#                - "-c"
+#                - gsql -U gaussdb -h127.0.0.1 -p5432 -d${GS_DB} -W${GS_PASSWORD}  -c "SELECT 1"
           volumeMounts:
             - name: opengauss-initdb
               mountPath: /docker-entrypoint-initdb.d
