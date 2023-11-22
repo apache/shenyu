@@ -38,7 +38,7 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: og
             - name: spring.datasource.username
-              value: omm
+              value: ShenYuE2EUser
             - name: spring.datasource.password
               value: ShenYuE2E@123
             - name: spring.datasource.url
