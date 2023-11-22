@@ -201,6 +201,20 @@ services:
         aliases:
           - shenyu-rmqbroker
 
+  shenyu-rabbitmq:
+    image: rabbitmq:3.9.13-management
+    container_name: shenyu-rabbitmq
+    restart: always
+    hostname: shenyu-rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+
 networks:
   shenyu:
     name: shenyu
