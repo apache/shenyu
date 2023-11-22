@@ -88,9 +88,6 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
         } else if (webSocketEnabled) {
             WebSocketParser webSocketParser = new WebSocketParser(serviceLister, endpointsLister);
             shenyuMemoryConfigList.add(webSocketParser.parse(ingress, coreV1Api));
-        } else if (brpcEnabled) {
-            BrpcParser brpcParser = new BrpcParser(serviceLister, endpointsLister);
-            shenyuMemoryConfigList.add(brpcParser.parse(ingress, coreV1Api));
         } else if (grpcEnabled) {
             GrpcParser grpcParser = new GrpcParser(serviceLister, endpointsLister);
             shenyuMemoryConfigList.add(grpcParser.parse(ingress, coreV1Api));
