@@ -52,7 +52,7 @@ public final class LoggingRabbitMqPluginTest extends AbstractPluginDataInit {
     @BeforeEach
     public void setUp() throws IOException {
         String pluginResult = initPlugin(PluginEnum.LOGGING_RABBITMQ.getName(),
-                "{\"host\":\"117.72.33.130\",\"port\":5672,\"password\":\"admin\",\"username\":\"admin\"," 
+                "{\"host\":\"127.0.0.1\",\"port\":5672,\"password\":\"admin\",\"username\":\"admin\"," 
                         + "\"exchangeName\":\"exchange.logging.plugin\",\"queueName\":\"queue.logging.plugin\"," 
                         + "\"routingKey\":\"topic.logging\",\"virtualHost\":\"/\",\"exchangeType\":\"direct\"," 
                         + "\"durable\":\"true\",\"exclusive\":\"false\",\"autoDelete\":\"false\"}");
