@@ -119,6 +119,8 @@ jobs:
             script: e2e-mysql
           - case: shenyu-e2e-case-storage
             script: e2e-postgres
+          - case: shenyu-e2e-case-storage
+            script: e2e-oracle
     steps:
       - uses: actions/checkout@v2
         with:
