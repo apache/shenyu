@@ -256,7 +256,7 @@ public class PluginServiceImpl implements PluginService {
 
     /**
      * check jar.
-     * @param file file
+     * @param file jar file
      * @return true is right
      */
     private boolean checkFile(final MultipartFile file) {
