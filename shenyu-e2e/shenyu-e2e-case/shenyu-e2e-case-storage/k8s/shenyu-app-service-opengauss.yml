@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -16,12 +14,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-mkdir -p /tmp/shenyu-e2e/mysql/schema
-mkdir -p /tmp/shenyu-e2e/mysql/driver
+apiVersion: v1
+kind: Service
+metadata:
+  name: shenyu-admin-opengauss
+  labels:
+    app: shenyu-admin-opengauss
+spec:
+  type: NodePort
+  selector:
+    app: shenyu-admin-opengauss
+  ports:
+    - name: "9095"
+      port: 9095
+      targetPort: 9095
+      nodePort: 31095
 
-wget -O /tmp/shenyu-e2e/mysql/driver/mysql-connector.jar \
-  https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar || \
-  wget -O /tmp/shenyu-e2e/mysql/driver/mysql-connector.jar \
-    https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar
-
-cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema/schema.sql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shenyu-bootstrap-opengauss
+  labels:
+    app: shenyu-bootstrap-opengauss
+spec:
+  type: NodePort
+  selector:
+    app: shenyu-bootstrap-opengauss
+  ports:
+    - name: "9195"
+      port: 9195
+      targetPort: 9195
+      nodePort: 31195

@@ -16,12 +16,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-mkdir -p /tmp/shenyu-e2e/mysql/schema
-mkdir -p /tmp/shenyu-e2e/mysql/driver
+mkdir -p /tmp/shenyu-e2e/opengauss/schema
+mkdir -p /tmp/shenyu-e2e/opengauss/driver
 
-wget -O /tmp/shenyu-e2e/mysql/driver/mysql-connector.jar \
-  https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar || \
-  wget -O /tmp/shenyu-e2e/mysql/driver/mysql-connector.jar \
-    https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar
+wget -O /tmp/shenyu-e2e/opengauss/driver/opengauss-jdbc-5.1.0-og.jar \
+  https://repo1.maven.org/maven2/org/opengauss/opengauss-jdbc/5.1.0-og/opengauss-jdbc-5.1.0-og.jar --no-check-certificate || \
+  wget -O /tmp/shenyu-e2e/opengauss/driver/opengauss-jdbc-5.1.0-og.jar \
+  https://repo1.maven.org/maven2/org/opengauss/opengauss-jdbc/5.1.0-og/opengauss-jdbc-5.1.0-og.jar --no-check-certificate
 
-cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema/schema.sql
+cp db/init/og/create-table.sql /tmp/shenyu-e2e/opengauss/schema/create-table.sql
