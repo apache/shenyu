@@ -224,7 +224,7 @@ public class PluginServiceImpl implements PluginService {
     private String create(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), AdminConstants.PLUGIN_NAME_IS_EXIST);
         if (!Objects.isNull(pluginDTO.getFile())) {
-            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.PLUGIN_JAR_IS_NOT_RIGHT);
+            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         if (pluginMapper.insertSelective(pluginDO) > 0) {
@@ -244,7 +244,7 @@ public class PluginServiceImpl implements PluginService {
     private String update(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), AdminConstants.PLUGIN_NAME_IS_EXIST);
         if (!Objects.isNull(pluginDTO.getFile())) {
-            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.PLUGIN_JAR_IS_NOT_RIGHT);
+            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
         final PluginDO before = pluginMapper.selectById(pluginDTO.getId());
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
