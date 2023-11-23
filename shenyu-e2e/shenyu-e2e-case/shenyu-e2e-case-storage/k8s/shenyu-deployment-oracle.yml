@@ -45,7 +45,7 @@ spec:
             - name: spring.datasource.password
               value: shenyue2e
             - name: spring.datasource.url
-              value: jdbc:oracle://shenyu-oracle:1521/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+              value: jdbc:oracle://shenyu-oracle:1521/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -94,14 +94,14 @@ spec:
         app: shenyu-bootstrap-oracle
     spec:
       containers:
-        - name: shenyu-bootstrap-mysql
+        - name: shenyu-bootstrap-oracle
           image: apache/shenyu-bootstrap:latest
           resources: { }
           args:
             - -Xmx768m -Xms768m
           env:
             - name: shenyu.sync.websocket.urls
-              value: ws://shenyu-admin-mysql:9095/websocket
+              value: ws://shenyu-admin-oracle:9095/websocket
           ports:
             - containerPort: 9195
           livenessProbe:
