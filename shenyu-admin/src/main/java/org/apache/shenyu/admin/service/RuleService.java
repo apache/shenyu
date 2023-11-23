@@ -140,4 +140,13 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return {@link RuleDO}
      */
     RuleDO findByName(String name);
+    
+    /**
+     * Find by selector id and name rule do.
+     *
+     * @param selectorId selector id
+     * @param name rule name
+     * @return {@link RuleDO}
+     */
+    RuleDO findBySelectorIdAndName(String selectorId, String name);
 }

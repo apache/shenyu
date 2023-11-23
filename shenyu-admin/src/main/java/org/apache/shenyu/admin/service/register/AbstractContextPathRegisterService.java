@@ -22,17 +22,34 @@ import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
+import java.util.Objects;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 /**
  * The type Abstract context path register service.
  */
 public abstract class AbstractContextPathRegisterService extends AbstractShenyuClientRegisterServiceImpl {
     
+    private static final ReentrantReadWriteLock REENTRANT_LOCK = new ReentrantReadWriteLock();
+    
+    private static final ReentrantReadWriteLock.WriteLock WRITE_LOCK = REENTRANT_LOCK.writeLock();
+    
     @Override
     public void registerContextPath(final MetaDataRegisterDTO dto) {
         String contextPathSelectorId = getSelectorService().registerDefault(dto, PluginEnum.CONTEXT_PATH.getName(), "");
-        ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
-        handle.setContextPath(PathUtils.decoratorContextPath(dto.getContextPath()));
-        handle.setAddPrefixed(dto.getAddPrefixed());
-        getRuleService().registerDefault(buildContextPathDefaultRuleDTO(contextPathSelectorId, dto, handle.toJson()));
+        // avoid repeated registration for many client threads
+        // many client threads may register the same context path for contextPath plugin at the same time
+        try {
+            WRITE_LOCK.lock();
+            if (Objects.nonNull(getRuleService().findBySelectorIdAndName(contextPathSelectorId, dto.getContextPath()))) {
+                return;
+            }
+            ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
+            handle.setContextPath(PathUtils.decoratorContextPath(dto.getContextPath()));
+            handle.setAddPrefixed(dto.getAddPrefixed());
+            getRuleService().registerDefault(buildContextPathDefaultRuleDTO(contextPathSelectorId, dto, handle.toJson()));
+        } finally {
+            WRITE_LOCK.unlock();
+        }
     }
 }
