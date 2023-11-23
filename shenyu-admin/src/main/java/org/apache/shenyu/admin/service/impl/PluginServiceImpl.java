@@ -261,6 +261,9 @@ public class PluginServiceImpl implements PluginService {
      */
     private boolean checkFile(final MultipartFile file) {
         try {
+            if (file.getSize() > 16 * 1024 * 1024) {
+                return false;
+            }
             Set<String> dependencyTree = JarDependencyUtils.getDependencyTree(file.getBytes());
             return dependencyTree.contains(AdminConstants.PLUGIN_ABSTRACR_PATH) || dependencyTree.contains(AdminConstants.PLUGIN_INTERFACE_PATH);
         } catch (Exception e) {
