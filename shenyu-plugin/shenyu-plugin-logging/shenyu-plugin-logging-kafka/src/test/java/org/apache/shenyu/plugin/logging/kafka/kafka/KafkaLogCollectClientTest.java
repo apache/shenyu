@@ -23,9 +23,9 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
@@ -58,7 +58,7 @@ public class KafkaLogCollectClientTest {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void testInitClient() throws NoSuchFieldException, IllegalAccessException {
         try (MockedConstruction<KafkaProducer> construction = mockConstruction(KafkaProducer.class)) {
             kafkaLogCollectClient.initClient(globalLogConfig);
