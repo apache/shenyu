@@ -18,8 +18,8 @@
 package org.apache.shenyu.integrated.test.http;
 
 import org.junit.jupiter.api.Test;
-import org.apache.shenyu.integratedtest.common.AbstractTest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.apache.shenyu.integratedtest.common.AbstractTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 
 import java.io.IOException;
