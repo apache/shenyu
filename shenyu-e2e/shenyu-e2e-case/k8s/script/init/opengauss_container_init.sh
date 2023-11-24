@@ -16,12 +16,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-mkdir -p /tmp/shenyu-e2e/mysql/schema
-mkdir -p /tmp/shenyu-e2e/mysql/driver
+# prepare mysql
+curPath=$(readlink -f "$(dirname "$0")")
+PRGDIR=$(dirname "$(dirname "$curPath")")
+echo "$PRGDIR"
+bash "$PRGDIR"/script/storage/storage_init_opengauss.sh
 
-wget -O /tmp/shenyu-e2e/mysql/driver/mysql-connector.jar \
-  https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar || \
-  wget -O /tmp/shenyu-e2e/mysql/driver/mysql-connector.jar \
-    https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar
-
-cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema/schema.sql
+# init kubernetes for mysql
+kubectl apply -f "${PRGDIR}"/shenyu-opengauss.yml
+sleep 30s
+kubectl get pod -o wide
