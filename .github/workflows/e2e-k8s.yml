@@ -120,6 +120,8 @@ jobs:
           - case: shenyu-e2e-case-storage
             script: e2e-postgres
           - case: shenyu-e2e-case-storage
+            script: e2e-opengauss
+          - case: shenyu-e2e-case-storage
             script: e2e-oracle
     steps:
       - uses: actions/checkout@v2
