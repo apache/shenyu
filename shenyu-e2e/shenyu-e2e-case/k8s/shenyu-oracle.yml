@@ -88,7 +88,7 @@ metadata:
 spec:
   type: NodePort
   selector:
-    app: shenyu-mysql
+    app: shenyu-oracle
   ports:
     - name: "1521"
       port: 1521
