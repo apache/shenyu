@@ -41,7 +41,7 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: oracle
             - name: spring.datasource.username
-              value: shenyue2e
+              value: thin
             - name: spring.datasource.password
               value: shenyue2e
             - name: spring.datasource.url

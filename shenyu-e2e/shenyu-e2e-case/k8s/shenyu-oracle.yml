@@ -41,7 +41,7 @@ spec:
           }
           env:
             - name: ORACLE_USER
-              value: shenyue2e
+              value: thin
             - name: ORACLE_PASSWORD
               value: shenyue2e
             - name: ORACLE_DB
