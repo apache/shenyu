@@ -87,7 +87,6 @@ public class SpringWebSocketClientEventListenerTest {
         when(properties.getProperty(ShenyuClientConstants.HOST)).thenReturn("127.0.0.1");
         when(properties.getProperty(ShenyuClientConstants.IP_PORT)).thenReturn("127.0.0.1:8080");
         when(propertiesConfig.getProps()).thenReturn(properties);
-        
         eventListener = new SpringWebSocketClientEventListener(propertiesConfig, registerRepository);
     }
 
