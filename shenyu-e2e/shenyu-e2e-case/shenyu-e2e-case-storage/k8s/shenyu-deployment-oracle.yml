@@ -36,14 +36,12 @@ spec:
           args:
             - -Xmx768m -Xms768m
           env:
-            - name: 'TZ'
-              value: 'Asia/Beijing'
             - name: SPRING_PROFILES_ACTIVE
               value: oracle
             - name: spring.datasource.username
-              value: thin
+              value: shenyu
             - name: spring.datasource.password
-              value: shenyue2e
+              value: shenyue2e@123456
             - name: spring.datasource.url
               value: jdbc:oracle:thin:@shenyu-oracle:1521/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
           livenessProbe:

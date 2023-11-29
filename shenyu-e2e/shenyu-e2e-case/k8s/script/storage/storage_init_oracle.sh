@@ -19,9 +19,9 @@
 mkdir -p /tmp/shenyu-e2e/oracle/schema
 mkdir -p /tmp/shenyu-e2e/oracle/driver
 
-wget -O /tmp/shenyu-e2e/oracle/driver/mysql-connector.jar \
+wget -O /tmp/shenyu-e2e/oracle/driver/jdbc8-23.2.0.0.jar \
   https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc8/23.2.0.0/ojdbc8-23.2.0.0.jar || \
-  wget -O /tmp/shenyu-e2e/oracle/driver/mysql-connector.jar \
+  wget -O /tmp/shenyu-e2e/oracle/driver/jdbc8-23.2.0.0.jar \
     https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc8/23.2.0.0/ojdbc8-23.2.0.0.jar
 
 cp db/init/oracle/schema.sql /tmp/shenyu-e2e/oracle/schema/schema.sql
