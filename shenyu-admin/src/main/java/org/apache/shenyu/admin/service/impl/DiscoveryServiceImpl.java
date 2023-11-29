@@ -48,6 +48,7 @@ import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +58,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class DiscoveryServiceImpl implements DiscoveryService {
@@ -109,6 +111,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void registerDiscoveryConfig(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
         DiscoveryDTO discoveryDTO = new DiscoveryDTO();
         discoveryDTO.setName(discoveryConfigRegisterDTO.getName());
@@ -131,7 +134,21 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     private void bindingDiscovery(DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO, String discoveryId, String discoveryType) {
-        SelectorDO selectorDO = selectorService.findByNameAndPluginName(discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName());
+        SelectorDO selectorDO = null;
+        for (int i = 0; i < 3; i++) {
+            selectorDO = selectorService.findByNameAndPluginName(discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName());
+            if (selectorDO != null) {
+                break;
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+        if (Objects.isNull(selectorDO)) {
+            throw new ShenyuException("when binding discovery don't find selector " + discoveryConfigRegisterDTO.getSelectorName());
+        }
         ProxySelectorAddDTO proxySelectorAddDTO = new ProxySelectorAddDTO();
         proxySelectorAddDTO.setSelectorId(selectorDO.getId());
         proxySelectorAddDTO.setName(selectorDO.getName());
