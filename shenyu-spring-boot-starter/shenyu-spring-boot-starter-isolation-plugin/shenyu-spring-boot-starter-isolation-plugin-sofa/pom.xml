@@ -40,6 +40,24 @@
             <groupId>com.alipay.sofa</groupId>
             <artifactId>registry-client-all</artifactId>
             <version>6.3.0</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>bolt</artifactId>
+                    <groupId>com.alipay.sofa</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>hessian</artifactId>
+                    <groupId>com.alipay.sofa</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>sofa-common-tools</artifactId>
+                    <groupId>com.alipay.sofa.common</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>lookout-api</artifactId>
+                    <groupId>com.alipay.sofa.lookout</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jboss.marshalling</groupId>

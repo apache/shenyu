@@ -17,7 +17,12 @@
 
 package org.apache.shenyu.web.loader;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.web.handler.ShenyuWebHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,6 +39,9 @@ import java.util.jar.JarInputStream;
  */
 public class PluginJarParser {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PluginJarParser.class);
+
+
     /**
      * parseJar.
      *
@@ -46,8 +54,8 @@ public class PluginJarParser {
             JarEntry jarEntry;
             while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
                 String entryName = jarEntry.getName();
-                // get jar version
-                if (jarEntry.getName().endsWith("pom.properties")) {
+                // Set jar version. The jar file may contain more than one pom.properties, take only the first one.
+                if (pluginJar.isEmpty() && jarEntry.getName().endsWith("pom.properties")) {
                     try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
                         int data;
                         while ((data = jarInputStream.read()) != -1) {
@@ -191,6 +199,12 @@ public class PluginJarParser {
          */
         public String getJarKey() {
             return String.format("%s:%s", groupId, artifactId);
+        }
+
+        public boolean isEmpty() {
+            return StringUtils.isEmpty(groupId)
+                    && StringUtils.isEmpty(artifactId)
+                    && StringUtils.isEmpty(version);
         }
     }
 

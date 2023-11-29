@@ -151,7 +151,6 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
     }
 
     private <T> String registerBeanDefinition(final String className, final ClassLoader classLoader) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        LOG.info("loaded class: {}", className);
         if (SpringBeanUtils.getInstance().existBean(className)) {
             return SpringBeanUtils.getInstance().getBeanName(className);
         }
