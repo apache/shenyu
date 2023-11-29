@@ -23,11 +23,18 @@ import org.apache.shenyu.register.common.type.DataTypeParent;
 import java.util.Properties;
 
 public class DiscoveryConfigRegisterDTO implements DataTypeParent {
+
+    private String selectorName;
+
     private String name;
 
     private String discoveryType;
 
     private String serverList;
+
+    private String listenerNode;
+
+    private String handler;
 
     private String pluginName;
 
@@ -45,11 +52,14 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
     }
 
     private DiscoveryConfigRegisterDTO(final Builder builder) {
+        selectorName = builder.selectorName;
         name = builder.name;
         discoveryType = builder.discoveryType;
         serverList = builder.serverList;
         props = builder.props;
         pluginName = builder.pluginName;
+        listenerNode = builder.listenerNode;
+        handler = builder.handler;
     }
 
     @Override
@@ -64,6 +74,23 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+
+    public String getSelectorName() {
+        return selectorName;
+    }
+
+    public void setSelectorName(String selectorName) {
+        this.selectorName = selectorName;
+    }
+
+    public String getHandler() {
+        return handler;
+    }
+
+    public void setHandler(String handler) {
+        this.handler = handler;
     }
 
     /**
@@ -156,7 +183,18 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
         this.pluginName = pluginName;
     }
 
+
+    public String getListenerNode() {
+        return listenerNode;
+    }
+
+    public void setListenerNode(String listenerNode) {
+        this.listenerNode = listenerNode;
+    }
+
     public static final class Builder {
+
+        private String selectorName;
 
         private String name;
 
@@ -166,10 +204,50 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
 
         private String pluginName;
 
+        private String listenerNode;
+
+        private String handler;
+
         private Properties props;
 
         private Builder() {
         }
+
+
+        /**
+         * selectorName.
+         *
+         * @param selectorName selectorName
+         * @return Builder builder
+         */
+        public Builder selectorName(final String selectorName) {
+            this.selectorName = selectorName;
+            return this;
+        }
+
+
+        /**
+         * listenerNode.
+         *
+         * @param listenerNode listenerNode
+         * @return Builder builder
+         */
+        public Builder listenerNode(final String listenerNode) {
+            this.listenerNode = listenerNode;
+            return this;
+        }
+
+        /**
+         * handler.
+         *
+         * @param handler handler
+         * @return Builder builder
+         */
+        public Builder handler(final String handler) {
+            this.handler = handler;
+            return this;
+        }
+
 
         /**
          * name.

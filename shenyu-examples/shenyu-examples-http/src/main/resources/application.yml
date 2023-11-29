@@ -33,14 +33,21 @@ shenyu:
           appName: http
 #          port: 8189
   discovery:
-#    name: zk_discovery
 #    enable: true
 #    type: zookeeper
-#    plugin-name: divide
-#    protocol: http://
 #    serverList: 127.0.0.1:2181
-#    weight: 10
 #    registerPath: /shenyu/discovery/demo_http_common
+#    connectionProps:
+#      ## 连接 配置中心的 连接配置
+#    props:
+#      discovery:
+#        connection-config:
+#      discoveryHandler:
+#        handler: { "url": "url" }
+#      discoveryUpstream:
+#        protocol: http://
+#        weight: 20
+
 
 
 spring:

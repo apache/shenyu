@@ -29,12 +29,16 @@ import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
+import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
+import org.apache.shenyu.admin.service.ProxySelectorService;
+import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -47,6 +51,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
@@ -65,6 +70,12 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     private final DiscoveryHandlerMapper discoveryHandlerMapper;
 
     private final DiscoveryRelMapper discoveryRelMapper;
+
+    @Resource
+    private SelectorService selectorService;
+
+    @Resource
+    private ProxySelectorService proxySelectorService;
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
@@ -107,12 +118,32 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         discoveryDTO.setLevel(DiscoveryLevel.PLUGIN.getCode());
         discoveryDTO.setProps(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())));
         DiscoveryDO discoveryDO = discoveryMapper.selectByName(discoveryConfigRegisterDTO.getName());
-        if (Objects.nonNull(discoveryDO)) {
+        String discoveryId = Optional.ofNullable(discoveryDO).map(DiscoveryDO::getId).orElse(null);
+        String discoveryType = Optional.ofNullable(discoveryDO).map(DiscoveryDO::getType).orElse(null);
+        if (Objects.isNull(discoveryDO)) {
             LOG.warn("shenyu DiscoveryConfigRegisterDTO has been register");
-            return;
+            DiscoveryVO discoveryVO = this.create(discoveryDTO);
+            discoveryId = discoveryVO.getId();
+            discoveryType = discoveryVO.getType();
         }
-        this.create(discoveryDTO);
         LOG.info("shenyu success register DiscoveryConfigRegisterDTO name={}|pluginName={}", discoveryConfigRegisterDTO.getName(), discoveryConfigRegisterDTO.getPluginName());
+        bindingDiscovery(discoveryConfigRegisterDTO, discoveryId, discoveryType);
+    }
+
+    private void bindingDiscovery(DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO, String discoveryId, String discoveryType) {
+        SelectorDO selectorDO = selectorService.findByNameAndPluginName(discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName());
+        ProxySelectorAddDTO proxySelectorAddDTO = new ProxySelectorAddDTO();
+        proxySelectorAddDTO.setSelectorId(selectorDO.getId());
+        proxySelectorAddDTO.setName(selectorDO.getName());
+        proxySelectorAddDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
+        proxySelectorAddDTO.setProps("{}");
+        proxySelectorAddDTO.setListenerNode(discoveryConfigRegisterDTO.getListenerNode());
+        proxySelectorAddDTO.setHandler(discoveryConfigRegisterDTO.getHandler());
+        ProxySelectorAddDTO.Discovery discovery = new ProxySelectorAddDTO.Discovery();
+        discovery.setId(discoveryId);
+        discovery.setDiscoveryType(discoveryType);
+        proxySelectorAddDTO.setDiscovery(discovery);
+        proxySelectorService.bindingDiscoveryHandler(proxySelectorAddDTO);
     }
 
     @Override

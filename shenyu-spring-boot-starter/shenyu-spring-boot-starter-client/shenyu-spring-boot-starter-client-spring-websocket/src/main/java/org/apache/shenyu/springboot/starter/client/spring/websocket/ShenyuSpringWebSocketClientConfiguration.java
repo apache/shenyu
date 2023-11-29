@@ -33,6 +33,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+
 import java.util.Properties;
 
 /**
@@ -52,7 +53,7 @@ public class ShenyuSpringWebSocketClientConfiguration {
      *
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
-     * @param env env
+     * @param env                            env
      * @return the spring web socket client event listener
      */
     @Bean
@@ -82,7 +83,8 @@ public class ShenyuSpringWebSocketClientConfiguration {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setProtocol(ShenyuClientConstants.WS);
         discoveryUpstreamData.setStatus(0);
-        discoveryUpstreamData.setWeight(Integer.parseInt(shenyuDiscoveryConfig.getWeight()));
+        String weight = shenyuDiscoveryConfig.getProps().getOrDefault("discoveryUpstream.weight", "10").toString();
+        discoveryUpstreamData.setWeight(Integer.parseInt(weight));
         discoveryUpstreamData.setUrl(eventListener.getHost() + ":" + eventListener.getPort());
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }

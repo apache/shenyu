@@ -17,23 +17,18 @@
 
 package org.apache.shenyu.register.common.config;
 
+import java.util.Properties;
+
 /**
  * The type Discovery config.
  */
 public class ShenyuDiscoveryConfig extends PropertiesConfig {
     private String name;
-
     private String type;
-
     private String serverList;
-
-    private String weight;
-
     private String registerPath;
 
-    private String pluginName;
-
-    private String protocol;
+    private Properties connectionProps;
 
     /**
      * Gets name.
@@ -89,23 +84,6 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
         this.serverList = serverList;
     }
 
-    /**
-     * getWeight.
-     *
-     * @return weight
-     */
-    public String getWeight() {
-        return weight;
-    }
-
-    /**
-     * setWeight.
-     *
-     * @param weight weight
-     */
-    public void setWeight(final String weight) {
-        this.weight = weight;
-    }
 
     /**
      * getRegisterPath.
@@ -125,40 +103,11 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
         this.registerPath = registerPath;
     }
 
-    /**
-     * getPluginName.
-     *
-     * @return pluginName
-     */
-    public String getPluginName() {
-        return pluginName;
+    public Properties getConnectionProps() {
+        return connectionProps;
     }
 
-    /**
-     * setPluginName.
-     *
-     * @param pluginName pluginName
-     */
-    public void setPluginName(final String pluginName) {
-        this.pluginName = pluginName;
-    }
-
-    /**
-     * getProtocol.
-     *
-     * @return protocol
-     */
-    public String getProtocol() {
-        return protocol;
-    }
-
-
-    /**
-     * setProtocol.
-     *
-     * @param protocol protocol
-     */
-    public void setProtocol(final String protocol) {
-        this.protocol = protocol;
+    public void setConnectionProps(Properties connectionProps) {
+        this.connectionProps = connectionProps;
     }
 }

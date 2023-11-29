@@ -116,8 +116,9 @@ public class ShenyuGrpcClientConfiguration {
     @ConditionalOnProperty(prefix = "shenyu.discovery", name = "serverList", matchIfMissing = false)
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     public ClientDiscoveryConfigRefreshedEventListener clientDiscoveryConfigRefreshedEventListener(final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
-                                                                                                   final HttpClientRegisterRepository httpClientRegisterRepository) {
-        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository);
+                                                                                                   final HttpClientRegisterRepository httpClientRegisterRepository,
+                                                                                                   final ClientRegisterConfig clientRegisterConfig) {
+        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository, clientRegisterConfig);
     }
 
 
@@ -128,15 +129,16 @@ public class ShenyuGrpcClientConfiguration {
      * @param shenyuDiscoveryConfig shenyuDiscoveryConfig
      * @return InstanceRegisterListener
      */
-    @Bean("springmvcInstanceRegisterListener")
+    @Bean("grpcInstanceRegisterListener")
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     @ConditionalOnMissingBean(name = "websocketInstanceRegisterListener")
     public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setUrl(clientRegisterConfig.getHost() + ":" + clientRegisterConfig.getPort());
         discoveryUpstreamData.setStatus(0);
-        discoveryUpstreamData.setWeight(Integer.parseInt(shenyuDiscoveryConfig.getWeight()));
-        discoveryUpstreamData.setProtocol(shenyuDiscoveryConfig.getProtocol());
+        String weight = shenyuDiscoveryConfig.getProps().getOrDefault("discoveryUpstream.weight", "10").toString();
+        discoveryUpstreamData.setWeight(Integer.parseInt(weight));
+        discoveryUpstreamData.setProtocol(shenyuDiscoveryConfig.getProps().getOrDefault("discoveryUpstream.protocol", ShenyuClientConstants.HTTP).toString());
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 

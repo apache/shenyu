@@ -18,6 +18,7 @@
 package org.apache.shenyu.springboot.starter.client.springmvc;
 
 import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
@@ -31,6 +32,7 @@ import org.apache.shenyu.client.springmvc.register.SpringMvcApiBeansExtractor;
 import org.apache.shenyu.client.springmvc.register.SpringMvcApiMetaRegister;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -133,8 +135,9 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setUrl(clientRegisterConfig.getHost() + ":" + clientRegisterConfig.getPort());
         discoveryUpstreamData.setStatus(0);
-        discoveryUpstreamData.setWeight(Integer.parseInt(shenyuDiscoveryConfig.getWeight()));
-        discoveryUpstreamData.setProtocol(shenyuDiscoveryConfig.getProtocol());
+        String weight = shenyuDiscoveryConfig.getProps().getOrDefault("discoveryUpstream.weight", "10").toString();
+        discoveryUpstreamData.setWeight(Integer.parseInt(weight));
+        discoveryUpstreamData.setProtocol(shenyuDiscoveryConfig.getProps().getOrDefault("discoveryUpstream.protocol", ShenyuClientConstants.HTTP).toString());
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 

@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.register.ClientDiscoveryConfigRefreshedEventListener;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.springmvc.init.SpringMvcClientEventListener;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.VersionUtils;
@@ -94,7 +95,8 @@ public class ShenyuSpringMvcClientConfiguration {
     @ConditionalOnProperty(prefix = "shenyu.discovery", name = "serverList", matchIfMissing = false)
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     public ClientDiscoveryConfigRefreshedEventListener clientDiscoveryConfigRefreshedEventListener(final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
-                                                                                                   final HttpClientRegisterRepository httpClientRegisterRepository) {
-        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository);
+                                                                                                   final HttpClientRegisterRepository httpClientRegisterRepository,
+                                                                                                   final ClientRegisterConfig clientRegisterConfig) {
+        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository, clientRegisterConfig);
     }
 }

@@ -34,10 +34,7 @@ import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
-import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
-import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
-import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
-import org.apache.shenyu.admin.model.dto.SelectorDTO;
+import org.apache.shenyu.admin.model.dto.*;
 import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
@@ -55,6 +52,7 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
@@ -110,6 +108,8 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final DiscoveryRelMapper discoveryRelMapper;
 
+    private final ProxySelectorService proxySelectorService;
+
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
@@ -121,6 +121,7 @@ public class SelectorServiceImpl implements SelectorService {
                                final DiscoveryRelMapper discoveryRelMapper,
                                final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                final DiscoveryProcessorHolder discoveryProcessorHolder,
+                               final  ProxySelectorService proxySelectorService,
                                final SelectorEventPublisher selectorEventPublisher) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
@@ -130,6 +131,7 @@ public class SelectorServiceImpl implements SelectorService {
         this.discoveryRelMapper = discoveryRelMapper;
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
+        this.proxySelectorService = proxySelectorService;
         this.eventPublisher = eventPublisher;
         this.selectorEventPublisher = selectorEventPublisher;
     }
@@ -170,6 +172,7 @@ public class SelectorServiceImpl implements SelectorService {
         if (Objects.isNull(selectorDO)) {
             SelectorDTO selectorDTO = SelectorUtil.buildSelectorDTO(contextPath, pluginMapper.selectByName(pluginName).getId());
             selectorDTO.setHandle(selectorHandler);
+            //todo 适配
             return registerDefault(selectorDTO);
         }
         return selectorDO.getId();
