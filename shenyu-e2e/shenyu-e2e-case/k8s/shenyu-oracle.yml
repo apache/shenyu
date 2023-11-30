@@ -38,34 +38,14 @@ spec:
           resources: {}
           env:
             - name: ORACLE_PASSWORD
-              value: shenyue2e@123456
-            - name: ORACLE_DB
-              value: shenyu
-#          livenessProbe:
-#            initialDelaySeconds: 30
-#            periodSeconds: 10
-#            timeoutSeconds: 5
-#            successThreshold: 1
-#            failureThreshold: 3
-#            exec:
-#              command:
-#                - /bin/sh
-#                - "-c"
-#                - sqlplus ${ORACLE_USER}/${ORACLE_PASSWORD}@127.0.0.1/${ORACLE_DB} -S -L -e "SELECT 1 FROM DUAL"
-#          readinessProbe:
-#            initialDelaySeconds: 10
-#            periodSeconds: 10
-#            timeoutSeconds: 5
-#            successThreshold: 1
-#            failureThreshold: 3
-#            exec:
-#              command:
-#                - /bin/sh
-#                - "-c"
-#                - sqlplus ${ORACLE_USER}/${ORACLE_PASSWORD}@127.0.0.1/${ORACLE_DB} -S -L -e "SELECT 1 FROM DUAL"
+              value: ShenYu@e2e
+            - name: APP_USER
+              value: shenyue2e
+            - name: APP_USER_PASSWORD
+              value: ShenYu@e2e
           volumeMounts:
             - name: oracle-initdb
-              mountPath: /docker-entrypoint-initdb.d
+              mountPath: /container-entrypoint-initdb.d
           imagePullPolicy: Always
       volumes:
         - name: oracle-initdb
