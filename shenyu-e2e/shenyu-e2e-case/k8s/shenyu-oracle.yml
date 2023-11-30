@@ -38,11 +38,13 @@ spec:
           resources: {}
           env:
             - name: ORACLE_PASSWORD
-              value: ShenYu@e2e
+              value: shenyue2e
             - name: APP_USER
               value: shenyue2e
             - name: APP_USER_PASSWORD
-              value: ShenYu@e2e
+              value: shenyue2e
+            - name: ORACLE_DATABASE
+              value: shenyu
           volumeMounts:
             - name: oracle-initdb
               mountPath: /container-entrypoint-initdb.d
