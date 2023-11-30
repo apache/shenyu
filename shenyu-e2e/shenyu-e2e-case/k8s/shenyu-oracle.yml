@@ -35,10 +35,7 @@ spec:
           image: gvenzl/oracle-xe:18.4.0-slim
           ports:
             - containerPort: 1521
-          resources: {
-            limits: { cpu: "1", memory: "768Mi" },
-            requests: { cpu: "0.5", memory: "512Mi" }
-          }
+          resources: {}
           env:
             - name: ORACLE_PASSWORD
               value: shenyue2e@123456
