@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: shenyu-oracle
-          image: iatebes/oracle_11g
+          image: gvenzl/oracle-xe:18.4.0-slim
           ports:
             - containerPort: 1521
           resources: {
