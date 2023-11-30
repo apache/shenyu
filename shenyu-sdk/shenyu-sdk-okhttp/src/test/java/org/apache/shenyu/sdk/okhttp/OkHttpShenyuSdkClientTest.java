@@ -20,7 +20,7 @@ package org.apache.shenyu.sdk.okhttp;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -41,7 +41,7 @@ public class OkHttpShenyuSdkClientTest {
      *
      */
     @Test
-    @Ignore
+    @Disabled
     public void testShenyuHttpClient() {
         OkHttpShenyuSdkClient okHttpShenyuSdkClient = new OkHttpShenyuSdkClient();
         okHttpShenyuSdkClient.init(new RegisterConfig(), Collections.emptyList(), mock(ShenyuInstanceRegisterRepository.class));

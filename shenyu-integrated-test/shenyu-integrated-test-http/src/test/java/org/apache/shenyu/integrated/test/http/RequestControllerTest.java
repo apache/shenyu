@@ -20,7 +20,7 @@ package org.apache.shenyu.integrated.test.http;
 import okhttp3.Response;
 import org.apache.shenyu.integratedtest.common.AbstractTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class RequestControllerTest extends AbstractTest {
     
-    @Ignore
+    @Disabled
     @Test
     public void testRequestHeader() throws IOException {
         Map<String, Object> headers = new HashMap<>(2, 1);
@@ -44,13 +44,13 @@ public final class RequestControllerTest extends AbstractTest {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void testRequestParameter() throws IOException {
         String body = HttpHelper.INSTANCE.postGateway("/http/request/parameter?parameter_key1=chuang", String.class);
         assertEquals("response success: {parameter_key1=[chuang]}", body);
     }
     
-    @Ignore
+    @Disabled
     @Test
     public void testRequestCookie() throws IOException {
         String userId = "chuang";

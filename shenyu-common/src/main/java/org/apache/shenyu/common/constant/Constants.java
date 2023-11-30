@@ -83,11 +83,6 @@ public interface Constants {
     String MOTAN_RPC_RESULT_EMPTY = "motan has not return value!";
     
     /**
-     * The constant BRPC_RPC_RESULT_EMPTY.
-     */
-    String BRPC_RPC_RESULT_EMPTY = "brpc has not return value!";
-    
-    /**
      * The constant CLIENT_RESPONSE_RESULT_TYPE.
      */
     String CLIENT_RESPONSE_RESULT_TYPE = "webHandlerClientResponseResultType";
@@ -366,6 +361,11 @@ public interface Constants {
      * jwt handle key for secretKey.
      */
     String SECRET_KEY = "secretKey";
+    
+    /**
+     * basicAuth handle key for defaultHandleJson.
+     */
+    String DEFAULT_HANDLE_JSON = "defaultHandleJson";
     
     /**
      * local key.

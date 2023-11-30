@@ -234,8 +234,8 @@ public class KafkaLogCollectConfig {
                     && Objects.equals(getProducerGroup(), that.getProducerGroup())
                     && Objects.equals(getSampleRate(), that.getSampleRate())
                     && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
-                    && Objects.equals(getMaxResponseBody(), that.getMaxRequestBody())
-                    && Objects.equals(getMaxRequestBody(), that.getMaxResponseBody());
+                    && Objects.equals(getMaxRequestBody(), that.getMaxRequestBody())
+                    && Objects.equals(getMaxResponseBody(), that.getMaxResponseBody());
         }
 
         @Override
