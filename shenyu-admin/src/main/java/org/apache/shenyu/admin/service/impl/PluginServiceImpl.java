@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -209,7 +210,7 @@ public class PluginServiceImpl implements PluginService {
     
     @Override
     public List<PluginSnapshotVO> activePluginSnapshot() {
-        return pluginMapper.activePluginSnapshot(AdminConstants.ADMIN_NAME.equals(SessionUtil.visitorName()) ? null : SessionUtil.visitor().getUserId());
+        return pluginMapper.activePluginSnapshot(SessionUtil.isAdmin() ? null : SessionUtil.visitor().getUserId());
     }
     
     /**
@@ -257,12 +258,13 @@ public class PluginServiceImpl implements PluginService {
 
     /**
      * check jar.
+     *
      * @param file jar file
      * @return true is right
      */
     private boolean checkFile(final MultipartFile file) {
         try {
-            if (file.getSize() > 16 * 1024 * 1024) {
+            if (file.getSize() > 16 * Constants.BYTES_PER_MB) {
                 return false;
             }
             Set<String> dependencyTree = JarDependencyUtils.getDependencyTree(file.getBytes());
