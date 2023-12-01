@@ -180,7 +180,7 @@ jobs:
 
       - name: Setup Debug Session
         uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 17
+        timeout-minutes: 18
         with:
           detached: true
 
