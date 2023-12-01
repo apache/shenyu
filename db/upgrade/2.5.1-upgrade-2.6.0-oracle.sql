@@ -52,7 +52,7 @@ create table discovery
 (
     id                VARCHAR2(128) not null,
     name            VARCHAR2(255) not null,
-    level            VARCHAR2(64) not null,
+    "level"            VARCHAR2(64) not null,
     plugin_name      VARCHAR2(255),
     type            VARCHAR2(64) not null,
     server_list      VARCHAR2(255),
