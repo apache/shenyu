@@ -110,6 +110,7 @@ public class ShenyuGrpcClientConfiguration {
      *
      * @param shenyuDiscoveryConfig        shenyuDiscoveryConfig
      * @param httpClientRegisterRepository httpClientRegisterRepository
+     * @param clientRegisterConfig         clientRegisterConfig
      * @return ClientDiscoveryConfigRefreshedEventListener
      */
     @Bean

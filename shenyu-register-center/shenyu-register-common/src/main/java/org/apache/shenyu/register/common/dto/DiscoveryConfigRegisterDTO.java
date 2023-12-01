@@ -43,10 +43,14 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
     public DiscoveryConfigRegisterDTO() {
     }
 
-    public DiscoveryConfigRegisterDTO(final String name, final String discoveryType, final String serverList, final String pluginName, final Properties props) {
+    public DiscoveryConfigRegisterDTO(final String selectorName, final String name, final String discoveryType, final String serverList,
+                                      final String listenerNode, final String handler, final String pluginName, final Properties props) {
+        this.selectorName = selectorName;
         this.name = name;
         this.discoveryType = discoveryType;
         this.serverList = serverList;
+        this.listenerNode = listenerNode;
+        this.handler = handler;
         this.props = props;
         this.pluginName = pluginName;
     }
@@ -77,19 +81,39 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
     }
 
 
+    /**
+     * getSelectorName.
+     *
+     * @return selectorName
+     */
     public String getSelectorName() {
         return selectorName;
     }
 
-    public void setSelectorName(String selectorName) {
+    /**
+     * setSelectorName.
+     *
+     * @param selectorName selectorName
+     */
+    public void setSelectorName(final String selectorName) {
         this.selectorName = selectorName;
     }
 
+    /**
+     * getHandler.
+     *
+     * @return handler
+     */
     public String getHandler() {
         return handler;
     }
 
-    public void setHandler(String handler) {
+    /**
+     * setHandler.
+     *
+     * @param handler handler
+     */
+    public void setHandler(final String handler) {
         this.handler = handler;
     }
 
@@ -183,12 +207,21 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
         this.pluginName = pluginName;
     }
 
-
+    /**
+     * getListenerNode.
+     *
+     * @return listenerNode
+     */
     public String getListenerNode() {
         return listenerNode;
     }
 
-    public void setListenerNode(String listenerNode) {
+    /**
+     * setListenerNode.
+     *
+     * @param listenerNode listenerNode
+     */
+    public void setListenerNode(final String listenerNode) {
         this.listenerNode = listenerNode;
     }
 

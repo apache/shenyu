@@ -48,17 +48,14 @@ import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 public class DiscoveryServiceImpl implements DiscoveryService {
@@ -73,11 +70,9 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private final DiscoveryRelMapper discoveryRelMapper;
 
-    @Resource
-    private SelectorService selectorService;
+    private final SelectorService selectorService;
 
-    @Resource
-    private ProxySelectorService proxySelectorService;
+    private final ProxySelectorService proxySelectorService;
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
@@ -85,12 +80,16 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                                 final ProxySelectorMapper proxySelectorMapper,
                                 final DiscoveryRelMapper discoveryRelMapper,
                                 final DiscoveryHandlerMapper discoveryHandlerMapper,
+                                final SelectorService selectorService,
+                                final ProxySelectorService proxySelectorService,
                                 final DiscoveryProcessorHolder discoveryProcessorHolder) {
         this.discoveryMapper = discoveryMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.proxySelectorMapper = proxySelectorMapper;
         this.discoveryRelMapper = discoveryRelMapper;
         this.discoveryHandlerMapper = discoveryHandlerMapper;
+        this.selectorService = selectorService;
+        this.proxySelectorService = proxySelectorService;
     }
 
     @Override
@@ -133,7 +132,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         bindingDiscovery(discoveryConfigRegisterDTO, discoveryId, discoveryType);
     }
 
-    private void bindingDiscovery(DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO, String discoveryId, String discoveryType) {
+    private void bindingDiscovery(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO, final String discoveryId, final String discoveryType) {
         SelectorDO selectorDO = null;
         for (int i = 0; i < 3; i++) {
             selectorDO = selectorService.findByNameAndPluginName(discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName());

@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.core.env.Environment;
 
 public final class ClientDiscoveryConfigRefreshedEventListener implements ApplicationListener<ContextRefreshedEvent> {
 
@@ -46,7 +45,6 @@ public final class ClientDiscoveryConfigRefreshedEventListener implements Applic
         this.httpClientRegisterRepository = httpClientRegisterRepository;
         this.clientRegisterConfig = clientRegisterConfig;
     }
-
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {

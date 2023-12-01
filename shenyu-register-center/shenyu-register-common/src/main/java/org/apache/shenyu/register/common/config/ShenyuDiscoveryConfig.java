@@ -23,9 +23,13 @@ import java.util.Properties;
  * The type Discovery config.
  */
 public class ShenyuDiscoveryConfig extends PropertiesConfig {
+
     private String name;
+
     private String type;
+
     private String serverList;
+
     private String registerPath;
 
     private Properties connectionProps;
@@ -103,11 +107,21 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
         this.registerPath = registerPath;
     }
 
+    /**
+     * getConnectionProps.
+     *
+     * @return connectionProps
+     */
     public Properties getConnectionProps() {
         return connectionProps;
     }
 
-    public void setConnectionProps(Properties connectionProps) {
+    /**
+     * setConnectionProps.
+     *
+     * @param connectionProps connectionProps
+     */
+    public void setConnectionProps(final Properties connectionProps) {
         this.connectionProps = connectionProps;
     }
 }

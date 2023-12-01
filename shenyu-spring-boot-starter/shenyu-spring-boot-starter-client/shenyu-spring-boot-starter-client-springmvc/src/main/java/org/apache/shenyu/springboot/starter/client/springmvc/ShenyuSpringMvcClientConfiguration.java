@@ -89,6 +89,7 @@ public class ShenyuSpringMvcClientConfiguration {
      *
      * @param shenyuDiscoveryConfig        shenyuDiscoveryConfig
      * @param httpClientRegisterRepository httpClientRegisterRepository
+     * @param clientRegisterConfig         clientRegisterConfig
      * @return ClientDiscoveryConfigRefreshedEventListener
      */
     @Bean
