@@ -37,8 +37,8 @@ spec:
             - containerPort: 1521
           resources: {}
           env:
-            - name: ORACLE_RANDOM_PASSWORD
-              value: "true"
+            - name: ORACLE_PASSWORD
+              value: shenyue2e
             - name: APP_USER
               value: shenyue2e
             - name: APP_USER_PASSWORD
