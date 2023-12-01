@@ -39,11 +39,11 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: oracle
             - name: spring.datasource.username
-              value: shenyue2e
+              value: sys
             - name: spring.datasource.password
               value: shenyue2e
             - name: spring.datasource.url
-              value: jdbc:oracle:thin:@shenyu-oracle:1521/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
+              value: jdbc:oracle:thin:@shenyu-oracle:1521/sys?useUnicode=true&characterEncoding=utf-8&useSSL=false
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
