@@ -115,7 +115,7 @@
                 type,
             </if>
             <if test="level != null">
-                level,
+                "level",
             </if>
             <if test="serverList != null">
                 server_list,
