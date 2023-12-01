@@ -37,14 +37,12 @@ spec:
             - containerPort: 1521
           resources: {}
           env:
-            - name: ORACLE_PASSWORD
-              value: shenyue2e
+            - name: ORACLE_RANDOM_PASSWORD
+              value: true
             - name: APP_USER
               value: shenyue2e
             - name: APP_USER_PASSWORD
               value: shenyue2e
-            - name: ORACLE_DATABASE
-              value: shenyu
           volumeMounts:
             - name: oracle-initdb
               mountPath: /container-entrypoint-initdb.d
