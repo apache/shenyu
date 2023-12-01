@@ -38,7 +38,7 @@ spec:
           resources: {}
           env:
             - name: ORACLE_RANDOM_PASSWORD
-              value: true
+              value: "true"
             - name: APP_USER
               value: shenyue2e
             - name: APP_USER_PASSWORD
