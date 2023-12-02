@@ -82,7 +82,7 @@
         date_updated,
         name,
         type,
-        "level",
+        level,
         server_list,
         plugin_name,
         props)
@@ -115,7 +115,7 @@
                 type,
             </if>
             <if test="level != null">
-                "level",
+                level,
             </if>
             <if test="serverList != null">
                 server_list,
@@ -162,7 +162,7 @@
         date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
         name = #{name, jdbcType=VARCHAR},
         type = #{type, jdbcType=VARCHAR},
-        "level" = #{level, jdbcType=VARCHAR},
+        level = #{level, jdbcType=VARCHAR},
         server_list = #{serverList, jdbcType=VARCHAR},
         plugin_name = #{pluginName, jdbcType=VARCHAR},
         props = #{props, jdbcType=LONGVARCHAR}
@@ -185,7 +185,7 @@
                 type = #{type, jdbcType=VARCHAR},
             </if>
             <if test="level != null">
-                "level" = #{level, jdbcType=VARCHAR},
+                level = #{level, jdbcType=VARCHAR},
             </if>
             <if test="serverList != null">
                 server_list = #{serverList, jdbcType=VARCHAR},
