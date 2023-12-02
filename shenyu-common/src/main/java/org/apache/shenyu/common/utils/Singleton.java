@@ -56,4 +56,13 @@ public enum Singleton {
     public <T> T get(final Class<T> clazz) {
         return (T) SINGLES.get(clazz.getName());
     }
+
+    /**
+     * Remove.
+     *
+     * @param clazz the clazz in the SINGLE
+     */
+    public void remove(final Class<?> clazz) {
+        SINGLES.remove(clazz.getName());
+    }
 }
