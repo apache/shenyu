@@ -115,6 +115,8 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         } else {
             try {
                 logCollector().close();
+                // remove the plugin in cache
+                Singleton.INST.remove(globalLogConfigClass);
             } catch (Exception e) {
                 LOG.error("{} close log collector error", this.getClass().getSimpleName(), e);
             }
