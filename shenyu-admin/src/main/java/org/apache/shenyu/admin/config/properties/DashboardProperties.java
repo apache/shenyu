@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.config.properties;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -68,7 +69,7 @@ public class DashboardProperties implements InitializingBean {
      * enable SuperAdminPassword valid duration.
      * default is 30 day
      */
-    private Long superAdminPasswordValidDuration = 30 * 24 * 60 * 60 * 1000L;
+    private Long superAdminPasswordValidDuration = 30 * AdminConstants.THE_ONE_DAY_MILLIS_TIME;
     
     
     /**
