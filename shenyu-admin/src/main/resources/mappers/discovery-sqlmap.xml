@@ -36,7 +36,7 @@
         date_updated,
         name,
         type,
-        "level",
+        `level`,
         server_list,
         plugin_name,
         props
