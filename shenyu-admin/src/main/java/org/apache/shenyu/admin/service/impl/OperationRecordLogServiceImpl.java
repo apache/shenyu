@@ -50,7 +50,7 @@ public class OperationRecordLogServiceImpl implements OperationRecordLogService 
     public void doConditionPreProcessing(final RecordLogQueryCondition condition) {
         condition.init();
         Assert.isTrue(condition.getEndTime().getTime() > condition.getStartTime().getTime(), "end time must be greater than start time");
-        if (!AdminConstants.ADMIN_NAME.equals(SessionUtil.visitorName())) {
+        if (!SessionUtil.isAdmin()) {
             condition.setUsername(SessionUtil.visitorName());
         }
     }
@@ -62,7 +62,7 @@ public class OperationRecordLogServiceImpl implements OperationRecordLogService 
     
     @Override
     public List<OperationRecordLog> list() {
-        if (AdminConstants.ADMIN_NAME.equals(SessionUtil.visitorName())) {
+        if (SessionUtil.isAdmin()) {
             return recordLogMapper.selectLimit(null, dashboardProperties.getRecordLogLimit());
         }
         return recordLogMapper.selectLimit(SessionUtil.visitorName(), dashboardProperties.getRecordLogLimit());
@@ -70,7 +70,7 @@ public class OperationRecordLogServiceImpl implements OperationRecordLogService 
     
     @Override
     public boolean cleanHistory(final Date date) {
-        final long supportMaxTime = System.currentTimeMillis() - (dashboardProperties.getOnlyCleanDays() * 1000 * 60 * 60 * 24);
+        final long supportMaxTime = System.currentTimeMillis() - (dashboardProperties.getOnlyCleanDays() * AdminConstants.THE_ONE_DAY_MILLIS_TIME);
         Assert.isTrue(date.getTime() < supportMaxTime, String.format("Only supports cleaning data older than %d days", dashboardProperties.getOnlyCleanDays()));
         return recordLogMapper.deleteByBefore(date) > 0;
     }
