@@ -35,6 +35,16 @@ public interface DiscoveryUpstreamService {
 
 
     /**
+     * updateBatch.
+     *
+     * @param discoveryHandlerId       discoveryHandlerId
+     * @param discoveryUpstreamDTOList discoveryUpstreamDTOList
+     * @return effect
+     */
+    int updateBatch(String discoveryHandlerId, List<DiscoveryUpstreamDTO> discoveryUpstreamDTOList);
+
+
+    /**
      * nativeCreateOrUpdate.
      *
      * @param discoveryUpstreamDTO discoveryUpstreamDTO
