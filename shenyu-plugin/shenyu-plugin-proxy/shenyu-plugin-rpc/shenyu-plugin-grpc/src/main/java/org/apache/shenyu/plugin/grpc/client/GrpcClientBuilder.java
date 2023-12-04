@@ -67,7 +67,7 @@ public final class GrpcClientBuilder {
                 .intercept(new ContextClientInterceptor())
                 .defaultLoadBalancingPolicy(LoadBalancerStrategy.SHENYU.getStrategy())
                 .usePlaintext()
-                .maxInboundMessageSize(100 * 1024 * 1024)
+                .maxInboundMessageSize(100 * Constants.BYTES_PER_MB)
                 .executor(buildExecutor())
                 .disableRetry();
         ManagedChannel channel = builder.build();
