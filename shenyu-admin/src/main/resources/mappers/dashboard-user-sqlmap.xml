@@ -34,7 +34,7 @@
         date_updated,
         user_name,
         password,
-        role,
+        `role`,
         enabled
     </sql>
 
@@ -111,7 +111,7 @@
                     date_updated,
                     user_name,
                     password,
-                    role,
+                    `role`,
                     enabled)
              VALUES
                     (#{id, jdbcType=VARCHAR},
@@ -140,7 +140,7 @@
                 password,
             </if>
             <if test="role != null">
-                role,
+                `role`,
             </if>
             <if test="enabled != null">
                 enabled,
@@ -176,7 +176,7 @@
                 date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
                 user_name = #{userName, jdbcType=VARCHAR},
                 password = #{password, jdbcType=VARCHAR},
-                role = #{role, jdbcType=INTEGER},
+                `role` = #{role, jdbcType=INTEGER},
                 enabled = #{enabled, jdbcType=TINYINT}
           WHERE id = #{id, jdbcType=VARCHAR}
     </update>
@@ -197,7 +197,7 @@
                 password = #{password, jdbcType=VARCHAR},
             </if>
             <if test="role != null">
-                role = #{role, jdbcType=INTEGER},
+                `role` = #{role, jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 enabled = #{enabled, jdbcType=TINYINT},
