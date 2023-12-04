@@ -711,7 +711,9 @@ public interface Constants {
      * The maximum free memory reserved by the blocking queue for the JVM.
      */
     int THE_256_MB = 256 * 1024 * 1024;
-    
+
+    int BYTES_PER_MB = 1024 * 1024;
+
     /**
      * The default cluster of dubbo client.
      */
