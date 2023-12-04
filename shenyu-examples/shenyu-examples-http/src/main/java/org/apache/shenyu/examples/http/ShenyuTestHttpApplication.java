@@ -25,7 +25,6 @@ import org.springframework.boot.SpringApplication;
  * ShenyuTestHttpApplication.
  */
 @SpringBootApplication
-@EnableClientRegister
 public class ShenyuTestHttpApplication {
 
     /**
