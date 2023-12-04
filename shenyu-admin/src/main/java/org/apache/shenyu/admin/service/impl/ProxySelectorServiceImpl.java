@@ -58,6 +58,7 @@ import org.springframework.util.StringUtils;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -256,7 +257,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                         .url(discoveryUpstream.getUrl())
                         .status(discoveryUpstream.getStatus())
                         .weight(discoveryUpstream.getWeight())
-                        .props(discoveryUpstream.getProps())
+                        .props(Optional.ofNullable(discoveryUpstream.getProps()).orElse("{}"))
                         .dateCreated(currentTime)
                         .dateUpdated(currentTime)
                         .build();
