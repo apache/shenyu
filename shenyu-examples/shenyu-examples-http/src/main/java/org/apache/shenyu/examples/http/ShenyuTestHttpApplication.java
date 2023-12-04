@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.examples.http;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * ShenyuTestHttpApplication.
