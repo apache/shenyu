@@ -102,14 +102,12 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     @Transactional
     public int updateBatch(final String discoveryHandlerId, final List<DiscoveryUpstreamDTO> discoveryUpstreamDTOList) {
         discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerId);
-        discoveryUpstreamDTOList.forEach(
-                discoveryUpstreamDTO -> {
-                    discoveryUpstreamDTO.setId(null);
-                    DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
-                    discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
-                    discoveryUpstreamMapper.insert(discoveryUpstreamDO);
-                }
-        );
+        for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamDTOList) {
+            discoveryUpstreamDTO.setId(null);
+            DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
+            discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
+            discoveryUpstreamMapper.insert(discoveryUpstreamDO);
+        }
         this.fetchAll(discoveryHandlerId);
         return 0;
     }
