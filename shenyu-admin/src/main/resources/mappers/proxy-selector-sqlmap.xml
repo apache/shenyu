@@ -35,7 +35,7 @@
         date_updated,
         name,
         plugin_name,
-        type,
+        `type`,
         forward_port,
         props
     </sql>
@@ -71,7 +71,7 @@
         id,
         name,
         plugin_name,
-        type,
+        `type`,
         forward_port,
         props,
         date_created,
@@ -92,7 +92,7 @@
         SET
         name=#{name, jdbcType=VARCHAR},
         plugin_name=#{pluginName,jdbcType=VARCHAR},
-        type=#{type,jdbcType=VARCHAR},
+        `type`=#{type,jdbcType=VARCHAR},
         forward_port=#{forwardPort,jdbcType=INTEGER},
         props=#{props,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
