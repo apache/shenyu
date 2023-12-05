@@ -100,7 +100,7 @@
             smn_topic_urn = #{smnTopicUrn,jdbcType=VARCHAR},
             match_all = #{matchAll,jdbcType=TINYINT},
             labels = #{labels,jdbcType=VARCHAR,typeHandler=org.apache.shenyu.admin.mybatis.handler.MapStringTypeHandler},
-            `levels` = #{levels,jdbcType=VARCHAR,typeHandler=org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler},
+            levels = #{levels,jdbcType=VARCHAR,typeHandler=org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler},
             date_created = #{dateCreated,jdbcType=TIMESTAMP},
             date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
         where id = #{id,jdbcType=VARCHAR}
