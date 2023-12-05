@@ -41,7 +41,7 @@
         plugin_id,
         name,
         match_mode,
-        type,
+        `type`,
         sort,
         enabled,
         loged,
@@ -201,7 +201,7 @@
                     plugin_id,
                     name,
                     match_mode,
-                    type,
+                    `type`,
                     sort,
                     enabled,
                     loged,
@@ -244,7 +244,7 @@
                 match_mode,
             </if>
             <if test="type != null">
-                type,
+                `type`,
             </if>
             <if test="sort != null">
                 sort,
@@ -314,7 +314,7 @@
                plugin_id = #{pluginId, jdbcType=VARCHAR},
                name = #{name, jdbcType=VARCHAR},
                match_mode = #{matchMode, jdbcType=INTEGER},
-               type = #{type, jdbcType=INTEGER},
+               `type` = #{type, jdbcType=INTEGER},
                sort = #{sort, jdbcType=INTEGER},
                enabled = #{enabled, jdbcType=TINYINT},
                loged = #{loged, jdbcType=TINYINT},
@@ -343,7 +343,7 @@
                 match_mode = #{matchMode, jdbcType=INTEGER},
             </if>
             <if test="type != null">
-                type = #{type, jdbcType=INTEGER},
+                `type` = #{type, jdbcType=INTEGER},
             </if>
             <if test="sort != null">
                 sort = #{sort, jdbcType=INTEGER},
