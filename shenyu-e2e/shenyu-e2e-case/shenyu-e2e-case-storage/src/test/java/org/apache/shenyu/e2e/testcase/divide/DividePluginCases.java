@@ -18,8 +18,8 @@
 package org.apache.shenyu.e2e.testcase.divide;
 
 import com.google.common.collect.Lists;
-import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuAfterEachSpec;
+import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuCaseSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
 import io.restassured.http.Method;
