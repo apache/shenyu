@@ -35,7 +35,7 @@
         id,
         api_id,
         model_id,
-        type,
+        `type`,
         name,
         param_desc,
         required,
@@ -56,7 +56,7 @@
                     (id,
                     api_id,
                     model_id,
-                    type,
+                    `type`,
                     name,
                     param_desc,
                     required,
@@ -87,7 +87,7 @@
                 model_id,
             </if>
             <if test="type != null">
-                type,
+                `type`,
             </if>
             <if test="name != null">
                 name,
@@ -145,7 +145,7 @@
            SET
                api_id = #{apiId, jdbcType=VARCHAR},
                model_id = #{modelId, jdbcType=VARCHAR},
-               type = #{type, jdbcType=INTEGER},
+               `type` = #{type, jdbcType=INTEGER},
                name = #{name, jdbcType=VARCHAR},
                param_desc = #{paramDesc, jdbcType=VARCHAR},
                required = #{required, jdbcType=TINYINT},
@@ -165,7 +165,7 @@
                 model_id = #{modelId, jdbcType=VARCHAR},
             </if>
             <if test="type != null">
-                type = #{type, jdbcType=INTEGER},
+                `type` = #{type, jdbcType=INTEGER},
             </if>
             <if test="name != null">
                 name = #{name, jdbcType=VARCHAR},
