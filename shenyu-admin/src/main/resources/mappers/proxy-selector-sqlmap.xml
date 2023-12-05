@@ -127,7 +127,7 @@
         ps.id ,
         ps.name,
         ps.plugin_name ,
-        ps.type,
+        ps.`type`,
         ps.forward_port ,
         ps.props
         FROM proxy_selector ps
