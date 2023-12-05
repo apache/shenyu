@@ -42,12 +42,12 @@
 
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
-    id, context_path, api_path, http_method, consume, produce, version, rpc_type, `state`, 
+    id, context_path, api_path, http_method, consume, produce, version, rpc_type, `state`,
     ext, api_owner, api_desc, api_source, document, document_md5, date_created, date_updated
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     <!--@mbg.generated-->
-    select 
+    select
     <include refid="Base_Column_List" />
     from api
     where id = #{id,jdbcType=VARCHAR}
@@ -59,17 +59,17 @@
   </delete>
   <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ApiDO">
     <!--@mbg.generated-->
-    insert into api (id, context_path, api_path, 
-      http_method, consume, produce, 
-      version, rpc_type, `state`, 
-      ext, api_owner, api_desc, 
-      api_source, document, document_md5, 
+    insert into api (id, context_path, api_path,
+      http_method, consume, produce,
+      version, rpc_type, `state`,
+      ext, api_owner, api_desc,
+      api_source, document, document_md5,
       date_created, date_updated)
-    values (#{id,jdbcType=VARCHAR}, #{contextPath,jdbcType=VARCHAR}, #{apiPath,jdbcType=VARCHAR}, 
-      #{httpMethod,jdbcType=INTEGER}, #{consume,jdbcType=VARCHAR}, #{produce,jdbcType=VARCHAR}, 
-      #{version,jdbcType=VARCHAR}, #{rpcType,jdbcType=VARCHAR}, #{state,jdbcType=TINYINT}, 
-      #{ext,jdbcType=VARCHAR}, #{apiOwner,jdbcType=VARCHAR}, #{apiDesc,jdbcType=VARCHAR}, 
-      #{apiSource,jdbcType=INTEGER}, #{document,jdbcType=LONGVARCHAR}, #{documentMd5,jdbcType=CHAR}, 
+    values (#{id,jdbcType=VARCHAR}, #{contextPath,jdbcType=VARCHAR}, #{apiPath,jdbcType=VARCHAR},
+      #{httpMethod,jdbcType=INTEGER}, #{consume,jdbcType=VARCHAR}, #{produce,jdbcType=VARCHAR},
+      #{version,jdbcType=VARCHAR}, #{rpcType,jdbcType=VARCHAR}, #{state,jdbcType=TINYINT},
+      #{ext,jdbcType=VARCHAR}, #{apiOwner,jdbcType=VARCHAR}, #{apiDesc,jdbcType=VARCHAR},
+      #{apiSource,jdbcType=INTEGER}, #{document,jdbcType=LONGVARCHAR}, #{documentMd5,jdbcType=CHAR},
       #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ApiDO">
@@ -294,7 +294,7 @@
         and api_path LIKE #{nameLike, jdbcType=VARCHAR}
       </if>
       <if test="state != null">
-        and state = #{state, jdbcType=TINYINT}
+        and `state` = #{state, jdbcType=TINYINT}
       </if>
     </where>
     order by api.date_created desc
@@ -330,7 +330,7 @@
   <update id="updateOfflineByContextPath">
     UPDATE
         api
-    SET state = 2
+    SET `state` = 2
     WHERE context_path = #{contextPath,jdbcType=VARCHAR}
   </update>
 
