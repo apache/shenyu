@@ -84,7 +84,8 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         switch (currentEvent) {
             case ADDED:
                 upstreamDataList.forEach(d -> {
-                    if (Objects.isNull(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryHandlerId, d.getUrl()))) {
+                    DiscoveryUpstreamDO discoveryUpstreamDO = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryHandlerId, d.getUrl());
+                    if (Objects.isNull(discoveryUpstreamDO)) {
                         d.setId(UUIDUtils.getInstance().generateShortUuid());
                         d.setDateCreated(new Timestamp(System.currentTimeMillis()));
                         d.setDateUpdated(new Timestamp(System.currentTimeMillis()));

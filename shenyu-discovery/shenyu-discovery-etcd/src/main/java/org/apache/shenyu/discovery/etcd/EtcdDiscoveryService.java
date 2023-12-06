@@ -27,9 +27,11 @@ import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
 import io.etcd.jetcd.options.WatchOption;
+import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.watch.WatchEvent;
 import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
@@ -43,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -109,9 +112,16 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     public void watch(final String key, final DataChangedEventListener listener) {
         if (!this.watchCache.containsKey(key)) {
             try {
+                GetOption build = GetOption.newBuilder().isPrefix(true).build();
+                CompletableFuture<GetResponse> getResponseCompletableFuture = etcdClient.getKVClient().get(bytesOf(key), build);
+                GetResponse getResponse = getResponseCompletableFuture.get();
+                List<KeyValue> kvs = getResponse.getKvs();
+                for (KeyValue kv : kvs) {
+                    DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(kv.getKey().toString(), kv.getValue().toString(UTF_8), DiscoveryDataChangedEvent.Event.ADDED);
+                    listener.onChange(dataChangedEvent);
+                }
                 Watch watch = etcdClient.getWatchClient();
-                WatchOption option = WatchOption.newBuilder().isPrefix(true).build();
-
+                WatchOption option = WatchOption.newBuilder().isPrefix(true).withPrevKV(true).build();
                 Watch.Watcher watcher = watch.watch(bytesOf(key), option, Watch.listener(response -> {
                     for (WatchEvent event : response.getEvents()) {
                         DiscoveryDataChangedEvent dataChangedEvent;
@@ -130,7 +140,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
                                             : new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.UPDATED);
                                     break;
                                 case DELETE:
-                                    dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.DELETED);
+                                    dataChangedEvent = new DiscoveryDataChangedEvent(path, event.getPrevKV().getValue().toString(StandardCharsets.UTF_8), DiscoveryDataChangedEvent.Event.DELETED);
                                     break;
                                 default:
                                     dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.IGNORED);
@@ -160,8 +170,9 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     public void register(final String key, final String value) {
         try {
             KV kvClient = etcdClient.getKVClient();
-            PutOption putOption = PutOption.newBuilder().withLeaseId(leaseId).build();
-            kvClient.put(bytesOf(key), bytesOf(value), putOption).get(timeout, TimeUnit.MILLISECONDS);
+            String s = UUIDUtils.getInstance().generateShortUuid();
+            PutOption putOption = PutOption.newBuilder().withPrevKV().withLeaseId(leaseId).build();
+            kvClient.put(bytesOf(key + "/" + s), bytesOf(value), putOption).get(timeout, TimeUnit.MILLISECONDS);
             LOGGER.info("etcd client key: {} with value: {}", key, value);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOGGER.error("etcd client register (key:{},value:{}) error.", key, value, e);
