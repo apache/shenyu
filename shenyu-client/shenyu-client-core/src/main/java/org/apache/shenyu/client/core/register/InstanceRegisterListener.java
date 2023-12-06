@@ -40,8 +40,6 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceRegisterListener.class);
 
-    private static final String SEQ_PRE = "seq_";
-
     private final DiscoveryUpstreamData currentInstanceUpstream;
 
     private final DiscoveryConfig discoveryConfig;
@@ -66,15 +64,11 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
             }
             ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(discoveryConfig.getType());
             discoveryService.init(discoveryConfig);
-            discoveryService.register(buildSeqPath(), GsonUtils.getInstance().toJson(currentInstanceUpstream));
+            discoveryService.register(path, GsonUtils.getInstance().toJson(currentInstanceUpstream));
         } catch (Exception e) {
             LOGGER.error("shenyu register into ShenyuDiscoveryService  {} type find error", discoveryConfig.getType(), e);
             throw new ShenyuException(String.format("shenyu register into ShenyuDiscoveryService %s type find error", discoveryConfig.getType()));
         }
-    }
-
-    private String buildSeqPath() {
-        return path + "/" + SEQ_PRE;
     }
 
 }
