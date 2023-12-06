@@ -131,7 +131,7 @@ public class PluginServiceImpl implements PluginService {
      * plugin enabled.
      *
      * @param ids     the ids
-     * @param enabled the enable
+     * @param enabled enable
      * @return String
      */
     @Override
