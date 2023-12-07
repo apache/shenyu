@@ -171,7 +171,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void register(final String key, final String value) {
-        String seqPath = key + "/seq_" ;
+        String seqPath = key + "/seq_";
         this.createOrUpdate(seqPath, value, CreateMode.EPHEMERAL_SEQUENTIAL);
     }
 
