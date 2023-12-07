@@ -207,7 +207,12 @@ public class PluginServiceImpl implements PluginService {
     public PluginDO findByName(final String name) {
         return pluginMapper.selectByName(name);
     }
-    
+
+    /**
+     *  activate plugin snapshot.
+     *
+     * @return List of plugins snapshot
+     */
     @Override
     public List<PluginSnapshotVO> activePluginSnapshot() {
         return pluginMapper.activePluginSnapshot(SessionUtil.isAdmin() ? null : SessionUtil.visitor().getUserId());
