@@ -231,6 +231,11 @@ public class RuleServiceImpl implements RuleService {
         return ruleMapper.findByName(name);
     }
     
+    @Override
+    public RuleDO findBySelectorIdAndName(final String selectorId, final String name) {
+        return ruleMapper.findBySelectorIdAndName(selectorId, name);
+    }
+    
     /**
      * delete rules.
      *

@@ -90,7 +90,7 @@ public class GeneralContextPlugin extends AbstractShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        return skipExcept(exchange, RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.MOTAN, RpcTypeEnum.SOFA, RpcTypeEnum.TARS, RpcTypeEnum.BRPC);
+        return skipExcept(exchange, RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.MOTAN, RpcTypeEnum.SOFA, RpcTypeEnum.TARS);
     }
 
 }

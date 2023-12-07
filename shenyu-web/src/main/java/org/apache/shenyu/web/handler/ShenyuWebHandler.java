@@ -148,6 +148,9 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         }
         // copy new list
         List<ShenyuPlugin> newPluginList = new ArrayList<>(plugins);
+        
+        // Add extend plugin from pluginData or shenyu ext-lib
+        this.sourcePlugins.addAll(shenyuAddPlugins);
 
         if (CollectionUtils.isNotEmpty(shenyuAddPlugins)) {
             shenyuAddPlugins.forEach(plugin -> LOG.info("shenyu auto add extends plugins:{}", plugin.named()));
@@ -159,6 +162,11 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 for (int i = 0; i < newPluginList.size(); i++) {
                     if (newPluginList.get(i).named().equals(updatePlugin.named())) {
                         newPluginList.set(i, updatePlugin);
+                    }
+                }
+                for (int i = 0; i < this.sourcePlugins.size(); i++) {
+                    if (this.sourcePlugins.get(i).named().equals(updatePlugin.named())) {
+                        this.sourcePlugins.set(i, updatePlugin);
                     }
                 }
             }

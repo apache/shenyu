@@ -113,7 +113,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber, ExtendD
     
     @Override
     public void onSubscribe(final PluginData pluginData) {
-        LOG.info("subscribe plugin data for plugin: [id: {}, name: {}]", pluginData.getId(), pluginData.getName());
+        LOG.info("subscribe plugin data for plugin: [id: {}, name: {}, config: {}]", pluginData.getId(), pluginData.getName(), pluginData.getConfig());
         subscribeDataHandler(pluginData, DataEventTypeEnum.UPDATE);
     }
     

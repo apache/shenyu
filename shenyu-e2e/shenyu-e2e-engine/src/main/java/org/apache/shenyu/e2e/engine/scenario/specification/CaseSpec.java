@@ -19,6 +19,7 @@ package org.apache.shenyu.e2e.engine.scenario.specification;
 
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenarioParameter;
 import org.apache.shenyu.e2e.engine.scenario.function.Verifier;
+import org.apache.shenyu.e2e.engine.scenario.function.WebSocketVerifier;
 
 import java.util.List;
 
@@ -37,4 +38,9 @@ public interface CaseSpec {
      */
     List<Verifier> getVerifiers();
 
+    /**
+     * get case spec websocket verifiers.
+     * @return List
+     */
+    List<WebSocketVerifier> getWebSocketVerifiers();
 }

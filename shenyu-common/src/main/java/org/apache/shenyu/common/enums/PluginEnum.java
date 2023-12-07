@@ -148,6 +148,11 @@ public enum PluginEnum {
     LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
 
     /**
+     * Logging Rabbitmq plugin enum.
+     */
+    LOGGING_RABBITMQ(171, 0, "loggingRabbitMQ"),
+    
+    /**
      * Logging AliYun sls enums.
      */
     LOGGING_ALIYUN_SLS(175, 0, "loggingAliyunSls"),
@@ -248,11 +253,6 @@ public enum PluginEnum {
     MOTAN(310, 0, "motan"),
 
     /**
-     * Motan plugin enum.
-     */
-    BRPC(310, 0, "brpc"),
-
-    /**
      * Cryptor response plugin enum.
      */
     CRYPTOR_RESPONSE(410, 0, "cryptorResponse"),
@@ -265,7 +265,12 @@ public enum PluginEnum {
     /**
      * Key-auth plugin enum.
      */
-    KEY_AUTH(430, 0, "keyAuth");
+    KEY_AUTH(430, 0, "keyAuth"),
+    
+    /**
+     * Basic-auth plugin enum.
+     */
+    BASIC_AUTH(35, 0, "basicAuth");
     
     /**
      * When the application starts, the plugin is cached and we can obtained by name.

@@ -459,7 +459,7 @@ public class HuaweiLogCollectConfig {
                     && Objects.equals(getLogStreamId(), that.getLogStreamId())
                     && Objects.equals(getAccessKeyId(), that.getAccessKeyId())
                     && Objects.equals(getAccessKeySecret(), that.getAccessKeySecret())
-                    && Objects.equals(getRegionName(), that.getTotalSizeInBytes())
+                    && Objects.equals(getRegionName(), that.getRegionName())
                     && Objects.equals(getTotalSizeInBytes(), that.getTotalSizeInBytes())
                     && Objects.equals(getMaxBlockMs(), that.getMaxBlockMs())
                     && Objects.equals(getIoThreadCount(), that.getIoThreadCount())

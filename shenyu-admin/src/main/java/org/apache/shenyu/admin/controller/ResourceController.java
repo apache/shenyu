@@ -118,7 +118,7 @@ public class ResourceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    @RequiresPermissions(value = {"system:resource:list", "system:resource:editMenu", "system:resource:list"}, logical = Logical.OR)
+    @RequiresPermissions(value = {"system:resource:list", "system:resource:editMenu"}, logical = Logical.OR)
     public ShenyuAdminResult detailResource(@PathVariable("id") final String id) {
         return Optional.ofNullable(resourceService.findById(id))
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item))

@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -41,6 +42,7 @@ import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.JarDependencyUtils;
+import org.apache.shenyu.common.utils.LogUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -208,7 +210,7 @@ public class PluginServiceImpl implements PluginService {
     
     @Override
     public List<PluginSnapshotVO> activePluginSnapshot() {
-        return pluginMapper.activePluginSnapshot(AdminConstants.ADMIN_NAME.equals(SessionUtil.visitorName()) ? null : SessionUtil.visitor().getUserId());
+        return pluginMapper.activePluginSnapshot(SessionUtil.isAdmin() ? null : SessionUtil.visitor().getUserId());
     }
     
     /**
@@ -223,7 +225,7 @@ public class PluginServiceImpl implements PluginService {
     private String create(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), AdminConstants.PLUGIN_NAME_IS_EXIST);
         if (!Objects.isNull(pluginDTO.getFile())) {
-            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.PLUGIN_JAR_IS_NOT_RIGHT);
+            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         if (pluginMapper.insertSelective(pluginDO) > 0) {
@@ -243,7 +245,7 @@ public class PluginServiceImpl implements PluginService {
     private String update(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), AdminConstants.PLUGIN_NAME_IS_EXIST);
         if (!Objects.isNull(pluginDTO.getFile())) {
-            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.PLUGIN_JAR_IS_NOT_RIGHT);
+            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
         final PluginDO before = pluginMapper.selectById(pluginDTO.getId());
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
@@ -256,15 +258,19 @@ public class PluginServiceImpl implements PluginService {
 
     /**
      * check jar.
-     * @param file file
+     *
+     * @param file jar file
      * @return true is right
      */
     private boolean checkFile(final MultipartFile file) {
         try {
+            if (file.getSize() > 16 * Constants.BYTES_PER_MB) {
+                return false;
+            }
             Set<String> dependencyTree = JarDependencyUtils.getDependencyTree(file.getBytes());
             return dependencyTree.contains(AdminConstants.PLUGIN_ABSTRACR_PATH) || dependencyTree.contains(AdminConstants.PLUGIN_INTERFACE_PATH);
         } catch (Exception e) {
-            LOG.error("check plugin jar error:{}", e.getMessage());
+            LogUtils.error(LOG, "check plugin jar error:{}", e.getMessage());
             throw new ShenyuException(e);
         }
     }

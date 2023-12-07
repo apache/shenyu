@@ -57,6 +57,7 @@
         <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
         <guava.version>31.1-jre</guava.version>
         <commons-collection.verion>4.4</commons-collection.verion>
+        <websocket.version>1.5.1</websocket.version>
     </properties>
 
     <modules>
@@ -67,6 +68,12 @@
     </modules>
 
     <dependencies>
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>${websocket.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
