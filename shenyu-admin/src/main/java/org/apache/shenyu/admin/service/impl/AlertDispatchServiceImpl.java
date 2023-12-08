@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -126,7 +127,7 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
 
         @Override
         public void run() {
-            if (alert != null) {
+            if (Objects.nonNull(alert)) {
                 sendNotify(alert);
             }
         }
@@ -154,13 +155,14 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
                     if (item.isMatchAll()) {
                         return true;
                     }
-                    if (item.getLevels() != null && !item.getLevels().isEmpty()) {
+
+                    if (!CollectionUtils.isEmpty(item.getLevels())) {
                         boolean levelMatch = item.getLevels().stream().anyMatch(level -> level == alert.getLevel());
                         if (!levelMatch) {
                             return false;
                         }
                     }
-                    if (item.getLabels() != null && !item.getLabels().isEmpty()) {
+                    if (!CollectionUtils.isEmpty(item.getLabels())) {
                         return item.getLabels().entrySet().stream().anyMatch(entry -> {
                             if (alert.getLabels() == null || !alert.getLabels().containsKey(entry.getKey())) {
                                 return false;

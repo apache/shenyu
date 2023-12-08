@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.model.dto;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
@@ -74,14 +73,14 @@ public class PluginDTO implements Serializable {
     /**
      * plugin jar.
      */
-    private MultipartFile file;
+    private String file;
 
     /**
      * Gets the value of file.
      *
      * @return the value of file
      */
-    public MultipartFile getFile() {
+    public String getFile() {
         return file;
     }
 
@@ -90,7 +89,7 @@ public class PluginDTO implements Serializable {
      *
      * @param file file
      */
-    public void setFile(final MultipartFile file) {
+    public void setFile(final String file) {
         this.file = file;
     }
 

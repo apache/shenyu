@@ -359,6 +359,9 @@
             <if test="enabled != null">
                 enabled = #{enabled, jdbcType=TINYINT},
             </if>
+            <if test="pluginJar != null">
+                plugin_jar = #{pluginJar, jdbcType=BLOB}
+            </if>
         </set>
         WHERE id = #{id, jdbcType=VARCHAR}
     </update>

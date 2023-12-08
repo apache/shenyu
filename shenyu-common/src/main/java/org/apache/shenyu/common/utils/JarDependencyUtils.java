@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.utils;
 
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
@@ -79,7 +80,7 @@ public class JarDependencyUtils {
 
         } catch (Exception e) {
             LOG.error("get dependency tree error", e);
-            throw new ShenyuException(e);
+            throw new ShenyuException(AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
     }
 
