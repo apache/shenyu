@@ -17,10 +17,8 @@
 
 package org.apache.shenyu.admin.config;
 
-
 import com.ecwid.consul.v1.ConsulClient;
 import org.apache.shenyu.admin.config.properties.ConsulProperties;
-import org.apache.shenyu.admin.service.SyncDataService;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,7 +45,6 @@ public class ConsulSyncConfigurationTest {
     public void testConsulDataInit() {
         ConsulSyncConfiguration consulListener = new ConsulSyncConfiguration();
         ConsulClient consulClient = mock(ConsulClient.class);
-        SyncDataService syncDataService = mock(SyncDataService.class);
         assertNotNull(consulListener.consulDataChangedInit(consulClient));
     }
 }
