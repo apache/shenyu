@@ -25,7 +25,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ZookeeperSyncConfigurationTest {
     
@@ -45,7 +45,6 @@ public class ZookeeperSyncConfigurationTest {
         zkClient.close();
         zkServer.stop();
     }
-    
     
     @Test
     public void testZookeeperDataChangedListener() {

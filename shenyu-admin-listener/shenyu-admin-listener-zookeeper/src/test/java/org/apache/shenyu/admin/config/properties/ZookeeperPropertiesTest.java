@@ -35,9 +35,9 @@ public final class ZookeeperPropertiesTest extends AbstractConfigurationTest {
         final Integer sessionTimeOut = 5000;
         final Integer connectionTimeout = 2000;
         final String[] inlinedProperties = new String[]{
-                "shenyu.sync.zookeeper.url=" + url,
-                "shenyu.sync.zookeeper.sessionTimeout=" + sessionTimeOut,
-                "shenyu.sync.zookeeper.connectionTimeout=" + connectionTimeout,
+            "shenyu.sync.zookeeper.url=" + url,
+            "shenyu.sync.zookeeper.sessionTimeout=" + sessionTimeOut,
+            "shenyu.sync.zookeeper.connectionTimeout=" + connectionTimeout,
         };
         load(ZookeeperPropertiesConfiguration.class, inlinedProperties);
         ZookeeperProperties properties = getContext().getBean(ZookeeperProperties.class);

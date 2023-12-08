@@ -53,5 +53,4 @@ public class PolarisSyncConfigurationTest {
         assertNotNull(polarisListener.polarisConfigFileService(polarisProperties));
         assertNotNull(polarisListener.polarisConfigFilePublishService(polarisProperties));
     }
-
 }
