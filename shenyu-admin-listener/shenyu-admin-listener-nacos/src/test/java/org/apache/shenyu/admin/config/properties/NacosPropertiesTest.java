@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.config.properties;
 
-
 import org.junit.jupiter.api.Test;
+
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -56,10 +56,7 @@ public final class NacosPropertiesTest extends AbstractConfigurationTest {
         assertEquals(acm.getAccessKey(), "accessKey");
         assertEquals(acm.getNamespace(), "namespace");
         assertEquals(acm.getSecretKey(), "secretKey");
-        load(NacosPropertiesTest.NacosPropertiesConfiguration.class, "shenyu.sync.nacos.url=localhost:8848",
-                "shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c",
-                "shenyu.sync.nacos.acm.enabled=false",
-                "shenyu.sync.nacos.acm.endpoint=acm.aliyun.com");
+        load(NacosPropertiesTest.NacosPropertiesConfiguration.class, "shenyu.sync.nacos.url=localhost:8848", "shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c", "shenyu.sync.nacos.acm.enabled=false", "shenyu.sync.nacos.acm.endpoint=acm.aliyun.com");
         NacosProperties nacosProperties = getContext().getBean(NacosProperties.class);
         assertEquals(nacosProperties.getUrl(), url);
         assertEquals(nacosProperties.getNamespace(), namespace);
