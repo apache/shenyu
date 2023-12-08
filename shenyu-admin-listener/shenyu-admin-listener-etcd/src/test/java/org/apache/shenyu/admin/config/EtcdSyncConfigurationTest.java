@@ -20,11 +20,10 @@ package org.apache.shenyu.admin.config;
 import org.apache.shenyu.admin.listener.etcd.EtcdClient;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 public class EtcdSyncConfigurationTest {
-    
     
     @Test
     public void testEtcdDataChangedListener() {
