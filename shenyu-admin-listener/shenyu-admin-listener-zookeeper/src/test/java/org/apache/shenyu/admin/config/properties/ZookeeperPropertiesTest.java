@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.config;
+package org.apache.shenyu.admin.config.properties;
 
-import org.apache.shenyu.admin.AbstractConfigurationTest;
-import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.junit.jupiter.api.Test;
@@ -30,16 +28,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Test case for ZookeeperProperties.
  */
 public final class ZookeeperPropertiesTest extends AbstractConfigurationTest {
-
+    
     @Test
     public void testLoadPropertiesBySpringContext() {
         final String url = "127.0.0.1:2181";
         final Integer sessionTimeOut = 5000;
         final Integer connectionTimeout = 2000;
         final String[] inlinedProperties = new String[]{
-            "shenyu.sync.zookeeper.url=" + url,
-            "shenyu.sync.zookeeper.sessionTimeout=" + sessionTimeOut,
-            "shenyu.sync.zookeeper.connectionTimeout=" + connectionTimeout,
+                "shenyu.sync.zookeeper.url=" + url,
+                "shenyu.sync.zookeeper.sessionTimeout=" + sessionTimeOut,
+                "shenyu.sync.zookeeper.connectionTimeout=" + connectionTimeout,
         };
         load(ZookeeperPropertiesConfiguration.class, inlinedProperties);
         ZookeeperProperties properties = getContext().getBean(ZookeeperProperties.class);
@@ -47,7 +45,7 @@ public final class ZookeeperPropertiesTest extends AbstractConfigurationTest {
         assertThat(properties.getSessionTimeout(), is(sessionTimeOut));
         assertThat(properties.getConnectionTimeout(), is(connectionTimeout));
     }
-
+    
     @Configuration
     @EnableConfigurationProperties(ZookeeperProperties.class)
     static class ZookeeperPropertiesConfiguration {

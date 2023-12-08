@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.config;
+package org.apache.shenyu.admin.config.properties;
 
-import org.apache.shenyu.admin.AbstractConfigurationTest;
 
-import org.apache.shenyu.admin.config.properties.NacosProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * Test cases for NacosProperties.
  */
 public final class NacosPropertiesTest extends AbstractConfigurationTest {
-
+    
     @Test
     public void testNacosPropertiesDefault() {
         load(NacosPropertiesTest.NacosPropertiesConfiguration.class);
@@ -44,7 +42,7 @@ public final class NacosPropertiesTest extends AbstractConfigurationTest {
         assertEquals(nacosProperties.getPassword(), "password");
         assertEquals(nacosProperties.getUsername(), "username");
     }
-
+    
     @Test
     public void testNacosPropertiesSpecified() {
         final String url = "localhost:8848";
@@ -68,7 +66,7 @@ public final class NacosPropertiesTest extends AbstractConfigurationTest {
         assertEquals(nacosProperties.getAcm().isEnabled(), acm.isEnabled());
         assertEquals(nacosProperties.getAcm().getEndpoint(), acm.getEndpoint());
     }
-
+    
     @Configuration
     @EnableConfigurationProperties(NacosProperties.class)
     static class NacosPropertiesConfiguration {
