@@ -94,6 +94,12 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
      */
     protected abstract void doRefreshConfig(T globalLogConfig);
 
+    /**
+     * LogCollector.
+     */
+    protected void doRefreshSelectorConfig() {
+    }
+
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         ParameterizedType parameterizedType = (ParameterizedType) this.getClass().getGenericSuperclass();
@@ -128,17 +134,17 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         final Class<C> genericApiConfigClass = (Class<C>) actualTypeArguments[1];
         LOG.info("handler {} selector data:{}", pluginNamed(), GsonUtils.getGson().toJson(selectorData));
         String handleJson = selectorData.getHandle();
-        if (StringUtils.isEmpty(handleJson) || EMPTY_JSON.equals(handleJson.trim())) {
-            return;
-        }
+//        if (StringUtils.isEmpty(handleJson) || EMPTY_JSON.equals(handleJson.trim())) {
+//            return;
+//        }
         if (selectorData.getType() != SelectorTypeEnum.CUSTOM_FLOW.getCode()
                 || CollectionUtils.isEmpty(selectorData.getConditionList())) {
             return;
         }
         GenericApiConfig logApiConfig = GsonUtils.getInstance().fromJson(handleJson, genericApiConfigClass);
-        if (StringUtils.isBlank(logApiConfig.getTopic()) || StringUtils.isBlank(logApiConfig.getSampleRate())) {
-            return;
-        }
+//        if (StringUtils.isBlank(logApiConfig.getTopic()) || StringUtils.isBlank(logApiConfig.getSampleRate())) {
+//            return;
+//        }
         List<String> uriList = new ArrayList<>();
         for (ConditionData conditionData : selectorData.getConditionList()) {
             if ("uri".equals(conditionData.getParamType()) && StringUtils.isNotBlank(conditionData.getParamValue())
@@ -148,6 +154,7 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         }
         SELECT_ID_URI_LIST_MAP.put(selectorData.getId(), uriList);
         SELECT_API_CONFIG_MAP.put(selectorData.getId(), logApiConfig);
+        doRefreshSelectorConfig();
     }
 
     @Override
@@ -155,6 +162,7 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         LOG.info("handler remove {} selector data:{}", pluginNamed(), GsonUtils.getGson().toJson(selectorData));
         SELECT_ID_URI_LIST_MAP.remove(selectorData.getId());
         SELECT_API_CONFIG_MAP.remove(selectorData.getId());
+        doRefreshSelectorConfig();
     }
 
     @Override
