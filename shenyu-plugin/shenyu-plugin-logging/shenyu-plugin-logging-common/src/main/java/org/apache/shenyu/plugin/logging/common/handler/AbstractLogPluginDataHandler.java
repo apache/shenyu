@@ -143,7 +143,7 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         }
         GenericApiConfig logApiConfig = GsonUtils.getInstance().fromJson(handleJson, genericApiConfigClass);
 //        if (StringUtils.isBlank(logApiConfig.getTopic()) || StringUtils.isBlank(logApiConfig.getSampleRate())) {
-//            return;
+//              return;
 //        }
         List<String> uriList = new ArrayList<>();
         for (ConditionData conditionData : selectorData.getConditionList()) {
