@@ -134,17 +134,18 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         final Class<C> genericApiConfigClass = (Class<C>) actualTypeArguments[1];
         LOG.info("handler {} selector data:{}", pluginNamed(), GsonUtils.getGson().toJson(selectorData));
         String handleJson = selectorData.getHandle();
-//        if (StringUtils.isEmpty(handleJson) || EMPTY_JSON.equals(handleJson.trim())) {
-//            return;
-//        }
-        if (selectorData.getType() != SelectorTypeEnum.CUSTOM_FLOW.getCode()
-                || CollectionUtils.isEmpty(selectorData.getConditionList())) {
+        if (StringUtils.isEmpty(handleJson) || EMPTY_JSON.equals(handleJson.trim())) {
+            doRefreshSelectorConfig();
+            return;
+        }
+        if (selectorData.getType() != SelectorTypeEnum.CUSTOM_FLOW.getCode() || CollectionUtils.isEmpty(selectorData.getConditionList())) {
             return;
         }
         GenericApiConfig logApiConfig = GsonUtils.getInstance().fromJson(handleJson, genericApiConfigClass);
-//        if (StringUtils.isBlank(logApiConfig.getTopic()) || StringUtils.isBlank(logApiConfig.getSampleRate())) {
-//              return   ;
-//        }
+        if (StringUtils.isBlank(logApiConfig.getTopic()) || StringUtils.isBlank(logApiConfig.getSampleRate())) {
+            doRefreshSelectorConfig();
+            return;
+        }
         List<String> uriList = new ArrayList<>();
         for (ConditionData conditionData : selectorData.getConditionList()) {
             if ("uri".equals(conditionData.getParamType()) && StringUtils.isNotBlank(conditionData.getParamValue())
