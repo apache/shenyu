@@ -70,8 +70,8 @@ public class LoggingRocketMQPluginDataHandler extends AbstractLogPluginDataHandl
                     apiTopicMap.put(l, selectApiConfigMap.get(selectorId).getTopic());
                 }
             }
-            RocketMQLogCollectClient.setTopic(apiTopicMap);
         }
+        RocketMQLogCollectClient.setTopic(apiTopicMap);
     }
 
     @Override
