@@ -18,15 +18,14 @@
 package org.apache.shenyu.discovery.eureka;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import com.netflix.appinfo.ApplicationInfoManager;
-import com.netflix.appinfo.MyDataCenterInstanceConfig;
 import com.netflix.appinfo.InstanceInfo;
-import com.netflix.appinfo.EurekaInstanceConfig;
 import com.netflix.appinfo.providers.EurekaConfigBasedInstanceInfoProvider;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.discovery.EurekaClient;
-import com.netflix.discovery.EurekaClientConfig;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.discovery.DefaultEurekaClientConfig;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
@@ -60,6 +59,10 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
 
     private EurekaClient eurekaClient;
 
+    private DiscoveryConfig discoveryConfig;
+
+    private CustomedEurekaConfig customedEurekaConfig;
+
     private final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(10, ShenyuThreadFactory.create("scheduled-eureka-watcher", true));
 
     private final ConcurrentMap<String, ScheduledFuture<?>> listenerThreadsMap = new ConcurrentHashMap<>();
@@ -68,32 +71,26 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void init(final DiscoveryConfig config) {
-        try {
-            if (Objects.isNull(eurekaClient)) {
-                ConfigurationManager.loadProperties(getEurekaProperties(config));
-                applicationInfoManager = initializeApplicationInfoManager(new MyDataCenterInstanceConfig());
-                eurekaClient = initializeEurekaClient(applicationInfoManager, new DefaultEurekaClientConfig());
-                LOGGER.info("Initializing EurekaDiscoveryService success");
-            }
-        } catch (Exception e) {
-            LOGGER.error("Error initializing EurekaDiscoveryService", e);
-            clean();
-            throw new ShenyuException(e);
-        }
+       discoveryConfig = config;
     }
 
     @Override
     public void watch(final String key, final DataChangedEventListener listener) {
+        getEurekaClient(false);
         if (!listenerThreadsMap.containsKey(key)) {
             List<InstanceInfo> initialInstances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
             instanceListMap.put(key, initialInstances);
+            for (InstanceInfo instance : initialInstances) {
+                DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getAppName(),
+                        buildUpstreamJsonFromInstanceInfo(instance), DiscoveryDataChangedEvent.Event.ADDED);
+                listener.onChange(dataChangedEvent);
+            }
             ScheduledFuture<?> scheduledFuture = executorService.scheduleAtFixedRate(() -> {
                 try {
                     List<InstanceInfo> previousInstances = instanceListMap.get(key);
                     List<InstanceInfo> currentInstances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
                     compareInstances(previousInstances, currentInstances, listener);
                     instanceListMap.put(key, currentInstances);
-                    LOGGER.info("EurekaDiscoveryService watch key: {} success", key);
                 } catch (Exception e) {
                     LOGGER.error("EurekaDiscoveryService watch key: {} error", key, e);
                     throw new ShenyuException(e);
@@ -120,25 +117,24 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void register(final String key, final String value) {
-        InstanceInfo instanceInfoFromJson = GsonUtils.getInstance().fromJson(value, InstanceInfo.class);
-        CustomedEurekaConfig customedEurekaConfig = new CustomedEurekaConfig();
-        customedEurekaConfig.setIpAddress(instanceInfoFromJson.getVIPAddress());
+        customedEurekaConfig = new CustomedEurekaConfig();
+        InstanceInfo instanceInfoFromJson = buildInstanceInfoFromUpstream(key, value);
+        customedEurekaConfig.setIpAddress(instanceInfoFromJson.getIPAddr());
         customedEurekaConfig.setPort(instanceInfoFromJson.getPort());
         customedEurekaConfig.setApplicationName(key);
         customedEurekaConfig.setInstanceId(instanceInfoFromJson.getInstanceId());
-        InstanceInfo instanceInfo = new EurekaConfigBasedInstanceInfoProvider(customedEurekaConfig).get();
-        applicationInfoManager = new ApplicationInfoManager(customedEurekaConfig, instanceInfo);
-        eurekaClient = new DiscoveryClient(applicationInfoManager, new DefaultEurekaClientConfig());
+        getEurekaClient(true);
         applicationInfoManager.setInstanceStatus(InstanceInfo.InstanceStatus.UP);
     }
 
     @Override
     public List<String> getRegisterData(final String key) {
         try {
+            getEurekaClient(false);
             List<InstanceInfo> instances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
             List<String> registerDataList = new ArrayList<>();
             for (InstanceInfo instanceInfo : instances) {
-                String instanceInfoJson = buildInstanceInfoJson(instanceInfo);
+                String instanceInfoJson = buildUpstreamJsonFromInstanceInfo(instanceInfo);
                 registerDataList.add(instanceInfoJson);
             }
             return registerDataList;
@@ -150,8 +146,9 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public Boolean exists(final String key) {
         try {
-            InstanceInfo instanceInfo = eurekaClient.getNextServerFromEureka(key, false);
-            return Objects.nonNull(instanceInfo);
+            getEurekaClient(false);
+            List<InstanceInfo> instances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
+            return !instances.isEmpty();
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
@@ -160,6 +157,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void shutdown() {
         try {
+            getEurekaClient(false);
             for (ScheduledFuture<?> scheduledFuture : listenerThreadsMap.values()) {
                 scheduledFuture.cancel(true);
             }
@@ -171,35 +169,19 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
             LOGGER.info("Shutting down EurekaDiscoveryService");
             clean();
         } catch (Exception e) {
-            LOGGER.error("Shutting down EurekaDiscoveryService", e);
+            LOGGER.error("Shutting down EurekaDiscoveryService error", e);
             throw new ShenyuException(e);
         }
     }
 
-    private Properties getEurekaProperties(final DiscoveryConfig config) {
+    private Properties getEurekaProperties(final DiscoveryConfig config, final boolean needRegister) {
         Properties eurekaProperties = new Properties();
-        eurekaProperties.setProperty("eureka.client.service-url.defaultZone", config.getServerList());
         eurekaProperties.setProperty("eureka.serviceUrl.default", config.getServerList());
-        eurekaProperties.setProperty("eureka.client.refresh.interval", config.getProps().getProperty("eureka.client.refresh.interval", "15"));
+        eurekaProperties.setProperty("eureka.client.refresh.interval", config.getProps().getProperty("eureka.client.refresh.interval", "10"));
+        eurekaProperties.setProperty("eureka.client.registry-fetch-interval-seconds", config.getProps().getProperty("eureka.client.registry-fetch-interval-seconds", "10"));
+        eurekaProperties.setProperty("eureka.registration.enabled", String.valueOf(needRegister));
 
         return eurekaProperties;
-    }
-
-    private ApplicationInfoManager initializeApplicationInfoManager(final EurekaInstanceConfig instanceConfig) {
-        if (Objects.isNull(applicationInfoManager)) {
-            InstanceInfo instanceInfo = new EurekaConfigBasedInstanceInfoProvider(instanceConfig).get();
-            applicationInfoManager = new ApplicationInfoManager(instanceConfig, instanceInfo);
-        }
-
-        return applicationInfoManager;
-    }
-
-    private EurekaClient initializeEurekaClient(final ApplicationInfoManager applicationInfoManager, final EurekaClientConfig clientConfig) {
-        if (Objects.isNull(eurekaClient)) {
-            eurekaClient = new DiscoveryClient(applicationInfoManager, clientConfig);
-        }
-
-        return eurekaClient;
     }
 
     private void clean() {
@@ -207,16 +189,16 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
         applicationInfoManager = null;
     }
 
-    private String buildInstanceInfoJson(final InstanceInfo instanceInfo) {
-        JsonObject instanceJson = new JsonObject();
-        instanceJson.addProperty("url", instanceInfo.getIPAddr() + ":" + instanceInfo.getPort());
-        instanceJson.addProperty("weight", instanceInfo.getMetadata().get("weight"));
+    private String buildUpstreamJsonFromInstanceInfo(final InstanceInfo instanceInfo) {
+        JsonObject upstreamJson = new JsonObject();
+        upstreamJson.addProperty("url", instanceInfo.getIPAddr() + ":" + instanceInfo.getPort());
+        upstreamJson.addProperty("weight", instanceInfo.getMetadata().get("weight"));
         if (instanceInfo.getStatus() == InstanceInfo.InstanceStatus.UP) {
-            instanceJson.addProperty("status", 0);
+            upstreamJson.addProperty("status", 0);
         } else if (instanceInfo.getStatus() == InstanceInfo.InstanceStatus.DOWN) {
-            instanceJson.addProperty("status", 1);
+            upstreamJson.addProperty("status", 1);
         }
-        return GsonUtils.getInstance().toJson(instanceJson);
+        return GsonUtils.getInstance().toJson(upstreamJson);
     }
 
     private void compareInstances(final List<InstanceInfo> previousInstances, final List<InstanceInfo> currentInstances, final DataChangedEventListener listener) {
@@ -226,7 +208,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
         if (!addedInstances.isEmpty()) {
             for (InstanceInfo instance: addedInstances) {
                 DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getAppName(),
-                        buildInstanceInfoJson(instance), DiscoveryDataChangedEvent.Event.ADDED);
+                        buildUpstreamJsonFromInstanceInfo(instance), DiscoveryDataChangedEvent.Event.ADDED);
                 listener.onChange(dataChangedEvent);
             }
         }
@@ -238,7 +220,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
             for (InstanceInfo instance: deletedInstances) {
                 instance.setStatus(InstanceInfo.InstanceStatus.DOWN);
                 DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getAppName(),
-                        buildInstanceInfoJson(instance), DiscoveryDataChangedEvent.Event.DELETED);
+                        buildUpstreamJsonFromInstanceInfo(instance), DiscoveryDataChangedEvent.Event.DELETED);
                 listener.onChange(dataChangedEvent);
             }
         }
@@ -250,9 +232,56 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
         if (!updatedInstances.isEmpty()) {
             for (InstanceInfo instance: updatedInstances) {
                 DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getAppName(),
-                        buildInstanceInfoJson(instance), DiscoveryDataChangedEvent.Event.UPDATED);
+                        buildUpstreamJsonFromInstanceInfo(instance), DiscoveryDataChangedEvent.Event.UPDATED);
                 listener.onChange(dataChangedEvent);
             }
         }
+    }
+
+    private InstanceInfo buildInstanceInfoFromUpstream(final String key, final String value) {
+        try {
+            DiscoveryUpstreamData upstreamData = GsonUtils.getInstance().fromJson(value, DiscoveryUpstreamData.class);
+            String[] urls = upstreamData.getUrl().split(":", 2);
+            return InstanceInfo.Builder.newBuilder()
+                    .setAppName(key)
+                    .setIPAddr(urls[0])
+                    .setPort(Integer.parseInt(urls[1]))
+                    .setMetadata(GsonUtils.getInstance().toObjectMap(upstreamData.getProps(), String.class))
+                    .setInstanceId(urls[0]+":"+key+":"+urls[1])
+                    .build();
+        } catch (JsonSyntaxException jsonSyntaxException) {
+            LOGGER.error("The json format of value is wrong: {}", jsonSyntaxException.getMessage(), jsonSyntaxException);
+            throw new ShenyuException(jsonSyntaxException);
+        }
+    }
+
+    private EurekaClient getEurekaClient(boolean needRegister)  {
+        if (!needRegister) {
+            if (eurekaClient == null) {
+                try {
+                    customedEurekaConfig = new CustomedEurekaConfig();
+                    ConfigurationManager.loadProperties(getEurekaProperties(discoveryConfig, false));
+                    InstanceInfo instanceInfo = new EurekaConfigBasedInstanceInfoProvider(customedEurekaConfig).get();
+                    applicationInfoManager = new ApplicationInfoManager(customedEurekaConfig, instanceInfo);
+                    eurekaClient = new DiscoveryClient(applicationInfoManager, new DefaultEurekaClientConfig());
+                } catch (Exception e) {
+                    LOGGER.error("Error initializing EurekaDiscoveryService", e);
+                    clean();
+                    throw new ShenyuException(e);
+                }
+            }
+        } else {
+            try {
+                ConfigurationManager.loadProperties(getEurekaProperties(discoveryConfig, true));
+                InstanceInfo instanceInfo = new EurekaConfigBasedInstanceInfoProvider(customedEurekaConfig).get();
+                applicationInfoManager = new ApplicationInfoManager(customedEurekaConfig, instanceInfo);
+                eurekaClient = new DiscoveryClient(applicationInfoManager, new DefaultEurekaClientConfig());
+            } catch (Exception e) {
+                LOGGER.error("Error initializing EurekaDiscoveryService", e);
+                clean();
+                throw new ShenyuException(e);
+            }
+        }
+        return eurekaClient;
     }
 }

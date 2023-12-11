@@ -19,6 +19,7 @@ package org.apache.shenyu.discovery.nacos;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.exception.NacosException;
@@ -91,6 +92,11 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
             if (!listenerMap.containsKey(key)) {
                 List<Instance> initialInstances = namingService.selectInstances(key, groupName, true);
                 instanceListMap.put(key, initialInstances);
+                for (Instance instance : initialInstances) {
+                    DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getServiceName(),
+                            buildUpstreamJsonFromInstance(instance), DiscoveryDataChangedEvent.Event.ADDED);
+                    listener.onChange(dataChangedEvent);
+                }
                 EventListener nacosListener = event -> {
                     if (event instanceof NamingEvent) {
                         try {
@@ -131,12 +137,9 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void register(final String key, final String value) {
         try {
-            Instance instance = GsonUtils.getInstance().fromJson(value, Instance.class);
+            Instance instance = buildInstanceFromUpstream(key, value);
             namingService.registerInstance(key, groupName, instance);
             LOGGER.info("Registering service with key: {} and value: {}", key, value);
-        } catch (JsonSyntaxException jsonSyntaxException) {
-            LOGGER.error("The json format of value is wrong: {}", jsonSyntaxException.getMessage(), jsonSyntaxException);
-            throw new ShenyuException(jsonSyntaxException);
         } catch (NacosException nacosException) {
             LOGGER.error("Error registering Nacos service instance: {}", nacosException.getMessage(), nacosException);
             throw new ShenyuException(nacosException);
@@ -149,7 +152,7 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
             List<Instance> instances = namingService.selectInstances(key, groupName, true);
             List<String> registerData = new ArrayList<>();
             for (Instance instance : instances) {
-                String data = buildInstanceInfoJson(instance);
+                String data = buildUpstreamJsonFromInstance(instance);
                 registerData.add(data);
             }
             return registerData;
@@ -196,7 +199,7 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         if (!addedInstances.isEmpty()) {
             for (Instance instance: addedInstances) {
                 DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getServiceName(),
-                        buildInstanceInfoJson(instance), DiscoveryDataChangedEvent.Event.ADDED);
+                        buildUpstreamJsonFromInstance(instance), DiscoveryDataChangedEvent.Event.ADDED);
                 listener.onChange(dataChangedEvent);
             }
         }
@@ -208,7 +211,7 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
             for (Instance instance: deletedInstances) {
                 instance.setHealthy(false);
                 DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getServiceName(),
-                        buildInstanceInfoJson(instance), DiscoveryDataChangedEvent.Event.DELETED);
+                        buildUpstreamJsonFromInstance(instance), DiscoveryDataChangedEvent.Event.DELETED);
                 listener.onChange(dataChangedEvent);
             }
         }
@@ -220,20 +223,38 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         if (!updatedInstances.isEmpty()) {
             for (Instance instance: updatedInstances) {
                 DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getServiceName(),
-                        buildInstanceInfoJson(instance), DiscoveryDataChangedEvent.Event.UPDATED);
+                        buildUpstreamJsonFromInstance(instance), DiscoveryDataChangedEvent.Event.UPDATED);
                 listener.onChange(dataChangedEvent);
             }
         }
     }
 
-    private String buildInstanceInfoJson(final Instance instance) {
-        JsonObject instanceJson = new JsonObject();
-        instanceJson.addProperty("url", instance.getIp() + ":" + instance.getPort());
+    private String buildUpstreamJsonFromInstance(final Instance instance) {
+        JsonObject upstreamJson = new JsonObject();
+        upstreamJson.addProperty("url", instance.getIp() + ":" + instance.getPort());
         // status 0:true, 1:false
-        instanceJson.addProperty("status", instance.isHealthy() ? 0 : 1);
-        instanceJson.addProperty("weight", instance.getWeight());
+        upstreamJson.addProperty("status", instance.isHealthy() ? 0 : 1);
+        upstreamJson.addProperty("weight", instance.getWeight());
 
-        return GsonUtils.getInstance().toJson(instanceJson);
+        return GsonUtils.getInstance().toJson(upstreamJson);
+    }
+
+    private Instance buildInstanceFromUpstream(final String key, final String value) {
+        try {
+            Instance instance = new Instance();
+            DiscoveryUpstreamData upstreamData = GsonUtils.getInstance().fromJson(value, DiscoveryUpstreamData.class);
+            String[] urls = upstreamData.getUrl().split(":", 2);
+            instance.setServiceName(key);
+            instance.setIp(urls[0]);
+            instance.setPort(Integer.parseInt(urls[1]));
+            instance.setWeight(upstreamData.getWeight());
+            instance.setMetadata(GsonUtils.getInstance().toObjectMap(upstreamData.getProps(), String.class));
+            instance.setInstanceId(upstreamData.getUrl());
+            return instance;
+        } catch (JsonSyntaxException jsonSyntaxException) {
+            LOGGER.error("The json format of value is wrong: {}", jsonSyntaxException.getMessage(), jsonSyntaxException);
+            throw new ShenyuException(jsonSyntaxException);
+        }
     }
 }
 
