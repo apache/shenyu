@@ -170,7 +170,7 @@ class NacosDiscoveryServiceTest {
     @Test
     void testRegister() throws NacosException {
         final String key = "test";
-        final String value = "{\"instanceId\":\"1\",\"serviceName\":\"exampleService\",\"ip\":\"127.0.0.1\",\"port\":8080}";
+        final String value = "{\"weight\":20,\"url\":\"127.0.0.1:8080\"}";
 
         doNothing().when(namingService).registerInstance(anyString(), anyString(), any(Instance.class));
         nacosDiscoveryServiceUnderTest.register(key, value);
