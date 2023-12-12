@@ -39,7 +39,9 @@ import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -123,6 +125,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
         customedEurekaConfig.setPort(instanceInfoFromJson.getPort());
         customedEurekaConfig.setApplicationName(key);
         customedEurekaConfig.setInstanceId(instanceInfoFromJson.getInstanceId());
+        customedEurekaConfig.setMetadataMap(instanceInfoFromJson.getMetadata());
         getEurekaClient(true);
         applicationInfoManager.setInstanceStatus(InstanceInfo.InstanceStatus.UP);
     }
@@ -242,11 +245,14 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
         try {
             DiscoveryUpstreamData upstreamData = GsonUtils.getInstance().fromJson(value, DiscoveryUpstreamData.class);
             String[] urls = upstreamData.getUrl().split(":", 2);
+            Map<String, String> metadata = GsonUtils.getInstance().toObjectMap(upstreamData.getProps(), String.class);
+            metadata = metadata != null ? metadata : new HashMap<>();
+            metadata.put("weight", String.valueOf(upstreamData.getWeight()));
             return InstanceInfo.Builder.newBuilder()
                     .setAppName(key)
                     .setIPAddr(urls[0])
                     .setPort(Integer.parseInt(urls[1]))
-                    .setMetadata(GsonUtils.getInstance().toObjectMap(upstreamData.getProps(), String.class))
+                    .setMetadata(metadata)
                     .setInstanceId(urls[0] + ":" + key + ":" + urls[1])
                     .build();
         } catch (JsonSyntaxException jsonSyntaxException) {

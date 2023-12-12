@@ -14,7 +14,7 @@
 # limitations under the License.
 
 server:
-  port: 8189
+  port: 8190
   address: 0.0.0.0
   tomcat:
     max-http-form-post-size: 100MB
@@ -38,7 +38,7 @@ shenyu:
 #    serverList: 127.0.0.1:2181
 #    registerPath: /shenyu/discovery/demo_http_common
 #    connectionProps:
-#      ## 连接 配置中心的 连接配置
+#      ## Connection configuration in the connection configuration center
 #    props:
 #      discovery:
 #        connection-config:
