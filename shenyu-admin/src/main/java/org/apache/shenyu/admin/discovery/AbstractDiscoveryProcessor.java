@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.admin.discovery;
 
 import org.apache.commons.lang3.StringUtils;
@@ -46,17 +63,17 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
 
     protected static final Logger LOG = LoggerFactory.getLogger(DefaultDiscoveryProcessor.class);
 
-    protected final Map<String, ShenyuDiscoveryService> discoveryServiceCache;
+    private final Map<String, ShenyuDiscoveryService> discoveryServiceCache;
 
-    protected final Map<String, Set<String>> dataChangedEventListenerCache;
+    private final Map<String, Set<String>> dataChangedEventListenerCache;
 
-    protected ApplicationEventPublisher eventPublisher;
+    private ApplicationEventPublisher eventPublisher;
 
-    protected final DiscoveryUpstreamMapper discoveryUpstreamMapper;
+    private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
-    protected final DiscoveryHandlerMapper discoveryHandlerMapper;
+    private final DiscoveryHandlerMapper discoveryHandlerMapper;
 
-    protected final ProxySelectorMapper proxySelectorMapper;
+    private final ProxySelectorMapper proxySelectorMapper;
 
     /**
      * DefaultDiscoveryProcessor.
@@ -209,5 +226,33 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
         this.eventPublisher = eventPublisher;
     }
 
+    /**
+     * getShenyuDiscoveryService.
+     *
+     * @param discoveryId discoveryId
+     * @return ShenyuDiscoveryService
+     */
+    public ShenyuDiscoveryService getShenyuDiscoveryService(final String discoveryId) {
+        return discoveryServiceCache.get(discoveryId);
+    }
+
+    /**
+     * getCacheKey.
+     *
+     * @param discoveryId discoveryId
+     * @return set
+     */
+    public Set<String> getCacheKey(final String discoveryId) {
+        return dataChangedEventListenerCache.get(discoveryId);
+    }
+
+    /**
+     * publishEvent.
+     *
+     * @param dataChangedEvent dataChangedEvent
+     */
+    public void publishEvent(final DataChangedEvent dataChangedEvent) {
+        this.eventPublisher.publishEvent(dataChangedEvent);
+    }
 
 }

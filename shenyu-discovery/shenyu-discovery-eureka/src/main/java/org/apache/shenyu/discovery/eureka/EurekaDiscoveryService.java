@@ -71,7 +71,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void init(final DiscoveryConfig config) {
-       discoveryConfig = config;
+        discoveryConfig = config;
     }
 
     @Override
@@ -206,7 +206,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
                 .filter(item -> !previousInstances.contains(item))
                 .collect(Collectors.toSet());
         if (!addedInstances.isEmpty()) {
-            for (InstanceInfo instance: addedInstances) {
+            for (InstanceInfo instance : addedInstances) {
                 DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getAppName(),
                         buildUpstreamJsonFromInstanceInfo(instance), DiscoveryDataChangedEvent.Event.ADDED);
                 listener.onChange(dataChangedEvent);
@@ -217,7 +217,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
                 .filter(item -> !currentInstances.contains(item))
                 .collect(Collectors.toSet());
         if (!deletedInstances.isEmpty()) {
-            for (InstanceInfo instance: deletedInstances) {
+            for (InstanceInfo instance : deletedInstances) {
                 instance.setStatus(InstanceInfo.InstanceStatus.DOWN);
                 DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getAppName(),
                         buildUpstreamJsonFromInstanceInfo(instance), DiscoveryDataChangedEvent.Event.DELETED);
@@ -230,7 +230,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
                         .anyMatch(previousInstance -> currentInstance.getInstanceId().equals(previousInstance.getInstanceId()) && !currentInstance.equals(previousInstance)))
                 .collect(Collectors.toSet());
         if (!updatedInstances.isEmpty()) {
-            for (InstanceInfo instance: updatedInstances) {
+            for (InstanceInfo instance : updatedInstances) {
                 DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getAppName(),
                         buildUpstreamJsonFromInstanceInfo(instance), DiscoveryDataChangedEvent.Event.UPDATED);
                 listener.onChange(dataChangedEvent);
@@ -247,7 +247,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
                     .setIPAddr(urls[0])
                     .setPort(Integer.parseInt(urls[1]))
                     .setMetadata(GsonUtils.getInstance().toObjectMap(upstreamData.getProps(), String.class))
-                    .setInstanceId(urls[0]+":"+key+":"+urls[1])
+                    .setInstanceId(urls[0] + ":" + key + ":" + urls[1])
                     .build();
         } catch (JsonSyntaxException jsonSyntaxException) {
             LOGGER.error("The json format of value is wrong: {}", jsonSyntaxException.getMessage(), jsonSyntaxException);
@@ -255,7 +255,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
         }
     }
 
-    private EurekaClient getEurekaClient(boolean needRegister)  {
+    private EurekaClient getEurekaClient(final boolean needRegister) {
         if (!needRegister) {
             if (eurekaClient == null) {
                 try {

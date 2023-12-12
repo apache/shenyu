@@ -51,7 +51,7 @@ public class DefaultDiscoveryProcessor extends AbstractDiscoveryProcessor {
 
     @Override
     public void createProxySelector(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
-        ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
+        ShenyuDiscoveryService shenyuDiscoveryService = getShenyuDiscoveryService(discoveryHandlerDTO.getDiscoveryId());
         String key = buildProxySelectorKey(discoveryHandlerDTO.getListenerNode());
         if (Objects.isNull(shenyuDiscoveryService)) {
             throw new ShenyuAdminException(String.format("before start ProxySelector you need init DiscoveryId=%s", discoveryHandlerDTO.getDiscoveryId()));
@@ -59,7 +59,7 @@ public class DefaultDiscoveryProcessor extends AbstractDiscoveryProcessor {
         if (!shenyuDiscoveryService.exists(key)) {
             throw new ShenyuAdminException(String.format("shenyu discovery start watcher need you has this key %s in Discovery", key));
         }
-        Set<String> cacheKey = dataChangedEventListenerCache.get(discoveryHandlerDTO.getDiscoveryId());
+        Set<String> cacheKey = getCacheKey(discoveryHandlerDTO.getDiscoveryId());
         if (Objects.nonNull(cacheKey) && cacheKey.contains(key)) {
             throw new ShenyuAdminException(String.format("shenyu discovery has watcher key = %s", key));
         }
@@ -67,7 +67,7 @@ public class DefaultDiscoveryProcessor extends AbstractDiscoveryProcessor {
         cacheKey.add(key);
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE,
                 Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
-        eventPublisher.publishEvent(dataChangedEvent);
+        publishEvent(dataChangedEvent);
     }
 
 }

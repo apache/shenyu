@@ -17,7 +17,11 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.apache.shenyu.admin.discovery.*;
+import org.apache.shenyu.admin.discovery.DefaultDiscoveryProcessor;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.discovery.EurekaDiscoveryProcessor;
+import org.apache.shenyu.admin.discovery.LocalDiscoveryProcessor;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
@@ -62,8 +66,9 @@ public class DiscoveryConfiguration {
      * discoveryLocalProcessor.
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
+     * @param discoveryHandlerMapper  discoveryHandlerMapper
      * @param proxySelectorMapper     proxySelectorMapper
-     * @return LocalDiscoveryProcessor
+     * @return DiscoveryProcessor
      */
     @Bean("EurekaDiscoveryProcessor")
     public DiscoveryProcessor discoveryLocalProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
@@ -77,6 +82,7 @@ public class DiscoveryConfiguration {
      *
      * @param defaultDiscoveryProcessor defaultDiscoveryProcessor
      * @param localDiscoveryProcessor   localDiscoveryProcessor
+     * @param eurekaDiscoveryProcessor  eurekaDiscoveryProcessor
      * @return DiscoveryProcessorHolder
      */
     @Bean
