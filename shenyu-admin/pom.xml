@@ -48,49 +48,49 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-client-server-polaris</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-client-server-zookeeper</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-client-server-etcd</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-client-server-consul</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!--shenyu consul register start-->
 <!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-consul-discovery</artifactId>-->
-<!--            <version>2.2.6.RELEASE</version>-->
+<!--            <groupId>org.apache.shenyu</groupId>-->
+<!--            <artifactId>shenyu-register-client-server-polaris</artifactId>-->
+<!--            <version>${project.version}</version>-->
 <!--        </dependency>-->
-        <!--shenyu consul register end-->
 
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-client-server-nacos</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.shenyu</groupId>-->
+<!--            <artifactId>shenyu-register-client-server-zookeeper</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
 
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-client-server-apollo</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.shenyu</groupId>-->
+<!--            <artifactId>shenyu-register-client-server-etcd</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.apache.shenyu</groupId>-->
+<!--            <artifactId>shenyu-register-client-server-consul</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+
+<!--        &lt;!&ndash;shenyu consul register start&ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.springframework.cloud</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>spring-cloud-starter-consul-discovery</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>2.2.6.RELEASE</version>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+<!--        &lt;!&ndash;shenyu consul register end&ndash;&gt;-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.apache.shenyu</groupId>-->
+<!--            <artifactId>shenyu-register-client-server-nacos</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.apache.shenyu</groupId>-->
+<!--            <artifactId>shenyu-register-client-server-apollo</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
