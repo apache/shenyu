@@ -82,10 +82,8 @@ public class DiscoveryConfiguration {
     @Bean
     public DiscoveryProcessorHolder discoveryProcessorHolder(@Qualifier("DefaultDiscoveryProcessor") final DiscoveryProcessor defaultDiscoveryProcessor,
                                                              @Qualifier("LocalDiscoveryProcessor") final DiscoveryProcessor localDiscoveryProcessor,
-                                                             @Qualifier("EurekaDiscoveryProcessor") final DiscoveryProcessor eurekaDiscoveryProcessor)
-
-    {
-        return new DiscoveryProcessorHolder(defaultDiscoveryProcessor, localDiscoveryProcessor);
+                                                             @Qualifier("EurekaDiscoveryProcessor") final DiscoveryProcessor eurekaDiscoveryProcessor) {
+        return new DiscoveryProcessorHolder(defaultDiscoveryProcessor, localDiscoveryProcessor, eurekaDiscoveryProcessor);
     }
 
 }
