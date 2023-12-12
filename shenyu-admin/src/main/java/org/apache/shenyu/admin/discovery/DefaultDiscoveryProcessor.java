@@ -167,7 +167,14 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
 
     @Override
     public void changeUpstream(final ProxySelectorDTO proxySelectorDTO, final List<DiscoveryUpstreamDTO> upstreamDTOS) {
-        throw new NotImplementedException("shenyu discovery local mode do nothing in changeUpstream");
+        DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+        discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
+        discoverySyncData.setSelectorId(proxySelectorDTO.getId());
+        discoverySyncData.setSelectorName(proxySelectorDTO.getName());
+        List<DiscoveryUpstreamData> upstreamDataList = upstreamDTOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
+        discoverySyncData.setUpstreamDataList(upstreamDataList);
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
+        eventPublisher.publishEvent(dataChangedEvent);
     }
 
     @Override
