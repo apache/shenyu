@@ -17,10 +17,7 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.apache.shenyu.admin.discovery.DefaultDiscoveryProcessor;
-import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
-import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
-import org.apache.shenyu.admin.discovery.LocalDiscoveryProcessor;
+import org.apache.shenyu.admin.discovery.*;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
@@ -53,12 +50,26 @@ public class DiscoveryConfiguration {
      * discoveryLocalProcessor.
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
-     * @param proxySelectorMapper proxySelectorMapper
+     * @param proxySelectorMapper     proxySelectorMapper
      * @return LocalDiscoveryProcessor
      */
     @Bean("LocalDiscoveryProcessor")
     public DiscoveryProcessor discoveryLocalProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper, final ProxySelectorMapper proxySelectorMapper) {
         return new LocalDiscoveryProcessor(discoveryUpstreamMapper, proxySelectorMapper);
+    }
+
+    /**
+     * discoveryLocalProcessor.
+     *
+     * @param discoveryUpstreamMapper discoveryUpstreamMapper
+     * @param proxySelectorMapper     proxySelectorMapper
+     * @return LocalDiscoveryProcessor
+     */
+    @Bean("EurekaDiscoveryProcessor")
+    public DiscoveryProcessor discoveryLocalProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                                                      final DiscoveryHandlerMapper discoveryHandlerMapper,
+                                                      final ProxySelectorMapper proxySelectorMapper) {
+        return new EurekaDiscoveryProcessor(discoveryUpstreamMapper, discoveryHandlerMapper, proxySelectorMapper);
     }
 
     /**
@@ -70,8 +81,10 @@ public class DiscoveryConfiguration {
      */
     @Bean
     public DiscoveryProcessorHolder discoveryProcessorHolder(@Qualifier("DefaultDiscoveryProcessor") final DiscoveryProcessor defaultDiscoveryProcessor,
-                                                             @Qualifier("LocalDiscoveryProcessor") final DiscoveryProcessor localDiscoveryProcessor
-    ) {
+                                                             @Qualifier("LocalDiscoveryProcessor") final DiscoveryProcessor localDiscoveryProcessor,
+                                                             @Qualifier("EurekaDiscoveryProcessor") final DiscoveryProcessor eurekaDiscoveryProcessor)
+
+    {
         return new DiscoveryProcessorHolder(defaultDiscoveryProcessor, localDiscoveryProcessor);
     }
 
