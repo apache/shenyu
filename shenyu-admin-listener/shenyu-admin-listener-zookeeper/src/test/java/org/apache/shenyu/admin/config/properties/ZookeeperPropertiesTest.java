@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.config;
+package org.apache.shenyu.admin.config.properties;
 
-import org.apache.shenyu.admin.AbstractConfigurationTest;
-import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.junit.jupiter.api.Test;
@@ -30,7 +28,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Test case for ZookeeperProperties.
  */
 public final class ZookeeperPropertiesTest extends AbstractConfigurationTest {
-
+    
     @Test
     public void testLoadPropertiesBySpringContext() {
         final String url = "127.0.0.1:2181";
@@ -47,7 +45,7 @@ public final class ZookeeperPropertiesTest extends AbstractConfigurationTest {
         assertThat(properties.getSessionTimeout(), is(sessionTimeOut));
         assertThat(properties.getConnectionTimeout(), is(connectionTimeout));
     }
-
+    
     @Configuration
     @EnableConfigurationProperties(ZookeeperProperties.class)
     static class ZookeeperPropertiesConfiguration {

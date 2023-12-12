@@ -26,7 +26,6 @@
     <artifactId>shenyu-admin</artifactId>
 
     <properties>
-        <commons-io.version>2.11.0</commons-io.version>
         <orai18n.version>19.7.0.0</orai18n.version>
     </properties>
 
