@@ -310,19 +310,19 @@ The text of each license is the standard Apache 2.0 license.
     protostuff-runtime 1.0.8: https://github.com/protostuff/protostuff, Apache 2.0
     reactor-core 3.4.30: https://github.com/reactor/reactor, Apache 2.0
     reactor-spring 1.0.1.RELEASE: https://github.com/reactor/reactor, Apache 2.0
-    shiro-cache 1.8.0: https://shiro.apache.org, Apache 2.0
-    shiro-config-core 1.8.0: https://shiro.apache.org, Apache 2.0
-    shiro-config-ogdl 1.8.0: https://shiro.apache.org, Apache 2.0
-    shiro-core 1.8.0: https://shiro.apache.org, Apache 2.0
-    shiro-crypto-cipher 1.8.0: https://shiro.apache.org, Apache 2.0
-    shiro-crypto-core 1.8.0: https://shiro.apache.org, Apache 2.0
-    shiro-crypto-hash 1.8.0: https://shiro.apache.org, Apache 2.0
-    shiro-event 1.8.0: https://shiro.apache.org, Apache 2.0
-    shiro-lang 1.8.0.: https://shiro.apache.org, Apache 2.0
-    shiro-spring 1.8.0: https://shiro.apache.org, Apache 2.0
-    shiro-spring-boot-starter 1.8.0: https://shiro.apache.org, Apache 2.0
-    shiro-spring-boot-web-starter 1.8.0: https://shiro.apache.org, Apache 2.0
-    shiro-web 1.8.0: https://shiro.apache.org, Apache 2.0
+    shiro-cache 1.13.0: https://shiro.apache.org, Apache 2.0
+    shiro-config-core 1.13.0: https://shiro.apache.org, Apache 2.0
+    shiro-config-ogdl 1.13.0: https://shiro.apache.org, Apache 2.0
+    shiro-core 1.13.0: https://shiro.apache.org, Apache 2.0
+    shiro-crypto-cipher 1.13.0: https://shiro.apache.org, Apache 2.0
+    shiro-crypto-core 1.13.0: https://shiro.apache.org, Apache 2.0
+    shiro-crypto-hash 1.13.0: https://shiro.apache.org, Apache 2.0
+    shiro-event 1.13.0: https://shiro.apache.org, Apache 2.0
+    shiro-lang 1.13.0.: https://shiro.apache.org, Apache 2.0
+    shiro-spring 1.13.0: https://shiro.apache.org, Apache 2.0
+    shiro-spring-boot-starter 1.13.0: https://shiro.apache.org, Apache 2.0
+    shiro-spring-boot-web-starter 1.13.0: https://shiro.apache.org, Apache 2.0
+    shiro-web 1.13.0: https://shiro.apache.org, Apache 2.0
     simpleclient_tracer_common 0.15.0: http://github.com/prometheus/client_java/simpleclient, Apache 2.0
     simpleclient_tracer_otel_agent 0.15.0: http://github.com/prometheus/client_java/simpleclient, Apache 2.0
     simpleclient_tracer_otel 0.15.0: http://github.com/prometheus/client_java/simpleclient, Apache 2.0
@@ -344,6 +344,7 @@ The text of each license is the standard Apache 2.0 license.
     spring-boot-starter-validation 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation, Apache 2.0
     spring-boot-starter-web 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web, Apache 2.0
     spring-boot-starter-websocket 2.7.13:  https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-websocket, Apache 2.0
+    spring-boot-starter-mail 2.7.13: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-mail, Apache 2.0
     spring-context 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-context, Apache 2.0
     spring-context-support 5.3.28: https://spring.io, Apache 2.0
     spring-core 5.3.28: https://mvnrepository.com/artifact/org.springframework/spring-context-support, Apache 2.0
@@ -391,6 +392,8 @@ The text of each license is the standard Apache 2.0 license.
     reactor-core 3.4.30 https://github.com/reactor/reactor-core/blob/main/LICENSE, Apache 2.0
     simpleclient_common 0.15.0 https://github.com/micrometer-metrics/micrometer/blob/main/LICENSE, Apache 2.0
     guice 5.0.1 https://github.com/google/guice/blob/master/COPYING, Apache 2.0
+    commons-math 2.2: https://github.com/apache/commons-math, Apache 2.0
+    compactmap 2.0: https://mvnrepository.com/artifact/com.github.vlsi.compactmap/compactmap, Apache 2.0
 
 ========================================================================
 BSD licenses
