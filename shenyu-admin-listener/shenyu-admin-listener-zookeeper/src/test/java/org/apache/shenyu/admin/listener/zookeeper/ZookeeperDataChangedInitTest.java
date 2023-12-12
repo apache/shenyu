@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.listener.zookeeper;
 
 import org.apache.shenyu.common.constant.DefaultPathConstants;
-import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

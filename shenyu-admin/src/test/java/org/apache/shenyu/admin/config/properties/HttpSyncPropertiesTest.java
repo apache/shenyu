@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.config;
+package org.apache.shenyu.admin.config.properties;
 
 import org.apache.shenyu.admin.AbstractConfigurationTest;
-import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
