@@ -148,6 +148,10 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         if (Objects.isNull(selectorDO)) {
             throw new ShenyuException("when binding discovery don't find selector " + discoveryConfigRegisterDTO.getSelectorName());
         }
+        if (discoveryHandlerMapper.selectBySelectorId(selectorDO.getId()) != null) {
+            LOG.info("discovery current listen node ={} has been register", discoveryConfigRegisterDTO.getListenerNode());
+            return;
+        }
         ProxySelectorAddDTO proxySelectorAddDTO = new ProxySelectorAddDTO();
         proxySelectorAddDTO.setSelectorId(selectorDO.getId());
         proxySelectorAddDTO.setName(selectorDO.getName());
