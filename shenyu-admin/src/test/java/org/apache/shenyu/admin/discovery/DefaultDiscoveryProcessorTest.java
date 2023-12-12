@@ -116,7 +116,7 @@ public class DefaultDiscoveryProcessorTest {
         defaultDiscoveryProcessor.createDiscovery(discoveryDO);
         verify(ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class), times(1)).getJoin(type);
         try {
-            final Field field = defaultDiscoveryProcessor.getClass().getDeclaredField(
+            final Field field = defaultDiscoveryProcessor.getClass().getSuperclass().getDeclaredField(
                     "discoveryServiceCache");
             field.setAccessible(true);
             Map<String, ShenyuDiscoveryService> actual = (Map<String, ShenyuDiscoveryService>) field.get(defaultDiscoveryProcessor);
@@ -128,7 +128,7 @@ public class DefaultDiscoveryProcessorTest {
             throw new RuntimeException(e);
         }
         try {
-            final Field field = defaultDiscoveryProcessor.getClass().getDeclaredField(
+            final Field field = defaultDiscoveryProcessor.getClass().getSuperclass().getDeclaredField(
                     "dataChangedEventListenerCache");
             field.setAccessible(true);
             Map<String, Set> actual = (Map<String, Set>) field.get(defaultDiscoveryProcessor);
@@ -163,11 +163,9 @@ public class DefaultDiscoveryProcessorTest {
 
     @Test
     public void testChangeUpstream() {
-        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
-        List<DiscoveryUpstreamDTO> upstreamDTOS = new ArrayList<>();
-        Assertions.assertThrows(NotImplementedException.class, () -> {
-            defaultDiscoveryProcessor.changeUpstream(proxySelectorDTO, upstreamDTOS);
-        });
+        doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
+        defaultDiscoveryProcessor.changeUpstream(new ProxySelectorDTO(), new ArrayList<>());
+        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 
     @Test
