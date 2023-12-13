@@ -21,11 +21,11 @@ import org.apache.shenyu.admin.disruptor.executor.RegisterServerConsumerExecutor
 import org.apache.shenyu.admin.disruptor.subscriber.ApiDocExecutorSubscriber;
 import org.apache.shenyu.admin.disruptor.subscriber.MetadataExecutorSubscriber;
 import org.apache.shenyu.admin.disruptor.subscriber.URIRegisterExecutorSubscriber;
+import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.disruptor.DisruptorProviderManage;
 import org.apache.shenyu.disruptor.provider.DisruptorProvider;
 import org.apache.shenyu.register.common.type.DataTypeParent;
-import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
 
 import java.util.Collection;
 import java.util.Collections;
