@@ -31,6 +31,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 
 /**
  * InstanceRegisterListener.
@@ -55,7 +57,7 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
         this.discoveryConfig = new DiscoveryConfig();
         this.discoveryConfig.setServerList(shenyuDiscoveryConfig.getServerList());
         this.discoveryConfig.setType(shenyuDiscoveryConfig.getType());
-        this.discoveryConfig.setProps(shenyuDiscoveryConfig.getConnectionProps());
+        this.discoveryConfig.setProps(Optional.ofNullable(shenyuDiscoveryConfig.getConnectionProps()).orElse(new Properties()));
         this.discoveryConfig.setName(shenyuDiscoveryConfig.getName());
         this.path = shenyuDiscoveryConfig.getRegisterPath();
         //todo 监听 kill -15 信号
