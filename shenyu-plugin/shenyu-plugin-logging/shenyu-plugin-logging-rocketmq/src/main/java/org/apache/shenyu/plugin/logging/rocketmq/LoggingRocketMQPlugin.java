@@ -23,14 +23,11 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.logging.common.AbstractLoggingPlugin;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
-import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.rocketmq.collector.RocketMQLogCollector;
 import org.apache.shenyu.plugin.logging.rocketmq.handler.LoggingRocketMQPluginDataHandler;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 
-import java.util.Map;
 import java.util.Optional;
 
 /**

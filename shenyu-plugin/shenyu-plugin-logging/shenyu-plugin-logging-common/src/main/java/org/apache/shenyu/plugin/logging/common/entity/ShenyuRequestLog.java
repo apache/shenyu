@@ -423,15 +423,27 @@ public class ShenyuRequestLog {
      *
      * @param selectorId request selectorId
      */
-    public void setSelectorId(String selectorId) {
+    public void setSelectorId(final String selectorId) {
         this.selectorId = selectorId;
     }
 
+
+    /**
+     * get request ruleId.
+     *
+     * @return request ruleId
+     */
     public String getRuleId() {
         return ruleId;
     }
 
-    public void setRuleId(String ruleId) {
+
+    /**
+     * request ruleId.
+     *
+     * @param ruleId request ruleId
+     */
+    public void setRuleId(final String ruleId) {
         this.ruleId = ruleId;
     }
 

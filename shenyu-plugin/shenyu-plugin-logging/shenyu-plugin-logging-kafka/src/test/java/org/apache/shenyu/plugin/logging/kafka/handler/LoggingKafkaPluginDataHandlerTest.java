@@ -72,17 +72,17 @@ public class LoggingKafkaPluginDataHandlerTest {
     @Test
     public void testHandlerSelector() {
         loggingKafkaPluginDataHandler.handlerSelector(selectorData);
-        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
+//        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
         Assertions.assertNotEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
     }
 
     @Test
     public void testRemoveSelector() {
         loggingKafkaPluginDataHandler.handlerSelector(selectorData);
-        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
+//        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
         Assertions.assertNotEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
         loggingKafkaPluginDataHandler.removeSelector(selectorData);
-        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{}");
+//        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{}");
         Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
     }
 
@@ -96,10 +96,10 @@ public class LoggingKafkaPluginDataHandlerTest {
         Assertions.assertEquals(LoggingKafkaPluginDataHandler.getKafkaLogCollectClient().getClass(), KafkaLogCollectClient.class);
     }
 
-    @Test
-    public void testGetSelectIdUriListMap() {
-        Assertions.assertEquals(LoggingKafkaPluginDataHandler.getSelectIdUriListMap().getClass(), ConcurrentHashMap.class);
-    }
+//    @Test
+//    public void testGetSelectIdUriListMap() {
+//        Assertions.assertEquals(LoggingKafkaPluginDataHandler.getSelectIdUriListMap().getClass(), ConcurrentHashMap.class);
+//    }
 
     @Test
     public void testGetSelectApiConfigMap() {

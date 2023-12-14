@@ -21,10 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.sampler.CountSampler;
 import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.AntPathMatcher;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,7 +46,8 @@ public final class LogCollectConfigUtils {
     /**
      * set api sample.
      *
-     * @param sampler  sample
+     * @param sampler sample
+     * @return Sampler
      */
     public static Sampler setSampler(final String sampler) {
         if (StringUtils.isBlank(sampler)) {

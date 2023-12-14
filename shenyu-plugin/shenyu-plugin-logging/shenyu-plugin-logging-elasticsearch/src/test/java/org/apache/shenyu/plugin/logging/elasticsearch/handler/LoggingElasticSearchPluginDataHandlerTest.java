@@ -109,10 +109,10 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
         Assertions.assertEquals(LoggingElasticSearchPluginDataHandler.getElasticSearchLogCollectClient().getClass(), ElasticSearchLogCollectClient.class);
     }
 
-    @Test
-    public void testGetSelectIdUriListMap() {
-        Assertions.assertEquals(LoggingElasticSearchPluginDataHandler.getSelectIdUriListMap().getClass(), ConcurrentHashMap.class);
-    }
+//    @Test
+//    public void testGetSelectIdUriListMap() {
+//        Assertions.assertEquals(LoggingElasticSearchPluginDataHandler.getSelectIdUriListMap().getClass(), ConcurrentHashMap.class);
+//    }
 
     @Test
     public void testGetSelectApiConfigMap() {

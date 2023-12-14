@@ -29,10 +29,10 @@ import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpRequest;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpResponse;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.CommonLoggingRuleHandle;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
-import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
 import org.apache.shenyu.plugin.logging.desensitize.api.enums.DataDesensitizeEnum;
 import org.slf4j.Logger;
@@ -45,8 +45,6 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 
 /**
  * abstract logging plugin.
