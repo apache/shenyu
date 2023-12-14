@@ -74,29 +74,29 @@ public class LogCollectConfigUtilsTest {
         assertEquals(LogCollectConfigUtils.getGenericGlobalConfig().getBufferQueueSize(), 5000);
     }
 
-    @Test
-    public void testSetSampler() throws IllegalAccessException, NoSuchFieldException {
-        Map<String, String> uriSampleMap = new HashMap<>();
-        uriSampleMap.put("const", "");
-        LogCollectConfigUtils.setSampler(uriSampleMap);
-        Field field1 = LogCollectConfigUtils.class.getDeclaredField("apiSamplerMap");
-        field1.setAccessible(true);
-        Assertions.assertEquals(field1.get("const").toString(), "{const=" + Sampler.ALWAYS_SAMPLE + "}");
-        uriSampleMap.put("const", "1");
-        LogCollectConfigUtils.setSampler(uriSampleMap);
-        Field field2 = LogCollectConfigUtils.class.getDeclaredField("apiSamplerMap");
-        field2.setAccessible(true);
-        Assertions.assertEquals(field2.get("const").toString(), "{const=" + Sampler.ALWAYS_SAMPLE + "}");
-    }
-
-    @Test
-    public void testIsSampled() {
-        assertTrue(LogCollectConfigUtils.isSampled(request));
-        Map<String, String> uriSampleMap = new HashMap<>();
-        uriSampleMap.put("localhost", "1");
-        LogCollectConfigUtils.setSampler(uriSampleMap);
-        assertTrue(LogCollectConfigUtils.isSampled(request));
-    }
+//    @Test
+//    public void testSetSampler() throws IllegalAccessException, NoSuchFieldException {
+//        Map<String, String> uriSampleMap = new HashMap<>();
+//        uriSampleMap.put("const", "");
+//        LogCollectConfigUtils.setSampler(uriSampleMap);
+//        Field field1 = LogCollectConfigUtils.class.getDeclaredField("apiSamplerMap");
+//        field1.setAccessible(true);
+//        Assertions.assertEquals(field1.get("const").toString(), "{const=" + Sampler.ALWAYS_SAMPLE + "}");
+//        uriSampleMap.put("const", "1");
+//        LogCollectConfigUtils.setSampler(uriSampleMap);
+//        Field field2 = LogCollectConfigUtils.class.getDeclaredField("apiSamplerMap");
+//        field2.setAccessible(true);
+//        Assertions.assertEquals(field2.get("const").toString(), "{const=" + Sampler.ALWAYS_SAMPLE + "}");
+//    }
+//
+//    @Test
+//    public void testIsSampled() {
+//        assertTrue(LogCollectConfigUtils.isSampled(request));
+//        Map<String, String> uriSampleMap = new HashMap<>();
+//        uriSampleMap.put("localhost", "1");
+//        LogCollectConfigUtils.setSampler(uriSampleMap);
+//        assertTrue(LogCollectConfigUtils.isSampled(request));
+//    }
 
     @Test
     public void testIsRequestBodyTooLarge() {

@@ -23,8 +23,15 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.logging.common.AbstractLoggingPlugin;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
+import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.rocketmq.collector.RocketMQLogCollector;
+import org.apache.shenyu.plugin.logging.rocketmq.handler.LoggingRocketMQPluginDataHandler;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Integrated rocketmq collect log.
@@ -52,11 +59,18 @@ public class LoggingRocketMQPlugin extends AbstractLoggingPlugin<ShenyuRequestLo
      *
      * @param exchange exchange
      * @param selector selector
-     * @param rule rule
+     * @param rule     rule
      * @return base ShenyuRequestLog
      */
     @Override
     protected ShenyuRequestLog doLogExecute(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
         return new ShenyuRequestLog();
+    }
+
+    @Override
+    protected boolean isSampled(final String selectorID, final ServerHttpRequest request) {
+        return Optional.ofNullable(LoggingRocketMQPluginDataHandler.getSelectApiSamplerMap().get(selectorID))
+                .map(sampler -> sampler.isSampled(request))
+                .orElse(true);
     }
 }

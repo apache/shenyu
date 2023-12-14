@@ -34,12 +34,15 @@ import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.entity.CommonLoggingRuleHandle;
+import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
+import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -58,18 +61,9 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
 
     private static final String EMPTY_JSON = "{}";
 
-    private static final Map<String, List<String>> SELECT_ID_URI_LIST_MAP = new ConcurrentHashMap<>();
-
     private static final Map<String, GenericApiConfig> SELECT_API_CONFIG_MAP = new ConcurrentHashMap<>();
 
-    /**
-     * get selectId uriList map.
-     *
-     * @return selectId uriList map
-     */
-    public static Map<String, List<String>> getSelectIdUriListMap() {
-        return SELECT_ID_URI_LIST_MAP;
-    }
+    private static final Map<String, Sampler> SELECT_API_SAMPLER_MAP = new ConcurrentHashMap<>();
 
     /**
      * get select api config map.
@@ -78,6 +72,15 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
      */
     public static Map<String, GenericApiConfig> getSelectApiConfigMap() {
         return SELECT_API_CONFIG_MAP;
+    }
+
+    /**
+     * get get select api sampler map.
+     *
+     * @return select api sampler map
+     */
+    public static Map<String, Sampler> getSelectApiSamplerMap() {
+        return SELECT_API_SAMPLER_MAP;
     }
 
     /**
@@ -93,12 +96,6 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
      * @param globalLogConfig globalLogConfig
      */
     protected abstract void doRefreshConfig(T globalLogConfig);
-
-    /**
-     * LogCollector.
-     */
-    protected void doRefreshSelectorConfig() {
-    }
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
@@ -134,40 +131,19 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         final Class<C> genericApiConfigClass = (Class<C>) actualTypeArguments[1];
         LOG.info("handler {} selector data:{}", pluginNamed(), GsonUtils.getGson().toJson(selectorData));
         String handleJson = selectorData.getHandle();
-        //to clear for refresh
-        if (SELECT_ID_URI_LIST_MAP.containsKey(selectorData.getId())) {
-            SELECT_ID_URI_LIST_MAP.remove(selectorData.getId());
-            SELECT_API_CONFIG_MAP.remove(selectorData.getId());
-        }
-        doRefreshSelectorConfig();
         if (StringUtils.isEmpty(handleJson) || EMPTY_JSON.equals(handleJson.trim())) {
             return;
         }
-        if (selectorData.getType() != SelectorTypeEnum.CUSTOM_FLOW.getCode() || CollectionUtils.isEmpty(selectorData.getConditionList())) {
-            return;
-        }
         GenericApiConfig logApiConfig = GsonUtils.getInstance().fromJson(handleJson, genericApiConfigClass);
-        if (StringUtils.isBlank(logApiConfig.getTopic()) || StringUtils.isBlank(logApiConfig.getSampleRate())) {
-            return;
-        }
-        List<String> uriList = new ArrayList<>();
-        for (ConditionData conditionData : selectorData.getConditionList()) {
-            if ("uri".equals(conditionData.getParamType()) && StringUtils.isNotBlank(conditionData.getParamValue())
-                    && ("match".equals(conditionData.getOperator()) || "=".equals(conditionData.getOperator()))) {
-                uriList.add(conditionData.getParamValue().trim());
-            }
-        }
-        SELECT_ID_URI_LIST_MAP.put(selectorData.getId(), uriList);
         SELECT_API_CONFIG_MAP.put(selectorData.getId(), logApiConfig);
-        doRefreshSelectorConfig();
+        SELECT_API_SAMPLER_MAP.put(selectorData.getId(), LogCollectConfigUtils.setSampler(logApiConfig.getSampleRate()));
     }
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
         LOG.info("handler remove {} selector data:{}", pluginNamed(), GsonUtils.getGson().toJson(selectorData));
-        SELECT_ID_URI_LIST_MAP.remove(selectorData.getId());
         SELECT_API_CONFIG_MAP.remove(selectorData.getId());
-        doRefreshSelectorConfig();
+        SELECT_API_SAMPLER_MAP.remove(selectorData.getId());
     }
 
     @Override

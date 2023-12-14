@@ -54,7 +54,7 @@ import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLoggingPlugin.class);
-    
+
     /**
      * LogCollector.
      *
@@ -74,10 +74,19 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
      *
      * @param exchange exchange
      * @param selector selector
-     * @param rule rule
+     * @param rule     rule
      * @return based on ShenyuRequestLog
      */
     protected abstract L doLogExecute(ServerWebExchange exchange, SelectorData selector, RuleData rule);
+
+    /**
+     * judge whether sample.
+     *
+     * @return whether sample
+     */
+    protected boolean isSampled(final String selectorID, final ServerHttpRequest request) {
+        return true;
+    }
 
     @Override
     public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
@@ -97,7 +106,7 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         }
         ServerHttpRequest request = exchange.getRequest();
         // control sampling
-        if (!LogCollectConfigUtils.isSampled(exchange.getRequest())) {
+        if (!isSampled(selector.getId(), exchange.getRequest())) {
             return chain.execute(exchange);
         }
         L requestInfo = this.doLogExecute(exchange, selector, rule);
@@ -109,6 +118,8 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         requestInfo.setUserAgent(request.getHeaders().getFirst(GenericLoggingConstant.USER_AGENT));
         requestInfo.setHost(request.getHeaders().getFirst(GenericLoggingConstant.HOST));
         requestInfo.setPath(request.getURI().getRawPath());
+        requestInfo.setSelectorId(selector.getId());
+        requestInfo.setRuleId(rule.getId());
         LoggingServerHttpRequest<L> loggingServerHttpRequest = new LoggingServerHttpRequest<>(request, requestInfo);
         LoggingServerHttpResponse<L> loggingServerHttpResponse = new LoggingServerHttpResponse<>(exchange.getResponse(),
                 requestInfo, this.logCollector(), desensitized, keywordSets, dataDesensitizeAlg);

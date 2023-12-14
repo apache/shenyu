@@ -58,23 +58,6 @@ public class LoggingRocketMQPluginDataHandler extends AbstractLogPluginDataHandl
     }
 
     @Override
-    protected void doRefreshSelectorConfig() {
-        Map<String, GenericApiConfig> selectApiConfigMap = LoggingRocketMQPluginDataHandler.getSelectApiConfigMap();
-        Map<String, List<String>> selectIdUriListMap = LoggingRocketMQPluginDataHandler.getSelectIdUriListMap();
-        Set<String> selectorIdSet = selectIdUriListMap.keySet();
-        Map<String, String> apiTopicMap = new HashMap<>();
-        for (String selectorId : selectorIdSet) {
-            List<String> list = selectIdUriListMap.get(selectorId);
-            for (String l : list) {
-                if (StringUtils.isNotEmpty(selectApiConfigMap.get(selectorId).getTopic())) {
-                    apiTopicMap.put(l, selectApiConfigMap.get(selectorId).getTopic());
-                }
-            }
-        }
-        RocketMQLogCollectClient.setTopic(apiTopicMap);
-    }
-
-    @Override
     public String pluginNamed() {
         return PluginEnum.LOGGING_ROCKETMQ.getName();
     }

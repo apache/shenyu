@@ -40,8 +40,6 @@ public final class LogCollectConfigUtils {
 
     private static final GenericGlobalConfig DEFAULT_GLOBAL_LOG_CONFIG = new GenericGlobalConfig();
 
-    private static Map<String, Sampler> apiSamplerMap = new HashMap<>();
-
     private static Sampler globalSampler = Sampler.ALWAYS_SAMPLE;
 
     private LogCollectConfigUtils() {
@@ -49,22 +47,20 @@ public final class LogCollectConfigUtils {
 
     /**
      * set api sample.
-     * @param uriSampleMap api sample map
+     *
+     * @param sampler  sample
      */
-    public static void setSampler(final Map<String, String> uriSampleMap) {
-        Map<String, Sampler> samplerMap = new HashMap<>();
-        uriSampleMap.forEach((path, sampler) -> {
-            if (StringUtils.isBlank(sampler)) {
-                samplerMap.put(path, globalSampler);
-            } else {
-                samplerMap.put(path, CountSampler.create(sampler));
-            }
-        });
-        apiSamplerMap = samplerMap;
+    public static Sampler setSampler(final String sampler) {
+        if (StringUtils.isBlank(sampler)) {
+            return globalSampler;
+        } else {
+            return CountSampler.create(sampler);
+        }
     }
 
     /**
      * set global Sampler.
+     *
      * @param sampler global sampler
      */
     public static void setGlobalSampler(final String sampler) {
@@ -75,26 +71,6 @@ public final class LogCollectConfigUtils {
                 globalSampler = Sampler.ALWAYS_SAMPLE;
             }
         }
-    }
-
-    /**
-     * judge whether sample.
-     *
-     * @param request request
-     * @return whether sample
-     */
-    public static boolean isSampled(final ServerHttpRequest request) {
-        String path = request.getURI().getRawPath();
-        for (Map.Entry<String, Sampler> entry : apiSamplerMap.entrySet()) {
-            String pattern = entry.getKey();
-            if (MATCHER.match(pattern, path)) {
-                return entry.getValue().isSampled(request);
-            }
-        }
-        if (globalSampler != null) {
-            return globalSampler.isSampled(request);
-        }
-        return true;
     }
 
     /**

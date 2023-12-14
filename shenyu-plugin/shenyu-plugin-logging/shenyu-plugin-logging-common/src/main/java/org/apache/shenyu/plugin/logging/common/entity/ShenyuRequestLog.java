@@ -58,6 +58,10 @@ public class ShenyuRequestLog {
 
     private String traceId;
 
+    private String selectorId;
+
+    private String ruleId;
+
     /**
      * path.
      */
@@ -403,6 +407,32 @@ public class ShenyuRequestLog {
      */
     public void setPath(final String path) {
         this.path = path;
+    }
+
+    /**
+     * get request selectorId.
+     *
+     * @return request selectorId
+     */
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    /**
+     * request selectorId.
+     *
+     * @param selectorId request selectorId
+     */
+    public void setSelectorId(String selectorId) {
+        this.selectorId = selectorId;
+    }
+
+    public String getRuleId() {
+        return ruleId;
+    }
+
+    public void setRuleId(String ruleId) {
+        this.ruleId = ruleId;
     }
 
     @Override
