@@ -26,6 +26,8 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerMethodDefinition;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.ServiceDescriptor;
+import io.grpc.protobuf.ProtoUtils;
+
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.protocol.grpc.constant.GrpcConstants;
@@ -56,7 +58,7 @@ public class JsonServerServiceInterceptor {
     public static ServerServiceDefinition useJsonMessages(final ServerServiceDefinition serviceDef)
             throws IllegalArgumentException, IllegalAccessException {
         return useMarshalledMessages(serviceDef,
-                io.grpc.protobuf.ProtoUtils.marshaller(JsonMessage.buildJsonMessage()));
+                ProtoUtils.marshaller(JsonMessage.buildJsonMessage()));
     }
 
     /**
