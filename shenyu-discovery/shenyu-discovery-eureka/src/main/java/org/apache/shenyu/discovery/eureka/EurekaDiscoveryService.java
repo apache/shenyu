@@ -157,6 +157,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void shutdown() {
         try {
+            //todo 现设置 down 状态
             getEurekaClient(false);
             for (ScheduledFuture<?> scheduledFuture : listenerThreadsMap.values()) {
                 scheduledFuture.cancel(true);

@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
+import java.util.Objects;
+
 /**
  * InstanceRegisterListener.
  * <p>
@@ -44,6 +46,8 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
 
     private final DiscoveryConfig discoveryConfig;
 
+    private ShenyuDiscoveryService discoveryService;
+
     private final String path;
 
     public InstanceRegisterListener(final DiscoveryUpstreamData discoveryUpstream, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
@@ -54,6 +58,14 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
         this.discoveryConfig.setProps(shenyuDiscoveryConfig.getConnectionProps());
         this.discoveryConfig.setName(shenyuDiscoveryConfig.getName());
         this.path = shenyuDiscoveryConfig.getRegisterPath();
+        //todo 监听 kill -15 信号
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOGGER.info("unregister upstream server");
+            if (Objects.nonNull(discoveryService)) {
+                discoveryService.shutdown();
+            }
+            LOGGER.info("unregister upstream server");
+        }));
     }
 
     @Override
@@ -62,7 +74,7 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
             if (StringUtils.equalsIgnoreCase(discoveryConfig.getType(), "local")) {
                 return;
             }
-            ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(discoveryConfig.getType());
+            this.discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(discoveryConfig.getType());
             discoveryService.init(discoveryConfig);
             discoveryService.register(path, GsonUtils.getInstance().toJson(currentInstanceUpstream));
         } catch (Exception e) {

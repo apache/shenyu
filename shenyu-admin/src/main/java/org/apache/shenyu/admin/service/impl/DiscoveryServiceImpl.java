@@ -113,21 +113,15 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Transactional(rollbackFor = Exception.class)
     public void registerDiscoveryConfig(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
         DiscoveryDTO discoveryDTO = new DiscoveryDTO();
-        discoveryDTO.setName(discoveryConfigRegisterDTO.getName());
+        discoveryDTO.setName(discoveryConfigRegisterDTO.getName() + UUIDUtils.getInstance().generateShortUuid());
         discoveryDTO.setType(discoveryConfigRegisterDTO.getDiscoveryType());
         discoveryDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
         discoveryDTO.setServerList(discoveryConfigRegisterDTO.getServerList());
-        discoveryDTO.setLevel(DiscoveryLevel.PLUGIN.getCode());
+        discoveryDTO.setLevel(DiscoveryLevel.SELECTOR.getCode());
         discoveryDTO.setProps(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())));
-        DiscoveryDO discoveryDO = discoveryMapper.selectByName(discoveryConfigRegisterDTO.getName());
-        String discoveryId = Optional.ofNullable(discoveryDO).map(DiscoveryDO::getId).orElse(null);
-        String discoveryType = Optional.ofNullable(discoveryDO).map(DiscoveryDO::getType).orElse(null);
-        if (Objects.isNull(discoveryDO)) {
-            LOG.warn("shenyu DiscoveryConfigRegisterDTO has been register");
-            DiscoveryVO discoveryVO = this.create(discoveryDTO);
-            discoveryId = discoveryVO.getId();
-            discoveryType = discoveryVO.getType();
-        }
+        DiscoveryVO discoveryVO = this.create(discoveryDTO);
+        String discoveryId = discoveryVO.getId();
+        String discoveryType = discoveryVO.getType();
         LOG.info("shenyu success register DiscoveryConfigRegisterDTO name={}|pluginName={}", discoveryConfigRegisterDTO.getName(), discoveryConfigRegisterDTO.getPluginName());
         bindingDiscovery(discoveryConfigRegisterDTO, discoveryId, discoveryType);
     }

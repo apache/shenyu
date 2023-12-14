@@ -26,6 +26,7 @@ import org.apache.shenyu.client.grpc.GrpcClientEventListener;
 import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
 import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -113,13 +114,13 @@ public class ShenyuGrpcClientConfiguration {
      * @param clientRegisterConfig         clientRegisterConfig
      * @return ClientDiscoveryConfigRefreshedEventListener
      */
-    @Bean
+    @Bean("GrpcClientDiscoveryConfigRefreshedEventListener")
     @ConditionalOnProperty(prefix = "shenyu.discovery", name = "serverList", matchIfMissing = false)
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     public ClientDiscoveryConfigRefreshedEventListener clientDiscoveryConfigRefreshedEventListener(final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
                                                                                                    final HttpClientRegisterRepository httpClientRegisterRepository,
                                                                                                    final ClientRegisterConfig clientRegisterConfig) {
-        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository, clientRegisterConfig);
+        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository, clientRegisterConfig , PluginEnum.GRPC);
     }
 
 

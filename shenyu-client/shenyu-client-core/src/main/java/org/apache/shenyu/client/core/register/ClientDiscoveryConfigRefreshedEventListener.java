@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.core.register;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.client.http.HttpClientRegisterRepository;
@@ -38,12 +39,16 @@ public final class ClientDiscoveryConfigRefreshedEventListener implements Applic
 
     private final ClientRegisterConfig clientRegisterConfig;
 
+    private final PluginEnum plugin;
+
     public ClientDiscoveryConfigRefreshedEventListener(final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
                                                        final HttpClientRegisterRepository httpClientRegisterRepository,
-                                                       final ClientRegisterConfig clientRegisterConfig) {
+                                                       final ClientRegisterConfig clientRegisterConfig,
+                                                       final PluginEnum plugin) {
         this.shenyuDiscoveryConfig = shenyuDiscoveryConfig;
         this.httpClientRegisterRepository = httpClientRegisterRepository;
         this.clientRegisterConfig = clientRegisterConfig;
+        this.plugin = plugin;
     }
 
     @Override
@@ -69,7 +74,7 @@ public final class ClientDiscoveryConfigRefreshedEventListener implements Applic
                 .serverList(shenyuDiscoveryConfig.getServerList())
                 .props(shenyuDiscoveryConfig.getConnectionProps())
                 .discoveryType(shenyuDiscoveryConfig.getType())
-                .pluginName(PluginNameAdapter.rpcTypeAdapter(clientRegisterConfig.getRpcTypeEnum().getName()))
+                .pluginName(plugin.getName())
                 .build();
     }
 
