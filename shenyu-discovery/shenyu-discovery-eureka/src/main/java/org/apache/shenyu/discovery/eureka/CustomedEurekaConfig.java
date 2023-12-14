@@ -21,6 +21,8 @@ import com.netflix.appinfo.EurekaInstanceConfig;
 import com.netflix.appinfo.MyDataCenterInstanceConfig;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Map;
+
 public class CustomedEurekaConfig extends MyDataCenterInstanceConfig implements EurekaInstanceConfig {
 
     private String applicationName;
@@ -30,6 +32,8 @@ public class CustomedEurekaConfig extends MyDataCenterInstanceConfig implements 
     private String ipAddress;
 
     private int port = -1;
+
+    private Map<String, String> metadata;
 
     @Override
     public String getInstanceId() {
@@ -68,6 +72,11 @@ public class CustomedEurekaConfig extends MyDataCenterInstanceConfig implements 
         return this.getIpAddress();
     }
 
+    @Override
+    public Map<String, String> getMetadataMap() {
+        return metadata;
+    }
+
     /**
      * Sets the instance ID.
      *
@@ -102,5 +111,14 @@ public class CustomedEurekaConfig extends MyDataCenterInstanceConfig implements 
      */
     public void setApplicationName(final String applicationName) {
         this.applicationName = applicationName;
+    }
+
+    /**
+     * Sets the application name.
+     *
+     * @param metadata The metadata of the instance
+     */
+    public void setMetadataMap(final Map<String, String> metadata) {
+        this.metadata = metadata;
     }
 }
