@@ -29,7 +29,6 @@
     <modules>
         <module>shenyu-register-common</module>
         <module>shenyu-register-client</module>
-        <module>shenyu-register-client-server</module>
     </modules>
 
 </project>
