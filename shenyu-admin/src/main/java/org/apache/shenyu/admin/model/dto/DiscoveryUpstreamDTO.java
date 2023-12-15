@@ -47,7 +47,7 @@ public class DiscoveryUpstreamDTO implements Serializable {
     /**
      * protocol.
      */
-    @NotBlank(message = "protocol不能为空")
+//    @NotBlank(message = "protocol不能为空")
     private String protocol;
 
     /**

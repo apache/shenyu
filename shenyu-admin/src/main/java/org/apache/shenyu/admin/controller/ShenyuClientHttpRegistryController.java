@@ -104,7 +104,7 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @PostMapping("/register-discoveryConfig")
     @ResponseBody
     public String registerDiscoveryConfig(@RequestBody final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
-        discoveryService.registerDiscoveryConfig(discoveryConfigRegisterDTO);
+        publisher.publish(discoveryConfigRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
 

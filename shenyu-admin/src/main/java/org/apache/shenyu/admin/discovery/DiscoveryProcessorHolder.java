@@ -25,15 +25,15 @@ public class DiscoveryProcessorHolder {
 
     private final DiscoveryProcessor localDiscoveryProcessor;
 
-    private final DiscoveryProcessor eurekaDiscoveryProcessor;
+    private final DiscoveryProcessor apDiscoveryProcessor;
 
     public DiscoveryProcessorHolder(final DiscoveryProcessor defaultDiscoveryProcessor,
                                     final DiscoveryProcessor localDiscoveryProcessor,
-                                    final DiscoveryProcessor eurekaDiscoveryProcessor
+                                    final DiscoveryProcessor apDiscoveryProcessor
     ) {
         this.defaultDiscoveryProcessor = defaultDiscoveryProcessor;
         this.localDiscoveryProcessor = localDiscoveryProcessor;
-        this.eurekaDiscoveryProcessor = eurekaDiscoveryProcessor;
+        this.apDiscoveryProcessor = apDiscoveryProcessor;
     }
 
     /**
@@ -50,9 +50,9 @@ public class DiscoveryProcessorHolder {
         } else if (DiscoveryMode.ETCD.name().equalsIgnoreCase(mode)) {
             return defaultDiscoveryProcessor;
         } else if (DiscoveryMode.NACOS.name().equalsIgnoreCase(mode)) {
-            return eurekaDiscoveryProcessor;
+            return defaultDiscoveryProcessor;
         } else if (DiscoveryMode.EUREKA.name().equalsIgnoreCase(mode)) {
-            return eurekaDiscoveryProcessor;
+            return apDiscoveryProcessor;
         } else {
             throw new NotImplementedException("shenyu discovery mode current didn't support " + mode);
         }

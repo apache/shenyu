@@ -18,11 +18,9 @@
 package org.apache.shenyu.springboot.starter.client.springmvc;
 
 import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
-import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
-import org.apache.shenyu.client.core.register.InstanceRegisterListener;
 import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
 import org.apache.shenyu.client.core.register.registrar.AbstractApiDocRegistrar;
 import org.apache.shenyu.client.core.register.registrar.AbstractApiMetaRegistrar;
@@ -30,10 +28,8 @@ import org.apache.shenyu.client.core.register.registrar.HttpApiDocRegistrar;
 import org.apache.shenyu.client.springmvc.proceeor.register.ShenyuSpringMvcClientProcessorImpl;
 import org.apache.shenyu.client.springmvc.register.SpringMvcApiBeansExtractor;
 import org.apache.shenyu.client.springmvc.register.SpringMvcApiMetaRegister;
-import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
-import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
@@ -118,26 +114,6 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
                                                      final ApplicationContext applicationContext,
                                                      final Environment env) {
         return new ClientRegisterConfigImpl(shenyuClientConfig, RpcTypeEnum.HTTP, applicationContext, env);
-    }
-
-    /**
-     * InstanceRegisterListener.
-     *
-     * @param clientRegisterConfig  clientRegisterConfig
-     * @param shenyuDiscoveryConfig shenyuDiscoveryConfig
-     * @return InstanceRegisterListener
-     */
-    @Bean("springmvcInstanceRegisterListener")
-    @ConditionalOnBean(ShenyuDiscoveryConfig.class)
-    @ConditionalOnMissingBean(name = "websocketInstanceRegisterListener")
-    public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
-        DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
-        discoveryUpstreamData.setUrl(clientRegisterConfig.getHost() + ":" + clientRegisterConfig.getPort());
-        discoveryUpstreamData.setStatus(0);
-        String weight = shenyuDiscoveryConfig.getProps().getOrDefault("discoveryUpstream.weight", "10").toString();
-        discoveryUpstreamData.setWeight(Integer.parseInt(weight));
-        discoveryUpstreamData.setProtocol(shenyuDiscoveryConfig.getProps().getOrDefault("discoveryUpstream.protocol", ShenyuClientConstants.HTTP).toString());
-        return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 
 }

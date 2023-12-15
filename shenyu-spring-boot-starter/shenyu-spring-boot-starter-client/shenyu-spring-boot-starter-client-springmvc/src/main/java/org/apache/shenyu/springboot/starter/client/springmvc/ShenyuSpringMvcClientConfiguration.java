@@ -85,22 +85,5 @@ public class ShenyuSpringMvcClientConfiguration {
         return new SpringMvcClientEventListener(clientPropertiesConfig, shenyuClientRegisterRepository, env);
     }
 
-    /**
-     * clientDiscoveryConfigRefreshedEventListener Bean.
-     *
-     * @param shenyuDiscoveryConfig        shenyuDiscoveryConfig
-     * @param httpClientRegisterRepository httpClientRegisterRepository
-     * @param clientRegisterConfig         clientRegisterConfig
-     * @return ClientDiscoveryConfigRefreshedEventListener
-     */
-    @Bean("SpringMvcClientDiscoveryConfigRefreshedEventListener")
-    @ConditionalOnProperty(prefix = "shenyu.discovery", name = "serverList", matchIfMissing = false)
-    @ConditionalOnBean(ShenyuDiscoveryConfig.class)
-    public ClientDiscoveryConfigRefreshedEventListener clientDiscoveryConfigRefreshedEventListener(final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
-                                                                                                   final HttpClientRegisterRepository httpClientRegisterRepository,
-                                                                                                   final ClientRegisterConfig clientRegisterConfig) {
-        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository, clientRegisterConfig, PluginEnum.DIVIDE);
-    }
-
 
 }
