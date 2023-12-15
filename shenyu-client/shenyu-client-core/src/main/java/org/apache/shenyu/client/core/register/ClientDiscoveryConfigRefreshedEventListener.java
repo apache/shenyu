@@ -28,8 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.Ordered;
 
-public final class ClientDiscoveryConfigRefreshedEventListener implements ApplicationListener<ContextRefreshedEvent> {
+public final class ClientDiscoveryConfigRefreshedEventListener implements ApplicationListener<ContextRefreshedEvent>, Ordered {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClientDiscoveryConfigRefreshedEventListener.class);
 
@@ -80,5 +81,10 @@ public final class ClientDiscoveryConfigRefreshedEventListener implements Applic
 
     private String discoveryName() {
         return "default_" + shenyuDiscoveryConfig.getType();
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.LOWEST_PRECEDENCE;
     }
 }

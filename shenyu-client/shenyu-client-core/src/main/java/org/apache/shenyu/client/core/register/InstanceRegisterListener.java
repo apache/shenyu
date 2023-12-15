@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.Ordered;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -40,7 +41,7 @@ import java.util.Properties;
  * instance register into discovery.
  * </p>
  */
-public class InstanceRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
+public class InstanceRegisterListener implements ApplicationListener<ContextRefreshedEvent>, Ordered {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceRegisterListener.class);
 
@@ -79,10 +80,15 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
             this.discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(discoveryConfig.getType());
             discoveryService.init(discoveryConfig);
             discoveryService.register(path, GsonUtils.getInstance().toJson(currentInstanceUpstream));
+            LOGGER.info("shenyu register into ShenyuDiscoveryService {} success", discoveryConfig.getType());
         } catch (Exception e) {
             LOGGER.error("shenyu register into ShenyuDiscoveryService  {} type find error", discoveryConfig.getType(), e);
             throw new ShenyuException(String.format("shenyu register into ShenyuDiscoveryService %s type find error", discoveryConfig.getType()));
         }
     }
 
+    @Override
+    public int getOrder() {
+        return HIGHEST_PRECEDENCE;
+    }
 }
