@@ -50,7 +50,7 @@ public class DiscoveryProcessorHolder {
         } else if (DiscoveryMode.ETCD.name().equalsIgnoreCase(mode)) {
             return defaultDiscoveryProcessor;
         } else if (DiscoveryMode.NACOS.name().equalsIgnoreCase(mode)) {
-            return defaultDiscoveryProcessor;
+            return eurekaDiscoveryProcessor;
         } else if (DiscoveryMode.EUREKA.name().equalsIgnoreCase(mode)) {
             return eurekaDiscoveryProcessor;
         } else {
