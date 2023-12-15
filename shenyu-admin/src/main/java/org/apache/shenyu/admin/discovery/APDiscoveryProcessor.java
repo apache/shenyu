@@ -33,14 +33,14 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 
-public class EurekaDiscoveryProcessor extends AbstractDiscoveryProcessor {
+public class APDiscoveryProcessor extends AbstractDiscoveryProcessor {
 
     /**
      * DefaultDiscoveryProcessor.
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
      */
-    public EurekaDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+    public APDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                     final DiscoveryHandlerMapper discoveryHandlerMapper,
                                     final ProxySelectorMapper proxySelectorMapper) {
         super(discoveryUpstreamMapper, discoveryHandlerMapper, proxySelectorMapper);
