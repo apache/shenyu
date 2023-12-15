@@ -110,7 +110,6 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void registerDiscoveryConfig(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
         DiscoveryDTO discoveryDTO = new DiscoveryDTO();
         discoveryDTO.setName(discoveryConfigRegisterDTO.getName() + UUIDUtils.getInstance().generateShortUuid());
@@ -119,9 +118,15 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         discoveryDTO.setServerList(discoveryConfigRegisterDTO.getServerList());
         discoveryDTO.setLevel(DiscoveryLevel.SELECTOR.getCode());
         discoveryDTO.setProps(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())));
-        DiscoveryVO discoveryVO = this.create(discoveryDTO);
-        String discoveryId = discoveryVO.getId();
-        String discoveryType = discoveryVO.getType();
+        DiscoveryDO discoveryDO = discoveryMapper.selectBySelectorName(discoveryConfigRegisterDTO.getSelectorName());
+        String discoveryId = Optional.ofNullable(discoveryDO).map(DiscoveryDO::getId).orElse(null);
+        String discoveryType = Optional.ofNullable(discoveryDO).map(DiscoveryDO::getType).orElse(null);
+        if (Objects.isNull(discoveryDO)) {
+            LOG.warn("shenyu DiscoveryConfigRegisterDTO has been register");
+            DiscoveryVO discoveryVO = this.create(discoveryDTO);
+            discoveryId = discoveryVO.getId();
+            discoveryType = discoveryVO.getType();
+        }
         LOG.info("shenyu success register DiscoveryConfigRegisterDTO name={}|pluginName={}", discoveryConfigRegisterDTO.getName(), discoveryConfigRegisterDTO.getPluginName());
         bindingDiscovery(discoveryConfigRegisterDTO, discoveryId, discoveryType);
     }
@@ -134,6 +139,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 break;
             }
             try {
+                LOG.info("retry to find selector {} : {}", discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName());
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 // ignore

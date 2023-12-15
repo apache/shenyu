@@ -49,6 +49,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -75,10 +77,8 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
         Properties props = config.getProps();
         this.timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
         this.ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
-        if (Objects.isNull(etcdClient)) {
-            this.etcdClient = Client.builder().endpoints(config.getServerList().split(",")).build();
-            LOGGER.info("Etcd Discovery Service initialize successfully");
-        }
+        this.etcdClient = Client.builder().endpoints(config.getServerList().split(",")).build();
+        LOGGER.info("Etcd Discovery Service initialize successfully");
         if (leaseId == 0) {
             initLease();
         }
@@ -211,11 +211,14 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void shutdown() {
         try {
+            etcdClient.close();
             for (Map.Entry<String, Watch.Watcher> entry : watchCache.entrySet()) {
                 Watch.Watcher watcher = entry.getValue();
                 watcher.close();
             }
             if (Objects.nonNull(etcdClient)) {
+                Lease leaseClient = etcdClient.getLeaseClient();
+                leaseClient.close();
                 etcdClient.close();
             }
         } catch (Exception e) {

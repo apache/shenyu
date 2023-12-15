@@ -170,7 +170,6 @@ public class SelectorServiceImpl implements SelectorService {
         if (Objects.isNull(selectorDO)) {
             SelectorDTO selectorDTO = SelectorUtil.buildSelectorDTO(contextPath, pluginMapper.selectByName(pluginName).getId());
             selectorDTO.setHandle(selectorHandler);
-            //todo 适配
             return registerDefault(selectorDTO);
         }
         return selectorDO.getId();
@@ -288,6 +287,7 @@ public class SelectorServiceImpl implements SelectorService {
                 discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
                 if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getLevel())) {
                     discoveryProcessor.removeDiscovery(discoveryDO);
+                    discoveryMapper.delete(discoveryDO.getId());
                 }
             }
         }

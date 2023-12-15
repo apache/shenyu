@@ -105,10 +105,10 @@ public interface DiscoveryMapper extends ExistProvider {
     int delete(String id);
 
     /**
-     * selectByName.
+     * selectBySelectorName.
      *
-     * @param name name
+     * @param selectorName selectorName
      * @return DiscoveryDO
      */
-    DiscoveryDO selectByName(String name);
+    DiscoveryDO selectBySelectorName( String selectorName);
 }
