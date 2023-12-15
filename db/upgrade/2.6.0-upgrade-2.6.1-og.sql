@@ -122,4 +122,5 @@ INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507008', '45', 'args'
 -- logging rabbitmq plugin end
 
 -- delete brpc plugin
-DELETE FROM plugin WHERE name = 'brpc';
+DELETE FROM `plugin` WHERE `name` = 'brpc';
+DELETE FROM `plugin_handle` WHERE `plugin_id` = '41';
