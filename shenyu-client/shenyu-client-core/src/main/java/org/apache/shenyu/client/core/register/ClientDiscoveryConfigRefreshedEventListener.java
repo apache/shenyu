@@ -19,7 +19,6 @@ package org.apache.shenyu.client.core.register;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.client.http.HttpClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
