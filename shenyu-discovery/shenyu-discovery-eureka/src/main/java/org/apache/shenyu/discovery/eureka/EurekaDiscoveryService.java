@@ -66,8 +66,6 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
 
     private DiscoveryConfig discoveryConfig;
 
-    private CustomedEurekaConfig customedEurekaConfig;
-
     private final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(10, ShenyuThreadFactory.create("scheduled-eureka-watcher", true));
 
     private final ConcurrentMap<String, ScheduledFuture<?>> listenerThreadsMap = new ConcurrentHashMap<>();
@@ -181,13 +179,13 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void shutdown() {
         try {
-            //todo 现设置 down 状态
             for (ScheduledFuture<?> scheduledFuture : listenerThreadsMap.values()) {
                 scheduledFuture.cancel(true);
             }
             executorService.shutdown();
             listenerThreadsMap.clear();
             if (Objects.nonNull(eurekaClient)) {
+                eurekaClient.getApplicationInfoManager().setInstanceStatus(InstanceInfo.InstanceStatus.DOWN);
                 eurekaClient.shutdown();
             }
             LOGGER.info("Shutting down EurekaDiscoveryService");
