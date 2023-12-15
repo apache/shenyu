@@ -156,3 +156,6 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ) values ('1722804548510507008', '45', 'args', 'args', 2, 3, 0, '{"required":"0","defaultValue":"","placeholder":"","rule":"/^\\s*(\\{.*\\}|\\[.*\\])\\s*$/"}');
 
 -- logging rabbitmq plugin end
+
+-- delete brpc plugin
+delete from plugin where name = 'brpc';

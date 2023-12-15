@@ -112,3 +112,6 @@ INSERT INTO `plugin_handle` VALUES ('1722804461256400896', '45', 'autoDelete', '
 INSERT INTO `plugin_handle` VALUES ('1722804548510507008', '45', 'args', 'args', 2, 3, 0, '{\"required\":\"0\",\"defaultValue\":"",\"placeholder\":"",\"rule\":\"\"}', '2023-1\1-07 11:06:00.803', '2023-11-07 13:31:41.048');
 
 -- logging rabbitmq plugin end
+
+-- delete brpc plugin
+DELETE FROM plugin WHERE name = 'brpc';
