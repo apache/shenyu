@@ -31,7 +31,6 @@ import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.entity.CommonLoggingRuleHandle;
-import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,8 +56,6 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
 
     private static final Map<String, GenericApiConfig> SELECT_API_CONFIG_MAP = new ConcurrentHashMap<>();
 
-    private static final Map<String, Sampler> SELECT_API_SAMPLER_MAP = new ConcurrentHashMap<>();
-
     /**
      * get select api config map.
      *
@@ -66,15 +63,6 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
      */
     public static Map<String, GenericApiConfig> getSelectApiConfigMap() {
         return SELECT_API_CONFIG_MAP;
-    }
-
-    /**
-     * get get select api sampler map.
-     *
-     * @return select api sampler map
-     */
-    public static Map<String, Sampler> getSelectApiSamplerMap() {
-        return SELECT_API_SAMPLER_MAP;
     }
 
     /**
@@ -129,15 +117,14 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
             return;
         }
         GenericApiConfig logApiConfig = GsonUtils.getInstance().fromJson(handleJson, genericApiConfigClass);
+        logApiConfig.setSampler(LogCollectConfigUtils.setSampler(logApiConfig.getSampleRate()));
         SELECT_API_CONFIG_MAP.put(selectorData.getId(), logApiConfig);
-        SELECT_API_SAMPLER_MAP.put(selectorData.getId(), LogCollectConfigUtils.setSampler(logApiConfig.getSampleRate()));
     }
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
         LOG.info("handler remove {} selector data:{}", pluginNamed(), GsonUtils.getGson().toJson(selectorData));
         SELECT_API_CONFIG_MAP.remove(selectorData.getId());
-        SELECT_API_SAMPLER_MAP.remove(selectorData.getId());
     }
 
     @Override

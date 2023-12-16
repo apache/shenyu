@@ -17,22 +17,24 @@
 
 package org.apache.shenyu.plugin.logging.common.sampler;
 
-import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * sampler interface.
  */
 public interface Sampler {
 
-    Sampler ALWAYS_SAMPLE = request -> true;
-    Sampler NEVER_SAMPLE = request -> false;
+    Sampler ALWAYS_SAMPLE = (request, selectorData) -> true;
+    Sampler NEVER_SAMPLE = (request, selectorData) -> false;
 
     /**
      * judge a ServerHttpRequest should be sample.
      *
-     * @param request request
+     * @param exchange     exchange
+     * @param selectorData selectorData
      * @return whether sample
      */
-    boolean isSampled(ServerHttpRequest request);
+    boolean isSampled(ServerWebExchange exchange, SelectorData selectorData);
 
 }

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.logging.common.config;
 
+import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
+
 /**
  * GenericApiConfig.
  */
@@ -26,6 +28,11 @@ public class GenericApiConfig {
      * 0 means never sample, 1 means always sample. Minimum probability is 0.01, or 1% of logging
      */
     private String sampleRate;
+
+    /**
+     * This sampler is useful if you configure sampleRate.
+     */
+    private Sampler sampler;
 
     /**
      * This topic is useful if you use message queuing to collect logs.
@@ -66,5 +73,23 @@ public class GenericApiConfig {
      */
     public void setTopic(final String topic) {
         this.topic = topic;
+    }
+
+    /**
+     * get sampler.
+     *
+     * @return sampler
+     */
+    public Sampler getSampler() {
+        return sampler;
+    }
+
+    /**
+     * set sampler.
+     *
+     * @param sampler sampler
+     */
+    public void setSampler(final Sampler sampler) {
+        this.sampler = sampler;
     }
 }

@@ -80,11 +80,11 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
     /**
      * judge whether sample.
      *
-     * @param selectorID selectorID
-     * @param request    request
+     * @param exchange     exchange
+     * @param selectorData selectorData
      * @return whether sample
      */
-    protected boolean isSampled(final String selectorID, final ServerHttpRequest request) {
+    protected boolean isSampled(final ServerWebExchange exchange, final SelectorData selectorData) {
         return true;
     }
 
@@ -106,7 +106,7 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         }
         ServerHttpRequest request = exchange.getRequest();
         // control sampling
-        if (StringUtils.isNotBlank(selector.getId()) && !isSampled(selector.getId(), exchange.getRequest())) {
+        if (StringUtils.isNotBlank(selector.getId()) && !isSampled(exchange, selector)) {
             return chain.execute(exchange);
         }
         L requestInfo = this.doLogExecute(exchange, selector, rule);
