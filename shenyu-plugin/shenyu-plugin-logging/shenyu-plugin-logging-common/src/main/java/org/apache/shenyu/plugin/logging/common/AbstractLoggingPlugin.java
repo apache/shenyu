@@ -33,6 +33,7 @@ import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.CommonLoggingRuleHandle;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
+import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
 import org.apache.shenyu.plugin.logging.desensitize.api.enums.DataDesensitizeEnum;
 import org.slf4j.Logger;
@@ -77,17 +78,6 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
      */
     protected abstract L doLogExecute(ServerWebExchange exchange, SelectorData selector, RuleData rule);
 
-    /**
-     * judge whether sample.
-     *
-     * @param exchange     exchange
-     * @param selectorData selectorData
-     * @return whether sample
-     */
-    protected boolean isSampled(final ServerWebExchange exchange, final SelectorData selectorData) {
-        return true;
-    }
-
     @Override
     public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                 final SelectorData selector, final RuleData rule) {
@@ -106,9 +96,10 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         }
         ServerHttpRequest request = exchange.getRequest();
         // control sampling
-        if (StringUtils.isNotBlank(selector.getId()) && !isSampled(exchange, selector)) {
+        if (LogCollectConfigUtils.isSampled(exchange, selector)) {
             return chain.execute(exchange);
         }
+
         L requestInfo = this.doLogExecute(exchange, selector, rule);
         requestInfo.setRequestUri(request.getURI().toString());
         requestInfo.setMethod(request.getMethodValue());

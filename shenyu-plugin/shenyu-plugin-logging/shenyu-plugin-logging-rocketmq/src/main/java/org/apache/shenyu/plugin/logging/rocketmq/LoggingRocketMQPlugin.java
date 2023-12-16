@@ -24,10 +24,7 @@ import org.apache.shenyu.plugin.logging.common.AbstractLoggingPlugin;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.rocketmq.collector.RocketMQLogCollector;
-import org.apache.shenyu.plugin.logging.rocketmq.handler.LoggingRocketMQPluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.util.Optional;
 
 /**
  * Integrated rocketmq collect log.
@@ -61,12 +58,5 @@ public class LoggingRocketMQPlugin extends AbstractLoggingPlugin<ShenyuRequestLo
     @Override
     protected ShenyuRequestLog doLogExecute(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
         return new ShenyuRequestLog();
-    }
-
-    @Override
-    protected boolean isSampled(final ServerWebExchange exchange, final SelectorData selectorData) {
-        return Optional.ofNullable(LoggingRocketMQPluginDataHandler.getSelectApiConfigMap().get(selectorData.getId()))
-                .map(config -> config.getSampler().isSampled(exchange, selectorData))
-                .orElse(true);
     }
 }

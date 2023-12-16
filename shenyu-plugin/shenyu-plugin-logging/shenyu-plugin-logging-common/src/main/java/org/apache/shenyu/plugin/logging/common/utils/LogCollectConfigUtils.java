@@ -18,10 +18,13 @@
 package org.apache.shenyu.plugin.logging.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.sampler.CountSampler;
 import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Map;
 import java.util.Objects;
@@ -131,5 +134,18 @@ public final class LogCollectConfigUtils {
             }
         }
         return "";
+    }
+
+    /**
+     * judge whether sample.
+     *
+     * @param exchange     exchange
+     * @param selectorData selectorData
+     * @return whether sample
+     */
+    public static boolean isSampled(final ServerWebExchange exchange, final SelectorData selectorData) {
+        return Optional.ofNullable(AbstractLogPluginDataHandler.getSelectApiConfigMap().get(selectorData.getId()))
+                .map(config -> config.getSampler().isSampled(exchange, selectorData))
+                .orElse(true);
     }
 }
