@@ -87,6 +87,7 @@ public class LoggingHuaweiLtsPluginTest {
     @Test
     public void testDoExecute() {
         Mockito.when(chain.execute(ArgumentMatchers.any())).thenReturn(Mono.empty());
+        Mockito.when(selectorData.getId()).thenReturn("111");
         Mono<Void> result = loggingHuaweiLtsPlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
