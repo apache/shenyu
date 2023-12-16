@@ -53,9 +53,9 @@
         <rest-assured.version>5.2.0</rest-assured.version>
         <jetbrains-annotations.version>23.0.0</jetbrains-annotations.version>
         <apache-rat-plugin.version>0.15</apache-rat-plugin.version>
-        <spring-framework.version>5.3.28</spring-framework.version>
+        <spring-framework.version>5.3.30</spring-framework.version>
         <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
-        <guava.version>31.1-jre</guava.version>
+        <guava.version>32.0.0-jre</guava.version>
         <commons-collection.verion>4.4</commons-collection.verion>
         <websocket.version>1.5.1</websocket.version>
     </properties>
