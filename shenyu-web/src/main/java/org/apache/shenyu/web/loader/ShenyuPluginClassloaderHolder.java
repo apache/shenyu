@@ -18,6 +18,7 @@
 package org.apache.shenyu.web.loader;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -66,6 +67,19 @@ public final class ShenyuPluginClassloaderHolder {
     public ShenyuPluginClassLoader createExtPathClassLoader(final PluginJarParser.PluginJar pluginJar) {
         ShenyuPluginClassLoader shenyuPluginClassLoader = new ShenyuPluginClassLoader(pluginJar);
         extPathPluginCache.put(pluginJar.getAbsolutePath(), shenyuPluginClassLoader);
+        return shenyuPluginClassLoader;
+    }
+
+    /**
+     * createPluginClassLoader.
+     *
+     * @param pluginJar pluginJar
+     * @return ShenyuPluginClassLoader
+     */
+    public ShenyuPluginClassLoader createPluginClassLoader(final PluginJarParser.PluginJar pluginJar) {
+        ShenyuPluginClassLoader shenyuPluginClassLoader = new ShenyuPluginClassLoader(pluginJar);
+        String jarKey = Optional.ofNullable(pluginJar.getAbsolutePath()).orElse(pluginJar.getJarKey());
+        extPathPluginCache.put(jarKey, shenyuPluginClassLoader);
         return shenyuPluginClassLoader;
     }
 
