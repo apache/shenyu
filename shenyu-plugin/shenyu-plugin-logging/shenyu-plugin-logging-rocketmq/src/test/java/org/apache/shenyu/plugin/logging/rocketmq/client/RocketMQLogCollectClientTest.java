@@ -51,6 +51,7 @@ public class RocketMQLogCollectClientTest {
         rocketMQLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), RocketMQLogCollectConfig.RocketMQLogConfig.class);
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
+        shenyuRequestLog.setSelectorId("SelectorId");
         logs.add(shenyuRequestLog);
     }
 

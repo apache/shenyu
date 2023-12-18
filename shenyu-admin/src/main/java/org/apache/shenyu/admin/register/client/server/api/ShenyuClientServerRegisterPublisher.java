@@ -15,26 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.sampler;
+package org.apache.shenyu.admin.register.client.server.api;
 
-import org.apache.shenyu.common.dto.SelectorData;
-import org.springframework.web.server.ServerWebExchange;
+import org.apache.shenyu.register.common.type.DataTypeParent;
+
+import java.util.Collection;
 
 /**
- * sampler interface.
+ * The interface Shenyu client server register publisher.
  */
-public interface Sampler {
-
-    Sampler ALWAYS_SAMPLE = (request, selectorData) -> true;
-    Sampler NEVER_SAMPLE = (request, selectorData) -> false;
-
+public interface ShenyuClientServerRegisterPublisher {
+    
     /**
-     * judge a ServerHttpRequest should be sample.
+     * Publish.
      *
-     * @param exchange     exchange
-     * @param selectorData selectorData
-     * @return whether sample
+     * @param t the t
      */
-    boolean isSampled(ServerWebExchange exchange, SelectorData selectorData);
-
+    void publish(Collection<? extends DataTypeParent> t);
+    
+    /**
+     * Publish.
+     *
+     * @param dataList the dataList
+     */
+    void publish(DataTypeParent dataList);
+    
+    /**
+     * Close.
+     */
+    default void close() {
+    }
 }

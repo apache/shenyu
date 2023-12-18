@@ -61,20 +61,18 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
         this.discoveryConfig.setProps(Optional.ofNullable(shenyuDiscoveryConfig.getConnectionProps()).orElse(new Properties()));
         this.discoveryConfig.setName(shenyuDiscoveryConfig.getName());
         this.path = shenyuDiscoveryConfig.getRegisterPath();
-        //todo 监听 kill -15 信号
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            LOGGER.info("unregister upstream server");
+            LOGGER.info("unregister upstream server by jvm runtime hook");
             if (Objects.nonNull(discoveryService)) {
                 discoveryService.shutdown();
             }
-            LOGGER.info("unregister upstream server");
         }));
     }
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
         try {
-            if (StringUtils.equalsIgnoreCase(discoveryConfig.getType(), "local")) {
+            if (StringUtils.isBlank(discoveryConfig.getType()) || StringUtils.equalsIgnoreCase(discoveryConfig.getType(), "local")) {
                 return;
             }
             this.discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(discoveryConfig.getType());
