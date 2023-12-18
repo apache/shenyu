@@ -32,9 +32,9 @@
    -> selector.key1.value3
    
    selector.key2.list ["selector.key2.value1", "selector.key2.value2", "selector.key2.value3"]
-   -> selector.key2.value4
-   -> selector.key2.value5
-   -> selector.key2.value6
+   -> selector.key2.value1
+   -> selector.key2.value2
+   -> selector.key2.value3
    ```
 
 2. Support NettyClient as default httpclient
