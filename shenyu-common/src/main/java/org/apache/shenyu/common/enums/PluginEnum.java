@@ -148,6 +148,11 @@ public enum PluginEnum {
     LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
 
     /**
+     * Logging Rabbitmq plugin enum.
+     */
+    LOGGING_RABBITMQ(171, 0, "loggingRabbitMQ"),
+    
+    /**
      * Logging AliYun sls enums.
      */
     LOGGING_ALIYUN_SLS(175, 0, "loggingAliyunSls"),
@@ -246,11 +251,6 @@ public enum PluginEnum {
      * Motan plugin enum.
      */
     MOTAN(310, 0, "motan"),
-
-    /**
-     * Motan plugin enum.
-     */
-    BRPC(310, 0, "brpc"),
 
     /**
      * Cryptor response plugin enum.

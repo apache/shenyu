@@ -29,6 +29,7 @@
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
+        <module>shenyu-admin-listener</module>
         <module>shenyu-common</module>
         <module>shenyu-web</module>
         <module>shenyu-spring-boot-starter</module>
@@ -97,6 +98,7 @@
         <apache-rat-plugin.version>0.15</apache-rat-plugin.version>
         <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
         <frontend-maven-plugin.node.version>v12.14.1</frontend-maven-plugin.node.version>
+        <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
         <!-- maven plugin version end -->
 
         <!-- dependency version start -->
@@ -127,12 +129,12 @@
         <undertow.version>2.2.2.Final</undertow.version>
         <curator.version>4.3.0</curator.version>
         <wiremock.version>2.18.0</wiremock.version>
-        <zookeeper.version>3.5.7</zookeeper.version>
+        <zookeeper.version>3.7.2</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
-        <shiro.version>1.8.0</shiro.version>
+        <shiro.version>1.13.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
         <motan.version>1.2.1</motan.version>
-        <spring-boot.version>2.7.13</spring-boot.version>
+        <spring-boot.version>2.7.17</spring-boot.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
         <jetcd-core.version>0.7.3</jetcd-core.version>
@@ -143,7 +145,6 @@
         <nacos-client.version>2.0.4</nacos-client.version>
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
         <grpc.version>1.53.0</grpc.version>
-        <brpc.version>2022.2.0</brpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>
         <pulsar-client.version>2.10.1</pulsar-client.version>
         <lz4-java.version>1.8.0</lz4-java.version>
@@ -152,6 +153,7 @@
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
         <kafka-clients.version>3.4.0</kafka-clients.version>
+        <amqp-client.version>5.16.0</amqp-client.version>
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>1.10.17</eureka.version>
         <javatuples.version>1.2</javatuples.version>

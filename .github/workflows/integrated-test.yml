@@ -34,7 +34,6 @@ jobs:
           - shenyu-integrated-test-motan
           - shenyu-integrated-test-spring-cloud
           - shenyu-integrated-test-sofa
-          - shenyu-integrated-test-brpc
           - shenyu-integrated-test-websocket
           - shenyu-integrated-test-combination
           - shenyu-integrated-test-sdk-apache-dubbo

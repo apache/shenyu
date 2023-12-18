@@ -19,10 +19,9 @@ package org.apache.shenyu.admin.model.entity;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.opengauss.util.Base64;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Objects;
@@ -217,12 +216,7 @@ public final class PluginDO extends BaseDO {
                 pluginDO.setId(item.getId());
             }
             if (Objects.nonNull(item.getFile())) {
-                try {
-                    pluginDO.setPluginJar(item.getFile().getBytes());
-                } catch (IOException e) {
-                    throw new ShenyuException(e);
-                }
-
+                pluginDO.setPluginJar(Base64.decode(item.getFile()));
             }
             return pluginDO;
         }).orElse(null);
