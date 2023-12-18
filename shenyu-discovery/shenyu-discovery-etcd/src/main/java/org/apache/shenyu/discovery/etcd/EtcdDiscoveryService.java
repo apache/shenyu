@@ -209,14 +209,11 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void shutdown() {
         try {
-            etcdClient.close();
             for (Map.Entry<String, Watch.Watcher> entry : watchCache.entrySet()) {
                 Watch.Watcher watcher = entry.getValue();
                 watcher.close();
             }
             if (Objects.nonNull(etcdClient)) {
-                Lease leaseClient = etcdClient.getLeaseClient();
-                leaseClient.close();
                 etcdClient.close();
             }
         } catch (Exception e) {
