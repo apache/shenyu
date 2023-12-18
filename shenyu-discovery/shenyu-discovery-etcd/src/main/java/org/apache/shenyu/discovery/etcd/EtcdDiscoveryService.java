@@ -74,19 +74,25 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void init(final DiscoveryConfig config) {
-        Properties props = config.getProps();
-        this.timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
-        this.ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
-        this.etcdClient = Client.builder().endpoints(config.getServerList().split(",")).build();
-        LOGGER.info("Etcd Discovery Service initialize successfully");
-        if (leaseId == 0) {
-            initLease();
+        try {
+            Properties props = config.getProps();
+            this.timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
+            this.ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
+            this.etcdClient = Client.builder().endpoints(config.getServerList().split(",")).build();
+            LOGGER.info("Etcd Discovery Service initialize successfully");
+            if (leaseId == 0) {
+                initLease();
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error initializing Etcd Discovery Service", e);
+            throw new ShenyuException(e);
         }
     }
 
     private void initLease() {
+        Lease lease = null;
         try {
-            Lease lease = etcdClient.getLeaseClient();
+            lease = etcdClient.getLeaseClient();
             this.leaseId = lease.grant(ttl).get().getID();
             lease.keepAlive(leaseId, new StreamObserver<LeaseKeepAliveResponse>() {
                 @Override
@@ -95,7 +101,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
                 @Override
                 public void onError(final Throwable throwable) {
-                    LOGGER.error("etcd lease keep alive error", throwable);
+                    // LOGGER.error("etcd lease keep alive error", throwable);
                 }
 
                 @Override
@@ -104,6 +110,14 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
             });
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("initLease error.", e);
+            if (lease != null && leaseId != 0) {
+                try {
+                    lease.revoke(leaseId).get();
+                    leaseId = 0;
+                } catch (InterruptedException | ExecutionException ex) {
+                    LOGGER.error("Failed to revoke lease after initialization error.", ex);
+                }
+            }
             throw new ShenyuException(e);
         }
     }
@@ -211,16 +225,18 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void shutdown() {
         try {
-            etcdClient.close();
             for (Map.Entry<String, Watch.Watcher> entry : watchCache.entrySet()) {
                 Watch.Watcher watcher = entry.getValue();
                 watcher.close();
             }
+            watchCache.clear();
+
             if (Objects.nonNull(etcdClient)) {
-                Lease leaseClient = etcdClient.getLeaseClient();
-                leaseClient.close();
                 etcdClient.close();
+                etcdClient = null;
+                leaseId = 0;
             }
+            LOGGER.info("Shutting down EtcdDiscoveryService");
         } catch (Exception e) {
             LOGGER.error("etcd client shutdown error", e);
             throw new ShenyuException(e);

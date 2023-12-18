@@ -199,6 +199,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
                 cacheMap.get(key).close();
             }
             client.close();
+            LOGGER.info("Shutting down ZookeeperDiscoveryService");
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
