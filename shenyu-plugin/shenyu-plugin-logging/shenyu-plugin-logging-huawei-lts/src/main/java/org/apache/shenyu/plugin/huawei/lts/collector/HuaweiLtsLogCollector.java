@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.huawei.lts.collector;
 
 import org.apache.shenyu.plugin.huawei.lts.client.HuaweiLtsLogCollectClient;
+import org.apache.shenyu.plugin.huawei.lts.config.HuaweiLogCollectConfig;
 import org.apache.shenyu.plugin.huawei.lts.handler.LoggingHuaweiLtsPluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
@@ -27,7 +28,7 @@ import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 /**
  * Huawei lts log collector，depend a LogConsumeClient for consume logs.
  */
-public class HuaweiLtsLogCollector extends AbstractLogCollector<HuaweiLtsLogCollectClient, ShenyuRequestLog> {
+public class HuaweiLtsLogCollector extends AbstractLogCollector<HuaweiLtsLogCollectClient, ShenyuRequestLog, HuaweiLogCollectConfig.HuaweiLtsLogConfig> {
 
     private static final LogCollector<ShenyuRequestLog> INSTANCE = new HuaweiLtsLogCollector();
 
@@ -43,6 +44,11 @@ public class HuaweiLtsLogCollector extends AbstractLogCollector<HuaweiLtsLogColl
     @Override
     protected HuaweiLtsLogCollectClient getLogConsumeClient() {
         return LoggingHuaweiLtsPluginDataHandler.getHuaweiLtsLogCollectClient();
+    }
+
+    @Override
+    protected HuaweiLogCollectConfig.HuaweiLtsLogConfig getLogCollectConfig() {
+        return HuaweiLogCollectConfig.INSTANCE.getHuaweiLogCollectConfig();
     }
 
     @Override

@@ -22,12 +22,13 @@ import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.apache.shenyu.plugin.logging.rabbitmq.client.RabbitmqLogCollectClient;
+import org.apache.shenyu.plugin.logging.rabbitmq.config.RabbitmqLogCollectConfig;
 import org.apache.shenyu.plugin.logging.rabbitmq.handler.LoggingRabbitmqPluginDataHandler;
 
 /**
  * rabbitmq log collector，depend a LogConsumeClient for consume logs.
  */
-public class RabbitmqLogCollector extends AbstractLogCollector<RabbitmqLogCollectClient, ShenyuRequestLog> {
+public class RabbitmqLogCollector extends AbstractLogCollector<RabbitmqLogCollectClient, ShenyuRequestLog, RabbitmqLogCollectConfig.RabbitmqLogConfig> {
 
     private static final LogCollector<ShenyuRequestLog> INSTANCE = new RabbitmqLogCollector();
 
@@ -48,6 +49,11 @@ public class RabbitmqLogCollector extends AbstractLogCollector<RabbitmqLogCollec
     @Override
     public RabbitmqLogCollectClient getLogConsumeClient() {
         return LoggingRabbitmqPluginDataHandler.getRabbitmqLogCollectClient();
+    }
+
+    @Override
+    protected RabbitmqLogCollectConfig.RabbitmqLogConfig getLogCollectConfig() {
+        return RabbitmqLogCollectConfig.INSTANCE.getRabbitmqLogConfig();
     }
 
     @Override

@@ -74,17 +74,14 @@ public class LoggingRocketMQPluginDataHandlerTest {
     @Test
     public void testHandlerSelector() {
         loggingRocketMQPluginDataHandler.handlerSelector(selectorData);
-        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
         Assertions.assertNotEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
     }
 
     @Test
     public void testRemoveSelector() {
         loggingRocketMQPluginDataHandler.handlerSelector(selectorData);
-        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
         Assertions.assertNotEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
         loggingRocketMQPluginDataHandler.removeSelector(selectorData);
-        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{}");
         Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
     }
 
@@ -96,11 +93,6 @@ public class LoggingRocketMQPluginDataHandlerTest {
     @Test
     public void testGetRocketMqLogCollectClient() {
         Assertions.assertEquals(LoggingRocketMQPluginDataHandler.getRocketMqLogCollectClient().getClass(), RocketMQLogCollectClient.class);
-    }
-
-    @Test
-    public void testGetSelectIdUriListMap() {
-        Assertions.assertEquals(LoggingRocketMQPluginDataHandler.getSelectIdUriListMap().getClass(), ConcurrentHashMap.class);
     }
 
     @Test
