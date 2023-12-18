@@ -33,8 +33,6 @@ import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The Test Case For LogCollectConfigUtils.
@@ -42,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class LogCollectConfigUtilsTest {
 
     private final GenericGlobalConfig config = new GenericGlobalConfig();
-    
+
     private ServerHttpRequest request;
 
     @BeforeEach
@@ -58,61 +56,6 @@ public class LogCollectConfigUtilsTest {
         ShenyuContext shenyuContext = Mockito.mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         this.request = exchange.getRequest();
-    }
-
-    @Test
-    public void testGetGenericGlobalConfig() {
-        GenericGlobalConfig globalLogConfig = LogCollectConfigUtils.getGenericGlobalConfig();
-        assertEquals(globalLogConfig.getClass(), GenericGlobalConfig.class);
-    }
-
-    @Test
-    public void testSetGenericGlobalConfig() {
-        assertEquals(LogCollectConfigUtils.getGenericGlobalConfig().getBufferQueueSize(), 5000);
-    }
-
-//    @Test
-//    public void testSetSampler() throws IllegalAccessException, NoSuchFieldException {
-//        Map<String, String> uriSampleMap = new HashMap<>();
-//        uriSampleMap.put("const", "");
-//        LogCollectConfigUtils.setSampler(uriSampleMap);
-//        Field field1 = LogCollectConfigUtils.class.getDeclaredField("apiSamplerMap");
-//        field1.setAccessible(true);
-//        Assertions.assertEquals(field1.get("const").toString(), "{const=" + Sampler.ALWAYS_SAMPLE + "}");
-//        uriSampleMap.put("const", "1");
-//        LogCollectConfigUtils.setSampler(uriSampleMap);
-//        Field field2 = LogCollectConfigUtils.class.getDeclaredField("apiSamplerMap");
-//        field2.setAccessible(true);
-//        Assertions.assertEquals(field2.get("const").toString(), "{const=" + Sampler.ALWAYS_SAMPLE + "}");
-//    }
-//
-//    @Test
-//    public void testIsSampled() {
-//        assertTrue(LogCollectConfigUtils.isSampled(request));
-//        Map<String, String> uriSampleMap = new HashMap<>();
-//        uriSampleMap.put("localhost", "1");
-//        LogCollectConfigUtils.setSampler(uriSampleMap);
-//        assertTrue(LogCollectConfigUtils.isSampled(request));
-//    }
-
-    @Test
-    public void testIsRequestBodyTooLarge() {
-        LogCollectConfigUtils.setGenericGlobalConfig(null);
-        assertFalse(LogCollectConfigUtils.isRequestBodyTooLarge(524289));
-        assertFalse(LogCollectConfigUtils.isRequestBodyTooLarge(524288));
-        LogCollectConfigUtils.setGenericGlobalConfig(config);
-        assertTrue(LogCollectConfigUtils.isRequestBodyTooLarge(524289));
-        assertFalse(LogCollectConfigUtils.isRequestBodyTooLarge(524288));
-    }
-
-    @Test
-    public void testIsResponseBodyTooLarge() {
-        LogCollectConfigUtils.setGenericGlobalConfig(null);
-        assertFalse(LogCollectConfigUtils.isResponseBodyTooLarge(524289));
-        assertFalse(LogCollectConfigUtils.isResponseBodyTooLarge(524288));
-        LogCollectConfigUtils.setGenericGlobalConfig(config);
-        assertTrue(LogCollectConfigUtils.isResponseBodyTooLarge(524289));
-        assertFalse(LogCollectConfigUtils.isResponseBodyTooLarge(524288));
     }
 
     @Test

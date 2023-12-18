@@ -23,10 +23,8 @@ import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.sampler.CountSampler;
 import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -35,11 +33,7 @@ import java.util.Optional;
  */
 public final class LogCollectConfigUtils {
 
-    private static final AntPathMatcher MATCHER = new AntPathMatcher();
-
-    private static GenericGlobalConfig genericGlobalConfig;
-
-    private static final GenericGlobalConfig DEFAULT_GLOBAL_LOG_CONFIG = new GenericGlobalConfig();
+    private static GenericGlobalConfig genericGlobalConfig = new GenericGlobalConfig();
 
     private static Sampler globalSampler = Sampler.ALWAYS_SAMPLE;
 
@@ -99,41 +93,6 @@ public final class LogCollectConfigUtils {
             return false;
         }
         return bodySize > genericGlobalConfig.getMaxResponseBody();
-    }
-
-    /**
-     * get global log config.
-     *
-     * @return global log config
-     */
-    public static GenericGlobalConfig getGenericGlobalConfig() {
-        return Optional.ofNullable(genericGlobalConfig).orElse(DEFAULT_GLOBAL_LOG_CONFIG);
-    }
-
-    /**
-     * set generic global config.
-     *
-     * @param config global config
-     */
-    public static void setGenericGlobalConfig(final GenericGlobalConfig config) {
-        genericGlobalConfig = config;
-    }
-
-    /**
-     * get message queue topic.
-     *
-     * @param path        uri path
-     * @param apiTopicMap api topic map
-     * @return topic
-     */
-    public static String getTopic(final String path, final Map<String, String> apiTopicMap) {
-        for (Map.Entry<String, String> entry : apiTopicMap.entrySet()) {
-            String pattern = entry.getKey();
-            if (MATCHER.match(pattern, path)) {
-                return entry.getValue();
-            }
-        }
-        return "";
     }
 
     /**
