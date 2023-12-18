@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.Ordered;
+import sun.misc.Signal;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -61,14 +62,18 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
         this.discoveryConfig.setProps(Optional.ofNullable(shenyuDiscoveryConfig.getConnectionProps()).orElse(new Properties()));
         this.discoveryConfig.setName(shenyuDiscoveryConfig.getName());
         this.path = shenyuDiscoveryConfig.getRegisterPath();
-        //todo 监听 kill -15 信号
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            LOGGER.info("unregister upstream server");
+            LOGGER.info("unregister upstream server by jvm runtime hook");
             if (Objects.nonNull(discoveryService)) {
                 discoveryService.shutdown();
             }
-            LOGGER.info("unregister upstream server");
         }));
+        Signal.handle(new Signal("TERM"), signal -> {
+            LOGGER.info("unregister upstream server by  TERM signal");
+            if (Objects.nonNull(discoveryService)) {
+                discoveryService.shutdown();
+            }
+        });
     }
 
     @Override
