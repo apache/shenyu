@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.logging.rocketmq.handler;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
@@ -25,11 +24,6 @@ import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHand
 import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
 import org.apache.shenyu.plugin.logging.rocketmq.collector.RocketMQLogCollector;
 import org.apache.shenyu.plugin.logging.rocketmq.config.RocketMQLogCollectConfig;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * The type logging rocketmq plugin data handler.
@@ -55,23 +49,6 @@ public class LoggingRocketMQPluginDataHandler extends AbstractLogPluginDataHandl
     protected void doRefreshConfig(final RocketMQLogCollectConfig.RocketMQLogConfig globalLogConfig) {
         RocketMQLogCollectConfig.INSTANCE.setRocketMQLogConfig(globalLogConfig);
         ROCKET_MQ_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
-    }
-
-    @Override
-    protected void doRefreshSelectorConfig() {
-        Map<String, GenericApiConfig> selectApiConfigMap = LoggingRocketMQPluginDataHandler.getSelectApiConfigMap();
-        Map<String, List<String>> selectIdUriListMap = LoggingRocketMQPluginDataHandler.getSelectIdUriListMap();
-        Set<String> selectorIdSet = selectIdUriListMap.keySet();
-        Map<String, String> apiTopicMap = new HashMap<>();
-        for (String selectorId : selectorIdSet) {
-            List<String> list = selectIdUriListMap.get(selectorId);
-            for (String l : list) {
-                if (StringUtils.isNotEmpty(selectApiConfigMap.get(selectorId).getTopic())) {
-                    apiTopicMap.put(l, selectApiConfigMap.get(selectorId).getTopic());
-                }
-            }
-        }
-        RocketMQLogCollectClient.setTopic(apiTopicMap);
     }
 
     @Override

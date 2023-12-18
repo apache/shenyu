@@ -29,8 +29,8 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.rocketmq.config.RocketMQLogCollectConfig;
+import org.apache.shenyu.plugin.logging.rocketmq.handler.LoggingRocketMQPluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
@@ -88,6 +88,7 @@ public class RocketMQLogCollectClient extends AbstractLogConsumeClient<RocketMQL
 
     /**
      * get Acl(Access Control List) rpc Hook.
+     *
      * @param config rocketMqLog Config
      * @return boolean
      */
@@ -106,7 +107,9 @@ public class RocketMQLogCollectClient extends AbstractLogConsumeClient<RocketMQL
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
         logs.forEach(log -> {
-            String logTopic = StringUtils.defaultIfBlank(LogCollectConfigUtils.getTopic(log.getPath(), apiTopicMap), topic);
+            String logTopic = Optional.ofNullable(LoggingRocketMQPluginDataHandler.getSelectApiConfigMap().get(log.getSelectorId()))
+                    .map(apiConfig -> StringUtils.defaultIfBlank(apiConfig.getTopic(), topic)
+                    ).orElse(topic);
             try {
                 producer.sendOneway(toMessage(logTopic, log));
             } catch (Exception e) {
@@ -134,6 +137,7 @@ public class RocketMQLogCollectClient extends AbstractLogConsumeClient<RocketMQL
 
     /**
      * set api topic map.
+     *
      * @param uriTopicMap api topic map
      */
     public static void setTopic(final Map<String, String> uriTopicMap) {
