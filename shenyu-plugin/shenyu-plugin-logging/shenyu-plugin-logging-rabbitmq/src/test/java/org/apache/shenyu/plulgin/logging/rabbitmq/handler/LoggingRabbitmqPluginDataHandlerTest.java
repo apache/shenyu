@@ -79,21 +79,6 @@ public class LoggingRabbitmqPluginDataHandlerTest {
         loggingRabbitmqPluginDataHandler.handlerPlugin(pluginData);
     }
 
-//    @Test
-//    public void testHandlerSelector() {
-//        loggingRabbitmqPluginDataHandler.handlerSelector(selectorData);
-//        Assert.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{}");
-//        Assert.assertEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
-//    }
-
-//    @Test
-//    public void testRemoveSelector() {
-//        testHandlerSelector();
-//        loggingRabbitmqPluginDataHandler.removeSelector(selectorData);
-//        Assert.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{}");
-//        Assert.assertEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
-//    }
-
     @Test
     public void testPluginNamed() {
         Assert.assertEquals(loggingRabbitmqPluginDataHandler.pluginNamed(), PluginEnum.LOGGING_RABBITMQ.getName());
@@ -103,11 +88,6 @@ public class LoggingRabbitmqPluginDataHandlerTest {
     public void testGetRabbitmqLogCollectClient() {
         Assert.assertEquals(LoggingRabbitmqPluginDataHandler.getRabbitmqLogCollectClient().getClass(), RabbitmqLogCollectClient.class);
     }
-
-//    @Test
-//    public void testGetSelectIdUriListMap() {
-//        Assert.assertEquals(LoggingRabbitmqPluginDataHandler.getSelectIdUriListMap().getClass(), ConcurrentHashMap.class);
-//    }
 
     @Test
     public void testGetSelectApiConfigMap() {

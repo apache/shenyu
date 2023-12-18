@@ -57,11 +57,6 @@ public class CountSamplerTest {
         this.request = exchange.getRequest();
     }
 
-//    @Test
-//    public void testIsSampled() {
-//        Assertions.assertTrue(countSampler.isSampled(request,se));
-//    }
-
     @Test
     public void testMod() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Method method = countSampler.getClass().getDeclaredMethod("mod", int.class);
