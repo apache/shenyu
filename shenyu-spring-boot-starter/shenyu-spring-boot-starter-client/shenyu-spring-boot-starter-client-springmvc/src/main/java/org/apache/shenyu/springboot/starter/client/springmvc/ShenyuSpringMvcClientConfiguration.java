@@ -20,20 +20,14 @@ package org.apache.shenyu.springboot.starter.client.springmvc;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.register.ClientDiscoveryConfigRefreshedEventListener;
-import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.springmvc.init.SpringMvcClientEventListener;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.client.http.HttpClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig;
-import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -84,6 +78,5 @@ public class ShenyuSpringMvcClientConfiguration {
         }
         return new SpringMvcClientEventListener(clientPropertiesConfig, shenyuClientRegisterRepository, env);
     }
-
 
 }

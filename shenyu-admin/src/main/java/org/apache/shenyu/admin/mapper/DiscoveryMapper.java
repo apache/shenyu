@@ -110,5 +110,5 @@ public interface DiscoveryMapper extends ExistProvider {
      * @param selectorName selectorName
      * @return DiscoveryDO
      */
-    DiscoveryDO selectBySelectorName( String selectorName);
+    DiscoveryDO selectBySelectorName(String selectorName);
 }

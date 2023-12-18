@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.Ordered;
-import sun.misc.Signal;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -68,18 +67,12 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
                 discoveryService.shutdown();
             }
         }));
-        Signal.handle(new Signal("TERM"), signal -> {
-            LOGGER.info("unregister upstream server by  TERM signal");
-            if (Objects.nonNull(discoveryService)) {
-                discoveryService.shutdown();
-            }
-        });
     }
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
         try {
-            if (StringUtils.equalsIgnoreCase(discoveryConfig.getType(), "local")) {
+            if (StringUtils.isBlank(discoveryConfig.getType()) || StringUtils.equalsIgnoreCase(discoveryConfig.getType(), "local")) {
                 return;
             }
             this.discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(discoveryConfig.getType());
