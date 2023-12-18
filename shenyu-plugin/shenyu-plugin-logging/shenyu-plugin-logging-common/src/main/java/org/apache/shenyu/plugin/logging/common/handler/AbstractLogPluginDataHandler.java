@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.logging.common.handler;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -51,8 +50,6 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
     public static final Supplier<CommonHandleCache<String, CommonLoggingRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractLogPluginDataHandler.class);
-
-    private static final String EMPTY_JSON = "{}";
 
     private static final Map<String, GenericApiConfig> SELECT_API_CONFIG_MAP = new ConcurrentHashMap<>();
 
@@ -113,9 +110,6 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         final Class<C> genericApiConfigClass = (Class<C>) actualTypeArguments[1];
         LOG.info("handler {} selector data:{}", pluginNamed(), GsonUtils.getGson().toJson(selectorData));
         String handleJson = selectorData.getHandle();
-        if (StringUtils.isEmpty(handleJson) || EMPTY_JSON.equals(handleJson.trim())) {
-            return;
-        }
         GenericApiConfig logApiConfig = GsonUtils.getInstance().fromJson(handleJson, genericApiConfigClass);
         logApiConfig.setSampler(LogCollectConfigUtils.setSampler(logApiConfig.getSampleRate()));
         SELECT_API_CONFIG_MAP.put(selectorData.getId(), logApiConfig);
