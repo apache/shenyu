@@ -145,6 +145,7 @@
 26. Fix duplicate response header
 27. Set the maximum time to wait for the k8s cluster to start up
 28. Fix type for status field for clickhouse log plugin
+29. Fix response plugin memory leak
 30. Fix dataType contrast error
 31. Fix http data sync error
 32. Fix spelling error
