@@ -278,6 +278,7 @@ public class SelectorServiceImpl implements SelectorService {
             }
             discoveryHandlerMapper.delete(discoveryHandlerDO.getId());
             discoveryRelMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
+            discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
             DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
             if (!Objects.isNull(discoveryDO)) {
                 DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
