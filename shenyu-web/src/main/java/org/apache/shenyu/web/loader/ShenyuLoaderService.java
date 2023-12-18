@@ -29,8 +29,11 @@ import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -66,42 +69,11 @@ public class ShenyuLoaderService {
         }
     }
 
-    private void loaderExtPlugins() {
-        try {
-            List<PluginJarParser.PluginJar> uploadPluginJars = ShenyuExtPathPluginJarLoader.loadExtendPlugins(shenyuConfig.getExtPlugin().getPath());
-            List<ShenyuLoaderResult> extendPlugins = new ArrayList<>();
-            for (PluginJarParser.PluginJar extPath : uploadPluginJars) {
-                LOG.info("shenyu extPlugin find new {} to load", extPath.getAbsolutePath());
-                ShenyuPluginClassLoader extPathClassLoader = ShenyuPluginClassloaderHolder.getSingleton().createExtPathClassLoader(extPath);
-                extendPlugins.addAll(extPathClassLoader.loadUploadedJarPlugins());
-            }
-            loaderPlugins(extendPlugins);
-        } catch (Exception e) {
-            LOG.error("shenyu ext plugins load has error ", e);
-        }
-    }
-
     /**
-     * loadUploadedJarPlugins.
+     * loadPlugin from ext-lib or admin upload jar.
      *
-     * @param uploadedJarResource uploadedJarResource
+     * @param uploadedJarResource uploadedJarResource is null load ext-lib,not null load admin upload jar
      */
-    public void loadUploadedJarPlugins(final PluginData uploadedJarResource) {
-        try {
-            PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(Base64.getDecoder().decode(uploadedJarResource.getPluginJar()));
-            ShenyuPluginClassLoader shenyuPluginClassLoader = ShenyuPluginClassloaderHolder.getSingleton().getUploadClassLoader(pluginJar);
-            if (Objects.nonNull(shenyuPluginClassLoader) && shenyuPluginClassLoader.compareVersion(pluginJar.getVersion())) {
-                LOG.info("shenyu uploadPlugin has same version don't reload it");
-                return;
-            }
-            shenyuPluginClassLoader = ShenyuPluginClassloaderHolder.getSingleton().recreateUploadClassLoader(pluginJar);
-            List<ShenyuLoaderResult> uploadPlugins = shenyuPluginClassLoader.loadUploadedJarPlugins();
-            loaderPlugins(uploadPlugins);
-        } catch (Exception e) {
-            LOG.error("shenyu upload plugins load has error ", e);
-        }
-    }
-
     public void loadPlugin(final PluginData uploadedJarResource) {
         try {
             List<ShenyuLoaderResult> plugins = new ArrayList<>();
@@ -114,16 +86,14 @@ public class ShenyuLoaderService {
                 }
             } else {
                 PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(Base64.getDecoder().decode(uploadedJarResource.getPluginJar()));
+                LOG.info("shenyu upload plugin jar find new {} to load", pluginJar.getJarKey());
                 ShenyuPluginClassLoader uploadPluginClassLoader = ShenyuPluginClassloaderHolder.getSingleton().createPluginClassLoader(pluginJar);
                 plugins.addAll(uploadPluginClassLoader.loadUploadedJarPlugins());
                 loaderPlugins(plugins);
             }
-
         } catch (Exception e) {
             LOG.error("shenyu plugins load has error ", e);
         }
-
-
     }
 
     /**

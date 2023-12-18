@@ -28,9 +28,7 @@ public final class ShenyuPluginClassloaderHolder {
 
     private static final ShenyuPluginClassloaderHolder HOLDER = new ShenyuPluginClassloaderHolder();
 
-    private final Map<String, ShenyuPluginClassLoader> uploadPluginCache = new ConcurrentHashMap<>();
-
-    private final Map<String, ShenyuPluginClassLoader> extPathPluginCache = new ConcurrentHashMap<>();
+    private final Map<String, ShenyuPluginClassLoader> pluginCache = new ConcurrentHashMap<>();
 
     private ShenyuPluginClassloaderHolder() {
     }
@@ -45,32 +43,6 @@ public final class ShenyuPluginClassloaderHolder {
     }
 
     /**
-     * reCreate.
-     *
-     * @param pluginJar pluginJar
-     * @return ShenyuUploadPluginClassLoader
-     */
-    public ShenyuPluginClassLoader recreateUploadClassLoader(final PluginJarParser.PluginJar pluginJar) {
-        String jarKey = pluginJar.getJarKey();
-        if (uploadPluginCache.containsKey(jarKey)) {
-            uploadPluginCache.remove(jarKey).close();
-        }
-        return uploadPluginCache.computeIfAbsent(jarKey, key -> new ShenyuPluginClassLoader(pluginJar));
-    }
-
-    /**
-     * createExtPathClassLoader.
-     *
-     * @param pluginJar pluginJar
-     * @return ShenyuPluginClassLoader
-     */
-    public ShenyuPluginClassLoader createExtPathClassLoader(final PluginJarParser.PluginJar pluginJar) {
-        ShenyuPluginClassLoader shenyuPluginClassLoader = new ShenyuPluginClassLoader(pluginJar);
-        extPathPluginCache.put(pluginJar.getAbsolutePath(), shenyuPluginClassLoader);
-        return shenyuPluginClassLoader;
-    }
-
-    /**
      * createPluginClassLoader.
      *
      * @param pluginJar pluginJar
@@ -79,29 +51,21 @@ public final class ShenyuPluginClassloaderHolder {
     public ShenyuPluginClassLoader createPluginClassLoader(final PluginJarParser.PluginJar pluginJar) {
         ShenyuPluginClassLoader shenyuPluginClassLoader = new ShenyuPluginClassLoader(pluginJar);
         String jarKey = Optional.ofNullable(pluginJar.getAbsolutePath()).orElse(pluginJar.getJarKey());
-        extPathPluginCache.put(jarKey, shenyuPluginClassLoader);
+        if (pluginCache.containsKey(jarKey)) {
+            pluginCache.remove(jarKey).close();
+        }
+        pluginCache.put(jarKey, shenyuPluginClassLoader);
         return shenyuPluginClassLoader;
     }
 
     /**
-     * get.
+     * removePluginClassLoader.
      *
-     * @param pluginJar pluginJar
-     * @return ShenyuUploadPluginClassLoader
+     * @param jarKey jarKey
      */
-    public ShenyuPluginClassLoader getUploadClassLoader(final PluginJarParser.PluginJar pluginJar) {
-        String jarKey = pluginJar.getJarKey();
-        return uploadPluginCache.get(jarKey);
-    }
-
-    /**
-     * removeExtPathPluginClassLoader.
-     *
-     * @param path path
-     */
-    public void removeExtPathPluginClassLoader(final String path) {
-        if (extPathPluginCache.containsKey(path)) {
-            extPathPluginCache.remove(path).close();
+    public void removePluginClassLoader(final String jarKey) {
+        if (pluginCache.containsKey(jarKey)) {
+            pluginCache.remove(jarKey).close();
         }
     }
 
