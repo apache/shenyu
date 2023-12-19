@@ -18,7 +18,6 @@
 package org.apache.shenyu.web.loader;
 
 import com.google.common.collect.Lists;
-import com.google.common.io.CharStreams;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -40,12 +39,10 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
@@ -85,7 +82,7 @@ public class ShenyuLoaderServiceTest {
     }
 
     @Test
-    public void loaderExtPluginsTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException, IOException {
+    public void loaderExtPluginsTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
         final ShenyuPluginLoader loader = ShenyuPluginLoader.getInstance();
         final Field field = ShenyuPluginLoader.class.getDeclaredField("jars");
         field.setAccessible(true);
