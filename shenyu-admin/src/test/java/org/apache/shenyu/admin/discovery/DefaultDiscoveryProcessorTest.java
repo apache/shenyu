@@ -178,6 +178,8 @@ public class DefaultDiscoveryProcessorTest {
 //        when(discoveryUpstreamMapper.insert(any(DiscoveryUpstreamDO.class))).thenReturn(1);
         doNothing().when(eventPublisher).publishEvent(any(Object.class));
         DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
+        discoveryHandlerDTO.setId("1");
+        discoveryHandlerDTO.setDiscoveryId("id");
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
         defaultDiscoveryProcessor.fetchAll(discoveryHandlerDTO, proxySelectorDTO);
         verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
