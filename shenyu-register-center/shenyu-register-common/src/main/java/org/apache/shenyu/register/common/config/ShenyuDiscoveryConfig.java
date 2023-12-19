@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.register.common.config;
 
-import java.util.Properties;
-
 /**
  * The type Discovery config.
  */
