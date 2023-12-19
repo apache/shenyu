@@ -91,7 +91,7 @@ public class ShenyuGrpcClientConfiguration {
      * @param env                env
      * @return clientRegisterConfig
      */
-    @Bean
+    @Bean("grpcClientRegisterConfig")
     public ClientRegisterConfig clientRegisterConfig(final ShenyuClientConfig shenyuClientConfig,
                                                      final ApplicationContext applicationContext,
                                                      final Environment env) {

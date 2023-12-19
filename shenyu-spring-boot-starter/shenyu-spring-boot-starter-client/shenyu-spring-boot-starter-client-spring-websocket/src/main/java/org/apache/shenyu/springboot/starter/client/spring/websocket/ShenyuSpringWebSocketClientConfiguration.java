@@ -77,7 +77,7 @@ public class ShenyuSpringWebSocketClientConfiguration {
      * @param env                env
      * @return clientRegisterConfig
      */
-    @Bean
+    @Bean("webSocketClientRegisterConfig")
     public ClientRegisterConfig clientRegisterConfig(final ShenyuClientConfig shenyuClientConfig,
                                                      final ApplicationContext applicationContext,
                                                      final Environment env) {

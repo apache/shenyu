@@ -35,6 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 
 import java.util.Properties;
@@ -90,7 +91,8 @@ public class ShenyuSpringMvcClientConfiguration {
      * @param env                env
      * @return clientRegisterConfig
      */
-    @Bean
+    @Bean("springMvcClientRegisterConfig")
+    @Primary
     public ClientRegisterConfig clientRegisterConfig(final ShenyuClientConfig shenyuClientConfig,
                                                      final ApplicationContext applicationContext,
                                                      final Environment env) {
