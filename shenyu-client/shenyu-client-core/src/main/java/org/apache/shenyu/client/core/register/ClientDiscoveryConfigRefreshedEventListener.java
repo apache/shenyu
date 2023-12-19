@@ -65,14 +65,13 @@ public final class ClientDiscoveryConfigRefreshedEventListener implements Applic
             LOG.error("If using service discovery. The configuration shenyu.discovery.name in xml/yml cannot be null");
             throw new ShenyuException("The configuration shenyu.discovery.type in xml/yml cannot be null");
         }
-        String handler = (String) shenyuDiscoveryConfig.getProps().getOrDefault("discoveryHandler.handler", "{}");
         return DiscoveryConfigRegisterDTO.builder()
                 .name(discoveryName())
                 .selectorName(clientRegisterConfig.getContextPath())
-                .handler(handler)
+                .handler("{}")
                 .listenerNode(shenyuDiscoveryConfig.getRegisterPath())
                 .serverList(shenyuDiscoveryConfig.getServerList())
-                .props(shenyuDiscoveryConfig.getConnectionProps())
+                .props(shenyuDiscoveryConfig.getProps())
                 .discoveryType(shenyuDiscoveryConfig.getType())
                 .pluginName(plugin.getName())
                 .build();

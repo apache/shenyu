@@ -20,16 +20,12 @@ package org.apache.shenyu.admin.discovery;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.discovery.parse.CustomDiscoveryUpstreamParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
-import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
-import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
-import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
@@ -71,23 +67,15 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
-    private final DiscoveryHandlerMapper discoveryHandlerMapper;
-
-    private final ProxySelectorMapper proxySelectorMapper;
-
     /**
      * DefaultDiscoveryProcessor.
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
      */
-    public AbstractDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
-                                      final DiscoveryHandlerMapper discoveryHandlerMapper,
-                                      final ProxySelectorMapper proxySelectorMapper) {
+    public AbstractDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper) {
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
         this.discoveryServiceCache = new ConcurrentHashMap<>();
-        this.discoveryHandlerMapper = discoveryHandlerMapper;
         this.dataChangedEventListenerCache = new ConcurrentHashMap<>();
-        this.proxySelectorMapper = proxySelectorMapper;
     }
 
     @Override
@@ -152,16 +140,15 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
     }
 
     @Override
-    public void fetchAll(final String discoveryHandlerId) {
-        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
-        String discoveryId = discoveryHandlerDO.getDiscoveryId();
+    public void fetchAll(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
+        String discoveryId = discoveryHandlerDTO.getDiscoveryId();
         if (discoveryServiceCache.containsKey(discoveryId)) {
             ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryId);
-            List<String> childData = shenyuDiscoveryService.getRegisterData(buildProxySelectorKey(discoveryHandlerDO.getListenerNode()));
+            List<String> childData = shenyuDiscoveryService.getRegisterData(buildProxySelectorKey(discoveryHandlerDTO.getListenerNode()));
             List<DiscoveryUpstreamData> discoveryUpstreamDataList = childData.stream().map(s -> GsonUtils.getGson().fromJson(s, DiscoveryUpstreamData.class))
                     .collect(Collectors.toList());
             Set<String> urlList = discoveryUpstreamDataList.stream().map(DiscoveryUpstreamData::getUrl).collect(Collectors.toSet());
-            List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+            List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDTO.getId());
             Set<String> dbUrlList = discoveryUpstreamDOS.stream().map(DiscoveryUpstreamDO::getUrl).collect(Collectors.toSet());
             List<String> deleteIds = new ArrayList<>();
             for (DiscoveryUpstreamDO discoveryUpstreamDO : discoveryUpstreamDOS) {
@@ -176,18 +163,16 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
                 if (!dbUrlList.contains(currDiscoveryUpstreamDate.getUrl())) {
                     DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryTransfer.INSTANCE.mapToDo(currDiscoveryUpstreamDate);
                     discoveryUpstreamDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                    discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
+                    discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerDTO.getId());
                     discoveryUpstreamDO.setDateCreated(new Timestamp(System.currentTimeMillis()));
                     discoveryUpstreamDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
                     discoveryUpstreamMapper.insert(discoveryUpstreamDO);
                 }
             }
-
-            ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectByHandlerId(discoveryHandlerId);
             DiscoverySyncData discoverySyncData = new DiscoverySyncData();
-            discoverySyncData.setSelectorId(proxySelectorDO.getId());
-            discoverySyncData.setSelectorName(proxySelectorDO.getName());
-            discoverySyncData.setPluginName(proxySelectorDO.getPluginName());
+            discoverySyncData.setSelectorId(proxySelectorDTO.getId());
+            discoverySyncData.setSelectorName(proxySelectorDTO.getName());
+            discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
             discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
             DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
             eventPublisher.publishEvent(dataChangedEvent);

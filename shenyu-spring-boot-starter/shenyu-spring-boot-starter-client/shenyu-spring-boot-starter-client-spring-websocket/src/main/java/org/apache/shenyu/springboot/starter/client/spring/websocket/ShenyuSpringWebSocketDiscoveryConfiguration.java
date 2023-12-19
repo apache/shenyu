@@ -67,8 +67,7 @@ public class ShenyuSpringWebSocketDiscoveryConfiguration {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setProtocol(ShenyuClientConstants.WS);
         discoveryUpstreamData.setStatus(0);
-        String weight = shenyuDiscoveryConfig.getProps().getOrDefault("discoveryUpstream.weight", "10").toString();
-        discoveryUpstreamData.setWeight(Integer.parseInt(weight));
+        discoveryUpstreamData.setWeight(10);
         discoveryUpstreamData.setUrl(eventListener.getHost() + ":" + eventListener.getPort());
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }

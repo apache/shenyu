@@ -21,13 +21,11 @@ import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
-import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
-import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
@@ -78,9 +76,6 @@ public class DefaultDiscoveryProcessorTest {
     private DiscoveryHandlerMapper discoveryHandlerMapper;
 
     @Mock
-    private ProxySelectorMapper proxySelectorMapper;
-
-    @Mock
     private ShenyuDiscoveryService shenyuDiscoveryService;
 
     @Mock
@@ -88,7 +83,7 @@ public class DefaultDiscoveryProcessorTest {
 
     @Before
     public void setUp() {
-        defaultDiscoveryProcessor = new DefaultDiscoveryProcessor(discoveryUpstreamMapper, discoveryHandlerMapper, proxySelectorMapper);
+        defaultDiscoveryProcessor = new DefaultDiscoveryProcessor(discoveryUpstreamMapper);
     }
 
     @BeforeEach
@@ -179,11 +174,12 @@ public class DefaultDiscoveryProcessorTest {
         discoveryUpstreamDOS.add(discoveryUpstreamDO);
 //        childData.add("1");
         when(discoveryUpstreamMapper.selectByDiscoveryHandlerId(anyString())).thenReturn(discoveryUpstreamDOS);
-        when(proxySelectorMapper.selectByHandlerId(anyString())).thenReturn(new ProxySelectorDO());
 //        when(shenyuDiscoveryService.getRegisterData(anyString())).thenReturn(childData);
 //        when(discoveryUpstreamMapper.insert(any(DiscoveryUpstreamDO.class))).thenReturn(1);
         doNothing().when(eventPublisher).publishEvent(any(Object.class));
-        defaultDiscoveryProcessor.fetchAll("1");
+        DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
+        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+        defaultDiscoveryProcessor.fetchAll(discoveryHandlerDTO, proxySelectorDTO);
         verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 

@@ -19,9 +19,7 @@ package org.apache.shenyu.admin.discovery;
 
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
-import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
@@ -43,10 +41,8 @@ public class DefaultDiscoveryProcessor extends AbstractDiscoveryProcessor {
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
      */
-    public DefaultDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
-                                     final DiscoveryHandlerMapper discoveryHandlerMapper,
-                                     final ProxySelectorMapper proxySelectorMapper) {
-        super(discoveryUpstreamMapper, discoveryHandlerMapper, proxySelectorMapper);
+    public DefaultDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper) {
+        super(discoveryUpstreamMapper);
     }
 
     @Override

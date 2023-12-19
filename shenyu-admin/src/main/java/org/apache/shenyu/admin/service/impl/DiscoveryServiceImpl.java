@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.shenyu.admin.discovery.DiscoveryLevel;
 import org.apache.shenyu.admin.discovery.DiscoveryMode;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +31,7 @@ import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
+import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
@@ -72,6 +74,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private final SelectorService selectorService;
 
+    private final SelectorMapper selectorMapper;
+
     private final ProxySelectorService proxySelectorService;
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
@@ -81,6 +85,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                                 final DiscoveryRelMapper discoveryRelMapper,
                                 final DiscoveryHandlerMapper discoveryHandlerMapper,
                                 final SelectorService selectorService,
+                                final SelectorMapper selectorMapper,
                                 final ProxySelectorService proxySelectorService,
                                 final DiscoveryProcessorHolder discoveryProcessorHolder) {
         this.discoveryMapper = discoveryMapper;
@@ -89,6 +94,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         this.discoveryRelMapper = discoveryRelMapper;
         this.discoveryHandlerMapper = discoveryHandlerMapper;
         this.selectorService = selectorService;
+        this.selectorMapper = selectorMapper;
         this.proxySelectorService = proxySelectorService;
     }
 
@@ -248,8 +254,18 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             proxySelectorMapper.selectByDiscoveryId(d.getId()).stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).forEach(ps -> {
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectByProxySelectorId(ps.getId());
                 discoveryProcessor.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), ps);
-                discoveryProcessor.fetchAll(discoveryHandlerDO.getId());
+                discoveryProcessor.fetchAll(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), ps);
             });
+            List<SelectorDO> selectorDOS = selectorMapper.selectByDiscoveryId(d.getId());
+            for (SelectorDO selectorDO : selectorDOS) {
+                ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+                proxySelectorDTO.setPluginName(d.getPluginName());
+                proxySelectorDTO.setName(selectorDO.getName());
+                proxySelectorDTO.setId(selectorDO.getId());
+                DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorDO.getId());
+                discoveryProcessor.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
+                discoveryProcessor.fetchAll(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
+            }
         });
     }
 

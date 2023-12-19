@@ -58,7 +58,7 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
         this.discoveryConfig = new DiscoveryConfig();
         this.discoveryConfig.setServerList(shenyuDiscoveryConfig.getServerList());
         this.discoveryConfig.setType(shenyuDiscoveryConfig.getType());
-        this.discoveryConfig.setProps(Optional.ofNullable(shenyuDiscoveryConfig.getConnectionProps()).orElse(new Properties()));
+        this.discoveryConfig.setProps(Optional.ofNullable(shenyuDiscoveryConfig.getProps()).orElse(new Properties()));
         this.discoveryConfig.setName(shenyuDiscoveryConfig.getName());
         this.path = shenyuDiscoveryConfig.getRegisterPath();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
@@ -37,6 +38,7 @@ import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
@@ -79,11 +81,14 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
 
     private final DiscoveryHandlerMapper discoveryHandlerMapper;
 
+    private final SelectorMapper selectorMapper;
+
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
     public ProxySelectorServiceImpl(final ProxySelectorMapper proxySelectorMapper, final DiscoveryMapper discoveryMapper,
                                     final DiscoveryUpstreamMapper discoveryUpstreamMapper, final DiscoveryHandlerMapper discoveryHandlerMapper,
                                     final DiscoveryRelMapper discoveryRelMapper,
+                                    final SelectorMapper selectorMapper,
                                     final DiscoveryProcessorHolder discoveryProcessorHolder) {
 
         this.proxySelectorMapper = proxySelectorMapper;
@@ -91,6 +96,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         this.discoveryRelMapper = discoveryRelMapper;
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
         this.discoveryHandlerMapper = discoveryHandlerMapper;
+        this.selectorMapper = selectorMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
     }
 
@@ -385,7 +391,19 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     public void fetchData(final String discoveryHandlerId) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
-        discoveryProcessorHolder.chooseProcessor(discoveryDO.getType()).fetchAll(discoveryHandlerId);
+        ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectByHandlerId(discoveryHandlerId);
+        DiscoveryHandlerDTO discoveryHandlerDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO);
+        if (Objects.nonNull(proxySelectorDO)) {
+            discoveryProcessorHolder.chooseProcessor(discoveryDO.getType()).fetchAll(discoveryHandlerDTO, DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO));
+        }
+        SelectorDO selectorDO = selectorMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+        if (Objects.nonNull(selectorDO)) {
+            ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+            proxySelectorDTO.setPluginName(discoveryDO.getPluginName());
+            proxySelectorDTO.setName(selectorDO.getName());
+            proxySelectorDTO.setId(selectorDO.getId());
+            discoveryProcessorHolder.chooseProcessor(discoveryDO.getType()).fetchAll(discoveryHandlerDTO, proxySelectorDTO);
+        }
     }
 
     @Override

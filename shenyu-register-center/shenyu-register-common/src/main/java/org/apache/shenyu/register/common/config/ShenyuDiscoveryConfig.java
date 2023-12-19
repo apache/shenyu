@@ -32,8 +32,6 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
 
     private String registerPath;
 
-    private Properties connectionProps;
-
     /**
      * Gets name.
      *
@@ -107,21 +105,4 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
         this.registerPath = registerPath;
     }
 
-    /**
-     * getConnectionProps.
-     *
-     * @return connectionProps
-     */
-    public Properties getConnectionProps() {
-        return connectionProps;
-    }
-
-    /**
-     * setConnectionProps.
-     *
-     * @param connectionProps connectionProps
-     */
-    public void setConnectionProps(final Properties connectionProps) {
-        this.connectionProps = connectionProps;
-    }
 }

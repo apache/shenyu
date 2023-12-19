@@ -49,8 +49,7 @@ public class ShenyuGrpcDiscoveryConfiguration {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setUrl(clientRegisterConfig.getHost() + ":" + clientRegisterConfig.getPort());
         discoveryUpstreamData.setStatus(0);
-        String weight = shenyuDiscoveryConfig.getProps().getOrDefault("discoveryUpstream.weight", "10").toString();
-        discoveryUpstreamData.setWeight(Integer.parseInt(weight));
+        discoveryUpstreamData.setWeight(10);
         discoveryUpstreamData.setProtocol(shenyuDiscoveryConfig.getProps().getOrDefault("discoveryUpstream.protocol", ShenyuClientConstants.HTTP).toString());
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
