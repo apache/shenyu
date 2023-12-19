@@ -96,7 +96,7 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         }
         ServerHttpRequest request = exchange.getRequest();
         // control sampling
-        if (LogCollectConfigUtils.isSampled(exchange, selector)) {
+        if (!LogCollectConfigUtils.isSampled(exchange, selector)) {
             return chain.execute(exchange);
         }
 
