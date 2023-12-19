@@ -26,9 +26,11 @@ import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.springframework.util.ObjectUtils;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /*
@@ -55,7 +57,7 @@ public class WebSocketUpstreamDataHandler implements DiscoveryUpstreamDataHandle
                 .url(u.getUrl())
                 .weight(u.getWeight())
                 .status(0 == u.getStatus())
-                .timestamp(u.getDateUpdated().getTime())
+                .timestamp(Optional.ofNullable(u.getDateUpdated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
                 .build()).collect(Collectors.toList());
     }
 
