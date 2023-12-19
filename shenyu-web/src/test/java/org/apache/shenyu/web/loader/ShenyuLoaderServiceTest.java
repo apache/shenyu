@@ -18,7 +18,9 @@
 package org.apache.shenyu.web.loader;
 
 import com.google.common.collect.Lists;
+import com.google.common.io.CharStreams;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
@@ -38,10 +40,12 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
@@ -81,7 +85,7 @@ public class ShenyuLoaderServiceTest {
     }
 
     @Test
-    public void loaderExtPluginsTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+    public void loaderExtPluginsTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException, IOException {
         final ShenyuPluginLoader loader = ShenyuPluginLoader.getInstance();
         final Field field = ShenyuPluginLoader.class.getDeclaredField("jars");
         field.setAccessible(true);
@@ -96,16 +100,15 @@ public class ShenyuLoaderServiceTest {
         extPlugin.setEnabled(true);
         extPlugin.setPath(path.toString());
         ShenyuLoaderService shenyuLoaderService = new ShenyuLoaderService(shenyuWebHandler, commonPluginDataSubscriber, shenyuConfig);
-
-        final Method loaderExtPlugins = ShenyuLoaderService.class.getDeclaredMethod("loaderExtPlugins");
+        final Method loaderExtPlugins = ShenyuLoaderService.class.getDeclaredMethod("loadExtOrUploadPlugins", PluginData.class);
         loaderExtPlugins.setAccessible(true);
-        loaderExtPlugins.invoke(shenyuLoaderService);
+        loaderExtPlugins.invoke(shenyuLoaderService, mock(PluginData.class));
 
         doThrow(ShenyuException.class).when(shenyuWebHandler).putExtPlugins(any());
-        loaderExtPlugins.invoke(shenyuLoaderService);
+        loaderExtPlugins.invoke(shenyuLoaderService, mock(PluginData.class));
 
         extPlugin.setPath("test");
-        loaderExtPlugins.invoke(shenyuLoaderService);
+        loaderExtPlugins.invoke(shenyuLoaderService, mock(PluginData.class));
         ShenyuPluginLoader.getInstance().close();
     }
 }

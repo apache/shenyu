@@ -64,7 +64,7 @@ public class ShenyuLoaderService {
         ExtPlugin config = shenyuConfig.getExtPlugin();
         if (config.getEnabled()) {
             ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(config.getThreads(), ShenyuThreadFactory.create("plugin-ext-loader", true));
-            executor.scheduleAtFixedRate(() -> loadPlugin(null), config.getScheduleDelay(), config.getScheduleTime(), TimeUnit.SECONDS);
+            executor.scheduleAtFixedRate(() -> loadExtOrUploadPlugins(null), config.getScheduleDelay(), config.getScheduleTime(), TimeUnit.SECONDS);
         }
     }
 
@@ -73,7 +73,7 @@ public class ShenyuLoaderService {
      *
      * @param uploadedJarResource uploadedJarResource is null load ext-lib,not null load admin upload jar
      */
-    public void loadPlugin(final PluginData uploadedJarResource) {
+    public void loadExtOrUploadPlugins(final PluginData uploadedJarResource) {
         try {
             List<ShenyuLoaderResult> plugins = new ArrayList<>();
             ShenyuPluginClassloaderHolder singleton = ShenyuPluginClassloaderHolder.getSingleton();
@@ -89,8 +89,8 @@ public class ShenyuLoaderService {
                 LOG.info("shenyu upload plugin jar find new {} to load", pluginJar.getJarKey());
                 ShenyuPluginClassLoader uploadPluginClassLoader = singleton.createPluginClassLoader(pluginJar);
                 plugins.addAll(uploadPluginClassLoader.loadUploadedJarPlugins());
-                loaderPlugins(plugins);
             }
+            loaderPlugins(plugins);
         } catch (Exception e) {
             LOG.error("shenyu plugins load has error ", e);
         }
