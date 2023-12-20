@@ -182,7 +182,6 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
             for (ScheduledFuture<?> scheduledFuture : listenerThreadsMap.values()) {
                 scheduledFuture.cancel(true);
             }
-            executorService.shutdown();
             listenerThreadsMap.clear();
             if (Objects.nonNull(eurekaClient)) {
                 eurekaClient.getApplicationInfoManager().setInstanceStatus(InstanceInfo.InstanceStatus.DOWN);
