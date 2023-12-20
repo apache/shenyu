@@ -122,51 +122,49 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void watch(final String key, final DataChangedEventListener listener) {
-        if (!this.watchCache.containsKey(key)) {
-            try {
-                GetOption build = GetOption.newBuilder().isPrefix(true).build();
-                CompletableFuture<GetResponse> getResponseCompletableFuture = etcdClient.getKVClient().get(bytesOf(key), build);
-                GetResponse getResponse = getResponseCompletableFuture.get();
-                List<KeyValue> kvs = getResponse.getKvs();
-                for (KeyValue kv : kvs) {
-                    DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(kv.getKey().toString(), kv.getValue().toString(UTF_8), DiscoveryDataChangedEvent.Event.ADDED);
-                    listener.onChange(dataChangedEvent);
-                }
-                Watch watch = etcdClient.getWatchClient();
-                WatchOption option = WatchOption.newBuilder().isPrefix(true).withPrevKV(true).build();
-                Watch.Watcher watcher = watch.watch(bytesOf(key), option, Watch.listener(response -> {
-                    for (WatchEvent event : response.getEvents()) {
-                        DiscoveryDataChangedEvent dataChangedEvent;
-                        // ignore parent node
-                        if (event.getKeyValue().getKey().equals(bytesOf(key))) {
-                            return;
-                        }
-                        String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
-                        String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
-
-                        if (Objects.nonNull(event.getKeyValue()) && Objects.nonNull(value)) {
-                            switch (event.getEventType()) {
-                                case PUT:
-                                    dataChangedEvent = event.getKeyValue().getCreateRevision() == event.getKeyValue().getModRevision()
-                                            ? new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.ADDED)
-                                            : new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.UPDATED);
-                                    break;
-                                case DELETE:
-                                    dataChangedEvent = new DiscoveryDataChangedEvent(path, event.getPrevKV().getValue().toString(StandardCharsets.UTF_8), DiscoveryDataChangedEvent.Event.DELETED);
-                                    break;
-                                default:
-                                    dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.IGNORED);
-                            }
-                            listener.onChange(dataChangedEvent);
-                        }
-                    }
-                }));
-                watchCache.put(key, watcher);
-                LOGGER.info("Added etcd watcher for key: {}", key);
-            } catch (Exception e) {
-                LOGGER.error("etcd client watch key: {} error", key, e);
-                throw new ShenyuException(e);
+        try {
+            GetOption build = GetOption.newBuilder().isPrefix(true).build();
+            CompletableFuture<GetResponse> getResponseCompletableFuture = etcdClient.getKVClient().get(bytesOf(key), build);
+            GetResponse getResponse = getResponseCompletableFuture.get();
+            List<KeyValue> kvs = getResponse.getKvs();
+            for (KeyValue kv : kvs) {
+                DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(kv.getKey().toString(), kv.getValue().toString(UTF_8), DiscoveryDataChangedEvent.Event.ADDED);
+                listener.onChange(dataChangedEvent);
             }
+            Watch watch = etcdClient.getWatchClient();
+            WatchOption option = WatchOption.newBuilder().isPrefix(true).withPrevKV(true).build();
+            Watch.Watcher watcher = watch.watch(bytesOf(key), option, Watch.listener(response -> {
+                for (WatchEvent event : response.getEvents()) {
+                    DiscoveryDataChangedEvent dataChangedEvent;
+                    // ignore parent node
+                    if (event.getKeyValue().getKey().equals(bytesOf(key))) {
+                        return;
+                    }
+                    String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
+                    String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
+
+                    if (Objects.nonNull(event.getKeyValue()) && Objects.nonNull(value)) {
+                        switch (event.getEventType()) {
+                            case PUT:
+                                dataChangedEvent = event.getKeyValue().getCreateRevision() == event.getKeyValue().getModRevision()
+                                        ? new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.ADDED)
+                                        : new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.UPDATED);
+                                break;
+                            case DELETE:
+                                dataChangedEvent = new DiscoveryDataChangedEvent(path, event.getPrevKV().getValue().toString(StandardCharsets.UTF_8), DiscoveryDataChangedEvent.Event.DELETED);
+                                break;
+                            default:
+                                dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.IGNORED);
+                        }
+                        listener.onChange(dataChangedEvent);
+                    }
+                }
+            }));
+            watchCache.put(key, watcher);
+            LOGGER.info("Added etcd watcher for key: {}", key);
+        } catch (Exception e) {
+            LOGGER.error("etcd client watch key: {} error", key, e);
+            throw new ShenyuException(e);
         }
     }
 

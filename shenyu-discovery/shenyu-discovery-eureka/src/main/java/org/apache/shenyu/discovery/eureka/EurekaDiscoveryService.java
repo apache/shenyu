@@ -91,27 +91,25 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void watch(final String key, final DataChangedEventListener listener) {
-        if (!listenerThreadsMap.containsKey(key)) {
-            List<InstanceInfo> initialInstances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
-            instanceListMap.put(key, initialInstances);
-            for (InstanceInfo instance : initialInstances) {
-                DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getAppName(),
-                        buildUpstreamJsonFromInstanceInfo(instance), DiscoveryDataChangedEvent.Event.ADDED);
-                listener.onChange(dataChangedEvent);
-            }
-            ScheduledFuture<?> scheduledFuture = executorService.scheduleAtFixedRate(() -> {
-                try {
-                    List<InstanceInfo> previousInstances = instanceListMap.get(key);
-                    List<InstanceInfo> currentInstances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
-                    compareInstances(previousInstances, currentInstances, listener);
-                    instanceListMap.put(key, currentInstances);
-                } catch (Exception e) {
-                    LOGGER.error("EurekaDiscoveryService watch key: {} error", key, e);
-                    throw new ShenyuException(e);
-                }
-            }, 0, 1, TimeUnit.SECONDS);
-            listenerThreadsMap.put(key, scheduledFuture);
+        List<InstanceInfo> initialInstances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
+        instanceListMap.put(key, initialInstances);
+        for (InstanceInfo instance : initialInstances) {
+            DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getAppName(),
+                    buildUpstreamJsonFromInstanceInfo(instance), DiscoveryDataChangedEvent.Event.ADDED);
+            listener.onChange(dataChangedEvent);
         }
+        ScheduledFuture<?> scheduledFuture = executorService.scheduleAtFixedRate(() -> {
+            try {
+                List<InstanceInfo> previousInstances = instanceListMap.get(key);
+                List<InstanceInfo> currentInstances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
+                compareInstances(previousInstances, currentInstances, listener);
+                instanceListMap.put(key, currentInstances);
+            } catch (Exception e) {
+                LOGGER.error("EurekaDiscoveryService watch key: {} error", key, e);
+                throw new ShenyuException(e);
+            }
+        }, 0, 1, TimeUnit.SECONDS);
+        listenerThreadsMap.put(key, scheduledFuture);
     }
 
     @Override

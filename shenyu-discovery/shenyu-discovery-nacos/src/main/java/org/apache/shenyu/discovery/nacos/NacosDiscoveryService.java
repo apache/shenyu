@@ -89,30 +89,28 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void watch(final String key, final DataChangedEventListener listener) {
         try {
-            if (!listenerMap.containsKey(key)) {
-                List<Instance> initialInstances = namingService.selectInstances(key, groupName, true);
-                instanceListMap.put(key, initialInstances);
-                for (Instance instance : initialInstances) {
-                    DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getServiceName(),
-                            buildUpstreamJsonFromInstance(instance), DiscoveryDataChangedEvent.Event.ADDED);
-                    listener.onChange(dataChangedEvent);
-                }
-                EventListener nacosListener = event -> {
-                    if (event instanceof NamingEvent) {
-                        try {
-                            List<Instance> previousInstances = instanceListMap.get(key);
-                            List<Instance> currentInstances = namingService.selectInstances(key, groupName, true);
-                            compareInstances(previousInstances, currentInstances, listener);
-                            instanceListMap.put(key, currentInstances);
-                        } catch (NacosException e) {
-                            throw new ShenyuException(e);
-                        }
-                    }
-                };
-                namingService.subscribe(key, groupName, nacosListener);
-                listenerMap.put(key, nacosListener);
-                LOGGER.info("Subscribed to Nacos updates for key: {}", key);
+            List<Instance> initialInstances = namingService.selectInstances(key, groupName, true);
+            instanceListMap.put(key, initialInstances);
+            for (Instance instance : initialInstances) {
+                DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(instance.getServiceName(),
+                        buildUpstreamJsonFromInstance(instance), DiscoveryDataChangedEvent.Event.ADDED);
+                listener.onChange(dataChangedEvent);
             }
+            EventListener nacosListener = event -> {
+                if (event instanceof NamingEvent) {
+                    try {
+                        List<Instance> previousInstances = instanceListMap.get(key);
+                        List<Instance> currentInstances = namingService.selectInstances(key, groupName, true);
+                        compareInstances(previousInstances, currentInstances, listener);
+                        instanceListMap.put(key, currentInstances);
+                    } catch (NacosException e) {
+                        throw new ShenyuException(e);
+                    }
+                }
+            };
+            namingService.subscribe(key, groupName, nacosListener);
+            listenerMap.put(key, nacosListener);
+            LOGGER.info("Subscribed to Nacos updates for key: {}", key);
         } catch (NacosException e) {
             LOGGER.error("nacosDiscoveryService error watching key: {}", key, e);
             throw new ShenyuException(e);
