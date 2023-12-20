@@ -73,6 +73,9 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void init(final DiscoveryConfig config) {
         try {
+            if (this.etcdClient != null) {
+                return;
+            }
             Properties props = config.getProps();
             this.timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
             this.ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
@@ -226,7 +229,6 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
                 watcher.close();
             }
             watchCache.clear();
-
             if (Objects.nonNull(etcdClient)) {
                 etcdClient.close();
                 etcdClient = null;

@@ -72,7 +72,7 @@ public interface DiscoveryProcessor {
      * sync all upstream list to gateway and db.
      *
      * @param discoveryHandlerDTO discoveryHandlerDTO
-     * @param proxySelectorDTO proxySelectorDTO
+     * @param proxySelectorDTO    proxySelectorDTO
      */
     void fetchAll(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO);
 

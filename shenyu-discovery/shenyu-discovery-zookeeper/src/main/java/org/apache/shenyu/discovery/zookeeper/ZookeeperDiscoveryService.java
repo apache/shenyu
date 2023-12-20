@@ -60,6 +60,10 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void init(final DiscoveryConfig config) {
+        if (this.client != null) {
+            LOGGER.info("ZooKeeper naming service already registered");
+            return;
+        }
         String baseSleepTimeMilliseconds = config.getProps().getProperty("baseSleepTimeMilliseconds", "1000");
         String maxRetries = config.getProps().getProperty("maxRetries", "3");
         String maxSleepTimeMilliseconds = config.getProps().getProperty("maxSleepTimeMilliseconds", "1000");
@@ -198,7 +202,8 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
             for (String key : cacheMap.keySet()) {
                 cacheMap.get(key).close();
             }
-            client.close();
+            this.client.close();
+            this.client = null;
             LOGGER.info("Shutting down ZookeeperDiscoveryService");
         } catch (Exception e) {
             throw new ShenyuException(e);

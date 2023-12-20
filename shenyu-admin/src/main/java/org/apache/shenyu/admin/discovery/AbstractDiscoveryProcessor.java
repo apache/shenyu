@@ -105,9 +105,11 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      */
     @Override
     public void removeDiscovery(final DiscoveryDO discoveryDO) {
-        ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryDO.getId());
-        shenyuDiscoveryService.shutdown();
-        LOG.info("shenyu discovery shutdown [{}] discovery", discoveryDO.getName());
+        ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.remove(discoveryDO.getId());
+        if (discoveryServiceCache.values().stream().noneMatch(p -> p.equals(shenyuDiscoveryService))) {
+            shenyuDiscoveryService.shutdown();
+            LOG.info("shenyu discovery shutdown [{}] discovery", discoveryDO.getName());
+        }
     }
 
     /**

@@ -67,6 +67,10 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void init(final DiscoveryConfig config) {
+        if (this.namingService != null) {
+            LOGGER.info("Nacos naming service already registered");
+            return;
+        }
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
         this.groupName = properties.getProperty("groupName", "SHENYU_GROUP");
@@ -174,14 +178,15 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void shutdown() {
         try {
-            if (Objects.nonNull(namingService)) {
+            if (Objects.nonNull(this.namingService)) {
                 for (Map.Entry<String, EventListener> entry : listenerMap.entrySet()) {
                     String key = entry.getKey();
                     EventListener listener = entry.getValue();
-                    namingService.unsubscribe(key, groupName, listener);
+                    this.namingService.unsubscribe(key, groupName, listener);
                 }
                 listenerMap.clear();
-                namingService.shutDown();
+                this.namingService.shutDown();
+                this.namingService = null;
                 LOGGER.info("Shutting down NacosDiscoveryService");
             }
         } catch (NacosException e) {

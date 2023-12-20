@@ -74,14 +74,15 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void init(final DiscoveryConfig config) {
+        if (this.eurekaClient != null) {
+            LOGGER.info("Eureka naming service already registered");
+        }
         discoveryConfig = config;
         try {
-            if (Objects.isNull(eurekaClient)) {
-                ConfigurationManager.loadProperties(getEurekaProperties(false));
-                applicationInfoManager = initializeApplicationInfoManager(new MyDataCenterInstanceConfig());
-                eurekaClient = initializeEurekaClient(applicationInfoManager, new DefaultEurekaClientConfig());
-                LOGGER.info("Initializing EurekaDiscoveryService success");
-            }
+            ConfigurationManager.loadProperties(getEurekaProperties(false));
+            applicationInfoManager = initializeApplicationInfoManager(new MyDataCenterInstanceConfig());
+            eurekaClient = initializeEurekaClient(applicationInfoManager, new DefaultEurekaClientConfig());
+            LOGGER.info("Initializing EurekaDiscoveryService success");
         } catch (Exception e) {
             LOGGER.error("Error initializing EurekaDiscoveryService", e);
             clean();
