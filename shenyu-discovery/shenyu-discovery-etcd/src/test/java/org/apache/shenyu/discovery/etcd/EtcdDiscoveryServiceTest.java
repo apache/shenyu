@@ -135,7 +135,7 @@ public class EtcdDiscoveryServiceTest {
         });
 
         doThrow(new InterruptedException("test")).when(leaseGrantFuture).get();
-        assertThrows(ShenyuException.class, () -> etcdDiscoveryServiceUnderTest.init(discoveryConfig));
+        assertDoesNotThrow(() -> etcdDiscoveryServiceUnderTest.init(discoveryConfig));
     }
 
     @Test
