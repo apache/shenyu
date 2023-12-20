@@ -33,16 +33,16 @@ shenyu:
           appName: http
 #          port: 8189
   discovery:
-    enable: true
-    type: zookeeper
-    serverList: shenyu-zk:2181
-    registerPath: /shenyu/discovery/demo_http_common
-    props:
-      baseSleepTimeMilliseconds: 1000
-      maxRetries: 4
-      maxSleepTimeMilliseconds: 5000
-      connectionTimeoutMilliseconds: 60000
-      sessionTimeoutMilliseconds: 8
+#    enable: true
+#    type: zookeeper
+#    serverList: shenyu-zk:2181
+#    registerPath: /shenyu/discovery/demo_http_common
+#    props:
+#      baseSleepTimeMilliseconds: 1000
+#      maxRetries: 4
+#      maxSleepTimeMilliseconds: 5000
+#      connectionTimeoutMilliseconds: 60000
+#      sessionTimeoutMilliseconds: 8
 
 
 
