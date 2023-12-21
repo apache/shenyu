@@ -116,6 +116,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void registerDiscoveryConfig(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
         DiscoveryDTO discoveryDTO = new DiscoveryDTO();
         discoveryDTO.setName(discoveryConfigRegisterDTO.getName() + UUIDUtils.getInstance().generateShortUuid());

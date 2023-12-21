@@ -33,6 +33,7 @@ import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.Collections;
@@ -70,6 +71,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void onChange(final DiscoveryDataChangedEvent event) {
         DiscoveryDataChangedEvent.Event currentEvent = event.getEvent();
         if (DiscoveryDataChangedEvent.Event.IGNORED.equals(currentEvent)) {
