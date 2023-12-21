@@ -18,12 +18,10 @@
 package org.apache.shenyu.web.loader;
 
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.checkerframework.checker.units.qual.C;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
