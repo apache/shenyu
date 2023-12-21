@@ -18,6 +18,7 @@
 package org.apache.shenyu.web.loader;
 
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.checkerframework.checker.units.qual.C;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -103,9 +105,9 @@ public class PluginJarParser {
 
         private String version;
 
-        private Map<String, byte[]> clazzMap = new HashMap<>();
+        private Map<String, byte[]> clazzMap = new ConcurrentHashMap<>();
 
-        private Map<String, byte[]> resourceMap = new HashMap<>();
+        private Map<String, byte[]> resourceMap = new ConcurrentHashMap<>();
 
         /**
          * getAbsolutePath.
