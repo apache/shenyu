@@ -55,7 +55,7 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
 
     private final Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
 
-    private final Map<String, InputStream> resourceCache = new HashMap<>();
+    private final Map<String, byte[]> resourceCache = new ConcurrentHashMap<>();
 
     private final PluginJarParser.PluginJar pluginJar;
 
@@ -103,15 +103,14 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
 
     @Override
     public InputStream getResourceAsStream(final String name) {
-        InputStream cacheInputStream = resourceCache.get(name);
-        if (cacheInputStream != null) {
-            return cacheInputStream;
+        byte[] cacheByte = resourceCache.get(name);
+        if (cacheByte != null) {
+            return new ByteArrayInputStream(cacheByte);
         }
         byte[] bytes = pluginJar.getResourceMap().get(name);
         if (bytes != null) {
-            InputStream inputStream = new ByteArrayInputStream(bytes);
-            resourceCache.put(name, inputStream);
-            return inputStream;
+            resourceCache.put(name, bytes);
+            return new ByteArrayInputStream(bytes);
         }
         return super.getResourceAsStream(name);
     }
