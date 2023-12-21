@@ -345,6 +345,12 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
+    public SelectorDO findByNameAndPluginNameForUpdate(final String name, final String pluginName) {
+        PluginDO pluginDO = pluginMapper.selectByNameForUpdate(pluginName);
+        return selectorMapper.findByNameAndPluginId(name, pluginDO.getId());
+    }
+
+    @Override
     public List<SelectorDO> findByNameAndPluginNames(final String name, final List<String> pluginNames) {
         final List<PluginDO> pluginDOList = pluginMapper.selectByNames(pluginNames);
         if (CollectionUtils.isEmpty(pluginDOList)) {

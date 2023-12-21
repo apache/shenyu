@@ -30,7 +30,6 @@ import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
-import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
@@ -51,8 +50,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
@@ -77,6 +78,9 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     private final SelectorMapper selectorMapper;
 
     private final ProxySelectorService proxySelectorService;
+
+    @Resource
+    private  PlatformTransactionManager transactionManager;
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
@@ -118,59 +122,68 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void registerDiscoveryConfig(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
-        DiscoveryDTO discoveryDTO = new DiscoveryDTO();
-        discoveryDTO.setName(discoveryConfigRegisterDTO.getName() + UUIDUtils.getInstance().generateShortUuid());
-        discoveryDTO.setType(discoveryConfigRegisterDTO.getDiscoveryType());
-        discoveryDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
-        discoveryDTO.setServerList(discoveryConfigRegisterDTO.getServerList());
-        discoveryDTO.setLevel(DiscoveryLevel.SELECTOR.getCode());
-        discoveryDTO.setProps(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())));
-        DiscoveryDO discoveryDO = discoveryMapper.selectBySelectorName(discoveryConfigRegisterDTO.getSelectorName());
-        String discoveryId = Optional.ofNullable(discoveryDO).map(DiscoveryDO::getId).orElse(null);
-        String discoveryType = Optional.ofNullable(discoveryDO).map(DiscoveryDO::getType).orElse(null);
-        if (Objects.isNull(discoveryDO)) {
-            LOG.warn("shenyu DiscoveryConfigRegisterDTO has been register");
-            DiscoveryVO discoveryVO = this.create(discoveryDTO);
-            discoveryId = discoveryVO.getId();
-            discoveryType = discoveryVO.getType();
-        }
-        LOG.info("shenyu success register DiscoveryConfigRegisterDTO name={}|pluginName={}", discoveryConfigRegisterDTO.getName(), discoveryConfigRegisterDTO.getPluginName());
-        bindingDiscovery(discoveryConfigRegisterDTO, discoveryId, discoveryType);
+        SelectorDO selectorDO = findAndLockOnDB(discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName());
+        bindingDiscovery(discoveryConfigRegisterDTO, selectorDO);
     }
 
-    private void bindingDiscovery(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO, final String discoveryId, final String discoveryType) {
+    private SelectorDO findAndLockOnDB(String selectorName, String pluginName) {
         SelectorDO selectorDO = null;
         for (int i = 0; i < 3; i++) {
-            selectorDO = selectorService.findByNameAndPluginName(discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName());
+            selectorDO = selectorService.findByNameAndPluginNameForUpdate(selectorName, pluginName);
             if (selectorDO != null) {
-                break;
+                return selectorDO;
             }
             try {
-                LOG.info("retry to find selector {} : {}", discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName());
+                LOG.info("retry to find selector {} : {}", selectorName, pluginName);
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 // ignore
             }
         }
-        if (Objects.isNull(selectorDO)) {
-            throw new ShenyuException("when binding discovery don't find selector " + discoveryConfigRegisterDTO.getSelectorName());
+        throw new ShenyuException("when binding discovery don't find selector " + selectorName);
+    }
+
+    private void bindingDiscovery(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO, SelectorDO selectorDO) {
+        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+        proxySelectorDTO.setName(selectorDO.getName());
+        proxySelectorDTO.setId(selectorDO.getId());
+        proxySelectorDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
+        DiscoveryDO discoveryDO = discoveryMapper.selectBySelectorNameAndPluginName(selectorDO.getName(), discoveryConfigRegisterDTO.getPluginName());
+        if (discoveryDO == null) {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            discoveryDO = DiscoveryDO.builder()
+                    .id(UUIDUtils.getInstance().generateShortUuid())
+                    .name(discoveryConfigRegisterDTO.getName())
+                    .pluginName(discoveryConfigRegisterDTO.getPluginName())
+                    .level(DiscoveryLevel.SELECTOR.getCode())
+                    .type(discoveryConfigRegisterDTO.getDiscoveryType())
+                    .serverList(discoveryConfigRegisterDTO.getServerList())
+                    .props(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())))
+                    .dateCreated(currentTime)
+                    .dateUpdated(currentTime)
+                    .build();
+            discoveryMapper.insertSelective(discoveryDO);
         }
-        if (discoveryHandlerMapper.selectBySelectorId(selectorDO.getId()) != null) {
-            LOG.info("discovery current listen node ={} has been register", discoveryConfigRegisterDTO.getListenerNode());
-            return;
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorDO.getId());
+        if (discoveryHandlerDO == null) {
+            discoveryHandlerDO = DiscoveryHandlerDO.builder()
+                    .id(UUIDUtils.getInstance().generateShortUuid())
+                    .discoveryId(discoveryDO.getId())
+                    .handler(discoveryConfigRegisterDTO.getHandler())
+                    .listenerNode(discoveryConfigRegisterDTO.getListenerNode())
+                    .props(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())))
+                    .dateCreated(new Timestamp(System.currentTimeMillis())).build();
+            DiscoveryRelDO discoveryRefDO = DiscoveryRelDO.builder()
+                    .id(UUIDUtils.getInstance().generateShortUuid())
+                    .discoveryHandlerId(discoveryHandlerDO.getId())
+                    .selectorId(selectorDO.getId())
+                    .pluginName(discoveryConfigRegisterDTO.getPluginName()).build();
+            discoveryRelMapper.insertSelective(discoveryRefDO);
+            discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
         }
-        ProxySelectorAddDTO proxySelectorAddDTO = new ProxySelectorAddDTO();
-        proxySelectorAddDTO.setSelectorId(selectorDO.getId());
-        proxySelectorAddDTO.setName(selectorDO.getName());
-        proxySelectorAddDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
-        proxySelectorAddDTO.setProps("{}");
-        proxySelectorAddDTO.setListenerNode(discoveryConfigRegisterDTO.getListenerNode());
-        proxySelectorAddDTO.setHandler(discoveryConfigRegisterDTO.getHandler());
-        ProxySelectorAddDTO.Discovery discovery = new ProxySelectorAddDTO.Discovery();
-        discovery.setId(discoveryId);
-        discovery.setDiscoveryType(discoveryType);
-        proxySelectorAddDTO.setDiscovery(discovery);
-        proxySelectorService.bindingDiscoveryHandler(proxySelectorAddDTO);
+        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryConfigRegisterDTO.getDiscoveryType());
+        discoveryProcessor.createDiscovery(discoveryDO);
+        discoveryProcessor.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
     }
 
     @Override
