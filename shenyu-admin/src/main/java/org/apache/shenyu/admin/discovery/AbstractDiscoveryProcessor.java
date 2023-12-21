@@ -45,6 +45,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
@@ -106,6 +107,9 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
     @Override
     public void removeDiscovery(final DiscoveryDO discoveryDO) {
         ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.remove(discoveryDO.getId());
+        if (shenyuDiscoveryService == null) {
+            return;
+        }
         if (discoveryServiceCache.values().stream().noneMatch(p -> p.equals(shenyuDiscoveryService))) {
             shenyuDiscoveryService.shutdown();
             LOG.info("shenyu discovery shutdown [{}] discovery", discoveryDO.getName());
@@ -121,12 +125,13 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
     public void removeProxySelector(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
         ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
         String key = buildProxySelectorKey(discoveryHandlerDTO.getListenerNode());
-        Set<String> cacheKey = dataChangedEventListenerCache.get(discoveryHandlerDTO.getDiscoveryId());
-        cacheKey.remove(key);
-        shenyuDiscoveryService.unwatch(key);
-        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE,
-                Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
-        eventPublisher.publishEvent(dataChangedEvent);
+        Optional.ofNullable(dataChangedEventListenerCache.get(discoveryHandlerDTO.getDiscoveryId())).ifPresent(cacheKey -> {
+            cacheKey.remove(key);
+            shenyuDiscoveryService.unwatch(key);
+            DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE,
+                    Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
+            eventPublisher.publishEvent(dataChangedEvent);
+        });
     }
 
     @Override

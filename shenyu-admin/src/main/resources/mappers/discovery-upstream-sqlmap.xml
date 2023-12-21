@@ -170,8 +170,7 @@
 
     <select id="selectByDiscoveryHandlerIdAndUrl"
             resultType="org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO">
-        SELECT <include refid="Base_Column_List"/> from discovery_upstream where discovery_handler_id = #{discoveryHandlerId} and url = #{url}
-
+        SELECT <include refid="Base_Column_List"/> from discovery_upstream where discovery_handler_id = #{discoveryHandlerId} and url = #{url} for update
     </select>
 
     <delete id="deleteByIds" parameterType="java.util.List">
