@@ -183,9 +183,9 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     public void register(final String key, final String value) {
         try {
             KV kvClient = etcdClient.getKVClient();
-            String s = UUIDUtils.getInstance().generateShortUuid();
+            String uuid = UUIDUtils.getInstance().generateShortUuid();
             PutOption putOption = PutOption.newBuilder().withPrevKV().withLeaseId(leaseId).build();
-            kvClient.put(bytesOf(key + "/" + s), bytesOf(value), putOption).get(timeout, TimeUnit.MILLISECONDS);
+            kvClient.put(bytesOf(key + "/" + uuid), bytesOf(value), putOption).get(timeout, TimeUnit.MILLISECONDS);
             LOGGER.info("etcd client key: {} with value: {}", key, value);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOGGER.error("etcd client register (key:{},value:{}) error.", key, value, e);
