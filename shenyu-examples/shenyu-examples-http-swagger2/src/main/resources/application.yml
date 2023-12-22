@@ -51,6 +51,7 @@ shenyu:
 #    type: eureka
 #    serverList: http://127.0.0.1:8761/eureka
 #    registerPath: shenyu_discovery_demo_http-swagger3
+
 spring:
   servlet:
     multipart:
