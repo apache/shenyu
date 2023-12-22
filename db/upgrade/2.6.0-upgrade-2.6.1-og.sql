@@ -125,3 +125,7 @@ INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507008', '45', 'args'
 DELETE FROM `plugin` WHERE `name` = 'brpc';
 DELETE FROM `plugin_handle` WHERE `plugin_id` = '41';
 CREATE UNIQUE INDEX discovery_upstream_discovery_handler_id_IDX USING BTREE ON "public"."discovery_upstream"  (`discovery_handler_id`,`url`);
+
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737473', 'discoveryMode', 'DISCOVERY_MODE', 'etcd', '{"etcdTimeout": "3000", "etcdTTL": "5"}', 'discoery mode to link etcd', 0, 1);
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737473', 'discoveryMode', 'DISCOVERY_MODE', 'nacos', '{"groupName": "SHENYU_GROUP", "nacosNameSpace": "", "username": "", "password": "", "accessKey": "", "secretKey": ""}', 'discoery mode to link nacos', 0, 1);
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737473', 'discoveryMode', 'DISCOVERY_MODE', 'eureka', '{"eurekaClientRefreshInterval": "10", "eurekaClientRegistryFetchIntervalSeconds": "10"}', 'discoery mode to link eureka', 0, 1);
