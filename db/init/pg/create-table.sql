@@ -2410,6 +2410,8 @@ COMMENT ON COLUMN "public"."discovery_upstream"."props" IS 'the other field (jso
 COMMENT ON COLUMN "public"."discovery_upstream"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."discovery_upstream"."date_updated" IS 'update time';
 
+CREATE UNIQUE INDEX discovery_upstream_discovery_handler_id_IDX ON "public"."discovery_upstream" USING btree ("discovery_handler_id","url");
+
 -- ----------------------------
 -- Table structure for alert_template
 -- ----------------------------

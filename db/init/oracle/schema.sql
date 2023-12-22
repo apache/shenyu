@@ -2470,6 +2470,8 @@ create table discovery_upstream
     date_updated      timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX discovery_upstream_idx ON discovery_upstream (discovery_handler_id, url);
+
 -- Add comments to the columns
 comment on column DISCOVERY_UPSTREAM.id
   is 'primary key id';

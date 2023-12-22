@@ -160,3 +160,5 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ 
 -- delete brpc plugin
 delete from plugin where name = 'brpc';
 delete from plugin_handle where plugin_id = '41';
+
+CREATE UNIQUE INDEX discovery_upstream_url_IDX USING BTREE ON `shenyu`.`discovery_upstream` ("discovery_handler_id","url");

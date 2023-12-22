@@ -124,3 +124,4 @@ INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507008', '45', 'args'
 -- delete brpc plugin
 DELETE FROM `plugin` WHERE `name` = 'brpc';
 DELETE FROM `plugin_handle` WHERE `plugin_id` = '41';
+CREATE UNIQUE INDEX discovery_upstream_discovery_handler_id_IDX USING BTREE ON "public"."discovery_upstream"  (`discovery_handler_id`,`url`);
