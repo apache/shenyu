@@ -34,7 +34,7 @@ public class DivideShenyuContextDecorator implements ShenyuContextDecorator {
         shenyuContext.setMethod(path);
         shenyuContext.setRealUrl(path);
         shenyuContext.setRpcType(RpcTypeEnum.HTTP.getName());
-        shenyuContext.setModule(String.format("%s-%s", PluginEnum.DIVIDE.getName(), shenyuContext.getRpcType()));
+        shenyuContext.setModule(metaData.getAppName());
         return shenyuContext;
     }
 }

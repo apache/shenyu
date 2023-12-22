@@ -208,8 +208,7 @@ public class ComposableSignService implements SignService {
         List<AuthParamData> paramDataList = appAuthData.getParamDataList();
 
         if (!CollectionUtils.isEmpty(paramDataList)) {
-            paramDataList.stream().filter(p ->
-                    ("/" + p.getAppName()).equals(contextPath))
+            paramDataList.stream().filter(p -> p.getAppName().equals(contextPath))
                     .map(AuthParamData::getAppParam)
                     .filter(StringUtils::isNoneBlank).findFirst()
                     .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build());

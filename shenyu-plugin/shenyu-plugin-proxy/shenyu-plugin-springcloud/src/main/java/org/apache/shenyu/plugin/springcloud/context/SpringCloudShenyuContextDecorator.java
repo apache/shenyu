@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.springcloud.context;
 
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
@@ -34,7 +33,7 @@ public class SpringCloudShenyuContextDecorator implements ShenyuContextDecorator
         shenyuContext.setMethod(path);
         shenyuContext.setRealUrl(path);
         shenyuContext.setRpcType(RpcTypeEnum.SPRING_CLOUD.getName());
-        shenyuContext.setModule(String.format("%s-%s", PluginEnum.DIVIDE.getName(), shenyuContext.getRpcType()));
+        shenyuContext.setModule(metaData.getAppName());
         return shenyuContext;
     }
     
