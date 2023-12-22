@@ -197,8 +197,8 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
     private Properties getEurekaProperties(final boolean needRegister) {
         Properties eurekaProperties = new Properties();
         eurekaProperties.setProperty("eureka.serviceUrl.default", discoveryConfig.getServerList());
-        eurekaProperties.setProperty("eureka.client.refresh.interval", discoveryConfig.getProps().getProperty("eureka.client.refresh.interval", "10"));
-        eurekaProperties.setProperty("eureka.client.registry-fetch-interval-seconds", discoveryConfig.getProps().getProperty("eureka.client.registry-fetch-interval-seconds", "10"));
+        eurekaProperties.setProperty("eureka.client.refresh.interval", discoveryConfig.getProps().getProperty("eurekaClientRefreshInterval", "10"));
+        eurekaProperties.setProperty("eureka.client.registry-fetch-interval-seconds", discoveryConfig.getProps().getProperty("eurekaClientRegistryFetchIntervalSeconds", "10"));
         eurekaProperties.setProperty("eureka.registration.enabled", String.valueOf(needRegister));
 
         return eurekaProperties;
