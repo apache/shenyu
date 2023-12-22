@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.divide.context;
 
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
