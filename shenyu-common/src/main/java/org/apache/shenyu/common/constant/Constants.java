@@ -238,11 +238,6 @@ public interface Constants {
     String LINE_SEPARATOR = System.getProperty("line.separator");
 
     /**
-     * The constant header key of sign plugin version-2.
-     */
-    String SHENYU_AUTHORIZATION = "ShenYu-Authorization";
-
-    /**
      * The constant URL_SEPARATOR.
      */
     String PATH_SEPARATOR = "/";
@@ -383,22 +378,22 @@ public interface Constants {
     String FILTER_PATH = "filterPath";
 
     /**
-     * Disable flow control rules.
+     *  Disable flow control rules.
      */
     int FLOW_RULE_ENABLE_OFF = 0;
 
     /**
-     * Enable flow control rules.
+     *  Enable flow control rules.
      */
     int FLOW_RULE_ENABLE_ON = 1;
 
     /**
-     * Disable flow degrade rules.
+     *  Disable flow degrade rules.
      */
     int DEGRADE_RULE_ENABLE_OFF = 0;
 
     /**
-     * Enable flow degrade rules.
+     *  Enable flow degrade rules.
      */
     int DEGRADE_RULE_ENABLE_ON = 1;
 
@@ -713,6 +708,11 @@ public interface Constants {
     String SPECIFY_DOMAIN = "specify-domain";
 
     /**
+     * The constant header key of sign plugin version-2.
+     */
+    String SHENYU_AUTHORIZATION = "ShenYu-Authorization";
+
+    /**
      * The maximum free memory reserved by the blocking queue for the JVM.
      */
     int THE_256_MB = 256 * 1024 * 1024;
@@ -740,6 +740,7 @@ public interface Constants {
     String SHARED_BIZTHREADPOOLNAME = "shared";
 
     /**
+
      * trie default children size.
      */
     Integer TRIE_CHILDREN_SIZE = 512;
