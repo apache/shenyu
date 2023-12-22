@@ -39,15 +39,23 @@ shenyu:
         contextPath: ${shenyu.common.contextPath}
         appName: ${shenyu.common.appName}
         port: ${shenyu.common.port}
-  discovery:
-#    name: zk_discovery
+#  discovery:
 #    enable: true
 #    type: zookeeper
-#    plugin-name: websocket
-#    protocol: ws://
 #    serverList: 127.0.0.1:2181
-#    weight: 10
-#    registerPath: /shenyu/discovery/demo_ws_common
+#    registerPath: /shenyu/discovery/http_example
+#    props:
+#      baseSleepTimeMilliseconds: 1000
+#      maxRetries: 4
+#      maxSleepTimeMilliseconds: 5000
+#      connectionTimeoutMilliseconds: 60000
+#      sessionTimeoutMilliseconds: 8
+#    type: etcd
+#    serverList: http://127.0.0.1:2379
+#    registerPath: shenyu_discovery_http_example
+#    type: eureka
+#    serverList: http://127.0.0.1:8761/eureka
+#    registerPath: shenyu_discovery_http_example
 
 logging:
   level:

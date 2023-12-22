@@ -27,23 +27,28 @@ shenyu:
       username: admin
       password: 123456
   client:
-      http:
-        props:
-          contextPath: /http
-          appName: http
-#          port: 8189
-  discovery:
+    http:
+      props:
+        contextPath: /http
+        appName: http
+  #          port: 8189
+#  discovery:
 #    enable: true
 #    type: zookeeper
-#    serverList: shenyu-zk:2181
-#    registerPath: /shenyu/discovery/demo_http_common
+#    serverList: 127.0.0.1:2181
+#    registerPath: /shenyu/discovery/http_example
 #    props:
 #      baseSleepTimeMilliseconds: 1000
 #      maxRetries: 4
 #      maxSleepTimeMilliseconds: 5000
 #      connectionTimeoutMilliseconds: 60000
 #      sessionTimeoutMilliseconds: 8
-
+#    type: etcd
+#    serverList: http://127.0.0.1:2379
+#    registerPath: shenyu_discovery_http_example
+#    type: eureka
+#    serverList: http://127.0.0.1:8761/eureka
+#    registerPath: shenyu_discovery_http_example
 
 
 spring:
