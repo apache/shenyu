@@ -1963,8 +1963,10 @@ CREATE TABLE `discovery_upstream`
     `props`      text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'the other field (json)',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
-    PRIMARY KEY (`id`) USING BTREE
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `discovery_upstream_discovery_handler_id_IDX` (`discovery_handler_id`,`url`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+-- shenyu.discovery_upstream definition
 
 -- ----------------------------
 -- Table structure for proxy_selector
