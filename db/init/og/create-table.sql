@@ -2411,7 +2411,9 @@ COMMENT ON COLUMN "public"."discovery_upstream"."weight" IS 'the weight for list
 COMMENT ON COLUMN "public"."discovery_upstream"."props" IS 'the other field (json)';
 COMMENT ON COLUMN "public"."discovery_upstream"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."discovery_upstream"."date_updated" IS 'update time';
-CREATE UNIQUE INDEX discovery_upstream_discovery_handler_id_IDX USING BTREE ON "public"."discovery_upstream"  (`discovery_handler_id`,`url`);
+CREATE INDEX "unique_discovery_upstream_discovery_handler_id" ON "public"."discovery_upstream" USING btree (
+  "discovery_handler_id" , "url"
+);
 
 
 
