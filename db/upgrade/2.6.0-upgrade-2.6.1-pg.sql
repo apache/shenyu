@@ -127,7 +127,7 @@ DELETE FROM "public"."plugin" WHERE name = 'brpc';
 DELETE FROM "public"."plugin_handle" WHERE plugin_id = '41';
 CREATE UNIQUE INDEX discovery_upstream_discovery_handler_id_IDX ON "public"."discovery_upstream" USING btree ("discovery_handler_id","url");
 
-INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737473', 'discoveryMode', 'DISCOVERY_MODE', 'etcd', '{"etcdTimeout": "3000", "etcdTTL": "5"}', 'discoery mode to link etcd', 0, 1);
-INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737473', 'discoveryMode', 'DISCOVERY_MODE', 'nacos', '{"groupName": "SHENYU_GROUP", "nacosNameSpace": "", "username": "", "password": "", "accessKey": "", "secretKey": ""}', 'discoery mode to link nacos', 0, 1);
-INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737473', 'discoveryMode', 'DISCOVERY_MODE', 'eureka', '{"eurekaClientRefreshInterval": "10", "eurekaClientRegistryFetchIntervalSeconds": "10"}', 'discoery mode to link eureka', 0, 1);
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737473', 'discoveryMode', 'DISCOVERY_MODE', 'etcd', '{"etcdTimeout": "3000", "etcdTTL": "5"}', 'discoery mode to link etcd', 0, 1,'2023-03-17 10:15:16.846', '2023-03-07 10:15:16.846');
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737474', 'discoveryMode', 'DISCOVERY_MODE', 'nacos', '{"groupName": "SHENYU_GROUP", "nacosNameSpace": "", "username": "", "password": "", "accessKey": "", "secretKey": ""}', 'discoery mode to link nacos', 0, 1,'2023-03-17 10:15:16.846', '2023-03-07 10:15:16.846');
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737475', 'discoveryMode', 'DISCOVERY_MODE', 'eureka', '{"eurekaClientRefreshInterval": "10", "eurekaClientRegistryFetchIntervalSeconds": "10"}', 'discoery mode to link eureka', 0, 1,'2023-03-17 10:15:16.846', '2023-03-07 10:15:16.846');
 
