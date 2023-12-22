@@ -27,7 +27,9 @@ import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.Closeable;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.ArrayList;
@@ -51,6 +53,8 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
     private final ReentrantLock lock = new ReentrantLock();
 
     private final Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
+
+    private final Map<String, byte[]> resourceCache = new ConcurrentHashMap<>();
 
     private final PluginJarParser.PluginJar pluginJar;
 
@@ -94,6 +98,20 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
             }
         });
         return results;
+    }
+
+    @Override
+    public InputStream getResourceAsStream(final String name) {
+        byte[] cacheByte = resourceCache.get(name);
+        if (cacheByte != null) {
+            return new ByteArrayInputStream(cacheByte);
+        }
+        byte[] bytes = pluginJar.getResourceMap().get(name);
+        if (bytes != null) {
+            resourceCache.put(name, bytes);
+            return new ByteArrayInputStream(bytes);
+        }
+        return super.getResourceAsStream(name);
     }
 
     @Override
