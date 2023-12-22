@@ -236,7 +236,12 @@ public interface Constants {
      * The constant LINE_SEPARATOR.
      */
     String LINE_SEPARATOR = System.getProperty("line.separator");
-    
+
+    /**
+     * The constant header key of sign plugin version-2.
+     */
+    String SHENYU_AUTHORIZATION = "ShenYu-Authorization";
+
     /**
      * The constant URL_SEPARATOR.
      */
