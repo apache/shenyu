@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.web.handler;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.alert.AlarmService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,6 +77,10 @@ public final class GlobalErrorHandlerTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult() {
+        });
+        when(context.getBean(AlarmService.class)).thenReturn(content -> {
+        });
+        when(context.getBean(ShenyuConfig.class)).thenReturn(new ShenyuConfig() {
         });
 
         globalErrorHandler = new GlobalErrorHandler();
