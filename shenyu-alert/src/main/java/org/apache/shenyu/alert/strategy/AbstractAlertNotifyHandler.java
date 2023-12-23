@@ -24,6 +24,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import javax.annotation.Resource;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
@@ -45,7 +46,9 @@ abstract class AbstractAlertNotifyHandler implements AlertNotifyHandler {
         context.setVariable("title", "[ShenYu Alarm]");
         
         context.setVariable("triggerTimeLabel", "Alarm Time");
-        context.setVariable("triggerTime", DTF.format(LocalDateTime.ofInstant(alert.getDateCreated().toInstant(), TimeZone.getDefault().toZoneId())));
+        context.setVariable("triggerTime", DTF.format(LocalDateTime.ofInstant(
+                alert.getDateCreated() == null ? Instant.now() : alert.getDateCreated().toInstant(), 
+                TimeZone.getDefault().toZoneId())));
         
         context.setVariable("contentLabel", "Alarm Content");
         context.setVariable("content", alert.getContent());
