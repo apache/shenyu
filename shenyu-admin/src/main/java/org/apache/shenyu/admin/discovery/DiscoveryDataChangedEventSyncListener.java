@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.discovery;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
@@ -133,13 +134,31 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private DiscoverySyncData buildProxySelectorData(final String value) {
         List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
-        discoveryUpstreamDTOS.forEach(s -> s.setDiscoveryHandlerId(discoveryHandlerId));
+        discoveryUpstreamDTOS.forEach(discoveryUpstreamData -> {
+            discoveryUpstreamData.setDiscoveryHandlerId(discoveryHandlerId);
+            if (StringUtils.isBlank(discoveryUpstreamData.getProtocol())) {
+                discoveryUpstreamData.setProtocol(discoverySupportProtocol(contextInfo.getPluginName()));
+            }
+        });
         DiscoverySyncData data = new DiscoverySyncData();
         data.setUpstreamDataList(discoveryUpstreamDTOS);
         data.setSelectorId(contextInfo.getSelectorId());
         data.setSelectorName(contextInfo.getSelectorName());
         data.setPluginName(contextInfo.getPluginName());
         return data;
+    }
+
+    private String discoverySupportProtocol(final String pluginName) {
+        String pluginNameLower = pluginName.toLowerCase();
+        switch (pluginNameLower) {
+            case "divide":
+            case "grpc":
+                return "http://";
+            case "websocket":
+                return "ws://";
+            default:
+                return "";
+        }
     }
 
 }
