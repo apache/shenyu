@@ -231,7 +231,12 @@ public interface Constants {
      * The constant URI.
      */
     String URI = "uri";
-    
+
+    /**
+     * The constant header key of sign plugin version-2.
+     */
+    String SHENYU_AUTHORIZATION = "ShenYu-Authorization";
+
     /**
      * The constant LINE_SEPARATOR.
      */
