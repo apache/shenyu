@@ -81,24 +81,6 @@ public final class ApplicationConfigCache {
     }
 
     /**
-     * handlerSelector.
-     *
-     * @param selectorData selectorData
-     */
-    public void handlerSelector(final SelectorData selectorData) {
-        final List<GrpcUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), GrpcUpstream.class);
-        if (CollectionUtils.isEmpty(upstreamList)) {
-            invalidate(selectorData.getId());
-            return;
-        }
-        grpcUpstreamCachedHandle.get().cachedHandle(selectorData.getId(), upstreamList);
-        Consumer<Object> consumer = watchUpstreamListener.get(selectorData.getId());
-        if (Objects.nonNull(consumer)) {
-            consumer.accept(System.currentTimeMillis());
-        }
-    }
-
-    /**
      * handlerUpstream.
      *
      * @param selectorId   selectorId
