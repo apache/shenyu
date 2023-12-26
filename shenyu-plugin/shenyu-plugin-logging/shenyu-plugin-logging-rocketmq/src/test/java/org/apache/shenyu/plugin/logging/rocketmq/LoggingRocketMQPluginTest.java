@@ -25,7 +25,9 @@ import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,6 +93,7 @@ public final class LoggingRocketMQPluginTest {
     public void testDoExecute() {
         Mockito.when(chain.execute(ArgumentMatchers.any())).thenReturn(Mono.empty());
         Mockito.when(selectorData.getId()).thenReturn("111");
+        Mockito.when(selectorData.getPluginId()).thenReturn("111");
         Mono<Void> result = loggingRocketMQPlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
