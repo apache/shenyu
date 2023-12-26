@@ -40,7 +40,6 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -180,7 +179,9 @@ public class GatewayClient extends BaseClient {
         List<SelectorCacheData> selectorDataList = new ArrayList<>();
         for (Map.Entry entry : s.entrySet()) {
             List list = (List) entry.getValue();
-            if (CollectionUtils.isEmpty(list)) continue;
+            if (CollectionUtils.isEmpty(list)) {
+                continue;
+            }
             String json = MAPPER.writeValueAsString(list.get(0));
             SelectorCacheData selectorData = MAPPER.readValue(json, SelectorCacheData.class);
             selectorDataList.add(selectorData);
