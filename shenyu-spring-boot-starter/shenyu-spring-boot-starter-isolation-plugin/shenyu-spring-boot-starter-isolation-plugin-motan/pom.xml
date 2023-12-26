@@ -21,11 +21,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-examples-motan-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>jline</groupId>
             <artifactId>jline</artifactId>
             <version>2.14.6</version>
