@@ -54,7 +54,7 @@ public class LoggingPulsarPluginDataHandlerTest {
         list.add(conditionData);
         selectorData.setConditionList(list);
         pluginData.setEnabled(true);
-        pluginData.setId(UUID.randomUUID().toString().replace("-",""));
+        pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
         pluginData.setConfig("{\"topic\":\"test\", \"serviceUrl\":\"test\"}");
     }
 

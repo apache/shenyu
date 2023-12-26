@@ -40,7 +40,7 @@ public class LoggingAliyunSlsPluginDataHandlerTest {
     public void setUp() {
         this.loggingAliYunSlsPluginDataHandler = new LoggingAliyunSlsPluginDataHandler();
         pluginData.setEnabled(true);
-        pluginData.setId(UUID.randomUUID().toString().replace("-",""));
+        pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
         pluginData.setConfig("{\"topic\":\"shenyu-topic-test\", \"accessId\":\"test\", \"accessKey\":\"test\", "
                 + "\"host\":\"cn-guangzhou.log.aliyuncs.com\", \"projectName\":\"shenyu-test\", \"logStoreName\":\"shenyu-test-logstore\"}");
     }
