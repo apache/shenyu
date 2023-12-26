@@ -55,12 +55,12 @@ public class WebSocketUpstreamDataHandler implements DiscoveryUpstreamDataHandle
             return Collections.emptyList();
         }
         return upstreamList.stream().map(u -> {
-            Properties properties = GsonUtils.getInstance().fromJson(u.getProps(), Properties.class);
+            Properties properties = Optional.ofNullable(u.getProps()).map(ps->GsonUtils.getInstance().fromJson(ps, Properties.class)).orElse(new Properties()) ;
             return Upstream.builder()
                     .protocol(u.getProtocol())
                     .url(u.getUrl())
                     .weight(u.getWeight())
-                    .warmup(Integer.parseInt(properties.getProperty("warmup", "0")))
+                    .warmup(Integer.parseInt(properties.getProperty("warmup", "10")))
                     .status(0 == u.getStatus())
                     .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
                     .build();
