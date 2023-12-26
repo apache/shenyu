@@ -17,12 +17,16 @@
 
 package org.apache.shenyu.plugin.logging.common.config;
 
+import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
+
 /**
  * generic global config.
  */
 public class GenericGlobalConfig {
 
     private String sampleRate = "1";
+
+    private Sampler sampler;
 
     /**
      * default 512KB.
@@ -38,6 +42,24 @@ public class GenericGlobalConfig {
      * default 50000.
      */
     private int bufferQueueSize = 50000;
+
+    /**
+     * get sampler.
+     *
+     * @return sampler
+     */
+    public Sampler getSampler() {
+        return sampler;
+    }
+
+    /**
+     * set sampler.
+     *
+     * @param sampler sampler
+     */
+    public void setSampler(final Sampler sampler) {
+        this.sampler = sampler;
+    }
 
     /**
      * get sample rate.
