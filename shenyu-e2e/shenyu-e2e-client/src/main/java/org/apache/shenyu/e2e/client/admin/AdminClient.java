@@ -327,17 +327,6 @@ public class AdminClient extends BaseClient {
         return dto;
     }
 
-    /**
-     * bindingData.
-     * @param bindingData bindingData
-     * @return BindingData
-     */
-    public void bindingData(final BindingData bindingData) {
-        HttpEntity<BindingData> entity = new HttpEntity<>(bindingData, basicAuth);
-        ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + "/proxy-selector/binding", entity, ShenYuResult.class);
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "status code");
-    }
-
     @SuppressWarnings("unchecked")
     private <T extends ResourceData, R extends ResourceDTO> R create(final String uri, final T data) {
         log.info("trying to create resource({}) name: {}", data.getClass().getSimpleName(), data.getName());
@@ -367,6 +356,16 @@ public class AdminClient extends BaseClient {
         log.info("create resource({}) successful. name: {}, id: {}", data.getClass().getSimpleName(), data.getName(), created.getId());
         
         return (R) created;
+    }
+
+    /**
+     * bindingData.
+     * @param bindingData bindingData
+     */
+    public void bindingData(final BindingData bindingData) {
+        HttpEntity<BindingData> entity = new HttpEntity<>(bindingData, basicAuth);
+        ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + "/proxy-selector/binding", entity, ShenYuResult.class);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "status code");
     }
     
     /**

@@ -68,7 +68,7 @@ public final class ResourcesData {
          * add resource data.
          *
          * @param selector selector
-         * @param rules rules
+         * @param rules    rules
          * @return ResourcesDataBuilder
          */
         public ResourcesDataBuilder add(final SelectorData selector, final RuleData... rules) {
@@ -76,6 +76,14 @@ public final class ResourcesData {
             return this;
         }
 
+        /**
+         * add resource data.
+         *
+         * @param selector    selector
+         * @param bindingData bindingData
+         * @param rules       rules
+         * @return ResourcesDataBuilder
+         */
         public ResourcesDataBuilder add(final SelectorData selector, final BindingData bindingData, final RuleData... rules) {
             resources.add(new Resource(selector, bindingData, ImmutableList.<RuleData>builder().add(rules).build()));
             return this;
@@ -83,6 +91,7 @@ public final class ResourcesData {
 
         /**
          * build.
+         *
          * @return ResourcesData
          */
         public ResourcesData build() {
@@ -91,9 +100,9 @@ public final class ResourcesData {
     }
 
     public static final class Resource {
-        
+
         private final SelectorData selector;
-        
+
         private final List<RuleData> rules;
 
         private BindingData bindingData;
@@ -147,11 +156,14 @@ public final class ResourcesData {
 
         @Override
         public String toString() {
-            return "Resource{" +
-                    "selector=" + selector +
-                    ", rules=" + rules +
-                    ", bindingData=" + bindingData +
-                    '}';
+            return "Resource{"
+                    + "selector="
+                    + selector
+                    + ", rules="
+                    + rules
+                    + ", bindingData="
+                    + bindingData
+                    + '}';
         }
     }
 }

@@ -60,6 +60,14 @@ public class ResourceDataTemplate {
                 .sort(1);
     }
 
+    /**
+     * newBindingData.
+     *
+     * @param selectorName selectorName
+     * @param pluginName   pluginName
+     * @param url          url
+     * @return BindingData
+     */
     public static BindingData newBindingData(final String selectorName, final String pluginName, final String url) {
         BindingData bindingData = new BindingData();
         bindingData.setName(selectorName);

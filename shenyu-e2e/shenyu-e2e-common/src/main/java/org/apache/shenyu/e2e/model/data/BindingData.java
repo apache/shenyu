@@ -19,7 +19,7 @@ package org.apache.shenyu.e2e.model.data;
 
 import java.util.List;
 
-public class BindingData implements ResourceData{
+public class BindingData implements ResourceData {
 
     private String id;
 
@@ -52,7 +52,7 @@ public class BindingData implements ResourceData{
     }
 
     /**
-     * getType
+     * getType.
      *
      * @return type
      */
@@ -105,6 +105,11 @@ public class BindingData implements ResourceData{
         this.pluginName = pluginName;
     }
 
+    /**
+     * getName.
+     *
+     * @return name
+     */
     public String getName() {
         return name;
     }
@@ -150,7 +155,7 @@ public class BindingData implements ResourceData{
      *
      * @param discovery discovery
      */
-    public void setDiscovery(Discovery discovery) {
+    public void setDiscovery(final Discovery discovery) {
         this.discovery = discovery;
     }
 
@@ -412,6 +417,5 @@ public class BindingData implements ResourceData{
             this.props = props;
         }
     }
-
 
 }
