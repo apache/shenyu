@@ -138,14 +138,14 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         proxySelectorDTO.setName(selectorDO.getName());
         proxySelectorDTO.setId(selectorDO.getId());
         proxySelectorDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
-        DiscoveryDO discoveryDO = discoveryMapper.selectBySelectorNameAndPluginName(selectorDO.getName(), discoveryConfigRegisterDTO.getPluginName());
+        DiscoveryDO discoveryDO = discoveryMapper.selectByPluginNameAndLevel(discoveryConfigRegisterDTO.getPluginName(), DiscoveryLevel.PLUGIN.getCode());
         if (discoveryDO == null) {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             discoveryDO = DiscoveryDO.builder()
                     .id(UUIDUtils.getInstance().generateShortUuid())
                     .name(discoveryConfigRegisterDTO.getName())
                     .pluginName(discoveryConfigRegisterDTO.getPluginName())
-                    .level(DiscoveryLevel.SELECTOR.getCode())
+                    .level(DiscoveryLevel.PLUGIN.getCode())
                     .type(discoveryConfigRegisterDTO.getDiscoveryType())
                     .serverList(discoveryConfigRegisterDTO.getServerList())
                     .props(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())))

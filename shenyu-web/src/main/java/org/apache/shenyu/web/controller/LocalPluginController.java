@@ -30,8 +30,10 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -227,11 +229,21 @@ public class LocalPluginController {
         }
         SelectorData defaultSelectorData = buildDefaultSelectorData(selectorData);
         subscriber.onSelectorSubscribe(defaultSelectorData);
+        saveDiscoveryUpstreamData(defaultSelectorData);
+        return Mono.just(selectorData.getId());
+    }
+
+    private void saveDiscoveryUpstreamData(final SelectorData defaultSelectorData) {
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setSelectorId(defaultSelectorData.getId());
         discoverySyncData.setSelectorName(defaultSelectorData.getName());
         discoverySyncData.setPluginName(defaultSelectorData.getPluginName());
-        List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
+        List<DivideUpstream> upstreamList;
+        if (StringUtils.equalsIgnoreCase(PluginEnum.SPRING_CLOUD.getName(), defaultSelectorData.getPluginName())) {
+            upstreamList = GsonUtils.getInstance().fromJson(defaultSelectorData.getHandle(), SpringCloudSelectorHandle.class).getDivideUpstreams();
+        } else {
+            upstreamList = GsonUtils.getInstance().fromList(defaultSelectorData.getHandle(), DivideUpstream.class);
+        }
         if (CollectionUtils.isNotEmpty(upstreamList)) {
             List<DiscoveryUpstreamData> discoveryUpstreamDataList = upstreamList.stream().map(up -> {
                 DiscoveryUpstreamData upstreamData = new DiscoveryUpstreamData();
@@ -250,7 +262,6 @@ public class LocalPluginController {
             discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
             discoveryUpstreamDataSubscriber.onSubscribe(discoverySyncData);
         }
-        return Mono.just(selectorData.getId());
     }
 
     /**
@@ -269,6 +280,7 @@ public class LocalPluginController {
                 .build();
         SelectorData result = buildDefaultSelectorData(selectorData);
         subscriber.onSelectorSubscribe(result);
+        saveDiscoveryUpstreamData(result);
         RuleData ruleData = RuleData.builder()
                 .selectorId(result.getId())
                 .matchRestful(Boolean.FALSE)
@@ -297,6 +309,7 @@ public class LocalPluginController {
                 .build();
         SelectorData result = buildDefaultSelectorData(selectorData);
         subscriber.onSelectorSubscribe(result);
+        saveDiscoveryUpstreamData(result);
         List<RuleLocalData> ruleDataList = selectorRulesData.getRuleDataList();
         for (RuleLocalData data : ruleDataList) {
             RuleData ruleData = RuleData.builder()

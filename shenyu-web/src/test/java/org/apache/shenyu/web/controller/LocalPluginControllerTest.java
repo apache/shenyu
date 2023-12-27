@@ -406,7 +406,7 @@ public final class LocalPluginControllerTest {
         final LocalPluginController.SelectorRulesData selectorRulesData = new LocalPluginController.SelectorRulesData();
         selectorRulesData.setPluginName("pluginName");
         selectorRulesData.setSelectorName("selectorName");
-        selectorRulesData.setSelectorHandler("{}");
+        selectorRulesData.setSelectorHandler("[]");
         selectorRulesData.setMatchMode(0);
         LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
         ruleLocalData.setRuleName("ruleName");

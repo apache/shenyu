@@ -282,6 +282,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 .name(proxySelectorAddDTO.getName())
                 .type(proxySelectorAddDTO.getDiscovery().getDiscoveryType())
                 .serverList(proxySelectorAddDTO.getDiscovery().getServerList())
+                .pluginName(proxySelectorAddDTO.getPluginName())
                 .level(DiscoveryLevel.SELECTOR.getCode())
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
