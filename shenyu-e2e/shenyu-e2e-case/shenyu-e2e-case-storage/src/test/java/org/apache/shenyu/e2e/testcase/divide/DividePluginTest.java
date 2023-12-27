@@ -81,7 +81,7 @@ public class DividePluginTest {
                 client.create(rule);
             });
             BindingData bindingData = res.getBindingData();
-            if(Objects.nonNull(bindingData)){
+            if (Objects.nonNull(bindingData)) {
                 bindingData.setSelectorId(dto.getId());
                 client.bindingData(bindingData);
             }
