@@ -32,6 +32,8 @@ import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.global.subsciber.MetaDataCacheSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.util.Collections;
@@ -49,6 +51,8 @@ import java.util.stream.Collectors;
  * </p>
  */
 public class ShenyuCacheRepository {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuCacheRepository.class);
 
     private final CommonPluginDataSubscriber subscriber;
 
@@ -125,6 +129,7 @@ public class ShenyuCacheRepository {
     }
 
     private List<DiscoveryUpstreamData> convert(final String handle) {
+        LOG.info("saveOrUpdateSelectorData convert handle={}", handle);
         List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
         if (CollectionUtils.isEmpty(divideUpstreams)) {
             return Collections.emptyList();
