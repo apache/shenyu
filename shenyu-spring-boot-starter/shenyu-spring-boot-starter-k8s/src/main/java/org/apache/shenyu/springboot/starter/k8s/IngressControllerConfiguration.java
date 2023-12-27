@@ -160,6 +160,7 @@ public class IngressControllerConfiguration {
      * ShenyuCacheRepository.
      *
      * @param pluginDataSubscriber CommonPluginDataSubscriber
+     * @param discoveryUpstreamDataSubscriber CommonDiscoveryUpstreamDataSubscriber
      * @param metaDataSubscriber MetaDataSubscriber
      * @param metaDataCacheSubscriber MetaDataCacheSubscriber
      * @return ShenyuCacheRepository
