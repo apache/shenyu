@@ -133,6 +133,10 @@ INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507014', '36', 'sampl
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507015', '34', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507016', '35', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507017', '38', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507018', '38', 'sampleRate', 'sampleRate', 2, 3, 11, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+
 -- logging rabbitmq plugin end
 
 -- delete brpc plugin
