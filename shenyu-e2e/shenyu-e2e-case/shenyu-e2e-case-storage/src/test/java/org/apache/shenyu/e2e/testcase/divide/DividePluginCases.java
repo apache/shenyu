@@ -39,6 +39,7 @@ import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBui
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newUpstreamsBuilder;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExists;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newBindingData;
 import static org.hamcrest.text.IsEmptyString.isEmptyOrNullString;
 
 public class DividePluginCases implements ShenYuScenarioProvider {
@@ -68,6 +69,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 .handle(newUpstreamsBuilder("httpbin.org"))
                                                 .conditionList(newConditions(ParamType.URI, Operator.EQUAL, ANYTHING))
                                                 .build(),
+                                        newBindingData("httpbin",  Plugin.DIVIDE.name(), "httpbin.org"),
                                         newRuleBuilder("rule")
                                                 .handle(newDivideRuleHandle())
                                                 .conditionList(newConditions(ParamType.URI, Operator.EQUAL, ANYTHING))
@@ -103,6 +105,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 .handle(newUpstreamsBuilder("httpbin.org"))
                                                 .conditionList(newConditions(ParamType.URI, Operator.PATH_PATTERN, "/anything/xx/**"))
                                                 .build(),
+                                        newBindingData("httpbin",  Plugin.DIVIDE.name(), "httpbin.org"),
                                         newRuleBuilder("rule")
                                                 .handle(newDivideRuleHandle())
                                                 .conditionList(newConditions(ParamType.URI, Operator.PATH_PATTERN, "/anything/xx/**"))
@@ -141,6 +144,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 .handle(newUpstreamsBuilder("httpbin.org"))
                                                 .conditionList(newConditions(ParamType.URI, Operator.STARTS_WITH, ANYTHING + "/xx"))
                                                 .build(),
+                                        newBindingData("httpbin",  Plugin.DIVIDE.name(), "httpbin.org"),
                                         newRuleBuilder("rule")
                                                 .handle(newDivideRuleHandle())
                                                 .conditionList(newConditions(ParamType.URI, Operator.STARTS_WITH, ANYTHING + "/xx"))
@@ -178,6 +182,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 .handle(newUpstreamsBuilder("httpbin.org"))
                                                 .conditionList(newConditions(ParamType.URI, Operator.ENDS_WITH, "/200"))
                                                 .build(),
+                                        newBindingData("httpbin",  Plugin.DIVIDE.name(), "httpbin.org"),
                                         newRuleBuilder("rule")
                                                 .handle(newDivideRuleHandle())
                                                 .conditionList(newConditions(ParamType.URI, Operator.ENDS_WITH, "/200"))
@@ -220,6 +225,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                         newCondition(ParamType.URI, Operator.EQUAL, ANYTHING)
                                                 ))
                                                 .build(),
+                                        newBindingData("httpbin",  Plugin.DIVIDE.name(), "httpbin.org"),
                                         newRuleBuilder("rule")
                                                 .handle(newDivideRuleHandle())
                                                 .conditionList(Lists.newArrayList(
@@ -264,6 +270,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                         newCondition(ParamType.URI, Operator.EQUAL, ANYTHING)
                                                 ))
                                                 .build(),
+                                        newBindingData("httpbin",  Plugin.DIVIDE.name(), "httpbin.org"),
                                         newRuleBuilder("rule")
                                                 .handle(newDivideRuleHandle())
                                                 .conditionList(Lists.newArrayList(
@@ -308,6 +315,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                         newCondition(ParamType.URI, Operator.EQUAL, ANYTHING)
                                                 ))
                                                 .build(),
+                                        newBindingData("httpbin",  Plugin.DIVIDE.name(), "httpbin.org"),
                                         newRuleBuilder("rule")
                                                 .handle(newDivideRuleHandle())
                                                 .conditionList(Lists.newArrayList(
@@ -352,6 +360,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                         newCondition(ParamType.URI, Operator.EQUAL, ANYTHING)
                                                 ))
                                                 .build(),
+                                        newBindingData("httpbin",  Plugin.DIVIDE.name(), "httpbin.org"),
                                         newRuleBuilder("rule")
                                                 .handle(newDivideRuleHandle())
                                                 .conditionList(Lists.newArrayList(

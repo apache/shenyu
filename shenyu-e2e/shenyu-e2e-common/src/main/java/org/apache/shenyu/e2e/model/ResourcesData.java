@@ -19,6 +19,7 @@ package org.apache.shenyu.e2e.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import org.apache.shenyu.e2e.model.data.BindingData;
 import org.apache.shenyu.e2e.model.data.RuleData;
 import org.apache.shenyu.e2e.model.data.SelectorData;
 
@@ -28,7 +29,7 @@ import java.util.List;
  * ResourcesData.
  */
 public final class ResourcesData {
-    
+
     private final List<Resource> resources;
 
     private ResourcesData(final List<Resource> resources) {
@@ -50,20 +51,22 @@ public final class ResourcesData {
                 + "resources=" + resources
                 + '}';
     }
-    
+
     /**
      * builder.
+     *
      * @return ResourcesDataBuilder
      */
     public static ResourcesDataBuilder builder() {
         return new ResourcesDataBuilder();
     }
-    
+
     public static class ResourcesDataBuilder {
         private final Builder<Resource> resources = ImmutableList.builder();
-        
+
         /**
          * add resource data.
+         *
          * @param selector selector
          * @param rules rules
          * @return ResourcesDataBuilder
@@ -72,7 +75,12 @@ public final class ResourcesData {
             resources.add(new Resource(selector, ImmutableList.<RuleData>builder().add(rules).build()));
             return this;
         }
-        
+
+        public ResourcesDataBuilder add(final SelectorData selector, final BindingData bindingData, final RuleData... rules) {
+            resources.add(new Resource(selector, bindingData, ImmutableList.<RuleData>builder().add(rules).build()));
+            return this;
+        }
+
         /**
          * build.
          * @return ResourcesData
@@ -88,9 +96,17 @@ public final class ResourcesData {
         
         private final List<RuleData> rules;
 
+        private BindingData bindingData;
+
         private Resource(final SelectorData selector, final List<RuleData> rules) {
             this.selector = selector;
             this.rules = rules;
+        }
+
+        private Resource(final SelectorData selector, final BindingData bindingData, final List<RuleData> rules) {
+            this.selector = selector;
+            this.rules = rules;
+            this.bindingData = bindingData;
         }
 
         /**
@@ -111,14 +127,31 @@ public final class ResourcesData {
             return rules;
         }
 
+        /**
+         * getBindingData.
+         *
+         * @return BindingData
+         */
+        public BindingData getBindingData() {
+            return bindingData;
+        }
+
+        /**
+         * setBindingData.
+         *
+         * @param bindingData bindingData
+         */
+        public void setBindingData(final BindingData bindingData) {
+            this.bindingData = bindingData;
+        }
+
         @Override
         public String toString() {
-            return "Resource{"
-                    + "selector="
-                    + selector
-                    + ", rules="
-                    + rules
-                    + '}';
+            return "Resource{" +
+                    "selector=" + selector +
+                    ", rules=" + rules +
+                    ", bindingData=" + bindingData +
+                    '}';
         }
     }
 }
