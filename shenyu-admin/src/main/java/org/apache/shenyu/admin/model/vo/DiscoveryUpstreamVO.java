@@ -55,6 +55,11 @@ public class DiscoveryUpstreamVO {
     private String props;
 
     /**
+     * dateCreated.
+     */
+    private String startupTime;
+
+    /**
      * getId.
      *
      * @return id
@@ -178,5 +183,23 @@ public class DiscoveryUpstreamVO {
      */
     public void setProps(final String props) {
         this.props = props;
+    }
+
+    /**
+     * getStartupTime.
+     *
+     * @return startupTime
+     */
+    public String getStartupTime() {
+        return startupTime;
+    }
+
+    /**
+     * setStartupTime.
+     *
+     * @param startupTime startupTime
+     */
+    public void setStartupTime(final String startupTime) {
+        this.startupTime = startupTime;
     }
 }

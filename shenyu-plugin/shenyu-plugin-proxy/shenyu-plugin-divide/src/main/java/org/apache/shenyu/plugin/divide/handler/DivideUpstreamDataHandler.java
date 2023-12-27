@@ -69,7 +69,7 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
                     .weight(u.getWeight())
                     .warmup(Integer.parseInt(properties.getProperty("warmup", "10")))
                     .status(0 == u.getStatus())
-                    .timestamp(Optional.ofNullable(u.getDateUpdated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
+                    .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
                     .build();
         }).collect(Collectors.toList());
     }

@@ -76,6 +76,7 @@ public enum DiscoveryTransfer {
         vo.setStatus(discoveryUpstreamDO.getStatus());
         vo.setWeight(discoveryUpstreamDO.getWeight());
         vo.setProps(discoveryUpstreamDO.getProps());
+        vo.setStartupTime(String.valueOf(discoveryUpstreamDO.getDateCreated().getTime()));
         return vo;
     }
 

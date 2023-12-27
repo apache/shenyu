@@ -425,6 +425,11 @@ public class ProxySelectorAddDTO implements Serializable {
         private String props;
 
         /**
+         * startupTime.
+         */
+        private String startupTime;
+
+        /**
          * get id.
          *
          * @return id
@@ -535,6 +540,23 @@ public class ProxySelectorAddDTO implements Serializable {
          */
         public void setProps(final String props) {
             this.props = props;
+        }
+
+        /**
+         * get startupTime.
+         * @return startupTime
+         */
+        public String getStartupTime() {
+            return startupTime;
+        }
+
+        /**
+         * setStartupTime.
+         *
+         * @param startupTime setStartupTime
+         */
+        public void setStartupTime(final String startupTime) {
+            this.startupTime = startupTime;
         }
     }
 }
