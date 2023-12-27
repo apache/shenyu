@@ -39,7 +39,6 @@ shenyu:
         ipAndPort: 127.0.0.1:38080
         port: 38080
 #  discovery:
-#    enable: true
 #    type: zookeeper
 #    serverList: 127.0.0.1:2181
 #    registerPath: /shenyu/discovery/${spring.application.name}
