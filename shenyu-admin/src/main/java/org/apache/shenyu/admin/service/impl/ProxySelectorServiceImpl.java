@@ -375,8 +375,8 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                     .status(discoveryUpstream.getStatus())
                     .weight(discoveryUpstream.getWeight())
                     .props(discoveryUpstream.getProps())
-                    .dateCreated(Optional.ofNullable(discoveryUpstream.getStartupTime()).map(t->new Timestamp(Long.parseLong(t))).orElse(currentTime))
-                    .dateUpdated(Optional.ofNullable(discoveryUpstream.getStartupTime()).map(t->new Timestamp(Long.parseLong(t))).orElse(currentTime))
+                    .dateCreated(Optional.ofNullable(discoveryUpstream.getStartupTime()).map(t -> new Timestamp(Long.parseLong(t))).orElse(currentTime))
+                    .dateUpdated(Optional.ofNullable(discoveryUpstream.getStartupTime()).map(t -> new Timestamp(Long.parseLong(t))).orElse(currentTime))
                     .build();
             discoveryUpstreamMapper.insert(discoveryUpstreamDO);
         });
