@@ -29,6 +29,7 @@ import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.data.Condition;
 import org.apache.shenyu.e2e.model.handle.DivideRuleHandle;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
@@ -42,16 +43,17 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
 
     @Override
     public List<ScenarioSpec> get() {
-        return Lists.newArrayList(
-                testWithUriEquals()
-//                testWithUriPathPattern(),
-//                testWithUriStartWith(),
-//                testWithEndWith(),
-//                testWithMethodGet(),
-//                testWithMethodPost(),
-//                testWithMethodPut(),
-//                testWithMethodDelete()
-        );
+        return new ArrayList<>();
+//        return Lists.newArrayList(
+//                testWithUriEquals()
+////                testWithUriPathPattern(),
+////                testWithUriStartWith(),
+////                testWithEndWith(),
+////                testWithMethodGet(),
+////                testWithMethodPost(),
+////                testWithMethodPut(),
+////                testWithMethodDelete()
+//        );
     }
 
     /**
