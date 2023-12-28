@@ -105,6 +105,7 @@ public final class LogCollectConfigUtils {
     public static boolean isSampled(final ServerWebExchange exchange, final SelectorData selectorData) {
         return Optional.ofNullable(AbstractLogPluginDataHandler.getSelectApiConfigMap().get(selectorData.getId()))
                 .map(config -> config.getSampler().isSampled(exchange, selectorData))
-                .orElse(true);
+                .orElseGet(() -> Optional.ofNullable(AbstractLogPluginDataHandler.getPluginGlobalConfigMap().get(selectorData.getPluginId()))
+                        .map(config -> config.getSampler().isSampled(exchange, selectorData)).orElse(true));
     }
 }

@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.UUID;
 
 public class LoggingHuaweiLtsPluginDataHandlerTest {
 
@@ -36,6 +37,7 @@ public class LoggingHuaweiLtsPluginDataHandlerTest {
     private void setUp() {
         this.loggingHuaweiLtsPluginDataHandler = new LoggingHuaweiLtsPluginDataHandler();
         pluginData.setEnabled(true);
+        pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
         pluginData.setConfig("{\n"
                 + "    \"projectId\": \"projectId\",\n"
                 + "    \"logGroupId\": \"logGroupId\",\n"

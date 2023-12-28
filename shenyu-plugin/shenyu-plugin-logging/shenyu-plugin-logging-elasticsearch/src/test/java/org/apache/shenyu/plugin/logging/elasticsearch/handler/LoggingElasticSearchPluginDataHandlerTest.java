@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -57,6 +58,7 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
         list.add(conditionData);
         selectorData.setConditionList(list);
         pluginData.setEnabled(true);
+        pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
         pluginData.setConfig("{\"host\":\"localhost\", \"port\":\"9200\"}");
     }
 
