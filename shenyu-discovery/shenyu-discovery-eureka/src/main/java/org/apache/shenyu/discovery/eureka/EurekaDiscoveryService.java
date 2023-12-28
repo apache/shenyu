@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -230,6 +231,8 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
         JsonObject upstreamJson = new JsonObject();
         upstreamJson.addProperty("url", instanceInfo.getIPAddr() + ":" + instanceInfo.getPort());
         upstreamJson.addProperty("weight", instanceInfo.getMetadata().get("weight"));
+        upstreamJson.addProperty("protocol", instanceInfo.getMetadata().get("protocol"));
+        upstreamJson.addProperty("props", instanceInfo.getMetadata().get("props"));
         if (instanceInfo.getStatus() == InstanceInfo.InstanceStatus.UP) {
             upstreamJson.addProperty("status", 0);
         } else if (instanceInfo.getStatus() == InstanceInfo.InstanceStatus.DOWN) {
@@ -282,6 +285,8 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
             Map<String, String> metadata = GsonUtils.getInstance().toObjectMap(upstreamData.getProps(), String.class);
             metadata = metadata != null ? metadata : new HashMap<>();
             metadata.put("weight", String.valueOf(upstreamData.getWeight()));
+            metadata.put("protocol", String.valueOf(upstreamData.getProtocol()));
+            metadata.put("props", Optional.ofNullable(upstreamData.getProps()).map(GsonUtils.getInstance()::toJson).orElse("{}"));
             return InstanceInfo.Builder.newBuilder()
                     .setAppName(key)
                     .setIPAddr(urls[0])

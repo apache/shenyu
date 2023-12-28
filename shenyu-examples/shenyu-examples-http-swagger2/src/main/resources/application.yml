@@ -36,6 +36,7 @@ shenyu:
 #          port: 8190
 #  discovery:
 #    enable: true
+#    protocol: http:// #https://
 #    type: zookeeper
 #    serverList: 127.0.0.1:2181
 #    registerPath: /shenyu/discovery/demo_swagger2_common

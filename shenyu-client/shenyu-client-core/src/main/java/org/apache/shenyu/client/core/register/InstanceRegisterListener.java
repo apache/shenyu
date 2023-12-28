@@ -55,6 +55,7 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
 
     public InstanceRegisterListener(final DiscoveryUpstreamData discoveryUpstream, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
         this.currentInstanceUpstream = discoveryUpstream;
+        this.currentInstanceUpstream.setProps("{\"warmupTime\":\"10\"}");
         this.discoveryConfig = new DiscoveryConfig();
         this.discoveryConfig.setServerList(shenyuDiscoveryConfig.getServerList());
         this.discoveryConfig.setType(shenyuDiscoveryConfig.getType());

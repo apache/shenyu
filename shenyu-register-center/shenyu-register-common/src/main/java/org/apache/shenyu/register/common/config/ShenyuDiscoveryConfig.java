@@ -30,6 +30,8 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
 
     private String registerPath;
 
+    private String protocol;
+
     /**
      * Gets name.
      *
@@ -103,4 +105,21 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
         this.registerPath = registerPath;
     }
 
+    /**
+     * getProtocol.
+     *
+     * @return protocol
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+    /**
+     * setProtocol.
+     *
+     * @param protocol protocol
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
+    }
 }

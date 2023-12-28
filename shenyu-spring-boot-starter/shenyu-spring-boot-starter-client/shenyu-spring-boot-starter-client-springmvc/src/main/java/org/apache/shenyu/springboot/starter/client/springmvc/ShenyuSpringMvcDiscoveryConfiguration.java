@@ -33,6 +33,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import java.util.Optional;
+
 @Configuration
 @ConditionalOnBean(ClientRegisterConfig.class)
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
@@ -71,7 +73,7 @@ public class ShenyuSpringMvcDiscoveryConfiguration {
         discoveryUpstreamData.setUrl(clientRegisterConfig.getHost() + ":" + clientRegisterConfig.getPort());
         discoveryUpstreamData.setStatus(0);
         discoveryUpstreamData.setWeight(50);
-        discoveryUpstreamData.setProtocol(shenyuDiscoveryConfig.getProps().getOrDefault("discoveryUpstream.protocol", ShenyuClientConstants.HTTP).toString());
+        discoveryUpstreamData.setProtocol(Optional.ofNullable(shenyuDiscoveryConfig.getProtocol()).orElse( ShenyuClientConstants.HTTP));
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 

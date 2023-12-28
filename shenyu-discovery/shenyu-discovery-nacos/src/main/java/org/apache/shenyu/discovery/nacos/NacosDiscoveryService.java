@@ -38,9 +38,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -238,7 +240,9 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         // status 0:true, 1:false
         upstreamJson.addProperty("status", instance.isHealthy() ? 0 : 1);
         upstreamJson.addProperty("weight", instance.getWeight());
-
+        Map<String, String> metadata = instance.getMetadata();
+        upstreamJson.addProperty("props" , metadata.get("props"));
+        upstreamJson.addProperty("protocol", metadata.get("protocol"));
         return GsonUtils.getInstance().toJson(upstreamJson);
     }
 
@@ -251,7 +255,10 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
             instance.setIp(urls[0]);
             instance.setPort(Integer.parseInt(urls[1]));
             instance.setWeight(upstreamData.getWeight());
-            instance.setMetadata(GsonUtils.getInstance().toObjectMap(upstreamData.getProps(), String.class));
+            Map<String, String> metaData = new HashMap<>();
+            metaData.put("props", Optional.ofNullable(upstreamData.getProps()).map(GsonUtils.getInstance()::toJson).orElse("{}"));
+            metaData.put("protocol", upstreamData.getProtocol());
+            instance.setMetadata(metaData);
             instance.setInstanceId(upstreamData.getUrl());
             return instance;
         } catch (JsonSyntaxException jsonSyntaxException) {
