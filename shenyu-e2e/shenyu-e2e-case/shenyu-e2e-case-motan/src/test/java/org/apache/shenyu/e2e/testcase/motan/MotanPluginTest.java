@@ -41,7 +41,6 @@ import org.springframework.util.MultiValueMap;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
@@ -133,4 +132,3 @@ public class MotanPluginTest {
         client.changePluginStatus("17", formData);
     }
 }
-
