@@ -241,7 +241,7 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
         upstreamJson.addProperty("status", instance.isHealthy() ? 0 : 1);
         upstreamJson.addProperty("weight", instance.getWeight());
         Map<String, String> metadata = instance.getMetadata();
-        upstreamJson.addProperty("props" , metadata.get("props"));
+        upstreamJson.addProperty("props", metadata.get("props"));
         upstreamJson.addProperty("protocol", metadata.get("protocol"));
         return GsonUtils.getInstance().toJson(upstreamJson);
     }
