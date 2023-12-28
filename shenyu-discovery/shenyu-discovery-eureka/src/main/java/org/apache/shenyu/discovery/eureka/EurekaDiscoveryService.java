@@ -285,7 +285,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
             metadata = metadata != null ? metadata : new HashMap<>();
             metadata.put("weight", String.valueOf(upstreamData.getWeight()));
             metadata.put("protocol", String.valueOf(upstreamData.getProtocol()));
-            metadata.put("props", Optional.ofNullable(upstreamData.getProps()).map(GsonUtils.getInstance()::toJson).orElse("{}"));
+            metadata.put("props", Optional.ofNullable(upstreamData.getProps()).orElse("{}"));
             String[] urls = upstreamData.getUrl().split(":", 2);
             return InstanceInfo.Builder.newBuilder()
                     .setAppName(key)

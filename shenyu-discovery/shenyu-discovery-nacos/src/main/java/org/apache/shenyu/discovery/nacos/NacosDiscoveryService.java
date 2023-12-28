@@ -256,7 +256,7 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
             instance.setPort(Integer.parseInt(urls[1]));
             instance.setWeight(upstreamData.getWeight());
             Map<String, String> metaData = new HashMap<>();
-            metaData.put("props", Optional.ofNullable(upstreamData.getProps()).map(GsonUtils.getInstance()::toJson).orElse("{}"));
+            metaData.put("props", Optional.ofNullable(upstreamData.getProps()).orElse("{}"));
             metaData.put("protocol", upstreamData.getProtocol());
             instance.setMetadata(metaData);
             instance.setInstanceId(upstreamData.getUrl());
