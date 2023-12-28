@@ -60,9 +60,9 @@ spec:
     app: shenyu-examples-motan
   type: NodePort
   ports:
-    - name: "38081"
+    - name: "30081"
       port: 8081
       targetPort: 8081
-      nodePort: 38081
+      nodePort: 30081
 status:
   loadBalancer: {}
