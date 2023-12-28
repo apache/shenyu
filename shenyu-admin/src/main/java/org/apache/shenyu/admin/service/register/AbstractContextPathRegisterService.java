@@ -17,30 +17,32 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.shenyu.admin.lock.RegisterExecutionLock;
+import org.apache.shenyu.admin.lock.RegisterExecutionRepository;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-
+import javax.annotation.Resource;
 import java.util.Objects;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * The type Abstract context path register service.
  */
 public abstract class AbstractContextPathRegisterService extends AbstractShenyuClientRegisterServiceImpl {
-    
-    private static final ReentrantReadWriteLock REENTRANT_LOCK = new ReentrantReadWriteLock();
-    
-    private static final ReentrantReadWriteLock.WriteLock WRITE_LOCK = REENTRANT_LOCK.writeLock();
-    
+
+    @Resource
+    private RegisterExecutionRepository registerExecutionRepository;
+
     @Override
     public void registerContextPath(final MetaDataRegisterDTO dto) {
-        String contextPathSelectorId = getSelectorService().registerDefault(dto, PluginEnum.CONTEXT_PATH.getName(), "");
+        String name = PluginEnum.CONTEXT_PATH.getName();
+        String contextPathSelectorId = getSelectorService().registerDefault(dto, name, "");
         // avoid repeated registration for many client threads
         // many client threads may register the same context path for contextPath plugin at the same time
+        RegisterExecutionLock lock = registerExecutionRepository.getLock(name);
+        lock.lock();
         try {
-            WRITE_LOCK.lock();
             if (Objects.nonNull(getRuleService().findBySelectorIdAndName(contextPathSelectorId, dto.getContextPath()))) {
                 return;
             }
@@ -49,7 +51,7 @@ public abstract class AbstractContextPathRegisterService extends AbstractShenyuC
             handle.setAddPrefixed(dto.getAddPrefixed());
             getRuleService().registerDefault(buildContextPathDefaultRuleDTO(contextPathSelectorId, dto, handle.toJson()));
         } finally {
-            WRITE_LOCK.unlock();
+            lock.unlock();
         }
     }
 }
