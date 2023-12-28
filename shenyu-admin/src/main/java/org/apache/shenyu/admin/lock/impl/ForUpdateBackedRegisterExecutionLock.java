@@ -56,6 +56,10 @@ public class ForUpdateBackedRegisterExecutionLock implements RegisterExecutionLo
     public void unlock() {
         TransactionStatus transactionStatus = RegisterTransactionUtil.get();
         try {
+            if (transactionStatus.isRollbackOnly()) {
+                transactionManager.rollback(transactionStatus);
+                return;
+            }
             transactionManager.commit(transactionStatus);
         } finally {
             RegisterTransactionUtil.remove();
