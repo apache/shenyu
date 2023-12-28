@@ -40,6 +40,7 @@ shenyu:
         appName: ${shenyu.common.appName}
         port: ${shenyu.common.port}
 #  discovery:
+#    enable: true
 #    type: zookeeper
 #    serverList: 127.0.0.1:2181
 #    registerPath: /shenyu/discovery/http_example

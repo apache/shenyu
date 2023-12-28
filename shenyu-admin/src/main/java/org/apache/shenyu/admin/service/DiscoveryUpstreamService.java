@@ -67,6 +67,13 @@ public interface DiscoveryUpstreamService {
     List<DiscoverySyncData> listAll();
 
     /**
+     * refresh and push event.
+     *
+     * @param selectorId selectorId
+     */
+    void refreshBySelectorId(String selectorId);
+
+    /**
      * findBySelectorId.
      *
      * @param selectorId selectorId

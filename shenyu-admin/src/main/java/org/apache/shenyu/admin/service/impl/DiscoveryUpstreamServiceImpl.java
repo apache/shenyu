@@ -160,6 +160,14 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         }).collect(Collectors.toList());
     }
 
+    @Override
+    public void refreshBySelectorId(final String selectorId) {
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
+        if (Objects.nonNull(discoveryHandlerDO)) {
+            fetchAll(discoveryHandlerDO.getId());
+        }
+    }
+
     /**
      * create.
      *

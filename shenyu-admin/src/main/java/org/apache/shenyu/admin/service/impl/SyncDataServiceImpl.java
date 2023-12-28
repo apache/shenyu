@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.DiscoveryService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
@@ -69,12 +70,15 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     private final DiscoveryService discoveryService;
 
+    private final DiscoveryUpstreamService discoveryUpstreamService;
+
     public SyncDataServiceImpl(final AppAuthService appAuthService,
                                final PluginService pluginService,
                                final SelectorService selectorService,
                                final RuleService ruleService,
                                final ApplicationEventPublisher eventPublisher,
                                final MetaDataService metaDataService,
+                               final DiscoveryUpstreamService discoveryUpstreamService,
                                final DiscoveryService discoveryService) {
         this.appAuthService = appAuthService;
         this.pluginService = pluginService;
@@ -82,6 +86,7 @@ public class SyncDataServiceImpl implements SyncDataService {
         this.ruleService = ruleService;
         this.eventPublisher = eventPublisher;
         this.metaDataService = metaDataService;
+        this.discoveryUpstreamService = discoveryUpstreamService;
         this.discoveryService = discoveryService;
     }
 
@@ -116,6 +121,9 @@ public class SyncDataServiceImpl implements SyncDataService {
 
             List<String> selectorIdList = selectorDataList.stream().map(SelectorData::getId)
                     .collect(Collectors.toList());
+            for (String selectorId : selectorIdList) {
+                discoveryUpstreamService.refreshBySelectorId(selectorId);
+            }
             List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
 
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));

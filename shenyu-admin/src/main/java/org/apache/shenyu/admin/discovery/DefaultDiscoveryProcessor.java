@@ -57,7 +57,8 @@ public class DefaultDiscoveryProcessor extends AbstractDiscoveryProcessor {
         }
         Set<String> cacheKey = getCacheKey(discoveryHandlerDTO.getDiscoveryId());
         if (Objects.nonNull(cacheKey) && cacheKey.contains(key)) {
-            throw new ShenyuAdminException(String.format("shenyu discovery has watcher key = %s", key));
+            LOG.info("shenyu discovery has watcher key = {}", key);
+            return;
         }
         shenyuDiscoveryService.watch(key, getDiscoveryDataChangedEventListener(discoveryHandlerDTO, proxySelectorDTO));
         cacheKey.add(key);

@@ -33,6 +33,7 @@ shenyu:
         appName: http
   #          port: 8189
 #  discovery:
+#    enable: true
 #    type: zookeeper
 #    serverList: 127.0.0.1:2181
 #    registerPath: /shenyu/discovery/http_example
