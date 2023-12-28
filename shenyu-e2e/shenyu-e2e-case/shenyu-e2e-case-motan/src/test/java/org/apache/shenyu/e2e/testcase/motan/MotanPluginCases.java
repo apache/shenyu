@@ -43,7 +43,7 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
-//                testWithUriEquals(),
+                testWithUriEquals()
 //                testWithUriPathPattern(),
 //                testWithUriStartWith(),
 //                testWithEndWith(),
