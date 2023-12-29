@@ -226,7 +226,7 @@ The text of each license is the standard Apache 2.0 license.
     brave-tests 5.1.0: https://zipkin.io, Apache 2.0
     breeze-core 0.1.4: https://mvnrepository.com/artifact/com.weibo/breeze-core, Apache 2.0
 	bouncy-castle-bc 2.10.1-pkg: https://mvnrepository.com/artifact/org.apache.pulsar/bouncy-castle-bc, Apache 2.0
-    audience-annotations 0.5.0: https://yetus.apache.org/audience-annotations, Apache 2.0
+    audience-annotations 0.12.0: https://yetus.apache.org/audience-annotations, Apache 2.0
     auto-value-annotations 1.7: https://github.com/google/auto/tree/master/value, Apache 2.0
     bolt 1.5.6: https://github.com/alipay/sofa-bolt, Apache 2.0
     btf 1.2: https://github.com/fge/btf, LGPL and Apache 2.0
@@ -453,7 +453,6 @@ The text of each license is the standard Apache 2.0 license.
     spring-cloud-loadbalancer 3.1.2：https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-loadbalancer, Apache 2.0
 	spring-cloud-netflix-archaius 2.2.10.RELEASE: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-netflix-archaius, Apache 2.0
 	spring-cloud-netflix-eureka-client 3.1.2: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-netflix-eureka-client, Apache 2.0
-    spring-cloud-netflix-ribbon 2.2.10.RELEASE: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-netflix-ribbon, Apache 2.0
 	spring-cloud-starter 3.1.2: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter, Apache 2.0
     spring-cloud-starter-alibaba-nacos-discovery 2021.0.1.0: https://mvnrepository.com/artifact/com.alibaba.cloud/spring-cloud-starter-alibaba-nacos-discovery, Apache 2.0
     spring-cloud-starter-baidu-starlight 2022.2.0: https://github.com/baidu/starlight, Apache 2.0
@@ -496,8 +495,8 @@ The text of each license is the standard Apache 2.0 license.
     zipkin-sender-kafka11 2.7.4: https://mvnrepository.com/artifact/io.zipkin.reporter2/zipkin-sender-kafka11, Apache 2.0
     zipkin-sender-urlconnection 2.7.4: https://mvnrepository.com/artifact/io.zipkin.reporter2/zipkin-sender-urlconnection, Apache 2.0
     zkclient 0.11: https://github.com/sgroschupf/zkclient, Apache 2.0
-    zookeeper 3.5.7: https://github.com/apache/zookeeper, Apache 2.0
-    zookeeper-jute 3.5.7: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper 3.7.2: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper-jute 3.7.2: https://github.com/apache/zookeeper, Apache 2.0
     byte-buddy 1.12.6: https://github.com/raphw/byte-buddy, Apache 2.0
     byte-buddy-agent 1.12.23: https://github.com/raphw/byte-buddy, Apache 2.0
     disruptor 3.4.0 https://github.com/LMAX-Exchange/disruptor, Apache 2.0
