@@ -70,6 +70,8 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
     private long timeout;
 
+    private volatile boolean isShuttingDown = false;
+
     @Override
     public void init(final DiscoveryConfig config) {
         try {
@@ -102,7 +104,9 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
                 @Override
                 public void onError(final Throwable throwable) {
-                    // LOGGER.error("etcd lease keep alive error", throwable);
+                    if (!isShuttingDown) {
+                        LOGGER.error("etcd lease keep alive error", throwable);
+                    }
                 }
 
                 @Override
@@ -224,6 +228,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void shutdown() {
         try {
+            isShuttingDown = true;
             for (Map.Entry<String, Watch.Watcher> entry : watchCache.entrySet()) {
                 Watch.Watcher watcher = entry.getValue();
                 watcher.close();
@@ -238,6 +243,8 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
         } catch (Exception e) {
             LOGGER.error("etcd client shutdown error", e);
             throw new ShenyuException(e);
+        } finally {
+            isShuttingDown = false;
         }
     }
 
