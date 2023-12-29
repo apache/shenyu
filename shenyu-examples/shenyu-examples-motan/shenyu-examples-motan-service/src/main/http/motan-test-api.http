@@ -20,7 +20,6 @@ GET http://localhost:9195/motan/demo/hi
 Accept: application/json
 Content-Type: application/json
 
-
 ### shengyu getway proxy hello
 GET http://localhost:9195/motan/demo/hello
 Accept: application/json
