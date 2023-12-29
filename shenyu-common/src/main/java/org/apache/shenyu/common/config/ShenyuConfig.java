@@ -1978,7 +1978,7 @@ public class ShenyuConfig {
     }
     
     public static class AlertConfig {
-        private Boolean enabled = Boolean.TRUE;
+        private Boolean enabled = Boolean.FALSE;
         
         private String admins = "localhost:9095";
         

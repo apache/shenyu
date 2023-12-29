@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.shenyu.admin.lock.RegisterExecutionLock;
+import org.apache.shenyu.admin.lock.RegisterExecutionRepository;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
 import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
@@ -32,8 +34,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+
 
 /**
  * Test cases for AbstractContextPathRegisterService.
@@ -50,12 +54,17 @@ class AbstractContextPathRegisterServiceTest {
     @Mock
     private RuleServiceImpl ruleService;
 
+    @Mock
+    private RegisterExecutionRepository registerExecutionRepository;
+
     @Test
     public void testRegisterContextPath() {
         MetaDataRegisterDTO dto = MetaDataRegisterDTO.builder().build();
         dto.setContextPath("Context_Path");
         dto.setAddPrefixed(true);
+        RegisterExecutionLock registerExecutionLock = mock(RegisterExecutionLock.class);
         when(selectorService.registerDefault(dto, PluginEnum.CONTEXT_PATH.getName(), "")).thenReturn("Context_Path_Selector_Id");
+        when(registerExecutionRepository.getLock(any())).thenReturn(registerExecutionLock);
         abstractContextPathRegisterService.registerContextPath(dto);
         verify(ruleService).registerDefault(any());
     }

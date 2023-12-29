@@ -48,24 +48,24 @@ public class MetaDataEventPublisher implements AdminDataModelChangedEventPublish
     }
     
     /**
-     * on selector created.
+     * on meta data created.
      *
-     * @param selector selector
+     * @param metaDataDO metaDataDO
      */
     @Override
-    public void onCreated(final MetaDataDO selector) {
-        publish(new MetaDataCreatedEvent(selector, SessionUtil.visitorName()));
+    public void onCreated(final MetaDataDO metaDataDO) {
+        publish(new MetaDataCreatedEvent(metaDataDO, SessionUtil.visitorName()));
     }
     
     /**
-     * on selector updated.
+     * on meta data updated.
      *
-     * @param selector selector
+     * @param metaDataDO selector
      * @param before   before selector
      */
     @Override
-    public void onUpdated(final MetaDataDO selector, final MetaDataDO before) {
-        publish(new MetadataUpdatedEvent(selector, before, SessionUtil.visitorName()));
+    public void onUpdated(final MetaDataDO metaDataDO, final MetaDataDO before) {
+        publish(new MetadataUpdatedEvent(metaDataDO, before, SessionUtil.visitorName()));
     }
     
     /**
