@@ -29,7 +29,6 @@ import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.data.Condition;
 import org.apache.shenyu.e2e.model.handle.DivideRuleHandle;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
