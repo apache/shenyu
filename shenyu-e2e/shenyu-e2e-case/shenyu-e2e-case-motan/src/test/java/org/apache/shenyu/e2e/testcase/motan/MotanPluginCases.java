@@ -43,17 +43,16 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
 
     @Override
     public List<ScenarioSpec> get() {
-        return new ArrayList<>();
-//        return Lists.newArrayList(
-//                testWithUriEquals()
-////                testWithUriPathPattern(),
-////                testWithUriStartWith(),
-////                testWithEndWith(),
-////                testWithMethodGet(),
-////                testWithMethodPost(),
-////                testWithMethodPut(),
-////                testWithMethodDelete()
-//        );
+        return Lists.newArrayList(
+                testWithUriEquals()
+//                testWithUriPathPattern(),
+//                testWithUriStartWith(),
+//                testWithEndWith(),
+//                testWithMethodGet(),
+//                testWithMethodPost(),
+//                testWithMethodPut(),
+//                testWithMethodDelete()
+        );
     }
 
     /**
@@ -68,26 +67,26 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("selector", Plugin.MOTAN)
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hello"))
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi"))
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hello"))
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi"))
                                                 .handle(DivideRuleHandle.builder().timeout(100000).retry(10).build())
                                                 .build()
                                 )
-                                .checker(notExists("/motan/demo/hello"))
-                                .waiting(exists("/motan/demo/hello"))
+                                .checker(notExists("/motan/demo/hi"))
+                                .waiting(exists("/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists("/motan/demo/hello")
+                                .addExists("/motan/demo/hi")
                                 .addNotExists("/motan/demo/h")
                                 .addNotExists("/put")
                                 .addNotExists("/get")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hello")).build())
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hi")).build())
                 .build();
     }
 
@@ -109,18 +108,18 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.PATH_PATTERN, "/motan/demo/**"))
                                                 .build()
                                 )
-                                .checker(notExists("/motan/demo/hello"))
-                                .waiting(exists("/motan/demo/hello"))
+                                .checker(notExists("/motan/demo/hi"))
+                                .waiting(exists("/motan/demo/hi"))
                                 .build()
                 ).caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists("/motan/demo/hello")
+                                .addExists("/motan/demo/hi")
                                 .addNotExists("/motan/de")
-                                .addExists(Method.POST, "/motan/demo/hello")
-                                .addExists(Method.PUT, "/motan/demo/hello")
-                                .addExists(Method.DELETE, "/motan/demo/hello")
+                                .addExists(Method.POST, "/motan/demo/hi")
+                                .addExists(Method.PUT, "/motan/demo/hi")
+                                .addExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hello")).build())
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hi")).build())
                 .build();
     }
 
@@ -142,19 +141,19 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/motan/"))
                                                 .build()
                                 )
-                                .checker(notExists("/motan/demo/hello"))
-                                .waiting(exists("/motan/demo/hello"))
+                                .checker(notExists("/motan/demo/hi"))
+                                .waiting(exists("/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists("/motan/demo/hello")
+                                .addExists("/motan/demo/hi")
                                 .addNotExists("/mota/")
-                                .addExists(Method.POST, "/motan/demo/hello")
-                                .addExists(Method.PUT, "/motan/demo/hello")
-                                .addExists(Method.DELETE, "/motan/demo/hello")
+                                .addExists(Method.POST, "/motan/demo/hi")
+                                .addExists(Method.PUT, "/motan/demo/hi")
+                                .addExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hello")).build())
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hi")).build())
                 .build();
     }
 
@@ -176,19 +175,19 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.ENDS_WITH, "/hi"))
                                                 .build()
                                 )
-                                .checker(notExists("/motan/demo/hello"))
-                                .waiting(exists("/motan/demo/hello"))
+                                .checker(notExists("/motan/demo/hi"))
+                                .waiting(exists("/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists("/motan/demo/hello")
+                                .addExists("/motan/demo/hi")
                                 .addNotExists("/motan/demo/h")
-                                .addExists(Method.POST, "/motan/demo/hello")
-                                .addExists(Method.PUT, "/motan/demo/hello")
-                                .addExists(Method.DELETE, "/motan/demo/hello")
+                                .addExists(Method.POST, "/motan/demo/hi")
+                                .addExists(Method.PUT, "/motan/demo/hi")
+                                .addExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hello")).build())
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hi")).build())
                 .build();
     }
 
@@ -206,29 +205,29 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.MOTAN)
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "GET"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hello")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "GET"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hello")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build()
                                 )
-                                .checker(notExists(Method.GET, "/motan/demo/hello"))
-                                .waiting(exists(Method.GET, "/motan/demo/hello"))
+                                .checker(notExists(Method.GET, "/motan/demo/hi"))
+                                .waiting(exists(Method.GET, "/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.GET, "/motan/demo/hello")
+                                .addExists(Method.GET, "/motan/demo/hi")
                                 .addNotExists(Method.GET, "/motan/demo/h")
-                                .addNotExists(Method.POST, "/motan/demo/hello")
-                                .addNotExists(Method.PUT, "/motan/demo/hello")
-                                .addNotExists(Method.DELETE, "/motan/demo/hello")
+                                .addNotExists(Method.POST, "/motan/demo/hi")
+                                .addNotExists(Method.PUT, "/motan/demo/hi")
+                                .addNotExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.GET, "/motan/demo/hello")).build())
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.GET, "/motan/demo/hi")).build())
                 .build();
     }
 
@@ -246,29 +245,29 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.MOTAN)
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "POST"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hello")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "POST"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hello")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build()
                                 )
-                                .checker(notExists(Method.POST, "/motan/demo/hello"))
-                                .waiting(exists(Method.POST, "/motan/demo/hello"))
+                                .checker(notExists(Method.POST, "/motan/demo/hi"))
+                                .waiting(exists(Method.POST, "/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.POST, "/motan/demo/hello")
+                                .addExists(Method.POST, "/motan/demo/hi")
                                 .addNotExists(Method.POST, "/motan/demo/h")
-                                .addNotExists(Method.GET, "/motan/demo/hello")
-                                .addNotExists(Method.PUT, "/motan/demo/hello")
-                                .addNotExists(Method.DELETE, "/motan/demo/hello")
+                                .addNotExists(Method.GET, "/motan/demo/hi")
+                                .addNotExists(Method.PUT, "/motan/demo/hi")
+                                .addNotExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.POST, "/motan/demo/hello")).build())
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.POST, "/motan/demo/hi")).build())
                 .build();
     }
 
@@ -286,29 +285,29 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.MOTAN)
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "PUT"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hello")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "PUT"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hello")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build()
                                 )
-                                .checker(notExists(Method.PUT, "/motan/demo/hello"))
-                                .waiting(exists(Method.PUT, "/motan/demo/hello"))
+                                .checker(notExists(Method.PUT, "/motan/demo/hi"))
+                                .waiting(exists(Method.PUT, "/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.PUT, "/motan/demo/hello")
+                                .addExists(Method.PUT, "/motan/demo/hi")
                                 .addNotExists(Method.PUT, "/motan/demo/h")
-                                .addNotExists(Method.GET, "/motan/demo/hello")
-                                .addNotExists(Method.POST, "/motan/demo/hello")
-                                .addNotExists(Method.DELETE, "/motan/demo/hello")
+                                .addNotExists(Method.GET, "/motan/demo/hi")
+                                .addNotExists(Method.POST, "/motan/demo/hi")
+                                .addNotExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.PUT, "/motan/demo/hello")).build())
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.PUT, "/motan/demo/hi")).build())
                 .build();
     }
 
@@ -327,29 +326,29 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                         newSelectorBuilder("selector", Plugin.MOTAN)
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "DELETE"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hello")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .conditionList(Lists.newArrayList(
                                                         newCondition(Condition.ParamType.METHOD, Condition.Operator.EQUAL, "DELETE"),
-                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hello")
+                                                        newCondition(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi")
                                                 ))
                                                 .build()
                                 )
-                                .checker(notExists(Method.DELETE, "/motan/demo/hello"))
-                                .waiting(exists(Method.DELETE, "/motan/demo/hello"))
+                                .checker(notExists(Method.DELETE, "/motan/demo/hi"))
+                                .waiting(exists(Method.DELETE, "/motan/demo/hi"))
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
-                                .addExists(Method.DELETE, "/motan/demo/hello")
+                                .addExists(Method.DELETE, "/motan/demo/hi")
                                 .addNotExists(Method.DELETE, "/motan/demo/h")
-                                .addNotExists(Method.GET, "/motan/demo/hello")
-                                .addNotExists(Method.POST, "/motan/demo/hello")
-                                .addNotExists(Method.PUT, "/motan/demo/hello")
+                                .addNotExists(Method.GET, "/motan/demo/hi")
+                                .addNotExists(Method.POST, "/motan/demo/hi")
+                                .addNotExists(Method.PUT, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.DELETE, "/motan/demo/hello")).build())
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.DELETE, "/motan/demo/hi")).build())
                 .build();
     }
 }

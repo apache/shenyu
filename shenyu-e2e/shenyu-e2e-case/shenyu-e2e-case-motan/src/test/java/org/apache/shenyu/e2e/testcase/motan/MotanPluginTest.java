@@ -110,7 +110,7 @@ public class MotanPluginTest {
 
     @ShenYuScenario(provider = MotanPluginCases.class)
     void testMotan(final GatewayClient gateway, final CaseSpec spec) {
-//        spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
+        spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 
     @AfterEach
