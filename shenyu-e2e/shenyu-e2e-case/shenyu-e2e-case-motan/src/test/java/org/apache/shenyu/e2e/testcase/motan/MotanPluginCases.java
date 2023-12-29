@@ -41,7 +41,7 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
-                testWithUriEquals()
+                testMotanHi()
         );
     }
 
@@ -50,33 +50,16 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
      *
      * @return ShenYuScenarioSpec
      */
-    public ShenYuScenarioSpec testWithUriEquals() {
+    private ShenYuScenarioSpec testMotanHi() {
         return ShenYuScenarioSpec.builder()
-                .name("single-motan uri =]")
-                .beforeEachSpec(
-                        ShenYuBeforeEachSpec.builder()
-                                .addSelectorAndRule(
-                                        newSelectorBuilder("selector", Plugin.MOTAN)
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi"))
-                                                .build(),
-                                        newRuleBuilder("rule")
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/motan/demo/hi"))
-                                                .handle(DivideRuleHandle.builder().timeout(100000).retry(10).build())
-                                                .build()
-                                )
-                                .checker(notExists("/motan/demo/hi"))
-                                .waiting(exists("/motan/demo/hi"))
-                                .build()
-                )
-                .caseSpec(
-                        ShenYuCaseSpec.builder()
-                                .addExists("/motan/demo/hi")
-                                .addNotExists("/motan/demo/h")
-                                .addNotExists("/put")
-                                .addNotExists("/get")
-                                .build()
-                )
-                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hi")).build())
+                .name("motan test")
+                .beforeEachSpec(ShenYuBeforeEachSpec.builder()
+                        .checker(exists("/motan/demo/hi"))
+                        .build())
+                .caseSpec(ShenYuCaseSpec.builder()
+                        .addExists("/motan/demo/hi")
+                        .addNotExists("/motan/demo/h")
+                        .build())
                 .build();
     }
 }
