@@ -70,7 +70,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
     private long timeout;
 
-    private volatile boolean isShuttingDown = false;
+    private volatile boolean isShuttingDown;
 
     @Override
     public void init(final DiscoveryConfig config) {
