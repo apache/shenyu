@@ -42,6 +42,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
+import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
@@ -132,13 +133,10 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                     BeanUtils.copyProperties(discoveryDO, discoveryDTO);
                     vo.setDiscovery(discoveryDTO);
                     List<DiscoveryUpstreamDO> discoveryUpstreamDOList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryRelDO.getDiscoveryHandlerId());
-                    List<DiscoveryUpstreamDTO> discoveryUpstreamDTOList = Lists.newArrayList();
-                    discoveryUpstreamDOList.forEach(e -> {
-                        DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
-                        BeanUtils.copyProperties(e, discoveryUpstreamDTO);
-                        discoveryUpstreamDTOList.add(discoveryUpstreamDTO);
+                    Optional.ofNullable(discoveryUpstreamDOList).ifPresent(list -> {
+                        List<DiscoveryUpstreamVO> upstreamVOS = list.stream().map(DiscoveryTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
+                        vo.setDiscoveryUpstreams(upstreamVOS);
                     });
-                    vo.setDiscoveryUpstreams(discoveryUpstreamDTOList);
                 }
             }
             result.add(vo);
