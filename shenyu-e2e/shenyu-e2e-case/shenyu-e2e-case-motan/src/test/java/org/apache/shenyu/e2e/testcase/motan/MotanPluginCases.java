@@ -51,10 +51,10 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
         return ShenYuScenarioSpec.builder()
                 .name("motan test")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()
-                        .checker(exists(Method.GET,"/motan/demo/hi", param))
+                        .checker(exists(Method.GET, "/motan/demo/hi", param))
                         .build())
                 .caseSpec(ShenYuCaseSpec.builder()
-                        .addExists(Method.GET,"/motan/demo/hi", param)
+                        .addExists(Method.GET, "/motan/demo/hi", param)
                         .addNotExists("/motan/demo/h")
                         .build())
                 .build();
