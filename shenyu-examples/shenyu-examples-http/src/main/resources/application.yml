@@ -32,7 +32,6 @@ shenyu:
         contextPath: /http
         appName: http
   #          port: 8189
-
 #  discovery:
 #    enable: true
 #    protocol: http://  # https://
@@ -51,7 +50,6 @@ shenyu:
 #    type: eureka
 #    serverList: http://127.0.0.1:8761/eureka
 #    registerPath: shenyu_discovery_http_example
-
 spring:
   servlet:
     multipart:
