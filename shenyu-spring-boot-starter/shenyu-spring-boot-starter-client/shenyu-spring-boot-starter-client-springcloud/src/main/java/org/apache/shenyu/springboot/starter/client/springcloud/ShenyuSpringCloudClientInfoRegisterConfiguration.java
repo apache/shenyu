@@ -19,7 +19,6 @@ package org.apache.shenyu.springboot.starter.client.springcloud;
 
 import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
-import org.apache.shenyu.client.core.register.ClientInfoRefreshedEventListener;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
 import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
@@ -46,19 +45,6 @@ import java.util.List;
 public class ShenyuSpringCloudClientInfoRegisterConfiguration {
     
     public ShenyuSpringCloudClientInfoRegisterConfiguration() {
-    }
-    
-    /**
-     * ClientInfoRefreshedEventListener Bean.
-     *
-     * @param clientRegisterConfig clientRegisterConfig
-     * @param publisher            publisher
-     * @return clientInfoRefreshedEventListener
-     */
-    @Bean
-    public ClientInfoRefreshedEventListener clientInfoEventListener(final ClientRegisterConfig clientRegisterConfig,
-                                                                    final ShenyuClientRegisterEventPublisher publisher) {
-        return new ClientInfoRefreshedEventListener(clientRegisterConfig, publisher);
     }
     
     /**

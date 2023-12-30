@@ -25,9 +25,11 @@ import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
 import org.springframework.util.ObjectUtils;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -52,7 +54,7 @@ public class GrpcDiscoveryUpstreamDataHandler implements DiscoveryUpstreamDataHa
                 .upstreamUrl(u.getUrl())
                 .weight(u.getWeight())
                 .status(0 == u.getStatus())
-                .timestamp(u.getDateUpdated().getTime())
+                .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
                 .build()).collect(Collectors.toList());
     }
 

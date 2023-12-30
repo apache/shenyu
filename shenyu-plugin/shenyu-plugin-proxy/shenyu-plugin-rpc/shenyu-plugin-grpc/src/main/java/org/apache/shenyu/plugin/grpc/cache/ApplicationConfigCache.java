@@ -22,7 +22,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.GrpcRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -77,24 +76,6 @@ public final class ApplicationConfigCache {
             return cache.get(contextPath);
         } catch (ExecutionException e) {
             throw new ShenyuException(e.getCause());
-        }
-    }
-
-    /**
-     * handlerSelector.
-     *
-     * @param selectorData selectorData
-     */
-    public void handlerSelector(final SelectorData selectorData) {
-        final List<GrpcUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), GrpcUpstream.class);
-        if (CollectionUtils.isEmpty(upstreamList)) {
-            invalidate(selectorData.getId());
-            return;
-        }
-        grpcUpstreamCachedHandle.get().cachedHandle(selectorData.getId(), upstreamList);
-        Consumer<Object> consumer = watchUpstreamListener.get(selectorData.getId());
-        if (Objects.nonNull(consumer)) {
-            consumer.accept(System.currentTimeMillis());
         }
     }
 

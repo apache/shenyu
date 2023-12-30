@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.shenyu.admin.discovery.DiscoveryLevel;
 import org.apache.shenyu.admin.discovery.DiscoveryMode;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,12 +30,15 @@ import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
+import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
+import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -66,18 +70,26 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private final DiscoveryRelMapper discoveryRelMapper;
 
+    private final SelectorService selectorService;
+
+    private final SelectorMapper selectorMapper;
+
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
     public DiscoveryServiceImpl(final DiscoveryMapper discoveryMapper,
                                 final ProxySelectorMapper proxySelectorMapper,
                                 final DiscoveryRelMapper discoveryRelMapper,
                                 final DiscoveryHandlerMapper discoveryHandlerMapper,
+                                final SelectorService selectorService,
+                                final SelectorMapper selectorMapper,
                                 final DiscoveryProcessorHolder discoveryProcessorHolder) {
         this.discoveryMapper = discoveryMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.proxySelectorMapper = proxySelectorMapper;
         this.discoveryRelMapper = discoveryRelMapper;
         this.discoveryHandlerMapper = discoveryHandlerMapper;
+        this.selectorService = selectorService;
+        this.selectorMapper = selectorMapper;
     }
 
     @Override
@@ -98,21 +110,70 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void registerDiscoveryConfig(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
-        DiscoveryDTO discoveryDTO = new DiscoveryDTO();
-        discoveryDTO.setName(discoveryConfigRegisterDTO.getName());
-        discoveryDTO.setType(discoveryConfigRegisterDTO.getDiscoveryType());
-        discoveryDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
-        discoveryDTO.setServerList(discoveryConfigRegisterDTO.getServerList());
-        discoveryDTO.setLevel(DiscoveryLevel.PLUGIN.getCode());
-        discoveryDTO.setProps(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())));
-        DiscoveryDO discoveryDO = discoveryMapper.selectByName(discoveryConfigRegisterDTO.getName());
-        if (Objects.nonNull(discoveryDO)) {
-            LOG.warn("shenyu DiscoveryConfigRegisterDTO has been register");
-            return;
+        SelectorDO selectorDO = findAndLockOnDB(discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName());
+        bindingDiscovery(discoveryConfigRegisterDTO, selectorDO);
+    }
+
+    private SelectorDO findAndLockOnDB(final String selectorName, final String pluginName) {
+        SelectorDO selectorDO = null;
+        for (int i = 0; i < 3; i++) {
+            selectorDO = selectorService.findByNameAndPluginNameForUpdate(selectorName, pluginName);
+            if (selectorDO != null) {
+                return selectorDO;
+            }
+            try {
+                LOG.info("retry to find selector {} : {}", selectorName, pluginName);
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                // ignore
+            }
         }
-        this.create(discoveryDTO);
-        LOG.info("shenyu success register DiscoveryConfigRegisterDTO name={}|pluginName={}", discoveryConfigRegisterDTO.getName(), discoveryConfigRegisterDTO.getPluginName());
+        throw new ShenyuException("when binding discovery don't find selector " + selectorName);
+    }
+
+    private void bindingDiscovery(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO, final SelectorDO selectorDO) {
+        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+        proxySelectorDTO.setName(selectorDO.getName());
+        proxySelectorDTO.setId(selectorDO.getId());
+        proxySelectorDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
+        DiscoveryDO discoveryDO = discoveryMapper.selectByPluginNameAndLevel(discoveryConfigRegisterDTO.getPluginName(), DiscoveryLevel.PLUGIN.getCode());
+        if (discoveryDO == null) {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            discoveryDO = DiscoveryDO.builder()
+                    .id(UUIDUtils.getInstance().generateShortUuid())
+                    .name(discoveryConfigRegisterDTO.getName())
+                    .pluginName(discoveryConfigRegisterDTO.getPluginName())
+                    .level(DiscoveryLevel.PLUGIN.getCode())
+                    .type(discoveryConfigRegisterDTO.getDiscoveryType())
+                    .serverList(discoveryConfigRegisterDTO.getServerList())
+                    .props(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())))
+                    .dateCreated(currentTime)
+                    .dateUpdated(currentTime)
+                    .build();
+            discoveryMapper.insertSelective(discoveryDO);
+        }
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorDO.getId());
+        if (discoveryHandlerDO == null) {
+            discoveryHandlerDO = DiscoveryHandlerDO.builder()
+                    .id(UUIDUtils.getInstance().generateShortUuid())
+                    .discoveryId(discoveryDO.getId())
+                    .handler(discoveryConfigRegisterDTO.getHandler())
+                    .listenerNode(discoveryConfigRegisterDTO.getListenerNode())
+                    .props(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())))
+                    .dateCreated(new Timestamp(System.currentTimeMillis())).build();
+            DiscoveryRelDO discoveryRefDO = DiscoveryRelDO.builder()
+                    .id(UUIDUtils.getInstance().generateShortUuid())
+                    .discoveryHandlerId(discoveryHandlerDO.getId())
+                    .selectorId(selectorDO.getId())
+                    .pluginName(discoveryConfigRegisterDTO.getPluginName()).build();
+            discoveryRelMapper.insertSelective(discoveryRefDO);
+            discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
+        }
+        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryConfigRegisterDTO.getDiscoveryType());
+        discoveryProcessor.createDiscovery(discoveryDO);
+        discoveryProcessor.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
     }
 
     @Override
@@ -197,8 +258,18 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             proxySelectorMapper.selectByDiscoveryId(d.getId()).stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).forEach(ps -> {
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectByProxySelectorId(ps.getId());
                 discoveryProcessor.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), ps);
-                discoveryProcessor.fetchAll(discoveryHandlerDO.getId());
+                discoveryProcessor.fetchAll(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), ps);
             });
+            List<SelectorDO> selectorDOS = selectorMapper.selectByDiscoveryId(d.getId());
+            for (SelectorDO selectorDO : selectorDOS) {
+                ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+                proxySelectorDTO.setPluginName(d.getPluginName());
+                proxySelectorDTO.setName(selectorDO.getName());
+                proxySelectorDTO.setId(selectorDO.getId());
+                DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorDO.getId());
+                discoveryProcessor.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
+                discoveryProcessor.fetchAll(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
+            }
         });
     }
 
@@ -216,7 +287,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         }
         DiscoveryDO discoveryDO = new DiscoveryDO();
         String discoveryId = UUIDUtils.getInstance().generateShortUuid();
-        discoveryDO.setLevel(DiscoveryLevel.PLUGIN.getCode());
+        discoveryDO.setLevel(DiscoveryLevel.SELECTOR.getCode());
         discoveryDO.setName(pluginName + "_default_discovery");
         discoveryDO.setPluginName(pluginName);
         discoveryDO.setType(DiscoveryMode.LOCAL.name().toLowerCase());

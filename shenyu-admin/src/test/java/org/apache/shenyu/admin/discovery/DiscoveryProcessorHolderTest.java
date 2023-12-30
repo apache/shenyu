@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -36,9 +37,12 @@ public class DiscoveryProcessorHolderTest {
     @Mock
     private DiscoveryProcessor localProcessor;
 
+    @Mock
+    private DiscoveryProcessor eurekaProcessor;
+
     @BeforeEach
     void setUp() {
-        processorHolder = new DiscoveryProcessorHolder(defaultProcessor, localProcessor);
+        processorHolder = new DiscoveryProcessorHolder(defaultProcessor, localProcessor, eurekaProcessor);
     }
 
     @Test

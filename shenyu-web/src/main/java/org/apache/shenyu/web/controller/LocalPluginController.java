@@ -24,19 +24,26 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,10 +56,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -66,13 +75,17 @@ public class LocalPluginController {
 
     private final PluginDataSubscriber subscriber;
 
+    private final DiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber;
+
     /**
      * Instantiates a new Plugin controller.
      *
      * @param subscriber the subscriber
      */
-    public LocalPluginController(final PluginDataSubscriber subscriber) {
+    public LocalPluginController(final PluginDataSubscriber subscriber,
+                                 final DiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber) {
         this.subscriber = subscriber;
+        this.discoveryUpstreamDataSubscriber = discoveryUpstreamDataSubscriber;
     }
 
     /**
@@ -214,8 +227,41 @@ public class LocalPluginController {
         if (StringUtils.isEmpty(selectorData.getPluginName())) {
             return Mono.just("Error: please add pluginName!");
         }
-        subscriber.onSelectorSubscribe(buildDefaultSelectorData(selectorData));
+        SelectorData defaultSelectorData = buildDefaultSelectorData(selectorData);
+        subscriber.onSelectorSubscribe(defaultSelectorData);
+        saveDiscoveryUpstreamData(defaultSelectorData);
         return Mono.just(selectorData.getId());
+    }
+
+    private void saveDiscoveryUpstreamData(final SelectorData defaultSelectorData) {
+        DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+        discoverySyncData.setSelectorId(defaultSelectorData.getId());
+        discoverySyncData.setSelectorName(defaultSelectorData.getName());
+        discoverySyncData.setPluginName(defaultSelectorData.getPluginName());
+        List<DivideUpstream> upstreamList;
+        if (StringUtils.equalsIgnoreCase(PluginEnum.SPRING_CLOUD.getName(), defaultSelectorData.getPluginName())) {
+            upstreamList = GsonUtils.getInstance().fromJson(defaultSelectorData.getHandle(), SpringCloudSelectorHandle.class).getDivideUpstreams();
+        } else {
+            upstreamList = GsonUtils.getInstance().fromList(defaultSelectorData.getHandle(), DivideUpstream.class);
+        }
+        if (CollectionUtils.isNotEmpty(upstreamList)) {
+            List<DiscoveryUpstreamData> discoveryUpstreamDataList = upstreamList.stream().map(up -> {
+                DiscoveryUpstreamData upstreamData = new DiscoveryUpstreamData();
+                upstreamData.setUrl(up.getUpstreamUrl());
+                upstreamData.setProtocol(up.getProtocol());
+                upstreamData.setWeight(up.getWeight());
+                upstreamData.setStatus(up.isStatus() ? 0 : 1);
+                Properties properties = new Properties();
+                properties.setProperty("warmup", String.valueOf(up.getWarmup()));
+                properties.setProperty("upstreamHost", String.valueOf(up.getUpstreamHost()));
+                upstreamData.setDateUpdated(Optional.of(up.getTimestamp()).map(Timestamp::new).orElse(new Timestamp(System.currentTimeMillis())));
+                upstreamData.setProps(GsonUtils.getInstance().toJson(properties));
+                upstreamData.setDateCreated(Optional.of(up.getTimestamp()).map(Timestamp::new).orElse(new Timestamp(System.currentTimeMillis())));
+                return upstreamData;
+            }).collect(Collectors.toList());
+            discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
+            discoveryUpstreamDataSubscriber.onSubscribe(discoverySyncData);
+        }
     }
 
     /**
@@ -234,6 +280,7 @@ public class LocalPluginController {
                 .build();
         SelectorData result = buildDefaultSelectorData(selectorData);
         subscriber.onSelectorSubscribe(result);
+        saveDiscoveryUpstreamData(result);
         RuleData ruleData = RuleData.builder()
                 .selectorId(result.getId())
                 .matchRestful(Boolean.FALSE)
@@ -262,6 +309,7 @@ public class LocalPluginController {
                 .build();
         SelectorData result = buildDefaultSelectorData(selectorData);
         subscriber.onSelectorSubscribe(result);
+        saveDiscoveryUpstreamData(result);
         List<RuleLocalData> ruleDataList = selectorRulesData.getRuleDataList();
         for (RuleLocalData data : ruleDataList) {
             RuleData ruleData = RuleData.builder()

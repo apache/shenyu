@@ -61,6 +61,12 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-discovery-zookeeper</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!--shenyu consul register center -->
         <!--<dependency>
             <groupId>org.springframework.cloud</groupId>

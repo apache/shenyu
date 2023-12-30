@@ -63,15 +63,15 @@ public class EndpointsReconciler implements Reconciler {
     /**
      * EndpointsReconciler Constructor.
      *
-     * @param ingressInformer ingressInformer
-     * @param endpointsInformer endpointsInformer
+     * @param ingressInformer       ingressInformer
+     * @param endpointsInformer     endpointsInformer
      * @param shenyuCacheRepository shenyuCacheRepository
-     * @param apiClient apiClient
+     * @param apiClient             apiClient
      */
     public EndpointsReconciler(final SharedIndexInformer<V1Ingress> ingressInformer,
                                final SharedIndexInformer<V1Endpoints> endpointsInformer,
-                             final ShenyuCacheRepository shenyuCacheRepository,
-                             final ApiClient apiClient) {
+                               final ShenyuCacheRepository shenyuCacheRepository,
+                               final ApiClient apiClient) {
         this.ingressLister = new Lister<>(ingressInformer.getIndexer());
         this.endpointsLister = new Lister<>(endpointsInformer.getIndexer());
         this.shenyuCacheRepository = shenyuCacheRepository;

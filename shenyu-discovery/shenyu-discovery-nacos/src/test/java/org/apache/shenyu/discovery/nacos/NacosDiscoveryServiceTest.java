@@ -46,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -113,7 +114,7 @@ class NacosDiscoveryServiceTest {
             // Mock the situation where NamingService fails to be created and throws an exception
             mockedNamingFactory.when(() -> NamingFactory.createNamingService(any(Properties.class)))
                     .thenThrow(new NacosException());
-            assertThrows(ShenyuException.class, () -> nacosDiscoveryServiceUnderTest.init(config));
+            assertDoesNotThrow(() -> nacosDiscoveryServiceUnderTest.init(config));
         }
     }
 
@@ -170,7 +171,7 @@ class NacosDiscoveryServiceTest {
     @Test
     void testRegister() throws NacosException {
         final String key = "test";
-        final String value = "{\"instanceId\":\"1\",\"serviceName\":\"exampleService\",\"ip\":\"127.0.0.1\",\"port\":8080}";
+        final String value = "{\"weight\":20,\"url\":\"127.0.0.1:8080\"}";
 
         doNothing().when(namingService).registerInstance(anyString(), anyString(), any(Instance.class));
         nacosDiscoveryServiceUnderTest.register(key, value);

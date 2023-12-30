@@ -19,11 +19,9 @@ package org.apache.shenyu.admin.discovery;
 
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
-import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
-import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +34,7 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -55,12 +54,9 @@ public class LocalDiscoveryProcessorTest {
     @Mock
     private DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
-    @Mock
-    private ProxySelectorMapper proxySelectorMapper;
-
     @BeforeEach
     public void setup() {
-        localDiscoveryProcessor = new LocalDiscoveryProcessor(discoveryUpstreamMapper, proxySelectorMapper);
+        localDiscoveryProcessor = new LocalDiscoveryProcessor(discoveryUpstreamMapper);
         localDiscoveryProcessor.setApplicationEventPublisher(eventPublisher);
     }
 
@@ -88,11 +84,10 @@ public class LocalDiscoveryProcessorTest {
     @Test
     public void testFetchAll() {
         List<DiscoveryUpstreamDO> discoveryUpstreamDOS = new ArrayList<>();
-        ProxySelectorDO proxySelectorDO = new ProxySelectorDO();
-
+        DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
+        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
         when(discoveryUpstreamMapper.selectByDiscoveryHandlerId(anyString())).thenReturn(discoveryUpstreamDOS);
-        when(proxySelectorMapper.selectByHandlerId(anyString())).thenReturn(proxySelectorDO);
-        localDiscoveryProcessor.fetchAll("discoveryHandlerId1");
+        localDiscoveryProcessor.fetchAll(discoveryHandlerDTO, proxySelectorDTO);
         verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 

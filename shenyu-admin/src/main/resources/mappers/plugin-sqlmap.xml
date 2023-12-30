@@ -68,11 +68,11 @@
 
     <select id="selectByNameForUpdate" resultType="org.apache.shenyu.admin.model.entity.PluginDO">
         SELECT
-        <include refid="Base_Column_List"/>
+            <include refid="Base_Column_List"/>
         FROM plugin
         WHERE name = #{name, jdbcType=VARCHAR} FOR UPDATE
     </select>
-    
+
     <select id="selectByNames" parameterType="java.util.List" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
