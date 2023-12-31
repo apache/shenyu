@@ -180,7 +180,7 @@ class EurekaDiscoveryServiceTest {
     }
 
     /**
-     * Same as in EurekaDiscoveryService.
+     * Same as in EurekaDiscoveryService
      *
      * @param instanceInfo Convert eureka instance to Json string
      */
