@@ -211,6 +211,7 @@ public class ComposableSignService implements SignService {
         List<AuthParamData> paramDataList = appAuthData.getParamDataList();
 
         if (!CollectionUtils.isEmpty(paramDataList)) {
+            String realAppName;
             if (RpcTypeEnum.HTTP.getName().equals(context.getRpcType())) {
                 String rawPath = exchange.getRequest().getURI().getRawPath();
                 // get the context path from the request url
@@ -218,16 +219,14 @@ public class ComposableSignService implements SignService {
                 if (ArrayUtils.isEmpty(contextPath)) {
                     throw new ShenyuException("Cannot find the context path(AppName) from the request url");
                 }
-                paramDataList.stream().filter(p -> p.getAppName().equals(contextPath[0]))
-                        .map(AuthParamData::getAppParam)
-                        .filter(StringUtils::isNoneBlank).findFirst()
-                        .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build());
+                realAppName = contextPath[0];
             } else {
-                paramDataList.stream().filter(p -> p.getAppName().equals(context.getModule()))
-                        .map(AuthParamData::getAppParam)
-                        .filter(StringUtils::isNoneBlank).findFirst()
-                        .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build());
+                realAppName = context.getModule();
             }
+            paramDataList.stream().filter(p -> p.getAppName().equals(realAppName))
+                    .map(AuthParamData::getAppParam)
+                    .filter(StringUtils::isNoneBlank).findFirst()
+                    .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build());
         }
     }
 }
