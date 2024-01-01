@@ -37,7 +37,7 @@ public class SpringCloudShenyuContextDecorator implements ShenyuContextDecorator
         shenyuContext.setRealUrl(path);
         shenyuContext.setRpcType(RpcTypeEnum.SPRING_CLOUD.getName());
         shenyuContext.setModule(Optional.ofNullable(metaData).map(MetaData::getAppName)
-                .orElse(String.format("%s-%s", PluginEnum.SPRING_CLOUD.getName(), shenyuContext.getRpcType())));
+                .orElse(String.format("%s-%s", PluginEnum.SPRING_CLOUD.getName(), RpcTypeEnum.SPRING_CLOUD.getName())));
         return shenyuContext;
     }
     
