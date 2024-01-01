@@ -38,9 +38,12 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.cache.CommonDiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
+import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.controller.LocalPluginController.SelectorRuleData;
 import org.junit.jupiter.api.Assertions;
@@ -95,8 +98,10 @@ public final class LocalPluginControllerTest {
     public void setup() {
         this.mockShenyuTrieConfig();
         ArrayList<PluginDataHandler> pluginDataHandlerList = Lists.newArrayList();
+        ArrayList<DiscoveryUpstreamDataHandler> discoveryUpstreamDataHandlers = Lists.newArrayList();
         subscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher, new SelectorMatchCache(), new RuleMatchCache());
-        mockMvc = MockMvcBuilders.standaloneSetup(new LocalPluginController(subscriber))
+        DiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber = new CommonDiscoveryUpstreamDataSubscriber(discoveryUpstreamDataHandlers);
+        mockMvc = MockMvcBuilders.standaloneSetup(new LocalPluginController(subscriber, discoveryUpstreamDataSubscriber))
                 .build();
         baseDataCache = BaseDataCache.getInstance();
     }
@@ -401,7 +406,7 @@ public final class LocalPluginControllerTest {
         final LocalPluginController.SelectorRulesData selectorRulesData = new LocalPluginController.SelectorRulesData();
         selectorRulesData.setPluginName("pluginName");
         selectorRulesData.setSelectorName("selectorName");
-        selectorRulesData.setSelectorHandler("{}");
+        selectorRulesData.setSelectorHandler("[]");
         selectorRulesData.setMatchMode(0);
         LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
         ruleLocalData.setRuleName("ruleName");

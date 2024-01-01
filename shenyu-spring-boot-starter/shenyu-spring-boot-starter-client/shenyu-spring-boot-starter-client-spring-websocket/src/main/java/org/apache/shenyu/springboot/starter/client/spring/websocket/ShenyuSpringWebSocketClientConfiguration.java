@@ -18,21 +18,21 @@
 package org.apache.shenyu.springboot.starter.client.spring.websocket;
 
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.register.InstanceRegisterListener;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
+import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
 import org.apache.shenyu.client.spring.websocket.init.SpringWebSocketClientEventListener;
-import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
-import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+
 import java.util.Properties;
 
 /**
@@ -52,7 +52,7 @@ public class ShenyuSpringWebSocketClientConfiguration {
      *
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
-     * @param env env
+     * @param env                            env
      * @return the spring web socket client event listener
      */
     @Bean
@@ -62,7 +62,7 @@ public class ShenyuSpringWebSocketClientConfiguration {
             final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         ShenyuClientConfig.ClientPropertiesConfig clientPropertiesConfig = clientConfig.getClient().get(RpcTypeEnum.WEB_SOCKET.getName());
         Properties props = clientPropertiesConfig == null ? null : clientPropertiesConfig.getProps();
-        String discoveryMode = env.getProperty("shenyu.discovery.mode", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
+        String discoveryMode = env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
         if (props != null) {
             props.setProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.valueOf(ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode)).toString());
         }
@@ -70,21 +70,18 @@ public class ShenyuSpringWebSocketClientConfiguration {
     }
 
     /**
-     * InstanceRegisterListener.
+     * ClientRegisterConfig Bean.
      *
-     * @param eventListener         eventListener
-     * @param shenyuDiscoveryConfig discoveryConfig
-     * @return InstanceRegisterListener
+     * @param shenyuClientConfig shenyuClientConfig
+     * @param applicationContext applicationContext
+     * @param env                env
+     * @return clientRegisterConfig
      */
-    @Bean
-    @ConditionalOnBean(ShenyuDiscoveryConfig.class)
-    public InstanceRegisterListener instanceRegisterListener(final SpringWebSocketClientEventListener eventListener, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
-        DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
-        discoveryUpstreamData.setProtocol(ShenyuClientConstants.WS);
-        discoveryUpstreamData.setStatus(0);
-        discoveryUpstreamData.setWeight(Integer.parseInt(shenyuDiscoveryConfig.getWeight()));
-        discoveryUpstreamData.setUrl(eventListener.getHost() + ":" + eventListener.getPort());
-        return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
+    @Bean("webSocketClientRegisterConfig")
+    public ClientRegisterConfig clientRegisterConfig(final ShenyuClientConfig shenyuClientConfig,
+                                                     final ApplicationContext applicationContext,
+                                                     final Environment env) {
+        return new ClientRegisterConfigImpl(shenyuClientConfig, RpcTypeEnum.WEB_SOCKET, applicationContext, env);
     }
 
 }

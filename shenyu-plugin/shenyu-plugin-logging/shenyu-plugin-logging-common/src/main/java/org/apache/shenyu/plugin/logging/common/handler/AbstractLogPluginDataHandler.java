@@ -56,6 +56,8 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
 
     private static final Map<String, GenericApiConfig> SELECT_API_CONFIG_MAP = new ConcurrentHashMap<>();
 
+    private static final Map<String, GenericGlobalConfig> PLUGIN_GLOBAL_CONFIG_MAP = new ConcurrentHashMap<>();
+
     /**
      * get select api config map.
      *
@@ -63,6 +65,15 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
      */
     public static Map<String, GenericApiConfig> getSelectApiConfigMap() {
         return SELECT_API_CONFIG_MAP;
+    }
+
+    /**
+     * get plugin api config map.
+     *
+     * @return plugin api config map
+     */
+    public static Map<String, GenericGlobalConfig> getPluginGlobalConfigMap() {
+        return PLUGIN_GLOBAL_CONFIG_MAP;
     }
 
     /**
@@ -97,9 +108,12 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
                 logCollector().start();
             }
             Singleton.INST.single(globalLogConfigClass, globalLogConfig);
+            globalLogConfig.setSampler(LogCollectConfigUtils.setSampler(globalLogConfig.getSampleRate()));
+            PLUGIN_GLOBAL_CONFIG_MAP.put(pluginData.getId(), globalLogConfig);
         } else {
             try {
                 logCollector().close();
+                PLUGIN_GLOBAL_CONFIG_MAP.remove(pluginData.getId());
             } catch (Exception e) {
                 LOG.error("{} close log collector error", this.getClass().getSimpleName(), e);
             }
@@ -117,7 +131,9 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
             return;
         }
         GenericApiConfig logApiConfig = GsonUtils.getInstance().fromJson(handleJson, genericApiConfigClass);
-        logApiConfig.setSampler(LogCollectConfigUtils.setSampler(logApiConfig.getSampleRate()));
+        if (StringUtils.isNotEmpty(logApiConfig.getSampleRate())) {
+            logApiConfig.setSampler(LogCollectConfigUtils.setSampler(logApiConfig.getSampleRate()));
+        }
         SELECT_API_CONFIG_MAP.put(selectorData.getId(), logApiConfig);
     }
 

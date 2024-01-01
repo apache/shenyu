@@ -20,9 +20,13 @@ package org.apache.shenyu.admin.transfer;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
+import org.apache.shenyu.admin.model.vo.DiscoveryHandlerVO;
+import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
+import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -55,6 +59,48 @@ public enum DiscoveryTransfer {
                 .url(discoveryUpstreamData.getUrl())
                 .dateUpdated(discoveryUpstreamData.getDateUpdated())
                 .dateCreated(discoveryUpstreamData.getDateCreated()).build();
+    }
+
+    /**
+     * mapToVo.
+     *
+     * @param discoveryUpstreamDO discoveryUpstreamDO
+     * @return DiscoveryUpstreamVO
+     */
+    public DiscoveryUpstreamVO mapToVo(DiscoveryUpstreamDO discoveryUpstreamDO) {
+        DiscoveryUpstreamVO vo = new DiscoveryUpstreamVO();
+        vo.setId(discoveryUpstreamDO.getId());
+        vo.setDiscoveryHandlerId(discoveryUpstreamDO.getDiscoveryHandlerId());
+        vo.setProtocol(discoveryUpstreamDO.getProtocol());
+        vo.setUrl(discoveryUpstreamDO.getUrl());
+        vo.setStatus(discoveryUpstreamDO.getStatus());
+        vo.setWeight(discoveryUpstreamDO.getWeight());
+        vo.setProps(discoveryUpstreamDO.getProps());
+        vo.setStartupTime(String.valueOf(discoveryUpstreamDO.getDateCreated().getTime()));
+        return vo;
+    }
+
+
+    public DiscoveryVO mapToVo(DiscoveryDO discoveryDO) {
+        DiscoveryVO discoveryVO = new DiscoveryVO();
+        discoveryVO.setId(discoveryDO.getId());
+        discoveryVO.setName(discoveryDO.getName());
+        discoveryVO.setType(discoveryDO.getType());
+        discoveryVO.setLevel(discoveryDO.getLevel());
+        discoveryVO.setServerList(discoveryDO.getServerList());
+        discoveryVO.setPluginName(discoveryDO.getPluginName());
+        discoveryVO.setProps(discoveryDO.getProps());
+        return discoveryVO;
+    }
+
+    public DiscoveryHandlerVO mapToVo(DiscoveryHandlerDO discoveryDO) {
+        DiscoveryHandlerVO vo = new DiscoveryHandlerVO();
+        vo.setId(discoveryDO.getId());
+        vo.setDiscoveryId(discoveryDO.getDiscoveryId());
+        vo.setHandler(discoveryDO.getHandler());
+        vo.setListenerNode(discoveryDO.getListenerNode());
+        vo.setProps(discoveryDO.getProps());
+        return vo;
     }
 
     /**
@@ -92,6 +138,8 @@ public enum DiscoveryTransfer {
         discoveryUpstreamData.setDiscoveryHandlerId(discoveryUpstreamDTO.getDiscoveryHandlerId());
         discoveryUpstreamData.setWeight(discoveryUpstreamDTO.getWeight());
         discoveryUpstreamData.setProps(discoveryUpstreamDTO.getProps());
+        discoveryUpstreamData.setDateCreated(discoveryUpstreamDTO.getDateCreated());
+        discoveryUpstreamData.setDateUpdated(discoveryUpstreamDTO.getDateUpdated());
         return discoveryUpstreamData;
     }
 
@@ -181,6 +229,8 @@ public enum DiscoveryTransfer {
         discoveryUpstreamDTO.setProtocol(discoveryUpstreamDO.getProtocol());
         discoveryUpstreamDTO.setId(discoveryUpstreamDO.getId());
         discoveryUpstreamDTO.setWeight(discoveryUpstreamDO.getWeight());
+        discoveryUpstreamDTO.setDateCreated(discoveryUpstreamDO.getDateCreated());
+        discoveryUpstreamDTO.setDateUpdated(discoveryUpstreamDO.getDateUpdated());
         return discoveryUpstreamDTO;
     }
 

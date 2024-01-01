@@ -34,7 +34,7 @@ import java.util.List;
  */
 @Mapper
 public interface PluginMapper extends ExistProvider {
-    
+
     /**
      * existed.
      *
@@ -43,7 +43,7 @@ public interface PluginMapper extends ExistProvider {
      */
     @Override
     Boolean existed(@Param("id") Serializable id);
-    
+
     /**
      * select plugin by id.
      *
@@ -51,7 +51,7 @@ public interface PluginMapper extends ExistProvider {
      * @return {@linkplain PluginDO}
      */
     PluginDO selectById(String id);
-    
+
     /**
      * select plugin by id.
      *
@@ -59,7 +59,7 @@ public interface PluginMapper extends ExistProvider {
      * @return {@linkplain PluginDO}
      */
     List<PluginDO> selectByIds(List<String> ids);
-    
+
     /**
      * Select by name plugin do.
      *
@@ -67,7 +67,15 @@ public interface PluginMapper extends ExistProvider {
      * @return the plugin do
      */
     PluginDO selectByName(String name);
-    
+
+    /**
+     * Select by name for update plugin do.
+     * @param name name
+     * @return PluginDO
+     */
+    PluginDO selectByNameForUpdate(String name);
+
+
     /**
      * Select by names plugin do.
      *
@@ -75,7 +83,7 @@ public interface PluginMapper extends ExistProvider {
      * @return the plugins do
      */
     List<PluginDO> selectByNames(List<String> names);
-    
+
     /**
      * select plugin by query.
      *
@@ -83,21 +91,21 @@ public interface PluginMapper extends ExistProvider {
      * @return {@linkplain List}
      */
     List<PluginDO> selectByQuery(PluginQuery pluginQuery);
-    
+
     /**
      * select all.
      *
      * @return {@linkplain List}
      */
     List<PluginDO> selectAll();
-    
+
     /**
      * select all not in resource.
      *
      * @return {@linkplain List}
      */
     List<PluginDO> listAllNotInResource();
-    
+
     /**
      * count plugin by query.
      *
@@ -105,7 +113,7 @@ public interface PluginMapper extends ExistProvider {
      * @return {@linkplain Integer}
      */
     Integer countByQuery(PluginQuery pluginQuery);
-    
+
     /**
      * insert plugin.
      *
@@ -113,7 +121,7 @@ public interface PluginMapper extends ExistProvider {
      * @return rows int
      */
     int insert(PluginDO pluginDO);
-    
+
     /**
      * insert selective plugin.
      *
@@ -121,7 +129,7 @@ public interface PluginMapper extends ExistProvider {
      * @return rows int
      */
     int insertSelective(PluginDO pluginDO);
-    
+
     /**
      * update plugin.
      *
@@ -129,7 +137,7 @@ public interface PluginMapper extends ExistProvider {
      * @return rows int
      */
     int update(PluginDO pluginDO);
-    
+
     /**
      * Update enable int.
      *
@@ -137,7 +145,7 @@ public interface PluginMapper extends ExistProvider {
      * @return the int
      */
     int updateEnable(PluginDO pluginDO);
-    
+
     /**
      * enable data by a list of ids.
      *
@@ -146,7 +154,7 @@ public interface PluginMapper extends ExistProvider {
      * @return the count of enabled datas
      */
     int updateEnableByIdList(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
-    
+
     /**
      * update selective plugin.
      *
@@ -154,7 +162,7 @@ public interface PluginMapper extends ExistProvider {
      * @return rows int
      */
     int updateSelective(PluginDO pluginDO);
-    
+
     /**
      * delete plugin.
      *
@@ -162,7 +170,7 @@ public interface PluginMapper extends ExistProvider {
      * @return rows int
      */
     int delete(String id);
-    
+
     /**
      * delete plugin.
      *
@@ -170,7 +178,7 @@ public interface PluginMapper extends ExistProvider {
      * @return rows int
      */
     int deleteByIds(List<String> ids);
-    
+
     /**
      * plugin existed.
      *
@@ -178,8 +186,8 @@ public interface PluginMapper extends ExistProvider {
      * @return existed
      */
     Boolean nameExisted(@Param("name") Serializable name);
-    
-    
+
+
     /**
      * plugin existed.
      *
@@ -188,7 +196,7 @@ public interface PluginMapper extends ExistProvider {
      * @return existed
      */
     Boolean nameExistedExclude(@Param("name") Serializable name, @Param("exclude") List<String> exclude);
-    
+
     /**
      * active plugin snapshot.
      *
@@ -196,7 +204,7 @@ public interface PluginMapper extends ExistProvider {
      * @return plugin list
      */
     List<PluginSnapshotVO> activePluginSnapshot(@Param("userId")String userId);
-    
+
     /**
      * search by condition.
      *

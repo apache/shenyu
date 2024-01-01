@@ -55,7 +55,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -218,14 +217,6 @@ public class ApiServiceImpl implements ApiService {
                 .rpcExt(ext.getRpcExt())
                 .rpcType(apiDO.getRpcType())
                 .enabled(true)
-                .build());
-        publisher.publish(URIRegisterDTO.builder()
-                .contextPath(contextPath)
-                .appName(appName)
-                .protocol(ext.getProtocol())
-                .host(host)
-                .port(port)
-                .rpcType(apiDO.getRpcType())
                 .build());
     }
 

@@ -68,7 +68,7 @@ public class CommonUpstreamUtils {
      */
     public static DiscoveryUpstreamDTO buildDefaultDiscoveryUpstreamDTO(final String host, final Integer port, final String protocol) {
         DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
-        discoveryUpstreamDTO.setProps("{}");
+        discoveryUpstreamDTO.setProps("{\"warmupTime\":\"10\"}");
         discoveryUpstreamDTO.setUrl(buildUrl(host, port));
         discoveryUpstreamDTO.setProtocol(protocol);
         discoveryUpstreamDTO.setStatus(0);

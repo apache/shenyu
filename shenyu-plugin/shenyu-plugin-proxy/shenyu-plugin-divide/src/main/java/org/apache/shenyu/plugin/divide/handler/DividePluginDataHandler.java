@@ -21,24 +21,18 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
-import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
-import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.springframework.util.ObjectUtils;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * The type Divide plugin data handler.
@@ -52,8 +46,6 @@ public class DividePluginDataHandler implements PluginDataHandler {
         if (Objects.isNull(selectorData) || Objects.isNull(selectorData.getId())) {
             return;
         }
-        List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
-        UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(upstreamList));
         // the update is also need to clean, but there is no way to
         // distinguish between crate and update, so it is always clean
         MetaDataCache.getInstance().clean();
@@ -90,18 +82,5 @@ public class DividePluginDataHandler implements PluginDataHandler {
     public String pluginNamed() {
         return PluginEnum.DIVIDE.getName();
     }
-    
-    private List<Upstream> convertUpstreamList(final List<DivideUpstream> upstreamList) {
-        if (ObjectUtils.isEmpty(upstreamList)) {
-            return Collections.emptyList();
-        }
-        return upstreamList.stream().map(u -> Upstream.builder()
-                .protocol(u.getProtocol())
-                .url(u.getUpstreamUrl())
-                .weight(u.getWeight())
-                .status(u.isStatus())
-                .timestamp(u.getTimestamp())
-                .warmup(u.getWarmup())
-                .build()).collect(Collectors.toList());
-    }
+
 }
