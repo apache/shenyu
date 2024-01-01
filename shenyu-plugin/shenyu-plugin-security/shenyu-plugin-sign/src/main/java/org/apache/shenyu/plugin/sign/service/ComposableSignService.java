@@ -18,12 +18,15 @@
 package org.apache.shenyu.plugin.sign.service;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -112,7 +115,7 @@ public class ComposableSignService implements SignService {
         VerifyResult result = verify(signParameters, appAuthData, signFunction);
 
         if (result.isSuccess()) {
-            handleExchange(exchange, appAuthData, shenyuContext.getContextPath());
+            handleExchange(exchange, appAuthData, shenyuContext);
         }
 
         return result;
@@ -203,15 +206,28 @@ public class ComposableSignService implements SignService {
 
     private void handleExchange(final ServerWebExchange exchange,
                                 final AppAuthData appAuthData,
-                                final String contextPath) {
+                                final ShenyuContext context) {
 
         List<AuthParamData> paramDataList = appAuthData.getParamDataList();
 
         if (!CollectionUtils.isEmpty(paramDataList)) {
-            paramDataList.stream().filter(p -> p.getAppName().equals(contextPath))
-                    .map(AuthParamData::getAppParam)
-                    .filter(StringUtils::isNoneBlank).findFirst()
-                    .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build());
+            if (RpcTypeEnum.HTTP.getName().equals(context.getRpcType())) {
+                String rawPath = exchange.getRequest().getURI().getRawPath();
+                // get the context path from the request url
+                String[] contextPath = StringUtils.split(rawPath, "/");
+                if (ArrayUtils.isEmpty(contextPath)) {
+                    throw new ShenyuException("Cannot find the context path(AppName) from the request url");
+                }
+                paramDataList.stream().filter(p -> p.getAppName().equals(contextPath[0]))
+                        .map(AuthParamData::getAppParam)
+                        .filter(StringUtils::isNoneBlank).findFirst()
+                        .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build());
+            } else {
+                paramDataList.stream().filter(p -> p.getAppName().equals(context.getModule()))
+                        .map(AuthParamData::getAppParam)
+                        .filter(StringUtils::isNoneBlank).findFirst()
+                        .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build());
+            }
         }
     }
 }
