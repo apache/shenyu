@@ -29,6 +29,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -77,6 +78,12 @@ class NacosDiscoveryServiceTest {
         setField(nacosDiscoveryServiceUnderTest.getClass(), "groupName", "SHENYU_GROUP");
     }
 
+    @AfterEach
+    void downTest() throws NacosException {
+        nacosDiscoveryServiceUnderTest.shutdown();
+        verify(namingService).shutDown();
+    }
+
     private <T> void setField(final Class<T> clazz, final String fieldName, final Object value) throws NoSuchFieldException, IllegalAccessException {
         Field field = clazz.getDeclaredField(fieldName);
         field.setAccessible(true);
@@ -103,14 +110,13 @@ class NacosDiscoveryServiceTest {
         properties.setProperty("groupName", "SHENYU_GROUP");
         config.setProps(properties);
 
-        NamingService mockedNamingService = mock(NamingService.class);
         try (MockedStatic<NamingFactory> mockedNamingFactory = mockStatic(NamingFactory.class)) {
             // Mock the successful creation of NamingService
             mockedNamingFactory.when(() -> NamingFactory.createNamingService(any(Properties.class)))
-                    .thenReturn(mockedNamingService);
+                    .thenReturn(namingService);
             nacosDiscoveryServiceUnderTest.init(config);
             mockedNamingFactory.verify(() -> NamingFactory.createNamingService(any(Properties.class)));
-            assertEquals(mockedNamingService, getField(nacosDiscoveryServiceUnderTest, "namingService"));
+            assertEquals(namingService, getField(nacosDiscoveryServiceUnderTest, "namingService"));
             // Mock the situation where NamingService fails to be created and throws an exception
             mockedNamingFactory.when(() -> NamingFactory.createNamingService(any(Properties.class)))
                     .thenThrow(new NacosException());
