@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.UUID;
 
 /**
  * The Test Case For LoggingTencentClsPluginDataHandler.
@@ -39,6 +40,7 @@ public class LoggingTencentClsPluginDataHandlerTest {
     public void setUp() {
         this.loggingTencentClsPluginDataHandler = new LoggingTencentClsPluginDataHandler();
         pluginData.setEnabled(true);
+        pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
         pluginData.setConfig("{\"topic\":\"shenyu-topic-test\", \"secretId\":\"test\", \"secretKey\":\"test\", "
                 + "\"endpoint\":\"ap-guangzhou.cls.tencentcs.com\"}");
     }

@@ -100,8 +100,8 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      */
     @PostMapping("")
     public ShenyuAdminResult createSelector(@Valid @RequestBody final SelectorDTO selectorDTO) {
-        Integer createCount = selectorService.createOrUpdate(selectorDTO);
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
+        selectorService.createOrUpdate(selectorDTO);
+        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, selectorDTO.getId());
     }
     
     /**

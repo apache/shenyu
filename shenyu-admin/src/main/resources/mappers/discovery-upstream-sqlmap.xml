@@ -140,6 +140,20 @@
     </select>
 
     <select id="selectByProxySelectorId" resultMap="BaseResultMap">
+        <include refid="base_join_discovery_rel"/>
+        <where>
+            dr.proxy_selector_id = #{proxySelectorId , jdbcType=VARCHAR}
+        </where>
+    </select>
+
+    <select id="selectBySelectorId" resultMap="BaseResultMap">
+        <include refid="base_join_discovery_rel"/>
+        <where>
+            dr.selector_id = #{selectorId , jdbcType=VARCHAR}
+        </where>
+    </select>
+
+    <sql id="base_join_discovery_rel">
         SELECT
         du.id,
         du.date_created,
@@ -152,15 +166,11 @@
         du.props
         FROM discovery_upstream du
         INNER JOIN discovery_rel dr ON du.discovery_handler_id = dr.discovery_handler_id
-        <where>
-            dr.proxy_selector_id = #{proxySelectorId , jdbcType=VARCHAR}
-        </where>
-    </select>
+    </sql>
 
     <select id="selectByDiscoveryHandlerIdAndUrl"
             resultType="org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO">
-        SELECT <include refid="Base_Column_List"/> from discovery_upstream where discovery_handler_id = #{discoveryHandlerId} and url = #{url}
-
+        SELECT <include refid="Base_Column_List"/> from discovery_upstream where discovery_handler_id = #{discoveryHandlerId} and url = #{url} for update
     </select>
 
     <delete id="deleteByIds" parameterType="java.util.List">

@@ -236,6 +236,7 @@ public class DiscoveryUpstreamDO extends BaseDO {
                     .weight(item.getWeight())
                     .props(item.getProps())
                     .url(item.getUrl())
+                    .dateCreated(currentTime)
                     .dateUpdated(currentTime).build();
             if (StringUtils.hasLength(item.getId())) {
                 discoveryUpstreamDO.setId(item.getId());

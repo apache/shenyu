@@ -42,6 +42,7 @@ import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.reconciler.EndpointsReconciler;
 import org.apache.shenyu.k8s.reconciler.IngressReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
+import org.apache.shenyu.plugin.base.cache.CommonDiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.global.subsciber.MetaDataCacheSubscriber;
 import org.springframework.beans.factory.ObjectProvider;
@@ -159,15 +160,17 @@ public class IngressControllerConfiguration {
      * ShenyuCacheRepository.
      *
      * @param pluginDataSubscriber CommonPluginDataSubscriber
+     * @param discoveryUpstreamDataSubscriber CommonDiscoveryUpstreamDataSubscriber
      * @param metaDataSubscriber MetaDataSubscriber
      * @param metaDataCacheSubscriber MetaDataCacheSubscriber
      * @return ShenyuCacheRepository
      */
     @Bean
     public ShenyuCacheRepository shenyuCacheRepository(final CommonPluginDataSubscriber pluginDataSubscriber,
+                                                       final CommonDiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber,
                                                        final MetaDataCacheSubscriber metaDataSubscriber,
                                                        final MetaDataCacheSubscriber metaDataCacheSubscriber) {
-        return new ShenyuCacheRepository(pluginDataSubscriber, metaDataSubscriber, metaDataCacheSubscriber);
+        return new ShenyuCacheRepository(pluginDataSubscriber, discoveryUpstreamDataSubscriber, metaDataSubscriber, metaDataCacheSubscriber);
     }
 
     /**

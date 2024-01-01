@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
@@ -56,21 +57,36 @@ public class DiscoveryUpstreamController {
         return ShenyuAdminResult.success(discoveryUpstreamService.createOrUpdate(discoveryUpstreamDTO));
     }
 
+
+    /**
+     * create discovery upstream list.
+     *
+     * @param discoveryUpstreamDTOList discoveryUpstreamDTO
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PostMapping("batch")
+    public ShenyuAdminResult createDiscoveryUpstreamList(@Valid @RequestBody final List<DiscoveryUpstreamDTO> discoveryUpstreamDTOList) {
+        if (CollectionUtils.isNotEmpty(discoveryUpstreamDTOList)) {
+            for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamDTOList) {
+                discoveryUpstreamService.createOrUpdate(discoveryUpstreamDTO);
+            }
+        }
+        return ShenyuAdminResult.success();
+    }
+
     /**
      * update discovery upstream.
      *
-     * @param id                   id
+     * @param discoveryHandlerId   discoveryHandlerId
      * @param discoveryUpstreamDTO discoveryUpstreamDTO
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PutMapping("/{id}")
-    public ShenyuAdminResult updateDiscoveryUpstream(@PathVariable("id")
+    @PutMapping("/{discoveryHandlerId}")
+    public ShenyuAdminResult updateDiscoveryUpstream(@PathVariable("discoveryHandlerId")
                                                      @Existed(message = "discovery upstream is not existed",
-                                                             provider = PluginMapper.class) final String id,
-                                                     @Valid @RequestBody final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
-
-        discoveryUpstreamDTO.setId(id);
-        return ShenyuAdminResult.success(discoveryUpstreamService.createOrUpdate(discoveryUpstreamDTO));
+                                                             provider = DiscoveryHandlerMapper.class) final String discoveryHandlerId,
+                                                     @Valid @RequestBody final List<DiscoveryUpstreamDTO> discoveryUpstreamDTO) {
+        return ShenyuAdminResult.success(discoveryUpstreamService.updateBatch(discoveryHandlerId, discoveryUpstreamDTO));
     }
 
     /**

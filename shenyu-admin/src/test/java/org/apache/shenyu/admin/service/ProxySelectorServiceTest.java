@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -62,6 +63,9 @@ class ProxySelectorServiceTest {
     private DiscoveryRelMapper discoveryRelMapper;
 
     @Mock
+    private SelectorMapper selectorMapper;
+
+    @Mock
     private DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
     @Mock
@@ -74,7 +78,7 @@ class ProxySelectorServiceTest {
     void testSetUp() {
 
         proxySelectorService = new ProxySelectorServiceImpl(proxySelectorMapper, discoveryMapper, discoveryUpstreamMapper,
-                discoveryHandlerMapper, discoveryRelMapper, discoveryProcessorHolder);
+                discoveryHandlerMapper, discoveryRelMapper, selectorMapper, discoveryProcessorHolder);
     }
 
     @Test

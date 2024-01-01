@@ -119,4 +119,15 @@ public class ProxySelectorController {
         return ShenyuAdminResult.success();
     }
 
+    /**
+     * bindingSelector.
+     *
+     * @param proxySelectorAddDTO proxySelectorAddDTO
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PostMapping("binding")
+    public ShenyuAdminResult bindingSelector(@RequestBody @Valid final ProxySelectorAddDTO proxySelectorAddDTO) {
+        return ShenyuAdminResult.success(proxySelectorService.bindingDiscoveryHandler(proxySelectorAddDTO), null);
+    }
+
 }

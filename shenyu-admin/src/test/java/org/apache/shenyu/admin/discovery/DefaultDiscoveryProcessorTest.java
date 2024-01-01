@@ -17,19 +17,15 @@
 
 package org.apache.shenyu.admin.discovery;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
-import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
-import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
-import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
@@ -80,9 +76,6 @@ public class DefaultDiscoveryProcessorTest {
     private DiscoveryHandlerMapper discoveryHandlerMapper;
 
     @Mock
-    private ProxySelectorMapper proxySelectorMapper;
-
-    @Mock
     private ShenyuDiscoveryService shenyuDiscoveryService;
 
     @Mock
@@ -90,7 +83,7 @@ public class DefaultDiscoveryProcessorTest {
 
     @Before
     public void setUp() {
-        defaultDiscoveryProcessor = new DefaultDiscoveryProcessor(discoveryUpstreamMapper, discoveryHandlerMapper, proxySelectorMapper);
+        defaultDiscoveryProcessor = new DefaultDiscoveryProcessor(discoveryUpstreamMapper);
     }
 
     @BeforeEach
@@ -116,7 +109,7 @@ public class DefaultDiscoveryProcessorTest {
         defaultDiscoveryProcessor.createDiscovery(discoveryDO);
         verify(ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class), times(1)).getJoin(type);
         try {
-            final Field field = defaultDiscoveryProcessor.getClass().getDeclaredField(
+            final Field field = defaultDiscoveryProcessor.getClass().getSuperclass().getDeclaredField(
                     "discoveryServiceCache");
             field.setAccessible(true);
             Map<String, ShenyuDiscoveryService> actual = (Map<String, ShenyuDiscoveryService>) field.get(defaultDiscoveryProcessor);
@@ -128,7 +121,7 @@ public class DefaultDiscoveryProcessorTest {
             throw new RuntimeException(e);
         }
         try {
-            final Field field = defaultDiscoveryProcessor.getClass().getDeclaredField(
+            final Field field = defaultDiscoveryProcessor.getClass().getSuperclass().getDeclaredField(
                     "dataChangedEventListenerCache");
             field.setAccessible(true);
             Map<String, Set> actual = (Map<String, Set>) field.get(defaultDiscoveryProcessor);
@@ -163,11 +156,9 @@ public class DefaultDiscoveryProcessorTest {
 
     @Test
     public void testChangeUpstream() {
-        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
-        List<DiscoveryUpstreamDTO> upstreamDTOS = new ArrayList<>();
-        Assertions.assertThrows(NotImplementedException.class, () -> {
-            defaultDiscoveryProcessor.changeUpstream(proxySelectorDTO, upstreamDTOS);
-        });
+        doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
+        defaultDiscoveryProcessor.changeUpstream(new ProxySelectorDTO(), new ArrayList<>());
+        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 
     @Test
@@ -183,11 +174,14 @@ public class DefaultDiscoveryProcessorTest {
         discoveryUpstreamDOS.add(discoveryUpstreamDO);
 //        childData.add("1");
         when(discoveryUpstreamMapper.selectByDiscoveryHandlerId(anyString())).thenReturn(discoveryUpstreamDOS);
-        when(proxySelectorMapper.selectByHandlerId(anyString())).thenReturn(new ProxySelectorDO());
 //        when(shenyuDiscoveryService.getRegisterData(anyString())).thenReturn(childData);
 //        when(discoveryUpstreamMapper.insert(any(DiscoveryUpstreamDO.class))).thenReturn(1);
         doNothing().when(eventPublisher).publishEvent(any(Object.class));
-        defaultDiscoveryProcessor.fetchAll("1");
+        DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
+        discoveryHandlerDTO.setId("1");
+        discoveryHandlerDTO.setDiscoveryId("id");
+        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+        defaultDiscoveryProcessor.fetchAll(discoveryHandlerDTO, proxySelectorDTO);
         verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 
