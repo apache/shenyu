@@ -25,6 +25,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.DateUtils;
@@ -212,7 +213,7 @@ public class ComposableSignService implements SignService {
 
         if (!CollectionUtils.isEmpty(paramDataList)) {
             String realAppName;
-            if (RpcTypeEnum.HTTP.getName().equals(context.getRpcType())) {
+            if (skipSignExchange(context)) {
                 String rawPath = exchange.getRequest().getURI().getRawPath();
                 // get the context path from the request url
                 String[] contextPath = StringUtils.split(rawPath, "/");
@@ -228,5 +229,11 @@ public class ComposableSignService implements SignService {
                     .filter(StringUtils::isNoneBlank).findFirst()
                     .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build());
         }
+    }
+
+    private boolean skipSignExchange(final ShenyuContext context) {
+        return StringUtils.equals(String.format("%s-%s", PluginEnum.SPRING_CLOUD.getName(), context.getRpcType()), context.getModule())
+                || StringUtils.equals(String.format("%s-%s", PluginEnum.DIVIDE.getName(), context.getRpcType()), context.getModule())
+                || StringUtils.equals(String.format("%s-%s", PluginEnum.WEB_SOCKET.getName(), context.getRpcType()), context.getModule());
     }
 }
