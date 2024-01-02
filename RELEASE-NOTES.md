@@ -14,6 +14,7 @@
 10. Add nacos, etcd, eureka as discovery service
 11. Add new plugin: basic-auth
 12. Add shenyu logging-rabbitmq plugin
+13. Binding selector by shenyu-discovery
 
 ### API Changes
 
@@ -32,9 +33,9 @@
    -> selector.key1.value3
    
    selector.key2.list ["selector.key2.value1", "selector.key2.value2", "selector.key2.value3"]
-   -> selector.key2.value1
-   -> selector.key2.value2
-   -> selector.key2.value3
+   -> selector.key2.value4
+   -> selector.key2.value5
+   -> selector.key2.value6
    ```
 
 2. Support NettyClient as default httpclient
@@ -84,6 +85,8 @@
 33. Add unit test for shenyu-client-spring-websocket
 34. Upgrade Shiro version to a secure version(1.18.0)
 35. Update license and upgrade springboot(2.7.17)
+36. Send alarm message when gateway global error happen
+37. Add EurekaDiscoveryService unit test
 
 ### Refactor
 
@@ -114,6 +117,10 @@
 25. Refactor startup banner
 26. Removing duplicate code and extracting the same code for common use
 27. Standardized null detection coding
+28. Refactor log plugin selector handler
+29. Refactor plugin classloader
+30. Refactor Logging plugin to support sampleRate at plugin level
+31. Refactor context-path register to avoid repeat context-path(use select for update)
 
 ### Bug Fix
 
@@ -157,6 +164,11 @@
 38. Fix multi shenyu client register repeat context path
 39. Fix shenyu can't load ext plugin after close the plugin
 40. Fix upload plugin jar bug in shenyu admin
+41. Fix plugin can not load resource path file
+42. Fix Admin script to show dictionary code
+43. Fix authorization conflict in sign plugin
+44. Fix sign plugin context path match error
+
 
 
 ## 2.6.0
