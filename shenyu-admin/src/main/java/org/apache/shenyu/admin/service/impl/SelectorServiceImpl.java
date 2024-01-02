@@ -23,14 +23,25 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.discovery.DiscoveryLevel;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.BaseDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -40,11 +51,14 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
+import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
+import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
+import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.SelectorUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
@@ -88,14 +102,34 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final SelectorEventPublisher selectorEventPublisher;
 
+    private final DiscoveryHandlerMapper discoveryHandlerMapper;
+
+    private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
+
+    private final DiscoveryMapper discoveryMapper;
+
+    private final DiscoveryRelMapper discoveryRelMapper;
+
+    private final DiscoveryProcessorHolder discoveryProcessorHolder;
+
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
                                final ApplicationEventPublisher eventPublisher,
+                               final DiscoveryMapper discoveryMapper,
+                               final DiscoveryHandlerMapper discoveryHandlerMapper,
+                               final DiscoveryRelMapper discoveryRelMapper,
+                               final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                               final DiscoveryProcessorHolder discoveryProcessorHolder,
                                final SelectorEventPublisher selectorEventPublisher) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
+        this.discoveryMapper = discoveryMapper;
+        this.discoveryHandlerMapper = discoveryHandlerMapper;
+        this.discoveryRelMapper = discoveryRelMapper;
+        this.discoveryUpstreamMapper = discoveryUpstreamMapper;
+        this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.eventPublisher = eventPublisher;
         this.selectorEventPublisher = selectorEventPublisher;
     }
@@ -157,6 +191,7 @@ public class SelectorServiceImpl implements SelectorService {
     public int create(final SelectorDTO selectorDTO) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         final int selectorCount = selectorMapper.insertSelective(selectorDO);
+        selectorDTO.setId(selectorDO.getId());
         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
         publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
         if (selectorCount > 0) {
@@ -224,7 +259,39 @@ public class SelectorServiceImpl implements SelectorService {
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
         final List<SelectorDO> selectors = selectorMapper.selectByIdSet(new TreeSet<>(ids));
-        return deleteSelector(selectors, pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId)));
+        List<PluginDO> pluginDOS = pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId));
+        unbindDiscovery(selectors, pluginDOS);
+        return deleteSelector(selectors, pluginDOS);
+    }
+
+    /**
+     * unbind discovery.
+     *
+     * @param selectors selectors
+     */
+    private void unbindDiscovery(final List<SelectorDO> selectors, final List<PluginDO> pluginDOS) {
+        Map<String, String> pluginMap = ListUtil.toMap(pluginDOS, PluginDO::getId, PluginDO::getName);
+        for (SelectorDO selector : selectors) {
+            DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selector.getId());
+            if (Objects.isNull(discoveryHandlerDO)) {
+                continue;
+            }
+            discoveryHandlerMapper.delete(discoveryHandlerDO.getId());
+            discoveryRelMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
+            discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
+            DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+            if (!Objects.isNull(discoveryDO)) {
+                DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
+                ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+                proxySelectorDTO.setName(selector.getName());
+                proxySelectorDTO.setPluginName(pluginMap.getOrDefault(selector.getId(), ""));
+                discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
+                if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getLevel())) {
+                    discoveryProcessor.removeDiscovery(discoveryDO);
+                    discoveryMapper.delete(discoveryDO.getId());
+                }
+            }
+        }
     }
 
     /**
@@ -236,7 +303,21 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public SelectorVO findById(final String id) {
         final List<SelectorConditionVO> conditions = ListUtil.map(selectorConditionMapper.selectByQuery(new SelectorConditionQuery(id)), SelectorConditionVO::buildSelectorConditionVO);
-        return SelectorVO.buildSelectorVO(selectorMapper.selectById(id), conditions);
+        SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorMapper.selectById(id), conditions);
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(id);
+        if (Objects.nonNull(discoveryHandlerDO)) {
+            selectorVO.setDiscoveryHandler(DiscoveryTransfer.INSTANCE.mapToVo(discoveryHandlerDO));
+            String discoveryId = discoveryHandlerDO.getDiscoveryId();
+            DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryId);
+            DiscoveryVO discoveryVO = DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO);
+            selectorVO.setDiscoveryVO(discoveryVO);
+            List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDO.getId());
+            Optional.ofNullable(discoveryUpstreamDOS).ifPresent(list -> {
+                List<DiscoveryUpstreamVO> upstreamVOS = list.stream().map(DiscoveryTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
+                selectorVO.setDiscoveryUpstreams(upstreamVOS);
+            });
+        }
+        return selectorVO;
     }
 
     @Override
@@ -260,6 +341,12 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public SelectorDO findByNameAndPluginName(final String name, final String pluginName) {
         PluginDO pluginDO = pluginMapper.selectByName(pluginName);
+        return selectorMapper.findByNameAndPluginId(name, pluginDO.getId());
+    }
+
+    @Override
+    public SelectorDO findByNameAndPluginNameForUpdate(final String name, final String pluginName) {
+        PluginDO pluginDO = pluginMapper.selectByNameForUpdate(pluginName);
         return selectorMapper.findByNameAndPluginId(name, pluginDO.getId());
     }
 

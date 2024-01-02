@@ -17,17 +17,33 @@
 
 package org.apache.shenyu.k8s.repository;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.cache.CommonDiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.global.subsciber.MetaDataCacheSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * The repository to config shenyu.
@@ -39,7 +55,11 @@ import java.util.List;
  */
 public class ShenyuCacheRepository {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuCacheRepository.class);
+
     private final CommonPluginDataSubscriber subscriber;
+
+    private final CommonDiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber;
 
     private final MetaDataSubscriber metaDataSubscriber;
 
@@ -50,8 +70,10 @@ public class ShenyuCacheRepository {
      *
      * @param subscriber PluginDataSubscriber
      */
-    public ShenyuCacheRepository(final CommonPluginDataSubscriber subscriber, final MetaDataSubscriber metaDataSubscriber, final MetaDataCacheSubscriber metaDataCacheSubscriber) {
+    public ShenyuCacheRepository(final CommonPluginDataSubscriber subscriber, final CommonDiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber,
+                                 final MetaDataSubscriber metaDataSubscriber, final MetaDataCacheSubscriber metaDataCacheSubscriber) {
         this.subscriber = subscriber;
+        this.discoveryUpstreamDataSubscriber = discoveryUpstreamDataSubscriber;
         this.metaDataSubscriber = metaDataSubscriber;
         this.metaDataCacheSubscriber = metaDataCacheSubscriber;
     }
@@ -101,6 +123,48 @@ public class ShenyuCacheRepository {
      */
     public void saveOrUpdateSelectorData(final SelectorData selectorData) {
         subscriber.onSelectorSubscribe(selectorData);
+        DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+        discoverySyncData.setSelectorName(selectorData.getName());
+        discoverySyncData.setSelectorId(selectorData.getId());
+        discoverySyncData.setPluginName(selectorData.getPluginName());
+        discoverySyncData.setUpstreamDataList(convert(selectorData.getPluginName(), selectorData.getHandle()));
+        saveOrUpdateDiscoveryUpstreamData(discoverySyncData);
+    }
+
+    private List<DiscoveryUpstreamData> convert(final String pluginName, final String handle) {
+        LOG.info("saveOrUpdateSelectorData convert handle={}", handle);
+        List<DivideUpstream> divideUpstreams;
+        if (StringUtils.equalsIgnoreCase(PluginEnum.SPRING_CLOUD.getName(), pluginName)) {
+            divideUpstreams = GsonUtils.getInstance().fromJson(handle, SpringCloudSelectorHandle.class).getDivideUpstreams();
+        } else {
+            divideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
+        }
+        if (CollectionUtils.isEmpty(divideUpstreams)) {
+            return Collections.emptyList();
+        }
+        return divideUpstreams.stream().map(up -> {
+            DiscoveryUpstreamData upstreamData = new DiscoveryUpstreamData();
+            upstreamData.setUrl(up.getUpstreamUrl());
+            upstreamData.setProtocol(up.getProtocol());
+            upstreamData.setWeight(up.getWeight());
+            upstreamData.setStatus(up.isStatus() ? 0 : 1);
+            Properties properties = new Properties();
+            properties.setProperty("warmup", String.valueOf(up.getWarmup()));
+            properties.setProperty("upstreamHost", String.valueOf(up.getUpstreamHost()));
+            upstreamData.setDateUpdated(Optional.of(up.getTimestamp()).map(Timestamp::new).orElse(new Timestamp(System.currentTimeMillis())));
+            upstreamData.setProps(GsonUtils.getInstance().toJson(properties));
+            upstreamData.setDateCreated(Optional.of(up.getTimestamp()).map(Timestamp::new).orElse(new Timestamp(System.currentTimeMillis())));
+            return upstreamData;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * Save or update DiscoveryUpstreamData.
+     *
+     * @param data data
+     */
+    public void saveOrUpdateDiscoveryUpstreamData(final DiscoverySyncData data) {
+        discoveryUpstreamDataSubscriber.onSubscribe(data);
     }
 
     /**

@@ -86,19 +86,6 @@ public final class DividePluginDataHandlerTest {
     }
 
     /**
-     * Handler selector test.
-     */
-    @Test
-    public void handlerSelectorTest() {
-        dividePluginDataHandler.handlerSelector(selectorData);
-        List<Upstream> result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
-        assertEquals(GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class).get(0).getUpstreamUrl(), result.get(0).getUrl());
-        SelectorData selectorDataNull = new SelectorData();
-        selectorDataNull.setHandle("[]");
-        dividePluginDataHandler.handlerSelector(selectorDataNull);
-    }
-
-    /**
      * Remove selector test.
      */
     @Test

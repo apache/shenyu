@@ -20,15 +20,19 @@ package org.apache.shenyu.plugin.websocket.handler;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.springframework.util.ObjectUtils;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 /*
@@ -50,13 +54,17 @@ public class WebSocketUpstreamDataHandler implements DiscoveryUpstreamDataHandle
         if (ObjectUtils.isEmpty(upstreamList)) {
             return Collections.emptyList();
         }
-        return upstreamList.stream().map(u -> Upstream.builder()
-                .protocol(u.getProtocol())
-                .url(u.getUrl())
-                .weight(u.getWeight())
-                .status(0 == u.getStatus())
-                .timestamp(u.getDateUpdated().getTime())
-                .build()).collect(Collectors.toList());
+        return upstreamList.stream().map(u -> {
+            Properties properties = Optional.ofNullable(u.getProps()).map(ps -> GsonUtils.getInstance().fromJson(ps, Properties.class)).orElse(new Properties());
+            return Upstream.builder()
+                    .protocol(u.getProtocol())
+                    .url(u.getUrl())
+                    .weight(u.getWeight())
+                    .warmup(Integer.parseInt(properties.getProperty("warmup", "10")))
+                    .status(0 == u.getStatus())
+                    .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     @Override

@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,6 +42,11 @@ class DiscoveryUpstreamMapperTest extends AbstractSpringIntegrationTest {
     void setUp() {
 
         insert();
+    }
+
+    @AfterEach
+    void remove() {
+        discoveryUpstreamMapper.deleteByIds(Collections.singletonList(discoveryUpstreamDO.getId()));
     }
 
     @Test
