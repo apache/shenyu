@@ -87,14 +87,19 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
      * @param handle  handle
      */
     private void buildRealURI(final ShenyuContext context, final ContextMappingRuleHandle handle) {
+        String realURI = "";
         String contextPath = handle.getContextPath();
         if (StringUtils.isNoneBlank(contextPath)) {
-            context.setRealUrl(context.getPath().substring(contextPath.length()));
-        } else {
-            String addPrefix = handle.getAddPrefix();
-            if (StringUtils.isNoneBlank(addPrefix)) {
-                context.setRealUrl(addPrefix + context.getPath());
+            realURI = context.getPath().substring(contextPath.length());
+        }
+        String addPrefix = handle.getAddPrefix();
+        if (StringUtils.isNoneBlank(addPrefix)) {
+            if (StringUtils.isNotBlank(realURI)) {
+                realURI = addPrefix + realURI;
+            } else {
+                realURI = addPrefix + context.getPath();
             }
         }
+        context.setRealUrl(realURI);
     }
 }
