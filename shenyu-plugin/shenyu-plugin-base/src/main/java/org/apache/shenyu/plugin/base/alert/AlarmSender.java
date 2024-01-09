@@ -17,8 +17,11 @@
 
 package org.apache.shenyu.plugin.base.alert;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.AlarmContent;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -47,6 +50,8 @@ public class AlarmSender {
     
     private static AlarmService alarmService;
     
+    private static Boolean enabled;
+    
     /**
      * Send alarm content.
      * @param alarmContent alarm content
@@ -54,6 +59,10 @@ public class AlarmSender {
     public static void alarm(final AlarmContent alarmContent) {
         if (alarmService == null) {
             alarmService = SpringBeanUtils.getInstance().getBean(AlarmService.class);
+        }
+        if (enabled == null) {
+            ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
+            enabled = shenyuConfig.getAlert().getEnabled();
         }
         AlarmThreadPoolExecutor.getInstance().execute(() -> {
             alarmService.alarm(alarmContent); 
@@ -70,7 +79,7 @@ public class AlarmSender {
     public static void alarm(final byte level, final String title, final String content, final Map<String, String> labels) {
         AlarmContent alarmContent = new AlarmContent.Builder()
                                             .level(level).title(title).content(content)
-                                            .labels(labels).build();
+                                            .labels(labels).dateCreated(new Date()).build();
         alarm(alarmContent);
     }
     
@@ -83,7 +92,7 @@ public class AlarmSender {
     public static void alarm(final byte level, final String title, final String content) {
         AlarmContent alarmContent = new AlarmContent.Builder()
                                             .level(level).title(title)
-                                            .content(content).build();
+                                            .content(content).dateCreated(new Date()).build();
         alarm(alarmContent);
     }
     
@@ -96,7 +105,7 @@ public class AlarmSender {
     public static void alarmHighEmergency(final String title, final String content, final Map<String, String> labels) {
         AlarmContent alarmContent = new AlarmContent.Builder()
                                             .level((byte) 0).title(title).content(content)
-                                            .labels(labels).build();
+                                            .labels(labels).dateCreated(new Date()).build();
         alarm(alarmContent);
     }
     
@@ -109,7 +118,7 @@ public class AlarmSender {
     public static void alarmMediumCritical(final String title, final String content, final Map<String, String> labels) {
         AlarmContent alarmContent = new AlarmContent.Builder()
                                             .level((byte) 1).title(title).content(content)
-                                            .labels(labels).build();
+                                            .labels(labels).dateCreated(new Date()).build();
         alarm(alarmContent);
     }
     
@@ -122,7 +131,7 @@ public class AlarmSender {
     public static void alarmLowWarning(final String title, final String content, final Map<String, String> labels) {
         AlarmContent alarmContent = new AlarmContent.Builder()
                                             .level((byte) 2).title(title).content(content)
-                                            .labels(labels).build();
+                                            .labels(labels).dateCreated(new Date()).build();
         alarm(alarmContent);
     }
 }

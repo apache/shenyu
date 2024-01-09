@@ -50,6 +50,22 @@
         handle
     </sql>
 
+    <sql id="Base_Column_List_Alis">
+        ${alis}.id,
+        ${alis}.date_created,
+        ${alis}.date_updated,
+        ${alis}.plugin_id,
+        ${alis}.name,
+        ${alis}.match_mode,
+        ${alis}.type,
+        ${alis}.sort,
+        ${alis}.enabled,
+        ${alis}.loged,
+        ${alis}.continued,
+        ${alis}.match_restful,
+        ${alis}.handle
+    </sql>
+
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
@@ -191,6 +207,26 @@
                         and user_id = #{condition.userId})
             </if>
         </where>
+    </select>
+
+    <select id="selectByDiscoveryHandlerId" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List_Alis">
+                <property name="alis" value="s"/>
+            </include>
+        from selector  s inner join  discovery_rel dr on s.id = dr.selector_id
+        where dr.discovery_handler_id = #{discoveryHandlerId}
+    </select>
+
+    <select id="selectByDiscoveryId" resultType="org.apache.shenyu.admin.model.entity.SelectorDO">
+        SELECT
+        <include refid="Base_Column_List_Alis">
+            <property name="alis" value="ps"/>
+        </include>
+        FROM selector ps
+        inner join discovery_rel dr on ps.id = dr.selector_id
+        inner join discovery_handler dh on dh.id = dr.discovery_handler_id
+        where dh.discovery_id = #{discoveryId, jdbcType=VARCHAR}
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">

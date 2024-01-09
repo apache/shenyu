@@ -43,11 +43,11 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.JarDependencyUtils;
 import org.apache.shenyu.common.utils.LogUtils;
+import org.opengauss.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
@@ -131,7 +131,7 @@ public class PluginServiceImpl implements PluginService {
      * plugin enabled.
      *
      * @param ids     the ids
-     * @param enabled the enable
+     * @param enabled enable
      * @return String
      */
     @Override
@@ -207,7 +207,12 @@ public class PluginServiceImpl implements PluginService {
     public PluginDO findByName(final String name) {
         return pluginMapper.selectByName(name);
     }
-    
+
+    /**
+     *  activate plugin snapshot.
+     *
+     * @return List of plugins snapshot
+     */
     @Override
     public List<PluginSnapshotVO> activePluginSnapshot() {
         return pluginMapper.activePluginSnapshot(SessionUtil.isAdmin() ? null : SessionUtil.visitor().getUserId());
@@ -225,7 +230,7 @@ public class PluginServiceImpl implements PluginService {
     private String create(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), AdminConstants.PLUGIN_NAME_IS_EXIST);
         if (!Objects.isNull(pluginDTO.getFile())) {
-            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
+            Assert.isTrue(checkFile(Base64.decode(pluginDTO.getFile())), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         if (pluginMapper.insertSelective(pluginDO) > 0) {
@@ -245,7 +250,7 @@ public class PluginServiceImpl implements PluginService {
     private String update(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), AdminConstants.PLUGIN_NAME_IS_EXIST);
         if (!Objects.isNull(pluginDTO.getFile())) {
-            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
+            Assert.isTrue(checkFile(Base64.decode(pluginDTO.getFile())), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
         final PluginDO before = pluginMapper.selectById(pluginDTO.getId());
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
@@ -262,12 +267,14 @@ public class PluginServiceImpl implements PluginService {
      * @param file jar file
      * @return true is right
      */
-    private boolean checkFile(final MultipartFile file) {
+    private boolean checkFile(final byte[] file) {
         try {
-            if (file.getSize() > 16 * Constants.BYTES_PER_MB) {
+            // Check if the file size is greater than 16 megabytes
+            if (file.length > 16 * Constants.BYTES_PER_MB) {
+                LogUtils.warn(LOG, "File size is {}MB larger than 16MB", file.length / Constants.BYTES_PER_MB);
                 return false;
             }
-            Set<String> dependencyTree = JarDependencyUtils.getDependencyTree(file.getBytes());
+            Set<String> dependencyTree = JarDependencyUtils.getDependencyTree(file);
             return dependencyTree.contains(AdminConstants.PLUGIN_ABSTRACR_PATH) || dependencyTree.contains(AdminConstants.PLUGIN_INTERFACE_PATH);
         } catch (Exception e) {
             LogUtils.error(LOG, "check plugin jar error:{}", e.getMessage());

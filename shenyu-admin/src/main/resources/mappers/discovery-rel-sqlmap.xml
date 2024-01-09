@@ -73,7 +73,7 @@
         #{dateUpdated, jdbcType=TIMESTAMP},
         #{pluginName, jdbcType=VARCHAR},
         #{discoveryHandlerId, jdbcType=VARCHAR},
-        #{selectorId, jdbcType=VARCHAR}),
+        #{selectorId, jdbcType=VARCHAR},
         #{proxySelectorId, jdbcType=VARCHAR})
     </insert>
 

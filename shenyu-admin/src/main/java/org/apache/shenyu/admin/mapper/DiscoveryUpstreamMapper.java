@@ -54,6 +54,15 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      */
     List<DiscoveryUpstreamDO> selectByProxySelectorId(@Param("proxySelectorId") String proxySelectorId);
 
+
+    /**
+     * selectBySelectorId.
+     *
+     * @param selectorId selectorId
+     * @return DiscoveryUpstreamDO list
+     */
+    List<DiscoveryUpstreamDO> selectBySelectorId(@Param("selectorId") String selectorId);
+
     /**
      * selectByDiscoveryHandlerId.
      *

@@ -28,6 +28,7 @@ import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.ResourcesData.Resource;
+import org.apache.shenyu.e2e.model.data.BindingData;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.util.List;
+import java.util.Objects;
 
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
@@ -78,6 +80,11 @@ public class DividePluginTest {
                 rule.setSelectorId(dto.getId());
                 client.create(rule);
             });
+            BindingData bindingData = res.getBindingData();
+            if (Objects.nonNull(bindingData)) {
+                bindingData.setSelectorId(dto.getId());
+                client.bindingData(bindingData);
+            }
         }
 
         spec.getWaiting().waitFor(gateway);

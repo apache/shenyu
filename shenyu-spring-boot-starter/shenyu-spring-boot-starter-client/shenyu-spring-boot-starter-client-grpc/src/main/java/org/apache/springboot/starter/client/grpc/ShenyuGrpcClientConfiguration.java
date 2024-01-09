@@ -18,6 +18,8 @@
 package org.apache.springboot.starter.client.grpc;
 
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
+import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
 import org.apache.shenyu.client.grpc.GrpcClientEventListener;
 import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
 import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
@@ -28,6 +30,7 @@ import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -60,17 +63,17 @@ public class ShenyuGrpcClientConfiguration {
                                                            final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         ShenyuClientConfig.ClientPropertiesConfig clientPropertiesConfig = clientConfig.getClient().get(RpcTypeEnum.GRPC.getName());
         Properties props = clientPropertiesConfig == null ? null : clientPropertiesConfig.getProps();
-        String discoveryMode = env.getProperty("shenyu.discovery.mode", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
+        String discoveryMode = env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
         if (props != null) {
             props.setProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.valueOf(ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode)).toString());
         }
         return new GrpcClientEventListener(clientConfig.getClient().get(RpcTypeEnum.GRPC.getName()), shenyuClientRegisterRepository);
     }
-    
+
     /**
      * Grpc Server.
      *
-     * @param grpcServerBuilder grpcServerBuilder
+     * @param grpcServerBuilder       grpcServerBuilder
      * @param grpcClientEventListener grpcClientEventListener
      * @return the grpc server
      */
@@ -79,4 +82,20 @@ public class ShenyuGrpcClientConfiguration {
                                        final GrpcClientEventListener grpcClientEventListener) {
         return new GrpcServerRunner(grpcServerBuilder, grpcClientEventListener);
     }
+
+    /**
+     * ClientRegisterConfig Bean.
+     *
+     * @param shenyuClientConfig shenyuClientConfig
+     * @param applicationContext applicationContext
+     * @param env                env
+     * @return clientRegisterConfig
+     */
+    @Bean("grpcClientRegisterConfig")
+    public ClientRegisterConfig clientRegisterConfig(final ShenyuClientConfig shenyuClientConfig,
+                                                     final ApplicationContext applicationContext,
+                                                     final Environment env) {
+        return new ClientRegisterConfigImpl(shenyuClientConfig, RpcTypeEnum.GRPC, applicationContext, env);
+    }
+
 }

@@ -135,11 +135,11 @@ public class EtcdDiscoveryServiceTest {
         });
 
         doThrow(new InterruptedException("test")).when(leaseGrantFuture).get();
-        assertThrows(ShenyuException.class, () -> etcdDiscoveryServiceUnderTest.init(discoveryConfig));
+        assertDoesNotThrow(() -> etcdDiscoveryServiceUnderTest.init(discoveryConfig));
     }
 
     @Test
-    void testWatch() throws NoSuchFieldException, IllegalAccessException {
+    void testWatch() throws NoSuchFieldException, IllegalAccessException, ExecutionException, InterruptedException {
         final String eventKey = "event_key";
         final String eventValue = "event_value";
         final String key = "key";
@@ -147,6 +147,13 @@ public class EtcdDiscoveryServiceTest {
         final Watch watch = mock(Watch.class);
         when(watch.watch(any(ByteSequence.class), any(WatchOption.class), any(Watch.Listener.class)))
                 .thenReturn(mock(Watch.Watcher.class));
+        final KV kvClient = mock(KV.class);
+        when(etcdClient.getKVClient()).thenReturn(kvClient);
+        final GetResponse getResponse = mock(GetResponse.class);
+        final CompletableFuture<GetResponse> completableFuture = mock(CompletableFuture.class);
+        when(completableFuture.get())
+                .thenReturn(getResponse);
+        when(kvClient.get(any(ByteSequence.class), any(GetOption.class))).thenReturn(completableFuture);
         when(etcdClient.getWatchClient()).thenReturn(watch);
 
         ArrayList<Watch.Listener> listeners = new ArrayList<>();
@@ -165,6 +172,7 @@ public class EtcdDiscoveryServiceTest {
         for (WatchEvent.EventType eventType : WatchEvent.EventType.values()) {
             WatchEvent event = mock(WatchEvent.class);
             when(event.getEventType()).thenReturn(eventType);
+            when(event.getPrevKV()).thenReturn(keyValue);
             when(event.getKeyValue()).thenReturn(keyValue);
             events.add(event);
         }

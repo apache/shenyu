@@ -29,11 +29,5 @@
     <modules>
         <module>shenyu-register-client-api</module>
         <module>shenyu-register-client-http</module>
-        <module>shenyu-register-client-zookeeper</module>
-        <module>shenyu-register-client-etcd</module>
-        <module>shenyu-register-client-consul</module>
-        <module>shenyu-register-client-nacos</module>
-        <module>shenyu-register-client-apollo</module>
-        <module>shenyu-register-client-polaris</module>
     </modules>
 </project>

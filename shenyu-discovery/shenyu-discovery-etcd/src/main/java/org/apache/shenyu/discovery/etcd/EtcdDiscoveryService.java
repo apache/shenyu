@@ -27,9 +27,11 @@ import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
 import io.etcd.jetcd.options.WatchOption;
+import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.watch.WatchEvent;
 import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
@@ -43,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -67,23 +70,32 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
     private long timeout;
 
+    private volatile boolean isShuttingDown;
+
     @Override
     public void init(final DiscoveryConfig config) {
-        Properties props = config.getProps();
-        this.timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
-        this.ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
-        if (Objects.isNull(etcdClient)) {
+        try {
+            if (this.etcdClient != null) {
+                return;
+            }
+            Properties props = config.getProps();
+            this.timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
+            this.ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
             this.etcdClient = Client.builder().endpoints(config.getServerList().split(",")).build();
             LOGGER.info("Etcd Discovery Service initialize successfully");
-        }
-        if (leaseId == 0) {
-            initLease();
+            if (leaseId == 0) {
+                initLease();
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error initializing Etcd Discovery Service", e);
+            throw new ShenyuException(e);
         }
     }
 
     private void initLease() {
+        Lease lease = null;
         try {
-            Lease lease = etcdClient.getLeaseClient();
+            lease = etcdClient.getLeaseClient();
             this.leaseId = lease.grant(ttl).get().getID();
             lease.keepAlive(leaseId, new StreamObserver<LeaseKeepAliveResponse>() {
                 @Override
@@ -92,7 +104,9 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
 
                 @Override
                 public void onError(final Throwable throwable) {
-                    LOGGER.error("etcd lease keep alive error", throwable);
+                    if (!isShuttingDown) {
+                        LOGGER.error("etcd lease keep alive error", throwable);
+                    }
                 }
 
                 @Override
@@ -101,50 +115,63 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
             });
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("initLease error.", e);
+            if (lease != null && leaseId != 0) {
+                try {
+                    lease.revoke(leaseId).get();
+                    leaseId = 0;
+                } catch (InterruptedException | ExecutionException ex) {
+                    LOGGER.error("Failed to revoke lease after initialization error.", ex);
+                }
+            }
             throw new ShenyuException(e);
         }
     }
 
     @Override
     public void watch(final String key, final DataChangedEventListener listener) {
-        if (!this.watchCache.containsKey(key)) {
-            try {
-                Watch watch = etcdClient.getWatchClient();
-                WatchOption option = WatchOption.newBuilder().isPrefix(true).build();
-
-                Watch.Watcher watcher = watch.watch(bytesOf(key), option, Watch.listener(response -> {
-                    for (WatchEvent event : response.getEvents()) {
-                        DiscoveryDataChangedEvent dataChangedEvent;
-                        // ignore parent node
-                        if (event.getKeyValue().getKey().equals(bytesOf(key))) {
-                            return;
-                        }
-                        String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
-                        String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
-
-                        if (Objects.nonNull(event.getKeyValue()) && Objects.nonNull(value)) {
-                            switch (event.getEventType()) {
-                                case PUT:
-                                    dataChangedEvent = event.getKeyValue().getCreateRevision() == event.getKeyValue().getModRevision()
-                                            ? new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.ADDED)
-                                            : new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.UPDATED);
-                                    break;
-                                case DELETE:
-                                    dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.DELETED);
-                                    break;
-                                default:
-                                    dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.IGNORED);
-                            }
-                            listener.onChange(dataChangedEvent);
-                        }
-                    }
-                }));
-                watchCache.put(key, watcher);
-                LOGGER.info("Added etcd watcher for key: {}", key);
-            } catch (Exception e) {
-                LOGGER.error("etcd client watch key: {} error", key, e);
-                throw new ShenyuException(e);
+        try {
+            GetOption build = GetOption.newBuilder().isPrefix(true).build();
+            CompletableFuture<GetResponse> getResponseCompletableFuture = etcdClient.getKVClient().get(bytesOf(key), build);
+            GetResponse getResponse = getResponseCompletableFuture.get();
+            List<KeyValue> kvs = getResponse.getKvs();
+            for (KeyValue kv : kvs) {
+                DiscoveryDataChangedEvent dataChangedEvent = new DiscoveryDataChangedEvent(kv.getKey().toString(), kv.getValue().toString(UTF_8), DiscoveryDataChangedEvent.Event.ADDED);
+                listener.onChange(dataChangedEvent);
             }
+            Watch watch = etcdClient.getWatchClient();
+            WatchOption option = WatchOption.newBuilder().isPrefix(true).withPrevKV(true).build();
+            Watch.Watcher watcher = watch.watch(bytesOf(key), option, Watch.listener(response -> {
+                for (WatchEvent event : response.getEvents()) {
+                    DiscoveryDataChangedEvent dataChangedEvent;
+                    // ignore parent node
+                    if (event.getKeyValue().getKey().equals(bytesOf(key))) {
+                        return;
+                    }
+                    String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
+                    String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
+
+                    if (Objects.nonNull(event.getKeyValue()) && Objects.nonNull(value)) {
+                        switch (event.getEventType()) {
+                            case PUT:
+                                dataChangedEvent = event.getKeyValue().getCreateRevision() == event.getKeyValue().getModRevision()
+                                        ? new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.ADDED)
+                                        : new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.UPDATED);
+                                break;
+                            case DELETE:
+                                dataChangedEvent = new DiscoveryDataChangedEvent(path, event.getPrevKV().getValue().toString(StandardCharsets.UTF_8), DiscoveryDataChangedEvent.Event.DELETED);
+                                break;
+                            default:
+                                dataChangedEvent = new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.IGNORED);
+                        }
+                        listener.onChange(dataChangedEvent);
+                    }
+                }
+            }));
+            watchCache.put(key, watcher);
+            LOGGER.info("Added etcd watcher for key: {}", key);
+        } catch (Exception e) {
+            LOGGER.error("etcd client watch key: {} error", key, e);
+            throw new ShenyuException(e);
         }
     }
 
@@ -160,8 +187,9 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     public void register(final String key, final String value) {
         try {
             KV kvClient = etcdClient.getKVClient();
-            PutOption putOption = PutOption.newBuilder().withLeaseId(leaseId).build();
-            kvClient.put(bytesOf(key), bytesOf(value), putOption).get(timeout, TimeUnit.MILLISECONDS);
+            String uuid = UUIDUtils.getInstance().generateShortUuid();
+            PutOption putOption = PutOption.newBuilder().withPrevKV().withLeaseId(leaseId).build();
+            kvClient.put(bytesOf(key + "/" + uuid), bytesOf(value), putOption).get(timeout, TimeUnit.MILLISECONDS);
             LOGGER.info("etcd client key: {} with value: {}", key, value);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOGGER.error("etcd client register (key:{},value:{}) error.", key, value, e);
@@ -200,16 +228,23 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void shutdown() {
         try {
+            isShuttingDown = true;
             for (Map.Entry<String, Watch.Watcher> entry : watchCache.entrySet()) {
                 Watch.Watcher watcher = entry.getValue();
                 watcher.close();
             }
+            watchCache.clear();
             if (Objects.nonNull(etcdClient)) {
                 etcdClient.close();
+                etcdClient = null;
+                leaseId = 0;
             }
+            LOGGER.info("Shutting down EtcdDiscoveryService");
         } catch (Exception e) {
             LOGGER.error("etcd client shutdown error", e);
             throw new ShenyuException(e);
+        } finally {
+            isShuttingDown = false;
         }
     }
 

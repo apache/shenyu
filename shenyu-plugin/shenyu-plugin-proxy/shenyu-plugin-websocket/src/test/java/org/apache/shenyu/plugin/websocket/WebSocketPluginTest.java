@@ -18,10 +18,11 @@
 package org.apache.shenyu.plugin.websocket;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
-import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -29,6 +30,7 @@ import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
+import org.apache.shenyu.plugin.websocket.handler.WebSocketUpstreamDataHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,9 +75,11 @@ public class WebSocketPluginTest {
 
     private SelectorData selectorData;
 
+    private DiscoverySyncData discoverySyncData;
+
     private ServerWebExchange exchange;
 
-    private List<DivideUpstream> divideUpstreamList;
+    private List<DiscoveryUpstreamData> webSocketUpstreamList;
 
     private WebSocketPlugin webSocketPlugin;
 
@@ -88,9 +92,10 @@ public class WebSocketPluginTest {
         this.ruleData = mock(RuleData.class);
         this.chain = mock(ShenyuPluginChain.class);
         this.selectorData = mock(SelectorData.class);
-        this.divideUpstreamList = Stream.of(3)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("mock-" + weight)
+        this.discoverySyncData = mock(DiscoverySyncData.class);
+        this.webSocketUpstreamList = Stream.of(3)
+                .map(weight -> DiscoveryUpstreamData.builder()
+                        .url("mock-" + weight)
                         .build())
                 .collect(Collectors.toList());
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
@@ -172,9 +177,12 @@ public class WebSocketPluginTest {
         context.setRpcType(RpcTypeEnum.WEB_SOCKET.getName());
         WebSocketRuleHandle handle = new WebSocketRuleHandle();
         when(selectorData.getId()).thenReturn("mock");
-        when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
+        when(discoverySyncData.getSelectorId()).thenReturn("mock");
+        when(discoverySyncData.getUpstreamDataList()).thenReturn(webSocketUpstreamList);
         WebSocketPluginDataHandler webSocketPluginDataHandler = new WebSocketPluginDataHandler();
+        WebSocketUpstreamDataHandler webSocketUpstreamDataHandler = new WebSocketUpstreamDataHandler();
+        webSocketUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
         webSocketPluginDataHandler.handlerSelector(selectorData);
         webSocketPluginDataHandler.handlerRule(ruleData);
         exchange.getAttributes().put(Constants.CONTEXT, context);

@@ -111,4 +111,32 @@ INSERT INTO `plugin_handle` VALUES ('1722804370575548416', '45', 'exclusive', 'e
 INSERT INTO `plugin_handle` VALUES ('1722804461256400896', '45', 'autoDelete', 'autoDelete', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"false\",\"placeholder\":\"true / false\",\"rule\":\"/^(true|false)$/\"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
 INSERT INTO `plugin_handle` VALUES ('1722804548510507008', '45', 'args', 'args', 2, 3, 0, '{\"required\":\"0\",\"defaultValue\":"",\"placeholder\":"",\"rule\":\"\"}', '2023-1\1-07 11:06:00.803', '2023-11-07 13:31:41.048');
 
+INSERT INTO `plugin_handle` VALUES ('1722804548510507009', '33', 'topic', 'topic', 2, 1, 1, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507010', '33', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1722804548510507011', '45', 'sampleRate', 'sampleRate', 2, 3, 4, '{\"required\":\"0\",\"defaultValue\":\"1\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507012', '45', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1722804548510507013', '43', 'sampleRate', 'sampleRate', 2, 3, 17, '{\"required\":\"0\",\"defaultValue\":\"1\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507014', '43', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1722804548510507015', '36', 'sampleRate', 'sampleRate', 2, 3, 16, '{\"required\":\"0\",\"defaultValue\":\"1\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507016', '36', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1722804548510507017', '34', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1722804548510507018', '35', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1722804548510507019', '38', 'sampleRate', 'sampleRate', 2, 3, 11, '{\"required\":\"0\",\"defaultValue\":\"1\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507020', '38', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
 -- logging rabbitmq plugin end
+
+-- delete brpc plugin
+DELETE FROM `plugin` WHERE `name` = 'brpc';
+DELETE FROM `plugin_handle` WHERE `plugin_id` = '41';
+CREATE UNIQUE INDEX discovery_upstream_discovery_handler_id_IDX USING BTREE ON `shenyu`.`discovery_upstream` (`discovery_handler_id`,`url`);
+
+INSERT INTO `shenyu_dict` VALUES ('1679002911061737473', 'discoveryMode', 'DISCOVERY_MODE', 'etcd', '{"etcdTimeout": "3000", "etcdTTL": "5"}', 'discoery mode to link etcd', 0, 1 ,'2023-03-01 10:48:49', '2023-03-01 10:48:49');
+INSERT INTO `shenyu_dict` VALUES ('1679002911061737474', 'discoveryMode', 'DISCOVERY_MODE', 'nacos', '{"groupName": "SHENYU_GROUP", "nacosNameSpace": "", "username": "", "password": "", "accessKey": "", "secretKey": ""}', 'discoery mode to link nacos', 0, 1,'2023-03-01 10:48:49', '2023-03-01 10:48:49');
+INSERT INTO `shenyu_dict` VALUES ('1679002911061737475', 'discoveryMode', 'DISCOVERY_MODE', 'eureka', '{"eurekaClientRefreshInterval": "10", "eurekaClientRegistryFetchIntervalSeconds": "10"}', 'discoery mode to link eureka', 0, 1,'2023-03-01 10:48:49', '2023-03-01 10:48:49');
