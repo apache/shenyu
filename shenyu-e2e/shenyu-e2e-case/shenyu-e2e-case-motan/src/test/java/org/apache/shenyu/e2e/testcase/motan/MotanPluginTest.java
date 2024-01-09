@@ -26,8 +26,6 @@ import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
-import org.apache.shenyu.e2e.model.response.SelectorDTO;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -39,7 +37,7 @@ import java.util.List;
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
                 service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:31095",
+                        baseUrl = "http://localhost:9095",
                         type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
                                 @ShenYuTest.Parameter(key = "username", value = "admin"),
@@ -50,7 +48,7 @@ import java.util.List;
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-gateway",
                 service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:31195",
+                        baseUrl = "http://localhost:9195",
                         type = ServiceTypeEnum.SHENYU_GATEWAY
                 )
         )
@@ -76,11 +74,9 @@ public class MotanPluginTest {
         formData.add("enabled", "true");
         formData.add("role", "Proxy");
         formData.add("sort", "310");
-        formData.add("config", "{\"registerProtocol\":\"zk\", \"registerAddress\":\"shenyu-zookeeper:2181\"}");
+        formData.add("config", "{\"registerProtocol\":\"zk\", \"registerAddress\":\"localhost:2181\"}");
         adminClient.changePluginStatus("17", formData);
-        adminClient.deleteAllSelectors();
-        List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        Assertions.assertEquals(0, selectorDTOList.size());
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.motan.MotanPlugin");
         RestAssured.registerParser("text/plain", Parser.JSON);
     }
 
