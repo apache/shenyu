@@ -17,13 +17,15 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
-import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterRepository;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +51,7 @@ public class RegisterCenterConfigurationTest {
 
     @Test
     public void testShenyuServerRegisterRepository() {
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = mock(ShenyuRegisterCenterConfig.class);
         List<ShenyuClientRegisterService> shenyuClientRegisterService = new ArrayList<>();
         when(shenyuRegisterCenterConfig.getRegisterType()).thenReturn("http");

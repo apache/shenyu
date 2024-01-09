@@ -17,22 +17,41 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.shenyu.admin.lock.RegisterExecutionLock;
+import org.apache.shenyu.admin.lock.RegisterExecutionRepository;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * The type Abstract context path register service.
  */
 public abstract class AbstractContextPathRegisterService extends AbstractShenyuClientRegisterServiceImpl {
-    
+
+    @Resource
+    private RegisterExecutionRepository registerExecutionRepository;
+
     @Override
     public void registerContextPath(final MetaDataRegisterDTO dto) {
-        String contextPathSelectorId = getSelectorService().registerDefault(dto, PluginEnum.CONTEXT_PATH.getName(), "");
-        ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
-        handle.setContextPath(PathUtils.decoratorContextPath(dto.getContextPath()));
-        handle.setAddPrefixed(dto.getAddPrefixed());
-        getRuleService().registerDefault(buildContextPathDefaultRuleDTO(contextPathSelectorId, dto, handle.toJson()));
+        String name = PluginEnum.CONTEXT_PATH.getName();
+        String contextPathSelectorId = getSelectorService().registerDefault(dto, name, "");
+        // avoid repeated registration for many client threads
+        // many client threads may register the same context path for contextPath plugin at the same time
+        RegisterExecutionLock lock = registerExecutionRepository.getLock(name);
+        lock.lock();
+        try {
+            if (Objects.nonNull(getRuleService().findBySelectorIdAndName(contextPathSelectorId, dto.getContextPath()))) {
+                return;
+            }
+            ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
+            handle.setContextPath(PathUtils.decoratorContextPath(dto.getContextPath()));
+            handle.setAddPrefixed(dto.getAddPrefixed());
+            getRuleService().registerDefault(buildContextPathDefaultRuleDTO(contextPathSelectorId, dto, handle.toJson()));
+        } finally {
+            lock.unlock();
+        }
     }
 }

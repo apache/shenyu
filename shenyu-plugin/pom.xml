@@ -25,7 +25,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin</artifactId>
     <packaging>pom</packaging>
-    
+
     <modules>
         <module>shenyu-plugin-api</module>
         <module>shenyu-plugin-base</module>
@@ -66,5 +66,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
 </project>

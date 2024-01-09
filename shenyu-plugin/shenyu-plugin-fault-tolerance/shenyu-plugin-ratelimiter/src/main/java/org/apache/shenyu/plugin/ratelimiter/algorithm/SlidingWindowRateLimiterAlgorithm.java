@@ -41,6 +41,9 @@ public class SlidingWindowRateLimiterAlgorithm extends AbstractRateLimiterAlgori
 
     @Override
     public List<String> getKeys(final String id) {
-        return Arrays.asList((getKeyName() + ".{" + id) + "}.tokens", UUIDUtils.getInstance().generateShortUuid());
+        String hashKeyPart = ".{" + id + "}";
+        String tokenKey = getKeyName() + hashKeyPart + ".tokens";
+        String timestampKey = UUIDUtils.getInstance().generateShortUuid() + hashKeyPart + ".timestamp";
+        return Arrays.asList(tokenKey, timestampKey);
     }
 }

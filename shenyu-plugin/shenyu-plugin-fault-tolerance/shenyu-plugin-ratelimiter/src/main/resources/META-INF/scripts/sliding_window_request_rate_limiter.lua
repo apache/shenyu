@@ -49,7 +49,7 @@ end
 --redis.log(redis.LOG_WARNING, "allowed_num " .. allowed_num)
 
 redis.call('zremrangebyscore', tokens_key, 0, now - window_size / window_time)
-redis.call('expire', tokens_key, window_size)
+redis.call('expire', tokens_key, math.ceil(window_size))
 
 return { allowed_num, remain_request }
 

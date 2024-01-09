@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * config logging Pulsar plugin.
+ * config logging ClickHouse plugin.
  */
 @Configuration
 @ConditionalOnProperty(value = {"shenyu.plugins.logging-clickhouse.enabled"}, havingValue = "true", matchIfMissing = true)

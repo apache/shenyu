@@ -83,11 +83,6 @@ public interface Constants {
     String MOTAN_RPC_RESULT_EMPTY = "motan has not return value!";
     
     /**
-     * The constant BRPC_RPC_RESULT_EMPTY.
-     */
-    String BRPC_RPC_RESULT_EMPTY = "brpc has not return value!";
-    
-    /**
      * The constant CLIENT_RESPONSE_RESULT_TYPE.
      */
     String CLIENT_RESPONSE_RESULT_TYPE = "webHandlerClientResponseResultType";
@@ -236,7 +231,12 @@ public interface Constants {
      * The constant URI.
      */
     String URI = "uri";
-    
+
+    /**
+     * The constant header key of sign plugin version-2.
+     */
+    String SHENYU_AUTHORIZATION = "ShenYu-Authorization";
+
     /**
      * The constant LINE_SEPARATOR.
      */
@@ -366,6 +366,11 @@ public interface Constants {
      * jwt handle key for secretKey.
      */
     String SECRET_KEY = "secretKey";
+    
+    /**
+     * basicAuth handle key for defaultHandleJson.
+     */
+    String DEFAULT_HANDLE_JSON = "defaultHandleJson";
     
     /**
      * local key.
@@ -711,7 +716,9 @@ public interface Constants {
      * The maximum free memory reserved by the blocking queue for the JVM.
      */
     int THE_256_MB = 256 * 1024 * 1024;
-    
+
+    int BYTES_PER_MB = 1024 * 1024;
+
     /**
      * The default cluster of dubbo client.
      */

@@ -21,17 +21,14 @@ package org.apache.shenyu.register.common.config;
  * The type Discovery config.
  */
 public class ShenyuDiscoveryConfig extends PropertiesConfig {
+
     private String name;
 
     private String type;
 
     private String serverList;
 
-    private String weight;
-
     private String registerPath;
-
-    private String pluginName;
 
     private String protocol;
 
@@ -89,23 +86,6 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
         this.serverList = serverList;
     }
 
-    /**
-     * getWeight.
-     *
-     * @return weight
-     */
-    public String getWeight() {
-        return weight;
-    }
-
-    /**
-     * setWeight.
-     *
-     * @param weight weight
-     */
-    public void setWeight(final String weight) {
-        this.weight = weight;
-    }
 
     /**
      * getRegisterPath.
@@ -126,24 +106,6 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
     }
 
     /**
-     * getPluginName.
-     *
-     * @return pluginName
-     */
-    public String getPluginName() {
-        return pluginName;
-    }
-
-    /**
-     * setPluginName.
-     *
-     * @param pluginName pluginName
-     */
-    public void setPluginName(final String pluginName) {
-        this.pluginName = pluginName;
-    }
-
-    /**
      * getProtocol.
      *
      * @return protocol
@@ -151,7 +113,6 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
     public String getProtocol() {
         return protocol;
     }
-
 
     /**
      * setProtocol.

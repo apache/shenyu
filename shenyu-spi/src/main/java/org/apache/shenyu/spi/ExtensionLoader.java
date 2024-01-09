@@ -194,7 +194,7 @@ public final class ExtensionLoader<T> {
     private void createExtension(final String name, final Holder<Object> holder) {
         ClassEntity classEntity = getExtensionClassesEntity().get(name);
         if (Objects.isNull(classEntity)) {
-            throw new IllegalArgumentException(name + "name is error");
+            throw new IllegalArgumentException(name + " name is error");
         }
         Class<?> aClass = classEntity.getClazz();
         Object o = joinInstances.get(aClass);

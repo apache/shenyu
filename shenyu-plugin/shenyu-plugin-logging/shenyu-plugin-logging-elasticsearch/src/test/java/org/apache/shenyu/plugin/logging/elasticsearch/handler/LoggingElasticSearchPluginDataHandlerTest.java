@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -57,6 +58,7 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
         list.add(conditionData);
         selectorData.setConditionList(list);
         pluginData.setEnabled(true);
+        pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
         pluginData.setConfig("{\"host\":\"localhost\", \"port\":\"9200\"}");
     }
 
@@ -73,29 +75,20 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
     @Test
     public void testHandlerSelector() throws NoSuchFieldException, IllegalAccessException {
         loggingElasticSearchPluginDataHandler.handlerSelector(selectorData);
-        Field field1 = loggingElasticSearchPluginDataHandler.getClass().getSuperclass().getDeclaredField("SELECT_ID_URI_LIST_MAP");
-        field1.setAccessible(true);
         Field field2 = loggingElasticSearchPluginDataHandler.getClass().getSuperclass().getDeclaredField("SELECT_API_CONFIG_MAP");
         field2.setAccessible(true);
-        Assertions.assertEquals(field1.get("1").toString(), "{1=[11]}");
         Assertions.assertNotEquals(field2.get("1").toString(), "{}");
     }
 
     @Test
     public void testRemoveSelector() throws NoSuchFieldException, IllegalAccessException {
         loggingElasticSearchPluginDataHandler.handlerSelector(selectorData);
-        Field field1 = loggingElasticSearchPluginDataHandler.getClass().getSuperclass().getDeclaredField("SELECT_ID_URI_LIST_MAP");
-        field1.setAccessible(true);
         Field field2 = loggingElasticSearchPluginDataHandler.getClass().getSuperclass().getDeclaredField("SELECT_API_CONFIG_MAP");
         field2.setAccessible(true);
-        Assertions.assertEquals(field1.get("1").toString(), "{1=[11]}");
         Assertions.assertNotEquals(field2.get("1").toString(), "{}");
         loggingElasticSearchPluginDataHandler.removeSelector(selectorData);
-        Field field3 = loggingElasticSearchPluginDataHandler.getClass().getSuperclass().getDeclaredField("SELECT_ID_URI_LIST_MAP");
-        field3.setAccessible(true);
         Field field4 = loggingElasticSearchPluginDataHandler.getClass().getSuperclass().getDeclaredField("SELECT_API_CONFIG_MAP");
         field4.setAccessible(true);
-        Assertions.assertEquals(field3.get("1").toString(), "{}");
         Assertions.assertEquals(field4.get("1").toString(), "{}");
     }
 
@@ -107,11 +100,6 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
     @Test
     public void testGetRocketMqLogCollectClient() {
         Assertions.assertEquals(LoggingElasticSearchPluginDataHandler.getElasticSearchLogCollectClient().getClass(), ElasticSearchLogCollectClient.class);
-    }
-
-    @Test
-    public void testGetSelectIdUriListMap() {
-        Assertions.assertEquals(LoggingElasticSearchPluginDataHandler.getSelectIdUriListMap().getClass(), ConcurrentHashMap.class);
     }
 
     @Test

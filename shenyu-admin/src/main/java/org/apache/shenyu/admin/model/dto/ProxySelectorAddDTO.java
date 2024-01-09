@@ -39,6 +39,11 @@ public class ProxySelectorAddDTO implements Serializable {
     private String id;
 
     /**
+     * selector id.
+     */
+    private String selectorId;
+
+    /**
      * proxy name.
      */
     @NotBlank
@@ -54,7 +59,6 @@ public class ProxySelectorAddDTO implements Serializable {
     /**
      * proxy forward port.
      */
-    @NotNull
     private Integer forwardPort;
 
     @NotBlank
@@ -84,7 +88,6 @@ public class ProxySelectorAddDTO implements Serializable {
     /**
      * discovery upstream list.
      */
-    @NotNull
     private List<DiscoveryUpstream> discoveryUpstreams;
 
     /**
@@ -268,6 +271,24 @@ public class ProxySelectorAddDTO implements Serializable {
     }
 
     /**
+     * getSelectorId.
+     *
+     * @return selectorId
+     */
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    /**
+     * setSelectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
+    }
+
+    /**
      * get discovery.
      */
     public static class Discovery {
@@ -404,6 +425,11 @@ public class ProxySelectorAddDTO implements Serializable {
         private String props;
 
         /**
+         * startupTime.
+         */
+        private String startupTime;
+
+        /**
          * get id.
          *
          * @return id
@@ -514,6 +540,23 @@ public class ProxySelectorAddDTO implements Serializable {
          */
         public void setProps(final String props) {
             this.props = props;
+        }
+
+        /**
+         * get startupTime.
+         * @return startupTime
+         */
+        public String getStartupTime() {
+            return startupTime;
+        }
+
+        /**
+         * setStartupTime.
+         *
+         * @param startupTime setStartupTime
+         */
+        public void setStartupTime(final String startupTime) {
+            this.startupTime = startupTime;
         }
     }
 }
