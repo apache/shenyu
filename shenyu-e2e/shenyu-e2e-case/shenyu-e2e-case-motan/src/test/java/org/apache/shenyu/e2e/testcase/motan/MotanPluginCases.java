@@ -18,16 +18,13 @@
 package org.apache.shenyu.e2e.testcase.motan;
 
 import com.google.common.collect.Lists;
-import io.restassured.http.Method;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuCaseSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 
@@ -46,15 +43,13 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
      * @return ShenYuScenarioSpec
      */
     private ShenYuScenarioSpec testMotanHi() {
-        Map<String, String> param = new HashMap<>();
-        param.put("name", "motan");
         return ShenYuScenarioSpec.builder()
                 .name("motan test")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()
-                        .checker(exists(Method.GET, "/motan/demo/hi", param))
+                        .checker(exists("/motan/demo/hi"))
                         .build())
                 .caseSpec(ShenYuCaseSpec.builder()
-                        .addExists(Method.GET, "/motan/demo/hi", param)
+                        .addExists("/motan/demo/hi")
                         .addNotExists("/motan/demo/h")
                         .build())
                 .build();
