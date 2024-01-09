@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class LoggingPulsarPluginDataHandlerTest {
 
@@ -53,6 +54,7 @@ public class LoggingPulsarPluginDataHandlerTest {
         list.add(conditionData);
         selectorData.setConditionList(list);
         pluginData.setEnabled(true);
+        pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
         pluginData.setConfig("{\"topic\":\"test\", \"serviceUrl\":\"test\"}");
     }
 

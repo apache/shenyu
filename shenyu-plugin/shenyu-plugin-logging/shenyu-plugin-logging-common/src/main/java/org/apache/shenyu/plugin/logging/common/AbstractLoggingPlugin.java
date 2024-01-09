@@ -29,6 +29,7 @@ import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpRequest;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpResponse;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.CommonLoggingRuleHandle;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
@@ -46,15 +47,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
-
 /**
  * abstract logging plugin.
  */
 public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLoggingPlugin.class);
-    
+
     /**
      * LogCollector.
      *
@@ -74,7 +73,7 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
      *
      * @param exchange exchange
      * @param selector selector
-     * @param rule rule
+     * @param rule     rule
      * @return based on ShenyuRequestLog
      */
     protected abstract L doLogExecute(ServerWebExchange exchange, SelectorData selector, RuleData rule);
@@ -97,9 +96,10 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         }
         ServerHttpRequest request = exchange.getRequest();
         // control sampling
-        if (!LogCollectConfigUtils.isSampled(exchange.getRequest())) {
+        if (!LogCollectConfigUtils.isSampled(exchange, selector)) {
             return chain.execute(exchange);
         }
+
         L requestInfo = this.doLogExecute(exchange, selector, rule);
         requestInfo.setRequestUri(request.getURI().toString());
         requestInfo.setMethod(request.getMethodValue());
@@ -109,6 +109,8 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         requestInfo.setUserAgent(request.getHeaders().getFirst(GenericLoggingConstant.USER_AGENT));
         requestInfo.setHost(request.getHeaders().getFirst(GenericLoggingConstant.HOST));
         requestInfo.setPath(request.getURI().getRawPath());
+        requestInfo.setSelectorId(selector.getId());
+        requestInfo.setRuleId(rule.getId());
         LoggingServerHttpRequest<L> loggingServerHttpRequest = new LoggingServerHttpRequest<>(request, requestInfo);
         LoggingServerHttpResponse<L> loggingServerHttpResponse = new LoggingServerHttpResponse<>(exchange.getResponse(),
                 requestInfo, this.logCollector(), desensitized, keywordSets, dataDesensitizeAlg);

@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.listener.zookeeper;
 
 import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
-import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
 
 import java.util.stream.Stream;
 

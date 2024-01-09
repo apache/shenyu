@@ -26,8 +26,8 @@ spring:
 
 shenyu:
   register:
-    registerType: http #zookeeper #etcd #nacos #consul
-    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
+    registerType: http
+    serverLists: http://localhost:9095
     props:
       username: admin
       password: 123456
@@ -38,6 +38,23 @@ shenyu:
         appName: grpc
         ipAndPort: 127.0.0.1:38080
         port: 38080
+#  discovery:
+#    enable: true
+#    type: zookeeper
+#    serverList: 127.0.0.1:2181
+#    registerPath: /shenyu/discovery/${spring.application.name}
+#    props:
+#      baseSleepTimeMilliseconds: 1000
+#      maxRetries: 4
+#      maxSleepTimeMilliseconds: 5000
+#      connectionTimeoutMilliseconds: 60000
+#      sessionTimeoutMilliseconds: 8
+#    type: etcd
+#    serverList: http://127.0.0.1:2379
+#    registerPath: shenyu_discovery_${spring.application.name}
+#    type: eureka
+#    serverList: http://127.0.0.1:8761/eureka
+#    registerPath: shenyu_discovery_${spring.application.name}
 
 logging:
   level:

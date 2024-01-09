@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.shenyu.admin.config.properties.ZookeeperConfig;
 import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
 import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
+import org.apache.shenyu.admin.listener.zookeeper.ZookeeperClient;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedInit;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
-import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
-import org.apache.shenyu.register.client.server.zookeeper.ZookeeperConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

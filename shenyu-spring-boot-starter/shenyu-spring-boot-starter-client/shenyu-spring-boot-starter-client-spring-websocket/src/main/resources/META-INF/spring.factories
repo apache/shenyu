@@ -16,4 +16,5 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.springboot.starter.client.spring.websocket.ShenyuSpringWebSocketClientConfiguration
+org.apache.shenyu.springboot.starter.client.spring.websocket.ShenyuSpringWebSocketClientConfiguration,\
+org.apache.shenyu.springboot.starter.client.spring.websocket.ShenyuSpringWebSocketDiscoveryConfiguration

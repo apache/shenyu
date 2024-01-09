@@ -231,7 +231,12 @@ public interface Constants {
      * The constant URI.
      */
     String URI = "uri";
-    
+
+    /**
+     * The constant header key of sign plugin version-2.
+     */
+    String SHENYU_AUTHORIZATION = "ShenYu-Authorization";
+
     /**
      * The constant LINE_SEPARATOR.
      */
@@ -711,7 +716,9 @@ public interface Constants {
      * The maximum free memory reserved by the blocking queue for the JVM.
      */
     int THE_256_MB = 256 * 1024 * 1024;
-    
+
+    int BYTES_PER_MB = 1024 * 1024;
+
     /**
      * The default cluster of dubbo client.
      */

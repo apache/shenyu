@@ -18,13 +18,18 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
+import org.apache.shenyu.admin.lock.RegisterExecutionRepository;
+import org.apache.shenyu.admin.lock.impl.PlatformTransactionRegisterExecutionRepository;
+import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
-import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.spi.ExtensionLoader;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
 import java.util.Map;
@@ -47,7 +52,7 @@ public class RegisterCenterConfiguration {
     public ShenyuRegisterCenterConfig shenyuRegisterCenterConfig() {
         return new ShenyuRegisterCenterConfig();
     }
-    
+
     /**
      * Shenyu client server register repository server register repository.
      *
@@ -65,5 +70,18 @@ public class RegisterCenterConfiguration {
         publisher.start(registerServiceMap);
         registerRepository.init(publisher, shenyuRegisterCenterConfig);
         return registerRepository;
+    }
+
+    /**
+     * Shenyu client server register  server global lock repository.
+     *
+     * @param platformTransactionManager the platformTransactionManager
+     * @param pluginMapper the shenyu pluginMapper
+     * @return the shenyu server register repository
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "registerExecutionRepository")
+    public RegisterExecutionRepository registerExecutionRepository(final PlatformTransactionManager platformTransactionManager, final PluginMapper pluginMapper) {
+        return new PlatformTransactionRegisterExecutionRepository(platformTransactionManager, pluginMapper);
     }
 }

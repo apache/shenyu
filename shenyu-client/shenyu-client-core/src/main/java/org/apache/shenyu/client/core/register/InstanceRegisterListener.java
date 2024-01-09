@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.core.register;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -28,6 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.Ordered;
+
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 
 /**
  * InstanceRegisterListener.
@@ -35,42 +41,53 @@ import org.springframework.context.event.ContextRefreshedEvent;
  * instance register into discovery.
  * </p>
  */
-public class InstanceRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
+public class InstanceRegisterListener implements ApplicationListener<ContextRefreshedEvent>, Ordered {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceRegisterListener.class);
-
-    private static final String SEQ_PRE = "seq_";
 
     private final DiscoveryUpstreamData currentInstanceUpstream;
 
     private final DiscoveryConfig discoveryConfig;
 
+    private ShenyuDiscoveryService discoveryService;
+
     private final String path;
 
     public InstanceRegisterListener(final DiscoveryUpstreamData discoveryUpstream, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
         this.currentInstanceUpstream = discoveryUpstream;
+        this.currentInstanceUpstream.setProps("{\"warmupTime\":\"10\"}");
         this.discoveryConfig = new DiscoveryConfig();
         this.discoveryConfig.setServerList(shenyuDiscoveryConfig.getServerList());
         this.discoveryConfig.setType(shenyuDiscoveryConfig.getType());
-        this.discoveryConfig.setProps(shenyuDiscoveryConfig.getProps());
+        this.discoveryConfig.setProps(Optional.ofNullable(shenyuDiscoveryConfig.getProps()).orElse(new Properties()));
         this.discoveryConfig.setName(shenyuDiscoveryConfig.getName());
         this.path = shenyuDiscoveryConfig.getRegisterPath();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOGGER.info("unregister upstream server by jvm runtime hook");
+            if (Objects.nonNull(discoveryService)) {
+                discoveryService.shutdown();
+            }
+        }));
     }
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
         try {
-            ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin("zookeeper");
+            if (StringUtils.isBlank(discoveryConfig.getType()) || StringUtils.equalsIgnoreCase(discoveryConfig.getType(), "local")) {
+                return;
+            }
+            this.discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(discoveryConfig.getType());
             discoveryService.init(discoveryConfig);
-            discoveryService.register(buildSeqPath(), GsonUtils.getInstance().toJson(currentInstanceUpstream));
+            discoveryService.register(path, GsonUtils.getInstance().toJson(currentInstanceUpstream));
+            LOGGER.info("shenyu register into ShenyuDiscoveryService {} success", discoveryConfig.getType());
         } catch (Exception e) {
             LOGGER.error("shenyu register into ShenyuDiscoveryService  {} type find error", discoveryConfig.getType(), e);
             throw new ShenyuException(String.format("shenyu register into ShenyuDiscoveryService %s type find error", discoveryConfig.getType()));
         }
     }
 
-    private String buildSeqPath() {
-        return path + "/" + SEQ_PRE;
+    @Override
+    public int getOrder() {
+        return HIGHEST_PRECEDENCE;
     }
-
 }

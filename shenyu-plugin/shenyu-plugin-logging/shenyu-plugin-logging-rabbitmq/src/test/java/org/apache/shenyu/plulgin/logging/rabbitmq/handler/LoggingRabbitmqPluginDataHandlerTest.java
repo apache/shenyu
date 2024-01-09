@@ -23,7 +23,6 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
-import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.rabbitmq.client.RabbitmqLogCollectClient;
 import org.apache.shenyu.plugin.logging.rabbitmq.handler.LoggingRabbitmqPluginDataHandler;
 import org.junit.Assert;
@@ -33,6 +32,7 @@ import org.junit.Test;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -67,6 +67,7 @@ public class LoggingRabbitmqPluginDataHandlerTest {
         list.add(conditionData);
         selectorData.setConditionList(list);
         pluginData.setEnabled(true);
+        pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
         pluginData.setConfig(config);
     }
 
@@ -81,21 +82,6 @@ public class LoggingRabbitmqPluginDataHandlerTest {
     }
 
     @Test
-    public void testHandlerSelector() {
-        loggingRabbitmqPluginDataHandler.handlerSelector(selectorData);
-        Assert.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{}");
-        Assert.assertEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
-    }
-
-    @Test
-    public void testRemoveSelector() {
-        testHandlerSelector();
-        loggingRabbitmqPluginDataHandler.removeSelector(selectorData);
-        Assert.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{}");
-        Assert.assertEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
-    }
-
-    @Test
     public void testPluginNamed() {
         Assert.assertEquals(loggingRabbitmqPluginDataHandler.pluginNamed(), PluginEnum.LOGGING_RABBITMQ.getName());
     }
@@ -103,11 +89,6 @@ public class LoggingRabbitmqPluginDataHandlerTest {
     @Test
     public void testGetRabbitmqLogCollectClient() {
         Assert.assertEquals(LoggingRabbitmqPluginDataHandler.getRabbitmqLogCollectClient().getClass(), RabbitmqLogCollectClient.class);
-    }
-
-    @Test
-    public void testGetSelectIdUriListMap() {
-        Assert.assertEquals(LoggingRabbitmqPluginDataHandler.getSelectIdUriListMap().getClass(), ConcurrentHashMap.class);
     }
 
     @Test

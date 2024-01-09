@@ -18,13 +18,14 @@
 package org.apache.shenyu.plugin.logging.clickhouse.collector;
 
 import org.apache.shenyu.plugin.logging.clickhouse.client.ClickHouseLogCollectClient;
+import org.apache.shenyu.plugin.logging.clickhouse.config.ClickHouseLogCollectConfig;
 import org.apache.shenyu.plugin.logging.clickhouse.handler.LoggingClickHousePluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 
-public class ClickHouseLogCollector extends AbstractLogCollector<ClickHouseLogCollectClient, ShenyuRequestLog> {
+public class ClickHouseLogCollector extends AbstractLogCollector<ClickHouseLogCollectClient, ShenyuRequestLog, ClickHouseLogCollectConfig.ClickHouseLogConfig> {
 
     private static final LogCollector<ShenyuRequestLog> INSTANCE = new ClickHouseLogCollector();
 
@@ -36,10 +37,15 @@ public class ClickHouseLogCollector extends AbstractLogCollector<ClickHouseLogCo
     public static LogCollector<ShenyuRequestLog> getInstance() {
         return INSTANCE;
     }
-    
+
     @Override
     protected ClickHouseLogCollectClient getLogConsumeClient() {
         return LoggingClickHousePluginDataHandler.getClickHouseLogCollectClient();
+    }
+
+    @Override
+    protected ClickHouseLogCollectConfig.ClickHouseLogConfig getLogCollectConfig() {
+        return ClickHouseLogCollectConfig.INSTANCE.getClickHouseLogConfig();
     }
 
     @Override

@@ -32,7 +32,6 @@
         <module>shenyu-e2e-case-storage</module>
         <module>shenyu-e2e-case-http</module>
         <module>shenyu-e2e-case-spring-cloud</module>
-        <module>shenyu-e2e-case-alibaba-dubbo</module>
         <module>shenyu-e2e-case-apache-dubbo</module>
         <module>shenyu-e2e-case-sofa</module>
         <module>shenyu-e2e-case-motan</module>

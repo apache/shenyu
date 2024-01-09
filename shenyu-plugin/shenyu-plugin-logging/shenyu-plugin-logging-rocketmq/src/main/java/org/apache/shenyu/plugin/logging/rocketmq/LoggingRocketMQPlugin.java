@@ -52,7 +52,7 @@ public class LoggingRocketMQPlugin extends AbstractLoggingPlugin<ShenyuRequestLo
      *
      * @param exchange exchange
      * @param selector selector
-     * @param rule rule
+     * @param rule     rule
      * @return base ShenyuRequestLog
      */
     @Override

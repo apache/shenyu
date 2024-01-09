@@ -21,24 +21,35 @@ server:
 
 shenyu:
   register:
-    registerType: http #zookeeper #etcd #nacos #consul
-    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
+    registerType: http
+    serverLists: http://localhost:9095
     props:
       username: admin
       password: 123456
   client:
-      http:
-        props:
-          contextPath: /http
-          appName: http
-#          port: 8189
-  discovery:
-    name: ZK
-    type: zookeeper
-    serverList: 127.0.0.1:2181
-    weight: 10
-    registerPath: /shenyu/discovery/demo_http
-
+    http:
+      props:
+        contextPath: /http
+        appName: http
+  #          port: 8189
+#  discovery:
+#    enable: true
+#    protocol: http://  # https://
+#    type: zookeeper
+#    serverList: 127.0.0.1:2181
+#    registerPath: /shenyu/discovery/http_example
+#    props:
+#      baseSleepTimeMilliseconds: 1000
+#      maxRetries: 4
+#      maxSleepTimeMilliseconds: 5000
+#      connectionTimeoutMilliseconds: 60000
+#      sessionTimeoutMilliseconds: 8
+#    type: etcd
+#    serverList: http://127.0.0.1:2379
+#    registerPath: shenyu_discovery_http_example
+#    type: eureka
+#    serverList: http://127.0.0.1:8761/eureka
+#    registerPath: shenyu_discovery_http_example
 spring:
   servlet:
     multipart:

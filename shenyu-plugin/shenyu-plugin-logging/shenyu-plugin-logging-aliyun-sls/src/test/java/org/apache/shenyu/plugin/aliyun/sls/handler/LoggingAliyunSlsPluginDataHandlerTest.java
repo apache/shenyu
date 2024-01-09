@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.UUID;
 
 /**
  * The Test Case For LoggingAliYunSlsPluginDataHandler.
@@ -39,6 +40,7 @@ public class LoggingAliyunSlsPluginDataHandlerTest {
     public void setUp() {
         this.loggingAliYunSlsPluginDataHandler = new LoggingAliyunSlsPluginDataHandler();
         pluginData.setEnabled(true);
+        pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
         pluginData.setConfig("{\"topic\":\"shenyu-topic-test\", \"accessId\":\"test\", \"accessKey\":\"test\", "
                 + "\"host\":\"cn-guangzhou.log.aliyuncs.com\", \"projectName\":\"shenyu-test\", \"logStoreName\":\"shenyu-test-logstore\"}");
     }

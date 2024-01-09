@@ -1,8 +1,7 @@
-    _____ _                            
-   / ____| |                           
-  | (___ | |__   ___ _ __  _   _ _   _                 Name: ShenYu Gateway 
-   \\___ \\| '_ \\ / _ \\ '_ \\| | | | | | |           Port: ${server.port}
-   ____) | | | |  __/ | | | |_| | |_| |                Pid: ${pid}
-  |_____/|_| |_|\\___|_| |_|\\__, |\\__,_|             SpringBoot Version: ${spring-boot.version}
-                            __/ |      
-                           |___/      
+
+  ______   __                    ____  ____                 Name: ShenYu Gateway
+.' ____ \  | |                  |_  _||_  _|                Port: ${server.port}
+| (___ \_| | |--.  .---.  _ .--.  \ \  [ ] _   _            Pid: ${pid}
+ _.____`.  | .-. |/ /__\\[ `.-. |  \ \/ / [ | | |           SpringBoot Version: ${spring-boot.version}
+| \____) | | | | || \__., | | | |  _|  |_ | \_/ |,          ShenYu Version: ${application.version}
+ \______.'[___]|__]'.__.'[___||__]|______|'.__.'_/
