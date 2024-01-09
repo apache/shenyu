@@ -24,14 +24,14 @@ import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
-import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
+import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -87,45 +87,26 @@ public class MotanPluginTest {
         RestAssured.registerParser("text/plain", Parser.JSON);
     }
 
-//    @BeforeEach
-//    void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
-//        spec.getChecker().check(gateway);
-//
-//        ResourcesData resources = spec.getResources();
-//        for (ResourcesData.Resource res : resources.getResources()) {
-//            SelectorDTO dto = client.create(res.getSelector());
-//            selectorIds.add(dto.getId());
-//
-//            res.getRules().forEach(rule -> {
-//                rule.setSelectorId(dto.getId());
-//                client.create(rule);
-//            });
-//        }
-//
-//        spec.getWaiting().waitFor(gateway);
-//    }
+    @BeforeEach
+    void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
+        spec.getChecker().check(gateway);
+
+        ResourcesData resources = spec.getResources();
+        for (ResourcesData.Resource res : resources.getResources()) {
+            SelectorDTO dto = client.create(res.getSelector());
+            selectorIds.add(dto.getId());
+
+            res.getRules().forEach(rule -> {
+                rule.setSelectorId(dto.getId());
+                client.create(rule);
+            });
+        }
+
+        spec.getWaiting().waitFor(gateway);
+    }
 
     @ShenYuScenario(provider = MotanPluginCases.class)
     void testMotan(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
-    }
-
-    @AfterEach
-    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
-        spec.getDeleter().delete(client, selectorIds);
-        spec.deleteWaiting().waitFor(gateway);
-        selectorIds = new ArrayList<>();
-    }
-
-    @AfterAll
-    static void teardown(final AdminClient client) {
-        client.deleteAllSelectors();
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "17");
-        formData.add("name", "motan");
-        formData.add("enabled", "false");
-        formData.add("role", "Proxy");
-        formData.add("sort", "310");
-        client.changePluginStatus("17", formData);
     }
 }
