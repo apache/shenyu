@@ -66,6 +66,13 @@
          WHERE name = #{name, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByNameForUpdate" resultType="org.apache.shenyu.admin.model.entity.PluginDO">
+        SELECT
+            <include refid="Base_Column_List"/>
+        FROM plugin
+        WHERE name = #{name, jdbcType=VARCHAR} FOR UPDATE
+    </select>
+
     <select id="selectByNames" parameterType="java.util.List" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
@@ -358,6 +365,9 @@
             </if>
             <if test="enabled != null">
                 enabled = #{enabled, jdbcType=TINYINT},
+            </if>
+            <if test="pluginJar != null">
+                plugin_jar = #{pluginJar, jdbcType=BLOB}
             </if>
         </set>
         WHERE id = #{id, jdbcType=VARCHAR}

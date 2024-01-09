@@ -60,7 +60,6 @@ public class GrpcPluginDataHandler implements PluginDataHandler {
         if (!selectorData.getContinued()) {
             ApplicationConfigCache.getInstance().cacheRuleHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), "{}");
         }
-        ApplicationConfigCache.getInstance().handlerSelector(selectorData);
         GrpcClientCache.initGrpcClient(selectorData.getId());
     }
 

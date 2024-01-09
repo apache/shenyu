@@ -22,12 +22,13 @@ import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
+import org.apache.shenyu.plugin.logging.rocketmq.config.RocketMQLogCollectConfig;
 import org.apache.shenyu.plugin.logging.rocketmq.handler.LoggingRocketMQPluginDataHandler;
 
 /**
  * default log collector，depend a LogConsumeClient for consume logs.
  */
-public class RocketMQLogCollector extends AbstractLogCollector<RocketMQLogCollectClient, ShenyuRequestLog> {
+public class RocketMQLogCollector extends AbstractLogCollector<RocketMQLogCollectClient, ShenyuRequestLog, RocketMQLogCollectConfig.RocketMQLogConfig> {
 
     private static final LogCollector<ShenyuRequestLog> INSTANCE = new RocketMQLogCollector();
 
@@ -43,6 +44,11 @@ public class RocketMQLogCollector extends AbstractLogCollector<RocketMQLogCollec
     @Override
     protected RocketMQLogCollectClient getLogConsumeClient() {
         return LoggingRocketMQPluginDataHandler.getRocketMqLogCollectClient();
+    }
+
+    @Override
+    protected RocketMQLogCollectConfig.RocketMQLogConfig getLogCollectConfig() {
+        return RocketMQLogCollectConfig.INSTANCE.getRocketMQLogConfig();
     }
 
     @Override

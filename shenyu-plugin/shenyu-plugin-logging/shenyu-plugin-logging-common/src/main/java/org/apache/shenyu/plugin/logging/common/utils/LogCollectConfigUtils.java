@@ -18,14 +18,13 @@
 package org.apache.shenyu.plugin.logging.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.sampler.CountSampler;
 import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.AntPathMatcher;
+import org.springframework.web.server.ServerWebExchange;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -34,13 +33,7 @@ import java.util.Optional;
  */
 public final class LogCollectConfigUtils {
 
-    private static final AntPathMatcher MATCHER = new AntPathMatcher();
-
-    private static GenericGlobalConfig genericGlobalConfig;
-
-    private static final GenericGlobalConfig DEFAULT_GLOBAL_LOG_CONFIG = new GenericGlobalConfig();
-
-    private static Map<String, Sampler> apiSamplerMap = new HashMap<>();
+    private static GenericGlobalConfig genericGlobalConfig = new GenericGlobalConfig();
 
     private static Sampler globalSampler = Sampler.ALWAYS_SAMPLE;
 
@@ -49,22 +42,21 @@ public final class LogCollectConfigUtils {
 
     /**
      * set api sample.
-     * @param uriSampleMap api sample map
+     *
+     * @param sampler sample
+     * @return Sampler
      */
-    public static void setSampler(final Map<String, String> uriSampleMap) {
-        Map<String, Sampler> samplerMap = new HashMap<>();
-        uriSampleMap.forEach((path, sampler) -> {
-            if (StringUtils.isBlank(sampler)) {
-                samplerMap.put(path, globalSampler);
-            } else {
-                samplerMap.put(path, CountSampler.create(sampler));
-            }
-        });
-        apiSamplerMap = samplerMap;
+    public static Sampler setSampler(final String sampler) {
+        if (StringUtils.isBlank(sampler)) {
+            return globalSampler;
+        } else {
+            return CountSampler.create(sampler);
+        }
     }
 
     /**
      * set global Sampler.
+     *
      * @param sampler global sampler
      */
     public static void setGlobalSampler(final String sampler) {
@@ -75,26 +67,6 @@ public final class LogCollectConfigUtils {
                 globalSampler = Sampler.ALWAYS_SAMPLE;
             }
         }
-    }
-
-    /**
-     * judge whether sample.
-     *
-     * @param request request
-     * @return whether sample
-     */
-    public static boolean isSampled(final ServerHttpRequest request) {
-        String path = request.getURI().getRawPath();
-        for (Map.Entry<String, Sampler> entry : apiSamplerMap.entrySet()) {
-            String pattern = entry.getKey();
-            if (MATCHER.match(pattern, path)) {
-                return entry.getValue().isSampled(request);
-            }
-        }
-        if (globalSampler != null) {
-            return globalSampler.isSampled(request);
-        }
-        return true;
     }
 
     /**
@@ -124,37 +96,16 @@ public final class LogCollectConfigUtils {
     }
 
     /**
-     * get global log config.
+     * judge whether sample.
      *
-     * @return global log config
+     * @param exchange     exchange
+     * @param selectorData selectorData
+     * @return whether sample
      */
-    public static GenericGlobalConfig getGenericGlobalConfig() {
-        return Optional.ofNullable(genericGlobalConfig).orElse(DEFAULT_GLOBAL_LOG_CONFIG);
-    }
-
-    /**
-     * set generic global config.
-     *
-     * @param config global config
-     */
-    public static void setGenericGlobalConfig(final GenericGlobalConfig config) {
-        genericGlobalConfig = config;
-    }
-
-    /**
-     * get message queue topic.
-     *
-     * @param path        uri path
-     * @param apiTopicMap api topic map
-     * @return topic
-     */
-    public static String getTopic(final String path, final Map<String, String> apiTopicMap) {
-        for (Map.Entry<String, String> entry : apiTopicMap.entrySet()) {
-            String pattern = entry.getKey();
-            if (MATCHER.match(pattern, path)) {
-                return entry.getValue();
-            }
-        }
-        return "";
+    public static boolean isSampled(final ServerWebExchange exchange, final SelectorData selectorData) {
+        return Optional.ofNullable(AbstractLogPluginDataHandler.getSelectApiConfigMap().get(selectorData.getId()))
+                .map(config -> config.getSampler().isSampled(exchange, selectorData))
+                .orElseGet(() -> Optional.ofNullable(AbstractLogPluginDataHandler.getPluginGlobalConfigMap().get(selectorData.getPluginId()))
+                        .map(config -> config.getSampler().isSampled(exchange, selectorData)).orElse(true));
     }
 }

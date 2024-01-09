@@ -23,6 +23,7 @@ import groovyjarjarantlr4.v4.runtime.misc.Nullable;
 import org.apache.shenyu.e2e.model.MatchMode;
 import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.SelectorType;
+import org.apache.shenyu.e2e.model.data.BindingData;
 import org.apache.shenyu.e2e.model.data.Condition;
 import org.apache.shenyu.e2e.model.data.RuleData;
 import org.apache.shenyu.e2e.model.data.SelectorData;
@@ -31,6 +32,7 @@ import org.apache.shenyu.e2e.model.handle.Upstreams;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,7 +43,7 @@ public class ResourceDataTemplate {
     /**
      * Build new SelectorBuilder.
      *
-     * @param name name
+     * @param name   name
      * @param plugin plugin
      * @return SelectorData.Builder
      */
@@ -59,6 +61,32 @@ public class ResourceDataTemplate {
     }
 
     /**
+     * newBindingData.
+     *
+     * @param selectorName selectorName
+     * @param pluginName   pluginName
+     * @param url          url
+     * @return BindingData
+     */
+    public static BindingData newBindingData(final String selectorName, final String pluginName, final String url) {
+        BindingData bindingData = new BindingData();
+        bindingData.setName(selectorName);
+        bindingData.setPluginName(pluginName);
+        bindingData.setType("http");
+        BindingData.Discovery discovery = new BindingData.Discovery();
+        discovery.setDiscoveryType("local");
+        discovery.setProps("{}");
+        bindingData.setDiscovery(discovery);
+        BindingData.DiscoveryUpstream discoveryUpstream = new BindingData.DiscoveryUpstream();
+        discoveryUpstream.setUrl(url);
+        discoveryUpstream.setProtocol("http://");
+        discoveryUpstream.setStatus(0);
+        discoveryUpstream.setWeight(50);
+        bindingData.setDiscoveryUpstreams(Collections.singletonList(discoveryUpstream));
+        return bindingData;
+    }
+
+    /**
      * Build new RuleBuilder.
      *
      * @param name name
@@ -67,10 +95,11 @@ public class ResourceDataTemplate {
     public static RuleData.RuleDataBuilder newRuleBuilder(final @Nonnull String name) {
         return newRuleBuilder(name, null);
     }
-    
+
     /**
      * new rule builder.
-     * @param name name
+     *
+     * @param name       name
      * @param selectorId selectorId
      * @return RuleData.RuleDataBuilder
      */
@@ -104,20 +133,21 @@ public class ResourceDataTemplate {
     /**
      * Build new Condition.
      *
-     * @param type type
-     * @param opt opt
+     * @param type  type
+     * @param opt   opt
      * @param value value
      * @return Condition
      */
     public static Condition newCondition(final Condition.ParamType type, final Condition.Operator opt, final String value) {
         return newCondition(type, opt, null, value);
     }
-    
+
     /**
      * new condition.
-     * @param type type
-     * @param opt opt
-     * @param key key
+     *
+     * @param type  type
+     * @param opt   opt
+     * @param key   key
      * @param value value
      * @return Condition
      */
@@ -129,11 +159,12 @@ public class ResourceDataTemplate {
                 .paramValue(value)
                 .build();
     }
-    
+
     /**
      * new conditions.
-     * @param type type
-     * @param opt opt
+     *
+     * @param type  type
+     * @param opt   opt
      * @param value value
      * @return List
      */
@@ -154,9 +185,10 @@ public class ResourceDataTemplate {
                 .upstreamUrl(url)
                 .build();
     }
-    
+
     /**
      * new upstream builder.
+     *
      * @param url url
      * @return Upstreams
      */

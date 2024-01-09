@@ -30,17 +30,18 @@ import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
-import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import okhttp3.OkHttpClient;
 
 /**
  * Http sync data configuration for spring boot.
@@ -70,24 +71,25 @@ public class HttpSyncDataConfiguration {
      * @return the rest template
      */
     @Bean
-    public RestTemplate restTemplate(final HttpConfig httpConfig) {
-        OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
-        factory.setConnectTimeout(Objects.isNull(httpConfig.getConnectionTimeout()) ? (int) HttpConstants.CLIENT_POLLING_CONNECT_TIMEOUT : httpConfig.getConnectionTimeout());
-        factory.setReadTimeout(Objects.isNull(httpConfig.getReadTimeout()) ? (int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT : httpConfig.getReadTimeout());
-        factory.setWriteTimeout(Objects.isNull(httpConfig.getWriteTimeout()) ? (int) HttpConstants.CLIENT_POLLING_WRITE_TIMEOUT : httpConfig.getWriteTimeout());
-        return new RestTemplate(factory);
+    @Qualifier("httpSyncClient")
+    public OkHttpClient okHttpClient(final HttpConfig httpConfig) {
+        return new OkHttpClient.Builder()
+                .readTimeout(Duration.ofMillis(Objects.isNull(httpConfig.getReadTimeout()) ? (int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT : httpConfig.getReadTimeout()))
+                .connectTimeout(Duration.ofMillis(Objects.isNull(httpConfig.getConnectionTimeout()) ? HttpConstants.CLIENT_POLLING_CONNECT_TIMEOUT : httpConfig.getConnectionTimeout()))
+                .writeTimeout(Duration.ofMillis(Objects.isNull(httpConfig.getWriteTimeout()) ? (int) HttpConstants.CLIENT_POLLING_WRITE_TIMEOUT : httpConfig.getWriteTimeout()))
+                .build();
     }
 
     /**
      * AccessTokenManager.
      *
      * @param httpConfig   the http config.
-     * @param restTemplate the rest template.
+     * @param okHttpClient the rest okHttpClient.
      * @return the access token manager.
      */
     @Bean
-    public AccessTokenManager accessTokenManager(final HttpConfig httpConfig, final RestTemplate restTemplate) {
-        return new AccessTokenManager(restTemplate, httpConfig);
+    public AccessTokenManager accessTokenManager(final HttpConfig httpConfig, @Qualifier("httpSyncClient") final OkHttpClient okHttpClient) {
+        return new AccessTokenManager(okHttpClient, httpConfig);
     }
 
     /**
@@ -95,7 +97,7 @@ public class HttpSyncDataConfiguration {
      *
      * @param httpConfig         the http config
      * @param pluginSubscriber   the plugin subscriber
-     * @param restTemplate       the rest template
+     * @param okHttpClient       the ok http client
      * @param metaSubscribers    the meta subscribers
      * @param authSubscribers    the auth subscribers
      * @param accessTokenManager the access token manager
@@ -106,7 +108,7 @@ public class HttpSyncDataConfiguration {
     @Bean
     public SyncDataService httpSyncDataService(final ObjectProvider<HttpConfig> httpConfig,
                                                final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
-                                               final ObjectProvider<RestTemplate> restTemplate,
+                                               @Qualifier("httpSyncClient") final ObjectProvider<OkHttpClient> okHttpClient,
                                                final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
                                                final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                                final ObjectProvider<AccessTokenManager> accessTokenManager,
@@ -116,7 +118,7 @@ public class HttpSyncDataConfiguration {
         return new HttpSyncDataService(
                 Objects.requireNonNull(httpConfig.getIfAvailable()),
                 Objects.requireNonNull(pluginSubscriber.getIfAvailable()),
-                Objects.requireNonNull(restTemplate.getIfAvailable()),
+                Objects.requireNonNull(okHttpClient.getIfAvailable()),
                 metaSubscribers.getIfAvailable(Collections::emptyList),
                 authSubscribers.getIfAvailable(Collections::emptyList),
                 proxySelectorDataSubscribers.getIfAvailable(Collections::emptyList),

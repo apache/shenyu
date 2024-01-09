@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config.properties;
 
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "shenyu.jwt")
 public class JwtProperties {
 
-    private Long expiredSeconds = 24 * 60 * 60 * 1000L;
+    private Long expiredSeconds = AdminConstants.THE_ONE_DAY_MILLIS_TIME;
 
     /**
      * Gets the value of expiredSeconds.

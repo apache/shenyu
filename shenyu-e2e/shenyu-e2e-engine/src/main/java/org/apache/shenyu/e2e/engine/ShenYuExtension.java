@@ -17,14 +17,17 @@
 
 package org.apache.shenyu.e2e.engine;
 
-import com.github.dockerjava.api.DockerClient;
-import junit.framework.AssertionFailedError;
 import org.apache.shenyu.e2e.annotation.ExternalService;
 import org.apache.shenyu.e2e.annotation.ShenYuAdminClient;
 import org.apache.shenyu.e2e.annotation.ShenYuGatewayClient;
 import org.apache.shenyu.e2e.annotation.ShenYuInjectable;
+import org.apache.shenyu.e2e.config.ServiceConfigure;
+import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.apache.shenyu.e2e.engine.annotation.ShenYuTest.Environment;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
+import org.apache.shenyu.e2e.engine.utils.SocketUtils;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -37,29 +40,26 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.platform.commons.util.AnnotationUtils;
-import org.testcontainers.DockerClientFactory;
+import org.opentest4j.AssertionFailedError;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-/**
- * ShenYu extension.
- */
 public class ShenYuExtension implements BeforeAllCallback, ExecutionCondition, AfterAllCallback, ParameterResolver {
-
+    
     private static final Namespace NAMESPACE = Namespace.create(ShenYuExtension.class);
-
+    
     private static final String KEY_EXTENSION_CONTEXT = "_shenyu_service_compose_";
-
+    
     private static final String KEY_ENGINE_CONFIGURE = "_shenyu_engine_configure_";
     
     @Override
     public void beforeAll(final ExtensionContext extensionContext) throws Exception {
         Store store = extensionContext.getStore(NAMESPACE);
-        
         ShenYuEngineConfigure configure = store.get(KEY_ENGINE_CONFIGURE, ShenYuEngineConfigure.class);
         ShenYuExtensionContext context = createExtensionContext(configure);
-        context.setup();
-        
         store.put(KEY_EXTENSION_CONTEXT, context);
     }
     
@@ -69,61 +69,95 @@ public class ShenYuExtension implements BeforeAllCallback, ExecutionCondition, A
         ShenYuEngineConfigure configure = store.get(KEY_ENGINE_CONFIGURE, ShenYuEngineConfigure.class);
         if (Objects.isNull(configure)) {
             Class<?> testClass = context.getTestClass().orElseThrow(() -> new AssertionFailedError("Test class not found"));
-            if (!testClass.isAnnotationPresent(ShenYuTest.class)) {
-                throw new AssertionFailedError("@ShenYuTest not found");
+            final Environment[] environments = getEnvironments(testClass);
+            Arrays.stream(environments).collect(Collectors.groupingBy(Environment::serviceName)).forEach((serviceName, environmentList) -> {
+                if (environmentList.size() > 1) {
+                    throw new AssertionFailedError("ShenYuE2ETest.Environment serviceName is duplicate");
+                }
+            });
+            // FIXME check service is available
+            for (ShenYuTest.Environment environment : environments) {
+                if (!SocketUtils.checkUrl(environment.service().baseUrl(), 3000)) {
+                    throw new AssertionFailedError(environment.serviceName() + ":" + environment.service().baseUrl() + " is not available");
+                    //return ConditionEvaluationResult.disabled(environment.serviceName() + ":" + environment.service().baseUrl() + " is not available");
+                }
             }
             configure = ShenYuEngineConfigure.fromAnnotation(testClass.getAnnotation(ShenYuTest.class));
             store.put(KEY_ENGINE_CONFIGURE, configure);
         }
         
-        if (configure.isRunOnDocker() && !isDockerAvailable()) {
-            return ConditionEvaluationResult.disabled("Docker is not available");
-        }
-        
-        return ConditionEvaluationResult.enabled("ShenYu test engine is available");
-    }
-
-    private boolean isDockerAvailable() {
-        try {
-            final DockerClient client = DockerClientFactory.instance().client();
-            return true;
-        } catch (Throwable ex) {
-            return false;
-        }
+        return ConditionEvaluationResult.enabled("enabled");
     }
     
     @Override
-    public boolean supportsParameter(final ParameterContext parameter, final ExtensionContext extensionContext) throws ParameterResolutionException {
-        return AnnotationUtils.isAnnotated(parameter.getParameter().getType(), ShenYuInjectable.class);
+    public boolean supportsParameter(final ParameterContext parameterContext, final ExtensionContext extensionContext) throws ParameterResolutionException {
+        return AnnotationUtils.isAnnotated(parameterContext.getParameter().getType(), ShenYuInjectable.class);
     }
     
     @Override
-    public Object resolveParameter(final ParameterContext parameter, final ExtensionContext extensionContext) throws ParameterResolutionException {
+    public Object resolveParameter(final ParameterContext parameterContext, final ExtensionContext extensionContext) throws ParameterResolutionException {
         Store store = extensionContext.getStore(NAMESPACE);
         ShenYuExtensionContext context = store.get(KEY_EXTENSION_CONTEXT, ShenYuExtensionContext.class);
-        
-        Class<?> parameterType = parameter.getParameter().getType();
+        ShenYuEngineConfigure configure = store.get(KEY_ENGINE_CONFIGURE, ShenYuEngineConfigure.class);
+        Class<?> parameterType = parameterContext.getParameter().getType();
         if (parameterType.isAnnotationPresent(ShenYuAdminClient.class)) {
-            return context.getAdminClient();
+            List<ServiceConfigure> list = getServiceConfigureList(configure, ServiceTypeEnum.SHENYU_ADMIN);
+            assertServiceConfigure(list);
+            if (list.size() == 1) {
+                ServiceConfigure serviceConfigure = list.stream().findFirst().orElseThrow(() -> new AssertionFailedError("ShenYuAdminClient not found"));
+                return context.getAdminClientMap().get(serviceConfigure.getServiceName());
+            }
+        } else if (parameterType.isAnnotationPresent(ShenYuGatewayClient.class)) {
+            List<ServiceConfigure> list = getServiceConfigureList(configure, ServiceTypeEnum.SHENYU_GATEWAY);
+            assertServiceConfigure(list);
+            if (list.size() == 1) {
+                ServiceConfigure serviceConfigure = list.stream().findFirst().orElseThrow(() -> new AssertionFailedError("ShenYuAdminClient not found"));
+                return context.getGatewayClientMap().get(serviceConfigure.getServiceName());
+            }
+        } else if (parameterType.isAnnotationPresent(ExternalService.class)) {
+            List<ServiceConfigure> list = getServiceConfigureList(configure, ServiceTypeEnum.EXTERNAL_SERVICE);
+            assertServiceConfigure(list);
+            if (list.size() == 1) {
+                ServiceConfigure serviceConfigure = list.stream().findFirst().orElseThrow(() -> new AssertionFailedError("ShenYuAdminClient not found"));
+                return context.getExternalServiceClientMap().get(serviceConfigure.getServiceName());
+            }
         }
-        if (parameterType.isAnnotationPresent(ShenYuGatewayClient.class)) {
-            return context.getGatewayClient();
+        return context.getEnvironmentClient();
+    }
+    
+    private List<ServiceConfigure> getServiceConfigureList(final ShenYuEngineConfigure configure, final ServiceTypeEnum serviceType) {
+        return configure.getServiceConfigureMap().values().stream()
+                .filter(serviceConfigure -> serviceType.equals(serviceConfigure.getServiceType()))
+                .collect(Collectors.toList());
+    }
+    
+    private void assertServiceConfigure(final List<ServiceConfigure> serviceConfigures) {
+        if (serviceConfigures.isEmpty()) {
+            throw new AssertionFailedError("ShenYu Client not found");
         }
-        // TODO fixme.
-        ExternalService service = AnnotationUtils.findAnnotation(parameterType, ExternalService.class)
-                .orElseThrow(() -> new AssertionFailedError(""));
-        return context.getExternalServiceClient(service.serviceName());
     }
     
     @Override
     public void afterAll(final ExtensionContext extensionContext) throws Exception {
         Store store = extensionContext.getStore(NAMESPACE);
         ShenYuExtensionContext context = store.get(KEY_EXTENSION_CONTEXT, ShenYuExtensionContext.class);
+        ShenYuEngineConfigure configure = store.get(KEY_ENGINE_CONFIGURE, ShenYuEngineConfigure.class);
         Assertions.assertTrue(Objects.nonNull(context), "ShenYuExtensionContext is non-nullable");
-        context.cleanup();
     }
     
-    static ShenYuExtensionContext createExtensionContext(final ShenYuEngineConfigure config) {
-        return new ShenYuExtensionContext(config);
+    @NotNull
+    private static Environment[] getEnvironments(final Class<?> testClass) {
+        if (!testClass.isAnnotationPresent(ShenYuTest.class)) {
+            throw new AssertionFailedError("@ShenYuE2ETest not found");
+        }
+        Environment[] environments = testClass.getAnnotation(ShenYuTest.class).environments();
+        if (environments.length == 0) {
+            throw new AssertionFailedError("@ShenYuE2ETest.Environment not found");
+        }
+        return environments;
+    }
+    
+    private ShenYuExtensionContext createExtensionContext(final ShenYuEngineConfigure configure) {
+        return new ShenYuExtensionContext(configure);
     }
 }

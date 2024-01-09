@@ -1978,9 +1978,9 @@ public class ShenyuConfig {
     }
     
     public static class AlertConfig {
-        private Boolean enabled = Boolean.TRUE;
+        private Boolean enabled = Boolean.FALSE;
         
-        private String reportUrl = "http://localhost:9095/alert/report";
+        private String admins = "localhost:9095";
         
         /**
          * get shenyu spring cloud cache status.
@@ -1999,19 +1999,20 @@ public class ShenyuConfig {
         }
         
         /**
-         * Get shenyu admin alert report url.
-         * @return url
+         * Get shenyu admin alert report urls.
+         * eg: localhost:9095,localhost:9093
+         * @return admin alert report server list
          */
-        public String getReportUrl() {
-            return reportUrl;
+        public String getAdmins() {
+            return admins;
         }
         
         /**
          * Set shenyu admin alert report url.
-         * @param reportUrl admin url
+         * @param admins admin url
          */
-        public void setReportUrl(final String reportUrl) {
-            this.reportUrl = reportUrl;
+        public void setAdmins(final String admins) {
+            this.admins = admins;
         }
     }
 }

@@ -20,10 +20,9 @@ package org.apache.shenyu.admin.config;
 import org.apache.shenyu.admin.discovery.DefaultDiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.discovery.APDiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.LocalDiscoveryProcessor;
-import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
-import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,27 +37,33 @@ public class DiscoveryConfiguration {
      * discoveryProcessor.
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
-     * @param discoveryHandlerMapper  discoveryHandlerMapper
-     * @param proxySelectorMapper     proxySelectorMapper
      * @return DiscoveryProcessor
      */
     @Bean("DefaultDiscoveryProcessor")
-    public DiscoveryProcessor discoveryDefaultProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
-                                                        final DiscoveryHandlerMapper discoveryHandlerMapper,
-                                                        final ProxySelectorMapper proxySelectorMapper) {
-        return new DefaultDiscoveryProcessor(discoveryUpstreamMapper, discoveryHandlerMapper, proxySelectorMapper);
+    public DiscoveryProcessor discoveryDefaultProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper) {
+        return new DefaultDiscoveryProcessor(discoveryUpstreamMapper);
     }
 
     /**
      * discoveryLocalProcessor.
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
-     * @param proxySelectorMapper proxySelectorMapper
      * @return LocalDiscoveryProcessor
      */
     @Bean("LocalDiscoveryProcessor")
-    public DiscoveryProcessor discoveryLocalProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper, final ProxySelectorMapper proxySelectorMapper) {
-        return new LocalDiscoveryProcessor(discoveryUpstreamMapper, proxySelectorMapper);
+    public DiscoveryProcessor discoveryLocalProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper) {
+        return new LocalDiscoveryProcessor(discoveryUpstreamMapper);
+    }
+
+    /**
+     * discoveryLocalProcessor.
+     *
+     * @param discoveryUpstreamMapper discoveryUpstreamMapper
+     * @return DiscoveryProcessor
+     */
+    @Bean("APDiscoveryProcessor")
+    public DiscoveryProcessor discoveryAPProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper) {
+        return new APDiscoveryProcessor(discoveryUpstreamMapper);
     }
 
     /**
@@ -66,13 +71,14 @@ public class DiscoveryConfiguration {
      *
      * @param defaultDiscoveryProcessor defaultDiscoveryProcessor
      * @param localDiscoveryProcessor   localDiscoveryProcessor
+     * @param eurekaDiscoveryProcessor  eurekaDiscoveryProcessor
      * @return DiscoveryProcessorHolder
      */
     @Bean
     public DiscoveryProcessorHolder discoveryProcessorHolder(@Qualifier("DefaultDiscoveryProcessor") final DiscoveryProcessor defaultDiscoveryProcessor,
-                                                             @Qualifier("LocalDiscoveryProcessor") final DiscoveryProcessor localDiscoveryProcessor
-    ) {
-        return new DiscoveryProcessorHolder(defaultDiscoveryProcessor, localDiscoveryProcessor);
+                                                             @Qualifier("LocalDiscoveryProcessor") final DiscoveryProcessor localDiscoveryProcessor,
+                                                             @Qualifier("APDiscoveryProcessor") final DiscoveryProcessor eurekaDiscoveryProcessor) {
+        return new DiscoveryProcessorHolder(defaultDiscoveryProcessor, localDiscoveryProcessor, eurekaDiscoveryProcessor);
     }
 
 }

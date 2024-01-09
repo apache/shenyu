@@ -29,6 +29,9 @@
     <modules>
         <module>shenyu-discovery-api</module>
         <module>shenyu-discovery-zookeeper</module>
+        <module>shenyu-discovery-etcd</module>
+        <module>shenyu-discovery-nacos</module>
+        <module>shenyu-discovery-eureka</module>
     </modules>
 
 </project>

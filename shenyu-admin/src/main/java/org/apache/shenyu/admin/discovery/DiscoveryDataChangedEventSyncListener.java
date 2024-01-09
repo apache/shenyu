@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.discovery;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
@@ -33,6 +34,8 @@ import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.Collections;
@@ -70,6 +73,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void onChange(final DiscoveryDataChangedEvent event) {
         DiscoveryDataChangedEvent.Event currentEvent = event.getEvent();
         if (DiscoveryDataChangedEvent.Event.IGNORED.equals(currentEvent)) {
@@ -84,12 +88,17 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         switch (currentEvent) {
             case ADDED:
                 upstreamDataList.forEach(d -> {
-                    if (Objects.isNull(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryHandlerId, d.getUrl()))) {
-                        d.setId(UUIDUtils.getInstance().generateShortUuid());
-                        d.setDateCreated(new Timestamp(System.currentTimeMillis()));
-                        d.setDateUpdated(new Timestamp(System.currentTimeMillis()));
-                        discoveryUpstreamMapper.insert(DiscoveryTransfer.INSTANCE.mapToDo(d));
-                        LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", d.getUrl());
+                    try {
+                        DiscoveryUpstreamDO discoveryUpstreamDO = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryHandlerId, d.getUrl());
+                        if (Objects.isNull(discoveryUpstreamDO)) {
+                            d.setId(UUIDUtils.getInstance().generateShortUuid());
+                            d.setDateCreated(new Timestamp(System.currentTimeMillis()));
+                            d.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+                            discoveryUpstreamMapper.insert(DiscoveryTransfer.INSTANCE.mapToDo(d));
+                            LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", d.getUrl());
+                        }
+                    } catch (DuplicateKeyException ex) {
+                        LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener]  Upstream {} exist", d.getUrl());
                     }
                 });
                 break;
@@ -118,19 +127,38 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private void fillFullyDiscoverySyncData(final DiscoverySyncData discoverySyncData) {
         List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByProxySelectorId(discoverySyncData.getSelectorId());
+        discoveryUpstreamDOS.addAll(discoveryUpstreamMapper.selectBySelectorId(discoverySyncData.getSelectorId()));
         List<DiscoveryUpstreamData> collect = discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
         discoverySyncData.setUpstreamDataList(collect);
     }
 
     private DiscoverySyncData buildProxySelectorData(final String value) {
         List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
-        discoveryUpstreamDTOS.forEach(s -> s.setDiscoveryHandlerId(discoveryHandlerId));
+        discoveryUpstreamDTOS.forEach(discoveryUpstreamData -> {
+            discoveryUpstreamData.setDiscoveryHandlerId(discoveryHandlerId);
+            if (StringUtils.isBlank(discoveryUpstreamData.getProtocol())) {
+                discoveryUpstreamData.setProtocol(discoverySupportProtocol(contextInfo.getPluginName()));
+            }
+        });
         DiscoverySyncData data = new DiscoverySyncData();
         data.setUpstreamDataList(discoveryUpstreamDTOS);
         data.setSelectorId(contextInfo.getSelectorId());
         data.setSelectorName(contextInfo.getSelectorName());
         data.setPluginName(contextInfo.getPluginName());
         return data;
+    }
+
+    private String discoverySupportProtocol(final String pluginName) {
+        String pluginNameLower = pluginName.toLowerCase();
+        switch (pluginNameLower) {
+            case "divide":
+            case "grpc":
+                return "http://";
+            case "websocket":
+                return "ws://";
+            default:
+                return "";
+        }
     }
 
 }

@@ -21,13 +21,16 @@ package org.apache.shenyu.register.common.config;
  * The type Discovery config.
  */
 public class ShenyuDiscoveryConfig extends PropertiesConfig {
+
     private String name;
 
     private String type;
 
     private String serverList;
 
-    private String pluginName;
+    private String registerPath;
+
+    private String protocol;
 
     /**
      * Gets name.
@@ -83,21 +86,40 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
         this.serverList = serverList;
     }
 
+
     /**
-     * getPluginName.
+     * getRegisterPath.
      *
-     * @return pluginName
+     * @return registerPath
      */
-    public String getPluginName() {
-        return pluginName;
+    public String getRegisterPath() {
+        return registerPath;
     }
 
     /**
-     * setPluginName.
+     * setRegisterPath.
      *
-     * @param pluginName pluginName
+     * @param registerPath registerPath
      */
-    public void setPluginName(final String pluginName) {
-        this.pluginName = pluginName;
+    public void setRegisterPath(final String registerPath) {
+        this.registerPath = registerPath;
+    }
+
+    /**
+     * getProtocol.
+     *
+     * @return protocol
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+    /**
+     * setProtocol.
+     *
+     * @param protocol protocol
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
     }
 }

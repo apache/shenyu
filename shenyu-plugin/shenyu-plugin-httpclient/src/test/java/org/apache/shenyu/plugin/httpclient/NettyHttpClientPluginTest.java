@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,7 +69,7 @@ public final class NettyHttpClientPluginTest {
         chain = mock(ShenyuPluginChain.class);
         when(chain.execute(any())).thenReturn(Mono.empty());
         HttpClient httpClient = HttpClient.create();
-        nettyHttpClientPlugin = new NettyHttpClientPlugin(httpClient);
+        nettyHttpClientPlugin = new NettyHttpClientPlugin(httpClient, new DuplicateResponseHeaderProperties());
     }
 
     /**

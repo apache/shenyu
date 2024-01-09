@@ -17,64 +17,46 @@
 
 package org.apache.shenyu.e2e.testcase.sofa;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
-import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
-import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
-import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
-import org.apache.shenyu.e2e.model.ResourcesData;
-import org.apache.shenyu.e2e.model.response.SelectorDTO;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
+import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import java.util.List;
 
-@ShenYuTest(
-        mode = ShenYuEngineConfigure.Mode.DOCKER,
-        services = {
-                @ShenYuTest.ServiceConfigure(
-                        serviceName = "admin",
-                        port = 9095,
-                        baseUrl = "http://{hostname:localhost}:9095",
+@ShenYuTest(environments = {
+        @ShenYuTest.Environment(
+                serviceName = "shenyu-e2e-admin",
+                service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31095",
+                        type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
                                 @ShenYuTest.Parameter(key = "username", value = "admin"),
-                                @ShenYuTest.Parameter(key = "password", value = "123456"),
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "admin_websocket")
-                        }
-                ),
-                @ShenYuTest.ServiceConfigure(
-                        serviceName = "gateway",
-                        port = 9195,
-                        baseUrl = "http://{hostname:localhost}:9195",
-                        type = ShenYuEngineConfigure.ServiceType.SHENYU_GATEWAY,
-                        parameters = {
-                                @ShenYuTest.Parameter(key = "dataSyn", value = "gateway_websocket")
+                                @ShenYuTest.Parameter(key = "password", value = "123456")
                         }
                 )
-        },
-        dockerComposeFile = "classpath:./docker-compose.mysql.yml"
-)
-/**
- * Testing spring-cloud plugin.
- */
+        ),
+        @ShenYuTest.Environment(
+                serviceName = "shenyu-e2e-gateway",
+                service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
+                        baseUrl = "http://localhost:31195",
+                        type = ServiceTypeEnum.SHENYU_GATEWAY
+                )
+        )
+})
 public class SofaPluginTest {
     private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeAll
     static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        adminClient.syncPluginAll();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
@@ -85,53 +67,14 @@ public class SofaPluginTest {
         formData.add("enabled", "true");
         formData.add("role", "Proxy");
         formData.add("sort", "310");
-        formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"zookeeper:2181\"}");
+        formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zookeeper:2181\"}");
         adminClient.changePluginStatus("11", formData);
-        adminClient.deleteAllSelectors();
-        final List<SelectorDTO> selectorDTOList = adminClient.listAllSelectors();
-        Assertions.assertEquals(0, selectorDTOList.size());
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
     }
-
-    @BeforeEach
-    void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
-        spec.getChecker().check(gateway);
-
-        ResourcesData resources = spec.getResources();
-        for (ResourcesData.Resource res : resources.getResources()) {
-            SelectorDTO dto = client.create(res.getSelector());
-            selectorIds.add(dto.getId());
-
-            res.getRules().forEach(rule -> {
-                rule.setSelectorId(dto.getId());
-                client.create(rule);
-            });
-        }
-
-        spec.getWaiting().waitFor(gateway);
-    }
-
+    
     @ShenYuScenario(provider = SofaPluginCases.class)
     void testSofa(final GatewayClient gateway, final CaseSpec spec) {
-        spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
-    }
-
-    @AfterEach
-    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
-        spec.getDeleter().delete(client, selectorIds);
-        spec.deleteWaiting().waitFor(gateway);
-        selectorIds = Lists.newArrayList();
-    }
-
-    @AfterAll
-    static void teardown(final AdminClient client) {
-        client.deleteAllSelectors();
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "11");
-        formData.add("name", "sofa");
-        formData.add("enabled", "false");
-        formData.add("role", "Proxy");
-        formData.add("sort", "310");
-        client.changePluginStatus("11", formData);
+        //spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
 }
 

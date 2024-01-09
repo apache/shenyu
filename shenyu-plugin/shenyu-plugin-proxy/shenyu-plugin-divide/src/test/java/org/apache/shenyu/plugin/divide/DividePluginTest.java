@@ -18,10 +18,11 @@
 package org.apache.shenyu.plugin.divide;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
-import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -36,6 +37,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
+import org.apache.shenyu.plugin.divide.handler.DivideUpstreamDataHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,11 +88,13 @@ public final class DividePluginTest {
 
     private SelectorData selectorData;
 
+    private DiscoverySyncData discoverySyncData;
+
     private ServerWebExchange exchange;
 
     private ServerWebExchange postExchange;
 
-    private List<DivideUpstream> divideUpstreamList;
+    private List<DiscoveryUpstreamData> divideUpstreamList;
 
     private MockedStatic<UpstreamCheckUtils> mockCheckUtils;
 
@@ -100,10 +104,12 @@ public final class DividePluginTest {
         this.chain = mock(ShenyuPluginChain.class);
         this.selectorData = mock(SelectorData.class);
         this.divideUpstreamList = Stream.of(3)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("mock-" + weight)
+                .map(weight -> DiscoveryUpstreamData.builder()
+                        .url("mock-" + weight)
                         .build())
                 .collect(Collectors.toList());
+        this.discoverySyncData = mock(DiscoverySyncData.class);
+
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))
                 .header("test", "test")
@@ -249,9 +255,13 @@ public final class DividePluginTest {
         when(selectorData.getId()).thenReturn("mock");
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
+        when(discoverySyncData.getUpstreamDataList()).thenReturn(divideUpstreamList);
+        when(discoverySyncData.getSelectorId()).thenReturn("mock");
         DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
+        DivideUpstreamDataHandler divideUpstreamDataHandler = new DivideUpstreamDataHandler();
         dividePluginDataHandler.handlerRule(ruleData);
         dividePluginDataHandler.handlerSelector(selectorData);
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         postExchange.getAttributes().put(Constants.CONTEXT, context);
