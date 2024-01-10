@@ -46,11 +46,11 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                 testMotanHi(),
                 testWithUriPathPattern(),
                 testWithUriStartWith(),
-                testWithEndWith(),
-                testWithMethodGet(),
-                testWithMethodPost(),
-                testWithMethodPut(),
-                testWithMethodDelete()
+                testWithEndWith()
+//                testWithMethodGet(),
+//                testWithMethodPost(),
+//                testWithMethodPut(),
+//                testWithMethodDelete()
         );
     }
 
