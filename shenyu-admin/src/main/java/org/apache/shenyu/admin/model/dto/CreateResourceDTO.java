@@ -28,7 +28,6 @@ public class CreateResourceDTO {
     /**
      * resource parent key.
      */
-    @NotBlank
     private String parentId;
 
     /**
