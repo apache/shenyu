@@ -29,7 +29,6 @@
     <modules>
         <module>shenyu-spring-boot-starter-isolation-plugin-sofa</module>
         <module>shenyu-spring-boot-starter-isolation-plugin-motan</module>
-        <module>shenyu-spring-boot-starter-isolation-plugin-request</module>
     </modules>
 
     <dependencies>

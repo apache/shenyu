@@ -19,6 +19,7 @@ package org.apache.shenyu.protocol.tcp.connection;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.protocol.tcp.UpstreamProvider;
@@ -50,9 +51,14 @@ public class DefaultConnectionConfigProvider implements ClientConnectionConfigPr
 
     @Override
     public URI getProxiedService(final String ip) {
-        List<Upstream> upstreamList = UpstreamProvider.getSingleton().provide(this.pluginSelectorName).stream().map(dp -> {
-            return Upstream.builder().url(dp.getUrl()).status(open(dp.getStatus())).weight(dp.getWeight()).protocol(dp.getProtocol()).build();
-        }).collect(Collectors.toList());
+        List<Upstream> upstreamList = UpstreamProvider.getSingleton().provide(this.pluginSelectorName).stream().map(dp -> Upstream.builder()
+                .url(dp.getUrl())
+                .status(open(dp.getStatus()))
+                .weight(dp.getWeight())
+                .protocol(dp.getProtocol())
+                .warmup(JsonUtils.jsonToMap(dp.getProps(), Integer.class).get("warmupTime"))
+                .timestamp(dp.getDateCreated().getTime())
+                .build()).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(upstreamList)) {
             throw new ShenyuException("shenyu TcpProxy don't have any upstream");
         }

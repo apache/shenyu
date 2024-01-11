@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * test cases for TencentClsLogCollectClient.
@@ -49,6 +50,7 @@ public class TencentClsLogCollectClientTest {
     public void setup() {
         this.tencentClsLogCollectClient = new TencentClsLogCollectClient();
         pluginData.setEnabled(true);
+        pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
         pluginData.setConfig("{\"topic\":\"shenyu-topic-test\", \"secretId\":\"test\", \"secretKey\":\"test\", "
                 + "\"endpoint\":\"ap-guangzhou.cls.tencentcs.com\"}");
         tencentClsLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),

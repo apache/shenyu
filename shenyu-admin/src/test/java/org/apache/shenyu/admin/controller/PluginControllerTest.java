@@ -52,6 +52,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 
@@ -91,7 +92,7 @@ public final class PluginControllerTest {
                 .setControllerAdvice(new ExceptionHandlers(null))
                 .build();
         this.pluginVO = new PluginVO("123", "1", "t_n", "1", 1, true,
-                DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
+                DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()), "");
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
 
     }
@@ -144,17 +145,17 @@ public final class PluginControllerTest {
         pluginDTO.setEnabled(true);
         pluginDTO.setRole("1");
         pluginDTO.setSort(100);
-        pluginDTO.setFile(file);
+        pluginDTO.setFile(Base64.getEncoder().encodeToString(file.getBytes()));
         when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(false);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
 
         this.mockMvc.perform(MockMvcRequestBuilders.multipart("/plugin")
-                        .file(file)
                         .param("name", pluginDTO.getName())
                         .param("enabled", String.valueOf(pluginDTO.getEnabled()))
                         .param("role", pluginDTO.getRole())
-                        .param("sort", String.valueOf(pluginDTO.getSort())))
+                        .param("sort", String.valueOf(pluginDTO.getSort()))
+                        .param("file", pluginDTO.getFile()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
@@ -163,7 +164,7 @@ public final class PluginControllerTest {
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.multipart("/plugin")
-                        .file(file)
+                        .param("file", pluginDTO.getFile())
                         .param("id", pluginDTO.getId())
                         .param("name", pluginDTO.getName())
                         .param("enabled", String.valueOf(pluginDTO.getEnabled()))

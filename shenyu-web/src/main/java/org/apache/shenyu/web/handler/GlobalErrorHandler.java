@@ -19,6 +19,7 @@ package org.apache.shenyu.web.handler;
 
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.base.alert.AlarmSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
@@ -29,6 +30,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * GlobalErrorHandler.
@@ -47,21 +51,29 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
     @Override
     @NonNull
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange, @NonNull final Throwable throwable) {
-        LOG.error("handle error: {} formatError:{} throwable:{}", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
+        LOG.error("handle error: {} formatError:{} throwable:", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
         HttpStatus httpStatus;
         Object errorResult;
+        String errorMsg = "";
         if (throwable instanceof IllegalArgumentException) {
             httpStatus = HttpStatus.BAD_REQUEST;
             errorResult = ShenyuResultWrap.error(exchange, httpStatus.value(), throwable.getMessage(), null);
+            errorMsg = throwable.getMessage();
         } else if (throwable instanceof ResponseStatusException) {
             httpStatus = ((ResponseStatusException) throwable).getStatus();
             String errMsg = StringUtils.hasLength(((ResponseStatusException) throwable).getReason()) ? ((ResponseStatusException) throwable).getReason() : httpStatus.getReasonPhrase();
             errorResult = ShenyuResultWrap.error(exchange, httpStatus.value(), errMsg, null);
+            errorMsg = errMsg;
         } else {
             httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
             errorResult = ShenyuResultWrap.error(exchange, httpStatus.value(), httpStatus.getReasonPhrase(), null);
+            errorMsg = httpStatus.getReasonPhrase();
         }
         exchange.getResponse().setStatusCode(httpStatus);
+        Map<String, String> labels = new HashMap<>(8);
+        labels.put("global", "error");
+        labels.put("component", "gateway");
+        AlarmSender.alarmMediumCritical("ShenYu-Gateway-Global-Error", errorMsg, labels);
         return WebFluxResultUtils.result(exchange, errorResult);
     }
 

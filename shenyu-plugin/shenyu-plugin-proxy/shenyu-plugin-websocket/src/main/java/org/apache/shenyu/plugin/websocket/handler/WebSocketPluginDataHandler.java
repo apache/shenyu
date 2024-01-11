@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.websocket.handler;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -46,10 +45,6 @@ public class WebSocketPluginDataHandler implements PluginDataHandler {
     
     @Override
     public void handlerSelector(final SelectorData selectorData) {
-        List<WebSocketUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), WebSocketUpstream.class);
-        if (CollectionUtils.isNotEmpty(upstreamList)) {
-            UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(upstreamList));
-        }
         if (!selectorData.getContinued()) {
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), WebSocketRuleHandle.newDefaultInstance());
         }

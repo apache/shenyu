@@ -237,10 +237,12 @@
                 AND `type` = #{type, jdbcType=VARCHAR}
             </if>
             <if test="dictCode != null and dictCode != ''">
-                AND dict_code = #{dictCode, jdbcType=VARCHAR}
+                <bind name="dictCodeLike" value="('%' + dictCode + '%')"/>
+                AND dict_code LIKE #{dictCodeLike, jdbcType=VARCHAR}
             </if>
             <if test="dictName != null and dictName != ''">
-                AND dict_name = #{dictName, jdbcType=VARCHAR}
+                <bind name="dictNameLike" value="('%' + dictName + '%')"/>
+                AND dict_name LIKE #{dictNameLike, jdbcType=VARCHAR}
             </if>
         </where>
     </select>
@@ -255,7 +257,8 @@
                 AND `type` = #{type, jdbcType=VARCHAR}
             </if>
             <if test="dictCode != null and dictCode != ''">
-                AND dict_code = #{dictCode, jdbcType=VARCHAR}
+                <bind name="dictCodeLike" value="('%' + dictCode + '%')"/>
+                AND dict_code LIKE #{dictCodeLike, jdbcType=VARCHAR}
             </if>
             <if test="dictName != null and dictName != ''">
                 <bind name="dictNameLike" value="('%' + dictName + '%')"/>

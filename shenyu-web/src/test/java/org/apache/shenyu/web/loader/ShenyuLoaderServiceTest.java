@@ -19,6 +19,7 @@ package org.apache.shenyu.web.loader;
 
 import com.google.common.collect.Lists;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
@@ -95,17 +96,17 @@ public class ShenyuLoaderServiceTest {
         new ShenyuLoaderService(shenyuWebHandler, shenyuConfig, null);
         extPlugin.setEnabled(true);
         extPlugin.setPath(path.toString());
-        ShenyuLoaderService shenyuLoaderService = new ShenyuLoaderService(shenyuWebHandler, shenyuConfig, null);
 
-        final Method loaderExtPlugins = ShenyuLoaderService.class.getDeclaredMethod("loaderExtPlugins");
+        ShenyuLoaderService shenyuLoaderService = new ShenyuLoaderService(shenyuWebHandler, shenyuConfig, null);
+        final Method loaderExtPlugins = ShenyuLoaderService.class.getDeclaredMethod("loadExtOrUploadPlugins", PluginData.class);
         loaderExtPlugins.setAccessible(true);
-        loaderExtPlugins.invoke(shenyuLoaderService);
+        loaderExtPlugins.invoke(shenyuLoaderService, mock(PluginData.class));
 
         doThrow(ShenyuException.class).when(shenyuWebHandler).putExtPlugins(any());
-        loaderExtPlugins.invoke(shenyuLoaderService);
+        loaderExtPlugins.invoke(shenyuLoaderService, mock(PluginData.class));
 
         extPlugin.setPath("test");
-        loaderExtPlugins.invoke(shenyuLoaderService);
+        loaderExtPlugins.invoke(shenyuLoaderService, mock(PluginData.class));
         ShenyuPluginLoader.getInstance().close();
     }
 }

@@ -23,8 +23,8 @@ server:
 
 shenyu:
   register:
-    registerType: http #zookeeper #etcd #nacos #consul
-    serverLists: http://127.0.0.1:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
+    registerType: http
+    serverLists: http://127.0.0.1:9095
     props:
       username: admin
       password: 123456
@@ -34,6 +34,24 @@ shenyu:
           contextPath: /http-swagger2
           appName: http-swagger2
 #          port: 8190
+#  discovery:
+#    enable: true
+#    protocol: http:// #https://
+#    type: zookeeper
+#    serverList: 127.0.0.1:2181
+#    registerPath: /shenyu/discovery/demo_swagger2_common
+#    props:
+#      baseSleepTimeMilliseconds: 1000
+#      maxRetries: 4
+#      maxSleepTimeMilliseconds: 5000
+#      connectionTimeoutMilliseconds: 60000
+#      sessionTimeoutMilliseconds: 8
+#    type: etcd
+#    serverList: http://127.0.0.1:2379
+#    registerPath: shenyu_discovery_demo_${shenyu.client.http.props.appName}
+#    type: eureka
+#    serverList: http://127.0.0.1:8761/eureka
+#    registerPath: shenyu_discovery_demo_http-swagger3
 
 spring:
   servlet:

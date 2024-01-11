@@ -61,6 +61,14 @@ public interface ProxySelectorService {
 
 
     /**
+     * bind selector and discoveryHandler.
+     *
+     * @param proxySelectorAddDTO proxySelectorAddDTO
+     * @return the result.
+     */
+    String bindingDiscoveryHandler(ProxySelectorAddDTO proxySelectorAddDTO);
+
+    /**
      * fetchData.
      *
      * @param discoveryHandlerId discoveryHandlerId
