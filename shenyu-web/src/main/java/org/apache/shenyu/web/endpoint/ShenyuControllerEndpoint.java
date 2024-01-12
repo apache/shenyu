@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * The type Shenyu controller endpoint.
  */
 @RestController
-@RequestMapping(value = "/actuator", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+@RequestMapping(value = "/actuator", produces = {MediaType.APPLICATION_JSON_VALUE})
 public class ShenyuControllerEndpoint {
     
     private final ShenyuWebHandler webHandler;
