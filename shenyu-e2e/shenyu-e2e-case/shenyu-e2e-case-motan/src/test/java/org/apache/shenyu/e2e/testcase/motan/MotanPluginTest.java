@@ -76,7 +76,7 @@ public class MotanPluginTest {
         formData.add("sort", "310");
         formData.add("config", "{\"registerProtocol\":\"zk\", \"registerAddress\":\"shenyu-zookeeper:2181\"}");
         adminClient.changePluginStatus("17", formData);
-//        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.motan.MotanPlugin");
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.motan.MotanPlugin");
         RestAssured.registerParser("text/plain", Parser.JSON);
     }
 
