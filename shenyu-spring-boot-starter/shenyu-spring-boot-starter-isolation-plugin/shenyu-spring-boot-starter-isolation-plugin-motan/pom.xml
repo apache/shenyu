@@ -20,11 +20,6 @@
             <artifactId>shenyu-plugin-motan</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>jline</groupId>
-            <artifactId>jline</artifactId>
-            <version>2.14.6</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -40,6 +35,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <minimizeJar>true</minimizeJar>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
