@@ -90,7 +90,7 @@ public class WaitDataSync {
                     break;
                 }
             }
-            Thread.sleep(3000);
+            Thread.sleep(10000);
             retryNum++;
             pluginMap = gatewayClient.getPlugins();
         }
