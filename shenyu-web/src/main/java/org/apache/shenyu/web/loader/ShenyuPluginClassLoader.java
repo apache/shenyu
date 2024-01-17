@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -94,7 +93,8 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
      */
     public List<ShenyuLoaderResult> loadUploadedJarPlugins(final ClassLoader classLoader) {
         List<ShenyuLoaderResult> results = new ArrayList<>();
-        List<String> names = pluginJar.getClazzMap().keySet().stream().sorted((a, b) -> b.contains("Configuration") ? 1 : 0 - (a.contains("Configuration") ? 1 : 0)).distinct().collect(Collectors.toList());
+        List<String> names = pluginJar.getClazzMap().keySet().stream()
+                .sorted((a, b) -> b.contains("Configuration") ? 1 : 0 - (a.contains("Configuration") ? 1 : 0)).distinct().collect(Collectors.toList());
         List<String> beanNames = new ArrayList<>(names.size());
         // register jar all BeanDefinition
         names.forEach(className -> {

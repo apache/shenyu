@@ -74,7 +74,6 @@ public class ShenyuLoaderService {
      * loadPlugin from ext-lib or admin upload jar.
      *
      * @param uploadedJarResource uploadedJarResource is null load ext-lib,not null load admin upload jar
-     * @param classLoader classLoader
      */
     public void loadExtOrUploadPlugins(final PluginData uploadedJarResource) {
         try {
@@ -106,7 +105,7 @@ public class ShenyuLoaderService {
      * @param classLoader classLoader
      * @return a list of ShenyuLoaderResult
      */
-    public List<ShenyuLoaderResult> loadJarPlugins(final InputStream parseJarInputStream, ClassLoader classLoader) {
+    public List<ShenyuLoaderResult> loadJarPlugins(final InputStream parseJarInputStream, final ClassLoader classLoader) {
         try {
             PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(parseJarInputStream);
             ShenyuPluginClassLoader shenyuPluginClassLoader = ShenyuPluginClassloaderHolder.getSingleton().createPluginClassLoader(pluginJar);
@@ -118,7 +117,6 @@ public class ShenyuLoaderService {
             return Collections.emptyList();
         }
     }
-
 
     /**
      * loaderPlugins.

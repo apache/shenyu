@@ -30,7 +30,6 @@ import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.CookieValue;
 
-
 /**
  * annotation processor.
  */

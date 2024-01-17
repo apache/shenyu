@@ -24,8 +24,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  * RuleCreatedEvent.
  */
 public class ResourceCreatedEvent extends ResourceChangedEvent {
-    
-    
+
     /**
      * Create a new {@code SelectorChangedEvent}.operator is unknown.
      *

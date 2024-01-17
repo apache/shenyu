@@ -100,8 +100,7 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
         public String fixName() {
             return "shenyu_register_server";
         }
-    
-    
+
         /**
          * Add subscribers abstract queue consumer factory.
          *

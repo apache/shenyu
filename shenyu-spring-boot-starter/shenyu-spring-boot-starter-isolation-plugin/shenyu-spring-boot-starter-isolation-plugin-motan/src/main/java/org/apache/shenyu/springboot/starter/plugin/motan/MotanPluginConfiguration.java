@@ -39,7 +39,7 @@ import org.springframework.context.annotation.Configuration;
 public class MotanPluginConfiguration implements BeanFactoryAware {
 
     @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+    public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
         DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) beanFactory;
         MotanProxyService motanProxyService = new MotanProxyService();
         defaultListableBeanFactory.registerSingleton("motanProxyService", motanProxyService);

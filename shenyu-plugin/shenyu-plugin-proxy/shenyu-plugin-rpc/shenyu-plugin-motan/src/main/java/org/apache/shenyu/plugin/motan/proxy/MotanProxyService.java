@@ -56,7 +56,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.LinkedBlockingQueue;
 
-
 /**
  * Motan proxy service.
  */

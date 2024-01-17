@@ -238,6 +238,11 @@ public class PluginJarParser {
             this.resourceMap = resourceMap;
         }
 
+        /**
+         * jar isEmpty.
+         *
+         * @return boolean
+         */
         public boolean isEmpty() {
             return StringUtils.isEmpty(groupId)
                     && StringUtils.isEmpty(artifactId)

@@ -20,7 +20,6 @@ package org.apache.shenyu.sdk.core;
 import java.util.Collection;
 import java.util.Map;
 
-
 /**
  * ShenyuResponse.
  */

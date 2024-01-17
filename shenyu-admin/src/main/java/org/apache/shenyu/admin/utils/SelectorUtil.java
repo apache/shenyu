@@ -43,7 +43,6 @@ public final class SelectorUtil {
     private SelectorUtil() {
     }
     
-    
     /**
      * build divide upstream<br>.
      * if plugin is spring-cloud used {@link SpringCloudSelectorHandle}.<br>

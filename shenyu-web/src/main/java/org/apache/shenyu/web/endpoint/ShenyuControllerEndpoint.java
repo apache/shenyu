@@ -28,7 +28,6 @@ import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
-import org.apache.shenyu.web.handler.GlobalErrorHandler;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

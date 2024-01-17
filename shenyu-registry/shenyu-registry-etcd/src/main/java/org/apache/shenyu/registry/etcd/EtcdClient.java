@@ -38,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-
 /**
  * etcd client.
  */
@@ -85,7 +84,6 @@ public class EtcdClient {
         }
     }
 
-
     /**
      * watch key changes.
      *
@@ -97,7 +95,6 @@ public class EtcdClient {
 
         client.getWatchClient().watch(bytesOf(key), option, listener);
     }
-
 
     /**
      * get keys by prefix.

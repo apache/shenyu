@@ -41,7 +41,6 @@ public class SentinelHandle {
      */
     private int flowRuleMaxQueueingTimeMs = 500;
 
-
     /**
      * The flow control warm-up time (s).
      */
