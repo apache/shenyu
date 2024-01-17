@@ -85,7 +85,7 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists("/get")
                                 .build()
                 )
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hi")).build())
                 .build();
     }
 
@@ -118,7 +118,7 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.PUT, "/motan/demo/hi")
                                 .addExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hi")).build())
                 .build();
     }
 
@@ -152,7 +152,7 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.PUT, "/motan/demo/hi")
                                 .addExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hi")).build())
                 .build();
     }
 
@@ -186,7 +186,7 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                 .addExists(Method.PUT, "/motan/demo/hi")
                                 .addExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hi")).build())
                 .build();
     }
 
@@ -226,7 +226,7 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/motan/demo/hi")
                                 .addNotExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.GET, "/motan/demo/hi")).build())
                 .build();
     }
 
@@ -266,7 +266,7 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.PUT, "/motan/demo/hi")
                                 .addNotExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.POST, "/motan/demo/hi")).build())
                 .build();
     }
 
@@ -306,7 +306,7 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.POST, "/motan/demo/hi")
                                 .addNotExists(Method.DELETE, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.PUT, "/motan/demo/hi")).build())
                 .build();
     }
 
@@ -347,7 +347,7 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists(Method.POST, "/motan/demo/hi")
                                 .addNotExists(Method.PUT, "/motan/demo/hi")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.DEFAULT)
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.DELETE, "/motan/demo/hi")).build())
                 .build();
     }
 }

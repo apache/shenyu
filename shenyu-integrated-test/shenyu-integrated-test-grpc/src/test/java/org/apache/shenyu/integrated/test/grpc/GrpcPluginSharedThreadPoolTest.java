@@ -37,7 +37,7 @@ public class GrpcPluginSharedThreadPoolTest extends AbstractPluginDataInit {
     
     @BeforeAll
     public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.GRPC.getName(), "{\"register\":\"zookeeper://shenyu-zk:2181\",\"threadpool\": \"shared\"}");
+        String pluginResult = initPlugin(PluginEnum.GRPC.getName(), "{\"register\":\"zookeeper://localhost:2181\",\"threadpool\": \"shared\"}");
         assertThat(pluginResult, is("success"));
     }
 

@@ -18,9 +18,6 @@
 package org.apache.shenyu.admin.listener.http;
 
 import com.google.common.collect.Lists;
-
-import java.util.Objects;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -32,12 +29,12 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -55,6 +52,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
@@ -135,6 +133,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             LOG.info("send response with the changed group, ip={}, group={}", clientIp, changedGroup);
             return;
         }
+        LOG.debug("no changed group, ip={}, waiting for compare cache changed", clientIp);
         // listen for configuration changed.
         final AsyncContext asyncContext = request.startAsync();
         // AsyncContext.settimeout() does not timeout properly, so you have to control it yourself
@@ -363,6 +362,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                     clients.remove(LongPollingClient.this);
                     List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
                     sendResponse(changedGroups);
+                    log.debug("LongPollingClient {} ", GsonUtils.getInstance().toJson(changedGroups));
                 }, timeoutTime, TimeUnit.MILLISECONDS);
                 clients.add(this);
             } catch (Exception ex) {

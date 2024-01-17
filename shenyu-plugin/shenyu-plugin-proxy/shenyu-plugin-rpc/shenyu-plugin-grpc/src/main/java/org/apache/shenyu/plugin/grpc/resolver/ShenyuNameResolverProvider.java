@@ -31,7 +31,7 @@ public class ShenyuNameResolverProvider extends NameResolverProvider {
 
     @Override
     public NameResolver newNameResolver(final URI targetUri, final NameResolver.Args args) {
-        return new ShenyuNameResolver(targetUri.getPath(), args, GrpcUtil.SHARED_CHANNEL_EXECUTOR);
+        return new ShenyuNameResolver(targetUri.getHost(), args, GrpcUtil.SHARED_CHANNEL_EXECUTOR);
     }
 
     @Override

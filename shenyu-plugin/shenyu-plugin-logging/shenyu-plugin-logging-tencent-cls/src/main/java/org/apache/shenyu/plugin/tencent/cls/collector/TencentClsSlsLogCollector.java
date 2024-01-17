@@ -22,12 +22,13 @@ import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.apache.shenyu.plugin.tencent.cls.client.TencentClsLogCollectClient;
+import org.apache.shenyu.plugin.tencent.cls.config.TencentLogCollectConfig;
 import org.apache.shenyu.plugin.tencent.cls.handler.LoggingTencentClsPluginDataHandler;
 
 /**
  * Tencent cls log collector，depend a LogConsumeClient for consume logs.
  */
-public class TencentClsSlsLogCollector extends AbstractLogCollector<TencentClsLogCollectClient, ShenyuRequestLog> {
+public class TencentClsSlsLogCollector extends AbstractLogCollector<TencentClsLogCollectClient, ShenyuRequestLog, TencentLogCollectConfig.TencentClsLogConfig> {
 
     private static final LogCollector<ShenyuRequestLog> INSTANCE = new TencentClsSlsLogCollector();
 
@@ -43,6 +44,11 @@ public class TencentClsSlsLogCollector extends AbstractLogCollector<TencentClsLo
     @Override
     protected TencentClsLogCollectClient getLogConsumeClient() {
         return LoggingTencentClsPluginDataHandler.getTencentClsLogCollectClient();
+    }
+
+    @Override
+    protected TencentLogCollectConfig.TencentClsLogConfig getLogCollectConfig() {
+        return TencentLogCollectConfig.INSTANCE.getTencentClsLogConfig();
     }
 
     @Override

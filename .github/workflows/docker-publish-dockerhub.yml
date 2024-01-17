@@ -54,8 +54,9 @@ jobs:
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
 
-      - name: Cache Maven Repos
-        uses: actions/cache@v3
+      - name: Restore ShenYu Maven Repos
+        id: restore-maven-cache
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}

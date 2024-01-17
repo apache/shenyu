@@ -68,6 +68,24 @@
         FROM discovery
     </select>
 
+    <select id="selectBySelectorNameAndPluginName" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        SELECT
+        d.id,
+        d.date_created,
+        d.date_updated,
+        d.name,
+        d.type,
+        d.level,
+        d.server_list,
+        d.plugin_name,
+        d.props
+        FROM discovery d
+        INNER JOIN discovery_handler dh on d.id = dh.discovery_id
+        INNER JOIN discovery_rel dr on dh.id = dr.discovery_handler_id
+        INNER JOIN selector s on dr.selector_id = s.id and s.enabled = 1
+        where s.name = #{selectorName} and d.plugin_name = #{pluginName}
+    </select>
+
     <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
             parameterType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
         INSERT INTO discovery

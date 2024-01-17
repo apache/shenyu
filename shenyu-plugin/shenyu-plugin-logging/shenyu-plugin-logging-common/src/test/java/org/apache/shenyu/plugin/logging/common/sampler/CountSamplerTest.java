@@ -41,7 +41,7 @@ public class CountSamplerTest {
     private CountSampler countSampler;
 
     private ServerHttpRequest request;
-    
+
     @BeforeEach
     public void setUp() {
         this.countSampler = new CountSampler(1);
@@ -55,11 +55,6 @@ public class CountSamplerTest {
         ShenyuContext shenyuContext = Mockito.mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         this.request = exchange.getRequest();
-    }
-
-    @Test
-    public void testIsSampled() {
-        Assertions.assertTrue(countSampler.isSampled(request));
     }
 
     @Test

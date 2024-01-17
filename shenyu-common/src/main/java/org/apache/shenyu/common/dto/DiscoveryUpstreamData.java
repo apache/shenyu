@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.dto;
 
 import java.sql.Timestamp;
+import java.util.Objects;
 
 public class DiscoveryUpstreamData {
 
@@ -228,5 +229,185 @@ public class DiscoveryUpstreamData {
      */
     public void setDateUpdated(final Timestamp dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DiscoveryUpstreamData that = (DiscoveryUpstreamData) o;
+        return status == that.status && weight == that.weight && Objects.equals(id, that.id)
+                && Objects.equals(dateCreated, that.dateCreated) && Objects.equals(dateUpdated, that.dateUpdated)
+                && Objects.equals(discoveryHandlerId, that.discoveryHandlerId) && Objects.equals(protocol, that.protocol)
+                && Objects.equals(url, that.url) && Objects.equals(props, that.props);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, dateCreated, dateUpdated, discoveryHandlerId, protocol, url, status, weight, props);
+    }
+
+    /**
+     * class builder.
+     *
+     * @return Builder
+     */
+    public static DiscoveryUpstreamData.Builder builder() {
+        return new DiscoveryUpstreamData.Builder();
+    }
+
+    public static final class Builder {
+
+        private String id;
+
+        private Timestamp dateCreated;
+
+        private Timestamp dateUpdated;
+
+        private String discoveryHandlerId;
+
+        private String protocol;
+
+        private String url;
+
+        private int status;
+
+        private int weight;
+
+        private String props;
+
+        private Builder() {
+        }
+
+        /**
+         * build new Object.
+         *
+         * @return Builder
+         */
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        /**
+         * build id.
+         *
+         * @param id id
+         * @return this
+         */
+        public Builder id(final String id) {
+            this.id = id;
+            return this;
+        }
+
+        /**
+         * build dateCreated.
+         *
+         * @param dateCreated dateCreated
+         * @return this
+         */
+        public Builder dateCreated(final Timestamp dateCreated) {
+            this.dateCreated = dateCreated;
+            return this;
+        }
+
+        /**
+         * build dateUpdated.
+         *
+         * @param dateUpdated dateUpdated
+         * @return this
+         */
+        public Builder dateUpdated(final Timestamp dateUpdated) {
+            this.dateUpdated = dateUpdated;
+            return this;
+        }
+
+        /**
+         * build discoveryHandlerId.
+         *
+         * @param discoveryHandlerId discoveryHandlerId
+         * @return this
+         */
+        public Builder discoveryHandlerId(final String discoveryHandlerId) {
+            this.discoveryHandlerId = discoveryHandlerId;
+            return this;
+        }
+
+        /**
+         * build protocol.
+         *
+         * @param protocol protocol
+         * @return this
+         */
+        public Builder protocol(final String protocol) {
+            this.protocol = protocol;
+            return this;
+        }
+
+        /**
+         * build url.
+         *
+         * @param url url
+         * @return this
+         */
+        public Builder url(final String url) {
+            this.url = url;
+            return this;
+        }
+
+        /**
+         * build status.
+         *
+         * @param status status
+         * @return this
+         */
+        public Builder status(final int status) {
+            this.status = status;
+            return this;
+        }
+
+        /**
+         * build weight.
+         *
+         * @param weight weight
+         * @return this
+         */
+        public Builder weight(final int weight) {
+            this.weight = weight;
+            return this;
+        }
+
+        /**
+         * build props.
+         *
+         * @param props props
+         * @return this
+         */
+        public Builder props(final String props) {
+            this.props = props;
+            return this;
+        }
+
+        /**
+         * build new Object.
+         *
+         * @return DiscoveryUpstreamData
+         */
+        public DiscoveryUpstreamData build() {
+            DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
+            discoveryUpstreamData.setId(id);
+            discoveryUpstreamData.setDateCreated(dateCreated);
+            discoveryUpstreamData.setDateUpdated(dateUpdated);
+            discoveryUpstreamData.setDiscoveryHandlerId(discoveryHandlerId);
+            discoveryUpstreamData.setProtocol(protocol);
+            discoveryUpstreamData.setUrl(url);
+            discoveryUpstreamData.setStatus(status);
+            discoveryUpstreamData.setWeight(weight);
+            discoveryUpstreamData.setProps(props);
+            return discoveryUpstreamData;
+        }
     }
 }

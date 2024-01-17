@@ -34,20 +34,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * FailbackRegistryRepository .
  */
 public abstract class FailbackRegistryRepository implements ShenyuClientRegisterRepository {
-    
+
     private final Logger logger = LoggerFactory.getLogger(FailbackRegistryRepository.class);
-    
+
     private final Map<String, Holder> concurrentHashMap = new ConcurrentHashMap<>();
-    
+
     private final Timer timer;
-    
+
     /**
      * Instantiates a new Failback registry repository.
      */
     public FailbackRegistryRepository() {
         this.timer = WheelTimerFactory.getSharedTimer();
     }
-    
+
     /**
      * Persist metadata.
      *
@@ -63,7 +63,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
             this.addFailureMetaDataRegister(metadata);
         }
     }
-    
+
     /**
      * Persist uri.
      *
@@ -82,6 +82,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
 
     /**
      * Persist apiDoc.
+     *
      * @param registerDTO registerDTO
      */
     @Override
@@ -89,17 +90,18 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         try {
             this.doPersistApiDoc(registerDTO);
         } catch (Exception ex) {
-            //TODO error retry
-            //If a failure occurs, it needs to be added to the retry list.
+            logger.warn("Failed to persistApiDoc {}, cause:{}", registerDTO, ex.getMessage());
+            this.addFailureApiDocRegister(registerDTO);
         }
     }
 
     /**
      * doPersistApiDoc.
+     *
      * @param apiDocRegisterDTO apiDocRegisterDTO
      */
     protected abstract void doPersistApiDoc(ApiDocRegisterDTO apiDocRegisterDTO);
-    
+
     /**
      * Add failure meta data register.
      *
@@ -113,7 +115,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
             addToFail(new Holder(t, fullPath, Constants.META_TYPE));
         }
     }
-    
+
     /**
      * Add failure uri data register.
      *
@@ -121,13 +123,27 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
      * @param t   the t
      */
     protected <T> void addFailureUriDataRegister(final T t) {
-        if (t instanceof URIRegisterDTO) {
+        if (t instanceof ApiDocRegisterDTO) {
             URIRegisterDTO dto = (URIRegisterDTO) t;
             String address = String.join(":", dto.getHost(), String.valueOf(dto.getPort()), dto.getRpcType());
             addToFail(new Holder(t, address, Constants.URI));
         }
     }
-    
+
+    /**
+     * Add failure ApiDoc data register.
+     *
+     * @param <T> the type parameter
+     * @param t   the t
+     */
+    protected <T> void addFailureApiDocRegister(final T t) {
+        if (t instanceof ApiDocRegisterDTO) {
+            ApiDocRegisterDTO dto = (ApiDocRegisterDTO) t;
+            String address = String.join(":", dto.getContextPath(), dto.getApiPath(), dto.getHttpMethod().toString(), dto.getRpcType());
+            addToFail(new Holder(t, address, Constants.API_DOC_TYPE));
+        }
+    }
+
     private <T> void addToFail(final Holder t) {
         Holder oldObj = concurrentHashMap.get(t.getKey());
         if (oldObj != null) {
@@ -138,7 +154,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         timer.add(registryTask);
         logger.warn("Add to failback and wait for execution, {}", t.getPath());
     }
-    
+
     /**
      * Remove.
      *
@@ -147,7 +163,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     public void remove(final String key) {
         concurrentHashMap.remove(key);
     }
-    
+
     /**
      * Accpet.
      *
@@ -166,33 +182,36 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
             case Constants.META_TYPE:
                 this.doPersistInterface((MetaDataRegisterDTO) holder.getObj());
                 break;
+            case Constants.API_DOC_TYPE:
+                this.doPersistApiDoc((ApiDocRegisterDTO) holder.getObj());
+                break;
             default:
                 break;
         }
     }
-    
+
     /**
      * Do persist uri.
      *
      * @param registerDTO the register dto
      */
     protected abstract void doPersistURI(URIRegisterDTO registerDTO);
-    
+
     /**
      * Do persist interface.
      *
      * @param registerDTO the register dto
      */
     protected abstract void doPersistInterface(MetaDataRegisterDTO registerDTO);
-    
+
     private static class Holder {
-        
+
         private final Object obj;
-        
+
         private final String path;
-        
+
         private final String type;
-        
+
         /**
          * Instantiates a new Holder.
          *
@@ -205,7 +224,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
             this.path = path;
             this.type = type;
         }
-        
+
         /**
          * Gets obj.
          *
@@ -214,7 +233,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         public Object getObj() {
             return obj;
         }
-        
+
         /**
          * Gets path.
          *
@@ -223,7 +242,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         public String getPath() {
             return path;
         }
-        
+
         /**
          * Gets type.
          *
@@ -232,7 +251,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         public String getType() {
             return type;
         }
-        
+
         private String getKey() {
             return String.join(":", path, type);
         }

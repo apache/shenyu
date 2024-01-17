@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -25,15 +26,12 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.DeleteMapping;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -41,9 +39,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-@Validated
-@RestController
-@RequestMapping("/proxy-selector")
+@RestApi("/proxy-selector")
 public class ProxySelectorController {
 
     private final ProxySelectorService proxySelectorService;
@@ -121,6 +117,17 @@ public class ProxySelectorController {
 
         proxySelectorService.fetchData(discoveryHandlerId);
         return ShenyuAdminResult.success();
+    }
+
+    /**
+     * bindingSelector.
+     *
+     * @param proxySelectorAddDTO proxySelectorAddDTO
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PostMapping("binding")
+    public ShenyuAdminResult bindingSelector(@RequestBody @Valid final ProxySelectorAddDTO proxySelectorAddDTO) {
+        return ShenyuAdminResult.success(proxySelectorService.bindingDiscoveryHandler(proxySelectorAddDTO), null);
     }
 
 }

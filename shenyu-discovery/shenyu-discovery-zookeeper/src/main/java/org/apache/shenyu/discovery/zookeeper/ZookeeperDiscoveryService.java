@@ -60,6 +60,10 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void init(final DiscoveryConfig config) {
+        if (this.client != null) {
+            LOGGER.info("ZooKeeper naming service already registered");
+            return;
+        }
         String baseSleepTimeMilliseconds = config.getProps().getProperty("baseSleepTimeMilliseconds", "1000");
         String maxRetries = config.getProps().getProperty("maxRetries", "3");
         String maxSleepTimeMilliseconds = config.getProps().getProperty("maxSleepTimeMilliseconds", "1000");
@@ -85,7 +89,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
         this.client.getConnectionStateListenable().addListener((c, newState) -> {
             if (newState == ConnectionState.RECONNECTED) {
                 nodeDataMap.forEach((k, v) -> {
-                    if (!this.exits(k)) {
+                    if (!this.exists(k)) {
                         this.createOrUpdate(k, v, CreateMode.EPHEMERAL);
                         LOGGER.info("zookeeper client register instance success: key={}|value={}", k, v);
                     }
@@ -103,7 +107,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     }
 
     @Override
-    public Boolean exits(final String key) {
+    public Boolean exists(final String key) {
         try {
             return null != client.checkExists().forPath(key);
         } catch (Exception e) {
@@ -121,7 +125,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     }
 
     @Override
-    public void watcher(final String key, final DataChangedEventListener listener) {
+    public void watch(final String key, final DataChangedEventListener listener) {
         try {
             TreeCache treeCache = new TreeCache(client, key);
             TreeCacheListener treeCacheListener = (curatorFramework, event) -> {
@@ -163,7 +167,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     }
 
     @Override
-    public void unWatcher(final String key) {
+    public void unwatch(final String key) {
         if (cacheMap.containsKey(key)) {
             cacheMap.remove(key).close();
         }
@@ -171,7 +175,8 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void register(final String key, final String value) {
-        this.createOrUpdate(key, value, CreateMode.PERSISTENT);
+        String seqPath = key + "/seq_";
+        this.createOrUpdate(seqPath, value, CreateMode.EPHEMERAL_SEQUENTIAL);
     }
 
     @Override
@@ -197,7 +202,9 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
             for (String key : cacheMap.keySet()) {
                 cacheMap.get(key).close();
             }
-            client.close();
+            this.client.close();
+            this.client = null;
+            LOGGER.info("Shutting down ZookeeperDiscoveryService");
         } catch (Exception e) {
             throw new ShenyuException(e);
         }

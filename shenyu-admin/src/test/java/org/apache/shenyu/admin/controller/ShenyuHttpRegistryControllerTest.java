@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

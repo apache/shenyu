@@ -63,15 +63,15 @@ public class EndpointsReconciler implements Reconciler {
     /**
      * EndpointsReconciler Constructor.
      *
-     * @param ingressInformer ingressInformer
-     * @param endpointsInformer endpointsInformer
+     * @param ingressInformer       ingressInformer
+     * @param endpointsInformer     endpointsInformer
      * @param shenyuCacheRepository shenyuCacheRepository
-     * @param apiClient apiClient
+     * @param apiClient             apiClient
      */
     public EndpointsReconciler(final SharedIndexInformer<V1Ingress> ingressInformer,
                                final SharedIndexInformer<V1Endpoints> endpointsInformer,
-                             final ShenyuCacheRepository shenyuCacheRepository,
-                             final ApiClient apiClient) {
+                               final ShenyuCacheRepository shenyuCacheRepository,
+                               final ApiClient apiClient) {
         this.ingressLister = new Lister<>(ingressInformer.getIndexer());
         this.endpointsLister = new Lister<>(endpointsInformer.getIndexer());
         this.shenyuCacheRepository = shenyuCacheRepository;
@@ -105,6 +105,7 @@ public class EndpointsReconciler implements Reconciler {
         // 2. Update the handler of the selector
         List<SelectorData> totalSelectors = shenyuCacheRepository.findSelectorDataList(PluginEnum.DIVIDE.getName());
         Set<String> needUpdateSelectorId = new HashSet<>();
+        //TODO Adaptation of other plugins
         ingressList.forEach(item -> {
             List<String> selectorIdList = IngressSelectorCache.getInstance().get(item.getLeft(), item.getRight(), PluginEnum.DIVIDE.getName());
             needUpdateSelectorId.addAll(selectorIdList);

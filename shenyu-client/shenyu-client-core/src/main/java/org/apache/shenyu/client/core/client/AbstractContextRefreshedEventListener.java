@@ -81,10 +81,12 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      */
     protected static final String PATH_SEPARATOR = "/";
 
+    protected static final String EVERY_PATH = "**";
+
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
-    
+
     private final Map<Method, MetaDataRegisterDTO> metaDataMap = new ConcurrentHashMap<>();
 
     private final String appName;
@@ -96,8 +98,10 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     private final String host;
 
     private final String port;
-    
+
     private ApplicationContext context;
+
+    private final Boolean isDiscoveryLocalMode;
 
     /**
      * Instantiates a new context refreshed event listener.
@@ -118,6 +122,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         this.ipAndPort = props.getProperty(ShenyuClientConstants.IP_PORT);
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = props.getProperty(ShenyuClientConstants.PORT);
+        this.isDiscoveryLocalMode = Boolean.valueOf(props.getProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY));
         publisher.start(shenyuClientRegisterRepository);
     }
 
@@ -131,7 +136,9 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         if (!registered.compareAndSet(false, true)) {
             return;
         }
-        publisher.publishEvent(buildURIRegisterDTO(context, beans));
+        if (isDiscoveryLocalMode) {
+            publisher.publishEvent(buildURIRegisterDTO(context, beans));
+        }
         beans.forEach(this::handle);
         Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiModule.class);
         apiModules.forEach((k, v) -> handleApiDoc(v, beans));
@@ -212,7 +219,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
         return list;
     }
-    
+
     private String buildExtJson(final Method method) {
         final MetaDataRegisterDTO metaData = metaDataMap.get(method);
         if (Objects.isNull(metaData)) {
@@ -228,11 +235,11 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         ext = customApiDocExt(ext);
         return GsonUtils.getInstance().toJson(ext);
     }
-    
+
     protected ApiDocRegisterDTO.ApiExt customApiDocExt(final ApiDocRegisterDTO.ApiExt ext) {
         return ext;
     }
-    
+
     private String buildDocumentJson(final List<String> tags, final String path, final Method method) {
         Map<String, Object> documentMap = ImmutableMap.<String, Object>builder()
                 .put("tags", tags)
@@ -328,7 +335,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     public ShenyuClientRegisterEventPublisher getPublisher() {
         return publisher;
     }
-    
+
     /**
      * Get the metadata map.
      *
@@ -337,7 +344,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     public Map<Method, MetaDataRegisterDTO> getMetaDataMap() {
         return metaDataMap;
     }
-    
+
     /**
      * Get the app name.
      *
@@ -383,7 +390,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     public String getPort() {
         return StringUtils.isBlank(this.port) ? "-1" : this.port;
     }
-    
+
     /**
      * Get the context.
      *

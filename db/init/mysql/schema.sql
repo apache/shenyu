@@ -771,6 +771,12 @@ INSERT INTO `permission` VALUES ('1572525965658820617', '1346358560427216896', '
 INSERT INTO `permission` VALUES ('1572525965658820618', '1346358560427216896', '1676471945124278280', '2023-07-07 23:26:37.388', '2023-07-07 23:26:37.388');
 
 INSERT INTO `permission` VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176', '2022-09-28 11:50:58', '2022-09-28 11:50:58');
+INSERT INTO `permission` VALUES ('1697141926281318400','1346358560427216896','1697141926247763968', '2023-08-31 14:59:01', '2023-08-31 06:59:01');
+INSERT INTO `permission` VALUES ('1697145808239693824','1346358560427216896','1697145808210333696', '2023-08-31 15:14:26', '2023-08-31 07:14:26');
+INSERT INTO `permission` VALUES ('1697146375754190848','1346358560427216896','1697146375729025024', '2023-08-31 15:16:42', '2023-08-31 07:16:42');
+INSERT INTO `permission` VALUES ('1697146617543233536','1346358560427216896','1697146617513873408', '2023-08-31 15:17:39', '2023-08-31 07:17:39');
+INSERT INTO `permission` VALUES ('1697146860569595904','1346358560427216896','1697146860540235776', '2023-08-31 15:18:37', '2023-08-31 07:18:37');
+
 -- ----------------------------
 -- Table structure for plugin
 -- ----------------------------
@@ -829,9 +835,11 @@ INSERT INTO `plugin` VALUES ('36', 'loggingTencentCls','{\"endpoint\": \"ap-guan
 INSERT INTO `plugin` VALUES ('38', 'loggingClickHouse', '{\"host\":\"127.0.0.1\",\"port\":\"8123\",\"databse\":\"shenyu-gateway\",\"username\":\"foo\",\"password\":\"bar\"}', 'Logging', 195, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00',null);
 INSERT INTO `plugin` VALUES ('39', 'casdoor', '{\"endpoint\":\"http://localhost:8000\"}', 'Authentication', 40, 0, '2022-09-11 12:00:00', '2022-09-11 12:00:00',null);
 INSERT INTO `plugin` VALUES ('40', 'keyAuth', NULL, 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00',null);
-INSERT INTO `plugin` VALUES ('41', 'brpc', '{\"address\":\"127.0.0.1\", \"port\":\"8005\", \"corethreads\":0, \"threads\":2147483647, \"queues\":0, \"threadpool\":\"shared\"}', 'Proxy', 310, 0, '2023-01-10 10:08:01', '2023-01-10 10:08:01',null);
 INSERT INTO `plugin` VALUES ('42', 'tcp', NULL, 'Proxy', 320, 1, '2023-05-30 18:02:53', '2022-05-30 18:02:53',null);
 INSERT INTO `plugin` VALUES ('43', 'loggingHuaweiLts', '{\"totalSizeInBytes\":\"104857600\",\"maxBlockMs\":\"0\",\"ioThreadCount\":\"1\",\"batchSizeThresholdInBytes\":\"524288\",\"batchCountThreshold\":\"4096\",\"lingerMs\":\"2000\",\"retries\":\"100\",\"baseRetryBackoffMs\":\"100\",\"maxRetryBackoffMs\":\"100\",\"enableLocalTest\":\"true\",\"setGiveUpExtraLongSingleLog\":\"false\"}', 'Logging', 177, 0, '2023-07-05 14:03:53.686', '2023-07-06 12:42:07.234', NULL);
+INSERT INTO `plugin` VALUES ('44', 'basicAuth', '{\"defaultHandleJson\":\"{\\\"authorization\\\":\\\"test:test123\\\"}\"}', 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00', null);
+INSERT INTO `plugin` VALUES ('45', 'loggingRabbitMQ', '{\"host\":\"127.0.0.1\",\"port\":5672,\"password\":\"admin\",\"username\":\"admin\",\"exchangeName\":\"exchange.logging.plugin\",\"queueName\":\"queue.logging.plugin\",\"routingKey\":\"topic.logging\",\"virtualHost\":\"/\",\"exchangeType\":\"direct\",\"durable\":\"true\",\"exclusive\":\"false\",\"autoDelete\":\"false\"}', 'Logging', 171, 0, '2023-11-06 15:49:56.454', '2023-11-10 10:40:58.447', NULL);
+ 
 -- ----------------------------
 -- Table structure for plugin_handle
 -- ----------------------------
@@ -856,9 +864,9 @@ CREATE TABLE `plugin_handle`  (
 -- ----------------------------
 INSERT INTO `plugin_handle` VALUES ('1529402613195784246', '10', 'flowRuleGrade', 'flowRuleGrade', 3, 2, 8, '{\"required\":\"1\",\"defaultValue\":\"1\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978496', '10', 'flowRuleControlBehavior', 'flowRuleControlBehavior', 3, 2, 5, '{\"required\":\"1\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin_handle` VALUES ('1529402613199978497', '10', 'flowRuleEnable', 'flowRuleEnable 1 or 0)', 1, 2, 7, '{\"required\":\"1\",\"defaultValue\":\"1\",\"rule\":\"/^[01]$/\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613199978497', '10', 'flowRuleEnable', 'flowRuleEnable 1 or 0', 1, 2, 7, '{\"required\":\"1\",\"defaultValue\":\"1\",\"rule\":\"/^[01]$/\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978498', '10', 'flowRuleCount', 'flowRuleCount', 1, 2, 6, '{\"required\":\"1\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin_handle` VALUES ('1529402613199978499', '10', 'degradeRuleEnable', 'degradeRuleEnable 1 or 0)', 1, 2, 2, '{\"required\":\"1\",\"defaultValue\":\"1\",\"rule\":\"/^[01]$/\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613199978499', '10', 'degradeRuleEnable', 'degradeRuleEnable 1 or 0', 1, 2, 2, '{\"required\":\"1\",\"defaultValue\":\"1\",\"rule\":\"/^[01]$/\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978500', '10', 'degradeRuleGrade', 'degradeRuleGrade', 3, 2, 3, '{\"required\":\"1\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978501', '10', 'degradeRuleCount', 'degradeRuleCount', 1, 2, 1, '{\"required\":\"1\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978502', '10', 'degradeRuleTimeWindow', 'degradeRuleTimeWindow', 1, 2, 4, '{\"required\":\"1\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -872,6 +880,7 @@ INSERT INTO `plugin_handle` VALUES ('1529402613199978509', '4', 'replenishRate',
 INSERT INTO `plugin_handle` VALUES ('1529402613199978510', '4', 'burstCapacity', 'burstCapacity', 2, 2, 3, '{\"required\":\"1\",\"defaultValue\":\"100\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978511', '3', 'regex', 'regex', 2, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978512', '3', 'replace', 'replace', 2, 2, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1697146860569596304', '3', 'percentage', 'percentage', 1, 2, 3, NULL, '2023-09-15 20:25:53', '2023-09-15 20:25:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978513', '16', 'redirectURI', 'redirectURI', 2, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978514', '8', 'path', 'path', 2, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978515', '8', 'timeout', 'timeout ms)', 1, 2, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -949,7 +958,7 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172806', '25', 'way', 'way', 3
 INSERT INTO `plugin_handle` VALUES ('1630768384280514560', '25', 'mapType', 'mapType', 3, 2, 4, '{\"required\":\"0\",\"defaultValue\":\"all\",\"rule\":\"\"}', '2023-03-01 11:14:15', '2023-03-01 11:15:14');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172807', '6', 'gray', 'gray', 3, 1, 9, '{\"required\":\"0\",\"defaultValue\":\"false\",\"placeholder\":\"gray\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172808', '6', 'group', 'group', 2, 1, 3, '{\"required\":\"0\",\"placeholder\":\"group\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172809', '6', 'loadbalance', 'loadbalance', 3, 2, 0, '{\"required\":\"0\",\"placeholder\":\"loadbalance\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172809', '6', 'loadBalance', 'loadStrategy', 3, 2, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172810', '6', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172811', '6', 'protocol', 'protocol', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"http://\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172812', '6', 'status', 'status', 3, 1, 8, '{\"defaultValue\":\"true\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -963,6 +972,8 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172819', '6', 'threadpool', 't
 INSERT INTO `plugin_handle` VALUES ('1529402613204172820', '6', 'corethreads', 'corethreads', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"0\",\"placeholder\":\"corethreads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172821', '6', 'threads', 'threads', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"2147483647\",\"placeholder\":\"threads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172822', '6', 'queues', 'queues', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"0\",\"placeholder\":\"queues\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204173923', '6', 'retries', 'retries', 3, 2, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204173924', '6', 'timeout', 'timeout', 3, 2, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172823', '26', 'host', 'host', 2, 1, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172824', '26', 'protocol', 'protocol', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"ws://\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172825', '26', 'url', 'ip:port', 2, 1, 1, '{\"required\":\"1\",\"placeholder\":\"\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -1029,7 +1040,7 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172885', '32', 'sampleRate', '
 INSERT INTO `plugin_handle` VALUES ('1529402613204172886', '32', 'maxResponseBody', 'maxResponseBody', 1, 3, 7, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172887', '32', 'maxRequestBody', 'maxRequestBody', 1, 3, 8, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172888', '32', 'compressAlg', 'compressAlg', 3, 3, 9, '{\"required\":\"0\",\"defaultValue\":\"none\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172889', '32', 'index', 'index', 2, 1, 1, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172889', '32', 'indexName', 'indexName', 2, 3, 10, '{\"required\":\"0\",\"defaultValue\":\"shenyu-access-logging\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172890', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172891', '1', 'signRequestBody', 'signRequestBody', 3, 2, 9, '{"required":"0","defaultValue":"false","placeholder":"signRequestBody","rule":""}', '2022-06-29 10:08:02', '2022-06-29 10:08:02');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172892', '33', 'topic', 'topic', 2, 3, 1, '{\"required\":\"1\",\"defaultValue\":\"shenyu-access-logging\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
@@ -1114,20 +1125,12 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172775', '38', 'engine', 'engi
 INSERT INTO `plugin_handle` VALUES ('1529402613204172776', '38', 'clusterName', 'clusterName', 3, 3, 9, '{\"required\":\"1\",\"defaultValue\":\"cluster\",\"rule\":\"\"}', '2022-12-30 00:17:21.150', '2022-12-30 00:17:21.150');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172777', '38', 'ttl', 'ttl', 3, 3, 10,  '{\"required\":\"0\",\"defaultValue\":\"30\"}', '2023-03-01 11:14:15', '2023-08-16 11:15:14');
 
-
 INSERT INTO `plugin_handle` VALUES ('1570590990341775360', '39', 'endpoint', 'casdoor endpoint', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
 INSERT INTO `plugin_handle` VALUES ('1570591047635968000', '39', 'client_id', 'client_id', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
 INSERT INTO `plugin_handle` VALUES ('1570591109623586816', '39', 'client_secrect', 'client_secrect', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
 INSERT INTO `plugin_handle` VALUES ('1570591165374275584', '39', 'certificate', 'certificate', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
 INSERT INTO `plugin_handle` VALUES ('1570591215131303936', '39', 'organization-name', 'organization-name', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
 INSERT INTO `plugin_handle` VALUES ('1570591265492312064', '39', 'application-name', 'application-name', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
-
-INSERT INTO `plugin_handle` VALUES ('1529402613204172957', '41', 'address', 'address', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"127.0.0.1\",\"placeholder\":\"address\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172958', '41', 'port', 'port', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"8005\",\"placeholder\":\"port\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172959', '41', 'corethreads', 'corethreads', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"0\",\"placeholder\":\"corethreads\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172960', '41', 'threads', 'threads', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"2147483647\",\"placeholder\":\"threads\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172961', '41', 'queues', 'queues', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"0\",\"placeholder\":\"queues\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172962', '41', 'threadpool', 'threadpool', 3, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"shared\",\"placeholder\":\"threadpool\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 
 INSERT INTO `plugin_handle` VALUES ('1676472478492946432', '43', 'projectId', 'projectId', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2023-07-05 14:06:00.893', '2023-07-07 22:50:00.597');
 INSERT INTO `plugin_handle` VALUES ('1676473313352380416', '43', 'logGroupId', 'logGroupId', 2, 3, 1, '{\"required\":\"1\",\"rule\":\"\"}', '2023-07-05 14:09:19.928', '2023-07-07 22:50:00.606');
@@ -1161,6 +1164,43 @@ INSERT INTO `plugin_handle` VALUES ('1678997277012557824', '42', 'clientMaxConne
 INSERT INTO `plugin_handle` VALUES ('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{\"required\":\"0\",\"defaultValue\":\"5\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 
 INSERT INTO `plugin_handle` VALUES ('1678997557628272641', '17', 'registerAddress', 'registerAddress', 2, 3, 1, '{\"required\":\"0\",\"defaultValue\":\"127.0.0.1:2181\",\"placeholder\":\"registerAddress\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
+
+INSERT INTO `plugin_handle` VALUES ('1678997557628272642', '15', 'loadBalance', 'loadBalance', 3, 2, 3, '{\"required\":\"0\",\"defaultValue\":\"random\",\"rule\":\"\"}', '2023-09-05 18:02:53', '2023-09-05 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1678997557628272643', '44', 'defaultHandleJson', 'defaultHandleJson', 2, 3, 2,  '{\"required\":\"0\",\"defaultValue\":\"{\\\"authorization\\\":\\\"test:test123\\\"}\",\"placeholder\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1721435546642157568', '45', 'host', 'host', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"127.0.0.1\",\"rule\":\"\"}', '2023-11-06 15:53:11.704', '2023-11-07 13:31:41.010');
+INSERT INTO `plugin_handle` VALUES ('1721435708743618560', '45', 'port', 'port', 1, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"15672\",\"rule\":\"\"}', '2023-11-06 15:53:50.352', '2023-11-07 13:31:41.016');
+INSERT INTO `plugin_handle` VALUES ('1721436368046264320', '45', 'password', 'password', 2, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"admin\",\"rule\":\"\"}', '2023-11-06 15:56:27.541', '2023-11-07 13:31:41.021');
+INSERT INTO `plugin_handle` VALUES ('1721436500343001088', '45', 'username', 'username', 2, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"admin\",\"rule\":\"\"}', '2023-11-06 15:56:59.084', '2023-11-07 13:31:41.025');
+INSERT INTO `plugin_handle` VALUES ('1721436639635836928', '45', 'exchangeName', 'exchangeName', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"\",\"rule\":\"\"}', '2023-11-06 15:57:32.295', '2023-11-07 13:31:41.030');
+INSERT INTO `plugin_handle` VALUES ('1721436745583955968', '45', 'queueName', 'queueName', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"\",\"rule\":\"\"}', '2023-11-06 15:57:57.553', '2023-11-07 13:31:41.035');
+INSERT INTO `plugin_handle` VALUES ('1721509996347617280', '45', 'routingKey', 'routingKey', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"\",\"rule\":\"\"}', '2023-11-06 20:49:01.897', '2023-11-07 13:31:41.039');
+INSERT INTO `plugin_handle` VALUES ('1721725585461706752', '45', 'virtualHost', 'virtualHost', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"/\",\"rule\":\"\"}', '2023-11-07 11:05:42.350', '2023-11-07 13:31:41.044');
+INSERT INTO `plugin_handle` VALUES ('1721725662875975680', '45', 'exchangeType', 'exchangeType', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"direct\",\"rule\":\"\"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+INSERT INTO `plugin_handle` VALUES ('1722804180904927232', '45', 'durable', 'durable', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"true\",\"placeholder\":\"true / false\",\"rule\":\"/^(true|false)$/\"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+INSERT INTO `plugin_handle` VALUES ('1722804370575548416', '45', 'exclusive', 'exclusive', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"false\",\"placeholder\":\"true / false\",\"rule\":\"/^(true|false)$/\"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+INSERT INTO `plugin_handle` VALUES ('1722804461256400896', '45', 'autoDelete', 'autoDelete', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"false\",\"placeholder\":\"true / false\",\"rule\":\"/^(true|false)$/\"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507008', '45', 'args', 'args', 2, 3, 0, '{\"required\":\"0\",\"defaultValue\":"",\"placeholder\":"",\"rule\":\"\"}', '2023-1\1-07 11:06:00.803', '2023-11-07 13:31:41.048');
+
+INSERT INTO `plugin_handle` VALUES ('1722804548510507009', '33', 'topic', 'topic', 2, 1, 1, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507010', '33', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1722804548510507011', '45', 'sampleRate', 'sampleRate', 2, 3, 4, '{\"required\":\"0\",\"defaultValue\":\"1\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507012', '45', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1722804548510507013', '43', 'sampleRate', 'sampleRate', 2, 3, 17, '{\"required\":\"0\",\"defaultValue\":\"1\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507014', '43', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1722804548510507015', '36', 'sampleRate', 'sampleRate', 2, 3, 16, '{\"required\":\"0\",\"defaultValue\":\"1\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507016', '36', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1722804548510507017', '34', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1722804548510507018', '35', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1722804548510507019', '38', 'sampleRate', 'sampleRate', 2, 3, 11, '{\"required\":\"0\",\"defaultValue\":\"1\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507020', '38', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 
 -- ----------------------------
 -- Table structure for resource
@@ -1615,6 +1655,12 @@ INSERT INTO `resource` VALUES ('1676471945124278279', '1676471945048780800', 'SH
 INSERT INTO `resource` VALUES ('1676471945124278280', '1676471945048780800', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingHuaweiLts:modify', 1, '2023-07-05 14:03:53.721', '2023-07-05 14:03:53.721');
 
 INSERT INTO `resource` VALUES ('1572525965625266176', '1346777449787125760', 'SHENYU.BUTTON.SYSTEM.RESOURCE', '', '', '',2, 6, '', 1, 0, 'system:plugin:resource', 1, '2022-09-28 11:50:58', '2022-09-28 11:50:58');
+INSERT INTO `resource` VALUES ('1697141926247763968', '1346776175553376256', 'SHENYU.MENU.SYSTEM.MANAGMENT.ALERT', '', '/system/alert', '', 1, 3, 'alert', 0, 0, '', 1, '2023-08-31 14:59:01', '2023-08-31 06:59:01');
+INSERT INTO `resource` VALUES ('1697146375729025024', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 0, 'unordered-list', 1, 0, 'system:alert:list', 1, '2023-08-31 15:16:42', '2023-08-31 07:22:07');
+INSERT INTO `resource` VALUES ('1697145808210333696', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.ADD', '', '', '', 2, 0, 'plus', 1, 0, 'system:alert:add', 1, '2023-08-31 15:14:26', '2023-08-31 07:14:26');
+INSERT INTO `resource` VALUES ('1697146617513873408', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.DELETE', '', '', '', 2, 0, 'delete', 1, 0, 'system:alert:delete', 1, '2023-08-31 15:17:39', '2023-08-31 07:22:07');
+INSERT INTO `resource` VALUES ('1697146860540235776', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.EDIT', '', '', '', 2, 0, 'edit', 1, 0, 'system:alert:edit', 1, '2023-08-31 15:18:37', '2023-08-31 07:18:37');
+
 -- ----------------------------
 -- Table structure for role
 -- ----------------------------
@@ -1848,6 +1894,9 @@ INSERT INTO `shenyu_dict` VALUES ('1572621976689762311', 'engine', 'engine', 'Re
 INSERT INTO `shenyu_dict` VALUES ('1630761573833920512', 'mapType', 'mapType', 'all', 'all', '', 1, 1, '2023-03-01 10:47:11', '2023-03-01 10:47:11');
 INSERT INTO `shenyu_dict` VALUES ('1630761984393367552', 'mapType', 'mapType', 'field', 'field', '', 1, 1, '2023-03-01 10:48:49', '2023-03-01 10:48:49');
 INSERT INTO `shenyu_dict` VALUES ('1679002911061737472', 'discoveryMode', 'DISCOVERY_MODE', 'zookeeper', '{"baseSleepTimeMilliseconds":"1000","maxRetries":"3","maxSleepTimeMilliseconds":"1000","connectionTimeoutMilliseconds":"1000","sessionTimeoutMilliseconds":"1000","namespace":"","digest":null}', 'discoery mode to link zookeeper', 0, 1,'2023-03-01 10:48:49', '2023-03-01 10:48:49');
+INSERT INTO `shenyu_dict` VALUES ('1679002911061737473', 'discoveryMode', 'DISCOVERY_MODE', 'etcd', '{"etcdTimeout": "3000", "etcdTTL": "5"}', 'discoery mode to link etcd', 0, 1 ,'2023-03-01 10:48:49', '2023-03-01 10:48:49');
+INSERT INTO `shenyu_dict` VALUES ('1679002911061737474', 'discoveryMode', 'DISCOVERY_MODE', 'nacos', '{"groupName": "SHENYU_GROUP", "nacosNameSpace": "", "username": "", "password": "", "accessKey": "", "secretKey": ""}', 'discoery mode to link nacos', 0, 1,'2023-03-01 10:48:49', '2023-03-01 10:48:49');
+INSERT INTO `shenyu_dict` VALUES ('1679002911061737475', 'discoveryMode', 'DISCOVERY_MODE', 'eureka', '{"eurekaClientRefreshInterval": "10", "eurekaClientRegistryFetchIntervalSeconds": "10"}', 'discoery mode to link eureka', 0, 1,'2023-03-01 10:48:49', '2023-03-01 10:48:49');
 
 -- ----------------------------
 -- Table structure for user_role
@@ -1935,8 +1984,10 @@ CREATE TABLE `discovery_upstream`
     `props`      text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'the other field (json)',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
-    PRIMARY KEY (`id`) USING BTREE
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `discovery_upstream_discovery_handler_id_IDX` (`discovery_handler_id`,`url`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+-- shenyu.discovery_upstream definition
 
 -- ----------------------------
 -- Table structure for proxy_selector
@@ -1986,4 +2037,38 @@ CREATE TABLE `tag_relation`
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 
-
+-- ----------------------------
+-- Table structure for alert_receiver
+-- ----------------------------
+DROP TABLE IF EXISTS `alert_receiver`;
+CREATE TABLE IF NOT EXISTS `alert_receiver`
+(
+    `id`                   varchar(128)   NOT NULL COMMENT 'primary key id',
+    `name`                 varchar(255)   NOT NULL COMMENT 'name',
+    `enable`               tinyint(4)     NOT NULL COMMENT 'enable or not',
+    `type`                 tinyint(4)     NOT NULL COMMENT 'notice type 0-SMS 1-Email 2-webhook 3-WeChat Official Account 4-Enterprise WeChat Robot 5-DingTalk Robot 6-FeiShu Robot 7-Telegram Bot 8-SlackWebHook 9-Discord Bot 10-Enterprise WeChat',
+    `phone`                varchar(255)   COMMENT 'phone',
+    `email`                varchar(255)   COMMENT 'email',
+    `hook_url`             varchar(255)   COMMENT 'hook url',
+    `wechat_id`            varchar(255)   COMMENT 'wechat id',
+    `access_token`         varchar(255)   COMMENT 'access token',
+    `tg_bot_token`         varchar(255)   COMMENT 'tg bot token',
+    `tg_user_id`           varchar(255)   COMMENT 'tg user id',
+    `slack_web_hook_url`   varchar(255)   COMMENT 'slack web hook url',
+    `corp_id`              varchar(255)   COMMENT 'corp id',
+    `agent_id`             varchar(255)   COMMENT 'agent id',
+    `app_secret`           varchar(255)   COMMENT 'app secret',
+    `discord_channel_id`   varchar(255)   COMMENT 'discord channel id',
+    `discord_bot_token`    varchar(255)   COMMENT 'discord bot token',
+    `smn_ak`               varchar(255)   COMMENT 'smn ak',
+    `smn_sk`               varchar(255)   COMMENT 'smn sk',
+    `smn_project_id`       varchar(255)   COMMENT 'smn project id',
+    `smn_region`           varchar(255)   COMMENT 'smn region',
+    `smn_topic_urn`        varchar(255)   COMMENT 'smn topic urn',
+    `match_all`            tinyint(4)     NOT NULL COMMENT 'match all or not',
+    `labels`               varchar(255)   COMMENT 'labels',
+    `levels`               varchar(255)   COMMENT 'levels',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
