@@ -71,12 +71,8 @@ public class ShenyuClientMetadataExecutorSubscriberTest {
         MetaDataRegisterDTO metaDataRegisterDTO =
              MetaDataRegisterDTO metaDataRegisterDTO =
             MetaDataRegisterDTO.builder()
-                .appName("testApp")
-                .contextPath("/metadata-test")
-                .path("/metadata-api")
-                .rpcType("http")
-                .enabled(true)
-                .build();
+                 MetaDataRegisterDTO.builder().contextPath("/test").metaDatapath("/metadata").httpMethod(0).consume("application/json").produce("application/json").version("V0.01").rpcType("http").state(1).ext("test")
+                .metaDataOwner("test").metaDataDesc("test").metaDataSource(0).document("test").eventType(EventType.UPDATED).tags(new ArrayList<>()).build();
         metaDataRegisterDTOList.add(metaDataRegisterDTO);
 
         executorSubscriber.executor(metaDataRegisterDTOList);
