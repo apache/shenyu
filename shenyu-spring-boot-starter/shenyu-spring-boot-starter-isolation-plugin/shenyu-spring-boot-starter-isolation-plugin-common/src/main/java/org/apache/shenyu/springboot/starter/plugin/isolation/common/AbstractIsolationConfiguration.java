@@ -19,8 +19,6 @@ package org.apache.shenyu.springboot.starter.plugin.isolation.common;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
-import java.util.Objects;
-
 /**
  * The type Abstract isolation configuration.
  */
