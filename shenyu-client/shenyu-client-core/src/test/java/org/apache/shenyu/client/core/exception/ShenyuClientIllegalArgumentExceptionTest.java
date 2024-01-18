@@ -34,7 +34,6 @@ public class ShenyuClientIllegalArgumentExceptionTest {
     @Test
     public void testExceptionMessageContainsInvalidInput() {
         String expectedMessage = "Invalid input: some error message";
-        // Use the correct argument order and provide a ThrowingRunnable implementation
         assertThrows(ShenyuClientIllegalArgumentException.class, () -> {
             throw new ShenyuClientIllegalArgumentException(expectedMessage);
         });
