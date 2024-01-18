@@ -17,23 +17,19 @@
 
 package org.apache.shenyu.springboot.starter.plugin.sofa;
 
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
-import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.sofa.SofaPlugin;
 import org.apache.shenyu.plugin.sofa.context.SofaShenyuContextDecorator;
 import org.apache.shenyu.plugin.sofa.handler.SofaMetaDataHandler;
 import org.apache.shenyu.plugin.sofa.handler.SofaPluginDataHandler;
-import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveServiceImpl;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
-import org.springframework.beans.factory.ObjectProvider;
+import org.apache.shenyu.springboot.starter.plugin.isolation.common.AbstractIsolationConfiguration;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.condition.SearchStrategy;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -42,57 +38,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnClass(SofaPlugin.class)
 @ConditionalOnProperty(value = {"shenyu.plugins.sofa.enabled"}, havingValue = "true", matchIfMissing = true)
-public class SofaPluginConfiguration {
+public class SofaPluginConfiguration extends AbstractIsolationConfiguration implements BeanFactoryAware {
 
-    /**
-     * Sofa plugin.
-     *
-     * @param sofaParamResolveService the sofa param resolve service
-     * @return the shenyu plugin
-     */
-    @Bean
-    public ShenyuPlugin sofaPlugin(final ObjectProvider<SofaParamResolveService> sofaParamResolveService) {
-        return new SofaPlugin(new SofaProxyService(sofaParamResolveService.getIfAvailable()));
+    @Override
+    public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
+        DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) beanFactory;
+        registerSingleton(defaultListableBeanFactory, "sofaShenyuContextDecorator", new SofaShenyuContextDecorator());
+        registerSingleton(defaultListableBeanFactory, "sofaMetaDataHandler", new SofaMetaDataHandler());
+        registerSingleton(defaultListableBeanFactory, "sofaPluginDataHandler", new SofaPluginDataHandler());
+        final SofaParamResolveServiceImpl sofaParamResolveService = new SofaParamResolveServiceImpl();
+        registerSingleton(defaultListableBeanFactory, "sofaParamResolveService", sofaParamResolveService);
+        registerSingleton(defaultListableBeanFactory, "sofaPlugin", new SofaPlugin(new SofaProxyService(sofaParamResolveService)));
     }
 
-    /**
-     * Sofa param resolve service.
-     *
-     * @return the sofa param resolve service
-     */
-    @Bean
-    @ConditionalOnMissingBean(value = SofaParamResolveService.class, search = SearchStrategy.ALL)
-    public SofaParamResolveService sofaParamResolveService() {
-        return new SofaParamResolveServiceImpl();
-    }
-
-    /**
-     * Sofa plugin data handler.
-     *
-     * @return the plugin data handler
-     */
-    @Bean
-    public PluginDataHandler sofaPluginDataHandler() {
-        return new SofaPluginDataHandler();
-    }
-
-    /**
-     * Sofa meta data handler.
-     *
-     * @return the meta data handler
-     */
-    @Bean
-    public MetaDataHandler sofaMetaDataHandler() {
-        return new SofaMetaDataHandler();
-    }
-
-    /**
-     * Sofa shenyu context decorator.
-     *
-     * @return the shenyu context decorator
-     */
-    @Bean
-    public ShenyuContextDecorator sofaShenyuContextDecorator() {
-        return new SofaShenyuContextDecorator();
-    }
 }

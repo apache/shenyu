@@ -34,6 +34,11 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-isolation-plugin-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-plugin-motan</artifactId>
             <version>${project.version}</version>
         </dependency>

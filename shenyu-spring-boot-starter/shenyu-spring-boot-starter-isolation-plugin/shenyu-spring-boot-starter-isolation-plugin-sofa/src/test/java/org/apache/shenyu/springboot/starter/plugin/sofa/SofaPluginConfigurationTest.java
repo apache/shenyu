@@ -45,54 +45,54 @@ public class SofaPluginConfigurationTest {
     @BeforeEach
     public void before() {
         applicationContextRunner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(SofaPluginConfiguration.class))
-            .withBean(SofaPluginConfigurationTest.class)
-            .withPropertyValues("debug=true");
+                .withConfiguration(AutoConfigurations.of(SofaPluginConfiguration.class))
+                .withBean(SofaPluginConfigurationTest.class)
+                .withPropertyValues("debug=true");
     }
 
     @Test
     public void testSofaPlugin() {
         applicationContextRunner.run(context -> {
-                ShenyuPlugin plugin = context.getBean("sofaPlugin", ShenyuPlugin.class);
-                assertNotNull(plugin);
-                assertThat(plugin.named()).isEqualTo(PluginEnum.SOFA.getName());
-            }
+                    ShenyuPlugin plugin = context.getBean("sofaPlugin", ShenyuPlugin.class);
+                    assertNotNull(plugin);
+                    assertThat(plugin.named()).isEqualTo(PluginEnum.SOFA.getName());
+                }
         );
     }
 
     @Test
     public void testSofaParamResolveServiceImpl() {
         applicationContextRunner.run(context -> {
-                SofaParamResolveService service = context.getBean("sofaParamResolveService", SofaParamResolveService.class);
-                assertNotNull(service);
-            }
+                    SofaParamResolveService service = context.getBean("sofaParamResolveService", SofaParamResolveService.class);
+                    assertNotNull(service);
+                }
         );
     }
 
     @Test
     public void testSofaPluginDataHandler() {
         applicationContextRunner.run(context -> {
-                PluginDataHandler handler = context.getBean("sofaPluginDataHandler", PluginDataHandler.class);
-                assertNotNull(handler);
-            }
+                    PluginDataHandler handler = context.getBean("sofaPluginDataHandler", PluginDataHandler.class);
+                    assertNotNull(handler);
+                }
         );
     }
 
     @Test
     public void testSofaMetaDataSubscriber() {
         applicationContextRunner.run(context -> {
-                MetaDataHandler handler = context.getBean("sofaMetaDataHandler", MetaDataHandler.class);
-                assertNotNull(handler);
-            }
+                    MetaDataHandler handler = context.getBean("sofaMetaDataHandler", MetaDataHandler.class);
+                    assertNotNull(handler);
+                }
         );
     }
 
     @Test
     public void testSofaShenyuContextDecorator() {
         applicationContextRunner.run(context -> {
-                ShenyuContextDecorator decorator = context.getBean("sofaShenyuContextDecorator", ShenyuContextDecorator.class);
-                assertNotNull(decorator);
-            }
+                    ShenyuContextDecorator decorator = context.getBean("sofaShenyuContextDecorator", ShenyuContextDecorator.class);
+                    assertNotNull(decorator);
+                }
         );
     }
 }
