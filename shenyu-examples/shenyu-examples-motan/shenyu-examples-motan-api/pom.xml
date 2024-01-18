@@ -22,12 +22,12 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-examples-motan</artifactId>
-        <version>2.6.1-SNAPSHOT</version>
+        <version>2.6.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>shenyu-examples-motan-api</artifactId>
-    
+
     <properties>
         <motan.version>1.2.1</motan.version>
     </properties>
