@@ -36,7 +36,7 @@ public class SofaPluginShareThreadPoolTest extends AbstractPluginDataInit {
     @BeforeAll
     public static void setup() throws InterruptedException {
         HTTP_HELPER.setGatewayEndpoint("http://localhost:30095");
-        Thread.sleep(10000L);
+        Thread.sleep(30000L);
     }
 
     @Test
