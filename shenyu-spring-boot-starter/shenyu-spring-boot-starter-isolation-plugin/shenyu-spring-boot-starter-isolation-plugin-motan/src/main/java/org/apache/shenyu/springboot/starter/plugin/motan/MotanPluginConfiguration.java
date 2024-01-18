@@ -17,32 +17,76 @@
 
 package org.apache.shenyu.springboot.starter.plugin.motan;
 
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.motan.MotanPlugin;
 import org.apache.shenyu.plugin.motan.context.MotanShenyuContextDecorator;
 import org.apache.shenyu.plugin.motan.handler.MotanMetaDataHandler;
 import org.apache.shenyu.plugin.motan.handler.MotanPluginDataHandler;
 import org.apache.shenyu.plugin.motan.proxy.MotanProxyService;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * The type motan plugin configuration.
  */
-//@Configuration
-//@ConditionalOnClass(MotanPlugin.class)
-//@ConditionalOnProperty(value = {"shenyu.plugins.motan.enabled"}, havingValue = "true", matchIfMissing = true)
-public class MotanPluginConfiguration implements BeanFactoryAware {
+@Configuration
+@ConditionalOnClass(MotanPlugin.class)
+@ConditionalOnProperty(value = {"shenyu.plugins.motan.enabled"}, havingValue = "true", matchIfMissing = true)
+public class MotanPluginConfiguration {
 
-    @Override
-    public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
-        DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) beanFactory;
-        MotanProxyService motanProxyService = new MotanProxyService();
-        defaultListableBeanFactory.registerSingleton("motanProxyService", motanProxyService);
-        defaultListableBeanFactory.registerSingleton("motanPlugin", new MotanPlugin(motanProxyService));
-        defaultListableBeanFactory.registerSingleton("motanPluginDataHandler", new MotanPluginDataHandler());
-        defaultListableBeanFactory.registerSingleton("motanMetaDataHandler", new MotanMetaDataHandler());
-        defaultListableBeanFactory.registerSingleton("motanShenyuContextDecorator", new MotanShenyuContextDecorator());
+    /**
+     * Motan proxy service.
+     *
+     * @return the motan proxy service
+     */
+    @Bean
+    public MotanProxyService motanProxyService() {
+        return new MotanProxyService();
+    }
+
+    /**
+     * Motan plugin.
+     *
+     * @param motanProxyService the motan proxy service
+     * @return the shenyu plugin
+     */
+    @Bean
+    public ShenyuPlugin motanPlugin(final MotanProxyService motanProxyService) {
+        return new MotanPlugin(motanProxyService);
+    }
+
+    /**
+     * Motan plugin data handler.
+     *
+     * @return the plugin data handler
+     */
+    @Bean
+    public PluginDataHandler motanPluginDataHandler() {
+        return new MotanPluginDataHandler();
+    }
+
+    /**
+     * Motan meta data handler.
+     *
+     * @return the meta data handler
+     */
+    @Bean
+    public MetaDataHandler motanMetaDataHandler() {
+        return new MotanMetaDataHandler();
+    }
+
+    /**
+     * motan shenyu context decorator.
+     *
+     * @return the shenyu context decorator
+     */
+    @Bean
+    public ShenyuContextDecorator motanShenyuContextDecorator() {
+        return new MotanShenyuContextDecorator();
     }
 }
