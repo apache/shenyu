@@ -35,9 +35,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class MotanPluginTest extends AbstractPluginDataInit {
 
     @BeforeAll
-    public static void setup() throws IOException {
+    public static void setup() throws IOException, InterruptedException {
         String pluginResult = initPlugin(PluginEnum.MOTAN.getName(), "{\"registerAddress\":shenyu-zk:2181\"\",\"registerProtocol\":\"zk\"}");
         assertThat(pluginResult, is("success"));
+        Thread.sleep(10000L);
     }
 
     @Test
