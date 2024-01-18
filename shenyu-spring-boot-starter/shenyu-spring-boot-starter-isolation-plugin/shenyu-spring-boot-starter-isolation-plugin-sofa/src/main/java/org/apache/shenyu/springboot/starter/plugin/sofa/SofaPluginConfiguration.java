@@ -27,16 +27,13 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * The type sofa plugin configuration.
  */
-@Configuration
-@ConditionalOnClass(SofaPlugin.class)
-@ConditionalOnProperty(value = {"shenyu.plugins.sofa.enabled"}, havingValue = "true", matchIfMissing = true)
+//@Configuration
+//@ConditionalOnClass(SofaPlugin.class)
+//@ConditionalOnProperty(value = {"shenyu.plugins.sofa.enabled"}, havingValue = "true", matchIfMissing = true)
 public class SofaPluginConfiguration implements BeanFactoryAware {
 
     @Override

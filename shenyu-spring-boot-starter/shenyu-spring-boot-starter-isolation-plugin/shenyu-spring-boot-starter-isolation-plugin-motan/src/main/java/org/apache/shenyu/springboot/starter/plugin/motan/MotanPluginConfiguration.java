@@ -26,16 +26,13 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * The type motan plugin configuration.
  */
-@Configuration
-@ConditionalOnClass(MotanPlugin.class)
-@ConditionalOnProperty(value = {"shenyu.plugins.motan.enabled"}, havingValue = "true", matchIfMissing = true)
+//@Configuration
+//@ConditionalOnClass(MotanPlugin.class)
+//@ConditionalOnProperty(value = {"shenyu.plugins.motan.enabled"}, havingValue = "true", matchIfMissing = true)
 public class MotanPluginConfiguration implements BeanFactoryAware {
 
     @Override
