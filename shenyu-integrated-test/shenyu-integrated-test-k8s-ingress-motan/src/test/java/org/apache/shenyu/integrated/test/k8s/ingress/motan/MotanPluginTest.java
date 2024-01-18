@@ -43,7 +43,7 @@ public class MotanPluginTest extends AbstractPluginDataInit {
         MotanDTO request = new MotanDTO("shenyu");
         Type returnType = new TypeToken<String>() {
         }.getType();
-        String response = HttpHelper.INSTANCE.postGateway("/demo/hello", request, returnType);
+        String response = HttpHelper.INSTANCE.getFromGateway("/demo/hello?name=shenyu", request, returnType);
         assertEquals("hello shenyu", response);
     }
 
