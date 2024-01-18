@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.client.core.exception;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertThrows;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.Test;
 
 public class ShenyuClientIllegalArgumentExceptionTest {
 
@@ -34,9 +34,10 @@ public class ShenyuClientIllegalArgumentExceptionTest {
     @Test
     public void testExceptionMessageContainsInvalidInput() {
         String expectedMessage = "Invalid input: some error message";
+        // Use the correct argument order and provide a ThrowingRunnable implementation
         assertThrows(ShenyuClientIllegalArgumentException.class, () -> {
             throw new ShenyuClientIllegalArgumentException(expectedMessage);
-        }, expectedMessage);
+        });
     }
 
     @Test
