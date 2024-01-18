@@ -19,7 +19,6 @@ package org.apache.shenyu.integrated.test.k8s.ingress.motan;
 
 import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.apache.shenyu.integratedtest.common.dto.MotanDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -40,10 +39,9 @@ public class MotanPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testHelloWorld() throws Exception {
-        MotanDTO request = new MotanDTO("shenyu");
         Type returnType = new TypeToken<String>() {
         }.getType();
-        String response = HttpHelper.INSTANCE.getFromGateway("/demo/hello?name=shenyu", request, returnType);
+        String response = HttpHelper.INSTANCE.getFromGateway("/demo/hello?name=shenyu", returnType);
         assertEquals("hello shenyu", response);
     }
 

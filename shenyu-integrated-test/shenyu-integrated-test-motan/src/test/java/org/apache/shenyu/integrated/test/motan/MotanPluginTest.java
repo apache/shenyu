@@ -20,7 +20,6 @@ package org.apache.shenyu.integrated.test.motan;
 import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.apache.shenyu.integratedtest.common.dto.MotanDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -28,9 +27,9 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.lang.reflect.Type;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class MotanPluginTest extends AbstractPluginDataInit {
 
