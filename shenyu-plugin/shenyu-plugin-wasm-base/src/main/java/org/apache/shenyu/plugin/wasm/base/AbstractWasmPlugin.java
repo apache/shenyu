@@ -69,7 +69,7 @@ public abstract class AbstractWasmPlugin extends WasmLoader implements ShenyuPlu
     }
     
     /**
-     * this is Template Method child has Implement your own logic.
+     * this is Template Method child has implements your own logic.
      *
      * @param exchange   exchange the current server exchange {@linkplain ServerWebExchange}
      * @param chain      chain the current chain {@linkplain ServerWebExchange}

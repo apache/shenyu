@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 /**
@@ -48,6 +49,8 @@ public class WasmLoader implements AutoCloseable {
     private static final String IMPORT_WASM_MODULE_NAME = "shenyu";
     
     private static final String MEMORY_METHOD_NAME = "memory";
+    
+    private final AtomicBoolean closed = new AtomicBoolean(false);
     
     private final String wasmName;
     
@@ -167,12 +170,14 @@ public class WasmLoader implements AutoCloseable {
     
     @Override
     public void close() {
-        this.wasiCtx.close();
-        this.store.close();
-        this.linker.close();
-        if (!wasmCallJavaFuncMap.isEmpty()) {
-            this.wasmCallJavaFuncMap.forEach((funcName, wasmCallJavaFunc) -> wasmCallJavaFunc.close());
+        if (this.closed.compareAndSet(false, true)) {
+            this.wasiCtx.close();
+            this.store.close();
+            this.linker.close();
+            if (!wasmCallJavaFuncMap.isEmpty()) {
+                this.wasmCallJavaFuncMap.forEach((funcName, wasmCallJavaFunc) -> wasmCallJavaFunc.close());
+            }
+            this.module.close();
         }
-        this.module.close();
     }
 }
