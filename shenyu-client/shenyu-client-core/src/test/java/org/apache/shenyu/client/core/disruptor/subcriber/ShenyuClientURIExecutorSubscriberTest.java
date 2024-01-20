@@ -25,6 +25,8 @@ import org.apache.shenyu.register.common.type.DataType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Properties;
@@ -32,9 +34,9 @@ import java.util.Properties;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test for {@link ShenyuClientURIExecutorSubscriber}.
@@ -49,6 +51,7 @@ public class ShenyuClientURIExecutorSubscriberTest {
     public void setUp() {
         shenyuClientRegisterRepository = mock(ShenyuClientRegisterRepository.class);
         executorSubscriber = new ShenyuClientURIExecutorSubscriber(shenyuClientRegisterRepository);
+
         // set properties to avoid NullPointerException
         Properties properties = new Properties();
         ShenyuClientShutdownHook.set(shenyuClientRegisterRepository, properties);
@@ -70,12 +73,15 @@ public class ShenyuClientURIExecutorSubscriberTest {
     }
 
     @Test
-    public void testExecutorValidData() {
+    public void testExecutorValidData() throws IOException {
+
+        // open port for connection
+        ServerSocket socket = new ServerSocket(9527);
 
         Collection<URIRegisterDTO> uriRegisterDTOList = new ArrayList<>();
 
         URIRegisterDTO uriRegisterDTO =
-                URIRegisterDTO.builder().protocol("http").contextPath("/test").rpcType("http").host("localhost").eventType(EventType.REGISTER).port(9082).build();
+                URIRegisterDTO.builder().protocol("http").contextPath("/test").rpcType("http").host("localhost").eventType(EventType.REGISTER).port(9527).build();
         uriRegisterDTOList.add(uriRegisterDTO);
 
         executorSubscriber.executor(uriRegisterDTOList);
