@@ -55,40 +55,28 @@ class ShenyuClientMetadataExecutorSubscriberTest {
 
     @Test
     void shouldPersistInterfaceData() {
-        // Arrange
+
         MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
         Collection<MetaDataRegisterDTO> metaDataList = Arrays.asList(metaDataRegisterDTO);
-
-        // Act
         subscriber.executor(metaDataList);
-
-        // Assert
         Mockito.verify(shenyuClientRegisterRepository, Mockito.times(1)).persistInterface(metaDataRegisterDTO);
     }
 
     @Test
     void shouldNotPersistIfMetaDataListIsEmpty() {
-        // Arrange
+
         Collection<MetaDataRegisterDTO> emptyMetaDataList = Collections.emptyList();
-
-        // Act
         subscriber.executor(emptyMetaDataList);
-
-        // Assert
         Mockito.verify(shenyuClientRegisterRepository, Mockito.never()).persistInterface(Mockito.any());
     }
 
     @Test
     void shouldHandleExceptionDuringPersistence() {
-        // Arrange
+
         MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
         Collection<MetaDataRegisterDTO> metaDataList = Arrays.asList(metaDataRegisterDTO);
-
-        // Mocking an exception during persistence
         Mockito.doThrow(new RuntimeException("Simulating persistence failure")).when(shenyuClientRegisterRepository)
                 .persistInterface(metaDataRegisterDTO);
-
-        // Act & Assert
         assertThrows(RuntimeException.class, () -> subscriber.executor(metaDataList));
     }
 
