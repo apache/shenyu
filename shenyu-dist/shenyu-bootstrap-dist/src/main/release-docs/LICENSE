@@ -218,6 +218,7 @@ The text of each license is the standard Apache 2.0 license.
     accessors-smart 2.4.11: https://www.minidev.net, Apache 2.0
     annotations 4.1.1.4: http://source.android.com, Apache 2.0
     annotations 13.0: http://source.android.com, Apache 2.0
+    anyhow 1.0.70: https://github.com/dtolnay/anyhow, Apache 2.0
     archaius-core 0.7.6: https://github.com/Netflix/archaius, Apache 2.0
     assertj-core 3.22.0: http://assertj.org/assertj-core, Apache 2.0
     brave 5.1.0: https://zipkin.io, Apache 2.0
@@ -232,7 +233,8 @@ The text of each license is the standard Apache 2.0 license.
     btf 1.2: https://github.com/fge/btf, LGPL and Apache 2.0
     byte-buddy 1.12.6: https://bytebuddy.net/byte-buddy, Apache 2.0
     byte-buddy-agent 1.11.22: https://bytebuddy.net/byte-buddy, Apache 2.0
-    caffeine 2.9.3 https://github.com/ben-manes/caffeine, Apache 2.0
+    caffeine 2.9.3: https://github.com/ben-manes/caffeine, Apache 2.0
+    cap-std 1.0.7: https://github.com/bytecodealliance/cap-std, Apache 2.0
     classmate 1.5.1: https://github.com/FasterXML/java-classmate, Apache 2.0
     clickhouse-client 0.3.2-patch11: https://mvnrepository.com/artifact/com.clickhouse/clickhouse-client, Apache 2.0
     clickhouse-http-client 0.3.2-patch11: https://mvnrepository.com/artifact/com.clickhouse/clickhouse-http-client, Apache 2.0
@@ -535,6 +537,7 @@ The text of each license is the standard Apache 2.0 license.
     rxnetty-servo 0.4.9: https://github.com/ReactiveX/RxNetty, Apache 2.0
     servo-core 0.12.21: https://github.com/Netflix/servo, Apache 2.0
     stax-api 1.0.1: http://stax.codehaus.org/, Apache 2.0
+    thiserror 1.0.40: https://github.com/dtolnay/thiserror
     woodstox-core 6.2.1: https://github.com/FasterXML/woodstox, Apache 2.0
     libthrift 0.14.1: http://thrift.apache.org, Apache 2.0
     tomcat-annotations-api 9.0.29: https://tomcat.apache.org/, Apache 2.0
@@ -563,6 +566,18 @@ The text of each license is the standard Apache 2.0 license.
     lts-sdk-common 1.0.1: https://github.com/huaweicloud/huaweicloud-lts-sdk-java, Apache 2.0
     amqp-client 5.14.3: https://www.rabbitmq.com/api-guide.html#license, Apache 2.0
     hessian-lite 3.2.13: https://github.com/apache/dubbo-hessian-lite, Apache 2.0
+
+========================================================================
+Apache 2.0 licenses
+========================================================================
+
+The following components are provided under the Apache license. See project link for details.
+The text of each license is also included at licenses/LICENSE-[project].txt.
+
+    wasi-cap-std-sync 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
+    wasi-common 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
+    wasmtime 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
+    wasmtime-wasi 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
 
 ========================================================================
 BSD licenses
@@ -661,6 +676,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     checker-qual 3.12.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
     Java-WebSocket 1.5.0: https://github.com/TooTallNate/Java-WebSocket, MIT
     jcl-over-slf4j 1.7.36: https://www.slf4j.org, MIT
+    jni-rs 0.21.1: https://github.com/jni-rs/jni-rs, MIT
     jul-to-slf4j 1.7.36: http://www.slf4j.org, MIT
     mockito 3.5.15: https://github.com/mockito/mockito MIT
     slf4j-api 1.7.36: https://www.slf4j.org, MIT
