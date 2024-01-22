@@ -58,46 +58,43 @@ class ShenyuClientMetadataExecutorSubscriberTest {
     @Test
     public void executor_ShouldPersistMetaDataRegisterDTOList() {
         // Arrange
-        MetaDataRegisterDTO metaDataRegisterDTO1 = new MetaDataRegisterDTO(/* initialize DTO here */);
-        MetaDataRegisterDTO metaDataRegisterDTO2 = new MetaDataRegisterDTO(/* initialize DTO here */);
+        MetaDataRegisterDTO metaDataRegisterDTO1 = new MetaDataRegisterDTOl
+        MetaDataRegisterDTO metaDataRegisterDTO2 = new MetaDataRegisterDTO;
         Collection<MetaDataRegisterDTO> metaDataRegisterDTOList = Arrays.asList(metaDataRegisterDTO1,
                 metaDataRegisterDTO2);
 
-        // Act
+       
         subscriber.executor(metaDataRegisterDTOList);
 
-        // Assert
+  
         verify(shenyuClientRegisterRepository, times(2)).persistInterface(any());
-        // Verify that persistInterface was called twice with any MetaDataRegisterDTO
-        // parameter
+
     }
 
     @Test
     void executor_ShouldNotPersistIfMetaDataRegisterDTOListIsEmpty() {
-        // Arrange
+       
         Collection<MetaDataRegisterDTO> emptyList = Arrays.asList();
 
-        // Act
+      
         subscriber.executor(emptyList);
 
-        // Assert
+     
         verify(shenyuClientRegisterRepository, times(0)).persistInterface(any());
-        // Verify that persistInterface was not called
+        
     }
 
     @Test
     void executor_ShouldHandleSingleMetaDataRegisterDTO() {
-        // Arrange
-        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO(/* initialize DTO here */);
+        
+        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO;
         Collection<MetaDataRegisterDTO> metaDataRegisterDTOList = Collections.singletonList(metaDataRegisterDTO);
 
-        // Act
+      
         subscriber.executor(metaDataRegisterDTOList);
 
-        // Assert
+     
         verify(shenyuClientRegisterRepository, times(1)).persistInterface(metaDataRegisterDTO);
-        // Verify that persistInterface was called once with the specified
-        // MetaDataRegisterDTO parameter
     }
 
 }
