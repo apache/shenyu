@@ -41,7 +41,7 @@ public class MotanPluginTest extends AbstractPluginDataInit {
     public void testHelloWorld() throws Exception {
         Type returnType = new TypeToken<String>() {
         }.getType();
-        String response = HttpHelper.INSTANCE.getFromGateway("/motan/demo/hello?name=shenyu", returnType);
+        String response = HttpHelper.INSTANCE.getFromGateway("/demo/hello?name=shenyu", returnType);
         assertEquals("hello shenyu", response);
     }
 
