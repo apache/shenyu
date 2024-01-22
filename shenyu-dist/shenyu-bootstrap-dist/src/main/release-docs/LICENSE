@@ -537,7 +537,7 @@ The text of each license is the standard Apache 2.0 license.
     rxnetty-servo 0.4.9: https://github.com/ReactiveX/RxNetty, Apache 2.0
     servo-core 0.12.21: https://github.com/Netflix/servo, Apache 2.0
     stax-api 1.0.1: http://stax.codehaus.org/, Apache 2.0
-    thiserror 1.0.40: https://github.com/dtolnay/thiserror
+    thiserror 1.0.40: https://github.com/dtolnay/thiserror, Apache 2.0
     woodstox-core 6.2.1: https://github.com/FasterXML/woodstox, Apache 2.0
     libthrift 0.14.1: http://thrift.apache.org, Apache 2.0
     tomcat-annotations-api 9.0.29: https://tomcat.apache.org/, Apache 2.0
