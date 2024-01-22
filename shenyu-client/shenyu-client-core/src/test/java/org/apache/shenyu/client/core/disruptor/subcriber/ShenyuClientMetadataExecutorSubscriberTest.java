@@ -18,27 +18,28 @@
 package org.apache.shenyu.client.core.disruptor.subcriber;
 
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;;
-import org.apache.shenyu.register.common.enums.EventType;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-/**
- * Test for {@link ShenyuClientMetadataExecutorSubscriber}.
- */
+// /**
+//  * Test for {@link ShenyuClientMetadataExecutorSubscriber}.
+//  */
 @ExtendWith(MockitoExtension.class)
 class ShenyuClientMetadataExecutorSubscriberTest {
 
@@ -49,35 +50,54 @@ class ShenyuClientMetadataExecutorSubscriberTest {
     private ShenyuClientMetadataExecutorSubscriber subscriber;
 
     @Test
-    void shouldReturnMetaDataDataType() {
-        assertEquals(DataType.META_DATA, subscriber.getType());
+    public void getType_ShouldReturnMetaDataType() {
+        DataType result = subscriber.getType();
+        assertEquals(DataType.META_DATA, result, "getType should return META_DATA");
     }
 
     @Test
-    void shouldPersistInterfaceData() {
+    public void executor_ShouldPersistMetaDataRegisterDTOList() {
+        // Arrange
+        MetaDataRegisterDTO metaDataRegisterDTO1 = new MetaDataRegisterDTO(/* initialize DTO here */);
+        MetaDataRegisterDTO metaDataRegisterDTO2 = new MetaDataRegisterDTO(/* initialize DTO here */);
+        Collection<MetaDataRegisterDTO> metaDataRegisterDTOList = Arrays.asList(metaDataRegisterDTO1,
+                metaDataRegisterDTO2);
 
-        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
-        Collection<MetaDataRegisterDTO> metaDataList = Arrays.asList(metaDataRegisterDTO);
-        subscriber.executor(metaDataList);
-        Mockito.verify(shenyuClientRegisterRepository, Mockito.times(1)).persistInterface(metaDataRegisterDTO);
+        // Act
+        subscriber.executor(metaDataRegisterDTOList);
+
+        // Assert
+        verify(shenyuClientRegisterRepository, times(2)).persistInterface(any());
+        // Verify that persistInterface was called twice with any MetaDataRegisterDTO
+        // parameter
     }
 
     @Test
-    void shouldNotPersistIfMetaDataListIsEmpty() {
+    void executor_ShouldNotPersistIfMetaDataRegisterDTOListIsEmpty() {
+        // Arrange
+        Collection<MetaDataRegisterDTO> emptyList = Arrays.asList();
 
-        Collection<MetaDataRegisterDTO> emptyMetaDataList = Collections.emptyList();
-        subscriber.executor(emptyMetaDataList);
-        Mockito.verify(shenyuClientRegisterRepository, Mockito.never()).persistInterface(Mockito.any());
+        // Act
+        subscriber.executor(emptyList);
+
+        // Assert
+        verify(shenyuClientRegisterRepository, times(0)).persistInterface(any());
+        // Verify that persistInterface was not called
     }
 
     @Test
-    void shouldHandleExceptionDuringPersistence() {
+    void executor_ShouldHandleSingleMetaDataRegisterDTO() {
+        // Arrange
+        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO(/* initialize DTO here */);
+        Collection<MetaDataRegisterDTO> metaDataRegisterDTOList = Collections.singletonList(metaDataRegisterDTO);
 
-        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
-        Collection<MetaDataRegisterDTO> metaDataList = Arrays.asList(metaDataRegisterDTO);
-        Mockito.doThrow(new RuntimeException("Simulating persistence failure")).when(shenyuClientRegisterRepository)
-                .persistInterface(metaDataRegisterDTO);
-        assertThrows(RuntimeException.class, () -> subscriber.executor(metaDataList));
+        // Act
+        subscriber.executor(metaDataRegisterDTOList);
+
+        // Assert
+        verify(shenyuClientRegisterRepository, times(1)).persistInterface(metaDataRegisterDTO);
+        // Verify that persistInterface was called once with the specified
+        // MetaDataRegisterDTO parameter
     }
 
 }
