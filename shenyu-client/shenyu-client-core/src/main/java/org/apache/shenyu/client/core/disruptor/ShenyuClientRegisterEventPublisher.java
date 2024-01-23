@@ -57,7 +57,9 @@ public class ShenyuClientRegisterEventPublisher {
         providerManage = new DisruptorProviderManage<>(factory);
         providerManage.startup();
     }
-    
+    public DisruptorProviderManage<DataTypeParent> getProviderManage() {
+        return providerManage;
+    }
     /**
      * Publish event.
      *
