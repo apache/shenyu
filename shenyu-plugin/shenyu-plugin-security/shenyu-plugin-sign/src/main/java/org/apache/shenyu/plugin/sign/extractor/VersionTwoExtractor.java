@@ -60,7 +60,7 @@ public class VersionTwoExtractor implements SignParameterExtractor {
         return signParameters;
     }
     
-    private String getDefaultToken(HttpRequest httpRequest) {
+    private String getDefaultToken(final HttpRequest httpRequest) {
         return httpRequest.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
     }
     
