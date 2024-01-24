@@ -20,7 +20,6 @@ package org.apache.shenyu.client.core.disruptor.subcriber;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.type.DataTypeParent;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -33,13 +32,6 @@ public class ShenyuClientRegisterEventPublisherTest {
     private DataTypeParent testData;
     @Mock
     private ShenyuClientRegisterRepository shenyuClientRegisterRepository;
-    private ShenyuClientRegisterEventPublisher publisher;
-
-    @BeforeEach
-    public void setUp() {
-        publisher = ShenyuClientRegisterEventPublisher.getInstance();
-        publisher.start(shenyuClientRegisterRepository);
-    }
 
     @Test
     public void testGetInstanceReturnsSameInstance() {
