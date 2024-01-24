@@ -10,7 +10,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-class ShenyuClientRegisterEventPublisherTest {
+public class ShenyuClientRegisterEventPublisherTest {
 
     @Mock
     DataTypeParent testData;
