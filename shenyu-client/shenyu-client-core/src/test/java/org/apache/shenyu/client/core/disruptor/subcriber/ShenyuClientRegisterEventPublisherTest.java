@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 public class ShenyuClientRegisterEventPublisherTest {
     @Mock
     private DataTypeParent testData;
+
     @Mock
     private ShenyuClientRegisterRepository shenyuClientRegisterRepository;
 
