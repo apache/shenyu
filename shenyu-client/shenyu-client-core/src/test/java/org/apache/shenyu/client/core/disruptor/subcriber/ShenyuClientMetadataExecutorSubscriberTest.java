@@ -15,84 +15,76 @@
  * limitations under the License.
  */
 
- package org.apache.shenyu.client.core.disruptor.subcriber;
+package org.apache.shenyu.client.core.disruptor.subcriber;
 
- import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
- import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
- import org.apache.shenyu.register.common.type.DataType;
- 
- import static org.junit.jupiter.api.Assertions.assertEquals;
- import static org.mockito.ArgumentMatchers.any;
- import static org.mockito.Mockito.times;
- import static org.mockito.Mockito.verify;
- 
- import org.junit.jupiter.api.Test;
- import org.junit.jupiter.api.extension.ExtendWith;
- import org.mockito.InjectMocks;
- import org.mockito.Mock;
- import org.mockito.junit.jupiter.MockitoExtension;
- 
- import java.util.Arrays;
- import java.util.Collection;
- import java.util.Collections;
- 
- // /**
- //  * Test for {@link ShenyuClientMetadataExecutorSubscriber}.
- //  */
- @ExtendWith(MockitoExtension.class)
- class ShenyuClientMetadataExecutorSubscriberTest {
- 
-     @Mock
-     private ShenyuClientRegisterRepository shenyuClientRegisterRepository;
- 
-     @InjectMocks
-     private ShenyuClientMetadataExecutorSubscriber subscriber;
- 
-     @Test
-     public void getType_ShouldReturnMetaDataType() {
-         DataType result = subscriber.getType();
-         assertEquals(DataType.META_DATA, result, "getType should return META_DATA");
-     }
- 
-     @Test
-     public void executor_ShouldPersistMetaDataRegisterDTOList() {
-         MetaDataRegisterDTO metaDataRegisterDTO1 = new MetaDataRegisterDTO();
-         MetaDataRegisterDTO metaDataRegisterDTO2 = new MetaDataRegisterDTO();
-         Collection<MetaDataRegisterDTO> metaDataRegisterDTOList = Arrays.asList(metaDataRegisterDTO1,
-                 metaDataRegisterDTO2);
- 
- 
-         subscriber.executor(metaDataRegisterDTOList);
- 
- 
-         verify(shenyuClientRegisterRepository, times(2)).persistInterface(any());
- 
-     }
- 
-     @Test
-     void executor_ShouldNotPersistIfMetaDataRegisterDTOListIsEmpty() {
- 
-         Collection<MetaDataRegisterDTO> emptyList = Arrays.asList();
- 
- 
-         subscriber.executor(emptyList);
- 
- 
-         verify(shenyuClientRegisterRepository, times(0)).persistInterface(any());
- 
-     }
- 
-     @Test
-     void executor_ShouldHandleSingleMetaDataRegisterDTO() {
- 
-         MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
-         Collection<MetaDataRegisterDTO> metaDataRegisterDTOList = Collections.singletonList(metaDataRegisterDTO);
- 
- 
-         subscriber.executor(metaDataRegisterDTOList);
- 
- 
-         verify(shenyuClientRegisterRepository, times(1)).persistInterface(metaDataRegisterDTO);
-     }
- 
- }
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.type.DataType;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+
+/**
+ * Test for {@link ShenyuClientMetadataExecutorSubscriber}.
+ */
+public class ShenyuClientMetadataExecutorSubscriberTest {
+
+    private ShenyuClientRegisterRepository shenyuClientRegisterRepository;
+
+    private ShenyuClientMetadataExecutorSubscriber executorSubscriber;
+
+    @BeforeEach
+    public void setUp() {
+        shenyuClientRegisterRepository = mock(ShenyuClientRegisterRepository.class);
+        executorSubscriber = new ShenyuClientMetadataExecutorSubscriber(shenyuClientRegisterRepository);
+    }
+
+    @Test
+    public void testGetType() {
+        DataType expected = DataType.META_DATA;
+        DataType actual = executorSubscriber.getType();
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testExecutorWithEmptyData() {
+        Collection<MetaDataRegisterDTO> metaDataRegisterDTOList = new ArrayList<>();
+        executorSubscriber.executor(metaDataRegisterDTOList);
+
+        verify(shenyuClientRegisterRepository, never()).persistInterface(any());
+    }
+
+    @Test
+    public void testExecutorValidData() {
+        Collection<MetaDataRegisterDTO> metaList = new ArrayList<>();
+
+        MetaDataRegisterDTO metaDataRegisterDTO =
+                MetaDataRegisterDTO.builder().contextPath("/test").path("/meta").pathDesc("application/json")
+                        .rpcType("http")
+                        .serviceName("UserService")
+                        .methodName("getUserInfo")
+                        .ruleName("AuthorizationRule")
+                        .parameterTypes("String, int")
+                        .rpcExt("test")
+                        .enabled(true)
+                        .host("localhost")
+                        .port(8080)
+                        .pluginNames(new ArrayList<>())
+                        .build();
+        metaList.add(metaDataRegisterDTO);
+
+        executorSubscriber.executor(metaList);
+
+        verify(shenyuClientRegisterRepository, times(1)).persistInterface(metaDataRegisterDTO);
+    }
+
+}
