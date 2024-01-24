@@ -19,14 +19,14 @@ class ShenyuClientRegisterEventPublisherTest {
     ShenyuClientRegisterRepository mockRepository;
 
     @Test
-    void testGetInstanceReturnsSameInstance() {
+    public void testGetInstanceReturnsSameInstance() {
         ShenyuClientRegisterEventPublisher instance1 = ShenyuClientRegisterEventPublisher.getInstance();
         ShenyuClientRegisterEventPublisher instance2 = ShenyuClientRegisterEventPublisher.getInstance();
         assertSame(instance1, instance2);
     }
 
     @Test
-    void testStart() {
+    public void testStart() {
         ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
         publisher.start(mockRepository);
         assertNotNull(publisher.getProviderManage());
@@ -34,14 +34,14 @@ class ShenyuClientRegisterEventPublisherTest {
     }
 
     @Test
-    void testPublishEvent() {
+    public void testPublishEvent() {
         ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
         publisher.start(mockRepository);
         assertDoesNotThrow(() -> publisher.publishEvent(testData));
     }
 
     @Test
-    void testPublishEventWithNullData() {
+    public void testPublishEventWithNullData() {
         ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
         publisher.start(mockRepository);
         assertDoesNotThrow(() -> publisher.publishEvent(null));
