@@ -113,12 +113,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - case: shenyu-e2e-case-http
-            script: e2e-http-h2
-          - case: shenyu-e2e-case-http
-            script: e2e-http-mysql
-          - case: shenyu-e2e-case-http
-            script: e2e-http-postgres
+          - case: shenyu-e2e-case-storage
+            script: e2e-h2
+          - case: shenyu-e2e-case-storage
+            script: e2e-mysql
+          - case: shenyu-e2e-case-storage
+            script: e2e-postgres
+          - case: shenyu-e2e-case-storage
+            script: e2e-opengauss
     steps:
       - uses: actions/checkout@v2
         with:
@@ -131,6 +133,8 @@ jobs:
           docker rmi $(docker image ls --all --quiet)
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
+          rm -rf /tmp/shenyu
+          mkdir -p /tmp/shenyu
 
       - uses: dorny/paths-filter@v2
         id: filter
@@ -164,13 +168,13 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: shenyu-images
-          path: /tmp/
+          path: /tmp/shenyu/
 
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
         run: |
-          sudo k3s ctr images import /tmp/apache-shenyu-admin.tar
-          sudo k3s ctr images import /tmp/apache-shenyu-bootstrap.tar
+          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
+          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
 #      - name: Setup Debug Session
 #        uses: mxschmitt/action-tmate@v3
@@ -199,6 +203,8 @@ jobs:
     strategy:
       matrix:
         include:
+          - case: shenyu-e2e-case-http
+            script: e2e-http-sync
           - case: shenyu-e2e-case-spring-cloud
             script: e2e-springcloud-sync
           - case: shenyu-e2e-case-apache-dubbo
@@ -207,6 +213,8 @@ jobs:
             script: e2e-sofa-sync
           - case: shenyu-e2e-case-grpc
             script: e2e-grpc-sync
+          - case: shenyu-e2e-case-websocket
+            script: e2e-websocket-sync
     steps:
       - uses: actions/checkout@v2
         with:
@@ -219,6 +227,8 @@ jobs:
           docker rmi $(docker image ls --all --quiet)
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
+          rm -rf /tmp/shenyu
+          mkdir -p /tmp/shenyu
 
       - uses: dorny/paths-filter@v2
         id: filter
@@ -263,13 +273,13 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: shenyu-images
-          path: /tmp/
+          path: /tmp/shenyu/
 
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
         run: |
-          sudo k3s ctr images import /tmp/apache-shenyu-admin.tar
-          sudo k3s ctr images import /tmp/apache-shenyu-bootstrap.tar
+          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
+          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
 #      - name: Setup Debug Session
 #        uses: mxschmitt/action-tmate@v3

@@ -20,15 +20,16 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.6.1-SNAPSHOT</version>
+        <version>2.6.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin</artifactId>
     <packaging>pom</packaging>
-    
+
     <modules>
         <module>shenyu-plugin-api</module>
         <module>shenyu-plugin-base</module>
+        <module>shenyu-plugin-wasm-base</module>
         <module>shenyu-plugin-httpclient</module>
         <module>shenyu-plugin-rewrite</module>
         <module>shenyu-plugin-waf</module>
@@ -66,5 +67,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
 </project>

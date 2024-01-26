@@ -111,4 +111,11 @@ public interface DiscoveryHandlerMapper extends ExistProvider {
      */
     List<DiscoveryHandlerDO> selectByDiscoveryId(@Param("discoveryId")String discoveryId);
 
+    /**
+     * selectBySelectorId.
+     *
+     * @param selectorId selectorId
+     * @return DiscoveryHandlerDO
+     */
+    DiscoveryHandlerDO selectBySelectorId(String selectorId);
 }

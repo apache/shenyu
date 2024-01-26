@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-register-center</artifactId>
-        <version>2.6.1-SNAPSHOT</version>
+        <version>2.6.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-register-client</artifactId>
@@ -29,11 +29,5 @@
     <modules>
         <module>shenyu-register-client-api</module>
         <module>shenyu-register-client-http</module>
-        <module>shenyu-register-client-zookeeper</module>
-        <module>shenyu-register-client-etcd</module>
-        <module>shenyu-register-client-consul</module>
-        <module>shenyu-register-client-nacos</module>
-        <module>shenyu-register-client-apollo</module>
-        <module>shenyu-register-client-polaris</module>
     </modules>
 </project>

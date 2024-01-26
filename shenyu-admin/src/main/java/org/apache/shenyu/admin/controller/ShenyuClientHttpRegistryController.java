@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterPublisher;
+import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -24,8 +26,6 @@ import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
-import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.spi.Join;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -104,7 +104,7 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @PostMapping("/register-discoveryConfig")
     @ResponseBody
     public String registerDiscoveryConfig(@RequestBody final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
-        discoveryService.registerDiscoveryConfig(discoveryConfigRegisterDTO);
+        publisher.publish(discoveryConfigRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
 

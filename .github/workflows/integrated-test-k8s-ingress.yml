@@ -32,8 +32,8 @@ jobs:
           - shenyu-integrated-test-k8s-ingress-motan
           - shenyu-integrated-test-k8s-ingress-spring-cloud
           - shenyu-integrated-test-k8s-ingress-websocket
-          - shenyu-integrated-test-k8s-ingress-brpc
           - shenyu-integrated-test-k8s-ingress-grpc
+          - shenyu-integrated-test-k8s-ingress-sofa
     runs-on: ubuntu-latest
     if: github.repository == 'apache/shenyu'
     steps:
@@ -103,11 +103,11 @@ jobs:
 
       - name: Build integrated tests
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+        run: ./mvnw -B clean install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
 
       - name: Build examples
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
 
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'

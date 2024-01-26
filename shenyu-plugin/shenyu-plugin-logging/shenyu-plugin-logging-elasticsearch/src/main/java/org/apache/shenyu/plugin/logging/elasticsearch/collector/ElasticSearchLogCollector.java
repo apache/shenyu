@@ -20,14 +20,15 @@ package org.apache.shenyu.plugin.logging.elasticsearch.collector;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
-import org.apache.shenyu.plugin.logging.elasticsearch.handler.LoggingElasticSearchPluginDataHandler;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
+import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
+import org.apache.shenyu.plugin.logging.elasticsearch.config.ElasticSearchLogCollectConfig;
+import org.apache.shenyu.plugin.logging.elasticsearch.handler.LoggingElasticSearchPluginDataHandler;
 
 /**
  * elastic search log collector，depend a LogConsumeClient for consume logs.
  */
-public class ElasticSearchLogCollector extends AbstractLogCollector<ElasticSearchLogCollectClient, ShenyuRequestLog> {
+public class ElasticSearchLogCollector extends AbstractLogCollector<ElasticSearchLogCollectClient, ShenyuRequestLog, ElasticSearchLogCollectConfig.ElasticSearchLogConfig> {
 
     private static final LogCollector<ShenyuRequestLog> INSTANCE = new ElasticSearchLogCollector();
 
@@ -45,10 +46,16 @@ public class ElasticSearchLogCollector extends AbstractLogCollector<ElasticSearc
         return LoggingElasticSearchPluginDataHandler.getElasticSearchLogCollectClient();
     }
 
+    @Override
+    protected ElasticSearchLogCollectConfig.ElasticSearchLogConfig getLogCollectConfig() {
+        return ElasticSearchLogCollectConfig.INSTANCE.getElasticSearchLogConfig();
+    }
+
     /**
      * desensitize log.
-     * @param log log entity
-     * @param keyWordMatch keyWordMatch
+     *
+     * @param log            log entity
+     * @param keyWordMatch   keyWordMatch
      * @param desensitizeAlg data desensitize algorithm
      */
     @Override

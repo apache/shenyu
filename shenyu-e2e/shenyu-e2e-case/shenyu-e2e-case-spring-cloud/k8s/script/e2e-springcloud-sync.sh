@@ -45,12 +45,12 @@ for sync in ${SYNC_ARRAY[@]}; do
     sleep 10s
   fi
   kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
-  sh "${CUR_PATH}"/healthcheck.sh http://localhost:31095/actuator/health
-  sh "${CUR_PATH}"/healthcheck.sh http://localhost:30761/actuator/health
+  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health
+  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:30761/actuator/health
   kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
-  sh "${CUR_PATH}"/healthcheck.sh http://localhost:31195/actuator/health
+  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
   kubectl apply -f "${PRGDIR}"/shenyu-examples-springcloud.yml
-  sh "${CUR_PATH}"/healthcheck.sh http://localhost:30884/actuator/health
+  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:30884/actuator/health
   sleep 10s
   kubectl get pod -o wide
 

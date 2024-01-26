@@ -118,7 +118,7 @@ shenyu:
         writeBufferLowWaterMark: 32768
         writeSpinCount: 16
         autoRead: false
-        allocType: "pooled"
+        allocType: "unpooled"
         messageSizeEstimator: 8
         singleEventExecutorPerGroup: true
       socketChannel:
@@ -135,7 +135,7 @@ shenyu:
         writeBufferLowWaterMark: 32768
         writeSpinCount: 16
         autoRead: false
-        allocType: "pooled"
+        allocType: "unpooled"
         messageSizeEstimator: 8
         singleEventExecutorPerGroup: true
       sni:
@@ -287,7 +287,7 @@ shenyu:
       - /actuator
       - /health_check
   alert:
-    enabled: true
+    enabled: false
     admins: localhost:9095
   extPlugin:
     path:

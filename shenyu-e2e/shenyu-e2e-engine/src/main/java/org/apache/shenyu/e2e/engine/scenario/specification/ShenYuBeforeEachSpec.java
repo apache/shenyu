@@ -24,6 +24,7 @@ import io.restassured.http.Method;
 import io.restassured.specification.ResponseSpecification;
 import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.ResourcesData.ResourcesDataBuilder;
+import org.apache.shenyu.e2e.model.data.BindingData;
 import org.apache.shenyu.e2e.model.data.RuleData;
 import org.apache.shenyu.e2e.model.data.SelectorData;
 import org.apache.shenyu.e2e.engine.scenario.function.Checker;
@@ -46,7 +47,7 @@ public class ShenYuBeforeEachSpec implements BeforeEachSpec {
         this.resources = resources;
         this.waiting = waiting;
     }
-    
+
     /**
      * builder.
      * @return ShenYuBeforeEachSpecBuilder
@@ -92,7 +93,7 @@ public class ShenYuBeforeEachSpec implements BeforeEachSpec {
         private Checker checker = Checker.DEFAULT;
 
         private Waiting waiting = Waiting.DEFAULT;
-        
+
         /**
          * builder set checker.
          * @param checker checker
@@ -102,7 +103,7 @@ public class ShenYuBeforeEachSpec implements BeforeEachSpec {
             this.checker = checker;
             return this;
         }
-        
+
         /**
          * builder add selector and rule.
          * @param selector selector
@@ -111,6 +112,19 @@ public class ShenYuBeforeEachSpec implements BeforeEachSpec {
          */
         public ShenYuBeforeEachSpecBuilder addSelectorAndRule(final SelectorData selector, final RuleData... rules) {
             builder.add(selector, rules);
+            return this;
+        }
+
+        /**
+         * addSelectorAndRule.
+         *
+         * @param selector selector
+         * @param bindingData bindingData
+         * @param rules rules
+         * @return ShenYuBeforeEachSpecBuilder
+         */
+        public ShenYuBeforeEachSpecBuilder addSelectorAndRule(final SelectorData selector, final BindingData bindingData, final RuleData... rules) {
+            builder.add(selector, bindingData, rules);
             return this;
         }
         

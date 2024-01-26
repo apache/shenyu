@@ -65,7 +65,6 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                     break;
                 case SELECTOR:
                     listener.onSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
-                    applicationContext.getBean(LoadServiceDocEntry.class).loadDocOnSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
                     break;
                 case META_DATA:
                     listener.onMetaDataChanged((List<MetaData>) event.getSource(), event.getEventType());
@@ -75,6 +74,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                     break;
                 case DISCOVER_UPSTREAM:
                     listener.onDiscoveryUpstreamChanged((List<DiscoverySyncData>) event.getSource(), event.getEventType());
+                    applicationContext.getBean(LoadServiceDocEntry.class).loadDocOnUpstreamChanged((List<DiscoverySyncData>) event.getSource(), event.getEventType());
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + event.getGroupKey());

@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.model.vo;
 
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
-import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -91,7 +90,7 @@ public class ProxySelectorVO implements Serializable {
     /**
      * discovery upstream list.
      */
-    private List<DiscoveryUpstreamDTO> discoveryUpstreams;
+    private List<DiscoveryUpstreamVO> discoveryUpstreams;
 
     /**
      * ProxySelectorVO.
@@ -114,7 +113,7 @@ public class ProxySelectorVO implements Serializable {
      */
     public ProxySelectorVO(final String id, final String name, final Integer forwardPort, final String type, final String listenerNode,
                            final String handler, final String discoveryHandlerId, final Timestamp createTime, final Timestamp updateTime, final DiscoveryDTO discovery,
-                           final List<DiscoveryUpstreamDTO> discoveryUpstreams, final String props) {
+                           final List<DiscoveryUpstreamVO> discoveryUpstreams, final String props) {
         this.id = id;
         this.name = name;
         this.forwardPort = forwardPort;
@@ -325,7 +324,7 @@ public class ProxySelectorVO implements Serializable {
      * get discovery upstream list.
      * @return upstream list
      */
-    public List<DiscoveryUpstreamDTO> getDiscoveryUpstreams() {
+    public List<DiscoveryUpstreamVO> getDiscoveryUpstreams() {
         return discoveryUpstreams;
     }
 
@@ -333,7 +332,7 @@ public class ProxySelectorVO implements Serializable {
      * set discovery upstream list.
      * @param discoveryUpstreams discovery upstream list
      */
-    public void setDiscoveryUpstreams(final List<DiscoveryUpstreamDTO> discoveryUpstreams) {
+    public void setDiscoveryUpstreams(final List<DiscoveryUpstreamVO> discoveryUpstreams) {
         this.discoveryUpstreams = discoveryUpstreams;
     }
 }
