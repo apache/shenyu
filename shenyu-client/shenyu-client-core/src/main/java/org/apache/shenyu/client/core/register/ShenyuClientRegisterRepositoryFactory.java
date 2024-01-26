@@ -42,6 +42,14 @@ public final class ShenyuClientRegisterRepositoryFactory {
     public static Map<String, ShenyuClientRegisterRepository> getRepositoryMap() {
         return Collections.unmodifiableMap(REPOSITORY_MAP);
     }
+
+    /**
+     * Sets the repository map with the provided map of ShenyuClientRegisterRepository instances.
+     * Clears the existing repository map and adds all entries from the provided map.
+     *
+     * @param repositoryMap The map containing ShenyuClientRegisterRepository instances,
+     *                      where each entry's key is the repository type identifier.
+     */
     // Setter for testing purposes
     public static void setRepositoryMap(Map<String, ShenyuClientRegisterRepository> repositoryMap) {
         REPOSITORY_MAP.clear();
