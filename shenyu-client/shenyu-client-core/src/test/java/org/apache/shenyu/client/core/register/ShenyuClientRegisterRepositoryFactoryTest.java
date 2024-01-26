@@ -44,7 +44,6 @@ public class ShenyuClientRegisterRepositoryFactoryTest {
 
     @BeforeEach
     public void setUp() {
-        // Reset REPOSITORY_MAP before each test to ensure isolation
         ShenyuClientRegisterRepositoryFactory.getRepositoryMap().clear();
     }
 
@@ -53,10 +52,8 @@ public class ShenyuClientRegisterRepositoryFactoryTest {
         when(config.getRegisterType()).thenReturn("someType");
         when(extensionLoader.getJoin(anyString())).thenReturn((DataTypeParent) repositoryMock);
 
-        // Exercise the method under test
         ShenyuClientRegisterRepository actualRepository = ShenyuClientRegisterRepositoryFactory.newInstance(config);
 
-        // Assertions
         Assertions.assertEquals(repositoryMock, actualRepository);
         verify(repositoryMock).init(config);
         verify(getRepositoryMap()).put("someType", repositoryMock);
@@ -64,15 +61,12 @@ public class ShenyuClientRegisterRepositoryFactoryTest {
 
     @Test
     public void testNewInstanceReturnsExistingRepository() {
-        // Pre-populate the REPOSITORY_MAP
         ShenyuClientRegisterRepositoryFactory.getRepositoryMap().put("someType", repositoryMock);
 
         when(config.getRegisterType()).thenReturn("someType");
 
-        // Exercise the method under test
         ShenyuClientRegisterRepository actualRepository = ShenyuClientRegisterRepositoryFactory.newInstance(config);
 
-        // Assertions
         Assertions.assertSame(repositoryMock, actualRepository);
         verify(repositoryMock, never()).init(config);
         verify(getRepositoryMap(), never()).put("someType", repositoryMock);
