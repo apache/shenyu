@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.core.register;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,9 +30,24 @@ import org.apache.shenyu.spi.ExtensionLoader;
  * The type shenyu client register repository factory.
  */
 public final class ShenyuClientRegisterRepositoryFactory {
-    
+
     private static final Map<String, ShenyuClientRegisterRepository> REPOSITORY_MAP = new ConcurrentHashMap<>();
-    
+
+    /**
+     * Get the REPOSITORY_MAP.
+     *
+     * @return the REPOSITORY_MAP
+     */
+    //getter
+    public static Map<String, ShenyuClientRegisterRepository> getRepositoryMap() {
+        return Collections.unmodifiableMap(REPOSITORY_MAP);
+    }
+    // Setter for testing purposes
+    public static void setRepositoryMap(Map<String, ShenyuClientRegisterRepository> repositoryMap) {
+        REPOSITORY_MAP.clear();
+        REPOSITORY_MAP.putAll(repositoryMap);
+    }
+
     /**
      * New instance shenyu client register repository.
      *
@@ -48,4 +64,5 @@ public final class ShenyuClientRegisterRepositoryFactory {
         }
         return REPOSITORY_MAP.get(shenyuRegisterCenterConfig.getRegisterType());
     }
+
 }
