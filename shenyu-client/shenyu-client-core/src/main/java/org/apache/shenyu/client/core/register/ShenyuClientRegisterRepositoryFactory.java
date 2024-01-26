@@ -33,28 +33,7 @@ public final class ShenyuClientRegisterRepositoryFactory {
 
     private static final Map<String, ShenyuClientRegisterRepository> REPOSITORY_MAP = new ConcurrentHashMap<>();
 
-    /**
-     * Get the REPOSITORY_MAP.
-     *
-     * @return the REPOSITORY_MAP
-     */
-    //getter
-    public static Map<String, ShenyuClientRegisterRepository> getRepositoryMap() {
-        return Collections.unmodifiableMap(REPOSITORY_MAP);
-    }
 
-    /**
-     * Sets the repository map with the provided map of ShenyuClientRegisterRepository instances.
-     * Clears the existing repository map and adds all entries from the provided map.
-     *
-     * @param repositoryMap The map containing ShenyuClientRegisterRepository instances,
-     *                      where each entry's key is the repository type identifier.
-     */
-    // Setter for testing purposes
-    public static void setRepositoryMap(Map<String, ShenyuClientRegisterRepository> repositoryMap) {
-        REPOSITORY_MAP.clear();
-        REPOSITORY_MAP.putAll(repositoryMap);
-    }
 
     /**
      * New instance shenyu client register repository.
@@ -73,4 +52,12 @@ public final class ShenyuClientRegisterRepositoryFactory {
         return REPOSITORY_MAP.get(shenyuRegisterCenterConfig.getRegisterType());
     }
 
+    /**
+     * Get the REPOSITORY_MAP.
+     *
+     * @return the REPOSITORY_MAP
+     */
+    public static Map<String, ShenyuClientRegisterRepository> getRepositoryMap() {
+        return Collections.unmodifiableMap(REPOSITORY_MAP);
+    }
 }

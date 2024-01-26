@@ -19,71 +19,62 @@ package org.apache.shenyu.client.core.register;
 
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.apache.shenyu.spi.ExtensionLoader;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory.getRepositoryMap;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
 
-@ExtendWith(MockitoExtension.class)
 public class ShenyuClientRegisterRepositoryFactoryTest {
+    @Mock
+    private ShenyuRegisterCenterConfig config = new ShenyuRegisterCenterConfig();
 
     @Mock
     private ShenyuClientRegisterRepository repositoryMock;
 
     @Mock
-    private ShenyuRegisterCenterConfig configMock = new ShenyuRegisterCenterConfig();
+    private ExtensionLoader<DataTypeParent> extensionLoader;
 
-    @InjectMocks
-    private ShenyuClientRegisterRepositoryFactory factory;
+    @BeforeEach
+    public void setUp() {
+        // Reset REPOSITORY_MAP before each test to ensure isolation
+        ShenyuClientRegisterRepositoryFactory.getRepositoryMap().clear();
+    }
 
     @Test
     public void testNewInstanceRegisterNewRepository() {
-        // Mock ExtensionLoader.getJoin() to return our mock repository
-        when(ExtensionLoader.getExtensionLoader(ShenyuClientRegisterRepository.class).getJoin("someType is error"))
-                .thenReturn(repositoryMock);
+        when(config.getRegisterType()).thenReturn("someType");
+        when(extensionLoader.getJoin(anyString())).thenReturn((DataTypeParent) repositoryMock);
 
-        // Configure config mock
-        when(configMock.getRegisterType()).thenReturn("someType");
+        // Exercise the method under test
+        ShenyuClientRegisterRepository actualRepository = ShenyuClientRegisterRepositoryFactory.newInstance(config);
 
-        // Call the method and verify if expected repository is returned
-        ShenyuClientRegisterRepository actualRepository = ShenyuClientRegisterRepositoryFactory.newInstance(configMock);
-        assertEquals(repositoryMock, actualRepository);
-
-        // Verify if init and put were called on repository and map
-        verify(repositoryMock).init(configMock);
+        // Assertions
+        Assertions.assertEquals(repositoryMock, actualRepository);
+        verify(repositoryMock).init(config);
         verify(getRepositoryMap()).put("someType", repositoryMock);
     }
 
     @Test
-    public void testNewInstanceExistingRepository() {
-        // Configure REPOSITORY_MAP with a pre-existing repository
-        ShenyuClientRegisterRepository preExistingRepository = Mockito.mock(ShenyuClientRegisterRepository.class);
+    public void testNewInstanceReturnsExistingRepository() {
+        // Pre-populate the REPOSITORY_MAP
+        ShenyuClientRegisterRepositoryFactory.getRepositoryMap().put("someType", repositoryMock);
 
-        Map<String, ShenyuClientRegisterRepository> testRepositoryMap = new ConcurrentHashMap<>();
-        testRepositoryMap.put("existingType", preExistingRepository);
-        ShenyuClientRegisterRepositoryFactory.setRepositoryMap(testRepositoryMap);
+        when(config.getRegisterType()).thenReturn("someType");
 
-        // Call the method and verify that the existing repository is returned
-        ShenyuClientRegisterRepository actualRepository = ShenyuClientRegisterRepositoryFactory.newInstance(configMock);
-        assertEquals(preExistingRepository, actualRepository);
+        // Exercise the method under test
+        ShenyuClientRegisterRepository actualRepository = ShenyuClientRegisterRepositoryFactory.newInstance(config);
 
-        // Verify that no new repository was created or initialized
-        verify(testRepositoryMap, never()).put(anyString(), any(ShenyuClientRegisterRepository.class));
-        verifyNoMoreInteractions(repositoryMock);
+        // Assertions
+        Assertions.assertSame(repositoryMock, actualRepository);
+        verify(repositoryMock, never()).init(config);
+        verify(getRepositoryMap(), never()).put("someType", repositoryMock);
     }
 }
