@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.wasm.base;
+package org.apache.shenyu.plugin.wasm.api;
 
 import io.github.kawamuray.wasmtime.Func;
 import io.github.kawamuray.wasmtime.Store;
