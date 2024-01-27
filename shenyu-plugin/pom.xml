@@ -28,6 +28,7 @@
 
     <modules>
         <module>shenyu-plugin-api</module>
+        <module>shenyu-plugin-wasm-api</module>
         <module>shenyu-plugin-base</module>
         <module>shenyu-plugin-wasm-base</module>
         <module>shenyu-plugin-httpclient</module>
