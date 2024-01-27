@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.wasm.base;
+package org.apache.shenyu.plugin.wasm.api.loader;
 
 import io.github.kawamuray.wasmtime.Extern;
 import io.github.kawamuray.wasmtime.Func;
@@ -25,7 +25,7 @@ import io.github.kawamuray.wasmtime.Module;
 import io.github.kawamuray.wasmtime.Store;
 import io.github.kawamuray.wasmtime.wasi.WasiCtx;
 import io.github.kawamuray.wasmtime.wasi.WasiCtxBuilder;
-import org.apache.shenyu.plugin.wasm.base.exception.ShenyuWasmInitException;
+import org.apache.shenyu.plugin.wasm.api.exception.ShenyuWasmInitException;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
