@@ -23,13 +23,17 @@
         <version>2.6.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-plugin-wasm-base</artifactId>
+    <artifactId>shenyu-plugin-wasm-api</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-wasm-api</artifactId>
+            <artifactId>shenyu-plugin-base</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.kawamuray.wasmtime</groupId>
+            <artifactId>wasmtime-java</artifactId>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

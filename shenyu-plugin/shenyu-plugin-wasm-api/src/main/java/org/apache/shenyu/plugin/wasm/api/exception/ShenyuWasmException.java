@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.wasm.base.exception;
+package org.apache.shenyu.plugin.wasm.api.exception;
 
 import org.apache.shenyu.common.exception.ShenyuException;
 
