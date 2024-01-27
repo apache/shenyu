@@ -32,11 +32,21 @@ import java.util.stream.Collectors;
  * The type Consumer executor.
  */
 public final class RegisterClientConsumerExecutor<T extends DataTypeParent> extends QueueConsumerExecutor<T> {
-    
+
     private final Map<DataType, ExecutorTypeSubscriber<T>> subscribers;
-    
-    private RegisterClientConsumerExecutor(final Map<DataType, ExecutorTypeSubscriber<T>> executorSubscriberMap) {
+
+    RegisterClientConsumerExecutor(final Map<DataType, ExecutorTypeSubscriber<T>> executorSubscriberMap) {
         this.subscribers = new EnumMap<>(executorSubscriberMap);
+    }
+
+    /**
+     * Returns a copy of the subscribers as a mapping of DataType to ExecutorTypeSubscriber.
+     * The returned map is backed by an EnumMap, ensuring type safety with DataType keys.
+     *
+     * @return A new EnumMap containing a copy of the subscribers.
+     */
+    public Map<DataType, ExecutorTypeSubscriber<T>> getSubscribers() {
+        return new EnumMap<>(subscribers);
     }
 
     @Override
@@ -44,12 +54,12 @@ public final class RegisterClientConsumerExecutor<T extends DataTypeParent> exte
         final T data = getData();
         subscribers.get(data.getType()).executor(Lists.newArrayList(data));
     }
-    
+
     /**
      * The type Register client executor factory.
      */
     public static class RegisterClientExecutorFactory<T extends DataTypeParent> extends AbstractQueueConsumerFactory<T> {
-        
+
         @Override
         public RegisterClientConsumerExecutor<T> create() {
             Map<DataType, ExecutorTypeSubscriber<T>> map = getSubscribers()
@@ -65,3 +75,4 @@ public final class RegisterClientConsumerExecutor<T extends DataTypeParent> exte
         }
     }
 }
+
