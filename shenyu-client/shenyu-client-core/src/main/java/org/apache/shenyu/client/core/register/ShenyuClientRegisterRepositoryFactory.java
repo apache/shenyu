@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.core.register;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -50,14 +49,5 @@ public final class ShenyuClientRegisterRepositoryFactory {
             return result;
         }
         return REPOSITORY_MAP.get(shenyuRegisterCenterConfig.getRegisterType());
-    }
-
-    /**
-     * Get the REPOSITORY_MAP.
-     *
-     * @return the REPOSITORY_MAP
-     */
-    public static Map<String, ShenyuClientRegisterRepository> getRepositoryMap() {
-        return Collections.unmodifiableMap(REPOSITORY_MAP);
     }
 }

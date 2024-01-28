@@ -61,6 +61,15 @@ public class ShenyuClientShutdownHook {
     }
 
     /**
+     * Retrieves the properties associated with the class.
+     *
+     * @return The properties object containing configuration settings.
+     */
+    public static Properties getProps() {
+        return props;
+    }
+
+    /**
      * Add shenyu client shutdown hook.
      *
      * @param repository ShenyuClientRegisterRepository

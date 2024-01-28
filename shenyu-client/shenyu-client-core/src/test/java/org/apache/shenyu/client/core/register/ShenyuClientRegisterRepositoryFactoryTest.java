@@ -19,56 +19,36 @@ package org.apache.shenyu.client.core.register;
 
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.apache.shenyu.register.common.type.DataTypeParent;
-import org.apache.shenyu.spi.ExtensionLoader;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
-import static org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory.getRepositoryMap;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.never;
+import java.util.Properties;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ShenyuClientRegisterRepositoryFactoryTest {
-    @Mock
-    private ShenyuRegisterCenterConfig config = new ShenyuRegisterCenterConfig();
-
-    @Mock
-    private ShenyuClientRegisterRepository repositoryMock;
-
-    @Mock
-    private ExtensionLoader<DataTypeParent> extensionLoader;
-
-    @BeforeEach
-    public void setUp() {
-        ShenyuClientRegisterRepositoryFactory.getRepositoryMap().clear();
-    }
-
     @Test
-    public void testNewInstanceRegisterNewRepository() {
-        when(config.getRegisterType()).thenReturn("someType");
-        when(extensionLoader.getJoin(anyString())).thenReturn((DataTypeParent) repositoryMock);
+    void testNewInstance() {
+        // Arrange
+        Properties props = new Properties();
+        props.setProperty("key", "value");
 
-        ShenyuClientRegisterRepository actualRepository = ShenyuClientRegisterRepositoryFactory.newInstance(config);
+        ShenyuRegisterCenterConfig config1 = new ShenyuRegisterCenterConfig("type1", "serverLists1", props);
+        ShenyuRegisterCenterConfig config2 = new ShenyuRegisterCenterConfig("type2", "serverLists2", props);
 
-        Assertions.assertEquals(repositoryMock, actualRepository);
-        verify(repositoryMock).init(config);
-        verify(getRepositoryMap()).put("someType", repositoryMock);
+        // Act
+        ShenyuClientRegisterRepository repository1 = ShenyuClientRegisterRepositoryFactory.newInstance(config1);
+        ShenyuClientRegisterRepository repository2 = ShenyuClientRegisterRepositoryFactory.newInstance(config2);
+        ShenyuClientRegisterRepository repository3 = ShenyuClientRegisterRepositoryFactory.newInstance(config1);
+
+        // Assert
+        assertNotNull(repository1);
+        assertNotNull(repository2);
+        assertNotNull(repository3);
+
+        // Check if the same repository instance is returned for the same register type
+        Assertions.assertSame(repository1, repository3);
+        Assertions.assertNotSame(repository1, repository2);
     }
 
-    @Test
-    public void testNewInstanceReturnsExistingRepository() {
-        ShenyuClientRegisterRepositoryFactory.getRepositoryMap().put("someType", repositoryMock);
-
-        when(config.getRegisterType()).thenReturn("someType");
-
-        ShenyuClientRegisterRepository actualRepository = ShenyuClientRegisterRepositoryFactory.newInstance(config);
-
-        Assertions.assertSame(repositoryMock, actualRepository);
-        verify(repositoryMock, never()).init(config);
-        verify(getRepositoryMap(), never()).put("someType", repositoryMock);
-    }
 }
