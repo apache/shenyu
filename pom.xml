@@ -159,7 +159,7 @@
         <javatuples.version>1.2</javatuples.version>
         <k8s-client.version>17.0.2</k8s-client.version>
         <polaris.version>1.13.0</polaris.version>
-        <bytebuddy.version>1.12.6</bytebuddy.version>
+        <bytebuddy.version>1.14.11</bytebuddy.version>
         <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
         <jaxb.api.version>2.3.1</jaxb.api.version>
         <mail.version>1.6.2</mail.version>
