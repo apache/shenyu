@@ -42,7 +42,7 @@ public class ClickHouseLoggingConstant {
             + "    responseBody    String,\n"
             + "    responseContentLength UInt64,\n"
             + "    rpcType String,\n"
-            + "    status  UInt8,\n"
+            + "    status  UInt16,\n"
             + "    upstreamIp  String,\n"
             + "    upstreamResponseTime UInt128,\n"
             + "    userAgent String,\n"

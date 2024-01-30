@@ -34,7 +34,6 @@ jobs:
           - shenyu-integrated-test-motan
           - shenyu-integrated-test-spring-cloud
           - shenyu-integrated-test-sofa
-          - shenyu-integrated-test-brpc
           - shenyu-integrated-test-websocket
           - shenyu-integrated-test-combination
           - shenyu-integrated-test-sdk-apache-dubbo
@@ -59,9 +58,9 @@ jobs:
         with:
           filters: '.github/filters.yml'
           list-files: json
-      - name: Cache Maven Repos
+      - name: Restore ShenYu Maven Repos
         if: steps.filter.outputs.changed == 'true'
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -72,13 +71,12 @@ jobs:
         with:
           java-version: 8
           distribution: 'temurin'
-          cache: maven
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - name: Build examples
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
       - name: Build integrated tests
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml

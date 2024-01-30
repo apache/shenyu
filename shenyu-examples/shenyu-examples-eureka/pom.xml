@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-examples</artifactId>
-        <version>2.6.1-SNAPSHOT</version>
+        <version>2.6.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-examples-eureka</artifactId>
@@ -31,7 +31,7 @@
         <spring-cloud.version>2021.0.2</spring-cloud.version>
         <jersey.version>1.19.4</jersey.version>
         <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
-        <jersey-bom.versoin>3.0.4</jersey-bom.versoin>
+        <jersey-bom.version>3.0.4</jersey-bom.version>
     </properties>
 
     <dependencyManagement>
@@ -46,7 +46,7 @@
             <dependency>
                 <groupId>org.glassfish.jersey</groupId>
                 <artifactId>jersey-bom</artifactId>
-                <version>${jersey-bom.versoin}</version>
+                <version>${jersey-bom.version}</version>
                 <type>pom</type>
             </dependency>
         </dependencies>
@@ -65,7 +65,7 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
-  
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -86,12 +86,12 @@
             <artifactId>jersey-apache-client4</artifactId>
             <version>${jersey.version}</version>
         </dependency>
-     
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
-       
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>

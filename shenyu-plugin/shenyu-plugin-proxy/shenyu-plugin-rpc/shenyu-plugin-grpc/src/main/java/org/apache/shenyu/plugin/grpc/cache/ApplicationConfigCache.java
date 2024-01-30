@@ -22,13 +22,16 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.impl.GrpcRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstance;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
+import org.apache.shenyu.plugin.base.utils.BeanHolder;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstanceLists;
 import org.springframework.lang.NonNull;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -36,13 +39,17 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 
 /**
  * Grpc config cache.
  */
 public final class ApplicationConfigCache {
-    
+
+    private final Supplier<CommonHandleCache<String, List<GrpcUpstream>>> grpcUpstreamCachedHandle = new BeanHolder<>(CommonHandleCache::new);
+
+    private final Supplier<CommonHandleCache<String, GrpcRuleHandle>> ruleCachedHandle = new BeanHolder<>(CommonHandleCache::new);
+
     private final LoadingCache<String, ShenyuServiceInstanceLists> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .build(new CacheLoader<String, ShenyuServiceInstanceLists>() {
@@ -52,12 +59,12 @@ public final class ApplicationConfigCache {
                     return new ShenyuServiceInstanceLists(key);
                 }
             });
-    
-    private final Map<String, Consumer<Object>> listener = new ConcurrentHashMap<>();
-    
+
+    private final Map<String, Consumer<Object>> watchUpstreamListener = new ConcurrentHashMap<>();
+
     private ApplicationConfigCache() {
     }
-    
+
     /**
      * Get shenyuServiceInstanceList.
      *
@@ -71,43 +78,38 @@ public final class ApplicationConfigCache {
             throw new ShenyuException(e.getCause());
         }
     }
-    
+
     /**
-     * Init prx.
+     * handlerUpstream.
      *
-     * @param selectorData selectorData
+     * @param selectorId   selectorId
+     * @param upstreamList upstreamList
      */
-    public void initPrx(final SelectorData selectorData) {
-        try {
-            final List<GrpcUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), GrpcUpstream.class);
-            if (CollectionUtils.isEmpty(upstreamList)) {
-                invalidate(selectorData.getName());
-                return;
-            }
-            ShenyuServiceInstanceLists shenyuServiceInstances = cache.get(selectorData.getName());
-            List<ShenyuServiceInstance> instances = shenyuServiceInstances.getShenyuServiceInstances();
-            instances.clear();
-            instances.addAll(upstreamList.stream().map(this::build).collect(Collectors.toList()));
-            Consumer<Object> consumer = listener.get(selectorData.getName());
-            if (Objects.nonNull(consumer)) {
-                consumer.accept(System.currentTimeMillis());
-            }
-        } catch (ExecutionException e) {
-            throw new ShenyuException(e.getCause());
+    public void handlerUpstream(final String selectorId, final List<GrpcUpstream> upstreamList) {
+        if (CollectionUtils.isEmpty(upstreamList)) {
+            invalidate(selectorId);
+            return;
+        }
+        grpcUpstreamCachedHandle.get().cachedHandle(selectorId, upstreamList);
+        Consumer<Object> consumer = watchUpstreamListener.get(selectorId);
+        if (Objects.nonNull(consumer)) {
+            consumer.accept(System.currentTimeMillis());
         }
     }
-    
+
     /**
      * invalidate client.
      *
-     * @param contextPath contextPath
+     * @param selectorId selectorId
      */
-    public void invalidate(final String contextPath) {
-        cache.invalidate(contextPath);
-        listener.remove(contextPath);
-        GrpcClientCache.removeClient(contextPath);
+    public void invalidate(final String selectorId) {
+        grpcUpstreamCachedHandle.get().removeHandle(selectorId);
+        cache.invalidate(selectorId);
+        watchUpstreamListener.remove(selectorId);
+        ruleCachedHandle.get().removeHandle(CacheKeyUtils.INST.getKey(selectorId, Constants.DEFAULT_RULE));
+        GrpcClientCache.removeClient(selectorId);
     }
-    
+
     /**
      * Refresh.
      *
@@ -115,9 +117,9 @@ public final class ApplicationConfigCache {
      * @param consumer consumer
      */
     public void watch(final String key, final Consumer<Object> consumer) {
-        listener.put(key, consumer);
+        watchUpstreamListener.put(key, consumer);
     }
-    
+
     /**
      * Gets instance.
      *
@@ -126,15 +128,48 @@ public final class ApplicationConfigCache {
     public static ApplicationConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
-    
-    private ShenyuServiceInstance build(final GrpcUpstream grpcUpstream) {
-        String[] ipAndPort = grpcUpstream.getUpstreamUrl().split(":");
-        ShenyuServiceInstance instance = new ShenyuServiceInstance(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
-        instance.setWeight(grpcUpstream.getWeight());
-        instance.setStatus(grpcUpstream.isStatus());
-        return instance;
+
+    /**
+     * handlerRule.
+     *
+     * @param ruleDataKey ruleDataKey
+     * @param ruleHandle ruleHandle
+     */
+    public void cacheRuleHandle(final String ruleDataKey, final String ruleHandle) {
+        final String handler = StringUtils.hasText(ruleHandle) ? ruleHandle : "{}";
+        ruleCachedHandle.get().cachedHandle(ruleDataKey, GsonUtils.getInstance().fromJson(handler, GrpcRuleHandle.class));
     }
-    
+
+    /**
+     * getCacheRuleHandle.
+     *
+     * @param ruleDataKey ruleDataKey
+     * @return {@link GrpcRuleHandle}
+     */
+    public GrpcRuleHandle getCacheRuleHandle(final String ruleDataKey) {
+        return ruleCachedHandle.get().obtainHandle(ruleDataKey);
+    }
+
+    /**
+     * removeRuleHandle.
+     *
+     * @param ruleDataKey ruleDataKey
+     */
+    public void removeRuleHandle(final String ruleDataKey) {
+        ruleCachedHandle.get().removeHandle(ruleDataKey);
+    }
+
+    /**
+     * getGrpcUpstreamListCache.
+     *
+     * @param selectorId selectorId
+     * @return {@link List GrpcUpstream}
+     */
+    public List<GrpcUpstream> getGrpcUpstreamListCache(final String selectorId) {
+        return grpcUpstreamCachedHandle.get().obtainHandle(selectorId);
+    }
+
+
     /**
      * The type Application config cache instance.
      */
@@ -143,9 +178,9 @@ public final class ApplicationConfigCache {
          * The Instance.
          */
         static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
-        
+
         private ApplicationConfigCacheInstance() {
-        
+
         }
     }
 }

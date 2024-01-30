@@ -25,10 +25,11 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.6.1-SNAPSHOT</version>
+    <version>2.6.2-SNAPSHOT</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
+        <module>shenyu-admin-listener</module>
         <module>shenyu-common</module>
         <module>shenyu-web</module>
         <module>shenyu-spring-boot-starter</module>
@@ -81,6 +82,7 @@
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <skipTests>false</skipTests>
         <!-- maven plugin version start -->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -88,26 +90,27 @@
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
-        <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
+        <maven-javadoc-plugin.version>3.6.0</maven-javadoc-plugin.version>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
         <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
-        <apache-rat-plugin.version>0.13</apache-rat-plugin.version>
+        <apache-rat-plugin.version>0.15</apache-rat-plugin.version>
         <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
         <frontend-maven-plugin.node.version>v12.14.1</frontend-maven-plugin.node.version>
+        <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
+        <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
+        <maven-assembly-plugin.version>3.5.0</maven-assembly-plugin.version>
         <!-- maven plugin version end -->
 
         <!-- dependency version start -->
         <jasypt.version>1.9.2</jasypt.version>
-        <springfox.version>2.6.1</springfox.version>
         <mybatis.starter.version>2.2.2</mybatis.starter.version>
         <mysql.version>8.0.29</mysql.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
-        <guava.version>31.1-jre</guava.version>
+        <guava.version>32.0.0-jre</guava.version>
         <commons-collections4.version>4.4</commons-collections4.version>
-        <reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
         <disruptor.version>3.4.0</disruptor.version>
         <consul.api.version>1.4.5</consul.api.version>
         <consul.version>2.2.6.RELEASE</consul.version>
@@ -116,24 +119,22 @@
         <kryo.version>4.0.0</kryo.version>
         <pagehelper.version>5.3.3</pagehelper.version>
         <alibaba.dubbo.version>2.6.12</alibaba.dubbo.version>
-        <apache.dubbo.version>3.1.1</apache.dubbo.version>
+        <apache.dubbo.version>3.2.5</apache.dubbo.version>
         <gson.version>2.9.0</gson.version>
         <okhttp.version>4.9.3</okhttp.version>
         <prometheus-java-client.version>0.15.0</prometheus-java-client.version>
         <prometheus-jmx.version>0.15.0</prometheus-jmx.version>
-        <swagger.version>2.9.2</swagger.version>
+        <springdoc.version>1.7.0</springdoc.version>
         <sofa.rpc.version>5.7.6</sofa.rpc.version>
         <tars.version>1.7.2</tars.version>
-        <skipTests>false</skipTests>
-        <undertow.version>2.2.2.Final</undertow.version>
         <curator.version>4.3.0</curator.version>
         <wiremock.version>2.18.0</wiremock.version>
-        <zookeeper.version>3.5.7</zookeeper.version>
+        <zookeeper.version>3.7.2</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
-        <shiro.version>1.8.0</shiro.version>
+        <shiro.version>1.13.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
         <motan.version>1.2.1</motan.version>
-        <spring-boot.version>2.7.13</spring-boot.version>
+        <spring-boot.version>2.7.17</spring-boot.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
         <jetcd-core.version>0.7.3</jetcd-core.version>
@@ -144,7 +145,6 @@
         <nacos-client.version>2.0.4</nacos-client.version>
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
         <grpc.version>1.53.0</grpc.version>
-        <brpc.version>2022.2.0</brpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>
         <pulsar-client.version>2.10.1</pulsar-client.version>
         <lz4-java.version>1.8.0</lz4-java.version>
@@ -152,21 +152,19 @@
         <jackson-databind.version>2.12.3</jackson-databind.version>
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
-        <kafka-clients.version>3.2.0</kafka-clients.version>
+        <kafka-clients.version>3.4.0</kafka-clients.version>
+        <amqp-client.version>5.16.0</amqp-client.version>
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>1.10.17</eureka.version>
         <javatuples.version>1.2</javatuples.version>
         <k8s-client.version>17.0.2</k8s-client.version>
         <polaris.version>1.13.0</polaris.version>
-        <bytebuddy.version>1.12.6</bytebuddy.version>
+        <bytebuddy.version>1.14.11</bytebuddy.version>
         <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
         <jaxb.api.version>2.3.1</jaxb.api.version>
         <mail.version>1.6.2</mail.version>
-        <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
-        <maven-assembly-plugin.version>3.5.0</maven-assembly-plugin.version>
         <ojdbc8.version>19.3.0.0</ojdbc8.version>
         <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>
-        <spring-cloud-netflix-ribbon.version>2.2.10.RELEASE</spring-cloud-netflix-ribbon.version>
         <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
         <spring-cloud.version>3.1.2</spring-cloud.version>
         <log4j-1.2-api.vetsion>2.17.2</log4j-1.2-api.vetsion>
@@ -184,6 +182,7 @@
         <casdoor-java-sdk.version>1.9.0</casdoor-java-sdk.version>
         <huawei-log-sdk.version>1.0.1</huawei-log-sdk.version>
         <opengauss-jdbc.version>5.0.0-og</opengauss-jdbc.version>
+        <wasmtime-java.version>0.19.0</wasmtime-java.version>
         <!-- dependency version end -->
     </properties>
 
@@ -423,15 +422,9 @@
             </dependency>
 
             <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger2</artifactId>
-                <version>${swagger.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger-ui</artifactId>
-                <version>${swagger.version}</version>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-ui</artifactId>
+                <version>${springdoc.version}</version>
             </dependency>
 
             <dependency>
@@ -444,12 +437,6 @@
                 <groupId>com.alibaba.nacos</groupId>
                 <artifactId>nacos-client</artifactId>
                 <version>${nacos-client.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-                <version>${spring-cloud-netflix-ribbon.version}</version>
             </dependency>
 
             <dependency>
@@ -593,6 +580,18 @@
                 <artifactId>client-java-spring-integration</artifactId>
                 <version>${k8s-client.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>${kafka-clients.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.github.kawamuray.wasmtime</groupId>
+                <artifactId>wasmtime-java</artifactId>
+                <version>${wasmtime-java.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -691,6 +690,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
+                    <source>${java.version}</source>
                     <sourcepath>src/main/java</sourcepath>
                     <detectJavaApiLink>false</detectJavaApiLink>
                     <detectOfflineLinks>false</detectOfflineLinks>

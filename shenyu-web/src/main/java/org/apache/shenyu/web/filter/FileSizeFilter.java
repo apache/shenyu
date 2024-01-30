@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.filter;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
@@ -55,8 +56,6 @@ import java.util.function.Function;
 public class FileSizeFilter implements WebFilter {
     private static final Logger LOG = LoggerFactory.getLogger(FileSizeFilter.class);
 
-    private static final int BYTES_PER_MB = 1024 * 1024;
-
     private final int fileMaxSize;
 
     private final List<HttpMessageReader<?>> messageReaders;
@@ -76,11 +75,11 @@ public class FileSizeFilter implements WebFilter {
                     messageReaders);
             return serverRequest.bodyToMono(DataBuffer.class)
                     .flatMap(dataBuffer -> {
-                        if (dataBuffer.capacity() > BYTES_PER_MB * fileMaxSize) {
+                        if (dataBuffer.capacity() > Constants.BYTES_PER_MB * fileMaxSize) {
                             ServerHttpResponse response = exchange.getResponse();
                             response.setStatusCode(HttpStatus.BAD_REQUEST);
                             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.PAYLOAD_TOO_LARGE);
-                            LOG.info("The file size exceeds the limit. The actual size is {}M , response:{}", dataBuffer.capacity() / BYTES_PER_MB, error);
+                            LOG.info("The file size exceeds the limit. The actual size is {}M , response:{}", dataBuffer.capacity() / Constants.BYTES_PER_MB, error);
                             return WebFluxResultUtils.result(exchange, error);
                         }
                         BodyInserter<Mono<DataBuffer>, ReactiveHttpOutputMessage> bodyInsert = BodyInserters.fromPublisher(Mono.just(dataBuffer), DataBuffer.class);

@@ -18,7 +18,8 @@
 package org.apache.shenyu.admin.service.manager;
 
 import java.util.List;
-import org.apache.shenyu.common.dto.SelectorData;
+
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 
 /**
@@ -34,8 +35,8 @@ public interface LoadServiceDocEntry {
     /**
      * pull and save API document on selector changed.
      *
-     * @param changedList changedList
-     * @param eventType   eventType
+     * @param discoverySyncDataList discoverySyncDataList
+     * @param eventType             eventType
      */
-    void loadDocOnSelectorChanged(List<SelectorData> changedList, DataEventTypeEnum eventType);
+    void loadDocOnUpstreamChanged(List<DiscoverySyncData> discoverySyncDataList, DataEventTypeEnum eventType);
 }

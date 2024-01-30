@@ -73,7 +73,7 @@ public class UriUtils {
             return StringUtils.EMPTY;
         }
         String params = StringUtils.isEmpty(uri.getQuery()) ? "" : "?" + uri.getQuery();
-        return uri.getPath() + params;
+        return uri.getRawPath() + params;
     }
 
     /**

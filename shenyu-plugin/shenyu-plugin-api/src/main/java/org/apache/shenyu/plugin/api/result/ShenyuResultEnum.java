@@ -113,11 +113,6 @@ public enum ShenyuResultEnum {
     MOTAN_HAVE_BODY_PARAM(437, "Motan must have body param, please enter the JSON format in the body!"),
     
     /**
-     * Brpc have body param shenyu result enum.
-     */
-    BRPC_HAVE_BODY_PARAM(438, "Brpc must have body param, please enter the JSON format in the body!"),
-    
-    /**
      * full selector type enum.
      */
     PARAM_ERROR(-100, "Your parameter error, please check the relevant documentation!"),
@@ -240,7 +235,12 @@ public enum ShenyuResultEnum {
     /**
      * Key is incorrect.
      */
-    ERROR_KEY(401, "Key is incorrect");
+    ERROR_KEY(401, "Key is incorrect"),
+    
+    /**
+     * WASM function not found.
+     */
+    WASM_FUNC_NOT_FOUND(533, "WASM function not found");
 
     /**
      * the code.

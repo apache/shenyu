@@ -25,9 +25,9 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.common.utils.ThreadUtils;
 import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +48,7 @@ import static org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensi
 /**
  * abstract log collector,Contains common methods.
  */
-public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?, L>, L extends ShenyuRequestLog>
+public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?, L>, L extends ShenyuRequestLog, C extends GenericGlobalConfig>
         implements LogCollector<L> {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLogCollector.class);
@@ -63,7 +63,7 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
 
     @Override
     public void start() {
-        bufferSize = LogCollectConfigUtils.getGenericGlobalConfig().getBufferQueueSize();
+        bufferSize = getLogCollectConfig().getBufferQueueSize();
         bufferQueue = new LinkedBlockingDeque<>(bufferSize);
         ShenyuConfig config = Optional.ofNullable(Singleton.INST.get(ShenyuConfig.class)).orElse(new ShenyuConfig());
         final ShenyuConfig.SharedPool sharedPool = config.getSharedPool();
@@ -159,10 +159,17 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     protected abstract T getLogConsumeClient();
 
     /**
+     * get log collect config.
+     *
+     * @return log collect config
+     */
+    protected abstract C getLogCollectConfig();
+
+    /**
      * desensitize log.
      *
-     * @param log log
-     * @param keyWordMatch keyWordMathc
+     * @param log            log
+     * @param keyWordMatch   keyWordMathc
      * @param desensitizeAlg data desensitize algorithm
      */
     protected abstract void desensitizeLog(L log, KeyWordMatch keyWordMatch, String desensitizeAlg);

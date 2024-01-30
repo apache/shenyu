@@ -17,13 +17,16 @@
 
 package org.apache.shenyu.plugin.grpc.handler;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.GrpcRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
 
@@ -51,19 +54,31 @@ public class GrpcPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerSelector(final SelectorData selectorData) {
-        if (Objects.isNull(selectorData.getName())) {
+        if (Objects.isNull(selectorData.getId())) {
             return;
         }
-        GrpcClientCache.initGrpcClient(selectorData.getName());
-        ApplicationConfigCache.getInstance().initPrx(selectorData);
+        if (!selectorData.getContinued()) {
+            ApplicationConfigCache.getInstance().cacheRuleHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), "{}");
+        }
+        GrpcClientCache.initGrpcClient(selectorData.getId());
     }
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
-        if (Objects.isNull(selectorData.getName())) {
+        if (Objects.isNull(selectorData.getId())) {
             return;
         }
-        ApplicationConfigCache.getInstance().invalidate(selectorData.getName());
+        ApplicationConfigCache.getInstance().invalidate(selectorData.getId());
+    }
+
+    @Override
+    public void handlerRule(final RuleData ruleData) {
+        ApplicationConfigCache.getInstance().cacheRuleHandle(ruleData.getId(), ruleData.getHandle());
+    }
+
+    @Override
+    public void removeRule(final RuleData ruleData) {
+        ApplicationConfigCache.getInstance().removeRuleHandle(ruleData.getId());
     }
 
     @Override

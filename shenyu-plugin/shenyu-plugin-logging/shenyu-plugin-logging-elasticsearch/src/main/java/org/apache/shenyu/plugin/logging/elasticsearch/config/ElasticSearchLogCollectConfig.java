@@ -68,6 +68,24 @@ public class ElasticSearchLogCollectConfig {
 
         private String compressAlg;
 
+        private String indexName;
+
+        /**
+         * getIndexName.
+         * @return indexName
+         */
+        public String getIndexName() {
+            return indexName;
+        }
+
+        /**
+         * setIndexName.
+         * @param indexName indexName
+         */
+        public void setIndeName(final String indexName) {
+            this.indexName = indexName;
+        }
+
         /**
          * whether compress.
          *
@@ -189,8 +207,9 @@ public class ElasticSearchLogCollectConfig {
                     && Objects.equals(getPort(), that.getPort())
                     && Objects.equals(getSampleRate(), that.getSampleRate())
                     && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
-                    && Objects.equals(getMaxResponseBody(), that.getMaxRequestBody())
-                    && Objects.equals(getMaxRequestBody(), that.getMaxResponseBody());
+                    && Objects.equals(getMaxRequestBody(), that.getMaxRequestBody())
+                    && Objects.equals(getMaxResponseBody(), that.getMaxResponseBody())
+                    && Objects.equals(getIndexName(), that.getIndexName());
         }
 
         @Override

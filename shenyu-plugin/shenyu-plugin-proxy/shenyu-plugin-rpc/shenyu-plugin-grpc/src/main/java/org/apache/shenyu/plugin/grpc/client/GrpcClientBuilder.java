@@ -32,6 +32,7 @@ import org.apache.shenyu.plugin.grpc.intercept.ContextClientInterceptor;
 import org.apache.shenyu.plugin.grpc.loadbalance.LoadBalancerStrategy;
 import org.apache.shenyu.plugin.grpc.loadbalance.RandomLoadBalancerProvider;
 import org.apache.shenyu.plugin.grpc.loadbalance.RoundRobinLoadBalancerProvider;
+import org.apache.shenyu.plugin.grpc.loadbalance.ShenyuLoadBalancerProvider;
 import org.apache.shenyu.plugin.grpc.resolver.ShenyuNameResolverProvider;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
@@ -47,6 +48,7 @@ public final class GrpcClientBuilder {
     static {
         LoadBalancerRegistry.getDefaultRegistry().register(new RandomLoadBalancerProvider());
         LoadBalancerRegistry.getDefaultRegistry().register(new RoundRobinLoadBalancerProvider());
+        LoadBalancerRegistry.getDefaultRegistry().register(new ShenyuLoadBalancerProvider());
         NameResolverRegistry.getDefaultRegistry().register(new ShenyuNameResolverProvider());
     }
 
@@ -56,16 +58,16 @@ public final class GrpcClientBuilder {
     /**
      * Build the client.
      *
-     * @param contextPath contextPath
+     * @param selectorId selectorId
      * @return ShenyuGrpcClient  shenyuGrpcClient
      */
-    public static ShenyuGrpcClient buildClient(final String contextPath) {
-        URI url = URI.create(PluginEnum.GRPC.getName() + "://" + contextPath);
+    public static ShenyuGrpcClient buildClient(final String selectorId) {
+        URI url = URI.create(PluginEnum.GRPC.getName() + "://" + selectorId);
         ManagedChannelBuilder<?> builder = ManagedChannelBuilder.forTarget(url.toString())
                 .intercept(new ContextClientInterceptor())
-                .defaultLoadBalancingPolicy(LoadBalancerStrategy.RANDOM.getStrategy())
+                .defaultLoadBalancingPolicy(LoadBalancerStrategy.SHENYU.getStrategy())
                 .usePlaintext()
-                .maxInboundMessageSize(100 * 1024 * 1024)
+                .maxInboundMessageSize(100 * Constants.BYTES_PER_MB)
                 .executor(buildExecutor())
                 .disableRetry();
         ManagedChannel channel = builder.build();

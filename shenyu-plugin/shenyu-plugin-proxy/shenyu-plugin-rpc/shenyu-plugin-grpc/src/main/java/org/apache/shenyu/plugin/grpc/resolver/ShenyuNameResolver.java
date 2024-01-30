@@ -20,21 +20,22 @@ package org.apache.shenyu.plugin.grpc.resolver;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import io.grpc.Attributes;
+import io.grpc.EquivalentAddressGroup;
 import io.grpc.NameResolver;
 import io.grpc.Status;
-import io.grpc.EquivalentAddressGroup;
 import io.grpc.SynchronizationContext;
 import io.grpc.internal.SharedResourceHolder;
-import java.util.Collections;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.plugin.grpc.loadbalance.GrpcAttributeUtils;
+import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.grpc.loadbalance.GrpcAttributeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -59,7 +60,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
 
     private final SynchronizationContext syncContext;
 
-    private List<ShenyuServiceInstance> instanceList = Lists.newArrayList();
+    private List<GrpcUpstream> instanceList = Lists.newArrayList();
 
     private final SharedResourceHolder.Resource<Executor> executorResource;
 
@@ -124,16 +125,16 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
 
         private final Listener2 savedListener;
 
-        private final List<ShenyuServiceInstance> savedInstanceList;
+        private final List<GrpcUpstream> savedInstanceList;
 
-        Resolve(final Listener2 listener, final List<ShenyuServiceInstance> instanceList) {
+        Resolve(final Listener2 listener, final List<GrpcUpstream> instanceList) {
             this.savedListener = Objects.requireNonNull(listener, "listener");
             this.savedInstanceList = Objects.requireNonNull(instanceList, "instanceList");
         }
 
         @Override
         public void run() {
-            final AtomicReference<List<ShenyuServiceInstance>> resultContainer = new AtomicReference<>();
+            final AtomicReference<List<GrpcUpstream>> resultContainer = new AtomicReference<>();
             try {
                 resultContainer.set(resolveInternal());
             } catch (final Exception e) {
@@ -143,7 +144,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
             } finally {
                 ShenyuNameResolver.this.syncContext.execute(() -> {
                     ShenyuNameResolver.this.resolving = false;
-                    final List<ShenyuServiceInstance> newInstanceList = resultContainer.get();
+                    final List<GrpcUpstream> newInstanceList = resultContainer.get();
                     if (Objects.nonNull(newInstanceList) && ShenyuNameResolver.this.listener != null) {
                         ShenyuNameResolver.this.instanceList = newInstanceList;
                     }
@@ -151,27 +152,26 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
             }
         }
 
-        private List<ShenyuServiceInstance> resolveInternal() {
+        private List<GrpcUpstream> resolveInternal() {
             final String name = ShenyuNameResolver.this.appName;
-            ShenyuServiceInstanceLists shenyuServiceInstanceLists = ApplicationConfigCache.getInstance().get(name);
-            List<ShenyuServiceInstance> newInstanceList = shenyuServiceInstanceLists.getCopyInstances();
-            LOG.info("Got {} candidate servers for {}", newInstanceList.size(), name);
+            List<GrpcUpstream> grpcUpstreamList = Optional.ofNullable(ApplicationConfigCache.getInstance().getGrpcUpstreamListCache(name)).orElse(Collections.emptyList());
+            LOG.info("Got {} candidate servers for {}", grpcUpstreamList.size(), name);
 
-            if (CollectionUtils.isEmpty(newInstanceList)) {
+            if (CollectionUtils.isEmpty(grpcUpstreamList)) {
                 LOG.info("No servers found for {}", name);
                 this.savedListener.onError(Status.UNAVAILABLE.withDescription("No servers found for " + name));
                 return Lists.newArrayList();
             }
 
-            if (!needsToUpdateConnections(newInstanceList)) {
+            if (!needsToUpdateConnections(grpcUpstreamList)) {
                 LOG.info("Nothing has changed... skipping update for {}", name);
                 return Collections.emptyList();
             }
 
             LOG.info("Ready to update server list for {}", name);
-            final List<EquivalentAddressGroup> targets = newInstanceList.stream()
+            final List<EquivalentAddressGroup> targets = grpcUpstreamList.stream()
                     .map(instance -> {
-                        LOG.info("Found gRPC server {}:{} for {}", instance.getHost(), instance.getPort(), name);
+                        LOG.info("Found gRPC server {} for {}", instance.getUpstreamUrl(), name);
                         return ShenyuResolverHelper.convertToEquivalentAddressGroup(instance);
                     }).collect(Collectors.toList());
 
@@ -181,38 +181,14 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
                     .build());
             LOG.info("Done updating server list for {}", name);
 
-            return newInstanceList;
+            return grpcUpstreamList;
         }
 
-        private boolean needsToUpdateConnections(final List<ShenyuServiceInstance> newInstanceList) {
+        private boolean needsToUpdateConnections(final List<GrpcUpstream> newInstanceList) {
             if (!Objects.equals(this.savedInstanceList.size(), newInstanceList.size())) {
                 return true;
             }
-
-            for (final ShenyuServiceInstance instance : this.savedInstanceList) {
-                final String host = instance.getHost();
-                final int port = instance.getPort();
-                boolean isSame = newInstanceList.stream().anyMatch(newInstance -> host.equals(newInstance.getHost())
-                        && port == newInstance.getPort()
-                        && isMetadataEquals(instance.getMetadata(), newInstance.getMetadata()));
-                if (!isSame) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private boolean isMetadataEquals(final Map<String, String> metadata,
-                                         final Map<String, String> newMetadata) {
-            final String[] keys = {"weight", "status"};
-            for (String key : keys) {
-                final String value = metadata.get(key);
-                final String newValue = newMetadata.get(key);
-                if (!Objects.equals(value, newValue)) {
-                    return false;
-                }
-            }
-            return true;
+            return this.savedInstanceList.stream().anyMatch(instance -> !newInstanceList.contains(instance));
         }
     }
 }

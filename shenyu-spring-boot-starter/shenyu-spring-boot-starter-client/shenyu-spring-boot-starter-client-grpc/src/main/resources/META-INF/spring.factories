@@ -16,4 +16,5 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.springboot.starter.client.grpc.ShenyuGrpcClientConfiguration
+org.apache.springboot.starter.client.grpc.ShenyuGrpcClientConfiguration,\
+org.apache.springboot.starter.client.grpc.ShenyuGrpcDiscoveryConfiguration

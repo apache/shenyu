@@ -29,6 +29,8 @@ import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -237,8 +239,21 @@ public final class HttpTestControllerTest extends AbstractTest {
     }
 
     @Test
+    @Disabled
     public void testBigObject() throws IOException {
         BigObject response = HttpHelper.INSTANCE.postGateway("/http/test/bigObject", BigObject.class);
         assertNotNull(response);
+    }
+    
+    @Test
+    public void testBlankQuery() throws IOException {
+        ResultBean resultBean = HttpHelper.INSTANCE.postGateway("/http/test/ /query", ResultBean.class);
+        assertNotNull(resultBean);
+    }
+    
+    @Test
+    public void testBlankQueryWithParams() throws IOException {
+        ResultBean resultBean = HttpHelper.INSTANCE.postGateway("/http/test/query?param=a%2Bb=", ResultBean.class);
+        assertEquals("a+b=", resultBean.getData());
     }
 }

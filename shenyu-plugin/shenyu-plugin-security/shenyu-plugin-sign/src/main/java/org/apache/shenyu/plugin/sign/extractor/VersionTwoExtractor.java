@@ -26,6 +26,7 @@ import org.springframework.http.HttpRequest;
 
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.apache.shenyu.plugin.sign.extractor.DefaultExtractor.VERSION_2;
 
@@ -34,7 +35,9 @@ public class VersionTwoExtractor implements SignParameterExtractor {
     @Override
     public SignParameters extract(final HttpRequest httpRequest) {
 
-        String token = httpRequest.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        // use ShenYu-Authorization to avoid conflict with another Authorization
+        String token = Optional.ofNullable(httpRequest.getHeaders().getFirst(Constants.SHENYU_AUTHORIZATION))
+                .orElseGet(() -> getDefaultToken(httpRequest));
 
         if (StringUtils.isEmpty(token) || !token.contains(".")) {
             return new SignParameters();
@@ -56,4 +59,9 @@ public class VersionTwoExtractor implements SignParameterExtractor {
 
         return signParameters;
     }
+    
+    private String getDefaultToken(final HttpRequest httpRequest) {
+        return httpRequest.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+    }
+    
 }

@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.manager.impl;
 
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -28,6 +29,7 @@ import javax.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.http.HttpStatus;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.entity.TagDO;
@@ -41,6 +43,15 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import javax.annotation.Resource;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * ServiceDocManagerImpl.
@@ -89,8 +100,15 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
         TagDO.TagExt tagExt = tagVO.getTagExt();
         long newRefreshTime = System.currentTimeMillis();
         String url = getSwaggerRequestUrl(instance);
-        try {
-            String body = HTTP_UTILS.get(url, Collections.EMPTY_MAP);
+        try (Response response = HTTP_UTILS.requestForResponse(url, Collections.EMPTY_MAP, Collections.EMPTY_MAP, HttpUtils.HTTPMethod.GET)) {
+            if (response.code() == HttpStatus.SC_NOT_FOUND) {
+                LOG.warn("add api document not found. clusterName={} url={}", instance.getClusterName(), url);
+                return;
+            }
+            if (response.code() != HttpStatus.SC_OK) {
+                throw new IOException(response.toString());
+            }
+            final String body = response.body().string();
             docManager.addDocInfo(
                 instance,
                 body,
@@ -164,8 +182,13 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
     }
 
     private String getSwaggerRequestUrl(final UpstreamInstance instance) {
-        return "http://" + instance.getIp() + ":" + instance.getPort() + SWAGGER_V2_PATH;
-
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance();
+        uriComponentsBuilder.scheme("http");
+        uriComponentsBuilder.host(instance.getIp());
+        uriComponentsBuilder.port(instance.getPort());
+        uriComponentsBuilder.path(Optional.ofNullable(instance.getContextPath()).orElse(""));
+        uriComponentsBuilder.path(SWAGGER_V2_PATH);
+        return uriComponentsBuilder.build().toUriString();
     }
 
 }

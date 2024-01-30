@@ -22,9 +22,9 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -64,21 +64,33 @@ public class PluginJarParser {
                 }
                 if (!jarEntry.isDirectory() && entryName.endsWith(".class") && !entryName.contains("$")) {
                     String className = jarEntry.getName().substring(0, entryName.length() - 6).replaceAll("/", ".");
-                    try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
-                        int data;
-                        while ((data = jarInputStream.read()) != -1) {
-                            buffer.write(data);
-                        }
-                        buffer.flush();
-                        byte[] classByteArray = buffer.toByteArray();
-                        pluginJar.clazzMap.put(className, classByteArray);
-                    }
+                    pluginJar.clazzMap.put(className, getClassByteArray(jarInputStream));
+                } else {
+                    pluginJar.resourceMap.put(jarEntry.getName(), getClassByteArray(jarInputStream));
                 }
             }
         } catch (IOException e) {
             throw new ShenyuException("load jar classes find error");
         }
         return pluginJar;
+    }
+
+    /**
+     * getClassByteArray.
+     * @param jarInputStream jarInputStream
+     * @return class byte[]
+     */
+    private static byte[] getClassByteArray(final JarInputStream jarInputStream) {
+        try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+            int data;
+            while ((data = jarInputStream.read()) != -1) {
+                buffer.write(data);
+            }
+            buffer.flush();
+            return buffer.toByteArray();
+        } catch (IOException e) {
+            throw new ShenyuException("load jar classes find error");
+        }
     }
 
     public static class PluginJar {
@@ -91,7 +103,9 @@ public class PluginJarParser {
 
         private String version;
 
-        private Map<String, byte[]> clazzMap = new HashMap<>();
+        private Map<String, byte[]> clazzMap = new ConcurrentHashMap<>();
+
+        private Map<String, byte[]> resourceMap = new ConcurrentHashMap<>();
 
         /**
          * getAbsolutePath.
@@ -190,6 +204,22 @@ public class PluginJarParser {
          */
         public String getJarKey() {
             return String.format("%s:%s", groupId, artifactId);
+        }
+
+        /**
+         * getResourceMap.
+         * @return resource byte
+         */
+        public Map<String, byte[]> getResourceMap() {
+            return resourceMap;
+        }
+
+        /**
+         * setResourceMap.
+         * @param resourceMap resourceMap.
+         */
+        public void setResourceMap(final Map<String, byte[]> resourceMap) {
+            this.resourceMap = resourceMap;
         }
     }
 

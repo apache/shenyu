@@ -18,11 +18,14 @@
 package org.apache.shenyu.springboot.plugin.websocket;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.websocket.WebSocketPlugin;
 import org.apache.shenyu.plugin.websocket.context.WebSocketShenyuContextDecorator;
 import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
+import org.apache.shenyu.plugin.websocket.handler.WebSocketUpstreamDataHandler;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -76,7 +79,8 @@ public class WebSocketPluginConfiguration {
     public ReactorNettyWebSocketClient reactorNettyWebSocketClient(final ShenyuConfig shenyuConfig,
                                                                    final ObjectProvider<HttpClient> httpClient) {
         Supplier<WebsocketClientSpec.Builder> builder = WebsocketClientSpec.builder()
-                .maxFramePayloadLength(shenyuConfig.getWebsocket().getMaxFramePayloadSize() * 1024 * 1024);
+                .maxFramePayloadLength(shenyuConfig.getWebsocket().getMaxFramePayloadSize() * Constants.BYTES_PER_MB)
+                .handlePing(shenyuConfig.getWebsocket().getEnableProxyPing());
         return new ReactorNettyWebSocketClient(httpClient.getIfAvailable(HttpClient::create), builder);
     }
 
@@ -88,6 +92,16 @@ public class WebSocketPluginConfiguration {
     @Bean
     public WebSocketService webSocketService() {
         return new HandshakeWebSocketService();
+    }
+
+    /**
+     * websocket discovery upstream data handler.
+     *
+     * @return the websocket upstream data handler
+     */
+    @Bean
+    public DiscoveryUpstreamDataHandler webSocketUpstreamDataHandler() {
+        return new WebSocketUpstreamDataHandler();
     }
 
     /**

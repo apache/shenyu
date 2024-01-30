@@ -136,6 +136,9 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         }
         // copy new list
         List<ShenyuPlugin> newPluginList = new ArrayList<>(plugins);
+        
+        // Add extend plugin from pluginData or shenyu ext-lib
+        this.sourcePlugins.addAll(shenyuAddPlugins);
 
         if (CollectionUtils.isNotEmpty(shenyuAddPlugins)) {
             shenyuAddPlugins.forEach(plugin -> LOG.info("shenyu auto add extends plugins:{}", plugin.named()));
@@ -147,6 +150,11 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 for (int i = 0; i < newPluginList.size(); i++) {
                     if (newPluginList.get(i).named().equals(updatePlugin.named())) {
                         newPluginList.set(i, updatePlugin);
+                    }
+                }
+                for (int i = 0; i < this.sourcePlugins.size(); i++) {
+                    if (this.sourcePlugins.get(i).named().equals(updatePlugin.named())) {
+                        this.sourcePlugins.set(i, updatePlugin);
                     }
                 }
             }
@@ -205,7 +213,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
         if (StringUtils.isNoneBlank(pluginData.getPluginJar())) {
             LOG.info("shenyu start load plugin [{}] from upload plugin jar", pluginData.getName());
-            shenyuLoaderService.loadUploadedJarPlugins(pluginData);
+            shenyuLoaderService.loadExtOrUploadPlugins(pluginData);
         }
         final List<ShenyuPlugin> enabledPlugins = this.sourcePlugins.stream().filter(plugin -> plugin.named().equals(pluginData.getName())
                 && pluginData.getEnabled()).collect(Collectors.toList());

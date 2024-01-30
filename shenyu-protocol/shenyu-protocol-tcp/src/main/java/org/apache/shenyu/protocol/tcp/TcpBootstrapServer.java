@@ -94,7 +94,7 @@ public class TcpBootstrapServer implements BootstrapServer {
             throw new NullPointerException("remoteAddress is null");
         }
         String address = socketAddress.toString();
-        return address.substring(2, address.indexOf(':'));
+        return address.substring(1, address.indexOf(':'));
     }
 
     /**

@@ -18,11 +18,17 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
@@ -31,6 +37,8 @@ import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
@@ -75,6 +83,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
 
 /**
  * Test cases for SelectorService.
@@ -105,12 +114,41 @@ public final class SelectorServiceTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
+    private DiscoveryMapper discoveryMapper;
+
+    @Mock
+    private DiscoveryHandlerMapper discoveryHandlerMapper;
+
+    @Mock
+    private DiscoveryRelMapper discoveryRelMapper;
+
+    @Mock
+    private DiscoveryUpstreamMapper discoveryUpstreamMapper;
+
+    @Mock
+    private DiscoveryProcessorHolder discoveryProcessorHolder;
+
+    @Mock
+    private DiscoveryProcessor discoveryProcessor;
+
+    @Mock
     private SelectorEventPublisher selectorEventPublisher;
 
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
-        selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper, eventPublisher, selectorEventPublisher);
+        when(discoveryRelMapper.deleteByDiscoveryHandlerId(anyString())).thenReturn(1);
+        DiscoveryDO discoveryDO = new DiscoveryDO();
+        discoveryDO.setId("1");
+        discoveryDO.setType("local");
+        when(discoveryMapper.selectById(anyString())).thenReturn(discoveryDO);
+        DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
+        discoveryHandlerDO.setDiscoveryId("1");
+        when(discoveryHandlerMapper.selectBySelectorId(anyString())).thenReturn(discoveryHandlerDO);
+        doNothing().when(discoveryProcessor).removeDiscovery(any(DiscoveryDO.class));
+        when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+        selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper, eventPublisher, discoveryMapper, discoveryHandlerMapper, discoveryRelMapper,
+                discoveryUpstreamMapper, discoveryProcessorHolder, selectorEventPublisher);
     }
 
     @Test
@@ -166,7 +204,7 @@ public final class SelectorServiceTest {
         List<SelectorConditionVO> selectorConditions = selectorVO.getSelectorConditions();
         selectorConditions.forEach(selectorConditionVO -> assertEquals(selectorConditionVO.getSelectorId(), selectorDO.getId()));
     }
-    
+
     @Test
     public void testFindByName() {
         List<SelectorDO> selectorDO1List = Collections.singletonList(buildSelectorDO());

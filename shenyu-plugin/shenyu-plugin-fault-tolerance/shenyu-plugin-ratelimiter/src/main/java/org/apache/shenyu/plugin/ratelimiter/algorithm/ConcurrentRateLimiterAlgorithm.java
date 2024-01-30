@@ -47,14 +47,15 @@ public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm
 
     @Override
     public List<String> getKeys(final String id) {
-        String tokenKey = getKeyName() + ".{" + id + "}.tokens";
-        String requestKey = UUIDUtils.getInstance().generateShortUuid();
+        String hashKeyPart = ".{" + id + "}";
+        String tokenKey = getKeyName() + hashKeyPart + ".tokens";
+        String requestKey = UUIDUtils.getInstance().generateShortUuid() + hashKeyPart + ".request";
         return Arrays.asList(tokenKey, requestKey);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public void callback(final RedisScript<?> script, final List<String> keys, final List<String> scriptArgs) {
+    public void callback(final RedisScript<?> script, final List<String> keys, final List<?> scriptArgs) {
         Singleton.INST.get(ReactiveRedisTemplate.class).opsForZSet().remove(keys.get(0), keys.get(1)).subscribe();
     }
 }

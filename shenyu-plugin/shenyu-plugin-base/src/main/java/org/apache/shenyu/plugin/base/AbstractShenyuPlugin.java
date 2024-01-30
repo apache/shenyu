@@ -70,7 +70,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private ShenyuConfig.RuleMatchCache ruleMatchConfig;
 
     /**
-     * this is Template Method child has Implement your own logic.
+     * this is Template Method child has implements your own logic.
      *
      * @param exchange exchange the current server exchange {@linkplain ServerWebExchange}
      * @param chain chain the current chain  {@linkplain ServerWebExchange}
@@ -97,7 +97,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (Objects.isNull(pluginData) || !pluginData.getEnabled()) {
             return chain.execute(exchange);
         }
-        final String path = exchange.getRequest().getURI().getPath();
+        final String path = exchange.getRequest().getURI().getRawPath();
         List<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
         if (CollectionUtils.isEmpty(selectors)) {
             return handleSelectorIfNull(pluginName, exchange, chain);

@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.6.1-SNAPSHOT</version>
+        <version>2.6.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-discovery</artifactId>
@@ -29,6 +29,9 @@
     <modules>
         <module>shenyu-discovery-api</module>
         <module>shenyu-discovery-zookeeper</module>
+        <module>shenyu-discovery-etcd</module>
+        <module>shenyu-discovery-nacos</module>
+        <module>shenyu-discovery-eureka</module>
     </modules>
 
 </project>
