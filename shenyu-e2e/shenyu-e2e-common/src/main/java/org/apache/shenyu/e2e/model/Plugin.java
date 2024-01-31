@@ -71,7 +71,13 @@ public enum Plugin {
     LOGGING_TENCENT_CLS("loggingTencentCls", 36),
     LOGGING_PULSAR("loggingPulsar", 35),
     LOGGING_CLICK_HOUSE("loggingClickHouse", 38),
-    BRPC("brpc", 41);
+    BRPC("brpc", 41),
+    CASDOOR("casdoor", 39),
+    KEY_AUTH("keyAuth", 40),
+    BASIC_AUTH("basicAuth", 44),
+    LOGGING_RABBIT_M_Q("loggingRabbitMQ", 45),
+    LOGGING_HUAWEI_LTS("loggingHuaweiLts", 43);
+
 
     private static final Logger log = LoggerFactory.getLogger(Plugin.class);
     private final String id;

@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rocketmq
+spec:
+  selector:
+    matchLabels:
+      app: rocketmq
+  serviceName: rocketmq-headless
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: rocketmq
+    spec:
+      containers:
+        - name: namesrv
+          image: rocketmqinc/rocketmq:4.9.3
+          command: [ "sh", "-c", "cd /opt/rocketmq/bin/ && sh mqnamesrv" ]
+          ports:
+            - containerPort: 9876
+              name: namesrv
+        - name: broker
+          image: rocketmqinc/rocketmq:4.9.3
+          command: [ "sh", "-c", "cd /opt/rocketmq/bin/ && sh mqbroker" ]
+          ports:
+            - containerPort: 10909
+              name: broker
+            - containerPort: 10911
+              name: broker-tcp
+  volumeClaimTemplates:
+    - metadata:
+        name: rocketmq-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocketmq-headless
+spec:
+  clusterIP: None
+  selector:
+    app: rocketmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocketmq
+spec:
+  ports:
+    - port: 9876
+      targetPort: 9876
+      protocol: TCP
+      name: namesrv
+    - port: 10909
+      targetPort: 10909
+      protocol: TCP
+      name: broker
+    - port: 10911
+      targetPort: 10911
+      protocol: TCP
+      name: broker-tcp
+  selector:
+    app: rocketmq
+

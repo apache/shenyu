@@ -71,7 +71,7 @@ public class DividePluginTest {
     @BeforeEach
     void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
         spec.getChecker().check(gateway);
-        
+
         ResourcesData resources = spec.getResources();
         for (Resource res : resources.getResources()) {
             SelectorDTO dto = client.create(res.getSelector());
@@ -89,7 +89,7 @@ public class DividePluginTest {
 
         spec.getWaiting().waitFor(gateway);
     }
-    
+
     @AfterEach
     void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
         spec.getDeleter().delete(client, selectorIds);
