@@ -22,6 +22,8 @@ import org.apache.shenyu.spi.Join;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -51,14 +53,21 @@ public class PeakEWMALoadBalancer extends AbstractLoadBalancer {
 
     private static final double DECAY_TIME = 600;
 
+    private Map<Upstream, Metric> upstreamMetricMap = new ConcurrentHashMap<>();
+
     @Override
     protected Upstream doSelect(List<Upstream> upstreamList, String ip) {
         double minResponse = Double.MAX_VALUE;
 
         List<Integer> selectInvokerIndexList = new ArrayList<>(upstreamList.size());
-
+        Metric metric;
         for (int i = 0; i < upstreamList.size(); i++) {
-            Metric metric = new Metric(upstreamList.get(i));
+            if (upstreamMetricMap.containsKey(upstreamList.get(i))) {
+                metric = upstreamMetricMap.get(upstreamList.get(i));
+            } else {
+                metric = new Metric(upstreamList.get(i));
+                upstreamMetricMap.put(upstreamList.get(i), metric);
+            }
             double estimateResponse = metric.getCost();
 
             if (estimateResponse < minResponse) {
@@ -87,10 +96,6 @@ public class PeakEWMALoadBalancer extends AbstractLoadBalancer {
 
         private Upstream upstream;
 
-        private long invokeOffset;
-
-        private long invokeElapsedOffset;
-
         //lock for get and set cost
         ReentrantLock ewmaLock = new ReentrantLock();
 
@@ -98,20 +103,16 @@ public class PeakEWMALoadBalancer extends AbstractLoadBalancer {
             this.upstream = upstream;
             this.lastUpdateTime = System.currentTimeMillis();
             this.cost = 0.0;
-            this.invokeOffset = 0;
-            this.invokeElapsedOffset = 0;
         }
 
         private void observe() {
             double rtt = 0;
-            long succeed = this.upstream.getSucceeded().get() - this.invokeOffset;
-            if (succeed != 0) {
-                rtt = (this.upstream.getSucceededElapsed().get() * 1.0 - this.invokeElapsedOffset) / succeed;
-            }
+
+            rtt = Math.max(this.upstream.getResponseStamp() - this.upstream.getLastPicked(), rtt);
 
             final long currentTime = System.currentTimeMillis();
             long td = Math.max(currentTime - lastUpdateTime, 0);
-            double w = Math.exp( -td / DECAY_TIME);
+            double w = Math.exp(-td / DECAY_TIME);
             if (rtt > cost) {
                 cost = rtt;
             } else {
@@ -120,8 +121,6 @@ public class PeakEWMALoadBalancer extends AbstractLoadBalancer {
 
             lastUpdateTime = currentTime;
 
-//            invokeOffset = upstream.getTotal();
-//            invokeElapsedOffset = upstream.getTotalElapsed();
 
         }
 
@@ -142,6 +141,5 @@ public class PeakEWMALoadBalancer extends AbstractLoadBalancer {
         }
 
     }
-
 
 }
