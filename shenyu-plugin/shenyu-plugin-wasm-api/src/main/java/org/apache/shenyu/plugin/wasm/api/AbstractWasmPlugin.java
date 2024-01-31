@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.wasm.base;
+package org.apache.shenyu.plugin.wasm.api;
 
 import io.github.kawamuray.wasmtime.Extern;
 import io.github.kawamuray.wasmtime.WasmFunctions;
@@ -25,6 +25,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.wasm.api.loader.WasmLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -41,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @see org.apache.shenyu.plugin.api.ShenyuPlugin
  * @see io.github.kawamuray.wasmtime.WasmValType
- * @see org.apache.shenyu.plugin.wasm.base.WasmLoader
+ * @see WasmLoader
  */
 public abstract class AbstractWasmPlugin extends WasmLoader implements ShenyuPlugin {
     
