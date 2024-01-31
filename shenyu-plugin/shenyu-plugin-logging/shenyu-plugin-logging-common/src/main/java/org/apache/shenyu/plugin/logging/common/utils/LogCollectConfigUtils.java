@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.logging.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.sampler.CountSampler;
@@ -26,7 +27,6 @@ import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * log collect config Utils.
@@ -103,9 +103,16 @@ public final class LogCollectConfigUtils {
      * @return whether sample
      */
     public static boolean isSampled(final ServerWebExchange exchange, final SelectorData selectorData) {
-        return Optional.ofNullable(AbstractLogPluginDataHandler.getSelectApiConfigMap().get(selectorData.getId()))
-                .map(config -> config.getSampler().isSampled(exchange, selectorData))
-                .orElseGet(() -> Optional.ofNullable(AbstractLogPluginDataHandler.getPluginGlobalConfigMap().get(selectorData.getPluginId()))
-                        .map(config -> config.getSampler().isSampled(exchange, selectorData)).orElse(true));
+        GenericApiConfig apiConfig = AbstractLogPluginDataHandler.getSelectApiConfigMap().get(selectorData.getId());
+        if (apiConfig != null && apiConfig.getSampler() != null) {
+            return apiConfig.getSampler().isSampled(exchange, selectorData);
+        } else {
+            GenericGlobalConfig globalConfig = AbstractLogPluginDataHandler.getPluginGlobalConfigMap().get(selectorData.getPluginId());
+            if (globalConfig != null && globalConfig.getSampler() != null) {
+                return globalConfig.getSampler().isSampled(exchange, selectorData);
+            } else {
+                return true;
+            }
+        }
     }
 }
