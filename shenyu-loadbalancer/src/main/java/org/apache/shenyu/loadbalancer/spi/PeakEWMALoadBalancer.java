@@ -18,6 +18,7 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.spi.Join;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,13 +42,14 @@ import java.util.concurrent.locks.ReentrantLock;
  * /dubbo-cluster-extensions/dubbo-cluster-loadbalance-peakewma/src/main/java/org/apache
  * /dubbo/rpc/cluster/loadbalance/PeakEwmaLoadBalance.java#L46
  */
+@Join
 public class PeakEWMALoadBalancer extends AbstractLoadBalancer {
 
     private static final double PENALTY = Long.MAX_VALUE >> 16;
 
     private static final double ZERO_COST = 1E-6;
 
-    private static double decayTime = 10000;
+    private static final double DECAY_TIME = 600;
 
     @Override
     protected Upstream doSelect(List<Upstream> upstreamList, String ip) {
@@ -109,7 +111,7 @@ public class PeakEWMALoadBalancer extends AbstractLoadBalancer {
 
             final long currentTime = System.currentTimeMillis();
             long td = Math.max(currentTime - lastUpdateTime, 0);
-            double w = Math.exp(-td / decayTime);
+            double w = Math.exp( -td / DECAY_TIME);
             if (rtt > cost) {
                 cost = rtt;
             } else {
