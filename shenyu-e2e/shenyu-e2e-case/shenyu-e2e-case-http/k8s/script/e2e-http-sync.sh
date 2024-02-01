@@ -49,7 +49,6 @@ for sync in ${SYNC_ARRAY[@]}; do
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
   kubectl apply -f "${PRGDIR}"/shenyu-examples-http.yml
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31189/actuator/health
-
   kubectl apply -f "${PRGDIR}"/rocket-mq.yml
   sleep 10s
   kubectl get pod -o wide
