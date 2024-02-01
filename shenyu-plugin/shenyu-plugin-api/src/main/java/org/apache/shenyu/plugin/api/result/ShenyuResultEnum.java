@@ -235,7 +235,12 @@ public enum ShenyuResultEnum {
     /**
      * Key is incorrect.
      */
-    ERROR_KEY(401, "Key is incorrect");
+    ERROR_KEY(401, "Key is incorrect"),
+    
+    /**
+     * WASM function not found.
+     */
+    WASM_FUNC_NOT_FOUND(533, "WASM function not found");
 
     /**
      * the code.
