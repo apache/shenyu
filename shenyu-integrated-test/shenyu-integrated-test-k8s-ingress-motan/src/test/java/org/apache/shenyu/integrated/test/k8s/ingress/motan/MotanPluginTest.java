@@ -19,6 +19,7 @@ package org.apache.shenyu.integrated.test.k8s.ingress.motan;
 
 import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
+import org.apache.shenyu.integratedtest.common.dto.MotanDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,16 +33,16 @@ public class MotanPluginTest extends AbstractPluginDataInit {
     private static final HttpHelper HTTP_HELPER = HttpHelper.INSTANCE;
 
     @BeforeAll
-    public static void setup() throws InterruptedException {
+    public static void setup() {
         HTTP_HELPER.setGatewayEndpoint("http://localhost:30095");
-        Thread.sleep(30000L);
     }
 
     @Test
     public void testHelloWorld() throws Exception {
+        MotanDTO request = new MotanDTO("shenyu");
         Type returnType = new TypeToken<String>() {
         }.getType();
-        String response = HttpHelper.INSTANCE.getFromGateway("/demo/hello?name=shenyu", returnType);
+        String response = HttpHelper.INSTANCE.postGateway("/demo/hello", request, returnType);
         assertEquals("hello shenyu", response);
     }
 
