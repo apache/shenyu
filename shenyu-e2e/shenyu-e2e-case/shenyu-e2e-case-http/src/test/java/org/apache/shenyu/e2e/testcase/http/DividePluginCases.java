@@ -100,26 +100,20 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                     try {
                                         request.request(Method.GET, "/http/order/findById?id=22");
                                         DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(consumerGroup);
-                                        // 设置NameServer地址
                                         consumer.setNamesrvAddr(nameServer);
-                                        // 订阅一个或多个topic，并指定tag过滤条件，这里指定*表示接收所有tag的消息
                                         consumer.subscribe(topic, "*");
-                                        //设置采用广播模式，广播模式下，消费组内的每一个消费者都会消费全量消息。
-                                        //consumer.setMessageModel(MessageModel.BROADCASTING);
-                                        //注册回调接口来处理从Broker中收到的消息
                                         AtomicBoolean isLog = new AtomicBoolean(false);
                                         consumer.registerMessageListener(new MessageListenerConcurrently() {
                                             public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext consumeConcurrentlyContext) {
                                                 if (CollectionUtils.isNotEmpty(msgs)) {
                                                     msgs.forEach(e -> {
-                                                        System.out.println("我是消费者shenyuLog，当前线程：{}，队列ID：{}，收到消息：{}" + Thread.currentThread().getName() + e.getQueueId() + new String(e.getBody()));
+                                                        System.out.println("Thread：{}，QueueID：{}，receive message：{}" + Thread.currentThread().getName() + e.getQueueId() + new String(e.getBody()));
                                                         if (new String(e.getBody()).contains("/http/order/findById?id=22")) {
                                                             isLog.set(true);
                                                         }
                                                     });
 
                                                 }
-                                                // 返回消息消费状态，ConsumeConcurrentlyStatus.CONSUME_SUCCESS为消费成功
                                                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
                                             }
                                         });
