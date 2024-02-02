@@ -26,12 +26,12 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-e2e-case-http</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.rocketmq</groupId>
-            <artifactId>rocketmq-client</artifactId>
-            <version>4.9.3</version>
-        </dependency>
-    </dependencies>
+<!--    <dependencies>-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.rocketmq</groupId>-->
+<!--            <artifactId>rocketmq-client</artifactId>-->
+<!--            <version>4.9.3</version>-->
+<!--        </dependency>-->
+<!--    </dependencies>-->
 
 </project>
