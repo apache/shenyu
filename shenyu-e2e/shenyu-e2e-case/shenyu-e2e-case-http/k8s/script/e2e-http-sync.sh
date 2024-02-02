@@ -27,6 +27,8 @@ CUR_PATH=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$CUR_PATH")
 kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-cm.yml
 
+kubectl apply -f "${PRGDIR}"/rocket-mq.yml
+
 # init shenyu sync
 SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
 #SYNC_ARRAY=("websocket" "nacos")
@@ -49,7 +51,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
   kubectl apply -f "${PRGDIR}"/shenyu-examples-http.yml
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31189/actuator/health
-  kubectl apply -f "${PRGDIR}"/rocket-mq.yml
+
   sleep 10s
   kubectl get pod -o wide
 
@@ -72,7 +74,6 @@ for sync in ${SYNC_ARRAY[@]}; do
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
   kubectl delete -f "${PRGDIR}"/shenyu-examples-http.yml
-  kubectl delete -f "${PRGDIR}"/rocket-mq.yml
   # shellcheck disable=SC2199
   # shellcheck disable=SC2076
   if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" ]]; then
@@ -80,3 +81,4 @@ for sync in ${SYNC_ARRAY[@]}; do
   fi
   echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
 done
+kubectl delete -f "${PRGDIR}"/rocket-mq.yml
