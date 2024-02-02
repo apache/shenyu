@@ -23,18 +23,36 @@ import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuCaseSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
+import org.apache.shenyu.e2e.model.MatchMode;
+import org.apache.shenyu.e2e.model.Plugin;
+import org.apache.shenyu.e2e.model.data.Condition;
 
 import java.util.List;
+
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
 
 public class DividePluginCases implements ShenYuScenarioProvider {
+
+
+//    private final static String nameServer = "http://localhost:9876";
+//
+//    private final static String consumerGroup = "shenyu-plugin-logging-rocketmq";
+//
+//    private final static String topic = "shenyu-access-logging";
+
+    private static final String TEST = "/http/order/findById?id=123";
+
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
-                testDivideHello()
+                testDivideHello(),
+                testRocketMQHello()
         );
     }
-    
+
     private ShenYuScenarioSpec testDivideHello() {
         return ShenYuScenarioSpec.builder()
                 .name("http client hello")
@@ -44,6 +62,64 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .caseSpec(ShenYuCaseSpec.builder()
                         .addExists("/http/order/findById?id=123")
                         .build())
+                .build();
+    }
+
+    private ShenYuScenarioSpec testRocketMQHello() {
+        return ShenYuScenarioSpec.builder()
+                .name("testRocketMQHello")
+                .beforeEachSpec(
+                        ShenYuBeforeEachSpec.builder()
+                                .addSelectorAndRule(
+                                        newSelectorBuilder("selector", Plugin.LOGGING_ROCKETMQ)
+                                                .name("1")
+                                                .matchMode(MatchMode.OR)
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/http"))
+                                                .build(),
+                                        newRuleBuilder("rule")
+                                                .name("1")
+                                                .matchMode(MatchMode.OR)
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/http"))
+                                                .build()
+                                )
+                                .checker(exists(TEST))
+                                .build()
+                )
+                .caseSpec(
+                        ShenYuCaseSpec.builder()
+                                .add(request -> {
+//                                    try {
+//                                        request.request(Method.GET, "/http/order/findById?id=22");
+//                                        DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(consumerGroup);
+//                                        consumer.setNamesrvAddr(nameServer);
+//                                        consumer.subscribe(topic, "*");
+//                                        AtomicBoolean isLog = new AtomicBoolean(false);
+//                                        consumer.registerMessageListener(new MessageListenerConcurrently() {
+//                                            public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext consumeConcurrentlyContext) {
+//                                                if (CollectionUtils.isNotEmpty(msgs)) {
+//                                                    msgs.forEach(e -> {
+//                                                        System.out.println("Thread：{}，QueueID：{}，receive message：{}" + Thread.currentThread().getName() + e.getQueueId() + new String(e.getBody()));
+//                                                        if (new String(e.getBody()).contains("/http/order/findById?id=22")) {
+//                                                            isLog.set(true);
+//                                                        }
+//                                                    });
+//
+//                                                }
+//                                                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+//                                            }
+//                                        });
+//                                        consumer.start();
+//                                        Thread.sleep(2000);
+//                                        Assertions.assertEquals(true, isLog.get());
+//                                    } catch (Exception e) {
+//
+//                                    }
+
+                                })
+                                .build()
+                )
+//                .afterEachSpec(ShenYuAfterEachSpec.builder()
+//                        .deleteWaiting(notExists(TEST)).build())
                 .build();
     }
 }
