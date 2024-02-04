@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
+import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
@@ -59,10 +60,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -90,7 +92,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private final UserEventPublisher publisher;
     
     private final DashboardProperties properties;
-    
+
+    private final SecretProperties secretProperties;
+
     public DashboardUserServiceImpl(final DashboardUserMapper dashboardUserMapper,
                                     final UserRoleMapper userRoleMapper,
                                     final RoleMapper roleMapper,
@@ -98,7 +102,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                                     @Nullable final LdapTemplate ldapTemplate,
                                     final JwtProperties jwtProperties,
                                     final UserEventPublisher publisher,
-                                    final DashboardProperties properties) {
+                                    final DashboardProperties properties,
+                                    final SecretProperties secretProperties) {
         this.dashboardUserMapper = dashboardUserMapper;
         this.userRoleMapper = userRoleMapper;
         this.roleMapper = roleMapper;
@@ -107,6 +112,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         this.jwtProperties = jwtProperties;
         this.publisher = publisher;
         this.properties = properties;
+        this.secretProperties = secretProperties;
     }
     
     /**
@@ -264,12 +270,19 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     @Override
     public LoginDashboardUserVO login(final String userName, final String password) {
         DashboardUserVO dashboardUserVO = null;
+        final String decodePassword;
+        if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())){
+            decodePassword = AESDecodePassword(password);
+        }else {
+            decodePassword = password;
+        }
+
         if (Objects.nonNull(ldapTemplate)) {
-            dashboardUserVO = loginByLdap(userName, password);
+            dashboardUserVO = loginByLdap(userName, decodePassword);
         }
         
         if (Objects.isNull(dashboardUserVO)) {
-            dashboardUserVO = loginByDatabase(userName, password);
+            dashboardUserVO = loginByDatabase(userName, decodePassword);
         }
         
         final LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
@@ -319,7 +332,25 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         
         return true;
     }
-    
+
+    private String AESDecodePassword(final String password){
+        String encodedPassword = null;
+        try {
+            String key = secretProperties.getKey();
+            String iv = secretProperties.getIv();
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            SecretKey secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "AES");
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
+            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(password));
+            encodedPassword= new String(decryptedBytes);
+        } catch(Exception e){
+            LOG.error("AES decode error", e);
+        }
+        return encodedPassword;
+
+    }
+
     private DashboardUserVO loginByLdap(final String userName, final String password) {
         Assert.notNull(ldapProperties, "ldap config is not enable");
         String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), LdapEncoder.nameEncode(userName), ldapProperties.getBaseDn());

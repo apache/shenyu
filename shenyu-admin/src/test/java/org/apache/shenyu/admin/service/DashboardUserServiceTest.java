@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
+import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
@@ -45,7 +46,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.sql.Timestamp;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -91,10 +96,13 @@ public final class DashboardUserServiceTest {
     
     @Mock
     private JwtProperties jwtProperties;
-    
+
     @Mock
     private LdapTemplate ldapTemplate;
-    
+
+    @Mock
+    private SecretProperties secretProperties;
+
     @Test
     public void testCreateOrUpdate() {
         SessionUtil.setLocalVisitor(UserInfo.builder().userId("1").userName("admin").build());
@@ -188,6 +196,7 @@ public final class DashboardUserServiceTest {
     @Test
     public void testLogin() {
         ReflectionTestUtils.setField(dashboardUserService, "jwtProperties", jwtProperties);
+        ReflectionTestUtils.setField(dashboardUserService, "secretProperties",secretProperties);
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
         
         when(dashboardUserMapper.findByQuery(eq(TEST_USER_NAME), anyString())).thenReturn(dashboardUserDO);
@@ -209,6 +218,35 @@ public final class DashboardUserServiceTest {
         verify(dashboardUserMapper).findByQuery(eq(TEST_USER_NAME), anyString());
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD));
         verify(dashboardUserMapper, times(2)).findByQuery(eq(TEST_USER_NAME), anyString());
+
+        // test loginByDatabase AES password
+        SecretProperties secretPropertiesTmp = new SecretProperties();
+        secretPropertiesTmp.setKey("2095132720951327");
+        secretPropertiesTmp.setIv("6075877187097700");
+        ReflectionTestUtils.setField(dashboardUserService, "secretProperties",secretPropertiesTmp);
+        ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, encrypt("2095132720951327","6075877187097700",TEST_PASSWORD)));
+        verify(dashboardUserMapper,times(3)).findByQuery(eq(TEST_USER_NAME), anyString());
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, encrypt("2095132720951327","6075877187097700",TEST_PASSWORD)));
+        verify(dashboardUserMapper, times(4)).findByQuery(eq(TEST_USER_NAME), anyString());
+
+    }
+
+    private static String encrypt(String secretKeyStr,String ivStr,String data) {
+        String encryptStr;
+        byte[] secretKeyBytes = secretKeyStr.getBytes();
+        byte[] ivBytes = ivStr.getBytes();
+        try {
+            SecretKey secretKey = new SecretKeySpec(secretKeyBytes, "AES");
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
+            byte[] encryptedBytes = cipher.doFinal(data.getBytes());
+            encryptStr = Base64.getEncoder().encodeToString(encryptedBytes);
+        } catch (Exception e) {
+            return null;
+        }
+        return encryptStr;
     }
     
     private DashboardUserDO createDashboardUserDO() {
