@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.logging.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.sampler.CountSampler;
@@ -104,8 +105,11 @@ public final class LogCollectConfigUtils {
      */
     public static boolean isSampled(final ServerWebExchange exchange, final SelectorData selectorData) {
         return Optional.ofNullable(AbstractLogPluginDataHandler.getSelectApiConfigMap().get(selectorData.getId()))
-                .map(config -> config.getSampler().isSampled(exchange, selectorData))
+                .map(GenericApiConfig::getSampler)
+                .map(sampler -> sampler.isSampled(exchange, selectorData))
                 .orElseGet(() -> Optional.ofNullable(AbstractLogPluginDataHandler.getPluginGlobalConfigMap().get(selectorData.getPluginId()))
-                        .map(config -> config.getSampler().isSampled(exchange, selectorData)).orElse(true));
+                        .map(GenericGlobalConfig::getSampler)
+                        .map(sampler -> sampler.isSampled(exchange, selectorData))
+                        .orElse(true));
     }
 }
