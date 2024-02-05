@@ -22,10 +22,10 @@ import org.apache.shenyu.common.constant.DefaultNodeConstants;
 /**
  * NodeData Path helper.
  */
-public class NodePathUtils {
+public class NodeDataPathUtils {
 
     /**
-     * concat the specified text and literal 'list' with '.'.
+     * join the specified text and literal 'list' with '.'.
      *
      * @param text original text, value should not be empty.
      * @return string.

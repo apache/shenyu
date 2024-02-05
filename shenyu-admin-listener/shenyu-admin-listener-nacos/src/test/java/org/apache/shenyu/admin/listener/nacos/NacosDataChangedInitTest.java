@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.listener.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
-import org.apache.shenyu.admin.listener.utils.NodePathUtils;
+import org.apache.shenyu.admin.listener.utils.NodeDataPathUtils;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,6 +67,6 @@ public class NacosDataChangedInitTest {
     }
 
     private String join(final String text) {
-        return NodePathUtils.appendListStuff(text);
+        return NodeDataPathUtils.appendListStuff(text);
     }
 }

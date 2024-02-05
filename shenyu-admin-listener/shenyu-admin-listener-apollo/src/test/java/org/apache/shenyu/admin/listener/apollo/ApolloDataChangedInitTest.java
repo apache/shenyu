@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.listener.apollo;
 
 import org.apache.shenyu.admin.config.properties.ApolloProperties;
-import org.apache.shenyu.admin.listener.utils.NodePathUtils;
+import org.apache.shenyu.admin.listener.utils.NodeDataPathUtils;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
@@ -95,7 +95,7 @@ public class ApolloDataChangedInitTest {
     }
 
     private String join(final String text) {
-        return NodePathUtils.appendListStuff(text);
+        return NodeDataPathUtils.appendListStuff(text);
     }
 }
 
