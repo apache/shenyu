@@ -70,10 +70,6 @@ public class DividePlugin extends AbstractShenyuPlugin {
         if (StringUtils.isNotBlank(rewriteContextPath)) {
             return rewriteContextPath + shenyuContext.getRealUrl();
         }
-        final String rewriteUri = exchange.getAttribute(Constants.REWRITE_URI);
-        if (StringUtils.isNotBlank(rewriteUri)) {
-            return rewriteContextPath + rewriteUri;
-        }
         return super.getRawPath(exchange);
     }
 
