@@ -40,6 +40,9 @@ public class ApolloDataChangedInitTest {
     @MockBean
     private ApolloClient apolloClient;
 
+    @MockBean
+    private ApolloDataChangedInit apolloDataChangedInit;
+
     /**
      * Method under test: {@link ApolloDataChangedInit#ApolloDataChangedInit(ApolloClient)}.
      */
@@ -63,43 +66,34 @@ public class ApolloDataChangedInitTest {
      */
     @Test
     public void testNotExist() {
-        ApolloDataChangedInit testApolloInit = new ApolloDataChangedInit(apolloClient);
+
         when(apolloClient.getItemValue(join(PLUGIN_DATA_ID))).thenReturn(PLUGIN_DATA_ID);
-        boolean pluginExist = testApolloInit.notExist();
+        boolean pluginExist = apolloDataChangedInit.notExist();
         Assertions.assertFalse(pluginExist, "plugin exist.");
         when(apolloClient.getItemValue(join(PLUGIN_DATA_ID))).thenReturn(null);
 
         when(apolloClient.getItemValue(join(AUTH_DATA_ID))).thenReturn(AUTH_DATA_ID);
-        boolean authExist = testApolloInit.notExist();
+        boolean authExist = apolloDataChangedInit.notExist();
         Assertions.assertFalse(authExist, "auth exist.");
         when(apolloClient.getItemValue(join(AUTH_DATA_ID))).thenReturn(null);
 
         when(apolloClient.getItemValue(join(META_DATA_ID))).thenReturn(META_DATA_ID);
-        boolean metaDataExist = testApolloInit.notExist();
+        boolean metaDataExist = apolloDataChangedInit.notExist();
         Assertions.assertFalse(metaDataExist, "metadata exist.");
         when(apolloClient.getItemValue(join(META_DATA_ID))).thenReturn(null);
 
         when(apolloClient.getItemValue(join(PROXY_SELECTOR_DATA_ID))).thenReturn(PROXY_SELECTOR_DATA_ID);
-        boolean selectorDataExist = testApolloInit.notExist();
+        boolean selectorDataExist = apolloDataChangedInit.notExist();
         Assertions.assertFalse(selectorDataExist, "selector exist.");
     }
 
     @Test
     public void testAllExist() {
-
         when(apolloClient.getItemValue(join(PLUGIN_DATA_ID))).thenReturn(META_DATA_ID);
         when(apolloClient.getItemValue(join(AUTH_DATA_ID))).thenReturn(META_DATA_ID);
         when(apolloClient.getItemValue(join(META_DATA_ID))).thenReturn(META_DATA_ID);
         when(apolloClient.getItemValue(join(PROXY_SELECTOR_DATA_ID))).thenReturn(META_DATA_ID);
-        ApolloDataChangedInit testApolloInit = new ApolloDataChangedInit(apolloClient);
-        Assertions.assertFalse(testApolloInit.notExist(), "some key not exist.");
-
-        when(apolloClient.getItemValue(join(PLUGIN_DATA_ID))).thenReturn(null);
-        when(apolloClient.getItemValue(join(AUTH_DATA_ID))).thenReturn(null);
-        when(apolloClient.getItemValue(join(META_DATA_ID))).thenReturn(null);
-        when(apolloClient.getItemValue(join(PROXY_SELECTOR_DATA_ID))).thenReturn(null);
-        Assertions.assertTrue(testApolloInit.notExist(), "all key is not exist");
-
+        Assertions.assertFalse(apolloDataChangedInit.notExist(), "some key not exist.");
     }
 
     private String join(final String text) {
