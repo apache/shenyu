@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.spi.Join;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -28,6 +31,17 @@ public class URIParameterData implements ParameterData {
     
     @Override
     public String builder(final String paramName, final ServerWebExchange exchange) {
+        // match the new selector/rule of RewritePlugin
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        final String rewriteContextPath = exchange.getAttribute(Constants.REWRITE_CONTEXT_PATH);
+        if (StringUtils.isNotBlank(rewriteContextPath)) {
+            return rewriteContextPath + shenyuContext.getRealUrl();
+        }
+        final String rewriteUri = exchange.getAttribute(Constants.REWRITE_URI);
+        if (StringUtils.isNotBlank(rewriteUri)) {
+            return rewriteContextPath + rewriteUri;
+        }
         return exchange.getRequest().getURI().getRawPath();
     }
 }

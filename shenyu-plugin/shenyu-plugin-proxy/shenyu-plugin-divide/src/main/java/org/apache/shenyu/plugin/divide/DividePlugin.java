@@ -60,6 +60,22 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private static final String SHORTEST_RESPONSE = "shortestResponse";
 
     private Long beginTime;
+    
+    @Override
+    protected String getRawPath(final ServerWebExchange exchange) {
+        // match the new selector/rule of RewritePlugin
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        final String rewriteContextPath = exchange.getAttribute(Constants.REWRITE_CONTEXT_PATH);
+        if (StringUtils.isNotBlank(rewriteContextPath)) {
+            return rewriteContextPath + shenyuContext.getRealUrl();
+        }
+        final String rewriteUri = exchange.getAttribute(Constants.REWRITE_URI);
+        if (StringUtils.isNotBlank(rewriteUri)) {
+            return rewriteContextPath + rewriteUri;
+        }
+        return super.getRawPath(exchange);
+    }
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {

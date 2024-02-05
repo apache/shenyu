@@ -48,6 +48,16 @@ public interface Constants {
     String META_DATA = "metaData";
     
     /**
+     * The constant OLD_CONTEXT_PATH_META_DATA.
+     */
+    String OLD_CONTEXT_PATH_META_DATA = "old_context_path_meta_data";
+    
+    /**
+     * The constant OLD_META_DATA.
+     */
+    String OLD_META_DATA = "old_meta_data";
+    
+    /**
      * The constant CLIENT_RESPONSE_ATTR.
      */
     String CLIENT_RESPONSE_ATTR = "webHandlerClientResponse";
@@ -226,6 +236,11 @@ public interface Constants {
      * The constant REWRITE_URI.
      */
     String REWRITE_URI = "rewrite_uri";
+    
+    /**
+     * The constant REWRITE_CONTEXT_PATH.
+     */
+    String REWRITE_CONTEXT_PATH = "rewrite_context_path";
     
     /**
      * The constant URI.

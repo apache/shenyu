@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.context.path;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
@@ -27,6 +28,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.context.path.handler.ContextPathPluginDataHandler;
 import org.slf4j.Logger;
@@ -34,7 +36,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * ContextPath Plugin.
@@ -52,7 +57,7 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
             LOG.error("context path rule configuration is null ：{}", rule);
             return chain.execute(exchange);
         }
-        buildRealURI(shenyuContext, ruleHandle);
+        buildRealURI(exchange, shenyuContext, ruleHandle);
         return chain.execute(exchange);
     }
     
@@ -86,11 +91,24 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
      * @param context context
      * @param handle  handle
      */
-    private void buildRealURI(final ShenyuContext context, final ContextMappingRuleHandle handle) {
+    private void buildRealURI(final ServerWebExchange exchange, final ShenyuContext context, final ContextMappingRuleHandle handle) {
         String realURI = "";
         String contextPath = handle.getContextPath();
         if (StringUtils.isNoneBlank(contextPath)) {
             realURI = context.getPath().substring(contextPath.length());
+        }
+        // the default percentage compatible with older versions is 100
+        final Integer percentage = Optional.ofNullable(handle.getPercentage()).orElse(100);
+        final String rewriteContextPath = handle.getRewriteContextPath();
+        if (StringUtils.isNoneBlank(rewriteContextPath) && ThreadLocalRandom.current().nextInt(100) < percentage) {
+            // when the rewritten uri crosses plugins, this is necessary
+            MetaData metaData = MetaDataCache.getInstance().obtain(rewriteContextPath + realURI);
+            Map<String, Object> attributes = exchange.getAttributes();
+            attributes.put(Constants.OLD_CONTEXT_PATH_META_DATA, exchange.getRequiredAttribute(Constants.META_DATA));
+            if (Objects.nonNull(metaData)) {
+                attributes.put(Constants.META_DATA, metaData);
+            }
+            attributes.put(Constants.REWRITE_CONTEXT_PATH, rewriteContextPath);
         }
         String addPrefix = handle.getAddPrefix();
         if (StringUtils.isNoneBlank(addPrefix)) {
