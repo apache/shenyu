@@ -34,6 +34,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -63,14 +64,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
     
     @Override
     protected String getRawPath(final ServerWebExchange exchange) {
-        // match the new selector/rule of RewritePlugin
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        final String rewriteContextPath = exchange.getAttribute(Constants.REWRITE_CONTEXT_PATH);
-        if (StringUtils.isNotBlank(rewriteContextPath)) {
-            return rewriteContextPath + shenyuContext.getRealUrl();
-        }
-        return super.getRawPath(exchange);
+        return RequestUrlUtils.getRewrittenRawPath(exchange);
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Objects;
 
 /**
  * RequestUrlUtils.
@@ -65,5 +66,28 @@ public final class RequestUrlUtils {
             assert path != null;
             return UriComponentsBuilder.fromUriString(path).build(false).toUri();
         }
+    }
+    
+    /**
+     * Get the rewritten raw path.
+     *
+     * @param exchange the exchange
+     * @return the rewritten raw path
+     */
+    public static String getRewrittenRawPath(final ServerWebExchange exchange) {
+        // match the new selector/rule of RewritePlugin
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        if (Objects.nonNull(shenyuContext)) {
+            final String rewriteContextPath = exchange.getAttribute(Constants.REWRITE_CONTEXT_PATH);
+            if (StringUtils.isNotBlank(rewriteContextPath)) {
+                return rewriteContextPath + shenyuContext.getRealUrl();
+            }
+            final String contextPath = exchange.getAttribute(Constants.CONTEXT_PATH);
+            final String rewriteUri = exchange.getAttribute(Constants.REWRITE_URI);
+            if (StringUtils.isNotBlank(contextPath) && StringUtils.isNotBlank(rewriteUri)) {
+                return contextPath + rewriteUri;
+            }
+        }
+        return exchange.getRequest().getURI().getRawPath();
     }
 }

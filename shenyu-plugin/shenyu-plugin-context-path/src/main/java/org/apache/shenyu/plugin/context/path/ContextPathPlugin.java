@@ -92,10 +92,12 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
      * @param handle  handle
      */
     private void buildRealURI(final ServerWebExchange exchange, final ShenyuContext context, final ContextMappingRuleHandle handle) {
+        Map<String, Object> attributes = exchange.getAttributes();
         String realURI = "";
         String contextPath = handle.getContextPath();
         if (StringUtils.isNoneBlank(contextPath)) {
             realURI = context.getPath().substring(contextPath.length());
+            attributes.put(Constants.CONTEXT_PATH, contextPath);
         }
         // the default percentage compatible with older versions is 100
         final Integer percentage = Optional.ofNullable(handle.getPercentage()).orElse(100);
@@ -103,7 +105,6 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
         if (StringUtils.isNoneBlank(rewriteContextPath) && ThreadLocalRandom.current().nextInt(100) < percentage) {
             // when the rewritten uri crosses plugins, this is necessary
             MetaData metaData = MetaDataCache.getInstance().obtain(rewriteContextPath + realURI);
-            Map<String, Object> attributes = exchange.getAttributes();
             attributes.put(Constants.OLD_CONTEXT_PATH_META_DATA, exchange.getRequiredAttribute(Constants.META_DATA));
             if (Objects.nonNull(metaData)) {
                 attributes.put(Constants.META_DATA, metaData);
