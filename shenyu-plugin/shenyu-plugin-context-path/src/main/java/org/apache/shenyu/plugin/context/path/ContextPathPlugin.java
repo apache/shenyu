@@ -24,7 +24,6 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
@@ -69,16 +68,6 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
     @Override
     public String named() {
         return PluginEnum.CONTEXT_PATH.getName();
-    }
-    
-    @Override
-    public boolean skip(final ServerWebExchange exchange) {
-        return skip(exchange,
-                RpcTypeEnum.DUBBO,
-                RpcTypeEnum.GRPC,
-                RpcTypeEnum.TARS,
-                RpcTypeEnum.MOTAN,
-                RpcTypeEnum.SOFA);
     }
     
     private ContextMappingRuleHandle buildRuleHandle(final RuleData rule) {
