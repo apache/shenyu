@@ -18,6 +18,11 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import java.nio.charset.StandardCharsets;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
@@ -60,11 +65,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import javax.crypto.*;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.Base64;
 import java.util.stream.Collectors;
 
 /**
@@ -271,9 +276,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public LoginDashboardUserVO login(final String userName, final String password) {
         DashboardUserVO dashboardUserVO = null;
         final String decodePassword;
-        if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())){
-            decodePassword = AESDecodePassword(password);
-        }else {
+        if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())) {
+            decodePassword = aesDecodePassword(password);
+        } else {
             decodePassword = password;
         }
 
@@ -333,7 +338,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         return true;
     }
 
-    private String AESDecodePassword(final String password){
+    private String aesDecodePassword(final String password) {
         String encodedPassword = null;
         try {
             String key = secretProperties.getKey();
@@ -343,8 +348,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
             cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
             byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(password));
-            encodedPassword= new String(decryptedBytes);
-        } catch(Exception e){
+            encodedPassword = new String(decryptedBytes);
+        } catch (Exception e) {
             LOG.error("AES decode error", e);
         }
         return encodedPassword;
