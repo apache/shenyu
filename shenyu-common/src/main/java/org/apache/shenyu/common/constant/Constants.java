@@ -764,6 +764,16 @@ public interface Constants {
      * The constant DEFAULT_RULE.
      */
     String DEFAULT_RULE = "default_rule";
+
+    /**
+     * the plugin start time of plugin lifecycle.
+     */
+    String PLUGIN_START_TIME = "pluginStartTime:";
+
+    /**
+     * the plugin end time of plugin lifecycle.
+     */
+    String PLUGIN_END_TIME = "pluginEndTime:";
     
     /**
      * String q.
