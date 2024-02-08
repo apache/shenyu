@@ -14,7 +14,7 @@
 # limitations under the License.
 
 SHENYU_HOME :=  "."
-VERSION ?= "2.6.2-SNAPSHOT"
+VERSION ?= "2.7.0-SNAPSHOT"
 
 REGISTRY ?= "docker.io"
 REPOSITORY_PREF ?= "apache/shenyu"
