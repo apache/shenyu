@@ -32,14 +32,21 @@ public final class ShenyuClientRegisterRepositoryFactory {
 
     private static final Map<String, ShenyuClientRegisterRepository> REPOSITORY_MAP = new ConcurrentHashMap<>();
 
-
-
     /**
-     * New instance shenyu client register repository.
+     * Retrieves the repository map containing mappings of register types to corresponding ShenyuClientRegisterRepository instances.
      *
-     * @param shenyuRegisterCenterConfig the shenyu register center config
-     * @return the shenyu client register repository
+     * @return A {@link Map} where keys are register types and values are associated {@link ShenyuClientRegisterRepository} instances.
      */
+    public static Map<String, ShenyuClientRegisterRepository> getRepositoryMap() {
+        return REPOSITORY_MAP;
+    }
+
+        /**
+         * New instance shenyu client register repository.
+         *
+         * @param shenyuRegisterCenterConfig the shenyu register center config
+         * @return the shenyu client register repository
+         */
     public static ShenyuClientRegisterRepository newInstance(final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig) {
         if (!REPOSITORY_MAP.containsKey(shenyuRegisterCenterConfig.getRegisterType())) {
             ShenyuClientRegisterRepository result = ExtensionLoader.getExtensionLoader(ShenyuClientRegisterRepository.class).getJoin(shenyuRegisterCenterConfig.getRegisterType());
