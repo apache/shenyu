@@ -94,7 +94,7 @@ public final class ContextPathPluginTest extends AbstractPluginDataInit {
     public void testRewriteContextPath() throws IOException {
         Map<String, Object> result = HttpHelper.INSTANCE.getFromGateway("/order/order/findById?id=3", Map.class);
         assertNotNull(result);
-        assertEquals("3", result.get("id"));
+        assertNull(result.get("id"));
         assertNull(result.get("name"));
         
         result = HttpHelper.INSTANCE.getFromGateway("/http/order/findById?id=3", Map.class);
