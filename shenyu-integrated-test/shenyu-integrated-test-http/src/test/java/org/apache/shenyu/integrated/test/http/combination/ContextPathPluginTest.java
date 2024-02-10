@@ -37,6 +37,9 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public final class ContextPathPluginTest extends AbstractPluginDataInit {
 
@@ -59,31 +62,64 @@ public final class ContextPathPluginTest extends AbstractPluginDataInit {
         String pluginResult = initPlugin(PluginEnum.CONTEXT_PATH.getName(), "");
         assertThat(pluginResult, CoreMatchers.is("success"));
         final String ruleHandle = "{\"contextPath\":\"\", \"addPrefix\":\"/error\"}";
-        String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(ruleHandle));
+        String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "",
+                buildSelectorConditionList("/http/**"), buildRuleLocalDataList("/http/**", ruleHandle));
         assertThat(message, is("success"));
     }
 
-    private static List<ConditionData> buildSelectorConditionList() {
+    private static List<ConditionData> buildSelectorConditionList(final String paramValue) {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamValue("/http/**");
+        conditionData.setParamValue(paramValue);
         return Collections.singletonList(conditionData);
     }
 
-    private static List<RuleLocalData> buildRuleLocalDataList(final String ruleHandleString) {
+    private static List<RuleLocalData> buildRuleLocalDataList(final String paramValue, final String ruleHandleString) {
         RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
         ruleLocalData.setRuleHandler(ruleHandleString);
-        ruleLocalData.setConditionDataList(Collections.singletonList(buildConditionData()));
+        ruleLocalData.setConditionDataList(Collections.singletonList(buildConditionData(paramValue)));
         return Collections.singletonList(ruleLocalData);
     }
 
-    private static ConditionData buildConditionData() {
+    private static ConditionData buildConditionData(final String paramValue) {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamValue("/http/**");
+        conditionData.setParamValue(paramValue);
         return conditionData;
+    }
+    
+    @Test
+    public void testRewriteContextPath() throws IOException {
+        Map<String, Object> result = HttpHelper.INSTANCE.getFromGateway("/order/order/findById?id=3", Map.class);
+        assertNotNull(result);
+        assertEquals("3", result.get("id"));
+        assertNull(result.get("name"));
+        
+        result = HttpHelper.INSTANCE.getFromGateway("/http/order/findById?id=3", Map.class);
+        assertNotNull(result);
+        assertEquals("3", result.get("id"));
+        assertEquals("hello world findById", result.get("name"));
+        
+        // rewrite context path from /order to /http
+        String cleanMessage = cleanPluginData(PluginEnum.CONTEXT_PATH.getName());
+        assertThat(cleanMessage, is("success"));
+        setupRewriteConfiguration();
+        
+        Map<String, Object> response = HttpHelper.INSTANCE.getFromGateway("/order/order/findById?id=4", Map.class);
+        assertNotNull(response);
+        assertEquals("4", response.get("id"));
+        assertEquals("hello world findById", response.get("name"));
+    }
+    
+    private void setupRewriteConfiguration() throws IOException {
+        String pluginResult = initPlugin(PluginEnum.CONTEXT_PATH.getName(), "");
+        assertThat(pluginResult, CoreMatchers.is("success"));
+        final String ruleHandle = "{\"contextPath\":\"\", \"addPrefix\":\"\", \"rewriteContextPath\":\"/http\", \"percentage\":100}";
+        String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "",
+                buildSelectorConditionList("/order/**"), buildRuleLocalDataList("/order/**", ruleHandle));
+        assertThat(message, is("success"));
     }
 
     @AfterAll
@@ -96,7 +132,8 @@ public final class ContextPathPluginTest extends AbstractPluginDataInit {
         String pluginResult = initPlugin(PluginEnum.CONTEXT_PATH.getName(), "");
         assertThat(pluginResult, CoreMatchers.is("success"));
         final String ruleHandle = "{\"contextPath\":\"/http\"}";
-        String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(ruleHandle));
+        String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "",
+                buildSelectorConditionList("/http/**"), buildRuleLocalDataList("/http/**", ruleHandle));
         assertThat(message, is("success"));
     }
 }
