@@ -88,7 +88,6 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
             realURI = context.getPath().substring(contextPath.length());
             attributes.put(Constants.CONTEXT_PATH, contextPath);
         }
-        // the default percentage compatible with older versions is 100
         final Integer percentage = Optional.ofNullable(handle.getPercentage()).orElse(100);
         final String rewriteContextPath = handle.getRewriteContextPath();
         if (StringUtils.isNoneBlank(rewriteContextPath) && ThreadLocalRandom.current().nextInt(100) < percentage) {

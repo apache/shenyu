@@ -100,16 +100,6 @@ public class RewritePlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    public boolean skip(final ServerWebExchange exchange) {
-        return skip(exchange,
-                RpcTypeEnum.DUBBO,
-                RpcTypeEnum.GRPC,
-                RpcTypeEnum.TARS,
-                RpcTypeEnum.MOTAN,
-                RpcTypeEnum.SOFA);
-    }
-
-    @Override
     public String named() {
         return PluginEnum.REWRITE.getName();
     }
