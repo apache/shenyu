@@ -77,7 +77,6 @@ services:
       timeout: 2s
       retries: 30
     ports:
-      - "8080:8080"
       - "8190:8190"
     depends_on:
       shenyu-integrated-test-combination:
