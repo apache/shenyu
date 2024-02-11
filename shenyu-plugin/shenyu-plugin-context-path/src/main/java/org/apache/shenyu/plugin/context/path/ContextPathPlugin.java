@@ -93,7 +93,8 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
         if (StringUtils.isNoneBlank(rewriteContextPath) && ThreadLocalRandom.current().nextInt(100) < percentage) {
             // when the rewritten uri crosses plugins, this is necessary
             MetaData metaData = MetaDataCache.getInstance().obtain(rewriteContextPath + realURI);
-            attributes.put(Constants.OLD_CONTEXT_PATH_META_DATA, exchange.getRequiredAttribute(Constants.META_DATA));
+            Optional.ofNullable(exchange.getAttribute(Constants.META_DATA))
+                    .ifPresent(metadata -> attributes.put(Constants.OLD_CONTEXT_PATH_META_DATA, metadata));
             if (Objects.nonNull(metaData)) {
                 attributes.put(Constants.META_DATA, metaData);
             }

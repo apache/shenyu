@@ -82,7 +82,8 @@ public class RewritePlugin extends AbstractShenyuPlugin {
             if (Optional.ofNullable(rewriteHandle.getRewriteMetaData()).orElse(false)) {
                 // when the rewritten uri crosses plugins, this is necessary
                 MetaData metaData = MetaDataCache.getInstance().obtain(rewriteUri);
-                attributes.put(Constants.OLD_META_DATA, exchange.getRequiredAttribute(Constants.META_DATA));
+                Optional.ofNullable(exchange.getAttribute(Constants.META_DATA))
+                        .ifPresent(metadata -> attributes.put(Constants.OLD_CONTEXT_PATH_META_DATA, metadata));
                 if (Objects.nonNull(metaData)) {
                     attributes.put(Constants.META_DATA, metaData);
                 }
