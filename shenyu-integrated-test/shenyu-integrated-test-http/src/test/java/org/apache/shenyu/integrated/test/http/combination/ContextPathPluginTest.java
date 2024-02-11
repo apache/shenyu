@@ -116,7 +116,7 @@ public final class ContextPathPluginTest extends AbstractPluginDataInit {
     private void setupRewriteConfiguration() throws IOException {
         String pluginResult = initPlugin(PluginEnum.CONTEXT_PATH.getName(), "");
         assertThat(pluginResult, CoreMatchers.is("success"));
-        final String ruleHandle = "{\"contextPath\":\"\", \"addPrefix\":\"\", \"rewriteContextPath\":\"/http\", \"percentage\":100}";
+        final String ruleHandle = "{\"contextPath\":\"/order\", \"addPrefix\":\"\", \"rewriteContextPath\":\"/http\", \"percentage\":100}";
         String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "",
                 buildSelectorConditionList("/order/**"), buildRuleLocalDataList("/order/**", ruleHandle));
         assertThat(message, is("success"));

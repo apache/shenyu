@@ -99,7 +99,7 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         String pluginResult = initPlugin(PluginEnum.CONTEXT_PATH.getName(), "");
         assertThat(pluginResult, CoreMatchers.is("success"));
         RuleLocalData ruleLocalData = new RuleLocalData();
-        ruleLocalData.setRuleHandler("{\"contextPath\":\"\", \"addPrefix\":\"\", \"rewriteContextPath\":\"/dubbo\", \"percentage\":100}");
+        ruleLocalData.setRuleHandler("{\"contextPath\":\"/order\", \"addPrefix\":\"\", \"rewriteContextPath\":\"/dubbo\", \"percentage\":100}");
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
