@@ -43,7 +43,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public final class RewritePluginTest extends AbstractPluginDataInit {
 
@@ -80,7 +79,9 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         
         String pluginResult = initPlugin(PluginEnum.DUBBO.getName(), "{\"register\":\"zookeeper://shenyu-zk:2181\"}");
         assertThat(pluginResult, is("success"));
-        assertThrows(IOException.class, () -> HttpHelper.INSTANCE.getFromGateway("/dubbo/findById?id=1", DubboTest.class));
+        DubboTest dubboTest = HttpHelper.INSTANCE.getFromGateway("/dubbo/findById?id=1", DubboTest.class);
+        assertEquals("hello world shenyu Apache, findById", dubboTest.getName());
+        assertEquals("1", dubboTest.getId());
         
         // rewrite path from /order/order/findById to /dubbo/order/findById
         setupRewriteContextPathConfiguration();
@@ -89,7 +90,9 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
                 buildSelectorConditionList(), buildRewriteRuleLocalDataList("/dubbo/order/findById", "/findById"));
         assertThat(selectorAndRulesResult, is("success"));
         
-        assertThrows(IOException.class, () -> HttpHelper.INSTANCE.getFromGateway("/dubbo/findById?id=1", DubboTest.class));
+        DubboTest response = HttpHelper.INSTANCE.getFromGateway("/order/order/findById?id=1", DubboTest.class);
+        assertEquals("hello world shenyu Apache, findById", response.getName());
+        assertEquals("1", response.getId());
     }
     
     private void setupRewriteContextPathConfiguration() throws IOException {
