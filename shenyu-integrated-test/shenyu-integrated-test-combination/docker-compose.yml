@@ -62,6 +62,29 @@ services:
     networks:
       - shenyu
 
+  shenyu-examples-https:
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    container_name: shenyu-examples-https
+    image: shenyu-examples-https:latest
+    restart: always
+    environment:
+      - shenyu_register_serverLists=http://shenyu-admin:9095
+    healthcheck:
+      test: [ "CMD", "wget", "http://shenyu-examples-https:8190/actuator/health" ]
+      timeout: 2s
+      retries: 30
+    ports:
+      - "8080:8080"
+      - "8190:8190"
+    depends_on:
+      shenyu-integrated-test-combination:
+        condition: service_healthy
+    networks:
+      - shenyu
+
   shenyu-examples-apache-dubbo-service:
     deploy:
       resources:
@@ -195,8 +218,6 @@ services:
       shenyu-zk:
         condition: service_healthy
       shenyu-admin:
-        condition: service_healthy
-      shenyu-zk:
         condition: service_healthy
     ports:
       - "9195:9195"

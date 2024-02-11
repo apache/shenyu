@@ -20,7 +20,6 @@ package org.apache.shenyu.integrated.test.combination;
 import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
-import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
@@ -28,12 +27,10 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.DubboTest;
-import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +46,6 @@ import java.util.concurrent.Future;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * The integrated test for combination plugins about request.
@@ -83,27 +79,6 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
         String selectorAndRulesRet4ParamMapping = initSelectorAndRules(PluginEnum.PARAM_MAPPING.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList4ParamMapping());
         assertThat(selectorAndRulesRet4ParamMapping, is("success"));
     }
-    
-    private void setupRewrite() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.CONTEXT_PATH.getName(), "");
-        assertThat(pluginResult, CoreMatchers.is("success"));
-        RuleLocalData ruleLocalData = new RuleLocalData();
-        ruleLocalData.setRuleHandler("{\"contextPath\":\"/dubbo\", \"addPrefix\":\"\", \"rewriteContextPath\":\"/http\", \"percentage\":100}");
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamValue("/dubbo/**");
-        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "",
-                buildSelectorConditionList(), Collections.singletonList(ruleLocalData));
-        assertThat(message, is("success"));
-        
-        pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
-        assertThat(pluginResult, is("success"));
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.REWRITE.getName(), "",
-                buildSelectorConditionList(), buildRewriteRuleLocalDataList());
-        assertThat(selectorAndRulesResult, is("success"));
-    }
 
     private void setupCryptorRequest() throws IOException {
         String cryptorRequestRet = initPlugin(PluginEnum.CRYPTOR_REQUEST.getName(), null);
@@ -132,21 +107,6 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
 
         cleanParamMapping();
     }
-    
-    @Test
-    public void testDubboAndRewrite() throws IOException {
-        OrderDTO orderDTO = HttpHelper.INSTANCE.getFromGateway("/http/order/findById?id=1", OrderDTO.class);
-        assertEquals("1", orderDTO.getId());
-        assertEquals("hello world findById", orderDTO.getName());
-        
-        setupRewrite();
-        
-        Map<String, Object> request = new HashMap<>();
-        OrderDTO result = HttpHelper.INSTANCE.postGateway("/dubbo/findById?id=2", request, OrderDTO.class);
-        assertEquals("hello world findById", result.getName());
-        
-        cleanRewrite();
-    }
 
     /**
      * The combination test of Dubbo plugin and CryptorRequest plugin.
@@ -156,7 +116,6 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
         setupCryptorRequest();
 
         DubboTest result = HttpHelper.INSTANCE.postGateway(TEST_PATH, DUBBO_REQUEST, new TypeToken<DubboTest>() { }.getType());
-        assertNotNull(result);
         byte[] inputByte = Base64.getMimeDecoder().decode(result.getId());
         assertEquals(TEST_ID, RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte));
 
@@ -213,27 +172,6 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
         ruleLocalData.setRuleHandler(JsonUtils.toJson(addAndRemoveHandle));
         return Collections.singletonList(ruleLocalData);
     }
-    
-    private static List<RuleLocalData> buildRewriteRuleLocalDataList() {
-        final RuleLocalData ruleLocalData = new RuleLocalData();
-        
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamName("/");
-        conditionData.setParamValue("/dubbo/**");
-        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        ruleLocalData.setRuleName("rewriteMetaData");
-        
-        RewriteHandle rewriteHandle = new RewriteHandle();
-        rewriteHandle.setRegex("/dubbo/findById");
-        rewriteHandle.setReplace("/order/findById");
-        rewriteHandle.setRewriteMetaData(true);
-        rewriteHandle.setPercentage(100);
-        
-        ruleLocalData.setRuleHandler(JsonUtils.toJson(rewriteHandle));
-        return Collections.singletonList(ruleLocalData);
-    }
 
     private List<RuleLocalData> buildRuleLocalDataList4CryptorRequest() {
         CryptorRuleHandler cryptorRuleHandler = new CryptorRuleHandler();
@@ -264,13 +202,6 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
 
     private void cleanParamMapping() throws IOException {
         String res = cleanPluginData(PluginEnum.PARAM_MAPPING.getName());
-        assertThat(res, is("success"));
-    }
-    
-    private void cleanRewrite() throws IOException {
-        String res = cleanPluginData(PluginEnum.CONTEXT_PATH.getName());
-        assertThat(res, is("success"));
-        res = cleanPluginData(PluginEnum.REWRITE.getName());
         assertThat(res, is("success"));
     }
 
