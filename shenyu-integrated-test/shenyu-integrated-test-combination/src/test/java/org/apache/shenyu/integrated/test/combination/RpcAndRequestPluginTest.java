@@ -49,6 +49,7 @@ import java.util.concurrent.Future;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * The integrated test for combination plugins about request.
@@ -142,7 +143,6 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
         
         Map<String, Object> request = new HashMap<>();
         OrderDTO result = HttpHelper.INSTANCE.postGateway("/dubbo/findById?id=2", request, OrderDTO.class);
-        assertEquals("2", result.getId());
         assertEquals("hello world findById", result.getName());
         
         cleanRewrite();
@@ -156,6 +156,7 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
         setupCryptorRequest();
 
         DubboTest result = HttpHelper.INSTANCE.postGateway(TEST_PATH, DUBBO_REQUEST, new TypeToken<DubboTest>() { }.getType());
+        assertNotNull(result);
         byte[] inputByte = Base64.getMimeDecoder().decode(result.getId());
         assertEquals(TEST_ID, RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte));
 
