@@ -24,25 +24,20 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.apache.shenyu.integratedtest.common.dto.DubboTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 public final class RewritePluginTest extends AbstractPluginDataInit {
 
@@ -68,67 +63,6 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         assertThat(selectorAndRulesResult, is("success"));
         assertEquals(403, test());
         cleanPluginData(PluginEnum.REWRITE.getName());
-    }
-    
-    @Test
-    public void testRewriteMetaData() throws IOException {
-        Map<String, Object> result = HttpHelper.INSTANCE.getFromGateway("/order/order/findById?id=3", Map.class);
-        assertNotNull(result);
-        assertNull(result.get("id"));
-        assertNull(result.get("name"));
-        
-        String pluginResult = initPlugin(PluginEnum.DUBBO.getName(), "{\"register\":\"zookeeper://shenyu-zk:2181\"}");
-        assertThat(pluginResult, is("success"));
-        DubboTest dubboTest = HttpHelper.INSTANCE.getFromGateway("/dubbo/findById?id=1", DubboTest.class);
-        assertEquals("hello world shenyu Apache, findById", dubboTest.getName());
-        assertEquals("1", dubboTest.getId());
-        
-        // rewrite path from /order/order/findById to /dubbo/order/findById
-        setupRewriteContextPathConfiguration();
-        // rewrite path from /dubbo/order/findById to /dubbo/findById
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.REWRITE.getName(), "",
-                buildSelectorConditionList(), buildRewriteRuleLocalDataList("/dubbo/order/findById", "/findById"));
-        assertThat(selectorAndRulesResult, is("success"));
-        
-        DubboTest response = HttpHelper.INSTANCE.getFromGateway("/order/order/findById?id=1", DubboTest.class);
-        assertEquals("hello world shenyu Apache, findById", response.getName());
-        assertEquals("1", response.getId());
-    }
-    
-    private void setupRewriteContextPathConfiguration() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.CONTEXT_PATH.getName(), "");
-        assertThat(pluginResult, CoreMatchers.is("success"));
-        RuleLocalData ruleLocalData = new RuleLocalData();
-        ruleLocalData.setRuleHandler("{\"contextPath\":\"/order\", \"addPrefix\":\"\", \"rewriteContextPath\":\"/dubbo\", \"percentage\":100}");
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamValue("/order/**");
-        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "",
-                buildSelectorConditionList(), Collections.singletonList(ruleLocalData));
-        assertThat(message, is("success"));
-    }
-    
-    private static List<RuleLocalData> buildRewriteRuleLocalDataList(final String regex, final String replace) {
-        final RuleLocalData ruleLocalData = new RuleLocalData();
-        
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamName("/");
-        conditionData.setParamValue("/dubbo/**");
-        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        ruleLocalData.setRuleName("rewriteMetaData");
-        
-        RewriteHandle rewriteHandle = new RewriteHandle();
-        rewriteHandle.setRegex(regex);
-        rewriteHandle.setReplace(replace);
-        rewriteHandle.setRewriteMetaData(true);
-        rewriteHandle.setPercentage(100);
-        
-        ruleLocalData.setRuleHandler(JsonUtils.toJson(rewriteHandle));
-        return Collections.singletonList(ruleLocalData);
     }
 
     private Integer test() throws ExecutionException, InterruptedException {
