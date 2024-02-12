@@ -90,7 +90,7 @@ public class RewriteTest extends AbstractPluginDataInit {
         setupRewrite();
         
         Map<String, Object> request = new HashMap<>();
-        OrderDTO result = HttpHelper.INSTANCE.postGateway("/dubbo/findById?id=2", request, OrderDTO.class);
+        OrderDTO result = HttpHelper.INSTANCE.getFromGateway("/dubbo/findById?id=2", request, OrderDTO.class);
         assertEquals("1", orderDTO.getId());
         assertEquals("hello world findById", result.getName());
     }
