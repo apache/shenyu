@@ -22,6 +22,11 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import java.util.Base64;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -87,6 +92,11 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     public void init(final ShenyuRegisterCenterConfig config) {
         this.username = config.getProps().getProperty(Constants.USER_NAME);
         this.password = config.getProps().getProperty(Constants.PASS_WORD);
+        String secretKey = config.getProps().getProperty(Constants.AES_SECRET_KEY);
+        String secretIv = config.getProps().getProperty(Constants.AES_SECRET_IV);
+        if (StringUtils.isNotBlank(secretKey) && StringUtils.isNotBlank(secretIv)) {
+            this.password = encrypt(secretKey, secretIv, password);
+        }
         this.serverList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));
         this.accessToken = Caffeine.newBuilder()
                 //see org.apache.shenyu.admin.config.properties.JwtProperties#expiredSeconds
@@ -150,6 +160,31 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
             apiDocRegisterDTO.setEventType(EventType.OFFLINE);
             doRegister(apiDocRegisterDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
         }
+    }
+
+
+    /** aes encrypt data.
+     *
+     * @param secretKeyStr secretKeyStr
+     * @param ivStr ivStr
+     * @param data data
+     */
+    private String encrypt(final String secretKeyStr, final String ivStr, final String data) {
+        String encryptStr;
+        byte[] secretKeyBytes = secretKeyStr.getBytes();
+        byte[] ivBytes = ivStr.getBytes();
+        try {
+            SecretKey secretKey = new SecretKeySpec(secretKeyBytes, "AES");
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
+            byte[] encryptedBytes = cipher.doFinal(data.getBytes());
+            encryptStr = Base64.getEncoder().encodeToString(encryptedBytes);
+        } catch (Exception e) {
+            LOGGER.error("aes encrypt fail. cause:{}", e.getMessage());
+            return null;
+        }
+        return encryptStr;
     }
 
     /**
