@@ -33,7 +33,10 @@ import org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController;
 import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /**
  * The integrated test for combination plugins about request and response.
  */
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
 
     private static final String RSA_PRIVATE_KEY = "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAvEXyUDh5qliWhM6KrpTFi1OXumoJQzMfSr8XjfKa/kHKb1uxr7N8lJd3I850m2IYrxckFCQW6nrnRKctm"
@@ -68,6 +72,7 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
 
     private static final RsaStrategy RSA_STRATEGY = new RsaStrategy();
 
+    @Order(1)
     @Test
     public void testDecryptRequestAndEncryptResponse() throws Exception {
         setupCryptorRequest("data", "decrypt", MapTypeEnum.FIELD.getMapType());
@@ -86,7 +91,8 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         cleanCryptorRequest();
         cleanCryptorResponse();
     }
-
+    
+    @Order(2)
     @Test
     public void testDecryptRequestAndEncryptResponseField() throws Exception {
         setupCryptorRequest("data", "decrypt", MapTypeEnum.FIELD.getMapType());
@@ -104,7 +110,8 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         cleanCryptorRequest();
         cleanCryptorResponse();
     }
-
+    
+    @Order(3)
     @Test
     public void testEncryptRequestAndDecryptResponse() throws Exception {
         setupCryptorRequest("userName", "encrypt", MapTypeEnum.ALL.getMapType());
@@ -120,7 +127,8 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         cleanCryptorRequest();
         cleanCryptorResponse();
     }
-
+    
+    @Order(4)
     @Test
     public void testEncryptRequestAndDecryptResponseField() throws Exception {
         setupCryptorRequest("userName", "encrypt", MapTypeEnum.ALL.getMapType());
@@ -136,6 +144,7 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         cleanCryptorResponse();
     }
     
+    @Order(5)
     @Test
     public void testRewriteCrossApplication() throws IOException {
         OrderDTO orderDTO = HttpHelper.INSTANCE.getFromGateway("/http/order/findById?id=1", OrderDTO.class);
@@ -156,6 +165,7 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         assertThat(cleanPluginData(PluginEnum.CONTEXT_PATH.getName()), is("success"));
     }
     
+    @Order(6)
     @Test
     public void testRewriteCrossPlugin() throws IOException {
         OrderDTO orderDTO = HttpHelper.INSTANCE.getFromGateway("/http/order/findById?id=1", OrderDTO.class);
