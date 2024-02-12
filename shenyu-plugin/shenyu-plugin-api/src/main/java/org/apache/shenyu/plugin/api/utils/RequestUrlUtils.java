@@ -43,7 +43,7 @@ public final class RequestUrlUtils {
      */
     public static URI buildRequestUri(final ServerWebExchange exchange, final String domain) {
         String path = domain;
-        final String rewriteUri = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
+        final String rewriteUri = exchange.getAttribute(Constants.REWRITE_URI);
         if (StringUtils.isNoneBlank(rewriteUri)) {
             path = path + rewriteUri;
         } else {
@@ -79,13 +79,15 @@ public final class RequestUrlUtils {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         if (Objects.nonNull(shenyuContext)) {
             final String rewriteContextPath = exchange.getAttribute(Constants.REWRITE_CONTEXT_PATH);
-            if (StringUtils.isNotBlank(rewriteContextPath)) {
+            final String rewriteUri = exchange.getAttribute(Constants.REWRITE_URI);
+            if (StringUtils.isNotBlank(rewriteContextPath) && StringUtils.isNotBlank(rewriteUri)) {
+                return rewriteContextPath + rewriteUri;
+            } else if (StringUtils.isNotBlank(rewriteContextPath)) {
                 return rewriteContextPath + shenyuContext.getRealUrl();
             }
             final String contextPath = exchange.getAttribute(Constants.CONTEXT_PATH);
-            final String rewriteUri = exchange.getAttribute(Constants.REWRITE_URI);
-            if (StringUtils.isNotBlank(contextPath) && StringUtils.isNotBlank(rewriteUri)) {
-                return contextPath + rewriteUri;
+            if (StringUtils.isNotBlank(contextPath)) {
+                return contextPath + shenyuContext.getRealUrl();
             }
         }
         return exchange.getRequest().getURI().getRawPath();
