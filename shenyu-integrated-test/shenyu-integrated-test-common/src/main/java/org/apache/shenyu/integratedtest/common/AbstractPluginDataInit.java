@@ -74,6 +74,7 @@ public class AbstractPluginDataInit extends AbstractTest {
      * @param pluginName the plugin name
      * @param selectorHandler the selector handler
      * @param selectorConditionData the selector condition data
+     * @param sort the sort
      * @param ruleDataList the rule data list
      * @return the string
      * @throws IOException the io exception
