@@ -74,7 +74,7 @@ public class RewriteTest extends AbstractPluginDataInit {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamValue("/order/**");
+        conditionData.setParamValue("/order/order/findById");
         ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
         String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "",
                 buildSelectorConditionList("/order/**"), Collections.singletonList(ruleLocalData));
@@ -102,16 +102,16 @@ public class RewriteTest extends AbstractPluginDataInit {
         ruleLocalData.setRuleHandler("{\"contextPath\":\"/dubbo\", \"addPrefix\":\"\", \"rewriteContextPath\":\"/http\", \"percentage\":100}");
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamValue("/dubbo/**");
+        conditionData.setOperator(OperatorEnum.EQ.getAlias());
+        conditionData.setParamValue("/dubbo/findById");
         ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "",
+        String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "", 0,
                 buildSelectorConditionList("/dubbo/**"), Collections.singletonList(ruleLocalData));
         assertThat(message, is("success"));
         
         pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
         assertThat(pluginResult, is("success"));
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.REWRITE.getName(), "",
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.REWRITE.getName(), "", 0,
                 buildSelectorConditionList("/http/**"), buildRewriteRuleLocalDataList());
         assertThat(selectorAndRulesResult, is("success"));
     }
@@ -129,14 +129,14 @@ public class RewriteTest extends AbstractPluginDataInit {
         
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData.setOperator(OperatorEnum.EQ.getAlias());
         conditionData.setParamName("/");
-        conditionData.setParamValue("/dubbo/**");
+        conditionData.setParamValue("/http/findById");
         ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
         ruleLocalData.setRuleName("rewriteMetaData");
         
         RewriteHandle rewriteHandle = new RewriteHandle();
-        rewriteHandle.setRegex("/dubbo/findById");
+        rewriteHandle.setRegex("/http/findById");
         rewriteHandle.setReplace("/order/findById");
         rewriteHandle.setRewriteMetaData(true);
         rewriteHandle.setPercentage(100);
