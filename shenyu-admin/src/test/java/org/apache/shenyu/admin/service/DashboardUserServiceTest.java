@@ -239,7 +239,7 @@ public final class DashboardUserServiceTest {
         try {
             SecretKey secretKey = new SecretKeySpec(secretKeyBytes, "AES");
             IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
             byte[] encryptedBytes = cipher.doFinal(data.getBytes());
             encryptStr = Base64.getEncoder().encodeToString(encryptedBytes);

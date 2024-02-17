@@ -343,7 +343,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         try {
             String key = secretProperties.getKey();
             String iv = secretProperties.getIv();
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
             SecretKey secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "AES");
             IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
             cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
