@@ -17,6 +17,6 @@
 FROM openjdk:17-jdk-alpine
 ENV APP_NAME shenyu-integrated-test-custom-plugin
 
-ADD target/shenyu-custom-plugin-2.6.2-SNAPSHOT.jar /opt/shenyu-custom-plugin.jar
+ADD target/shenyu-custom-plugin-2.7.0-SNAPSHOT.jar /opt/shenyu-custom-plugin.jar
 
 RUN ls -l
