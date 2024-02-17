@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:8-jre-alpine
+FROM openjdk:17-jdk-alpine
 
 ENV APP_NAME shenyu-examples-alibaba-dubbo-service
 ENV LOCAL_PATH /opt/${APP_NAME}
