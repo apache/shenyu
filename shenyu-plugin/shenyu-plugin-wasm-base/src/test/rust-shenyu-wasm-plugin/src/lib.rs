@@ -15,24 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.api;
+#[link(wasm_import_module = "shenyu")]
+extern "C" {
+    fn get_args(arg_id: i64, addr: i64, len: i32) -> i32;
 
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
+    fn put_result(arg_id: i64, addr: i64, len: i32) -> i32;
+}
 
-/**
- * the shenyu plugin chain.
- */
-public interface ShenyuPluginChain {
-
-    /**
-     * Delegate to the next {@code WebFilter} in the chain.
-     *
-     * @param exchange the current server exchange
-     * @return {@code Mono<Void>} to indicate when request handling is complete
-     */
-    Mono<Void> execute(ServerWebExchange exchange);
-    Mono<Void> doExecute(ServerWebExchange exchange, SelectorData selector, RuleData rule);
+#[no_mangle]
+pub unsafe extern "C" fn doExecute(arg_id: i64) {
+    let mut buf = [0u8; 32];
+    let buf_ptr = buf.as_mut_ptr() as i64;
+    eprintln!("rust side-> buffer base address: {}", buf_ptr);
+    // get arg from java
+    let len = get_args(arg_id, buf_ptr, buf.len() as i32);
+    let java_arg = std::str::from_utf8(&buf[..len as usize]).unwrap();
+    eprintln!("rust side-> recv:{}", java_arg);
+    // pass rust result to java
+    let rust_result = "rust result".as_bytes();
+    let result_ptr = rust_result.as_ptr() as i64;
+    _ = put_result(arg_id, result_ptr, rust_result.len() as i32);
 }
