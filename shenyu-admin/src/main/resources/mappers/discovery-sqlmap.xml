@@ -35,8 +35,8 @@
         date_created,
         date_updated,
         name,
-        type,
-        level,
+        `type`,
+        `level`,
         server_list,
         plugin_name,
         props
@@ -93,8 +93,8 @@
         date_created,
         date_updated,
         name,
-        type,
-        level,
+        `type`,
+        `level`,
         server_list,
         plugin_name,
         props)
@@ -124,10 +124,10 @@
                 name,
             </if>
             <if test="type != null">
-                type,
+                `type`,
             </if>
             <if test="level != null">
-                level,
+                `level`,
             </if>
             <if test="serverList != null">
                 server_list,
@@ -173,8 +173,8 @@
         SET date_created = #{dateCreated, jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
         name = #{name, jdbcType=VARCHAR},
-        type = #{type, jdbcType=VARCHAR},
-        level = #{level, jdbcType=VARCHAR},
+        `type` = #{type, jdbcType=VARCHAR},
+        `level` = #{level, jdbcType=VARCHAR},
         server_list = #{serverList, jdbcType=VARCHAR},
         plugin_name = #{pluginName, jdbcType=VARCHAR},
         props = #{props, jdbcType=LONGVARCHAR}
@@ -194,10 +194,10 @@
                 name = #{name, jdbcType=VARCHAR},
             </if>
             <if test="type != null">
-                type = #{type, jdbcType=VARCHAR},
+                `type` = #{type, jdbcType=VARCHAR},
             </if>
             <if test="level != null">
-                level = #{level, jdbcType=VARCHAR},
+                `level` = #{level, jdbcType=VARCHAR},
             </if>
             <if test="serverList != null">
                 server_list = #{serverList, jdbcType=VARCHAR},

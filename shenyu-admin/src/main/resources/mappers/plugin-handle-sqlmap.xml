@@ -37,7 +37,7 @@
         field,
         label,
         data_type,
-        type,
+        `type`,
         sort,
         ext_obj,
         date_created,
@@ -86,7 +86,7 @@
                     field,
                     label,
                     data_type,
-                    type,
+                    `type`,
                     sort,
                     ext_obj,
                     date_created,
@@ -122,7 +122,7 @@
                 data_type,
             </if>
             <if test="type != null">
-                type,
+                `type`,
             </if>
             <if test="sort != null">
                 sort,
@@ -154,7 +154,7 @@
                 #{dataType, jdbcType=INTEGER},
             </if>
             <if test="type != null">
-                #{type, jdbcType=INTEGER},
+                #{`type`, jdbcType=INTEGER},
             </if>
             <if test="sort != null">
                 #{sort, jdbcType=INTEGER},
@@ -186,7 +186,7 @@
                 data_type= #{dataType, jdbcType=INTEGER},
             </if>
             <if test="type != null">
-                type= #{type, jdbcType=INTEGER},
+                `type`= #{type, jdbcType=INTEGER},
             </if>
             <if test="sort != null">
                 sort= #{sort, jdbcType=INTEGER},
@@ -209,7 +209,7 @@
                 field = #{field, jdbcType=VARCHAR},
                 label = #{label, jdbcType=VARCHAR},
                 data_type = #{dataType, jdbcType=INTEGER},
-                type = #{type, jdbcType=INTEGER},
+                `type` = #{type, jdbcType=INTEGER},
                 sort = #{sort, jdbcType=INTEGER},
                 ext_obj = #{extObj, jdbcType=VARCHAR},
                 date_created = #{dateCreated, jdbcType=TIMESTAMP},
@@ -228,7 +228,7 @@
                 AND field = #{field, jdbcType=VARCHAR}
             </if>
             <if test="type != null">
-                AND type = #{type, jdbcType=INTEGER}
+                AND `type` = #{type, jdbcType=INTEGER}
             </if>
         </where>
     </select>
@@ -247,7 +247,7 @@
                 AND field like #{fieldLike, jdbcType=VARCHAR}
             </if>
             <if test="type != null">
-                AND type = #{type, jdbcType=INTEGER}
+                AND `type` = #{type, jdbcType=INTEGER}
             </if>
         </where>
       ORDER BY plugin_id, sort, id ASC
