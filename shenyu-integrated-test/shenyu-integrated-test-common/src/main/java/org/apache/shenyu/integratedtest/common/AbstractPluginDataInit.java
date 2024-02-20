@@ -65,9 +65,27 @@ public class AbstractPluginDataInit extends AbstractTest {
     public static String initSelectorAndRules(final String pluginName, final String selectorHandler,
                                        final List<ConditionData> selectorConditionData,
                                        final List<RuleLocalData> ruleDataList) throws IOException {
+        return initSelectorAndRules(pluginName, selectorHandler, 10, selectorConditionData, ruleDataList);
+    }
+    
+    /**
+     * Init selector and rules string.
+     *
+     * @param pluginName the plugin name
+     * @param selectorHandler the selector handler
+     * @param selectorConditionData the selector condition data
+     * @param sort the sort
+     * @param ruleDataList the rule data list
+     * @return the string
+     * @throws IOException the io exception
+     */
+    public static String initSelectorAndRules(final String pluginName, final String selectorHandler,
+                                              final Integer sort, final List<ConditionData> selectorConditionData,
+                                              final List<RuleLocalData> ruleDataList) throws IOException {
         SelectorRulesData selectorRulesData = new SelectorRulesData();
         selectorRulesData.setPluginName(pluginName);
         selectorRulesData.setSelectorHandler(selectorHandler);
+        selectorRulesData.setSort(sort);
         selectorRulesData.setConditionDataList(selectorConditionData);
         selectorRulesData.setRuleDataList(ruleDataList);
         return HttpHelper.INSTANCE.postGateway("/shenyu/plugin/selectorAndRules", selectorRulesData, String.class);
