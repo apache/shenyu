@@ -30,6 +30,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.tars.cache.ApplicationConfigCache;
@@ -43,8 +44,8 @@ import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * The tars plugin.
@@ -53,7 +54,10 @@ public class TarsPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(TarsPlugin.class);
 
-    private static final Random RANDOM = new Random();
+    @Override
+    protected String getRawPath(final ServerWebExchange exchange) {
+        return RequestUrlUtils.getRewrittenRawPath(exchange);
+    }
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -75,7 +79,7 @@ public class TarsPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         TarsInvokePrxList tarsInvokePrxList = ApplicationConfigCache.getInstance().get(metaData.getPath());
-        int index = RANDOM.nextInt(tarsInvokePrxList.getTarsInvokePrxList().size());
+        int index = ThreadLocalRandom.current().nextInt(tarsInvokePrxList.getTarsInvokePrxList().size());
         Object prx = tarsInvokePrxList.getTarsInvokePrxList().get(index).getInvokePrx();
         Method method = tarsInvokePrxList.getMethod();
         CompletableFuture future;

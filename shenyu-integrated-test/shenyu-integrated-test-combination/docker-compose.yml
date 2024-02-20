@@ -196,8 +196,6 @@ services:
         condition: service_healthy
       shenyu-admin:
         condition: service_healthy
-      shenyu-zk:
-        condition: service_healthy
     ports:
       - "9195:9195"
     networks:
