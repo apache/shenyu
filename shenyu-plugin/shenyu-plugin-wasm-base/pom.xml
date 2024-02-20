@@ -46,10 +46,5 @@
             <artifactId>jackson-module-kotlin</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-wasm-base</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 </project>
