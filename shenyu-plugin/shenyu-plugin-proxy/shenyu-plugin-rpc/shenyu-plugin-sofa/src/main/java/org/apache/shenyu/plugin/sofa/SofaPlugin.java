@@ -30,6 +30,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
@@ -58,6 +59,11 @@ public class SofaPlugin extends AbstractShenyuPlugin {
      */
     public SofaPlugin(final SofaProxyService sofaProxyService) {
         this.sofaProxyService = sofaProxyService;
+    }
+    
+    @Override
+    protected String getRawPath(final ServerWebExchange exchange) {
+        return RequestUrlUtils.getRewrittenRawPath(exchange);
     }
 
     @Override

@@ -19,14 +19,15 @@ package org.apache.shenyu.plugin.context.path;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.context.path.handler.ContextPathPluginDataHandler;
 import org.slf4j.Logger;
@@ -34,7 +35,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * ContextPath Plugin.
@@ -52,7 +56,7 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
             LOG.error("context path rule configuration is null ：{}", rule);
             return chain.execute(exchange);
         }
-        buildRealURI(shenyuContext, ruleHandle);
+        buildRealURI(exchange, shenyuContext, ruleHandle);
         return chain.execute(exchange);
     }
     
@@ -66,16 +70,6 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
         return PluginEnum.CONTEXT_PATH.getName();
     }
     
-    @Override
-    public boolean skip(final ServerWebExchange exchange) {
-        return skip(exchange,
-                RpcTypeEnum.DUBBO,
-                RpcTypeEnum.GRPC,
-                RpcTypeEnum.TARS,
-                RpcTypeEnum.MOTAN,
-                RpcTypeEnum.SOFA);
-    }
-    
     private ContextMappingRuleHandle buildRuleHandle(final RuleData rule) {
         return ContextPathPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
@@ -86,11 +80,25 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
      * @param context context
      * @param handle  handle
      */
-    private void buildRealURI(final ShenyuContext context, final ContextMappingRuleHandle handle) {
+    private void buildRealURI(final ServerWebExchange exchange, final ShenyuContext context, final ContextMappingRuleHandle handle) {
+        Map<String, Object> attributes = exchange.getAttributes();
         String realURI = "";
         String contextPath = handle.getContextPath();
         if (StringUtils.isNoneBlank(contextPath)) {
             realURI = context.getPath().substring(contextPath.length());
+            attributes.put(Constants.CONTEXT_PATH, contextPath);
+        }
+        final Integer percentage = Optional.ofNullable(handle.getPercentage()).orElse(100);
+        final String rewriteContextPath = handle.getRewriteContextPath();
+        if (StringUtils.isNoneBlank(rewriteContextPath) && ThreadLocalRandom.current().nextInt(100) < percentage) {
+            // when the rewritten uri crosses plugins, this is necessary
+            MetaData metaData = MetaDataCache.getInstance().obtain(rewriteContextPath + realURI);
+            Optional.ofNullable(exchange.getAttribute(Constants.META_DATA))
+                    .ifPresent(metadata -> attributes.put(Constants.OLD_CONTEXT_PATH_META_DATA, metadata));
+            if (Objects.nonNull(metaData)) {
+                attributes.put(Constants.META_DATA, metaData);
+            }
+            attributes.put(Constants.REWRITE_CONTEXT_PATH, rewriteContextPath);
         }
         String addPrefix = handle.getAddPrefix();
         if (StringUtils.isNoneBlank(addPrefix)) {
