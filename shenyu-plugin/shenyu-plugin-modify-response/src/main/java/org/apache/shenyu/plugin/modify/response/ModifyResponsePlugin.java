@@ -101,6 +101,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             return dataBufferMono.flatMap(dataBuffer -> {
                 byte[] bytes = new byte[dataBuffer.readableByteCount()];
                 dataBuffer.read(bytes);
+                DataBufferUtils.release(dataBuffer);
                 return WebFluxResultUtils.result(this.exchange, modifyBody(bytes));
             });
         }

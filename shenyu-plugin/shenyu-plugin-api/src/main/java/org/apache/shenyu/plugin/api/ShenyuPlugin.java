@@ -21,6 +21,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -31,6 +33,8 @@ import java.util.Objects;
  * the shenyu plugin interface.
  */
 public interface ShenyuPlugin {
+
+    Logger LOG = LoggerFactory.getLogger(ShenyuPlugin.class);
 
     /**
      * Process the Web request and (optionally) delegate to the next
@@ -134,6 +138,7 @@ public interface ShenyuPlugin {
      * @param exchange context
      */
     default void before(ServerWebExchange exchange) {
+        exchange.getAttributes().put(Constants.PLUGIN_START_TIME + named(), System.currentTimeMillis());
     }
 
     /**
@@ -142,6 +147,10 @@ public interface ShenyuPlugin {
      * @param exchange context
      */
     default void after(ServerWebExchange exchange) {
+        long currentTimeMillis = System.currentTimeMillis();
+        long startTime = (long) exchange.getAttributes().get(Constants.PLUGIN_START_TIME + named());
+        LOG.debug("shenyu traceId:{}, plugin named:{}, cost:{}", exchange.getLogPrefix(), named(), currentTimeMillis - startTime);
+        exchange.getAttributes().remove(Constants.PLUGIN_START_TIME + named());
     }
 }
 

@@ -81,6 +81,11 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         this.webSocketClient = webSocketClient;
         this.webSocketService = webSocketService;
     }
+    
+    @Override
+    protected String getRawPath(final ServerWebExchange exchange) {
+        return RequestUrlUtils.getRewrittenRawPath(exchange);
+    }
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
