@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.slf4j.Logger;
@@ -160,7 +161,7 @@ public class AccessTokenManager {
             encryptStr = Base64.getEncoder().encodeToString(encryptedBytes);
         } catch (Exception e) {
             LOG.error("aes encrypt fail. cause:{}", e.getMessage());
-            return null;
+            throw new ShenyuException(e);
         }
         return encryptStr;
     }

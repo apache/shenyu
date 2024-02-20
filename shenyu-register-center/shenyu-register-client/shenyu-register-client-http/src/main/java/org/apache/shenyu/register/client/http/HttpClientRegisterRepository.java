@@ -29,6 +29,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.FailbackRegistryRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
@@ -182,7 +183,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
             encryptStr = Base64.getEncoder().encodeToString(encryptedBytes);
         } catch (Exception e) {
             LOGGER.error("aes encrypt fail. cause:{}", e.getMessage());
-            return null;
+            throw new ShenyuException(e);
         }
         return encryptStr;
     }

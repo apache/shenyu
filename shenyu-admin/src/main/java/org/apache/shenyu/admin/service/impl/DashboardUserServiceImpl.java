@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
@@ -339,7 +340,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     }
 
     private String aesDecodePassword(final String password) {
-        String encodedPassword = null;
+        String decodePassword;
         try {
             String key = secretProperties.getKey();
             String iv = secretProperties.getIv();
@@ -348,11 +349,12 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
             cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
             byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(password));
-            encodedPassword = new String(decryptedBytes);
+            decodePassword = new String(decryptedBytes);
         } catch (Exception e) {
             LOG.error("AES decode error", e);
+            throw new ShenyuAdminException(e);
         }
-        return encodedPassword;
+        return decodePassword;
 
     }
 
