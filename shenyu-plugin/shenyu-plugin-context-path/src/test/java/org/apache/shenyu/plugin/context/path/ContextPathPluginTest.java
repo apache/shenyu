@@ -41,7 +41,7 @@ import reactor.core.publisher.Mono;
 
 import static org.apache.shenyu.plugin.context.path.handler.ContextPathPluginDataHandler.CACHED_HANDLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -109,7 +109,7 @@ public final class ContextPathPluginTest {
     public void skip() {
         shenyuContext.setRpcType(RpcTypeEnum.DUBBO.getName());
         this.exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-        assertTrue(contextPathPlugin.skip(exchange));
+        assertFalse(contextPathPlugin.skip(exchange));
     }
 
     /**

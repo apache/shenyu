@@ -306,6 +306,7 @@ public class LocalPluginController {
                 .matchMode(selectorRulesData.getMatchMode())
                 .conditionList(selectorRulesData.getConditionDataList())
                 .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .sort(Optional.ofNullable(selectorRulesData.getSort()).orElse(10))
                 .build();
         SelectorData result = buildDefaultSelectorData(selectorData);
         subscriber.onSelectorSubscribe(result);
@@ -585,6 +586,8 @@ public class LocalPluginController {
         private Integer matchMode;
 
         private String selectorHandler;
+        
+        private Integer sort;
 
         private List<ConditionData> conditionDataList;
 
@@ -660,6 +663,24 @@ public class LocalPluginController {
          */
         public void setMatchMode(final Integer matchMode) {
             this.matchMode = matchMode;
+        }
+        
+        /**
+         * Gets sort.
+         *
+         * @return the sort
+         */
+        public Integer getSort() {
+            return sort;
+        }
+        
+        /**
+         * Sets sort.
+         *
+         * @param sort the sort
+         */
+        public void setSort(final Integer sort) {
+            this.sort = sort;
         }
 
         /**
