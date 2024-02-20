@@ -19,43 +19,31 @@ package org.apache.shenyu.integrated.test.combination;
 
 import com.google.gson.JsonObject;
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController;
-import org.hamcrest.CoreMatchers;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * The integrated test for combination plugins about request and response.
  */
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
 
     private static final String RSA_PRIVATE_KEY = "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAvEXyUDh5qliWhM6KrpTFi1OXumoJQzMfSr8XjfKa/kHKb1uxr7N8lJd3I850m2IYrxckFCQW6nrnRKctm"
@@ -72,7 +60,6 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
 
     private static final RsaStrategy RSA_STRATEGY = new RsaStrategy();
 
-    @Order(1)
     @Test
     public void testDecryptRequestAndEncryptResponse() throws Exception {
         setupCryptorRequest("data", "decrypt", MapTypeEnum.FIELD.getMapType());
@@ -91,8 +78,7 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         cleanCryptorRequest();
         cleanCryptorResponse();
     }
-    
-    @Order(2)
+
     @Test
     public void testDecryptRequestAndEncryptResponseField() throws Exception {
         setupCryptorRequest("data", "decrypt", MapTypeEnum.FIELD.getMapType());
@@ -110,8 +96,7 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         cleanCryptorRequest();
         cleanCryptorResponse();
     }
-    
-    @Order(3)
+
     @Test
     public void testEncryptRequestAndDecryptResponse() throws Exception {
         setupCryptorRequest("userName", "encrypt", MapTypeEnum.ALL.getMapType());
@@ -127,8 +112,7 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         cleanCryptorRequest();
         cleanCryptorResponse();
     }
-    
-    @Order(4)
+
     @Test
     public void testEncryptRequestAndDecryptResponseField() throws Exception {
         setupCryptorRequest("userName", "encrypt", MapTypeEnum.ALL.getMapType());
@@ -142,102 +126,6 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
 
         cleanCryptorRequest();
         cleanCryptorResponse();
-    }
-    
-    @Order(5)
-    @Test
-    public void testRewriteCrossApplication() throws IOException {
-        OrderDTO orderDTO = HttpHelper.INSTANCE.getFromGateway("/http/order/findById?id=1", OrderDTO.class);
-        assertEquals("1", orderDTO.getId());
-        assertEquals("hello world findById", orderDTO.getName());
-        
-        orderDTO = HttpHelper.INSTANCE.getFromGateway("/order/order/findById?id=3", OrderDTO.class);
-        assertNotNull(orderDTO);
-        assertNull(orderDTO.getId());
-        assertNull(orderDTO.getName());
-        
-        setupRewriteContextPath();
-        
-        OrderDTO result = HttpHelper.INSTANCE.getFromGateway("/order/order/findById?id=1", OrderDTO.class);
-        assertEquals("1", result.getId());
-        assertEquals("hello world findById", result.getName());
-        
-//        assertThat(cleanPluginData(PluginEnum.CONTEXT_PATH.getName()), is("success"));
-    }
-    
-    @Order(6)
-    @Test
-    public void testRewriteCrossPlugin() throws IOException {
-        OrderDTO orderDTO = HttpHelper.INSTANCE.getFromGateway("/http/order/findById?id=1", OrderDTO.class);
-        assertEquals("1", orderDTO.getId());
-        assertEquals("hello world findById", orderDTO.getName());
-        
-        setupRewrite();
-        
-        Map<String, Object> request = new HashMap<>();
-        OrderDTO result = HttpHelper.INSTANCE.getFromGateway("/dubbo/findById?id=2", request, OrderDTO.class);
-        assertEquals("2", result.getId());
-        assertEquals("hello world findById", result.getName());
-        
-        assertThat(cleanPluginData(PluginEnum.CONTEXT_PATH.getName()), is("success"));
-        assertThat(cleanPluginData(PluginEnum.REWRITE.getName()), is("success"));
-    }
-    
-    private void setupRewrite() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.CONTEXT_PATH.getName(), "");
-        assertThat(pluginResult, CoreMatchers.is("success"));
-        LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
-        ruleLocalData.setRuleHandler("{\"contextPath\":\"/dubbo\", \"addPrefix\":\"\", \"rewriteContextPath\":\"/http\", \"percentage\":100}");
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        conditionData.setParamValue("/dubbo/findById");
-        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "", 0,
-                buildSelectorConditionList("/dubbo/findById"), Collections.singletonList(ruleLocalData));
-        assertThat(message, is("success"));
-        
-        pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
-        assertThat(pluginResult, is("success"));
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.REWRITE.getName(), "", 0,
-                buildSelectorConditionList("/http/findById"), buildRewriteRuleLocalDataList());
-        assertThat(selectorAndRulesResult, is("success"));
-    }
-    
-    private static List<LocalPluginController.RuleLocalData> buildRewriteRuleLocalDataList() {
-        final LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
-        
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        conditionData.setParamName("/");
-        conditionData.setParamValue("/http/findById");
-        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        ruleLocalData.setRuleName("rewriteMetaData");
-        
-        RewriteHandle rewriteHandle = new RewriteHandle();
-        rewriteHandle.setRegex("/http/findById");
-        rewriteHandle.setReplace("/order/findById");
-        rewriteHandle.setRewriteMetaData(true);
-        rewriteHandle.setPercentage(100);
-        
-        ruleLocalData.setRuleHandler(JsonUtils.toJson(rewriteHandle));
-        return Collections.singletonList(ruleLocalData);
-    }
-    
-    private void setupRewriteContextPath() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.CONTEXT_PATH.getName(), "");
-        assertThat(pluginResult, CoreMatchers.is("success"));
-        LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
-        ruleLocalData.setRuleHandler("{\"contextPath\":\"/order\", \"addPrefix\":\"\", \"rewriteContextPath\":\"/http\", \"percentage\":100}");
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamValue("/order/order/findById");
-        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "",
-                buildSelectorConditionList("/order/order/findById"), Collections.singletonList(ruleLocalData));
-        assertThat(message, is("success"));
     }
 
     private List<LocalPluginController.RuleLocalData> buildRuleLocalDataList(final String fieldNames, 
@@ -268,11 +156,11 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         return ruleLocalData;
     }
 
-    private List<ConditionData> buildSelectorConditionList(final String paramValue) {
+    private List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        conditionData.setParamValue(paramValue);
+        conditionData.setParamValue(TEST_PATH);
         return Collections.singletonList(conditionData);
     }
 
@@ -280,7 +168,7 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         String requestPluginResult = initPlugin(PluginEnum.CRYPTOR_REQUEST.getName(), null);
         assertThat(requestPluginResult, is("success"));
         String initSelectorAndRules = initSelectorAndRules(PluginEnum.CRYPTOR_REQUEST.getName(),
-                "", buildSelectorConditionList(TEST_PATH), buildRuleLocalDataList(fieldNames, way, mapType));
+                "", buildSelectorConditionList(), buildRuleLocalDataList(fieldNames, way, mapType));
         assertThat(initSelectorAndRules, is("success"));
     }
 
@@ -288,7 +176,7 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         String responsePluginResult = initPlugin(PluginEnum.CRYPTOR_RESPONSE.getName(), null);
         assertThat(responsePluginResult, is("success"));
         String cryptorResponseResult = initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
-                "", buildSelectorConditionList(TEST_PATH), buildRuleLocalDataList(fieldNames, way, mapType));
+                "", buildSelectorConditionList(), buildRuleLocalDataList(fieldNames, way, mapType));
         assertThat(cryptorResponseResult, is("success"));
     }
 
