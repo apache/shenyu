@@ -193,7 +193,7 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
                 cache.put(metaData.getPath(), reference);
             }
         } catch (Exception e) {
-            LOG.error("init alibaba dubbo refernce exception", e);
+            LOG.error("init alibaba dubbo reference exception", e);
         }
         return reference;
     }

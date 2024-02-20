@@ -40,6 +40,14 @@ jobs:
             os: ubuntu-latest
           - java: 17
             os: ubuntu-latest
+          - java: 18
+            os: ubuntu-latest
+          - java: 19
+            os: ubuntu-latest
+          - java: 20
+            os: ubuntu-latest
+          - java: 21
+            os: ubuntu-latest
     runs-on: ${{ matrix.os }}
     if: (github.repository == 'apache/shenyu')
     steps:

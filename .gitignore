@@ -43,3 +43,5 @@ Thumbs.db
 # agent build ignore
 /agent/
 
+# rust ignore
+*.lock
