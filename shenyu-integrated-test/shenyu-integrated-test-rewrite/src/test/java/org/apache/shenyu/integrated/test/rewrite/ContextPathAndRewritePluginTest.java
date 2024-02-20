@@ -28,7 +28,10 @@ import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController;
 import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -45,8 +48,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /**
  * The integrated test for combination plugins about contextPath and rewrite.
  */
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ContextPathAndRewritePluginTest extends AbstractPluginDataInit {
     
+    @Order(1)
     @Test
     public void testRewriteCrossApplication() throws IOException {
         OrderDTO orderDTO = HttpHelper.INSTANCE.getFromGateway("/http/order/findById?id=1", OrderDTO.class);
@@ -67,6 +72,7 @@ public class ContextPathAndRewritePluginTest extends AbstractPluginDataInit {
 //        assertThat(cleanPluginData(PluginEnum.CONTEXT_PATH.getName()), is("success"));
     }
     
+    @Order(2)
     @Test
     public void testRewriteCrossPlugin() throws IOException {
         OrderDTO orderDTO = HttpHelper.INSTANCE.getFromGateway("/http/order/findById?id=1", OrderDTO.class);
