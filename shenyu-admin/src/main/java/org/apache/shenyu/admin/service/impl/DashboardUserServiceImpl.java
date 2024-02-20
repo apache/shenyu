@@ -339,6 +339,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         return true;
     }
 
+    /**
+     * aes Decode Password.
+     * @param password password
+     * @return DecodePassword
+     */
     private String aesDecodePassword(final String password) {
         String decodePassword;
         try {
