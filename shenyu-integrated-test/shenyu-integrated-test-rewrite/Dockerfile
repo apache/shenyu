@@ -14,11 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-http://localhost:9095/actuator/health
-http://localhost:8189/test/path/123?name=tom
-http://localhost:8011/actuator/health
-http://localhost:55290/test/grpc/hello
-http://localhost:8081/actuator/health
-http://localhost:8002/actuator/health
-http://localhost:28011/actuator/health
-http://localhost:9195/actuator/health
+FROM openjdk:8-jre-alpine
+
+ENV APP_NAME shenyu-integrated-test-rewrite
+ENV LOCAL_PATH /opt/${APP_NAME}
+
+RUN mkdir -p ${LOCAL_PATH}
+
+ADD target/${APP_NAME}.jar ${LOCAL_PATH}
+
+WORKDIR ${LOCAL_PATH}
+EXPOSE 9195
+
+CMD java -jar ${APP_NAME}.jar
