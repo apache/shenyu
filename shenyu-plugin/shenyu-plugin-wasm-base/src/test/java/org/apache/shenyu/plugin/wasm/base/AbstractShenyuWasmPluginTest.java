@@ -289,29 +289,29 @@ public final class AbstractShenyuWasmPluginTest {
         protected Map<String, Func> initWasmCallJavaFunc(final Store<Void> store) {
             Map<String, Func> funcMap = new HashMap<>();
             funcMap.put("get_args", WasmFunctions.wrap(store, WasmValType.I64, WasmValType.I64, WasmValType.I32, WasmValType.I32,
-                    (argId, addr, len) -> {
-                        String config = "hello from java " + argId;
-                        LOG.info("java side->" + config);
-                        assertEquals("hello from java 0", config);
-                        ByteBuffer buf = super.getBuffer();
-                        for (int i = 0; i < len && i < config.length(); i++) {
-                            buf.put(addr.intValue() + i, (byte) config.charAt(i));
-                        }
-                        return Math.min(config.length(), len);
-                    }));
+                (argId, addr, len) -> {
+                    String config = "hello from java " + argId;
+                    LOG.info("java side->" + config);
+                    assertEquals("hello from java 0", config);
+                    ByteBuffer buf = super.getBuffer();
+                    for (int i = 0; i < len && i < config.length(); i++) {
+                        buf.put(addr.intValue() + i, (byte) config.charAt(i));
+                    }
+                    return Math.min(config.length(), len);
+                }));
             funcMap.put("put_result", WasmFunctions.wrap(store, WasmValType.I64, WasmValType.I64, WasmValType.I32, WasmValType.I32,
-                    (argId, addr, len) -> {
-                        ByteBuffer buf = super.getBuffer();
-                        byte[] bytes = new byte[len];
-                        for (int i = 0; i < len; i++) {
-                            bytes[i] = buf.get(addr.intValue() + i);
-                        }
-                        String result = new String(bytes, StandardCharsets.UTF_8);
-                        assertEquals("rust result", result);
-                        RESULTS.put(argId, result);
-                        LOG.info("java side->" + result);
-                        return 0;
-                    }));
+                (argId, addr, len) -> {
+                    ByteBuffer buf = super.getBuffer();
+                    byte[] bytes = new byte[len];
+                    for (int i = 0; i < len; i++) {
+                        bytes[i] = buf.get(addr.intValue() + i);
+                    }
+                    String result = new String(bytes, StandardCharsets.UTF_8);
+                    assertEquals("rust result", result);
+                    RESULTS.put(argId, result);
+                    LOG.info("java side->" + result);
+                    return 0;
+                }));
             return funcMap;
         }
         
