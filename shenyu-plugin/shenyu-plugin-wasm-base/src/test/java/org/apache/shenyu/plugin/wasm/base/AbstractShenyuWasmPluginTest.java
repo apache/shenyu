@@ -64,21 +64,21 @@ import static org.mockito.Mockito.when;
  * The Abstract shenyu plugin test.
  */
 public final class AbstractShenyuWasmPluginTest {
-
+    
     private RuleData ruleData;
-
+    
     private PluginData pluginData;
-
+    
     private SelectorData selectorData;
-
+    
     private ConditionData conditionData;
-
+    
     private ServerWebExchange exchange;
-
+    
     private TestShenyuWasmPlugin testShenyuWasmPlugin;
-
+    
     private ShenyuPluginChain shenyuPluginChain;
-
+    
     @BeforeEach
     public void setUp() {
         mockShenyuConfig();
@@ -112,7 +112,7 @@ public final class AbstractShenyuWasmPluginTest {
         clearCache();
         when(shenyuPluginChain.execute(exchange)).thenReturn(Mono.empty());
     }
-
+    
     /**
      * The plugin is null test.
      */
@@ -121,7 +121,7 @@ public final class AbstractShenyuWasmPluginTest {
         StepVerifier.create(testShenyuWasmPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(shenyuPluginChain).execute(exchange);
     }
-
+    
     /**
      * The selector is null test.
      */
@@ -131,7 +131,7 @@ public final class AbstractShenyuWasmPluginTest {
         StepVerifier.create(testShenyuWasmPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(shenyuPluginChain).execute(exchange);
     }
-
+    
     /**
      * The selector data is null test.
      */
@@ -142,7 +142,7 @@ public final class AbstractShenyuWasmPluginTest {
         StepVerifier.create(testShenyuWasmPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(shenyuPluginChain).execute(exchange);
     }
-
+    
     /**
      * The rule is null test.
      */
@@ -158,7 +158,7 @@ public final class AbstractShenyuWasmPluginTest {
         StepVerifier.create(testShenyuWasmPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(shenyuPluginChain).execute(exchange);
     }
-
+    
     /**
      * The rule is not null test.
      */
@@ -178,7 +178,7 @@ public final class AbstractShenyuWasmPluginTest {
         StepVerifier.create(testShenyuWasmPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(testShenyuWasmPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
     }
-
+    
     @Test
     public void executeSelectorManyMatch() {
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
@@ -202,7 +202,7 @@ public final class AbstractShenyuWasmPluginTest {
         StepVerifier.create(testShenyuWasmPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(testShenyuWasmPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
     }
-
+    
     @Test
     public void executeRuleManyMatch() {
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
@@ -214,7 +214,7 @@ public final class AbstractShenyuWasmPluginTest {
         this.selectorData.setConditionList(conditionDataList);
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
-
+        
         BaseDataCache.getInstance().cacheRuleData(RuleData.builder()
                 .id("1")
                 .pluginName("SHENYU")
@@ -225,7 +225,7 @@ public final class AbstractShenyuWasmPluginTest {
                 .matchRestful(false)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .sort(1).build());
-
+        
         BaseDataCache.getInstance().cacheRuleData(RuleData.builder()
                 .id("2")
                 .pluginName("SHENYU")
@@ -239,7 +239,7 @@ public final class AbstractShenyuWasmPluginTest {
         StepVerifier.create(testShenyuWasmPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(testShenyuWasmPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
     }
-
+    
     /**
      * The rule is full test.
      */
@@ -260,7 +260,7 @@ public final class AbstractShenyuWasmPluginTest {
         StepVerifier.create(testShenyuWasmPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(testShenyuWasmPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
     }
-
+    
     private void mockShenyuConfig() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuConfig.class)).thenReturn(new ShenyuConfig());
@@ -274,13 +274,13 @@ public final class AbstractShenyuWasmPluginTest {
         MatchDataCache.getInstance().cleanSelectorData();
         MatchDataCache.getInstance().cleanRuleDataData();
     }
-
+    
     private void clearCache() {
         BaseDataCache.getInstance().cleanPluginData();
         BaseDataCache.getInstance().cleanSelectorData();
         BaseDataCache.getInstance().cleanRuleData();
     }
-
+    
     static class TestShenyuWasmPlugin extends AbstractShenyuWasmPlugin {
         
         private static final Map<Long, String> RESULTS = new ConcurrentHashMap<>();
@@ -331,7 +331,7 @@ public final class AbstractShenyuWasmPluginTest {
         public int getOrder() {
             return 0;
         }
-
+        
         @Override
         public String named() {
             return "SHENYU";
