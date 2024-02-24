@@ -65,9 +65,11 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin {
     public AbstractShenyuWasmPlugin() {
         this.wasmLoader = new WasmLoader(this.getClass(), this::initWasmCallJavaFunc);
     }
+
     protected WasmLoader getWasmLoader() {
         return this.wasmLoader;
     }
+
     protected Map<String, Func> initWasmCallJavaFunc(final Store<Void> store) {
         return null;
     }
