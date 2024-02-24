@@ -316,14 +316,21 @@ public final class AbstractShenyuWasmPluginTest {
         }
         
         @Override
-        protected Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule, Long argumentId) {
+        protected Mono<Void> doExecute(final ServerWebExchange exchange,
+                                       final ShenyuPluginChain chain,
+                                       final SelectorData selector,
+                                       final RuleData rule,
+                                       final Long argumentId) {
             final String result = RESULTS.get(argumentId);
             assertEquals("rust result", result);
             return Mono.empty();
         }
         
         @Override
-        protected Long getArgumentId(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule) {
+        protected Long getArgumentId(final ServerWebExchange exchange,
+                                     final ShenyuPluginChain chain,
+                                     final SelectorData selector,
+                                     final RuleData rule) {
             return 0L;
         }
         
