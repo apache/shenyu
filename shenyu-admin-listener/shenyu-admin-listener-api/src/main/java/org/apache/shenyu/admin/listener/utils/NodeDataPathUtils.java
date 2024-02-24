@@ -15,36 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.listener;
+package org.apache.shenyu.admin.listener.utils;
 
-import org.apache.shenyu.admin.service.SyncDataService;
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
-
-import javax.annotation.Resource;
+import org.apache.shenyu.common.constant.DefaultNodeConstants;
 
 /**
- * AbstractDataChangedInit.
+ * NodeData Path helper.
  */
-public abstract class AbstractDataChangedInit implements DataChangedInit {
+public class NodeDataPathUtils {
 
     /**
-     * SyncDataService, sync all data.
-     */
-    @Resource
-    private SyncDataService syncDataService;
-
-    @Override
-    public void run(final String... args) throws Exception {
-        if (notExist()) {
-            syncDataService.syncAll(DataEventTypeEnum.REFRESH);
-        }
-    }
-
-    /**
-     * check exist.
+     * join the specified text and literal 'list' with '.'.
      *
-     * @return boolean.
+     * @param text original text, value should not be empty.
+     * @return string.
      */
-    protected abstract boolean notExist();
-
+    public static String appendListStuff(final String text) {
+        return String.join(DefaultNodeConstants.JOIN_POINT, text, DefaultNodeConstants.LIST_STR);
+    }
 }
