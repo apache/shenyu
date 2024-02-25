@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.plugin.wasm.base.handler;
 
+import io.github.kawamuray.wasmtime.Func;
+import io.github.kawamuray.wasmtime.Store;
+import io.github.kawamuray.wasmtime.WasmFunctions;
+import io.github.kawamuray.wasmtime.WasmValType;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -28,9 +32,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import static org.apache.shenyu.plugin.api.ShenyuPlugin.LOG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
@@ -135,11 +143,43 @@ class AbstractWasmPluginDataHandlerTest {
 
     static class TestWasmPluginDataHandler extends AbstractWasmPluginDataHandler {
 
+        private static final Map<Long, String> RESULTS = new ConcurrentHashMap<>();
+
         private Map<String, PluginData> pluginDataMap = new HashMap<>();
 
         private Map<String, SelectorData> selectorDataMap = new HashMap<>();
 
         private Map<String, RuleData> ruleDataMap = new HashMap<>();
+
+        @Override
+        protected Map<String, Func> initWasmCallJavaFunc(final Store<Void> store) {
+            Map<String, Func> funcMap = new HashMap<>();
+            funcMap.put("get_args", WasmFunctions.wrap(store, WasmValType.I64, WasmValType.I64, WasmValType.I32, WasmValType.I32,
+                (argId, addr, len) -> {
+                    String config = "hello from java " + argId;
+                    LOG.info("java side->" + config);
+                    assertEquals("hello from java 0", config);
+                    ByteBuffer buf = super.getBuffer();
+                    for (int i = 0; i < len && i < config.length(); i++) {
+                        buf.put(addr.intValue() + i, (byte) config.charAt(i));
+                    }
+                    return Math.min(config.length(), len);
+                }));
+            funcMap.put("put_result", WasmFunctions.wrap(store, WasmValType.I64, WasmValType.I64, WasmValType.I32, WasmValType.I32,
+                (argId, addr, len) -> {
+                    ByteBuffer buf = super.getBuffer();
+                    byte[] bytes = new byte[len];
+                    for (int i = 0; i < len; i++) {
+                        bytes[i] = buf.get(addr.intValue() + i);
+                    }
+                    String result = new String(bytes, StandardCharsets.UTF_8);
+                    assertEquals("rust result", result);
+                    RESULTS.put(argId, result);
+                    LOG.info("java side->" + result);
+                    return 0;
+                }));
+            return funcMap;
+        }
 
         public Map<String, PluginData> getPluginDataMap() {
             return pluginDataMap;
