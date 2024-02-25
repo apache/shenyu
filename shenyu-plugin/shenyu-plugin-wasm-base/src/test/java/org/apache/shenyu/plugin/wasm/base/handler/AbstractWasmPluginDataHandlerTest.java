@@ -133,7 +133,7 @@ class AbstractWasmPluginDataHandlerTest {
         assertEquals("SHENYU_TEST", testWasmPluginDataHandler.pluginNamed());
     }
 
-    static class TestWasmPluginDataHandler implements PluginDataHandler {
+    static class TestWasmPluginDataHandler extends AbstractWasmPluginDataHandler {
 
         private Map<String, PluginData> pluginDataMap = new HashMap<>();
 
