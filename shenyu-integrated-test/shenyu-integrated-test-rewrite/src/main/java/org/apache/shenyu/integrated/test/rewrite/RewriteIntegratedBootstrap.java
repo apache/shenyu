@@ -15,36 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.listener;
+package org.apache.shenyu.integrated.test.rewrite;
 
-import org.apache.shenyu.admin.service.SyncDataService;
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
-
-import javax.annotation.Resource;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * AbstractDataChangedInit.
+ * The rewrite integrated bootstrap.
  */
-public abstract class AbstractDataChangedInit implements DataChangedInit {
+@SpringBootApplication
+public class RewriteIntegratedBootstrap {
 
     /**
-     * SyncDataService, sync all data.
-     */
-    @Resource
-    private SyncDataService syncDataService;
-
-    @Override
-    public void run(final String... args) throws Exception {
-        if (notExist()) {
-            syncDataService.syncAll(DataEventTypeEnum.REFRESH);
-        }
-    }
-
-    /**
-     * check exist.
+     * main method of App.
      *
-     * @return boolean.
+     * @param args args
      */
-    protected abstract boolean notExist();
-
+    public static void main(final String[] args) {
+        SpringApplication.run(RewriteIntegratedBootstrap.class);
+    }
 }

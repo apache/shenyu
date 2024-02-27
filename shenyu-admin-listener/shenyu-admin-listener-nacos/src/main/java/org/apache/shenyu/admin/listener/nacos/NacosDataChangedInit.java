@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.listener.nacos;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
 import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
+import org.apache.shenyu.admin.listener.utils.NodeDataPathUtils;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
@@ -50,8 +51,9 @@ public class NacosDataChangedInit extends AbstractDataChangedInit {
 
     @Override
     protected boolean notExist() {
-        return Stream.of(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID, NacosPathConstants.PROXY_SELECTOR_DATA_ID).allMatch(
-            this::dataIdNotExist);
+        return Stream.of(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID, NacosPathConstants.PROXY_SELECTOR_DATA_ID)
+                .map(NodeDataPathUtils::appendListStuff)
+                .allMatch(this::dataIdNotExist);
     }
 
     private boolean dataIdNotExist(final String pluginDataId) {
@@ -65,4 +67,5 @@ public class NacosDataChangedInit extends AbstractDataChangedInit {
             throw new ShenyuException(e.getMessage());
         }
     }
+
 }
