@@ -36,6 +36,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -68,6 +69,15 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin {
     
     protected Map<String, Func> initWasmCallJavaFunc(final Store<Void> store) {
         return null;
+    }
+    
+    /**
+     * use this in wasmCallJavaFunc.
+     *
+     * @return the ByteBuffer
+     */
+    public ByteBuffer getBuffer() {
+        return wasmLoader.getBuffer();
     }
     
     @Override

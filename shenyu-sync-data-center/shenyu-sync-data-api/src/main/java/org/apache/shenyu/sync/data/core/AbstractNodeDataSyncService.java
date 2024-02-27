@@ -43,7 +43,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
- * AbstractPathDataSyncService.
+ * AbstractNodeDataSyncService.
  * Abstract method to monitor child node changes.
  */
 public abstract class AbstractNodeDataSyncService {
