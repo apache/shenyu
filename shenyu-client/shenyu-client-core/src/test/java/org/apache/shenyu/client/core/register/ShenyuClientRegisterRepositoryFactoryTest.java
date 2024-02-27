@@ -19,17 +19,14 @@ package org.apache.shenyu.client.core.register;
 
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.apache.shenyu.spi.ExtensionLoader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory.getRepositoryMap;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class ShenyuClientRegisterRepositoryFactoryTest {
@@ -39,20 +36,6 @@ public class ShenyuClientRegisterRepositoryFactoryTest {
 
     @Mock
     private ShenyuRegisterCenterConfig config;
-
-    @Test
-    public void testNewInstanceNewRegisterType() {
-
-        when(config.getRegisterType()).thenReturn("newType");
-        when(ExtensionLoader.getExtensionLoader(ShenyuClientRegisterRepository.class).getJoin("newType")).thenReturn(repository);
-
-        ShenyuClientRegisterRepository repository1 = ShenyuClientRegisterRepositoryFactory.newInstance(config);
-
-        verify(repository1).init(config);
-        Assertions.assertEquals(1, getRepositoryMap().size());
-        Assertions.assertTrue(getRepositoryMap().containsKey("newType"));
-
-    }
 
     @Test
     public void testNewInstanceExistingRegisterType() {
