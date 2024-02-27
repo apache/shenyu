@@ -15,36 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.listener;
+package org.apache.shenyu.admin.listener.utils;
 
-import org.apache.shenyu.admin.service.SyncDataService;
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
-
-import javax.annotation.Resource;
+import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 /**
- * AbstractDataChangedInit.
+ * NodeDataPathUtilsTest.
  */
-public abstract class AbstractDataChangedInit implements DataChangedInit {
+public class NodeDataPathUtilsTest {
 
     /**
-     * SyncDataService, sync all data.
+     * test NodeDataPathUtils appendListStuff method.
      */
-    @Resource
-    private SyncDataService syncDataService;
-
-    @Override
-    public void run(final String... args) throws Exception {
-        if (notExist()) {
-            syncDataService.syncAll(DataEventTypeEnum.REFRESH);
-        }
+    @Test
+    public void testAppendListStuff() {
+        Assertions.assertEquals("plugin.list", NodeDataPathUtils.appendListStuff("plugin"));
+        Assertions.assertEquals("meta.list", NodeDataPathUtils.appendListStuff("meta"));
     }
-
-    /**
-     * check exist.
-     *
-     * @return boolean.
-     */
-    protected abstract boolean notExist();
-
 }
