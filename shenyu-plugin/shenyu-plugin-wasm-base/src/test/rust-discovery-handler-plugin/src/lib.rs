@@ -23,7 +23,7 @@ extern "C" {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn doExecute(arg_id: i64) {
+pub unsafe extern "C" fn handlerDiscoveryUpstreamData(arg_id: i64) {
     let mut buf = [0u8; 32];
     let buf_ptr = buf.as_mut_ptr() as i64;
     eprintln!("rust side-> buffer base address: {}", buf_ptr);
