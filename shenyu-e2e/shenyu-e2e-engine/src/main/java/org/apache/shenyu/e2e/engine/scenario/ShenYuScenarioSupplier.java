@@ -31,7 +31,7 @@ public class ShenYuScenarioSupplier implements Iterator<ScenarioSpec>, Supplier<
     
     private int index = -1;
     
-    ShenYuScenarioSupplier(List<ScenarioSpec> supplies) {
+    ShenYuScenarioSupplier(final List<ScenarioSpec> supplies) {
         this.supplies = ImmutableList.<ScenarioSpec>builder().addAll(supplies).build();
     }
     
@@ -41,12 +41,32 @@ public class ShenYuScenarioSupplier implements Iterator<ScenarioSpec>, Supplier<
         return supplies.iterator();
     }
     
+    /**
+     * size.
+     * @return int
+     */
     public int size() {
         return supplies.size();
     }
     
-    public ScenarioSpec get(int index) {
+    /**
+     * the index of spec.
+     * @param index index
+     * @return ScenarioSpec
+     */
+    public ScenarioSpec get(final int index) {
         return supplies.get(index);
+    }
+    
+    /**
+     * get a scenario spec.
+     * @return ScenarioSpec
+     */
+    public ScenarioSpec get() {
+        if (index < 0) {
+            throw new NoSuchElementException();
+        }
+        return get(index);
     }
     
     @Override
@@ -60,10 +80,4 @@ public class ShenYuScenarioSupplier implements Iterator<ScenarioSpec>, Supplier<
         return get();
     }
     
-    public ScenarioSpec get() {
-        if (index < 0) {
-            throw new NoSuchElementException();
-        }
-        return get(index);
-    }
 }

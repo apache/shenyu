@@ -23,20 +23,44 @@ import java.util.Objects;
  * This is redirect plugin handle.
  */
 public class RedirectHandle {
+    
+    /**
+     * http status code.
+     */
+    private Integer httpStatusCode = 302;
+    
     /**
      * redirect url.
      */
     private String redirectURI;
-
+    
+    /**
+     * Gets http status code.
+     *
+     * @return the http status code
+     */
+    public Integer getHttpStatusCode() {
+        return httpStatusCode;
+    }
+    
+    /**
+     * Sets http status code.
+     *
+     * @param httpStatusCode the http status code
+     */
+    public void setHttpStatusCode(final Integer httpStatusCode) {
+        this.httpStatusCode = httpStatusCode;
+    }
+    
     /**
      * get redirectURI.
      *
-     * @return redirectURI
+     * @return redirectURI redirect uri
      */
     public String getRedirectURI() {
         return redirectURI;
     }
-
+    
     /**
      * set redirectURI.
      *
@@ -45,30 +69,26 @@ public class RedirectHandle {
     public void setRedirectURI(final String redirectURI) {
         this.redirectURI = redirectURI;
     }
-
+    
+    @Override
+    public String toString() {
+        return "RedirectHandle{" + "httpStatusCode=" + httpStatusCode + ", redirectURI='" + redirectURI + '\'' + '}';
+    }
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
         if (o == null || getClass() != o.getClass()) {
-            return false;
+            return false;  
         }
-        RedirectHandle that = (RedirectHandle) o;
-        return Objects.equals(redirectURI, that.redirectURI);
+        final RedirectHandle that = (RedirectHandle) o;
+        return Objects.equals(httpStatusCode, that.httpStatusCode) && Objects.equals(redirectURI, that.redirectURI);
     }
-
+    
     @Override
     public int hashCode() {
-        return Objects.hash(redirectURI);
-    }
-
-    @Override
-    public String toString() {
-        return "RedirectHandle{"
-                + "redirectURI='"
-                + redirectURI
-                + '\''
-                + '}';
+        return Objects.hash(httpStatusCode, redirectURI);
     }
 }

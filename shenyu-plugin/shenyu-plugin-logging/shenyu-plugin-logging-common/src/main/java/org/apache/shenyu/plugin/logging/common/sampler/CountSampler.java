@@ -19,7 +19,8 @@ package org.apache.shenyu.plugin.logging.common.sampler;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.springframework.web.server.ServerWebExchange;
 
 import java.util.BitSet;
 import java.util.Random;
@@ -37,6 +38,7 @@ public class CountSampler implements Sampler {
 
     /**
      * Fills a bitset with decisions according to the supplied probability.
+     *
      * @param probability probability
      */
     public CountSampler(final float probability) {
@@ -49,7 +51,7 @@ public class CountSampler implements Sampler {
      * loops over the pre-canned decisions, resetting to zero when it gets to the end.
      */
     @Override
-    public boolean isSampled(final ServerHttpRequest request) {
+    public boolean isSampled(final ServerWebExchange exchange, final SelectorData selectorData) {
         return sampleDecisions.get(mod(counter.getAndIncrement()));
     }
 

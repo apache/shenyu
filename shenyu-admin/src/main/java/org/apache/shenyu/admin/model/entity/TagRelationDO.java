@@ -29,7 +29,7 @@ public final class TagRelationDO extends BaseDO {
     private static final long serialVersionUID = -2968123108441795604L;
 
     /**
-     * appid.
+     * apiId.
      */
     private String apiId;
 

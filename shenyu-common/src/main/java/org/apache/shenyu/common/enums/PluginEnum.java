@@ -26,17 +26,22 @@ import java.util.stream.Collectors;
  * PluginEnum.
  */
 public enum PluginEnum {
+
+    /**
+     * Global plugin enum.
+     */
+    GLOBAL(-1, 0, "global"),
+    
+    /**
+     * Tcp plugin enum.
+     */
+    TCP(0, 0, "tcp"),
     
     /**
      * Mqtt plugin enum.
      */
     MQTT(0, 0, "mqtt"),
-    
-    /**
-     * Global plugin enum.
-     */
-    GLOBAL(5, 0, "global"),
-    
+
     /**
      * the mock plugin enum.
      */
@@ -143,6 +148,11 @@ public enum PluginEnum {
     LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
 
     /**
+     * Logging Rabbitmq plugin enum.
+     */
+    LOGGING_RABBITMQ(171, 0, "loggingRabbitMQ"),
+    
+    /**
      * Logging AliYun sls enums.
      */
     LOGGING_ALIYUN_SLS(175, 0, "loggingAliyunSls"),
@@ -151,6 +161,11 @@ public enum PluginEnum {
      * Logging Tencent cls enums.
      */
     LOGGING_TENCENT_CLS(176, 0, "loggingTencentCls"),
+
+    /**
+     * Logging Huawei lts enums.
+     */
+    LOGGING_HUAWEI_LTS(177, 0, "loggingHuaweiLts"),
 
     /**
      * Logging Kafka plugin enum.
@@ -250,7 +265,12 @@ public enum PluginEnum {
     /**
      * Key-auth plugin enum.
      */
-    KEY_AUTH(430, 0, "keyAuth");
+    KEY_AUTH(430, 0, "keyAuth"),
+    
+    /**
+     * Basic-auth plugin enum.
+     */
+    BASIC_AUTH(35, 0, "basicAuth");
     
     /**
      * When the application starts, the plugin is cached and we can obtained by name.

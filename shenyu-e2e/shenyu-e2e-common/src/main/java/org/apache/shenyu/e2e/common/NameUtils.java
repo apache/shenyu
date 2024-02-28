@@ -17,9 +17,18 @@
 
 package org.apache.shenyu.e2e.common;
 
+/**
+ * Utils for concatenating names.
+ */
 public class NameUtils {
     
-    public static String wrap(String name, String scenarioId) {
+    /**
+     * wrap name and scenarioId to the format name.
+     * @param name name
+     * @param scenarioId scenarioId
+     * @return String
+     */
+    public static String wrap(final String name, final String scenarioId) {
         return name + "-" + scenarioId + "-" + IdGenerator.generateTestId();
     }
 }

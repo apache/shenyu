@@ -17,45 +17,27 @@
 
 package org.apache.shenyu.sync.data.zookeeper;
 
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
-import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
-import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.core.AbstractPathDataSyncService;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * this cache data with zookeeper.
  */
-public class ZookeeperSyncDataService implements SyncDataService {
+public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
 
     private final ZookeeperClient zkClient;
-
-    private final PluginDataSubscriber pluginDataSubscriber;
-
-    private final List<MetaDataSubscriber> metaDataSubscribers;
-
-    private final List<AuthDataSubscriber> authDataSubscribers;
 
     /**
      * Instantiates a new Zookeeper cache manager.
@@ -68,95 +50,43 @@ public class ZookeeperSyncDataService implements SyncDataService {
     public ZookeeperSyncDataService(final ZookeeperClient zkClient,
                                     final PluginDataSubscriber pluginDataSubscriber,
                                     final List<MetaDataSubscriber> metaDataSubscribers,
-                                    final List<AuthDataSubscriber> authDataSubscribers) {
+                                    final List<AuthDataSubscriber> authDataSubscribers,
+                                    final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
+                                    final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
+        super(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.zkClient = zkClient;
-        this.pluginDataSubscriber = pluginDataSubscriber;
-        this.metaDataSubscribers = metaDataSubscribers;
-        this.authDataSubscribers = authDataSubscribers;
         watcherData();
-        watchAppAuth();
-        watchMetaData();
     }
 
     private void watcherData() {
-        zkClient.addCache(DefaultPathConstants.PLUGIN_PARENT, new PluginCacheListener());
-        zkClient.addCache(DefaultPathConstants.SELECTOR_PARENT, new SelectorCacheListener());
-        zkClient.addCache(DefaultPathConstants.RULE_PARENT, new RuleCacheListener());
+        watcherData0(DefaultPathConstants.PLUGIN_PARENT);
+        watcherData0(DefaultPathConstants.SELECTOR_PARENT);
+        watcherData0(DefaultPathConstants.RULE_PARENT);
+        watcherData0(DefaultPathConstants.PROXY_SELECTOR);
+        watcherData0(DefaultPathConstants.DISCOVERY_UPSTREAM);
+        watcherData0(DefaultPathConstants.APP_AUTH_PARENT);
+        watcherData0(DefaultPathConstants.META_DATA);
     }
 
-    private void watchAppAuth() {
-        zkClient.addCache(DefaultPathConstants.APP_AUTH_PARENT, new AuthCacheListener());
-    }
+    private void watcherData0(final String registerPath) {
+        zkClient.addCache(registerPath, (curatorFramework, treeCacheEvent) -> {
+            ChildData childData = treeCacheEvent.getData();
+            if (null == childData) {
+                return;
+            }
+            String path = childData.getPath();
+            if (Strings.isNullOrEmpty(path)) {
+                return;
+            }
+            // if not uri register path, return.
+            if (!path.contains(registerPath)) {
+                return;
+            }
 
-    private void watchMetaData() {
-        zkClient.addCache(DefaultPathConstants.META_DATA, new MetadataCacheListener());
-    }
-
-    private void cachePluginData(final PluginData pluginData) {
-        Optional.ofNullable(pluginData)
-                .flatMap(data -> Optional.ofNullable(pluginDataSubscriber))
-                .ifPresent(e -> e.onSubscribe(pluginData));
-    }
-
-    private void cacheSelectorData(final SelectorData selectorData) {
-        Optional.ofNullable(selectorData)
-                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber)
-                        .ifPresent(e -> e.onSelectorSubscribe(data)));
-    }
-
-    private void unCacheSelectorData(final String dataPath) {
-        SelectorData selectorData = new SelectorData();
-        final String selectorId = dataPath.substring(dataPath.lastIndexOf("/") + 1);
-        final String str = dataPath.substring(DefaultPathConstants.SELECTOR_PARENT.length());
-        final String pluginName = str.substring(1, str.length() - selectorId.length() - 1);
-        selectorData.setPluginName(pluginName);
-        selectorData.setId(selectorId);
-
-        Optional.ofNullable(pluginDataSubscriber)
-                .ifPresent(e -> e.unSelectorSubscribe(selectorData));
-    }
-
-    private void cacheRuleData(final RuleData ruleData) {
-        Optional.ofNullable(ruleData)
-                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber)
-                        .ifPresent(e -> e.onRuleSubscribe(data)));
-    }
-
-    private void unCacheRuleData(final String dataPath) {
-        String substring = dataPath.substring(dataPath.lastIndexOf("/") + 1);
-        final String str = dataPath.substring(DefaultPathConstants.RULE_PARENT.length());
-        final String pluginName = str.substring(1, str.length() - substring.length() - 1);
-        final List<String> list = Lists.newArrayList(Splitter.on(DefaultPathConstants.SELECTOR_JOIN_RULE).split(substring));
-
-        RuleData ruleData = new RuleData();
-        ruleData.setPluginName(pluginName);
-        ruleData.setSelectorId(list.get(0));
-        ruleData.setId(list.get(1));
-
-        Optional.ofNullable(pluginDataSubscriber)
-                .ifPresent(e -> e.unRuleSubscribe(ruleData));
-    }
-
-    private void cacheAuthData(final AppAuthData appAuthData) {
-        Optional.ofNullable(appAuthData)
-                .ifPresent(data -> authDataSubscribers.forEach(e -> e.onSubscribe(data)));
-    }
-
-    private void unCacheAuthData(final String dataPath) {
-        final String key = dataPath.substring(DefaultPathConstants.APP_AUTH_PARENT.length() + 1);
-        AppAuthData appAuthData = new AppAuthData();
-        appAuthData.setAppKey(key);
-        authDataSubscribers.forEach(e -> e.unSubscribe(appAuthData));
-    }
-
-    private void cacheMetaData(final MetaData metaData) {
-        Optional.ofNullable(metaData)
-                .ifPresent(data -> metaDataSubscribers.forEach(e -> e.onSubscribe(metaData)));
-    }
-
-    private void unCacheMetaData(final MetaData metaData) {
-        Optional.ofNullable(metaData)
-                .ifPresent(data -> metaDataSubscribers.forEach(e -> e.unSubscribe(metaData)));
+            EventType eventType = treeCacheEvent.getType().equals(TreeCacheEvent.Type.NODE_REMOVED) ? EventType.DELETE : EventType.PUT;
+            final String updateData = childData.getData() != null ? new String(childData.getData(), StandardCharsets.UTF_8) : null;
+            this.event(path, updateData, registerPath, eventType);
+        });
     }
 
     @Override
@@ -166,135 +96,4 @@ public class ZookeeperSyncDataService implements SyncDataService {
         }
     }
 
-    abstract static class AbstractDataSyncListener implements TreeCacheListener {
-        @Override
-        public final void childEvent(final CuratorFramework client, final TreeCacheEvent event) {
-            ChildData childData = event.getData();
-            if (null == childData) {
-                return;
-            }
-            String path = childData.getPath();
-            if (Strings.isNullOrEmpty(path)) {
-                return;
-            }
-            event(event.getType(), path, childData);
-        }
-
-        /**
-         * data sync event.
-         *
-         * @param type tree cache event type.
-         * @param path tree cache event path.
-         * @param data tree cache event data.
-         */
-        protected abstract void event(TreeCacheEvent.Type type, String path, ChildData data);
-    }
-
-    class PluginCacheListener extends AbstractDataSyncListener {
-        
-        @Override
-        public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
-            // if not uri register path, return.
-            if (!path.contains(DefaultPathConstants.PLUGIN_PARENT)) {
-                return;
-            }
-
-            String pluginName = path.substring(path.lastIndexOf("/") + 1);
-
-            // delete a plugin
-            if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
-                final PluginData pluginData = new PluginData();
-                pluginData.setName(pluginName);
-                Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(pluginData));
-            }
-
-            // create or update
-            Optional.ofNullable(data)
-                    .ifPresent(e -> cachePluginData(GsonUtils.getInstance().fromJson(new String(data.getData(), StandardCharsets.UTF_8), PluginData.class)));
-        }
-    }
-
-    class SelectorCacheListener extends AbstractDataSyncListener {
-        
-        @Override
-        public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
-
-            // if not uri register path, return.
-            if (!path.contains(DefaultPathConstants.SELECTOR_PARENT)) {
-                return;
-            }
-
-            if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
-                unCacheSelectorData(path);
-            }
-
-            // create or update
-            Optional.ofNullable(data)
-                    .ifPresent(e -> cacheSelectorData(GsonUtils.getInstance().fromJson(new String(data.getData(), StandardCharsets.UTF_8), SelectorData.class)));
-        }
-    }
-
-    class MetadataCacheListener extends AbstractDataSyncListener {
-
-        @Override
-        public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
-            // if not uri register path, return.
-            if (!path.contains(DefaultPathConstants.META_DATA)) {
-                return;
-            }
-
-            if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
-                final String realPath = path.substring(DefaultPathConstants.META_DATA.length() + 1);
-                MetaData metaData = new MetaData();
-                try {
-                    metaData.setPath(URLDecoder.decode(realPath, StandardCharsets.UTF_8.name()));
-                } catch (UnsupportedEncodingException e) {
-                    throw new ShenyuException(e);
-                }
-                unCacheMetaData(metaData);
-            }
-
-            // create or update
-            Optional.ofNullable(data)
-                    .ifPresent(e -> cacheMetaData(GsonUtils.getInstance().fromJson(new String(data.getData(), StandardCharsets.UTF_8), MetaData.class)));
-        }
-    }
-
-    class AuthCacheListener extends AbstractDataSyncListener {
-        
-        @Override
-        public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
-            // if not uri register path, return.
-            if (!path.contains(DefaultPathConstants.APP_AUTH_PARENT)) {
-                return;
-            }
-
-            if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
-                unCacheAuthData(path);
-            }
-
-            // create or update
-            Optional.ofNullable(data)
-                    .ifPresent(e -> cacheAuthData(GsonUtils.getInstance().fromJson(new String(data.getData(), StandardCharsets.UTF_8), AppAuthData.class)));
-        }
-    }
-
-    class RuleCacheListener extends AbstractDataSyncListener {
-        
-        @Override
-        public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
-            // if not uri register path, return.
-            if (!path.contains(DefaultPathConstants.RULE_PARENT)) {
-                return;
-            }
-
-            if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
-                unCacheRuleData(path);
-            }
-
-            // create or update
-            Optional.ofNullable(data)
-                    .ifPresent(e -> cacheRuleData(GsonUtils.getInstance().fromJson(new String(data.getData(), StandardCharsets.UTF_8), RuleData.class)));
-        }
-    }
 }

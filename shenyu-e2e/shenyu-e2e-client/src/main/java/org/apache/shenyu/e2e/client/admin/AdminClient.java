@@ -17,41 +17,46 @@
 
 package org.apache.shenyu.e2e.client.admin;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.e2e.annotation.ShenYuAdminClient;
-import org.apache.shenyu.e2e.client.admin.model.Plugin;
-import org.apache.shenyu.e2e.client.admin.model.ShenYuResult;
-import org.apache.shenyu.e2e.client.admin.model.data.ResourceData;
-import org.apache.shenyu.e2e.client.admin.model.data.RuleData;
-import org.apache.shenyu.e2e.client.admin.model.data.SearchCondition;
-import org.apache.shenyu.e2e.client.admin.model.data.SearchCondition.QueryCondition;
-import org.apache.shenyu.e2e.client.admin.model.data.SearchCondition.RuleQueryCondition;
-import org.apache.shenyu.e2e.client.admin.model.data.SearchCondition.SelectorQueryCondition;
-import org.apache.shenyu.e2e.client.admin.model.data.SelectorData;
-import org.apache.shenyu.e2e.client.admin.model.response.FakeResourceDTO;
-import org.apache.shenyu.e2e.client.admin.model.response.LoginInfo;
-import org.apache.shenyu.e2e.client.admin.model.response.PaginatedResources;
-import org.apache.shenyu.e2e.client.admin.model.response.PluginDTO;
-import org.apache.shenyu.e2e.client.admin.model.response.ResourceDTO;
-import org.apache.shenyu.e2e.client.admin.model.response.RuleDTO;
-import org.apache.shenyu.e2e.client.admin.model.response.SearchedResources;
-import org.apache.shenyu.e2e.client.admin.model.response.SelectorDTO;
+import org.apache.shenyu.e2e.client.BaseClient;
 import org.apache.shenyu.e2e.common.IdManagers.Rules;
 import org.apache.shenyu.e2e.common.IdManagers.Selectors;
 import org.apache.shenyu.e2e.common.NameUtils;
+import org.apache.shenyu.e2e.model.Plugin;
+import org.apache.shenyu.e2e.model.ShenYuResult;
+import org.apache.shenyu.e2e.model.data.BindingData;
+import org.apache.shenyu.e2e.model.data.QueryCondition;
+import org.apache.shenyu.e2e.model.data.ResourceData;
+import org.apache.shenyu.e2e.model.data.RuleData;
+import org.apache.shenyu.e2e.model.data.RuleQueryCondition;
+import org.apache.shenyu.e2e.model.data.SearchCondition;
+import org.apache.shenyu.e2e.model.data.SelectorData;
+import org.apache.shenyu.e2e.model.data.SelectorQueryCondition;
+import org.apache.shenyu.e2e.model.response.FakeResourceDTO;
+import org.apache.shenyu.e2e.model.response.LoginInfo;
+import org.apache.shenyu.e2e.model.response.MetaDataDTO;
+import org.apache.shenyu.e2e.model.response.PaginatedResources;
+import org.apache.shenyu.e2e.model.response.PluginDTO;
+import org.apache.shenyu.e2e.model.response.ResourceDTO;
+import org.apache.shenyu.e2e.model.response.RuleDTO;
+import org.apache.shenyu.e2e.model.response.SearchedResources;
+import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.Assertions;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
@@ -59,41 +64,58 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.e2e.client.admin.model.data.SearchCondition.QUERY_ALL;
+import static org.apache.shenyu.e2e.model.data.SearchCondition.QUERY_ALL;
 
-@Slf4j
+/**
+ * A client to connect to ShenYu Admin.
+ */
 @ShenYuAdminClient
-public class AdminClient {
-    private final MultiValueMap<String, String> basicAuth = new HttpHeaders();
-    private final RestTemplate template = new RestTemplateBuilder().build();
-    private final ObjectMapper mapper = new ObjectMapper();
-    
-    private final String scenarioId;
-    
-    private final String baseURL;
-    private final ImmutableMap<String, String> loginInfo;
-    
+public class AdminClient extends BaseClient {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminClient.class);
+
     private static final TypeReference<PaginatedResources<PluginDTO>> PAGINATED_PLUGINS_TYPE_REFERENCE = new TypeReference<PaginatedResources<PluginDTO>>() {
     };
+
     private static final TypeReference<SearchedResources<SelectorDTO>> SEARCHED_SELECTORS_TYPE_REFERENCE = new TypeReference<SearchedResources<SelectorDTO>>() {
     };
+
     private static final TypeReference<SearchedResources<RuleDTO>> SEARCHED_RULES_TYPE_REFERENCE = new TypeReference<SearchedResources<RuleDTO>>() {
     };
+
     private static final TypeReference<SearchedResources<FakeResourceDTO>> FAKE_VALUE_TYPE = new TypeReference<SearchedResources<FakeResourceDTO>>() {
     };
-    
-    public AdminClient(String scenarioId, String baseURL, Properties properties) {
+
+    private static final TypeReference<List<MetaDataDTO>> SEARCHED_METADATAS_TYPE_REFERENCE = new TypeReference<List<MetaDataDTO>>() {
+    };
+
+    private final MultiValueMap<String, String> basicAuth = new HttpHeaders();
+
+    private final RestTemplate template = new RestTemplate();
+
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    private final String scenarioId;
+
+    private final String baseURL;
+
+    private String serviceName;
+
+    private final ImmutableMap<String, String> loginInfo;
+
+    public AdminClient(final String scenarioId, final String serviceName, final String baseURL, final Properties properties) {
+        super(serviceName);
         Preconditions.checkArgument(properties.containsKey("username"), "Property username does not exist");
         Preconditions.checkArgument(properties.containsKey("password"), "Property password does not exist");
-        
         this.baseURL = baseURL;
         this.scenarioId = scenarioId;
+        this.serviceName = serviceName;
         this.loginInfo = ImmutableMap.<String, String>builder()
                 .put("username", properties.getProperty("username"))
                 .put("password", properties.getProperty("password"))
                 .build();
     }
-    
+
     /**
      * Login to ShenYu Admin and cache the token.
      */
@@ -105,15 +127,15 @@ public class AdminClient {
                 loginInfo
         );
         ShenYuResult rst = assertAndGet(response, "login dashboard user success");
-        
+
         String token = Assertions.assertDoesNotThrow(() -> rst.toObject(LoginInfo.class).getToken(), "checking to cast common");
         Assertions.assertNotNull(token, "checking token not null");
         Assertions.assertNotEquals("", token, "checking token not empty");
         basicAuth.set("X-Access-Token", token);
-        
+
         Plugin.check(listPlugins());
     }
-    
+
     /**
      * List all plugins.
      *
@@ -121,7 +143,7 @@ public class AdminClient {
      */
     public List<PluginDTO> listPlugins() {
         List<PluginDTO> result = Lists.newArrayList();
-        
+
         int cur = 1;
         int total;
         do {
@@ -134,18 +156,18 @@ public class AdminClient {
                     30
             );
             ShenYuResult rst = assertAndGet(response, "query success");
-            
+
             PaginatedResources<PluginDTO> pagination = Assertions.assertDoesNotThrow(
-                    () -> mapper.readValue(rst.getData().traverse(), PAGINATED_PLUGINS_TYPE_REFERENCE),
-                    "checking cast to PaginatedResources<T>"
+                () -> mapper.readValue(rst.getData().traverse(), PAGINATED_PLUGINS_TYPE_REFERENCE),
+                "checking cast to PaginatedResources<T>"
             );
             result.addAll(pagination.getDataList());
-            
+
             total = pagination.getPage().getTotalPage();
         } while (++cur < total);
         return result;
     }
-    
+
     /**
      * List all existence selectors.
      *
@@ -157,7 +179,7 @@ public class AdminClient {
                 .build();
         return list("/selector/list/search", condition, SEARCHED_SELECTORS_TYPE_REFERENCE, v -> v);
     }
-    
+
     /**
      * List all existence rules.
      *
@@ -169,13 +191,21 @@ public class AdminClient {
                 .build();
         return list("/rule/list/search", condition, SEARCHED_RULES_TYPE_REFERENCE, v -> v);
     }
-    
-    private <T extends ResourceDTO, OUT> List<OUT> list(String uri, QueryCondition condition, TypeReference<SearchedResources<T>> valueType, Mapper<T, OUT> mapper) {
+
+    /**
+     * all meta data list.
+     * @return List
+     */
+    public List<MetaDataDTO> listAllMetaData() {
+        return getMetaDataList("/meta-data/findAll", SEARCHED_METADATAS_TYPE_REFERENCE, v -> v);
+    }
+
+    private <T extends ResourceDTO, OUT> List<OUT> list(final String uri, final QueryCondition condition, final TypeReference<SearchedResources<T>> valueType, final Mapper<T, OUT> mapper) {
         List<OUT> result = Lists.newArrayList();
-        
+
         int curPage = 1;
         int total;
-        
+
         do {
             SearchedResources<T> resources = search(uri, curPage, 20, condition, valueType);
             resources.getList().stream()
@@ -183,18 +213,26 @@ public class AdminClient {
                     .forEach(result::add);
             total = resources.getPages();
         } while (++curPage <= total);
-        
+
         return result;
     }
-    
+
+    private <T extends ResourceDTO, OUT> List<OUT> getMetaDataList(final String uri, final TypeReference<List<T>> valueType, final Mapper<T, OUT> mapper) {
+        List<OUT> result = Lists.newArrayList();
+        List<T> resources = getSearch(uri, valueType);
+        resources.stream()
+                .map(mapper)
+                .forEach(result::add);
+        return result;
+    }
+
     /**
      * Fetch the selectors by the given conditions.
-     *
      * @param keyword expected selectors included the word. return all if absent.
      * @param plugins expected selectors under specified plugins. return all if absent.
      * @return paginated info with  list of {@link SelectorDTO}s
      */
-    public SearchedResources<SelectorDTO> searchSelectors(String keyword, String... plugins) {
+    public SearchedResources<SelectorDTO> searchSelectors(final String keyword, final String... plugins) {
         SelectorQueryCondition condition = SelectorQueryCondition.builder()
                 .keyword(keyword)
                 .plugins(plugins)
@@ -202,15 +240,16 @@ public class AdminClient {
                 .build();
         return search("/selector/list/search", condition, SEARCHED_SELECTORS_TYPE_REFERENCE);
     }
-    
+
     /**
      * Fetch the selectors by the given conditions.
-     *
      * @param keyword expected selectors included the word. return all if absent.
+     * @param page page.
+     * @param pageSize size.
      * @param plugins expected selectors under specified plugins. return all if absent.
      * @return paginated info with  list of {@link SelectorDTO}s
      */
-    public SearchedResources<SelectorDTO> searchSelectors(String keyword, int page, int pageSize, String... plugins) {
+    public SearchedResources<SelectorDTO> searchSelectors(final String keyword, final int page, final int pageSize, final String... plugins) {
         SelectorQueryCondition condition = SelectorQueryCondition.builder()
                 .keyword(keyword)
                 .plugins(plugins)
@@ -218,7 +257,7 @@ public class AdminClient {
                 .build();
         return search("/selector/list/search", page, pageSize, condition, SEARCHED_SELECTORS_TYPE_REFERENCE);
     }
-    
+
     /**
      * Fetch the rules by the given conditions.
      *
@@ -226,7 +265,7 @@ public class AdminClient {
      * @param selectors expected selectors under specified plugins. return all if absent.
      * @return paginated info with list of {@link RuleDTO}s
      */
-    public SearchedResources<RuleDTO> searchRules(String keyword, String... selectors) {
+    public SearchedResources<RuleDTO> searchRules(final String keyword, final String... selectors) {
         RuleQueryCondition condition = RuleQueryCondition.builder()
                 .keyword(keyword)
                 .selectors(selectors)
@@ -234,44 +273,62 @@ public class AdminClient {
                 .build();
         return search("/rule/list/search", condition, SEARCHED_RULES_TYPE_REFERENCE);
     }
-    
-    private <T extends ResourceDTO> SearchedResources<T> search(String uri, QueryCondition condition, TypeReference<SearchedResources<T>> valueType) {
+
+    private <T extends ResourceDTO> SearchedResources<T> search(final String uri, final QueryCondition condition, final TypeReference<SearchedResources<T>> valueType) {
         return search(uri, 1, 10, condition, valueType);
     }
-    
-    private <T extends ResourceDTO> SearchedResources<T> search(String uri, int pageNum, int pageSize, QueryCondition condition, TypeReference<SearchedResources<T>> valueType) {
+
+    private <T extends ResourceDTO> SearchedResources<T> search(final String uri, final int pageNum, final int pageSize,
+                                                                final QueryCondition condition, final TypeReference<SearchedResources<T>> valueType) {
         SearchCondition searchCondition = SearchCondition.builder()
-                .pageNum(pageNum)
-                .pageSize(pageSize)
-                .condition(condition)
-                .build();
-        
+            .pageNum(pageNum)
+            .pageSize(pageSize)
+            .condition(condition)
+            .build();
+
         HttpEntity<SearchCondition> entity = new HttpEntity<>(searchCondition, basicAuth);
         ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + uri, entity, ShenYuResult.class);
         ShenYuResult rst = assertAndGet(response, "query success");
-        
+
         return Assertions.assertDoesNotThrow(
-                () -> mapper.readValue(rst.getData().traverse(), valueType),
-                "checking cast to SearchedResources<T>"
+            () -> mapper.readValue(rst.getData().traverse(), valueType),
+            "checking cast to SearchedResources<T>"
         );
     }
-    
-    public SelectorDTO create(SelectorData selector) {
+
+    private <T extends ResourceDTO> List<T> getSearch(final String uri, final TypeReference<List<T>> valueType) {
+        ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri, HttpMethod.GET, new HttpEntity<>(basicAuth), ShenYuResult.class);
+        ShenYuResult rst = assertAndGet(response, "query success");
+        return Assertions.assertDoesNotThrow(
+            () -> mapper.readValue(rst.getData().traverse(), valueType),
+            "checking cast to SearchedResources<T>"
+        );
+    }
+
+    /**
+     * create selectorDTO.
+     * @param selector selector
+     * @return SelectorDTO
+     */
+    public SelectorDTO create(final SelectorData selector) {
         SelectorDTO dto = create("/selector", selector);
         Selectors.INSTANCE.put(selector.getName(), dto.getId());
         return dto;
     }
-    
+
     /**
      * Create Rule.
+     * @param rule rule
+     * @return RuleDTO
      */
-    public RuleDTO create(RuleData rule) {
+    public RuleDTO create(final RuleData rule) {
         RuleDTO dto = create("/rule", rule);
         Rules.INSTANCE.put(rule.getName(), dto.getId());
         return dto;
     }
-    
-    private <T extends ResourceData, R extends ResourceDTO> R create(String uri, T data) {
+
+    @SuppressWarnings("unchecked")
+    private <T extends ResourceData, R extends ResourceDTO> R create(final String uri, final T data) {
         log.info("trying to create resource({}) name: {}", data.getClass().getSimpleName(), data.getName());
         
         data.setName(NameUtils.wrap(data.getName(), scenarioId));
@@ -284,7 +341,6 @@ public class AdminClient {
         Assertions.assertNotNull(rst, "checking http response body");
         Assertions.assertEquals(200, rst.getCode(), "checking shenyu result code");
         Assertions.assertEquals("create success", rst.getMessage(), "checking shenyu result message");
-        
         
         SearchedResources<?> searchedResources = null;
         if (data instanceof SelectorData) {
@@ -301,116 +357,180 @@ public class AdminClient {
         
         return (R) created;
     }
+
+    /**
+     * bindingData.
+     * @param bindingData bindingData
+     */
+    public void bindingData(final BindingData bindingData) {
+        HttpEntity<BindingData> entity = new HttpEntity<>(bindingData, basicAuth);
+        ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + "/proxy-selector/binding", entity, ShenYuResult.class);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "status code");
+    }
     
     /**
      * Delete selectors in batch.
      *
      * @param ids ID of selectors that needs to delete.
      */
-    public void deleteSelectors(List<String> ids) {
+    public void deleteSelectors(final List<String> ids) {
         delete("/selector/batch", ids);
     }
-    
+
     /**
      * Delete selectors in batch.
      *
      * @param ids ID of selectors that needs to delete.
      */
-    public void deleteSelectors(String... ids) {
+    public void deleteSelectors(final String... ids) {
         delete("/selector/batch", Lists.newArrayList(ids));
     }
-    
+
     /**
      * Delete rules in batch.
      *
      * @param ids ID of rules that needs to delete.
      */
-    public void deleteRules(String... ids) {
+    public void deleteRules(final String... ids) {
         delete("/rule/batch", Lists.newArrayList(ids));
     }
-    
+
     /**
-     * Delete all selectors
+     * Delete all selectors.
      */
     public void deleteAllSelectors() {
         deleteAll("/selector/batch");
     }
-    
+
     /**
      * Delete all rules under given id of selector.
      *
      * @param selectorId ID of selector
      */
-    public void deleteAllRules(String selectorId) {
+    public void deleteAllRules(final String selectorId) {
         List<String> ids = searchRules(null, selectorId).getList().stream().map(RuleDTO::getId).collect(Collectors.toList());
         deleteRules(ids.toArray(new String[]{}));
     }
-    
-    private void deleteAll(String uri) {
+
+    private void deleteAll(final String uri) {
         Preconditions.checkArgument(uri.endsWith("/batch"), "uri[{}] must be end with '/batch'", uri);
-        
+
         String listAllResourcesUrl = uri.replace("/batch", "") + "/list/search";
         List<String> ids = list(listAllResourcesUrl, QUERY_ALL, FAKE_VALUE_TYPE, FakeResourceDTO::getId);
-        
+
         delete(uri, ids);
         List<FakeResourceDTO> result = list(listAllResourcesUrl, QUERY_ALL, FAKE_VALUE_TYPE, v -> v);
         Assertions.assertEquals(0, result.size(), "resource list is empty after deleted");
     }
-    
-    private void delete(String uri, List<String> ids) {
+
+    private void delete(final String uri, final List<String> ids) {
         if (ids.isEmpty()) {
             log.info("delete resources, effected size: 0, cause by: there is not resources in ShenYuAdmin");
             return;
         }
-        
+
         HttpEntity<List<String>> entity = new HttpEntity<>(ids, basicAuth);
         ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri, HttpMethod.DELETE, entity, ShenYuResult.class);
         ShenYuResult rst = assertAndGet(response, "delete success");
         Integer deleted = Assertions.assertDoesNotThrow(() -> rst.toObject(Integer.class), "checking to cast object");
         Assertions.assertEquals(ids.size(), deleted, "checking deleted records");
-        
+
         log.info("delete resources, effected size: {}, effected rows: {}", ids.size(), ids);
     }
-    
+
     /**
      * Fetch Selector by given id.
      * @param id of selector that needs to fetch
      * @return {@link SelectorDTO}
      */
-    public SelectorDTO getSelector(String id) {
+    public SelectorDTO getSelector(final String id) {
         return getResource("/selector", id, SelectorDTO.class);
     }
-    
-    private <T extends ResourceDTO> T getResource(String uri, String id, Class<T> valueType) {
+
+    private <T extends ResourceDTO> T getResource(final String uri, final String id, final Class<T> valueType) {
         ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri + "/{id}", HttpMethod.GET, new HttpEntity<>(basicAuth), ShenYuResult.class, id);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
-    
+
         ShenYuResult rst = response.getBody();
         Assertions.assertNotNull(rst, "checking http response body");
-        
+
         if (rst.getCode() == 500) {
             Assertions.assertTrue(rst.getMessage().contains("selector is not existed"), "checking shenyu result message");
             return null;
         }
-    
+
         Assertions.assertEquals("detail success", rst.getMessage(), "checking shenyu result message");
         Assertions.assertEquals(200, rst.getCode(), "checking shenyu result code");
         return Assertions.assertDoesNotThrow(() -> rst.toObject(valueType), "checking cast data to " + valueType.getSimpleName());
     }
-    
-    private ShenYuResult assertAndGet(ResponseEntity<ShenYuResult> response, String message) {
+
+    private ShenYuResult assertAndGet(final ResponseEntity<ShenYuResult> response, final String message) {
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
-        
+
         ShenYuResult rst = response.getBody();
         Assertions.assertNotNull(rst, "checking http response body");
         Assertions.assertEquals(200, rst.getCode(), "checking shenyu result code");
         Assertions.assertEquals(message, rst.getMessage(), "checking shenyu result message");
-        
+
         return rst;
     }
-    
-    @FunctionalInterface
-    interface Mapper<IN, OUT> extends Function<IN, OUT> {
-    
+
+    /**
+     * change plugin status.
+     *
+     * @param id id
+     * @param formData formData
+     */
+    public void changePluginStatus(final String id, final MultiValueMap<String, String> formData) {
+        putResource("/plugin", id, PluginDTO.class, formData);
     }
+
+    private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final MultiValueMap<String, String> formData) {
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, basicAuth);
+        ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri + "/" + id, HttpMethod.PUT, requestEntity, ShenYuResult.class);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
+        ShenYuResult rst = response.getBody();
+        Assertions.assertNotNull(rst, "checking http response body");
+        return Assertions.assertDoesNotThrow(() -> rst.toObject(valueType), "checking cast data to " + valueType.getSimpleName());
+    }
+
+    /**
+     * change plugin status.
+     *
+     * @param id id
+     * @param selectorData selectorData
+     */
+    public void changeSelector(final String id, final SelectorData selectorData) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            putResourceByJson("/selector", id, mapper.writeValueAsString(selectorData));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void putResourceByJson(final String uri, final String id, final String json) {
+        basicAuth.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        HttpEntity<String> requestEntity = new HttpEntity<>(json, basicAuth);
+        ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri + "/" + id, HttpMethod.PUT, requestEntity, ShenYuResult.class);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
+        ShenYuResult rst = response.getBody();
+        Assertions.assertNotNull(rst, "checking http response body");
+        basicAuth.remove("Content-Type");
+    }
+
+    /**
+     * sync all plugin.
+     */
+    public void syncPluginAll() {
+        HttpEntity<SearchCondition> entity = new HttpEntity<>(basicAuth);
+        template.postForEntity(baseURL + "/plugin/syncPluginAll", entity, ShenYuResult.class);
+        log.warn("admin syncPluginAll");
+    }
+
+    @FunctionalInterface
+    interface Mapper<I, O> extends Function<I, O> {
+
+    }
+
 }

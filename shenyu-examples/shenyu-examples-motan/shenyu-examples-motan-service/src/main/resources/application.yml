@@ -25,8 +25,8 @@ spring:
 
 shenyu:
   register:
-    registerType: http #zookeeper #etcd #nacos #consul
-    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
+    registerType: http
+    serverLists: http://localhost:9095
     props:
       username: admin
       password: 123456
@@ -40,10 +40,11 @@ shenyu:
       package-path: org.apache.shenyu.examples.motan.service
       basicServiceConfig:
         exportPort: 8002
-
+      protocol:
+        name: motan2
 motan:
   registry:
-    protocol: zookeeper
+    protocol: zk
     address: 127.0.0.1:2181
 
 logging:

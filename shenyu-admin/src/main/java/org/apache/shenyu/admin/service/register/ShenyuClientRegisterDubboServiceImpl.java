@@ -95,20 +95,7 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
         if (doSubmit(selectorDO.getId(), canAddList)) {
             return null;
         }
-
-        List<DubboUpstream> handleList;
-        if (CollectionUtils.isEmpty(existList)) {
-            handleList = addList;
-        } else {
-            List<DubboUpstream> aliveList;
-            if (isEventDeleted) {
-                aliveList = existList.stream().filter(e -> e.isStatus() && !e.equals(addList.get(0))).collect(Collectors.toList());
-            } else {
-                aliveList = addList;
-            }
-            handleList = dubboSelectorHandleConverter.updateStatusAndFilter(existList, aliveList);
-        }
-        return GsonUtils.getInstance().toJson(handleList);
+        return GsonUtils.getInstance().toJson(CollectionUtils.isEmpty(existList) ? canAddList : existList);
     }
 
     private List<DubboUpstream> buildDubboUpstreamList(final List<URIRegisterDTO> uriList) {

@@ -24,8 +24,12 @@ import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import org.apache.shenyu.sdk.spring.ShenyuClient;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -36,11 +40,13 @@ import java.util.Map;
  */
 public class ShenyuClientMethodHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(ShenyuClientMethodHandler.class);
+
     private final ShenyuClient shenyuClient;
 
     private final ShenyuSdkClient shenyuHttpClient;
 
-    private RequestTemplate requestTemplate;
+    private final RequestTemplate requestTemplate;
 
     private final Map<Class<? extends Annotation>, AnnotatedParameterProcessor> annotatedArgumentProcessors;
 
@@ -72,6 +78,9 @@ public class ShenyuClientMethodHandler {
             return null;
         } else if (ShenyuResponse.class == returnType) {
             return shenyuResponse;
+        } else if (shenyuResponse.getStatus() != HttpStatus.OK.value()) {
+            log.warn("handlerResponse http status warn shenyuResponse {}", JsonUtils.toJson(shenyuResponse));
+            throw new HttpClientErrorException(HttpStatus.valueOf(shenyuResponse.getStatus()));
         } else if (StringUtils.hasText(shenyuResponse.getBody())) {
             return JsonUtils.jsonToObject(shenyuResponse.getBody(), returnType);
         } else {
@@ -81,6 +90,7 @@ public class ShenyuClientMethodHandler {
 
     private ShenyuRequest targetProcessor(final RequestTemplate requestTemplate, final Object[] args) {
         final RequestTemplate requestTemplateFrom = RequestTemplate.from(requestTemplate);
+        ShenyuRequest request = requestTemplateFrom.request();
         for (RequestTemplate.ParamMetadata paramMetadata : requestTemplateFrom.getParamMetadataList()) {
             final Annotation[] paramAnnotations = paramMetadata.getParamAnnotations();
             for (Annotation paramAnnotation : paramAnnotations) {
@@ -88,9 +98,9 @@ public class ShenyuClientMethodHandler {
                 if (ObjectUtils.isEmpty(processor)) {
                     continue;
                 }
-                processor.processArgument(requestTemplateFrom, paramAnnotation, args[paramMetadata.getParamIndexOnMethod()]);
+                processor.processArgument(request, paramAnnotation, args[paramMetadata.getParamIndexOnMethod()]);
             }
         }
-        return requestTemplateFrom.request();
+        return request;
     }
 }

@@ -26,7 +26,7 @@ import org.apache.shenyu.admin.model.event.metadata.BatchMetaDataDeletedEvent;
 import org.apache.shenyu.admin.model.event.metadata.MetaDataCreatedEvent;
 import org.apache.shenyu.admin.model.event.metadata.MetadataUpdatedEvent;
 import org.apache.shenyu.admin.transfer.MetaDataTransfer;
-import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -48,24 +48,24 @@ public class MetaDataEventPublisher implements AdminDataModelChangedEventPublish
     }
     
     /**
-     * on selector created.
+     * on meta data created.
      *
-     * @param selector selector
+     * @param metaDataDO metaDataDO
      */
     @Override
-    public void onCreated(final MetaDataDO selector) {
-        publish(new MetaDataCreatedEvent(selector, SessionUtil.visitorName()));
+    public void onCreated(final MetaDataDO metaDataDO) {
+        publish(new MetaDataCreatedEvent(metaDataDO, SessionUtil.visitorName()));
     }
     
     /**
-     * on selector updated.
+     * on meta data updated.
      *
-     * @param selector selector
+     * @param metaDataDO selector
      * @param before   before selector
      */
     @Override
-    public void onUpdated(final MetaDataDO selector, final MetaDataDO before) {
-        publish(new MetadataUpdatedEvent(selector, before, SessionUtil.visitorName()));
+    public void onUpdated(final MetaDataDO metaDataDO, final MetaDataDO before) {
+        publish(new MetadataUpdatedEvent(metaDataDO, before, SessionUtil.visitorName()));
     }
     
     /**

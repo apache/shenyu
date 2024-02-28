@@ -68,7 +68,6 @@ public enum RpcTypeEnum {
      */
     GRPC("grpc", true);
 
-
     private final String name;
 
     private final Boolean support;

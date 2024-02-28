@@ -18,11 +18,17 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
@@ -31,6 +37,8 @@ import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
@@ -75,6 +83,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
 
 /**
  * Test cases for SelectorService.
@@ -82,79 +91,108 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class SelectorServiceTest {
-    
+
     @InjectMocks
     private SelectorServiceImpl selectorService;
-    
+
     @Mock
     private SelectorMapper selectorMapper;
-    
+
     @Mock
     private SelectorConditionMapper selectorConditionMapper;
-    
+
     @Mock
     private PluginMapper pluginMapper;
-    
+
     @Mock
     private RuleMapper ruleMapper;
-    
+
     @Mock
     private DataPermissionMapper dataPermissionMapper;
-    
+
     @Mock
     private ApplicationEventPublisher eventPublisher;
-    
+
+    @Mock
+    private DiscoveryMapper discoveryMapper;
+
+    @Mock
+    private DiscoveryHandlerMapper discoveryHandlerMapper;
+
+    @Mock
+    private DiscoveryRelMapper discoveryRelMapper;
+
+    @Mock
+    private DiscoveryUpstreamMapper discoveryUpstreamMapper;
+
+    @Mock
+    private DiscoveryProcessorHolder discoveryProcessorHolder;
+
+    @Mock
+    private DiscoveryProcessor discoveryProcessor;
+
     @Mock
     private SelectorEventPublisher selectorEventPublisher;
-    
+
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
-        selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper, eventPublisher, selectorEventPublisher);
+        when(discoveryRelMapper.deleteByDiscoveryHandlerId(anyString())).thenReturn(1);
+        DiscoveryDO discoveryDO = new DiscoveryDO();
+        discoveryDO.setId("1");
+        discoveryDO.setType("local");
+        when(discoveryMapper.selectById(anyString())).thenReturn(discoveryDO);
+        DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
+        discoveryHandlerDO.setDiscoveryId("1");
+        when(discoveryHandlerMapper.selectBySelectorId(anyString())).thenReturn(discoveryHandlerDO);
+        doNothing().when(discoveryProcessor).removeDiscovery(any(DiscoveryDO.class));
+        when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+        selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper, eventPublisher, discoveryMapper, discoveryHandlerMapper, discoveryRelMapper,
+                discoveryUpstreamMapper, discoveryProcessorHolder, selectorEventPublisher);
     }
-    
+
     @Test
     public void testRegister() {
         publishEvent();
         testRegisterCreate();
         testRegisterUpdate();
     }
-    
+
     @Test
     public void testCreateOrUpdate() {
         publishEvent();
         testUpdate();
         testCreate();
     }
-    
+
     @Test
     public void testDelete() {
         final String correctId = "456";
-        
+
         // mock basic objects for delete.
         SelectorDO mockedSelectorDO = buildSelectorDO();
         PluginDO mockedPluginDO = buildPluginDO();
         given(pluginMapper.selectByIds(Collections.singletonList(mockedSelectorDO.getPluginId()))).willReturn(Collections.singletonList(mockedPluginDO));
         given(selectorMapper.selectByIdSet(Stream.of(correctId).collect(Collectors.toSet()))).willReturn(Collections.singletonList(mockedSelectorDO));
-        
+
         // mock for test if divide selector delete.
 //        when(mockedPluginDO.getName()).thenReturn(PluginEnum.DIVIDE.getName());
 //        when(mockedSelectorDO.getName()).thenReturn("anyString");
-        
+
         // mock objects for test delete rule and ruleCondition.
         List<RuleDO> mockedRuleDOList = mock(List.class);
         given(ruleMapper.findBySelectorIds(Collections.singletonList(correctId))).willReturn(mockedRuleDOList);
-        
+
         // mock for test for-each statement.
 //        RuleDO mockedRuleDo = mock(RuleDO.class);
 //        when(ruleMapper.deleteByIds(Collections.singletonList(mockedRuleDo.getId()))).thenReturn(1);
 //        when(ruleConditionMapper.deleteByRuleIds(Collections.singletonList(mockedRuleDo.getId()))).thenReturn(1);
-        
+
         final List<String> ids = Collections.singletonList(correctId);
         given(selectorMapper.deleteByIds(ids)).willReturn(ids.size());
         assertEquals(selectorService.delete(ids), ids.size());
     }
-    
+
     @Test
     public void testFindById() {
         SelectorDO selectorDO = buildSelectorDO();
@@ -162,20 +200,21 @@ public final class SelectorServiceTest {
         SelectorVO selectorVO = this.selectorService.findById("123");
         assertNotNull(selectorDO);
         assertEquals(selectorVO.getId(), selectorDO.getId());
-        
+
         List<SelectorConditionVO> selectorConditions = selectorVO.getSelectorConditions();
         selectorConditions.forEach(selectorConditionVO -> assertEquals(selectorConditionVO.getSelectorId(), selectorDO.getId()));
     }
-    
+
     @Test
     public void testFindByName() {
-        SelectorDO selectorDO1 = buildSelectorDO();
-        given(this.selectorMapper.selectByName(eq("kuan"))).willReturn(selectorDO1);
+        List<SelectorDO> selectorDO1List = Collections.singletonList(buildSelectorDO());
+        given(this.selectorMapper.selectByName(eq("kuan"))).willReturn(selectorDO1List);
         SelectorDO selectorDO2 = this.selectorService.findByName("kuan");
         assertNotNull(selectorDO2);
-        assertEquals(selectorDO1.getId(), selectorDO2.getId());
+        assertEquals(selectorDO1List.size(), 1);
+        assertEquals(selectorDO1List.get(0).getId(), selectorDO2.getId());
     }
-    
+
     @Test
     public void testListByPage() {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
@@ -185,14 +224,14 @@ public final class SelectorServiceTest {
         assertThat(result, notNullValue());
         assertEquals(selectorDOs.size(), result.getDataList().size());
     }
-    
+
     @Test
     public void testFindByPluginId() {
-        
+
         List<SelectorData> res = this.selectorService.findByPluginId("789");
         res.forEach(selectorData -> assertEquals("789", selectorData.getPluginId()));
     }
-    
+
     @Test
     public void testListAll() {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
@@ -202,23 +241,23 @@ public final class SelectorServiceTest {
         assertNotNull(dataList);
         assertEquals(selectorDOs.size(), dataList.size());
     }
-    
+
     @Test
     public void testHandlerSelectorNeedUpstreamCheck() {
         publishEvent();
-        
+
         // Test the situation where the selector cannot be found based on the contextPath.
         given(pluginMapper.selectByName("test")).willReturn(buildPluginDO());
         assertNotNull(selectorService.registerDefault(buildMetaDataRegisterDTO(), "test", ""));
     }
-    
+
     private void testUpdate() {
         SelectorDTO selectorDTO = buildSelectorDTO("456");
         selectorDTO.setPluginId("789");
         given(this.selectorMapper.updateSelective(any())).willReturn(1);
         assertThat(this.selectorService.createOrUpdate(selectorDTO), greaterThan(0));
     }
-    
+
     private void testCreate() {
         try (MockedStatic<JwtUtils> mocked = mockStatic(JwtUtils.class)) {
             mocked.when(JwtUtils::getUserInfo)
@@ -229,7 +268,7 @@ public final class SelectorServiceTest {
             assertThat(this.selectorService.createOrUpdate(selectorDTO), greaterThan(0));
         }
     }
-    
+
     private void testRegisterCreate() {
         SelectorDTO selectorDTO = buildSelectorDTO("");
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
@@ -237,26 +276,26 @@ public final class SelectorServiceTest {
         assertNotNull(selectorId);
         assertEquals(selectorId.length(), selectorDO.getId().length());
     }
-    
+
     private void testRegisterUpdate() {
         SelectorDTO selectorDTO = buildSelectorDTO("456");
         String selectorId = this.selectorService.registerDefault(selectorDTO);
         assertNotNull(selectorId);
         assertEquals(selectorId, selectorDTO.getId());
     }
-    
+
     private void publishEvent() {
         PluginDO pluginDO = buildPluginDO();
         given(this.pluginMapper.selectById(anyString())).willReturn(pluginDO);
     }
-    
+
     private PluginDO buildPluginDO() {
         PluginDO pluginDO = new PluginDO();
         pluginDO.setName("test");
         pluginDO.setId("789");
         return pluginDO;
     }
-    
+
     private SelectorDO buildSelectorDO() {
         SelectorDTO selectorDTO = new SelectorDTO();
         selectorDTO.setId("456");
@@ -277,7 +316,7 @@ public final class SelectorServiceTest {
         selectorDO.setDateUpdated(now);
         return selectorDO;
     }
-    
+
     private SelectorDTO buildSelectorDTO(final String id) {
         SelectorDTO selectorDTO = new SelectorDTO();
         if (StringUtils.isNotBlank(id)) {
@@ -302,18 +341,18 @@ public final class SelectorServiceTest {
         selectorDTO.setSelectorConditions(Arrays.asList(selectorConditionDTO1, selectorConditionDTO2, selectorConditionDTO3));
         return selectorDTO;
     }
-    
+
     private List<SelectorDO> buildSelectorDOList() {
         return Collections.singletonList(buildSelectorDO());
     }
-    
+
     private SelectorQuery buildSelectorQuery() {
         SelectorQuery selectorQuery = new SelectorQuery();
         selectorQuery.setPluginId("789");
         selectorQuery.setPageParameter(new PageParameter());
         return selectorQuery;
     }
-    
+
     private MetaDataRegisterDTO buildMetaDataRegisterDTO() {
         MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
         metaDataRegisterDTO.setAppName("test");

@@ -29,8 +29,10 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -50,6 +52,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
@@ -87,6 +90,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     /**
      * Instantiates a new Http long polling data changed listener.
+     *
      * @param httpSyncProperties the HttpSyncProperties
      */
     public HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
@@ -129,6 +133,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             LOG.info("send response with the changed group, ip={}, group={}", clientIp, changedGroup);
             return;
         }
+        LOG.debug("no changed group, ip={}, waiting for compare cache changed", clientIp);
         // listen for configuration changed.
         final AsyncContext asyncContext = request.startAsync();
         // AsyncContext.settimeout() does not timeout properly, so you have to control it yourself
@@ -162,12 +167,22 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         scheduler.execute(new DataChangeTask(ConfigGroupEnum.SELECTOR));
     }
 
+    @Override
+    protected void afterProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PROXY_SELECTOR));
+    }
+
+    @Override
+    protected void afterDiscoveryUpstreamDataChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.DISCOVER_UPSTREAM));
+    }
+
     private List<ConfigGroupEnum> compareChangedGroup(final HttpServletRequest request) {
         List<ConfigGroupEnum> changedGroup = new ArrayList<>(ConfigGroupEnum.values().length);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             // md5,lastModifyTime
             String[] params = StringUtils.split(request.getParameter(group.name()), ',');
-            if (params == null || params.length != 2) {
+            if (Objects.isNull(params) || params.length != 2) {
                 throw new ShenyuException("group param invalid:" + request.getParameter(group.name()));
             }
             String clientMd5 = params[0];
@@ -183,8 +198,9 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     /**
      * check whether the client needs to update the cache.
-     * @param serverCache the admin local cache
-     * @param clientMd5 the client md5 value
+     *
+     * @param serverCache      the admin local cache
+     * @param clientMd5        the client md5 value
      * @param clientModifyTime the client last modify time
      * @return true: the client needs to be updated, false: not need.
      */
@@ -346,6 +362,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                     clients.remove(LongPollingClient.this);
                     List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
                     sendResponse(changedGroups);
+                    log.debug("LongPollingClient {} ", GsonUtils.getInstance().toJson(changedGroups));
                 }, timeoutTime, TimeUnit.MILLISECONDS);
                 clients.add(this);
             } catch (Exception ex) {
@@ -360,7 +377,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
          */
         void sendResponse(final List<ConfigGroupEnum> changedGroups) {
             // cancel scheduler
-            if (null != asyncTimeoutFuture) {
+            if (Objects.nonNull(asyncTimeoutFuture)) {
                 asyncTimeoutFuture.cancel(false);
             }
             generateResponse((HttpServletResponse) asyncContext.getResponse(), changedGroups);

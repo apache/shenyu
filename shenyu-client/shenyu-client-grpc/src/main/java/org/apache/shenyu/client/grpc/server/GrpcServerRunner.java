@@ -21,6 +21,7 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerServiceDefinition;
 import org.apache.shenyu.client.grpc.GrpcClientEventListener;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
@@ -47,7 +48,7 @@ public class GrpcServerRunner implements ApplicationListener<ContextRefreshedEve
     }
     
     @Override
-    public void onApplicationEvent(final ContextRefreshedEvent event) {
+    public void onApplicationEvent(@NotNull final ContextRefreshedEvent event) {
         startGrpcServer();
     }
 

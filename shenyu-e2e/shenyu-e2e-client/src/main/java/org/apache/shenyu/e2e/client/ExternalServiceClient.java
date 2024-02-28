@@ -17,12 +17,39 @@
 
 package org.apache.shenyu.e2e.client;
 
-import lombok.AllArgsConstructor;
+import org.apache.shenyu.e2e.annotation.ExternalService;
 
+import javax.annotation.Nonnull;
 import java.util.Properties;
 
-@AllArgsConstructor
-public class ExternalServiceClient {
-    private final String url;
+/**
+ * External service client.
+ */
+@ExternalService
+public class ExternalServiceClient extends BaseClient {
+    
+    private final String scenarioId;
+    
+    private final String serviceName;
+    
+    private final String baseUrl;
+    
     private final Properties properties;
+    
+    /**
+     * Instantiates a new External service client.
+     *
+     * @param scenarioId the scenario id
+     * @param serviceName the service name
+     * @param baseUrl the base url
+     * @param properties the properties
+     */
+    public ExternalServiceClient(final String scenarioId, @Nonnull final String serviceName,
+                                 final String baseUrl, final Properties properties) {
+        super(serviceName);
+        this.scenarioId = scenarioId;
+        this.serviceName = serviceName;
+        this.baseUrl = baseUrl;
+        this.properties = properties;
+    }
 }

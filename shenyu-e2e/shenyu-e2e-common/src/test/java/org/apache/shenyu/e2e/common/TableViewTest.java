@@ -35,17 +35,17 @@ public class TableViewTest {
         tableView.addRow(1, new Cell("123"), 1d, Lists.newArrayList("a", "b"));
         
         Assertions.assertThat(tableView.printAsString())
-                .isEqualTo(Stream.<String>builder()
-                        .add("+----------+---------------------------------+----------+----------+")
-                        .add("| header 1 | header 2                        | header 3 | header 4 |")
-                        .add("+----------+---------------------------------+----------+----------+")
-                        .add("| column 1 | column 2                        | column 3 | column 4 |")
-                        .add("+----------+---------------------------------+----------+----------+")
-                        .add("| 1        | TableViewTest.Cell(content=123) | 1.0      | [a, b]   |")
-                        .add("+----------+---------------------------------+----------+----------+")
-                        .build()
-                        .collect(Collectors.joining(System.lineSeparator()))
-                );
+            .isEqualTo(Stream.<String>builder()
+                    .add("+----------+---------------------------------+----------+----------+")
+                    .add("| header 1 | header 2                        | header 3 | header 4 |")
+                    .add("+----------+---------------------------------+----------+----------+")
+                    .add("| column 1 | column 2                        | column 3 | column 4 |")
+                    .add("+----------+---------------------------------+----------+----------+")
+                    .add("| 1        | TableViewTest.Cell(content=123) | 1.0      | [a, b]   |")
+                    .add("+----------+---------------------------------+----------+----------+")
+                    .build()
+                    .collect(Collectors.joining(System.lineSeparator()))
+            );
     }
     
     @Test

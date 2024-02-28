@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.web.filter;
 
-import org.apache.shenyu.common.utils.ShaUtils;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,7 +52,7 @@ public class LocalDispatcherFilterTest {
     public void setup() {
         DispatcherHandler dispatcherHandler = mock(DispatcherHandler.class);
         when(dispatcherHandler.handle(any())).thenReturn(Mono.empty());
-        String sha512Key = ShaUtils.shaEncryption("123456");
+        String sha512Key = DigestUtils.sha512Hex("123456");
         localDispatcherFilter = new LocalDispatcherFilter(dispatcherHandler, sha512Key);
         webFilterChain = mock(WebFilterChain.class);
         when(webFilterChain.filter(any())).thenReturn(Mono.empty());

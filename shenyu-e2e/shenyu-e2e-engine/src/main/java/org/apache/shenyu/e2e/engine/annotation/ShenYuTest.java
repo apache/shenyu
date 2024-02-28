@@ -17,10 +17,9 @@
 
 package org.apache.shenyu.e2e.engine.annotation;
 
-import org.apache.shenyu.e2e.engine.ShenYuExtension;
 import org.apache.shenyu.e2e.engine.ShenYuLogExtension;
-import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.Mode;
-import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.ServiceType;
+import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.apache.shenyu.e2e.engine.ShenYuExtension;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,71 +29,61 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.TYPE})
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith({ShenYuExtension.class, ShenYuLogExtension.class})
 @TestInstance(Lifecycle.PER_CLASS)
 public @interface ShenYuTest {
     
     /**
-     * Indices whether the depended on services run under ShenYu e2e engine managed.
-     * </p>
-     * Mode.DOCKER: under ShenYu e2e engine managed.
-     * </p>
-     * Mode.HOST: ShenYu e2e engine unmanaged the services.
-     * </p>
+     * services configs.
      *
-     * {@see Mode}
+     * @return ServiceConfigure[]
+     *
      */
-    @ShenYuValue("{shenyu.e2e.mode}")
-    Mode mode() default Mode.DOCKER;
+    Environment[] environments() default {};
     
-    ServiceConfigure[] services() default {};
-    
-    String sharedKey() default "global";
-    
-    @ShenYuValue("{shenyu.e2e.docker-compose}")
-    String dockerComposeFile() default "docker-compose.yml";
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Environment {
+        
+        String serviceName();
+        
+        ShenYuTest.ServiceConfigure service();
+    }
     
     @Target(ElementType.TYPE)
     @Retention(RetentionPolicy.RUNTIME)
     @interface ServiceConfigure {
         
         /**
-         * Indices the service's name.
+         * the service module name.
+         *
+         * @return module name
          */
-        @ShenYuValue("{shenyu.e2e.services[].serviceName}")
-        String serviceName();
+        String moduleName() default "";
+        
+        String schema() default "http";
+        
+        int port() default -1;
         
         /**
-         * Indices the HTTP schema to access to service.
-         * </p>
-         * That is available for {@link Mode#DOCKER}
+         * the service base url, example: <a href="http://localhost:9095">http://localhost:9095</a>.
+         *
+         * @return the base url
          */
-        @ShenYuValue("{shenyu.e2e.services[].schema}")
-        String schema() default "http";
-    
-        /**
-         * Indices the port of service.
-         * </p>
-         * That is available for {@link Mode#DOCKER}
-         */
-        @ShenYuValue("{shenyu.e2e.services[].port}")
-        int port() default -1; // TODO to support multi ports for service
-    
-        /**
-         * Indices the baseUrl of service.
-         * </p>
-         * That is available for {@link Mode#HOST}
-         */
-        @ShenYuValue("{shenyu.e2e.services[].baseUrl}")
         String baseUrl() default "";
-    
-        @ShenYuValue("{shenyu.e2e.services[].type}")
-        ServiceType type() default ServiceType.SHENYU_ADMIN;
-    
+        
+        /**
+         * the service type.
+         *
+         * @return the service type.
+         */
+        ServiceTypeEnum type() default ServiceTypeEnum.SHENYU_ADMIN;
+        
         /**
          * Indices more configures about connection.
+         * @return Parameter[]
          */
         Parameter[] parameters() default {};
     }
@@ -107,5 +96,4 @@ public @interface ShenYuTest {
         
         String value();
     }
-    
 }

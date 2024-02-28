@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.e2e.matcher;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
-import org.apache.shenyu.e2e.client.admin.model.data.SelectorData;
-import org.apache.shenyu.e2e.client.admin.model.response.SelectorDTO;
+import org.apache.shenyu.e2e.model.data.SelectorData;
+import org.apache.shenyu.e2e.model.response.SelectorDTO;
+import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 
@@ -33,16 +34,26 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 
-public class SelectorMatcher {
+/**
+ * Selector matcher.
+ */
+public final class SelectorMatcher {
+    
     private final ObjectMapper mapper = new ObjectMapper();
+    
     private final SelectorData expected;
     
-    private SelectorMatcher(SelectorData expected) {
+    private SelectorMatcher(final SelectorData expected) {
         this.expected = expected;
     }
     
-    @SneakyThrows
-    public void matches(SelectorDTO actual) {
+    /**
+     * match selector.
+     * @param actual actual
+     * @throws JsonProcessingException JsonProcessingException
+     * @throws JSONException JSONException
+     */
+    public void matches(final SelectorDTO actual) throws JsonProcessingException, JSONException {
         String handle = actual.getHandle();
         if (Objects.nonNull(expected.getHandle())) {
             String expected = mapper.writer().writeValueAsString(this.expected.getHandle());
@@ -66,7 +77,7 @@ public class SelectorMatcher {
         assertThat(actual, hasProperty("dateUpdated", notNullValue()));
     }
     
-    public static SelectorMatcher verify(SelectorData expected) {
+    public static SelectorMatcher verify(final SelectorData expected) {
         return new SelectorMatcher(expected);
     }
 }

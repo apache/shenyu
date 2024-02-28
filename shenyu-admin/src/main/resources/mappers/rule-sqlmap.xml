@@ -28,6 +28,7 @@
         <result column="sort" jdbcType="INTEGER" property="sort"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
         <result column="loged" jdbcType="TINYINT" property="loged"/>
+        <result column="match_restful" jdbcType="TINYINT" property="matchRestful"/>
         <result column="handle" jdbcType="VARCHAR" property="handle"/>
     </resultMap>
 
@@ -41,6 +42,7 @@
         sort,
         enabled,
         loged,
+        match_restful,
         handle
     </sql>
 
@@ -86,6 +88,7 @@
                 </foreach>
             </if>
         </where>
+        ORDER BY sort
     </select>
 
     <select id="findBySelectorId" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -195,6 +198,7 @@
                          sort,
                          enabled,
                          loged,
+                         match_restful,
                          handle)
                   VALUES (#{id, jdbcType=VARCHAR},
                           #{dateCreated, jdbcType=TIMESTAMP},
@@ -205,6 +209,7 @@
                           #{sort, jdbcType=INTEGER},
                           #{enabled, jdbcType=TINYINT},
                           #{loged, jdbcType=TINYINT},
+                          #{matchRestful, jdbcType=TINYINT},
                           #{handle, jdbcType=VARCHAR})
     </insert>
 
@@ -236,6 +241,9 @@
             <if test="loged != null">
                 loged,
             </if>
+            <if test="matchRestful != null">
+                match_restful,
+            </if>
             <if test="handle != null">
                 handle,
             </if>
@@ -266,6 +274,9 @@
             <if test="loged != null">
                 #{loged, jdbcType=TINYINT},
             </if>
+            <if test="matchRestful != null">
+                #{matchRestful, jdbcType=TINYINT},
+            </if>
             <if test="handle != null">
                 #{handle, jdbcType=VARCHAR},
             </if>
@@ -274,15 +285,16 @@
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.RuleDO">
         UPDATE rule
-           SET date_created = #{dateCreated, jdbcType=TIMESTAMP},
-               date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
-               selector_id  = #{selectorId, jdbcType=VARCHAR},
-               name         = #{name, jdbcType=VARCHAR},
-               match_mode   = #{matchMode, jdbcType=INTEGER},
-               sort         = #{sort, jdbcType=INTEGER},
-               enabled      = #{enabled, jdbcType=TINYINT},
-               loged        = #{loged, jdbcType=TINYINT},
-               handle       = #{handle, jdbcType=VARCHAR}
+           SET date_created  = #{dateCreated, jdbcType=TIMESTAMP},
+               date_updated  = #{dateUpdated, jdbcType=TIMESTAMP},
+               selector_id   = #{selectorId, jdbcType=VARCHAR},
+               name          = #{name, jdbcType=VARCHAR},
+               match_mode    = #{matchMode, jdbcType=INTEGER},
+               sort          = #{sort, jdbcType=INTEGER},
+               enabled       = #{enabled, jdbcType=TINYINT},
+               loged         = #{loged, jdbcType=TINYINT},
+               match_restful = #{matchRestful, jdbcType=TINYINT},
+               handle        = #{handle, jdbcType=VARCHAR}
          WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
@@ -312,6 +324,9 @@
             </if>
             <if test="loged != null">
                 loged = #{loged, jdbcType=TINYINT},
+            </if>
+            <if test="matchRestful != null">
+                match_restful = #{matchRestful, jdbcType=TINYINT},
             </if>
             <if test="handle != null">
                 handle = #{handle, jdbcType=VARCHAR},

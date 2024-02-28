@@ -35,6 +35,16 @@ public class RewriteHandle {
     private String replace;
 
     /**
+     * percentage of rewritten traffic.
+     */
+    private Integer percentage;
+    
+    /**
+     * rewrite the original metadata.
+     */
+    private Boolean rewriteMetaData;
+
+    /**
      * get regex.
      *
      * @return regex
@@ -70,6 +80,42 @@ public class RewriteHandle {
         this.replace = replace;
     }
 
+    /**
+     * get percentage.
+     *
+     * @return percentage
+     */
+    public Integer getPercentage() {
+        return percentage;
+    }
+
+    /**
+     * set percentage.
+     *
+     * @param percentage percentage
+     */
+    public void setPercentage(final Integer percentage) {
+        this.percentage = percentage;
+    }
+    
+    /**
+     * get rewrite meta data status.
+     *
+     * @return rewrite meta data status
+     */
+    public Boolean getRewriteMetaData() {
+        return rewriteMetaData;
+    }
+    
+    /**
+     * set rewrite meta data.
+     *
+     * @param rewriteMetaData status
+     */
+    public void setRewriteMetaData(final Boolean rewriteMetaData) {
+        this.rewriteMetaData = rewriteMetaData;
+    }
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -79,12 +125,13 @@ public class RewriteHandle {
             return false;
         }
         RewriteHandle that = (RewriteHandle) o;
-        return Objects.equals(regex, that.regex) && Objects.equals(replace, that.replace);
+        return Objects.equals(regex, that.regex) && Objects.equals(replace, that.replace)
+                && Objects.equals(rewriteMetaData, that.rewriteMetaData);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(regex, replace);
+        return Objects.hash(regex, replace, rewriteMetaData);
     }
 
     @Override
@@ -95,6 +142,12 @@ public class RewriteHandle {
                 + '\''
                 + ", replace='"
                 + replace
+                + '\''
+                + ", percentage='"
+                + percentage
+                + '\''
+                + ", rewriteMetaData='"
+                + rewriteMetaData
                 + '\''
                 + '}';
     }

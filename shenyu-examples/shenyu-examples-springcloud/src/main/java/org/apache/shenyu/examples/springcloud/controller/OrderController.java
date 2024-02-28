@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.springcloud.controller;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuGetMapping;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuPostMapping;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuRequestMapping;
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @ShenyuRequestMapping("/order")
+@ApiModule(value = "order")
 public class OrderController {
 
     /**
@@ -40,6 +43,7 @@ public class OrderController {
      * @return the order dto
      */
     @ShenyuPostMapping("/save")
+    @ApiDoc(desc = "save")
     public OrderDTO save(@RequestBody final OrderDTO orderDTO) {
         orderDTO.setName("hello world spring cloud save order");
         return orderDTO;
@@ -52,6 +56,7 @@ public class OrderController {
      * @return the order dto
      */
     @ShenyuGetMapping("/findById")
+    @ApiDoc(desc = "findById")
     public OrderDTO findById(@RequestParam("id") final String id) {
         return buildOrder(id, "hello world spring cloud findById");
     }
@@ -64,6 +69,7 @@ public class OrderController {
      * @return the path variable
      */
     @ShenyuGetMapping("/path/{id}/{name}")
+    @ApiDoc(desc = "path/{id}/{name}")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
         return buildOrder(id, "hello world spring cloud restful: " + name);
     }
@@ -75,6 +81,7 @@ public class OrderController {
      * @return the order dto
      */
     @ShenyuGetMapping("/path/{id}/name")
+    @ApiDoc(desc = "path/{id}/name")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
         return buildOrder(id, "hello world spring cloud restful inline " + id);
     }

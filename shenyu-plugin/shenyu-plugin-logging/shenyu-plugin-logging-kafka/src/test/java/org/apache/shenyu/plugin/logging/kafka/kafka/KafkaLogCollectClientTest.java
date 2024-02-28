@@ -17,17 +17,21 @@
 
 package org.apache.shenyu.plugin.logging.kafka.kafka;
 
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
 
 import java.lang.reflect.Field;
+
+import static org.mockito.Mockito.mockConstruction;
 
 /**
  * The Test Case For RocketMQLogCollectClient.
@@ -54,12 +58,14 @@ public class KafkaLogCollectClientTest {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void testInitClient() throws NoSuchFieldException, IllegalAccessException {
-        kafkaLogCollectClient.initClient(globalLogConfig);
-        Field field = kafkaLogCollectClient.getClass().getDeclaredField("topic");
-        field.setAccessible(true);
-        Assertions.assertEquals(field.get(kafkaLogCollectClient), "shenyu-access-logging");
-        kafkaLogCollectClient.close();
+        try (MockedConstruction<KafkaProducer> construction = mockConstruction(KafkaProducer.class)) {
+            kafkaLogCollectClient.initClient(globalLogConfig);
+            Field field = kafkaLogCollectClient.getClass().getDeclaredField("topic");
+            field.setAccessible(true);
+            Assertions.assertEquals(field.get(kafkaLogCollectClient), "shenyu-access-logging");
+            kafkaLogCollectClient.close();
+        }
     }
 }

@@ -20,23 +20,44 @@ package org.apache.shenyu.e2e.engine.scenario.specification;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenarioParameter;
 import org.apache.shenyu.e2e.engine.scenario.function.Checker;
 import org.apache.shenyu.e2e.engine.scenario.function.Deleter;
+import org.apache.shenyu.e2e.engine.scenario.function.Waiting;
 
 @ShenYuScenarioParameter
 public interface AfterEachSpec {
-    
-    Deleter getDeleter();
-    
-    Checker getPostChecker();
     
     AfterEachSpec DEFAULT = new AfterEachSpec() {
         @Override
         public Deleter getDeleter() {
             return Deleter.DEFAULT;
         }
-    
+        
         @Override
         public Checker getPostChecker() {
             return Checker.DEFAULT;
         }
+
+        @Override
+        public Waiting deleteWaiting() {
+            return Waiting.DEFAULT;
+        }
     };
+    
+    /**
+     * get after each deleter.
+     * @return Deleter
+     */
+    Deleter getDeleter();
+    
+    /**
+     * get after each post checker.
+     * @return Checker
+     */
+    Checker getPostChecker();
+
+    /**
+     * deleteWaiting.
+     * @return Checker
+     */
+    Waiting deleteWaiting();
+    
 }

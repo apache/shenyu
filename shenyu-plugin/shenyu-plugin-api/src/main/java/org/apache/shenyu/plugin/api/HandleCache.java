@@ -17,11 +17,16 @@
 
 package org.apache.shenyu.plugin.api;
 
+import java.util.function.Supplier;
+
 /**
  * The selector or rule handle cache.
+ *
+ * @param <K> the type parameter
+ * @param <V> the type parameter
  */
 public interface HandleCache<K, V> {
-
+    
     /**
      * Obtain selector or rule handle.
      *
@@ -29,15 +34,26 @@ public interface HandleCache<K, V> {
      * @return v handle
      */
     V obtainHandle(K key);
-
+    
+    /**
+     * Obtain handle v.
+     *
+     * @param key the key
+     * @param supplier the supplier
+     * @return the v
+     */
+    default V obtainHandle(K key, Supplier<V> supplier) {
+        return supplier.get();
+    }
+    
     /**
      * Cached selector or rule handle.
      *
-     * @param key   key
+     * @param key key
      * @param value value
      */
     void cachedHandle(K key, V value);
-
+    
     /**
      * Remove selector or rule handle.
      *

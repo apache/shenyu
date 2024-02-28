@@ -18,13 +18,28 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.FieldDO;
+import org.apache.shenyu.admin.model.query.FieldQuery;
+import org.apache.shenyu.admin.validation.ExistProvider;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * FieldMapper.
  */
 @Mapper
-public interface FieldMapper {
+public interface FieldMapper extends ExistProvider {
+
+    /**
+     * existed.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
 
     /**
      * insert fieldDO to table.
@@ -73,4 +88,22 @@ public interface FieldMapper {
      * @return deleteCount
      */
     int deleteByPrimaryKey(String id);
+
+
+    /**
+     * batchDelete.
+     *
+     * @param ids ids
+     * @return int
+     */
+    int batchDelete(@Param("ids") List<String> ids);
+
+    /**
+     * selectByQuery.
+     *
+     * @param fieldQuery fieldQuery
+     * @return FieldDOList
+     */
+    List<FieldDO> selectByQuery(FieldQuery fieldQuery);
+
 }

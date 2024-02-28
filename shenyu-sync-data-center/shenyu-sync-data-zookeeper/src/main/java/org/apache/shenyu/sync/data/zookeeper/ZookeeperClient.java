@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.sync.data.zookeeper;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -32,12 +33,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ZookeeperClient {
+public class ZookeeperClient implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClient.class);
 
@@ -81,6 +83,7 @@ public class ZookeeperClient {
     /**
      * start.
      */
+    @Override
     public void close() {
         // close all caches
         for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
@@ -201,7 +204,8 @@ public class ZookeeperClient {
         try {
             return client.getChildren().forPath(key);
         } catch (Exception e) {
-            throw new ShenyuException(e);
+            LOGGER.error("zookeeper get child error=", e);
+            return Collections.emptyList();
         }
     }
 
@@ -223,7 +227,7 @@ public class ZookeeperClient {
     public TreeCache addCache(final String path, final TreeCacheListener... listeners) {
         TreeCache cache = TreeCache.newBuilder(client, path).build();
         caches.put(path, cache);
-        if (listeners != null && listeners.length > 0) {
+        if (ArrayUtils.isNotEmpty(listeners)) {
             for (TreeCacheListener listener : listeners) {
                 cache.getListenable().addListener(listener);
             }

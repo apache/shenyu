@@ -28,7 +28,6 @@ public class CreateResourceDTO {
     /**
      * resource parent key.
      */
-    @NotBlank
     private String parentId;
 
     /**
@@ -94,23 +93,6 @@ public class CreateResourceDTO {
     private Integer status;
 
     public CreateResourceDTO() {
-    }
-
-    public CreateResourceDTO(final String parentId, final String title, final String name, final String url, final String component,
-                             final Integer resourceType, final Integer sort, final String icon,
-                             final Boolean isLeaf, final Integer isRoute, final String perms, final Integer status) {
-        this.parentId = parentId;
-        this.title = title;
-        this.name = name;
-        this.url = url;
-        this.component = component;
-        this.resourceType = resourceType;
-        this.sort = sort;
-        this.icon = icon;
-        this.isLeaf = isLeaf;
-        this.isRoute = isRoute;
-        this.perms = perms;
-        this.status = status;
     }
 
     /**

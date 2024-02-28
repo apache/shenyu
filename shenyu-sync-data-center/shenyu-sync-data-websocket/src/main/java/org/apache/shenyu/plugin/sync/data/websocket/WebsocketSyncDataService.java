@@ -22,8 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.sync.data.websocket.client.ShenyuWebsocketClient;
 import org.apache.shenyu.plugin.sync.data.websocket.config.WebsocketConfig;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +41,7 @@ import java.util.Objects;
  * Websocket sync data service.
  */
 public class WebsocketSyncDataService implements SyncDataService {
-    
+
     /**
      * logger.
      */
@@ -49,9 +51,9 @@ public class WebsocketSyncDataService implements SyncDataService {
      * see https://github.com/apache/tomcat/blob/main/java/org/apache/tomcat/websocket/Constants.java#L99.
      */
     private static final String ORIGIN_HEADER_NAME = "Origin";
-    
+
     private final List<ShenyuWebsocketClient> clients = new ArrayList<>();
-    
+
     /**
      * Instantiates a new Websocket sync cache.
      *
@@ -63,22 +65,27 @@ public class WebsocketSyncDataService implements SyncDataService {
     public WebsocketSyncDataService(final WebsocketConfig websocketConfig,
                                     final PluginDataSubscriber pluginDataSubscriber,
                                     final List<MetaDataSubscriber> metaDataSubscribers,
-                                    final List<AuthDataSubscriber> authDataSubscribers) {
+                                    final List<AuthDataSubscriber> authDataSubscribers,
+                                    final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
+                                    final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers
+    ) {
         String[] urls = StringUtils.split(websocketConfig.getUrls(), ",");
         for (String url : urls) {
             try {
                 if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
                     Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
-                    clients.add(new ShenyuWebsocketClient(new URI(url), headers, Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers, authDataSubscribers));
+                    clients.add(new ShenyuWebsocketClient(new URI(url), headers, Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers,
+                            authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers));
                 } else {
-                    clients.add(new ShenyuWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers, authDataSubscribers));
+                    clients.add(new ShenyuWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber),
+                            metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers));
                 }
             } catch (URISyntaxException e) {
                 LOG.error("websocket url({}) is error", url, e);
             }
         }
     }
-    
+
     @Override
     public void close() {
         for (ShenyuWebsocketClient client : clients) {

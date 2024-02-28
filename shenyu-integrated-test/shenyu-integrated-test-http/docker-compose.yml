@@ -17,12 +17,12 @@ version: "3.9"
 services:
   shenyu-zk:
     container_name: shenyu-zk
-    image: zookeeper:3.5
+    image: zookeeper:latest
     restart: always
     networks:
       - shenyu
   shenyu-redis:
-    image: redis:6.0-alpine
+    image: redis:latest
     container_name: shenyu-redis
     restart: always
     command: redis-server --requirepass abc
@@ -120,7 +120,7 @@ services:
       - "9200:9200"
       - "9300:9300"
     environment:
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
       - discovery.type=single-node
       - xpack.security.enabled=false
     healthcheck:
@@ -200,6 +200,20 @@ services:
       shenyu:
         aliases:
           - shenyu-rmqbroker
+
+  shenyu-rabbitmq:
+    image: rabbitmq:3.9.13-management
+    container_name: shenyu-rabbitmq
+    restart: always
+    hostname: shenyu-rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
 
 networks:
   shenyu:

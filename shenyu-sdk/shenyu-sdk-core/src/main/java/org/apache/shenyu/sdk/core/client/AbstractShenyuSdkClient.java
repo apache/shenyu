@@ -24,9 +24,9 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
-import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
-import org.apache.shenyu.register.instance.api.config.RegisterConfig;
-import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
 import org.apache.shenyu.sdk.core.interceptor.ShenyuSdkRequestInterceptor;
@@ -38,17 +38,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * The type Abstract shenyu sdk client.
@@ -62,8 +58,6 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
     private ShenyuInstanceRegisterRepository registerRepository;
 
     private List<ShenyuSdkRequestInterceptor> requestInterceptors;
-
-    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
 
     private RegisterConfig registerConfig;
 
@@ -93,10 +87,10 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
         this.registerRepository = instanceRegisterRepository;
         this.requestInterceptors = requestInterceptors;
         Properties props = registerConfig.getProps();
-        Boolean retryEnable = Optional.ofNullable(props.get("retry.enable")).map(e -> Boolean.parseBoolean(e.toString())).orElse(false);
-        Long period = Optional.ofNullable(props.get("retry.period")).map(l -> Long.parseLong(l.toString())).orElse(100L);
-        long maxPeriod = Optional.ofNullable(props.get("retry.maxPeriod")).map(l -> Long.parseLong(l.toString())).orElse(SECONDS.toMillis(1));
-        int maxAttempts = Optional.ofNullable(props.get("retry.maxAttempts")).map(l -> Integer.parseInt(l.toString())).orElse(5);
+        boolean retryEnable = Boolean.parseBoolean(props.getProperty("retry.enable", "false"));
+        long period = Long.parseLong(props.getProperty("retry.period", "100"));
+        long maxPeriod = Long.parseLong(props.getProperty("retry.maxPeriod", "1000"));
+        int maxAttempts = Integer.parseInt(props.getProperty("retry.maxAttempts", "5"));
         this.algorithm = props.getProperty("algorithm", "roundRobin");
         this.scheme = props.getProperty("scheme", "http");
         this.retryer = retryEnable ? new Retryer.DefaultRetry(period, maxPeriod, maxAttempts) : Retryer.NEVER_RETRY;
@@ -152,6 +146,7 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
      * @return {@linkplain String}
      */
     private String loadBalancerInstances(final ShenyuRequest request) {
+        // all addresses of registry
         final List<Upstream> upstreams;
         if (Objects.isNull(registerRepository)) {
             List<String> serverList = Arrays.asList(registerConfig.getServerLists().split(","));
@@ -162,12 +157,7 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
                     .map(serverAddress -> Upstream.builder().url(UriUtils.appendScheme(serverAddress, scheme)).build())
                     .collect(Collectors.toList());
         } else {
-            List<InstanceEntity> instanceRegisters = watcherInstanceRegisterMap.get(request.getContextId());
-            if (instanceRegisters == null) {
-                instanceRegisters = registerRepository.selectInstancesAndWatcher(request.getContextId(),
-                    instanceRegisterDTOs -> watcherInstanceRegisterMap.put(request.getContextId(), instanceRegisterDTOs));
-                watcherInstanceRegisterMap.put(request.getContextId(), instanceRegisters);
-            }
+            List<InstanceEntity> instanceRegisters = registerRepository.selectInstances(request.getName());
             if (ObjectUtils.isEmpty(instanceRegisters)) {
                 throw new ShenyuException("Gateway address not found from registry.");
             }
@@ -178,7 +168,7 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
                     })
                     .collect(Collectors.toList());
         }
-        // loadBalancer
+        // loadBalancer upstreams
         final Upstream upstream = LoadBalancerFactory.selector(upstreams, algorithm, "");
         return replaceUrl(upstream.getUrl(), request.getUrl());
     }
@@ -186,9 +176,9 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
     private String replaceUrl(final String url, final String sourceUrl) {
         final URI uri = URI.create(sourceUrl);
         if (StringUtils.isEmpty(uri.getQuery())) {
-            return url + uri.getPath();
+            return url + uri.getRawPath();
         } else {
-            return String.format("%s%s?%s", url, uri.getPath(), uri.getQuery());
+            return String.format("%s%s?%s", url, uri.getRawPath(), uri.getQuery());
         }
     }
 

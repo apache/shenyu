@@ -32,7 +32,7 @@ import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.service.publish.PluginHandleEventPublisher;
-import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 

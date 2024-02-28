@@ -22,12 +22,16 @@ import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.ProxySelectorService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.assertj.core.util.Lists;
@@ -62,6 +66,10 @@ public final class AbstractDataChangedListenerTest {
 
     private MetaDataService metaDataService;
 
+    private ProxySelectorService proxySelectorService;
+
+    private DiscoveryUpstreamService discoveryUpstreamService;
+
     @BeforeEach
     public void setUp() throws Exception {
         listener = new MockAbstractDataChangedListener();
@@ -70,6 +78,8 @@ public final class AbstractDataChangedListenerTest {
         ruleService = mock(RuleService.class);
         selectorService = mock(SelectorService.class);
         metaDataService = mock(MetaDataService.class);
+        proxySelectorService = mock(ProxySelectorService.class);
+        discoveryUpstreamService = mock(DiscoveryUpstreamService.class);
 
         Class clazz = MockAbstractDataChangedListener.class.getSuperclass();
         Field appAuthServiceField = clazz.getDeclaredField("appAuthService");
@@ -87,6 +97,12 @@ public final class AbstractDataChangedListenerTest {
         Field metaDataServiceField = clazz.getDeclaredField("metaDataService");
         metaDataServiceField.setAccessible(true);
         metaDataServiceField.set(listener, metaDataService);
+        Field proxySelectorServiceField = clazz.getDeclaredField("proxySelectorService");
+        proxySelectorServiceField.setAccessible(true);
+        proxySelectorServiceField.set(listener, proxySelectorService);
+        Field discoveryUpstreamServiceField = clazz.getDeclaredField("discoveryUpstreamService");
+        discoveryUpstreamServiceField.setAccessible(true);
+        discoveryUpstreamServiceField.set(listener, discoveryUpstreamService);
 
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
         when(appAuthService.listAll()).thenReturn(appAuthDatas);
@@ -98,6 +114,10 @@ public final class AbstractDataChangedListenerTest {
         when(selectorService.listAll()).thenReturn(selectorDatas);
         List<MetaData> metaDatas = Lists.newArrayList(mock(MetaData.class));
         when(metaDataService.listAll()).thenReturn(metaDatas);
+        List<ProxySelectorData> proxySelectorDatas = Lists.newArrayList(mock(ProxySelectorData.class));
+        when(proxySelectorService.listAll()).thenReturn(proxySelectorDatas);
+        List<DiscoverySyncData> discoverySyncDatas = Lists.newArrayList(mock(DiscoverySyncData.class));
+        when(discoveryUpstreamService.listAll()).thenReturn(discoverySyncDatas);
     }
 
     @AfterEach

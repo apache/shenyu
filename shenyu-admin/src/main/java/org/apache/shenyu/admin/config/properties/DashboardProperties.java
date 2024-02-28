@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.config.properties;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -56,6 +57,19 @@ public class DashboardProperties implements InitializingBean {
      * default is true
      */
     private Boolean enableOnlySuperAdminPermission = true;
+    
+    /**
+     * enable SuperAdminPasswordSafe.
+     * default is true
+     */
+    private Boolean enableSuperAdminPasswordSafe = true;
+    
+    
+    /**
+     * enable SuperAdminPassword valid duration.
+     * default is 30 day
+     */
+    private Long superAdminPasswordValidDuration = 30 * AdminConstants.THE_ONE_DAY_MILLIS_TIME;
     
     
     /**
@@ -154,6 +168,42 @@ public class DashboardProperties implements InitializingBean {
      */
     public void setOnlySuperAdminPermission(final List<String> onlySuperAdminPermission) {
         this.onlySuperAdminPermission = onlySuperAdminPermission;
+    }
+    
+    /**
+     * get enableSuperAdminPasswordSafe.
+     *
+     * @return boolean
+     */
+    public Boolean getEnableSuperAdminPasswordSafe() {
+        return enableSuperAdminPasswordSafe;
+    }
+    
+    /**
+     * set enableSuperAdminPasswordSafe.
+     *
+     * @param enableSuperAdminPasswordSafe enableSuperAdminPasswordSafe
+     */
+    public void setEnableSuperAdminPasswordSafe(final Boolean enableSuperAdminPasswordSafe) {
+        this.enableSuperAdminPasswordSafe = enableSuperAdminPasswordSafe;
+    }
+    
+    /**
+     * get superAdminPasswordValidDuration.
+     *
+     * @return long
+     */
+    public Long getSuperAdminPasswordValidDuration() {
+        return superAdminPasswordValidDuration;
+    }
+    
+    /**
+     * set superAdminPasswordValidDuration.
+     *
+     * @param superAdminPasswordValidDuration superAdminPasswordValidDuration
+     */
+    public void setSuperAdminPasswordValidDuration(final Long superAdminPasswordValidDuration) {
+        this.superAdminPasswordValidDuration = superAdminPasswordValidDuration;
     }
     
     @Override

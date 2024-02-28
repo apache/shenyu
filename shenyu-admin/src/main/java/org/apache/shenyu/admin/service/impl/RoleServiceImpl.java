@@ -38,7 +38,7 @@ import org.apache.shenyu.admin.model.vo.RoleEditVO.ResourceInfo;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.RoleService;
 import org.apache.shenyu.admin.service.publish.RoleEventPublisher;
-import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -231,12 +231,7 @@ public class RoleServiceImpl implements RoleService {
             if (CollectionUtils.isNotEmpty(children)) {
                 ResourceInfo resourceInfo = resourceInfoMap.get(parent);
                 List<ResourceInfo> targetList = Objects.isNull(resourceInfo) ? retList : resourceInfo.getChildren();
-                children.forEach(child -> {
-                    ResourceInfo data = resourceInfoMap.get(child);
-                    if (Objects.nonNull(data)) {
-                        targetList.add(data);
-                    }
-                });
+                children.stream().map(resourceInfoMap::get).filter(Objects::nonNull).forEach(targetList::add);
             }
         });
         return retList;

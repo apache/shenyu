@@ -18,10 +18,25 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.DetailDO;
+import org.apache.shenyu.admin.model.query.DetailQuery;
+import org.apache.shenyu.admin.validation.ExistProvider;
+
+import java.io.Serializable;
+import java.util.List;
 
 @Mapper
-public interface DetailMapper {
+public interface DetailMapper extends ExistProvider {
+
+    /**
+     * existed.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
 
     /**
      * insert detailDO to table.
@@ -70,4 +85,20 @@ public interface DetailMapper {
      * @return deleteCount
      */
     int deleteByPrimaryKey(String id);
+
+    /**
+     * selectByQuery.
+     *
+     * @param detailQuery detailQuery
+     * @return DetailDOList
+     */
+    List<DetailDO> selectByQuery(DetailQuery detailQuery);
+
+    /**
+     * batchDelete.
+     *
+     * @param ids ids
+     * @return int
+     */
+    int batchDelete(@Param("ids") List<String> ids);
 }

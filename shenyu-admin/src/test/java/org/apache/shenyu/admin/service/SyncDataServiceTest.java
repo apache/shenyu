@@ -80,6 +80,15 @@ public final class SyncDataServiceTest {
     @Mock
     private MetaDataService metaDataService;
 
+    @Mock
+    private ProxySelectorService proxySelectorService;
+
+    @Mock
+    private DiscoveryService discoveryService;
+
+    @Mock
+    private DiscoveryUpstreamService discoveryUpstreamService;
+
     @Test
     public void syncAllTest() {
         PluginData pluginData = buildPluginData();
@@ -185,7 +194,8 @@ public final class SyncDataServiceTest {
                 null,
                 true,
                 dateTime,
-                dateTime
+                dateTime,
+                ""
         );
     }
 }

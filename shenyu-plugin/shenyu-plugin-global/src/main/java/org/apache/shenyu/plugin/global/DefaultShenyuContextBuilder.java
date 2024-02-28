@@ -30,6 +30,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
@@ -72,7 +73,7 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
             return Pair.of(RpcTypeEnum.WEB_SOCKET.getName(), new MetaData());
         }
-        MetaData metaData = MetaDataCache.getInstance().obtain(request.getURI().getPath());
+        MetaData metaData = MetaDataCache.getInstance().obtain(request.getURI().getRawPath());
         if (Objects.nonNull(metaData) && Boolean.TRUE.equals(metaData.getEnabled())) {
             exchange.getAttributes().put(Constants.META_DATA, metaData);
             return Pair.of(metaData.getRpcType(), metaData);
@@ -82,15 +83,9 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
     }
 
     private ShenyuContext buildDefaultContext(final ServerHttpRequest request) {
-        String appKey = request.getHeaders().getFirst(Constants.APP_KEY);
-        String sign = request.getHeaders().getFirst(Constants.SIGN);
-        String timestamp = request.getHeaders().getFirst(Constants.TIMESTAMP);
         ShenyuContext shenyuContext = new ShenyuContext();
-        String path = request.getURI().getPath();
-        shenyuContext.setPath(path);
-        shenyuContext.setAppKey(appKey);
-        shenyuContext.setSign(sign);
-        shenyuContext.setTimestamp(timestamp);
+        URI requestURI = request.getURI();
+        shenyuContext.setPath(requestURI.getRawPath());
         shenyuContext.setStartDateTime(LocalDateTime.now());
         Optional.ofNullable(request.getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
         return shenyuContext;

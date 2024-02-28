@@ -18,22 +18,33 @@
 package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.converter.DivideSelectorHandleConverter;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -97,20 +108,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         if (doSubmit(selectorDO.getId(), canAddList)) {
             return null;
         }
-
-        List<DivideUpstream> handleList;
-        if (CollectionUtils.isEmpty(existList)) {
-            handleList = addList;
-        } else {
-            List<DivideUpstream> aliveList;
-            if (isEventDeleted) {
-                aliveList = existList.stream().filter(e -> e.isStatus() && !e.equals(addList.get(0))).collect(Collectors.toList());
-            } else {
-                aliveList = addList;
-            }
-            handleList = divideSelectorHandleConverter.updateStatusAndFilter(existList, aliveList);
-        }
-        return GsonUtils.getInstance().toJson(handleList);
+        return GsonUtils.getInstance().toJson(CollectionUtils.isEmpty(existList) ? canAddList : existList);
     }
 
     private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {
@@ -118,4 +116,38 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
                 .map(dto -> CommonUpstreamUtils.buildDivideUpstream(dto.getProtocol(), dto.getHost(), dto.getPort()))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
+
+    @Override
+    public String offline(final String selectorName, final List<URIRegisterDTO> uriList) {
+        final SelectorService selectorService = getSelectorService();
+        String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
+        SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, pluginName);
+        if (Objects.isNull(selectorDO)) {
+            return Constants.SUCCESS;
+        }
+        List<URIRegisterDTO> validUriList = uriList.stream()
+                .filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost()))
+                .collect(Collectors.toList());
+        final List<DivideUpstream> needToRemove = buildDivideUpstreamList(validUriList);
+        List<DivideUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), DivideUpstream.class);
+        existList.removeAll(needToRemove);
+        final String handler = GsonUtils.getInstance().toJson(existList);
+        selectorDO.setHandle(handler);
+        SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
+        selectorData.setHandle(handler);
+        // update db
+        selectorService.updateSelective(selectorDO);
+        // publish change event.
+        doRemoveAndSendEvent(needToRemove, selectorDO, pluginName);
+        return Constants.SUCCESS;
+    }
+
+    private void doRemoveAndSendEvent(final List<DivideUpstream> needToRemove, final SelectorDO selectorDO, final String pluginName) {
+        for (DivideUpstream divideUpstream : needToRemove) {
+            removeDiscoveryUpstream(selectorDO.getId(), divideUpstream.getUpstreamUrl());
+        }
+        DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName);
+        getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
+    }
+
 }

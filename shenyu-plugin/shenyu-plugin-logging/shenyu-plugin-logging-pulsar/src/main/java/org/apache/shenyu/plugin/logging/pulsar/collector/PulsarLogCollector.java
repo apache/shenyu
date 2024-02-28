@@ -20,11 +20,12 @@ package org.apache.shenyu.plugin.logging.pulsar.collector;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.apache.shenyu.plugin.logging.pulsar.client.PulsarLogCollectClient;
+import org.apache.shenyu.plugin.logging.pulsar.config.PulsarLogCollectConfig;
 import org.apache.shenyu.plugin.logging.pulsar.handler.LoggingPulsarPluginDataHandler;
 
-public class PulsarLogCollector extends AbstractLogCollector<PulsarLogCollectClient, ShenyuRequestLog> {
+public class PulsarLogCollector extends AbstractLogCollector<PulsarLogCollectClient, ShenyuRequestLog, PulsarLogCollectConfig.PulsarLogConfig> {
 
     private static final LogCollector<ShenyuRequestLog> INSTANCE = new PulsarLogCollector();
 
@@ -36,13 +37,18 @@ public class PulsarLogCollector extends AbstractLogCollector<PulsarLogCollectCli
     public static LogCollector<ShenyuRequestLog> getInstance() {
         return INSTANCE;
     }
-    
+
     @Override
     protected PulsarLogCollectClient getLogConsumeClient() {
         return LoggingPulsarPluginDataHandler.getPulsarLogCollectClient();
     }
 
     @Override
-    protected void maskLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
+    protected PulsarLogCollectConfig.PulsarLogConfig getLogCollectConfig() {
+        return PulsarLogCollectConfig.INSTANCE.getPulsarLogConfig();
+    }
+
+    @Override
+    protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
     }
 }

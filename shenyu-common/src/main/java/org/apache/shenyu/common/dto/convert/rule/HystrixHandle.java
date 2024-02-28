@@ -66,7 +66,7 @@ public class HystrixHandle {
      * call back uri.
      * when some error occurs in hystrix invoke it will forward to this
      */
-    private String callBackUri;
+    private String callBackUri = "/fallback/hystrix";
 
     /**
      * Isolation strategy to use when executing a hystrix command.
@@ -77,16 +77,25 @@ public class HystrixHandle {
      * hystrix thread pool config.
      */
     private HystrixThreadPoolConfig hystrixThreadPoolConfig;
-
+    
+    /**
+     * New instance hystrix handle.
+     *
+     * @return the hystrix handle
+     */
+    public static HystrixHandle newDefaultInstance() {
+        return new HystrixHandle();
+    }
+    
     /**
      * get groupKey.
      *
-     * @return groupKey
+     * @return groupKey group key
      */
     public String getGroupKey() {
         return groupKey;
     }
-
+    
     /**
      * set groupKey.
      *
@@ -95,16 +104,16 @@ public class HystrixHandle {
     public void setGroupKey(final String groupKey) {
         this.groupKey = groupKey;
     }
-
+    
     /**
      * get commandKey.
      *
-     * @return commandKey
+     * @return commandKey command key
      */
     public String getCommandKey() {
         return commandKey;
     }
-
+    
     /**
      * set commandKey.
      *
@@ -113,16 +122,16 @@ public class HystrixHandle {
     public void setCommandKey(final String commandKey) {
         this.commandKey = commandKey;
     }
-
+    
     /**
      * get maxConcurrentRequests.
      *
-     * @return maxConcurrentRequests
+     * @return maxConcurrentRequests max concurrent requests
      */
     public int getMaxConcurrentRequests() {
         return maxConcurrentRequests;
     }
-
+    
     /**
      * set maxConcurrentRequests.
      *
@@ -131,16 +140,16 @@ public class HystrixHandle {
     public void setMaxConcurrentRequests(final int maxConcurrentRequests) {
         this.maxConcurrentRequests = maxConcurrentRequests;
     }
-
+    
     /**
      * get errorThresholdPercentage.
      *
-     * @return errorThresholdPercentage
+     * @return errorThresholdPercentage error threshold percentage
      */
     public int getErrorThresholdPercentage() {
         return errorThresholdPercentage;
     }
-
+    
     /**
      * set errorThresholdPercentage.
      *
@@ -149,16 +158,16 @@ public class HystrixHandle {
     public void setErrorThresholdPercentage(final int errorThresholdPercentage) {
         this.errorThresholdPercentage = errorThresholdPercentage;
     }
-
+    
     /**
      * get requestVolumeThreshold.
      *
-     * @return requestVolumeThreshold
+     * @return requestVolumeThreshold request volume threshold
      */
     public int getRequestVolumeThreshold() {
         return requestVolumeThreshold;
     }
-
+    
     /**
      * set requestVolumeThreshold.
      *
@@ -167,16 +176,16 @@ public class HystrixHandle {
     public void setRequestVolumeThreshold(final int requestVolumeThreshold) {
         this.requestVolumeThreshold = requestVolumeThreshold;
     }
-
+    
     /**
      * get sleepWindowInMilliseconds.
      *
-     * @return sleepWindowInMilliseconds
+     * @return sleepWindowInMilliseconds sleep window in milliseconds
      */
     public int getSleepWindowInMilliseconds() {
         return sleepWindowInMilliseconds;
     }
-
+    
     /**
      * set sleepWindowInMilliseconds.
      *
@@ -185,16 +194,16 @@ public class HystrixHandle {
     public void setSleepWindowInMilliseconds(final int sleepWindowInMilliseconds) {
         this.sleepWindowInMilliseconds = sleepWindowInMilliseconds;
     }
-
+    
     /**
      * get timeout.
      *
-     * @return timeout
+     * @return timeout timeout
      */
     public long getTimeout() {
         return timeout;
     }
-
+    
     /**
      * set timeout.
      *
@@ -203,16 +212,16 @@ public class HystrixHandle {
     public void setTimeout(final long timeout) {
         this.timeout = timeout;
     }
-
+    
     /**
      * get callBackUri.
      *
-     * @return callBackUri
+     * @return callBackUri call back uri
      */
     public String getCallBackUri() {
         return callBackUri;
     }
-
+    
     /**
      * set callBackUri.
      *
@@ -221,16 +230,16 @@ public class HystrixHandle {
     public void setCallBackUri(final String callBackUri) {
         this.callBackUri = callBackUri;
     }
-
+    
     /**
      * get executionIsolationStrategy.
      *
-     * @return executionIsolationStrategy
+     * @return executionIsolationStrategy execution isolation strategy
      */
     public int getExecutionIsolationStrategy() {
         return executionIsolationStrategy;
     }
-
+    
     /**
      * set executionIsolationStrategy.
      *
@@ -239,16 +248,16 @@ public class HystrixHandle {
     public void setExecutionIsolationStrategy(final int executionIsolationStrategy) {
         this.executionIsolationStrategy = executionIsolationStrategy;
     }
-
+    
     /**
      * get hystrixThreadPoolConfig.
      *
-     * @return hystrixThreadPoolConfig
+     * @return hystrixThreadPoolConfig hystrix thread pool config
      */
     public HystrixThreadPoolConfig getHystrixThreadPoolConfig() {
         return hystrixThreadPoolConfig;
     }
-
+    
     /**
      * set hystrixThreadPoolConfig.
      *
@@ -325,7 +334,7 @@ public class HystrixHandle {
         /**
          * get coreSize.
          *
-         * @return coreSize
+         * @return coreSize core size
          */
         public int getCoreSize() {
             return coreSize;
@@ -343,7 +352,7 @@ public class HystrixHandle {
         /**
          * get maximumSize.
          *
-         * @return maximumSize
+         * @return maximumSize maximum size
          */
         public int getMaximumSize() {
             return maximumSize;
@@ -361,7 +370,7 @@ public class HystrixHandle {
         /**
          * get keepAliveTimeMinutes.
          *
-         * @return keepAliveTimeMinutes
+         * @return keepAliveTimeMinutes keep alive time minutes
          */
         public int getKeepAliveTimeMinutes() {
             return keepAliveTimeMinutes;
@@ -379,7 +388,7 @@ public class HystrixHandle {
         /**
          * get maxQueueSize.
          *
-         * @return maxQueueSize
+         * @return maxQueueSize max queue size
          */
         public int getMaxQueueSize() {
             return maxQueueSize;

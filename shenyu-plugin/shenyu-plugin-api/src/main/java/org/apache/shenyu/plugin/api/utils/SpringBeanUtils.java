@@ -22,6 +22,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * SpringBeanUtils.
@@ -114,6 +115,24 @@ public final class SpringBeanUtils {
         } catch (BeansException e) {
             return null;
         }
+    }
+
+    /**
+     * destroyBean.
+     * @param className className
+     */
+    public void destroyBean(final String className) {
+        String beanName = getBeanName(className);
+        DefaultListableBeanFactory beanFactory = getBeanFactory();
+        if (beanFactory.containsBean(beanName)) {
+            beanFactory.destroySingleton(beanName);
+            beanFactory.removeBeanDefinition(beanName);
+        }
+    }
+
+    private DefaultListableBeanFactory getBeanFactory() {
+        ConfigurableApplicationContext configurableApplicationContext = (ConfigurableApplicationContext) applicationContext;
+        return (DefaultListableBeanFactory) configurableApplicationContext.getBeanFactory();
     }
     
     private String getBeanName(final String className) {

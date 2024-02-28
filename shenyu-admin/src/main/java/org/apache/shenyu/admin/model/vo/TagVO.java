@@ -53,6 +53,8 @@ public class TagVO implements Serializable {
      */
     private String ext;
 
+    private TagDO.TagExt tagExt;
+
     /**
      * created time.
      */
@@ -163,6 +165,22 @@ public class TagVO implements Serializable {
      */
     public void setExt(final String ext) {
         this.ext = ext;
+    }
+
+    /**
+     * get tagExt.
+     * @return tagExt
+     */
+    public TagDO.TagExt getTagExt() {
+        return tagExt;
+    }
+
+    /**
+     * set tagExt.
+     * @param tagExt tagExt
+     */
+    public void setTagExt(final TagDO.TagExt tagExt) {
+        this.tagExt = tagExt;
     }
 
     /**

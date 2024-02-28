@@ -95,17 +95,26 @@ public class SentinelHandle {
     /**
      * Sentinel fallback uri.
      */
-    private String fallbackUri;
-
+    private String fallbackUri = "/fallback/sentinel";
+    
+    /**
+     * New default instance sentinel handle.
+     *
+     * @return the sentinel handle
+     */
+    public static SentinelHandle newDefaultInstance() {
+        return new SentinelHandle();
+    }
+    
     /**
      * get flowRuleEnable.
      *
-     * @return flowRuleEnable
+     * @return flowRuleEnable flow rule enable
      */
     public Integer getFlowRuleEnable() {
         return flowRuleEnable;
     }
-
+    
     /**
      * set flowRuleEnable.
      *
@@ -114,16 +123,16 @@ public class SentinelHandle {
     public void setFlowRuleEnable(final Integer flowRuleEnable) {
         this.flowRuleEnable = flowRuleEnable;
     }
-
+    
     /**
      * get flowRuleGrade.
      *
-     * @return flowRuleGrade
+     * @return flowRuleGrade flow rule grade
      */
     public Integer getFlowRuleGrade() {
         return flowRuleGrade;
     }
-
+    
     /**
      * set flowRuleGrade.
      *
@@ -132,16 +141,16 @@ public class SentinelHandle {
     public void setFlowRuleGrade(final Integer flowRuleGrade) {
         this.flowRuleGrade = flowRuleGrade;
     }
-
+    
     /**
      * get flowRuleCount.
      *
-     * @return flowRuleCount
+     * @return flowRuleCount flow rule count
      */
     public Integer getFlowRuleCount() {
         return flowRuleCount;
     }
-
+    
     /**
      * set flowRuleCount.
      *
@@ -150,16 +159,16 @@ public class SentinelHandle {
     public void setFlowRuleCount(final Integer flowRuleCount) {
         this.flowRuleCount = flowRuleCount;
     }
-
+    
     /**
      * get flowRuleControlBehavior.
      *
-     * @return flowRuleControlBehavior
+     * @return flowRuleControlBehavior flow rule control behavior
      */
     public Integer getFlowRuleControlBehavior() {
         return flowRuleControlBehavior;
     }
-
+    
     /**
      * set flowRuleControlBehavior.
      *
@@ -168,16 +177,16 @@ public class SentinelHandle {
     public void setFlowRuleControlBehavior(final Integer flowRuleControlBehavior) {
         this.flowRuleControlBehavior = flowRuleControlBehavior;
     }
-
+    
     /**
      * get degradeRuleEnable.
      *
-     * @return degradeRuleEnable
+     * @return degradeRuleEnable degrade rule enable
      */
     public Integer getDegradeRuleEnable() {
         return degradeRuleEnable;
     }
-
+    
     /**
      * set degradeRuleEnable.
      *
@@ -186,16 +195,16 @@ public class SentinelHandle {
     public void setDegradeRuleEnable(final Integer degradeRuleEnable) {
         this.degradeRuleEnable = degradeRuleEnable;
     }
-
+    
     /**
      * get degradeRuleGrade.
      *
-     * @return degradeRuleGrade
+     * @return degradeRuleGrade degrade rule grade
      */
     public Integer getDegradeRuleGrade() {
         return degradeRuleGrade;
     }
-
+    
     /**
      * set degradeRuleGrade.
      *
@@ -204,16 +213,16 @@ public class SentinelHandle {
     public void setDegradeRuleGrade(final Integer degradeRuleGrade) {
         this.degradeRuleGrade = degradeRuleGrade;
     }
-
+    
     /**
      * get degradeRuleCount.
      *
-     * @return degradeRuleCount
+     * @return degradeRuleCount degrade rule count
      */
     public Double getDegradeRuleCount() {
         return degradeRuleCount;
     }
-
+    
     /**
      * set degradeRuleCount.
      *
@@ -222,16 +231,16 @@ public class SentinelHandle {
     public void setDegradeRuleCount(final Double degradeRuleCount) {
         this.degradeRuleCount = degradeRuleCount;
     }
-
+    
     /**
      * get degradeRuleTimeWindow.
      *
-     * @return degradeRuleTimeWindow
+     * @return degradeRuleTimeWindow degrade rule time window
      */
     public Integer getDegradeRuleTimeWindow() {
         return degradeRuleTimeWindow;
     }
-
+    
     /**
      * set degradeRuleTimeWindow.
      *
@@ -240,16 +249,16 @@ public class SentinelHandle {
     public void setDegradeRuleTimeWindow(final Integer degradeRuleTimeWindow) {
         this.degradeRuleTimeWindow = degradeRuleTimeWindow;
     }
-
+    
     /**
      * get degradeRuleMinRequestAmount.
      *
-     * @return degradeRuleMinRequestAmount
+     * @return degradeRuleMinRequestAmount degrade rule min request amount
      */
     public Integer getDegradeRuleMinRequestAmount() {
         return degradeRuleMinRequestAmount;
     }
-
+    
     /**
      * set degradeRuleMinRequestAmount.
      *
@@ -258,16 +267,16 @@ public class SentinelHandle {
     public void setDegradeRuleMinRequestAmount(final Integer degradeRuleMinRequestAmount) {
         this.degradeRuleMinRequestAmount = degradeRuleMinRequestAmount;
     }
-
+    
     /**
      * get degradeRuleSlowRatioThreshold.
      *
-     * @return degradeRuleSlowRatioThreshold
+     * @return degradeRuleSlowRatioThreshold degrade rule slow ratio threshold
      */
     public Double getDegradeRuleSlowRatioThreshold() {
         return degradeRuleSlowRatioThreshold;
     }
-
+    
     /**
      * set degradeRuleSlowRatioThreshold.
      *
@@ -276,16 +285,16 @@ public class SentinelHandle {
     public void setDegradeRuleSlowRatioThreshold(final Double degradeRuleSlowRatioThreshold) {
         this.degradeRuleSlowRatioThreshold = degradeRuleSlowRatioThreshold;
     }
-
+    
     /**
      * get degradeRuleStatIntervals.
      *
-     * @return degradeRuleStatIntervals
+     * @return degradeRuleStatIntervals degrade rule stat intervals
      */
     public int getDegradeRuleStatIntervals() {
         return degradeRuleStatIntervals;
     }
-
+    
     /**
      * set degradeRuleStatIntervals.
      *
@@ -294,16 +303,16 @@ public class SentinelHandle {
     public void setDegradeRuleStatIntervals(final int degradeRuleStatIntervals) {
         this.degradeRuleStatIntervals = degradeRuleStatIntervals;
     }
-
+    
     /**
      * get fallbackUri.
      *
-     * @return fallbackUri
+     * @return fallbackUri fallback uri
      */
     public String getFallbackUri() {
         return fallbackUri;
     }
-
+    
     /**
      * set fallbackUri.
      *
@@ -312,16 +321,16 @@ public class SentinelHandle {
     public void setFallbackUri(final String fallbackUri) {
         this.fallbackUri = fallbackUri;
     }
-
+    
     /**
      * flowRuleMaxQueueingTimeMs.
      *
-     * @return FlowRuleMaxQueueingTimeMs
+     * @return FlowRuleMaxQueueingTimeMs flow rule max queueing time ms
      */
     public int getFlowRuleMaxQueueingTimeMs() {
         return flowRuleMaxQueueingTimeMs;
     }
-
+    
     /**
      * set flowRuleMaxQueueingTimeMs.
      *
@@ -330,16 +339,16 @@ public class SentinelHandle {
     public void setFlowRuleMaxQueueingTimeMs(final int flowRuleMaxQueueingTimeMs) {
         this.flowRuleMaxQueueingTimeMs = flowRuleMaxQueueingTimeMs;
     }
-
+    
     /**
      * flowRuleWarmUpPeriodSec.
      *
-     * @return FlowRuleWarmUpPeriodSec
+     * @return FlowRuleWarmUpPeriodSec flow rule warm up period sec
      */
     public int getFlowRuleWarmUpPeriodSec() {
         return flowRuleWarmUpPeriodSec;
     }
-
+    
     /**
      * set flowRuleWarmUpPeriodSec.
      *
@@ -408,16 +417,14 @@ public class SentinelHandle {
                 + '\''
                 + '}';
     }
-
+    
     /**
      * check filed default value.
-     *
-     * @param sentinelHandle {@linkplain SentinelHandle}
      */
-    public void checkData(final SentinelHandle sentinelHandle) {
-        sentinelHandle.setFlowRuleEnable((sentinelHandle.getFlowRuleEnable() == 1 || sentinelHandle.getFlowRuleEnable() == 0)
-                ? sentinelHandle.getFlowRuleEnable() : Constants.SENTINEL_ENABLE_FLOW_RULE);
-        sentinelHandle.setDegradeRuleEnable((sentinelHandle.getDegradeRuleEnable() == 1 || sentinelHandle.getDegradeRuleEnable() == 0)
-                ? sentinelHandle.getDegradeRuleEnable() : Constants.SENTINEL_ENABLE_DEGRADE_RULE);
+    public void checkData() {
+        this.setFlowRuleEnable((this.getFlowRuleEnable() == Constants.FLOW_RULE_ENABLE_ON || this.getFlowRuleEnable() == Constants.FLOW_RULE_ENABLE_OFF)
+                ? this.getFlowRuleEnable() : Constants.SENTINEL_ENABLE_FLOW_RULE);
+        this.setDegradeRuleEnable((this.getDegradeRuleEnable() == Constants.DEGRADE_RULE_ENABLE_ON || this.getDegradeRuleEnable() == Constants.DEGRADE_RULE_ENABLE_OFF)
+                ? this.getDegradeRuleEnable() : Constants.SENTINEL_ENABLE_DEGRADE_RULE);
     }
 }

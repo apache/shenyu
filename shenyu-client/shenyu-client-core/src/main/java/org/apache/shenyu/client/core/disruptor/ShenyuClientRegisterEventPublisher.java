@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.core.disruptor;
 
 import org.apache.shenyu.client.core.disruptor.executor.RegisterClientConsumerExecutor.RegisterClientExecutorFactory;
+import org.apache.shenyu.client.core.disruptor.subcriber.ShenyuClientApiDocExecutorSubscriber;
 import org.apache.shenyu.client.core.disruptor.subcriber.ShenyuClientMetadataExecutorSubscriber;
 import org.apache.shenyu.client.core.disruptor.subcriber.ShenyuClientURIExecutorSubscriber;
 import org.apache.shenyu.disruptor.DisruptorProviderManage;
@@ -29,11 +30,11 @@ import org.apache.shenyu.register.common.type.DataTypeParent;
  * The type shenyu client register event publisher.
  */
 public class ShenyuClientRegisterEventPublisher {
-    
+
     private static final ShenyuClientRegisterEventPublisher INSTANCE = new ShenyuClientRegisterEventPublisher();
-    
+
     private DisruptorProviderManage<DataTypeParent> providerManage;
-    
+
     /**
      * Get instance.
      *
@@ -42,7 +43,7 @@ public class ShenyuClientRegisterEventPublisher {
     public static ShenyuClientRegisterEventPublisher getInstance() {
         return INSTANCE;
     }
-    
+
     /**
      * Start.
      *
@@ -52,8 +53,18 @@ public class ShenyuClientRegisterEventPublisher {
         RegisterClientExecutorFactory factory = new RegisterClientExecutorFactory();
         factory.addSubscribers(new ShenyuClientMetadataExecutorSubscriber(shenyuClientRegisterRepository));
         factory.addSubscribers(new ShenyuClientURIExecutorSubscriber(shenyuClientRegisterRepository));
+        factory.addSubscribers(new ShenyuClientApiDocExecutorSubscriber(shenyuClientRegisterRepository));
         providerManage = new DisruptorProviderManage<>(factory);
         providerManage.startup();
+    }
+
+    /**
+     * Retrieves the Disruptor provider manager used by this ShenyuClientRegisterEventPublisher.
+     *
+     * @return The Disruptor provider manager.
+     */
+    public DisruptorProviderManage<DataTypeParent> getProviderManage() {
+        return providerManage;
     }
     
     /**

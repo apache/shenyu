@@ -20,6 +20,8 @@ package org.apache.shenyu.loadbalancer.entity;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * this is upstream.
@@ -80,6 +82,30 @@ public final class Upstream {
      * version.
      */
     private String version;
+
+    /**
+     * ewma value.
+     */
+    private long lag;
+
+    /**
+     * response stamp.
+     */
+    private long responseStamp;
+
+    /**
+     * Last selected timestamp.
+     */
+    private long lastPicked;
+
+    /**
+     * Total number of requests being processed.
+     */
+    private AtomicLong inflight = new AtomicLong(1);
+
+    private final AtomicLong succeeded = new AtomicLong(0);
+
+    private final AtomicLong succeededElapsed = new AtomicLong(0);
 
     private Upstream(final Builder builder) {
         this.protocol = builder.protocol;
@@ -255,6 +281,102 @@ public final class Upstream {
     }
 
     /**
+     * Gets lag.
+     *
+     * @return the lag
+     */
+    public long getLag() {
+        return lag;
+    }
+
+    /**
+     * Sets lag.
+     * @param lag the lag
+     */
+    public void setLag(final long lag) {
+        this.lag = lag;
+    }
+
+    /**
+     * Gets responseStamp.
+     *
+     * @return the responseStamp
+     */
+    public long getResponseStamp() {
+        return responseStamp;
+    }
+
+    /**
+     * Sets responseStamp.
+     * @param responseStamp the responseStamp
+     */
+    public void setResponseStamp(final long responseStamp) {
+        this.responseStamp = responseStamp;
+    }
+
+    /**
+     * Gets lastPickedStamp.
+     *
+     * @return the lastPickedStamp
+     */
+    public long getLastPicked() {
+        return lastPicked;
+    }
+
+    /**
+     * Sets lastPickedStamp.
+     * @param lastPicked the lastPickedStamp
+     */
+    public void setLastPicked(final long lastPicked) {
+        this.lastPicked = lastPicked;
+    }
+
+    /**
+     * Gets inflight.
+     *
+     * @return the inflight
+     */
+    public AtomicLong getInflight() {
+        return inflight;
+    }
+
+    /**
+     * Sets inflight.
+     * @param inflight the inflight
+     */
+    public void setInflight(final AtomicLong inflight) {
+        this.inflight = inflight;
+    }
+
+    /**
+     * Gets succeeded.
+     * @return the succeeded
+     */
+    public AtomicLong getSucceeded() {
+        return succeeded;
+    }
+
+    /**
+     * Gets succeededElapsed.
+     * @return the succeededElapsed
+     */
+    public AtomicLong getSucceededElapsed() {
+        return succeededElapsed;
+    }
+
+    /**
+     * Gets succeededAverageElapsed.
+     * @return the succeededAverageElapsed.
+     */
+    public long getSucceededAverageElapsed() {
+        long succeeded = getSucceeded().get();
+        if (succeeded == 0) {
+            return 0;
+        }
+        return getSucceededElapsed().get() / succeeded;
+    }
+
+    /**
      * build request domain.
      *
      * @return domain
@@ -264,7 +386,17 @@ public final class Upstream {
         if (StringUtils.isBlank(protocol)) {
             protocol = "http://";
         }
-        return protocol + this.getUrl().trim();
+        return protocol + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
+    }
+    
+    /**
+     * Build request with protocol.
+     *
+     * @param protocol protocol
+     * @return domain
+     */
+    public String buildDomain(final String protocol) {
+        return protocol + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
     }
 
     /**

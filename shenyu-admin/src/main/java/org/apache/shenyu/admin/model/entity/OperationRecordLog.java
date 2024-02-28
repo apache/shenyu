@@ -52,7 +52,7 @@ public class OperationRecordLog {
     /**
      * operation time.
      */
-    @JsonFormat(pattern = "MM-dd hh:mm:ss")
+    @JsonFormat(pattern = "MM-dd HH:mm:ss")
     private Date operationTime;
     
     /**

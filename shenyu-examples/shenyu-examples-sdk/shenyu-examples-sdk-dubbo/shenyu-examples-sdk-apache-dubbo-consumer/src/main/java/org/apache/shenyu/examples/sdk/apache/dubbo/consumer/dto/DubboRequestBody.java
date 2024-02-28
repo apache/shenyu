@@ -21,6 +21,7 @@ import java.util.List;
 
 /**
  * DubboRequestBody.
+ *
  * @param <T> type
  */
 public class DubboRequestBody<T> {
@@ -38,6 +39,7 @@ public class DubboRequestBody<T> {
 
     /**
      * getIds.
+     *
      * @return list
      */
     public List<T> getIds() {
@@ -46,6 +48,7 @@ public class DubboRequestBody<T> {
 
     /**
      * setIds.
+     *
      * @param ids ids
      */
     public void setIds(final List<T> ids) {
@@ -54,6 +57,7 @@ public class DubboRequestBody<T> {
 
     /**
      * getName.
+     *
      * @return name
      */
     public String getName() {
@@ -62,6 +66,7 @@ public class DubboRequestBody<T> {
 
     /**
      * setName.
+     *
      * @param name name
      */
     public void setName(final String name) {

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.https.controller;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/upload")
 @ShenyuSpringMvcClient("/upload/**")
+@ApiModule(value = "upload")
 public class UploadController {
 
     /**
@@ -41,6 +44,7 @@ public class UploadController {
      */
     @PostMapping(value = "/file", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ShenyuSpringMvcClient("/file")
+    @ApiDoc(desc = "file")
     public String uploadFile(@RequestPart("file") final MultipartFile file) {
         return file.getOriginalFilename();
     }

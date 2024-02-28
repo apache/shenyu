@@ -72,7 +72,6 @@ public class JsonServerCallListener<R, P> extends ForwardingServerCallListener<R
 
             delegate.onMessage((R) builder.build());
         } catch (Exception e) {
-            LOG.error("handle json generic request is error", e);
             throw Status.INTERNAL.withDescription(e.getMessage()).asRuntimeException();
         }
     }

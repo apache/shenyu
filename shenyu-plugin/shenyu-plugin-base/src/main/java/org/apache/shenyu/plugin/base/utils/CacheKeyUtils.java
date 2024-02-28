@@ -38,4 +38,15 @@ public enum CacheKeyUtils {
     public String getKey(final RuleData ruleData) {
         return String.join("_", ruleData.getSelectorId(), ruleData.getId());
     }
+    
+    /**
+     * Gets key.
+     *
+     * @param selectorId the selector id
+     * @param ruleId the rule id
+     * @return the key
+     */
+    public String getKey(final String selectorId, final String ruleId) {
+        return String.join("_", selectorId, ruleId);
+    }
 }

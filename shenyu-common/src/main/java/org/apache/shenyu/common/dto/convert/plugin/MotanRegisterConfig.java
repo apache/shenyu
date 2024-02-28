@@ -21,13 +21,15 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Motan register config.
+ * The type motan register config.
  */
 public class MotanRegisterConfig implements Serializable {
 
     private static final long serialVersionUID = 2488053756247710408L;
 
-    private String register;
+    private String registerProtocol;
+
+    private String registerAddress;
 
     private String threadpool;
 
@@ -55,23 +57,6 @@ public class MotanRegisterConfig implements Serializable {
         this.threadpool = threadpool;
     }
 
-    /**
-     * get register.
-     *
-     * @return register
-     */
-    public String getRegister() {
-        return register;
-    }
-
-    /**
-     * set register.
-     *
-     * @param register register
-     */
-    public void setRegister(final String register) {
-        this.register = register;
-    }
 
     /**
      * get corethreads.
@@ -94,7 +79,7 @@ public class MotanRegisterConfig implements Serializable {
     /**
      * get threads.
      *
-     * @return threads
+     * @return threads threads
      */
     public Integer getThreads() {
         return threads;
@@ -127,6 +112,42 @@ public class MotanRegisterConfig implements Serializable {
         this.queues = queues;
     }
 
+    /**
+     * get RegisterProtocol.
+     *
+     * @return registerProtocol
+     */
+    public String getRegisterProtocol() {
+        return registerProtocol;
+    }
+
+    /**
+     * set registerProtocol.
+     *
+     * @param registerProtocol registerProtocol
+     */
+    public void setRegisterProtocol(final String registerProtocol) {
+        this.registerProtocol = registerProtocol;
+    }
+
+    /**
+     * get RegisterAddress.
+     *
+     * @return registerAddress
+     */
+    public String getRegisterAddress() {
+        return registerAddress;
+    }
+
+    /**
+     * set RegisterAddress.
+     *
+     * @param registerAddress registerAddress
+     */
+    public void setRegisterAddress(final String registerAddress) {
+        this.registerAddress = registerAddress;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -136,21 +157,24 @@ public class MotanRegisterConfig implements Serializable {
             return false;
         }
         MotanRegisterConfig that = (MotanRegisterConfig) o;
-        return Objects.equals(register, that.register) && Objects.equals(threadpool, that.threadpool)
+        return Objects.equals(registerProtocol, that.registerProtocol) && Objects.equals(registerAddress, that.registerAddress) && Objects.equals(threadpool, that.threadpool)
                 && Objects.equals(corethreads, that.corethreads) && Objects.equals(threads, that.threads)
                 && Objects.equals(queues, that.queues);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(register, threadpool, corethreads, threads, queues);
+        return Objects.hash(registerProtocol, registerAddress, threadpool, corethreads, threads, queues);
     }
 
     @Override
     public String toString() {
         return "MotanRegisterConfig{"
-                + "register='"
-                + register
+                + "registerProtocol='"
+                + registerProtocol
+                + '\''
+                + ", registerAddress='"
+                + registerAddress
                 + '\''
                 + ", threadpool='"
                 + threadpool

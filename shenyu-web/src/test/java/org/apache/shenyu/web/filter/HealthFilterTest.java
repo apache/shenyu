@@ -25,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
@@ -51,25 +52,29 @@ public final class HealthFilterTest {
     @BeforeEach
     public void setUp() {
         List<String> paths = new ArrayList<>();
-        paths.add("/testFilterMatch");
-        healthFilter = new HealthFilter(paths);
+        paths.add("/health_check");
+        paths.add("/actuator");
+        DispatcherHandler dispatcherHandler = mock(DispatcherHandler.class);
+        when(dispatcherHandler.handle(any())).thenReturn(Mono.empty());
+        healthFilter = new HealthFilter(dispatcherHandler, paths);
         webFilterChain = mock(WebFilterChain.class);
         when(webFilterChain.filter(any())).thenReturn(Mono.empty());
     }
 
     @Test
     public void testDoMatcher() {
-        ServerWebExchange webExchange =
-                MockServerWebExchange.from(MockServerHttpRequest
-                        .post("http://localhost:8080/testFilterMatch"));
-        Mono<Boolean> filter = healthFilter.doMatcher(webExchange, webFilterChain);
-        StepVerifier.create(filter).expectNext(Boolean.TRUE).verifyComplete();
-    }
-
-    @Test
-    public void testPathNull() {
-        List<String> paths = new ArrayList<>();
-        new HealthFilter(paths);
+        Mono<Boolean> health = healthFilter.doMatcher(MockServerWebExchange
+                .from(MockServerHttpRequest.post("http://localhost:8080/actuator/health")), webFilterChain);
+        StepVerifier.create(health).expectNext(Boolean.TRUE).verifyComplete();
+    
+        Mono<Boolean> healthCheck = healthFilter.doMatcher(MockServerWebExchange
+                .from(MockServerHttpRequest.post("http://localhost:8080/health_check")), webFilterChain);
+        StepVerifier.create(healthCheck).expectNext(Boolean.TRUE).verifyComplete();
+    
+        Mono<Boolean> readiness = healthFilter.doMatcher(MockServerWebExchange
+                .from(MockServerHttpRequest.post("http://localhost:8080/actuator/health/readiness")), webFilterChain);
+        StepVerifier.create(readiness).expectNext(Boolean.TRUE).verifyComplete();
+        
     }
 
     @Test
@@ -79,15 +84,6 @@ public final class HealthFilterTest {
                         .post("http://localhost:8080/"));
         Mono<Boolean> filter = healthFilter.doMatcher(webExchange, webFilterChain);
         StepVerifier.create(filter).expectNext(Boolean.FALSE).verifyComplete();
-    }
-
-    @Test
-    public void testDoFilter() {
-        ServerWebExchange webExchange =
-                MockServerWebExchange.from(MockServerHttpRequest
-                        .post("http://localhost:8080/"));
-        Mono<Void> filter = healthFilter.doFilter(webExchange);
-        StepVerifier.create(filter).verifyComplete();
     }
 
 }

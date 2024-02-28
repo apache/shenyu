@@ -29,6 +29,8 @@ management:
       enabled: false
 
 shenyu:
+  httpclient:
+    maxInMemorySize: 64
   netty:
     tcp:
       selectCount: 1

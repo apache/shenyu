@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -57,7 +58,8 @@ public class LoggingKafkaPluginDataHandlerTest {
         List<ConditionData> list = new ArrayList<>();
         list.add(conditionData);
         selectorData.setConditionList(list);
-        pluginData.setEnabled(true);
+        pluginData.setEnabled(false);
+        pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
         pluginData.setConfig("{\"topic\":\"test\", \"namesrvAddr\":\"localhost:8082\"}");
     }
 
@@ -72,17 +74,14 @@ public class LoggingKafkaPluginDataHandlerTest {
     @Test
     public void testHandlerSelector() {
         loggingKafkaPluginDataHandler.handlerSelector(selectorData);
-        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
         Assertions.assertNotEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
     }
 
     @Test
     public void testRemoveSelector() {
         loggingKafkaPluginDataHandler.handlerSelector(selectorData);
-        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
         Assertions.assertNotEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
         loggingKafkaPluginDataHandler.removeSelector(selectorData);
-        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{}");
         Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
     }
 
@@ -94,11 +93,6 @@ public class LoggingKafkaPluginDataHandlerTest {
     @Test
     public void testGetKafkaLogCollectClient() {
         Assertions.assertEquals(LoggingKafkaPluginDataHandler.getKafkaLogCollectClient().getClass(), KafkaLogCollectClient.class);
-    }
-
-    @Test
-    public void testGetSelectIdUriListMap() {
-        Assertions.assertEquals(LoggingKafkaPluginDataHandler.getSelectIdUriListMap().getClass(), ConcurrentHashMap.class);
     }
 
     @Test

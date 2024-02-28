@@ -18,9 +18,10 @@
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
 import com.google.common.collect.ImmutableSet;
+import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle.ParamMapInfo;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -43,8 +44,8 @@ public class ModifyResponseRuleHandleTest {
         handle.setReplaceHeaderKeys(new HashMap<>());
         handle.setRemoveHeaderKeys(new HashSet<>());
         handle.setStatusCode(1);
-        handle.setAddBodyKeys(Arrays.asList(new ParamMappingRuleHandle.ParamMapInfo()));
-        handle.setReplaceBodyKeys(Arrays.asList(new ParamMappingRuleHandle.ParamMapInfo()));
+        handle.setAddBodyKeys(Collections.singletonList(new ParamMapInfo()));
+        handle.setReplaceBodyKeys(Collections.singletonList(new ParamMapInfo()));
         handle.setRemoveBodyKeys(new HashSet<>());
     
         assertThat(handle.getAddHeaders(), is(notNullValue()));

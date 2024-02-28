@@ -31,16 +31,32 @@ public class ContextMappingRuleHandle implements RuleHandle {
     private String contextPath;
 
     private String addPrefix;
-
+    
+    private String rewriteContextPath;
+    
+    /**
+     * percentage of rewritten traffic in context.
+     */
+    private Integer percentage;
+    
+    /**
+     * New instance context mapping rule handle.
+     *
+     * @return the context mapping rule handle
+     */
+    public static ContextMappingRuleHandle newInstance() {
+        return new ContextMappingRuleHandle();
+    }
+    
     /**
      * get prefix forward status.
      *
-     * @return prefix-forward status
+     * @return prefix -forward status
      */
     public boolean getAddPrefixed() {
         return addPrefixed;
     }
-
+    
     /**
      * set prefix forward.
      *
@@ -49,16 +65,16 @@ public class ContextMappingRuleHandle implements RuleHandle {
     public void setAddPrefixed(final boolean addPrefixed) {
         this.addPrefixed = addPrefixed;
     }
-
+    
     /**
      * get contextPath.
      *
-     * @return contextPath
+     * @return contextPath context path
      */
     public String getContextPath() {
         return contextPath;
     }
-
+    
     /**
      * set contextPath.
      *
@@ -67,16 +83,16 @@ public class ContextMappingRuleHandle implements RuleHandle {
     public void setContextPath(final String contextPath) {
         this.contextPath = contextPath;
     }
-
+    
     /**
      * get addPrefix.
      *
-     * @return addPrefix
+     * @return addPrefix add prefix
      */
     public String getAddPrefix() {
         return addPrefix;
     }
-
+    
     /**
      * set addPrefix.
      *
@@ -85,7 +101,43 @@ public class ContextMappingRuleHandle implements RuleHandle {
     public void setAddPrefix(final String addPrefix) {
         this.addPrefix = addPrefix;
     }
-
+    
+    /**
+     * get rewrite context path.
+     *
+     * @return rewrite context path
+     */
+    public String getRewriteContextPath() {
+        return rewriteContextPath;
+    }
+    
+    /**
+     * set rewrite context path.
+     *
+     * @param rewriteContextPath rewrite context path
+     */
+    public void setRewriteContextPath(final String rewriteContextPath) {
+        this.rewriteContextPath = rewriteContextPath;
+    }
+    
+    /**
+     * get percentage.
+     *
+     * @return percentage
+     */
+    public Integer getPercentage() {
+        return percentage;
+    }
+    
+    /**
+     * set percentage.
+     *
+     * @param percentage percentage
+     */
+    public void setPercentage(final Integer percentage) {
+        this.percentage = percentage;
+    }
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -96,7 +148,7 @@ public class ContextMappingRuleHandle implements RuleHandle {
         }
         ContextMappingRuleHandle that = (ContextMappingRuleHandle) o;
         return Objects.equals(contextPath, that.contextPath) && Objects.equals(addPrefix, that.addPrefix)
-                && Objects.equals(addPrefixed, that.addPrefixed);
+                && Objects.equals(addPrefixed, that.addPrefixed) && Objects.equals(rewriteContextPath, that.rewriteContextPath);
     }
 
     @Override
@@ -111,11 +163,17 @@ public class ContextMappingRuleHandle implements RuleHandle {
                 + "addPrefixed='"
                 + addPrefixed
                 + '\''
+                + ", rewriteContextPath='"
+                + rewriteContextPath
+                + '\''
+                + ", percentage='"
+                + percentage
+                + '\''
                 + '}';
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(contextPath, addPrefix, addPrefixed);
+        return Objects.hash(contextPath, addPrefix, addPrefixed, rewriteContextPath);
     }
 }

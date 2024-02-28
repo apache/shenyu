@@ -31,7 +31,7 @@ import java.util.Set;
  * this is dashboard user service.
  */
 public interface DashboardUserService {
-
+    
     /**
      * create or update dashboard user.
      *
@@ -49,13 +49,13 @@ public interface DashboardUserService {
     int create(DashboardUserDTO dashboardUserDTO);
     
     /**
-     *  update dashboard user.
+     * update dashboard user.
      *
      * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return rows
      */
     int update(DashboardUserDTO dashboardUserDTO);
-
+    
     /**
      * delete dashboard users.
      *
@@ -63,7 +63,7 @@ public interface DashboardUserService {
      * @return rows
      */
     int delete(Set<String> ids);
-
+    
     /**
      * find dashboard user by id.
      *
@@ -71,7 +71,7 @@ public interface DashboardUserService {
      * @return {@linkplain DashboardUserVO}
      */
     DashboardUserEditVO findById(String id);
-
+    
     /**
      * find dashboard user by username.
      *
@@ -79,7 +79,7 @@ public interface DashboardUserService {
      * @return {@linkplain DashboardUserVO}
      */
     DashboardUserVO findByUserName(String username);
-
+    
     /**
      * find dashboard user by query.
      *
@@ -88,7 +88,7 @@ public interface DashboardUserService {
      * @return {@linkplain DashboardUserVO}
      */
     DashboardUserVO findByQuery(String userName, String password);
-
+    
     /**
      * find page of dashboard user by query.
      *
@@ -96,7 +96,7 @@ public interface DashboardUserService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<DashboardUserVO> listByPage(DashboardUserQuery dashboardUserQuery);
-
+    
     /**
      * To deal with the admin login.
      *
@@ -105,7 +105,7 @@ public interface DashboardUserService {
      * @return {@linkplain LoginDashboardUserVO}
      */
     LoginDashboardUserVO login(String userName, String password);
-
+    
     /**
      * modify password.
      *
@@ -113,4 +113,12 @@ public interface DashboardUserService {
      * @return rows
      */
     int modifyPassword(DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO);
+    
+    /**
+     * check password.
+     *
+     * @param userId userId
+     * @return Passed or not
+     */
+    boolean checkUserPassword(String userId);
 }

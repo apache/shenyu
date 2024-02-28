@@ -17,24 +17,28 @@
 
 package org.apache.shenyu.e2e.engine.scenario.specification;
 
-import lombok.AllArgsConstructor;
-import org.apache.shenyu.e2e.client.admin.model.ResourcesData;
 import org.apache.shenyu.e2e.engine.scenario.function.Checker;
 import org.apache.shenyu.e2e.engine.scenario.function.Deleter;
 import org.apache.shenyu.e2e.engine.scenario.function.Verifier;
 import org.apache.shenyu.e2e.engine.scenario.function.Waiting;
+import org.apache.shenyu.e2e.engine.scenario.function.WebSocketVerifier;
+import org.apache.shenyu.e2e.model.ResourcesData;
 import org.slf4j.MDC;
 
 import java.util.List;
 
-@AllArgsConstructor
 public class ScenarioSpecLogProxy implements ScenarioSpec {
+
     private final ScenarioSpec spec;
-    
+
+    public ScenarioSpecLogProxy(final ScenarioSpec spec) {
+        this.spec = spec;
+    }
+
     @Override
     public BeforeEachSpec getBeforeEachSpec() {
         return new BeforeEachSpec() {
-            final BeforeEachSpec spec = ScenarioSpecLogProxy.this.spec.getBeforeEachSpec();
+            private final BeforeEachSpec spec = ScenarioSpecLogProxy.this.spec.getBeforeEachSpec();
             
             @Override
             public Checker getChecker() {
@@ -59,7 +63,7 @@ public class ScenarioSpecLogProxy implements ScenarioSpec {
     @Override
     public CaseSpec getCaseSpec() {
         return new CaseSpec() {
-            final CaseSpec spec = ScenarioSpecLogProxy.this.spec.getCaseSpec();
+            private final CaseSpec spec = ScenarioSpecLogProxy.this.spec.getCaseSpec();
             
             @Override
             public String getName() {
@@ -71,13 +75,19 @@ public class ScenarioSpecLogProxy implements ScenarioSpec {
                 MDC.put("operate", "verify");
                 return spec.getVerifiers();
             }
+
+            @Override
+            public List<WebSocketVerifier> getWebSocketVerifiers() {
+                MDC.put("operate", "websocketVerify");
+                return spec.getWebSocketVerifiers();
+            }
         };
     }
     
     @Override
     public AfterEachSpec getAfterEachSpec() {
         return new AfterEachSpec() {
-            final AfterEachSpec spec = ScenarioSpecLogProxy.this.spec.getAfterEachSpec();
+            private final AfterEachSpec spec = ScenarioSpecLogProxy.this.spec.getAfterEachSpec();
             
             @Override
             public Deleter getDeleter() {
@@ -89,6 +99,12 @@ public class ScenarioSpecLogProxy implements ScenarioSpec {
             public Checker getPostChecker() {
                 MDC.put("operate", "postCheck");
                 return spec.getPostChecker();
+            }
+
+            @Override
+            public Waiting deleteWaiting() {
+                MDC.put("operate", "deleteWaiting");
+                return spec.deleteWaiting();
             }
         };
     }

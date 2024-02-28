@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.springcloud.controller;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/upload")
 @ShenyuSpringCloudClient(path = "/upload")
+@ApiModule(value = "upload")
 public class UploadController {
 
     /**
@@ -41,6 +44,7 @@ public class UploadController {
      */
     @PostMapping(value = "/file", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ShenyuSpringCloudClient(path = "/file")
+    @ApiDoc(desc = "file")
     public String post(@RequestPart("file")final MultipartFile file) {
         return file.getOriginalFilename();
     }

@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -68,7 +69,7 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
      */
     @Override
     public <T extends CommonUpstream> List<T> updateStatusAndFilter(final List<T> existList, final List<? extends CommonUpstream> aliveList) {
-        if (CollectionUtils.isEmpty(aliveList) || CollectionUtils.isEmpty(existList)) {
+        if (Objects.isNull(aliveList)) {
             return Lists.newArrayList();
         }
         long currentTimeMillis = System.currentTimeMillis();

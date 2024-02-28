@@ -19,7 +19,6 @@ package org.apache.shenyu.springboot.starter.gateway;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
@@ -27,6 +26,7 @@ import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
@@ -56,6 +56,7 @@ public class ShenyuConfigurationTest {
             .withBean(ShenyuConfigurationTest.class)
             .withBean(DefaultServerCodecConfigurer.class)
             .withBean(DefaultErrorAttributes.class)
+            .withBean(ServerProperties.class)
             .withPropertyValues(
                 "debug=true",
                 "shenyu.cross.enabled=true",
@@ -82,16 +83,7 @@ public class ShenyuConfigurationTest {
             }
         );
     }
-
-    @Test
-    public void testRpcParamTransformPlugin() {
-        applicationContextRunner.run(context -> {
-                ShenyuPlugin plugin = context.getBean("paramTransformPlugin", ShenyuPlugin.class);
-                assertNotNull(plugin);
-            }
-        );
-    }
-
+    
     @Test
     public void testCommonPluginDataSubscriber() {
         applicationContextRunner.run(context -> {

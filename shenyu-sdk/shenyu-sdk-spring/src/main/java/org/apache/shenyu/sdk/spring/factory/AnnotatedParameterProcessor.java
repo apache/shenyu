@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.sdk.spring.factory;
 
-import org.apache.shenyu.sdk.core.common.RequestTemplate;
+import org.apache.shenyu.sdk.core.ShenyuRequest;
 
 import java.lang.annotation.Annotation;
 
@@ -45,11 +45,11 @@ public interface AnnotatedParameterProcessor {
     /**
      * Process the annotated parameter.
      *
-     * @param requestTemplate requestTemplate
+     * @param shenyuRequest shenyuRequest
      * @param annotation annotation
      * @param arg arg
      * @return {@link boolean}
      */
-    boolean processArgument(RequestTemplate requestTemplate, Annotation annotation, Object arg);
+    boolean processArgument(ShenyuRequest shenyuRequest, Annotation annotation, Object arg);
 
 }

@@ -22,8 +22,13 @@ import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 @FunctionalInterface
 public interface Waiting {
     
-    void waitFor(GatewayClient client);
-    
     Waiting DEFAULT = supplier -> {
     };
+    
+    /**
+     * wait for client.
+     * @param client client
+     */
+    void waitFor(GatewayClient client);
+    
 }

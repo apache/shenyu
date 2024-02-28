@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.netty;
 
+import org.apache.shenyu.common.config.NettyHttpProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;

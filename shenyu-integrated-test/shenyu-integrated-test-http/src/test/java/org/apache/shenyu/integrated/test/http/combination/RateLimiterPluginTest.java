@@ -118,6 +118,8 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
         UserDTO allowedResp = HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class);
         assertEquals("Tom", allowedResp.getUserName());
 
+        Thread.sleep(1000L);
+
         List<Future<AdminResponse<Object>>> futures = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             Future<AdminResponse<Object>> rejectedRespFuture = this.getService().submit(() ->

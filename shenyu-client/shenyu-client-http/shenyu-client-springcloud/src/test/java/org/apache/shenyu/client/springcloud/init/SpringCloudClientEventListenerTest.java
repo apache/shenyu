@@ -100,7 +100,7 @@ public final class SpringCloudClientEventListenerTest {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         SpringCloudClientEventListener springCloudClientEventListener = buildSpringCloudClientEventListener(false);
         springCloudClientEventListener.onApplicationEvent(contextRefreshedEvent);
-        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        verify(applicationContext, times(2)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
@@ -112,14 +112,14 @@ public final class SpringCloudClientEventListenerTest {
                 .thenAnswer((Answer<Void>) invocation -> null);
         SpringCloudClientEventListener springCloudClientEventListener = buildSpringCloudClientEventListener(false);
         springCloudClientEventListener.onApplicationEvent(contextRefreshedEvent);
-        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        verify(applicationContext, times(2)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
     private SpringCloudClientEventListener buildSpringCloudClientEventListener(final boolean full) {
         Properties properties = new Properties();
         properties.setProperty("contextPath", "/test");
-        properties.setProperty("isFull", full + "");
+        properties.setProperty("isFull", String.valueOf(full));
         properties.setProperty("ip", "127.0.0.1");
         properties.setProperty("port", "8081");
         properties.setProperty("username", "admin");
@@ -143,13 +143,13 @@ public final class SpringCloudClientEventListenerTest {
         @PostMapping("/save")
         @ShenyuSpringCloudClient(path = "/order/save")
         public String save(@RequestBody final String body) {
-            return "" + body;
+            return body;
         }
 
         @PostMapping("/update")
         @ShenyuSpringCloudClient(path = "")
         public String update(@RequestBody final String body) {
-            return "" + body;
+            return body;
         }
     }
 

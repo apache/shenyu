@@ -17,33 +17,32 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 import java.util.Objects;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The test case for {@link RangeDataGenerator}.
  */
 public final class RangeDataGeneratorTest {
-    
+
     private final RangeDataGenerator generator = new RangeDataGenerator();
-    
+
     @Test
     public void generate() {
-        generator.parseRule("list|[shenyu,gateway]");
-        String rangeData = generator.generate();
+        String rangeData = generator.generate("list|[shenyu,gateway]", null);
         assertTrue(Objects.equals("shenyu", rangeData) || Objects.equals("gateway", rangeData));
     }
-    
+
     @Test
     public void testListDataContainComma() {
-        generator.parseRule("list|[shen\\,yu,gate\\,way]");
-        String rangeData = generator.generate();
+        String rangeData = generator.generate("list|[shen\\,yu,gate\\,way]", null);
         assertTrue(Objects.equals("shen,yu", rangeData) || Objects.equals("gate,way", rangeData));
     }
-    
+
     @Test
     public void match() {
         assertTrue(generator.match("list|[shen\\,yu,gate\\,way]"));
@@ -51,6 +50,6 @@ public final class RangeDataGeneratorTest {
         assertFalse(generator.match("list|[shenyu,gateway"));
         assertFalse(generator.match("list|[]"));
         assertFalse(generator.match("list|[ ]"));
-        
+
     }
 }

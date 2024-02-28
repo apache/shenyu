@@ -33,11 +33,12 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.List;
@@ -57,8 +58,8 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
     private DataBaseProperties dataBaseProperties;
 
     @Override
-    public Object postProcessAfterInitialization(@NonNull final Object bean, final String beanName) throws BeansException {
-        if ((bean instanceof DataSourceProperties) && dataBaseProperties.getInitEnable()) {
+    public Object postProcessAfterInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
+        if ((bean instanceof DataSourceProperties) && Boolean.TRUE.equals(dataBaseProperties.getInitEnable())) {
             this.init((DataSourceProperties) bean);
         }
         return bean;
@@ -109,6 +110,6 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
     }
 
     private static Reader getResourceAsReader(final String resource) throws IOException {
-        return new InputStreamReader(new FileInputStream(resource), StandardCharsets.UTF_8);
+        return new InputStreamReader(Files.newInputStream(Paths.get(resource)), StandardCharsets.UTF_8);
     }
 }

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.mapper;
 
+import java.io.Serializable;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -29,6 +30,15 @@ import org.apache.shenyu.admin.validation.ExistProvider;
  */
 @Mapper
 public interface TagRelationMapper extends ExistProvider {
+
+    /**
+     * tag_relation existed.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
 
     /**
      * delete by primary key.

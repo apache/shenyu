@@ -178,12 +178,11 @@ public final class DashboardUserDO extends BaseDO {
     public static DashboardUserDO buildDashboardUserDO(final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
         return Optional.ofNullable(dashboardUserModifyPasswordDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            DashboardUserDO dashboardUserDO = DashboardUserDO.builder()
+            return DashboardUserDO.builder()
                     .password(item.getPassword())
                     .dateUpdated(currentTime)
                     .id(item.getId())
                     .build();
-            return dashboardUserDO;
         }).orElse(null);
     }
 

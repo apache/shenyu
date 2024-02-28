@@ -33,23 +33,24 @@ import java.util.function.Supplier;
  * The type mock plugin data subscriber.
  */
 public class MockPluginHandler implements PluginDataHandler {
-
+    
     public static final Supplier<CommonHandleCache<String, MockHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
-
+    
     @Override
     public void handlerRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            MockHandle mockHandle = GsonUtils.getInstance().fromJson(s, MockHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), mockHandle);
-        });
+        Optional.ofNullable(ruleData.getHandle())
+                .ifPresent(s -> {
+                    MockHandle mockHandle = GsonUtils.getInstance().fromJson(s, MockHandle.class);
+                    CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), mockHandle);
+                });
     }
-
+    
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData).ifPresent(s ->
-                CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        Optional.ofNullable(ruleData)
+                .ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
-
+    
     @Override
     public String pluginNamed() {
         return PluginEnum.MOCK.getName();

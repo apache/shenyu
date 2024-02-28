@@ -28,12 +28,13 @@ import org.apache.shenyu.web.controller.LocalPluginController.SelectorRulesData;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * The type Abstract plugin data init.
  */
 public class AbstractPluginDataInit extends AbstractTest {
-    
+
     /**
      * Init plugin string.
      *
@@ -47,9 +48,10 @@ public class AbstractPluginDataInit extends AbstractTest {
         pluginData.setEnabled(true);
         pluginData.setName(pluginName);
         pluginData.setConfig(config);
+        pluginData.setId(UUID.randomUUID().toString().replace(" ", ""));
         return HttpHelper.INSTANCE.postGateway("/shenyu/plugin/saveOrUpdate", pluginData, String.class);
     }
-    
+
     /**
      * Init selector and rules string.
      *
@@ -60,12 +62,30 @@ public class AbstractPluginDataInit extends AbstractTest {
      * @return the string
      * @throws IOException the io exception
      */
-    public static String initSelectorAndRules(final String pluginName, final String selectorHandler, 
+    public static String initSelectorAndRules(final String pluginName, final String selectorHandler,
                                        final List<ConditionData> selectorConditionData,
                                        final List<RuleLocalData> ruleDataList) throws IOException {
+        return initSelectorAndRules(pluginName, selectorHandler, 10, selectorConditionData, ruleDataList);
+    }
+    
+    /**
+     * Init selector and rules string.
+     *
+     * @param pluginName the plugin name
+     * @param selectorHandler the selector handler
+     * @param selectorConditionData the selector condition data
+     * @param sort the sort
+     * @param ruleDataList the rule data list
+     * @return the string
+     * @throws IOException the io exception
+     */
+    public static String initSelectorAndRules(final String pluginName, final String selectorHandler,
+                                              final Integer sort, final List<ConditionData> selectorConditionData,
+                                              final List<RuleLocalData> ruleDataList) throws IOException {
         SelectorRulesData selectorRulesData = new SelectorRulesData();
         selectorRulesData.setPluginName(pluginName);
         selectorRulesData.setSelectorHandler(selectorHandler);
+        selectorRulesData.setSort(sort);
         selectorRulesData.setConditionDataList(selectorConditionData);
         selectorRulesData.setRuleDataList(ruleDataList);
         return HttpHelper.INSTANCE.postGateway("/shenyu/plugin/selectorAndRules", selectorRulesData, String.class);

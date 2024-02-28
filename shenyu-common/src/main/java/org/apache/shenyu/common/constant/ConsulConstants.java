@@ -50,6 +50,16 @@ public final class ConsulConstants {
     public static final String META_DATA = SYNC_PRE_FIX + "/meta";
 
     /**
+     * proxy selector data id.
+     */
+    public static final String PROXY_SELECTOR_DATA_ID = SYNC_PRE_FIX + "/proxySelector";
+
+    /**
+     * The constant DISCOVERY_UPSTREAM.
+     */
+    public static final String DISCOVERY_UPSTREAM = SYNC_PRE_FIX + "/discoveryUpstream";
+
+    /**
      * default value of get config.
      */
     public static final String EMPTY_CONFIG_DEFAULT_VALUE = "{}";

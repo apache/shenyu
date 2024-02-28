@@ -17,79 +17,101 @@
 
 package org.apache.shenyu.e2e.engine;
 
-import com.google.common.collect.Maps;
-import junit.framework.AssertionFailedError;
-import lombok.Getter;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.shenyu.e2e.client.EnvironmentClient;
 import org.apache.shenyu.e2e.client.ExternalServiceClient;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.common.IdGenerator;
+import org.apache.shenyu.e2e.config.ServiceConfigure;
+import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
-import org.apache.shenyu.e2e.engine.service.DockerServiceCompose;
-import org.apache.shenyu.e2e.engine.service.HostServiceCompose;
-import org.apache.shenyu.e2e.engine.service.ServiceCompose;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class ShenYuExtensionContext {
-    @Getter
+
     private final String scenarioId;
     
-    private final ServiceCompose serviceCompose;
-    private AdminClient adminClient;
-    private GatewayClient gatewayClient;
-    
+    private final EnvironmentClient environmentClient = new EnvironmentClient();
+
+    private Map<String, AdminClient> adminClientMap;
+
+    private Map<String, GatewayClient> gatewayClientMap;
+
     private Map<String, ExternalServiceClient> externalServiceClientMap;
-    
-    ShenYuExtensionContext(ShenYuEngineConfigure config) {
-        switch (config.getMode()) {
-            case HOST: {
-                serviceCompose = new HostServiceCompose(config.getHostConfigure());
-                break;
-            }
-            case DOCKER: {
-                serviceCompose = new DockerServiceCompose(config.getDockerConfigure());
-                break;
-            }
-            default:
-                throw new AssertionFailedError("Mode [" + config.getMode() + "] is not supported yet");
-        }
+
+    /**
+     * Instantiates a new Shenyu e2e extension context.
+     */
+    public ShenYuExtensionContext(final ShenYuEngineConfigure configure) {
         this.scenarioId = IdGenerator.generateScenarioId();
+        Map<String, ServiceConfigure> serviceConfigureMap = configure.getServiceConfigureMap();
+        serviceConfigureMap.forEach((serviceName, serviceConfigure) -> {
+            if (ServiceTypeEnum.SHENYU_ADMIN.equals(serviceConfigure.getServiceType())) {
+                if (MapUtils.isEmpty(adminClientMap)) {
+                    adminClientMap = new HashMap<>();
+                }
+                AdminClient client = new AdminClient(scenarioId, serviceName, serviceConfigure.getBaseUrl(), serviceConfigure.getParameters());
+                adminClientMap.put(serviceName, client);
+                environmentClient.add(client);
+            } else if (ServiceTypeEnum.SHENYU_GATEWAY.equals(serviceConfigure.getServiceType())) {
+                if (MapUtils.isEmpty(gatewayClientMap)) {
+                    gatewayClientMap = new HashMap<>();
+                }
+                GatewayClient client = new GatewayClient(scenarioId, serviceName, serviceConfigure.getBaseUrl(), serviceConfigure.getParameters());
+                gatewayClientMap.put(serviceName, client);
+                environmentClient.add(client);
+            } else if (ServiceTypeEnum.EXTERNAL_SERVICE.equals(serviceConfigure.getServiceType())) {
+                if (MapUtils.isEmpty(externalServiceClientMap)) {
+                    externalServiceClientMap = new HashMap<>();
+                }
+                ExternalServiceClient client = new ExternalServiceClient(scenarioId, serviceName,
+                        serviceConfigure.getBaseUrl(), serviceConfigure.getParameters());
+                externalServiceClientMap.put(serviceName, client);
+                environmentClient.add(client);
+            }
+        });
+        
+    }
+
+    /**
+     * Gets admin client map.
+     *
+     * @return current admin client map
+     */
+    public Map<String, AdminClient> getAdminClientMap() {
+        return adminClientMap;
+    }
+
+    /**
+     * Gets gateway client map.
+     *
+     * @return current gateway client map
+     */
+    public Map<String, GatewayClient> getGatewayClientMap() {
+        return gatewayClientMap;
     }
     
-    public void setup() {
-        serviceCompose.start();
+
+
+    /**
+     * Gets external service client map.
+     *
+     * @return current external service client map
+     */
+    public Map<String, ExternalServiceClient> getExternalServiceClientMap() {
+        return externalServiceClientMap;
     }
+
     
-    public AdminClient getAdminClient() {
-        if (Objects.isNull(adminClient)) {
-            adminClient = serviceCompose.newAdminClient(scenarioId);
-        }
-        return adminClient;
+    /**
+     * Gets environment client.
+     *
+     * @return current environment client
+     */
+    public EnvironmentClient getEnvironmentClient() {
+        return environmentClient;
     }
-    
-    public GatewayClient getGatewayClient() {
-        if (Objects.isNull(gatewayClient)) {
-            gatewayClient = serviceCompose.newGatewayClient(scenarioId);
-        }
-        return gatewayClient;
-    }
-    
-    public ExternalServiceClient getExternalServiceClient(String externalServiceName) {
-        if (Objects.isNull(externalServiceClientMap)) {
-            externalServiceClientMap = Maps.newHashMap();
-        }
-        if (externalServiceClientMap.containsKey(externalServiceName)) {
-            return externalServiceClientMap.get(externalServiceName);
-        }
-        ExternalServiceClient client = serviceCompose.newExternalServiceClient(externalServiceName);
-        externalServiceClientMap.put(externalServiceName, client);
-        return client;
-    }
-    
-    public void cleanup() {
-        serviceCompose.stop();
-    }
-    
 }

@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.slf4j.Logger;
@@ -63,6 +64,8 @@ public final class UpstreamCheckTask implements Runnable {
 
     private ExecutorService executor;
 
+    private int poolSize;
+
     private int checkTimeout = 3000;
 
     private int healthyThreshold = 1;
@@ -98,7 +101,7 @@ public final class UpstreamCheckTask implements Runnable {
 
         // executor for async request, avoid request block health check thread
         ThreadFactory requestFactory = ShenyuThreadFactory.create("upstream-health-check-request", true);
-        executor = new ScheduledThreadPoolExecutor(10, requestFactory);
+        executor = new ScheduledThreadPoolExecutor(poolSize, requestFactory);
     }
     
     /**
@@ -109,7 +112,25 @@ public final class UpstreamCheckTask implements Runnable {
     public void setCheckTimeout(final int checkTimeout) {
         this.checkTimeout = checkTimeout;
     }
-    
+
+    /**
+     * get checkThreadPoolSize.
+     *
+     * @return checkThreadPoolSize
+     */
+    public int getPoolSize() {
+        return poolSize;
+    }
+
+    /**
+     * set checkThreadPoolSize.
+     *
+     * @param poolSize checkThreadPoolSize
+     */
+    public void setPoolSize(final int poolSize) {
+        this.poolSize = poolSize;
+    }
+
     /**
      * Set healthy threshold.
      *
@@ -251,7 +272,7 @@ public final class UpstreamCheckTask implements Runnable {
 
     private void putToMap(final Map<String, List<Upstream>> map, final String selectorId, final Upstream upstream) {
         synchronized (lock) {
-            List<Upstream> list = map.computeIfAbsent(selectorId, k -> Lists.newArrayList());
+            List<Upstream> list = MapUtils.computeIfAbsent(map, selectorId, k -> Lists.newArrayList());
             if (!list.contains(upstream)) {
                 list.add(upstream);
             }

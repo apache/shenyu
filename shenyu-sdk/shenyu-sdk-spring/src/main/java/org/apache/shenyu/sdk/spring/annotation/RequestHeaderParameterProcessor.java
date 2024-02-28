@@ -17,18 +17,19 @@
 
 package org.apache.shenyu.sdk.spring.annotation;
 
-import org.apache.shenyu.sdk.core.common.RequestTemplate;
-import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
-import org.springframework.web.bind.annotation.RequestHeader;
-
+import static com.google.common.base.Strings.emptyToNull;
+import com.google.common.collect.Lists;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-
-import static com.google.common.base.Strings.emptyToNull;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.sdk.core.ShenyuRequest;
+import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import static org.apache.shenyu.sdk.core.util.Util.checkState;
+import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 /**
  * {@link RequestHeader} parameter processor.
@@ -43,20 +44,32 @@ public class RequestHeaderParameterProcessor implements AnnotatedParameterProces
     }
 
     @Override
-    public boolean processArgument(final RequestTemplate requestTemplate, final Annotation annotation, final Object arg) {
+    public boolean processArgument(final ShenyuRequest shenyuRequest, final Annotation annotation, final Object arg) {
         String name = ANNOTATION.cast(annotation).value();
+        RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
         checkState(emptyToNull(name) != null, "RequestHeader.value() was empty on parameter %s", requestTemplate.getMethod().getName());
-        final Map<String, Collection<String>> requestTemplateHeaders = requestTemplate.getHeaders();
+        Map<String, Collection<String>> headers = shenyuRequest.getHeaders();
         if (arg instanceof Map) {
             ((Map<?, ?>) arg).forEach((key, value) -> {
                 if (key instanceof String && value instanceof Collection) {
-                    requestTemplateHeaders.put((String) key, (Collection) value);
+                    headers.put((String) key, (Collection) value);
+                    shenyuRequest.setHeaders(headers);
+                } else if (key instanceof String && value instanceof String) {
+                    headers.compute((String) key, (header, old) -> {
+                        if (CollectionUtils.isEmpty(old)) {
+                            return Lists.newArrayList((String) value);
+                        }
+                        old.add((String) value);
+                        return old;
+                    });
+                    shenyuRequest.setHeaders(headers);
                 }
             });
         } else if (arg instanceof String) {
-            Collection<String> headerColl = Optional.ofNullable(requestTemplate.getHeaders().get(name)).orElseGet(ArrayList::new);
+            Collection<String> headerColl = Optional.ofNullable(headers.get(name)).orElseGet(ArrayList::new);
             headerColl.add((String) arg);
-            requestTemplate.getHeaders().put(name, headerColl);
+            headers.put(name, headerColl);
+            shenyuRequest.setHeaders(headers);
         }
         return true;
     }

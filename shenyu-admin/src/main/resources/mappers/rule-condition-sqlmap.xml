@@ -57,7 +57,7 @@
         </if>
     </select>
 
-    <select id="selectByRuleIdSet" resultMap="BaseResultMap">
+    <select id="selectByRuleIdSet0" resultMap="BaseResultMap">
         SELECT
             <include refid="Base_Column_List"/>
           FROM rule_condition

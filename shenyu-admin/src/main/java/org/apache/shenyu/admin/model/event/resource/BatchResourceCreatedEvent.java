@@ -22,7 +22,7 @@ import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.BatchChangedEvent;
-import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.common.utils.ListUtil;
 
 import java.util.Collection;
 import java.util.List;
@@ -53,7 +53,7 @@ public class BatchResourceCreatedEvent extends BatchChangedEvent {
                 .stream()
                 .map(s -> ((ResourceDO) s).getTitle())
                 .collect(Collectors.joining(","));
-        return String.format("the resource[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
+        return String.format("the resource [%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
     }
     
     /**

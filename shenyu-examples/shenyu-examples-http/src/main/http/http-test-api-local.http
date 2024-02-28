@@ -133,6 +133,22 @@ GET http://localhost:8189/test/request/parameter/pass?requestParameter=test
 Accept: application/json
 Content-Type: application/json
 
+### shengyu local request
+GET http://localhost:8189/request/header
+header_key1: shenyu_request_plugin
+Accept: application/json
+Content-Type: application/json
+
+### shengyu local request
+POST http://localhost:8189/request/parameter?parameter_key1=shenyu_request_plugin
+Accept: application/json
+Content-Type: application/json
+
+### shengyu local request
+GET http://localhost:8189/request/cookie
+Cookie: userId=1
+Accept: application/json
+Content-Type: application/json
 
 ###  example webFluxSingle
 POST http://localhost:8189/upload/webFluxSingle

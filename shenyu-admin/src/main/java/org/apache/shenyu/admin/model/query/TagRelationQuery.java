@@ -71,7 +71,7 @@ public class TagRelationQuery {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof TagQuery)) {
+        if (!(o instanceof TagRelationQuery)) {
             return false;
         }
         TagRelationQuery that = (TagRelationQuery) o;

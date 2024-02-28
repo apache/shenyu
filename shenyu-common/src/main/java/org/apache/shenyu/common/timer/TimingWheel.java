@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.timer;
 
+import java.util.Objects;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -25,23 +26,23 @@ import java.util.concurrent.atomic.AtomicInteger;
  * This is a Hierarchical wheel timer implementation.
  */
 class TimingWheel {
-    
+
     private final Long tickMs;
-    
+
     private final Integer wheelSize;
-    
+
     private final AtomicInteger taskCounter;
-    
+
     private final DelayQueue<TimerTaskList> queue;
-    
+
     private final Long interval;
-    
+
     private final TimerTaskList[] buckets;
-    
+
     private Long currentTime;
-    
+
     private TimingWheel overflowWheel;
-    
+
     /**
      * Instantiates a new Timing wheel.
      *
@@ -60,13 +61,13 @@ class TimingWheel {
         this.currentTime = startMs - (startMs % tickMs);
         this.buckets = new TimerTaskList[wheelSize];
     }
-    
+
     private synchronized void addOverflowWheel() {
         if (overflowWheel == null) {
             overflowWheel = new TimingWheel(interval, wheelSize, currentTime, taskCounter, queue);
         }
     }
-    
+
     /**
      * Add boolean.
      *
@@ -92,12 +93,12 @@ class TimingWheel {
             }
             return true;
         }
-        if (overflowWheel == null) {
+        if (Objects.isNull(overflowWheel)) {
             addOverflowWheel();
         }
         return overflowWheel.add(taskEntry);
     }
-    
+
     /**
      * Advance clock.
      *
@@ -107,17 +108,17 @@ class TimingWheel {
         if (timeMs >= currentTime + tickMs) {
             currentTime = timeMs - (timeMs % tickMs);
         }
-        if (overflowWheel != null) {
+        if (Objects.nonNull(overflowWheel)) {
             overflowWheel.advanceClock(currentTime);
         }
     }
-    
+
     private TimerTaskList getBucket(final int index) {
         TimerTaskList bucket = buckets[index];
-        if (bucket == null) {
+        if (Objects.isNull(bucket)) {
             synchronized (this) {
                 bucket = buckets[index];
-                if (bucket == null) {
+                if (Objects.isNull(bucket)) {
                     bucket = new TimerTaskList(taskCounter);
                     buckets[index] = bucket;
                 }
@@ -125,5 +126,5 @@ class TimingWheel {
         }
         return bucket;
     }
-    
+
 }

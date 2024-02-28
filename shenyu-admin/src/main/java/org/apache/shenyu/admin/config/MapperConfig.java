@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.shenyu.admin.mybatis.og.interceptor.OpenGaussSQLPrepareInterceptor;
+import org.apache.shenyu.admin.mybatis.og.interceptor.OpenGaussSQLQueryInterceptor;
+import org.apache.shenyu.admin.mybatis.og.interceptor.OpenGaussSqlUpdateInterceptor;
 import org.apache.shenyu.admin.mybatis.oracle.OracleSQLPrepareInterceptor;
 import org.apache.shenyu.admin.mybatis.oracle.OracleSQLUpdateInterceptor;
 import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSQLPrepareInterceptor;
@@ -102,6 +105,44 @@ public class MapperConfig {
         @ConditionalOnMissingBean(OracleSQLUpdateInterceptor.class)
         public OracleSQLUpdateInterceptor oracleSqlUpdateInterceptor() {
             return new OracleSQLUpdateInterceptor();
+        }
+    }
+
+    @Configuration
+    @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "opengauss")
+    static class OpenGaussSQLConfig {
+
+        /**
+         * Add the plugin to the MyBatis plugin interceptor chain.
+         *
+         * @return {@linkplain OpenGaussSQLQueryInterceptor}
+         */
+        @Bean
+        @ConditionalOnMissingBean(OpenGaussSQLQueryInterceptor.class)
+        public OpenGaussSQLQueryInterceptor openGaussSqlQueryInterceptor() {
+            return new OpenGaussSQLQueryInterceptor();
+        }
+
+        /**
+         * Add the plugin to the MyBatis plugin interceptor chain.
+         *
+         * @return {@linkplain OpenGaussSQLPrepareInterceptor}
+         */
+        @Bean
+        @ConditionalOnMissingBean(OpenGaussSQLPrepareInterceptor.class)
+        public OpenGaussSQLPrepareInterceptor openGaussSqlPrepareInterceptor() {
+            return new OpenGaussSQLPrepareInterceptor();
+        }
+
+        /**
+         * Add the plugin to the MyBatis plugin interceptor chain.
+         *
+         * @return {@linkplain OpenGaussSqlUpdateInterceptor}
+         */
+        @Bean
+        @ConditionalOnMissingBean(OpenGaussSqlUpdateInterceptor.class)
+        public OpenGaussSqlUpdateInterceptor openGaussSqlUpdateInterceptor() {
+            return new OpenGaussSqlUpdateInterceptor();
         }
     }
 }

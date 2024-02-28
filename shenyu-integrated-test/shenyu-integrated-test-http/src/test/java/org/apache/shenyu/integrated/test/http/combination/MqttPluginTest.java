@@ -43,7 +43,7 @@ public final class MqttPluginTest extends AbstractPluginDataInit {
                 + "  \"isEncryptPassword\": false,"
                 + "  \"encryptMode\": \"\","
                 + "  \"leakDetectorLevel\": \"DISABLED\""
-                + "}", "0", true);
+                + "}", "0", true, null);
         mqttPluginDataHandler.handlerPlugin(enablePluginData);
         Thread.sleep(3000);
         assertTrue(isPortUsing());

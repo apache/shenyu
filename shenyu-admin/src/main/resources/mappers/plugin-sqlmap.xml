@@ -26,6 +26,7 @@
         <result column="config" jdbcType="VARCHAR" property="config"/>
         <result column="role" jdbcType="VARCHAR" property="role"/>
         <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="plugin_jar" property="pluginJar"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
     </resultMap>
 
@@ -37,6 +38,7 @@
         config,
         role,
         sort,
+        plugin_jar,
         enabled
     </sql>
 
@@ -64,6 +66,13 @@
          WHERE name = #{name, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByNameForUpdate" resultType="org.apache.shenyu.admin.model.entity.PluginDO">
+        SELECT
+            <include refid="Base_Column_List"/>
+        FROM plugin
+        WHERE name = #{name, jdbcType=VARCHAR} FOR UPDATE
+    </select>
+
     <select id="selectByNames" parameterType="java.util.List" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
@@ -88,7 +97,7 @@
                 AND enabled = #{enabled, jdbcType=TINYINT}
             </if>
         </where>
-      ORDER BY sort ASC
+      ORDER BY sort, id ASC
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery"
@@ -234,7 +243,8 @@
                     config,
                     role,
                     sort,
-                    enabled)
+                    enabled,
+                    plugin_jar)
              VALUES (#{id, jdbcType=VARCHAR},
                     #{dateCreated, jdbcType=TIMESTAMP},
                     #{dateUpdated, jdbcType=TIMESTAMP},
@@ -242,7 +252,8 @@
                     #{config, jdbcType=VARCHAR},
                     #{role, jdbcType=VARCHAR},
                     #{sort, jdbcType=INTEGER},
-                    #{enabled, jdbcType=TINYINT})
+                    #{enabled, jdbcType=TINYINT},
+                    #{pluginJar, jdbcType=BLOB})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
@@ -270,6 +281,9 @@
             <if test="enabled != null">
                 enabled,
             </if>
+            <if test="pluginJar != null">
+                plugin_jar,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             #{id, jdbcType=VARCHAR},
@@ -293,6 +307,9 @@
             </if>
             <if test="enabled != null">
                 #{enabled, jdbcType=TINYINT},
+            </if>
+            <if test="pluginJar != null">
+                #{pluginJar, jdbcType=BLOB},
             </if>
         </trim>
     </insert>
@@ -348,6 +365,9 @@
             </if>
             <if test="enabled != null">
                 enabled = #{enabled, jdbcType=TINYINT},
+            </if>
+            <if test="pluginJar != null">
+                plugin_jar = #{pluginJar, jdbcType=BLOB}
             </if>
         </set>
         WHERE id = #{id, jdbcType=VARCHAR}

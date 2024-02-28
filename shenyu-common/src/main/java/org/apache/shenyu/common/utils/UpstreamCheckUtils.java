@@ -30,9 +30,9 @@ import java.net.Socket;
  */
 public class UpstreamCheckUtils {
 
-    private static final String HTTP = "http";
+    private static final String HTTP = "http://";
 
-    private static final String HTTPS = "https";
+    private static final String HTTPS = "https://";
 
     private static final int DEFAULT_TIMEOUT = 3000;
 
@@ -63,7 +63,7 @@ public class UpstreamCheckUtils {
             return false;
         }
         String[] hostPort;
-        if (url.startsWith(HTTP)) {
+        if (url.startsWith(HTTP) || url.startsWith(HTTPS)) {
             final String[] http = StringUtils.split(url, "\\/\\/");
             hostPort = StringUtils.split(http[1], Constants.COLONS);
         } else {
@@ -78,7 +78,7 @@ public class UpstreamCheckUtils {
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(host, port), timeout);
         } catch (Exception e) {
-            LOG.error("socket connect is error.", e);
+            LOG.error("socket connect is error. host:{} port:{} timeout:{}", host, port, timeout, e);
             return false;
         }
         return true;

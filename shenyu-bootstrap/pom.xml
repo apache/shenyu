@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.5.1-SNAPSHOT</version>
+        <version>2.7.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-bootstrap</artifactId>
@@ -231,6 +231,14 @@
         </dependency>
         <!--shenyu tars plugin end-->
 
+        <!--Tcp Plugin Start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-tcp</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--Tcp Plugin end-->
+
         <!--shenyu sofa plugin start-->
         <dependency>
             <groupId>com.alipay.sofa</groupId>
@@ -240,6 +248,10 @@
                 <exclusion>
                     <groupId>net.jcip</groupId>
                     <artifactId>jcip-annotations</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-core</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -256,14 +268,6 @@
             <artifactId>shenyu-spring-boot-starter-plugin-springcloud</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!--shenyu key-auth plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-key-auth</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu key-auth plugin end -->
 
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
@@ -296,6 +300,13 @@
         </dependency>
         <!--shenyu springCloud plugin end-->
 
+        <!--shenyu key-auth plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-key-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu key-auth plugin end -->
 
         <!--shenyu mock plugin start-->
         <dependency>
@@ -327,6 +338,18 @@
               <version>2.0.4</version>
           </dependency>-->
         <!-- Dubbo zookeeper registry dependency start -->
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-dependencies-zookeeper</artifactId>
+            <version>${apache.dubbo.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+            <type>pom</type>
+        </dependency>
         <!-- Dubbo zookeeper registry dependency end -->
         <!-- shenyu  apache dubbo plugin end-->
 
@@ -388,6 +411,9 @@
         <!-- shenyu spring cloud alibaba dubbo end-->
 
         <!--shenyu motan plugin start-->
+        <!--If you plan to use the motan plugin and want to use the hessian serialization,
+        please check the sofa plugin related dependencies.In particular, the reliance on sofa-hessian should be excluded.
+        Because sofa-hessian and caucho-hessian can cause class loading conflicts and cause some unexpected problems-->
         <dependency>
             <groupId>com.weibo</groupId>
             <artifactId>motan-core</artifactId>
@@ -446,6 +472,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!--shenyu data sync start use nacos-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-sync-data-nacos</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!--shenyu data sync start use etcd-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -470,13 +503,22 @@
             <artifactId>shenyu-spring-boot-starter-sync-data-consul</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!--shenyu registry start-->
+
+        <!--shenyu data sync start use polaris-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-sync-data-polaris</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!--shenyu instance start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-instance</artifactId>
+            <artifactId>shenyu-spring-boot-starter-registry</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--shenyu instance end-->
+        <!--shenyu registry end-->
 
         <!--shenyu logging-rocketmq plugin start-->
         <dependency>
@@ -493,6 +535,14 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu logging-kafka plugin end-->
+
+        <!--shenyu logging-rabbitmq plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-rabbitmq</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu logging-rabbitmq plugin end-->
 
         <!--shenyu logging-elasticsearch plugin start-->
         <dependency>
@@ -526,6 +576,15 @@
         </dependency>
         <!-- shenyu logging-tencentcls plugin end -->
 
+        <!-- shenyu logging-huaweilts plugin start -->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-huawei-lts</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu logging-huaweilts plugin end -->
+
+
         <!-- shenyu logging-clickhouse plugin start -->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -533,6 +592,22 @@
             <version>${project.version}</version>
         </dependency>
         <!-- shenyu logging-clickhouse plugin end -->
+
+        <!-- shenyu kubernetes controller starter -->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.shenyu</groupId>-->
+<!--            <artifactId>shenyu-spring-boot-starter-k8s</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+        <!-- shenyu kubernetes controller end -->
+
+        <!-- shenyu basic-auth plugin start -->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-basic-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu basic-auth plugin end -->
 
     </dependencies>
     <profiles>

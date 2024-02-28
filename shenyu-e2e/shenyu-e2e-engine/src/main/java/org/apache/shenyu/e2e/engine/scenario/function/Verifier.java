@@ -21,9 +21,13 @@ import io.restassured.specification.RequestSpecification;
 
 public interface Verifier {
     
-    void verify(RequestSpecification request);
-    
     Verifier DEFAULT = request -> {
     };
+    
+    /**
+     * verify request specificaion.
+     * @param request request
+     */
+    void verify(RequestSpecification request);
     
 }

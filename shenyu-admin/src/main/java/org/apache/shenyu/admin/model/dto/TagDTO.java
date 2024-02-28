@@ -31,9 +31,6 @@ public class TagDTO implements Serializable {
     /**
      * primary key.
      */
-    /**
-     * primary key.
-     */
     @Existed(provider = TagMapper.class, nullOfIgnore = true, message = "tag is not existed")
     private String id;
 

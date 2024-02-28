@@ -79,7 +79,7 @@ public interface MetaDataMapper extends ExistProvider {
      * @param methodName  the methodName
      * @return the meta data do
      */
-    MetaDataDO findByServiceNameAndMethod(@Param("serviceName") String serviceName, @Param("methodName") String methodName);
+    List<MetaDataDO> findByServiceNameAndMethod(@Param("serviceName") String serviceName, @Param("methodName") String methodName);
     
     /**
      * Select by query list.

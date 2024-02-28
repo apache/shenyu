@@ -17,27 +17,26 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.Test;
 
 /**
  * The test case for {@link EnStringGenerator}.
  */
 public final class EnStringGeneratorTest {
-    
+
     private final EnStringGenerator generator = new EnStringGenerator();
-    
+
     @Test
     public void testGenerate() {
         int max = 10;
         int min = 5;
-        generator.parseRule("en|" + min + "-" + max);
-        String enString = generator.generate();
+        String enString = generator.generate("en|" + min + "-" + max, null);
         assertTrue(enString.matches("[a-zA-Z]{" + min + "," + max + "}"));
     }
-    
+
     @Test
     public void testMatch() {
         assertTrue(generator.match("en|10-12"));

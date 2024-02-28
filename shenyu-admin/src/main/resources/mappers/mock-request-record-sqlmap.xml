@@ -42,6 +42,30 @@
         where id = #{id}
     </select>
 
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.MockRequestRecordQuery"
+            resultMap="MockRequestRecordMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM mock_request_record
+        <where>
+            <if test="apiId != null">
+               and api_id = #{apiId, jdbcType=VARCHAR}
+            </if>
+            <if test="host != null">
+              and  `host` = #{host, jdbcType=VARCHAR}
+            </if>
+            <if test="url != null">
+              and  `url` = #{url, jdbcType=VARCHAR}
+            </if>
+            <if test="pathVariable != null">
+              and  path_variable = #{pathVariable, jdbcType=VARCHAR}
+            </if>
+            <if test="header != null">
+              and  `header` = #{header, jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
     <select id="queryAll" resultMap="MockRequestRecordMap">
         select
         <include refid="Base_Column_List"/>
@@ -260,6 +284,14 @@
 
     <delete id="deleteById">
         delete from mock_request_record where id = #{id}
+    </delete>
+
+    <delete id="batchDelete" parameterType="java.util.List">
+        DELETE FROM mock_request_record
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
     </delete>
 
 </mapper>

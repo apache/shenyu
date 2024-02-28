@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/fallback")
 public class DefaultFallbackController {
+    
     /**
      * default fallback for hystrix.
      *
@@ -38,7 +39,7 @@ public class DefaultFallbackController {
     public Object hystrixPluginFallback() {
         return ShenyuResultWrap.error(ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK, null);
     }
-
+    
     /**
      * default fallback for resilience4j.
      *
@@ -47,5 +48,15 @@ public class DefaultFallbackController {
     @GetMapping("/resilience4j")
     public Object resilience4jFallBack() {
         return ShenyuResultWrap.error(ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK, null);
+    }
+    
+    /**
+     * Sentinel fall back object.
+     *
+     * @return the object
+     */
+    @GetMapping("/sentinel")
+    public Object sentinelFallBack() {
+        return ShenyuResultWrap.error(ShenyuResultEnum.SENTINEL_PLUGIN_FALLBACK, null);
     }
 }

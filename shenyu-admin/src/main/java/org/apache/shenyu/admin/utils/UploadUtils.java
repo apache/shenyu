@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.utils;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -42,16 +43,16 @@ public class UploadUtils {
         MultiValueMap<String, MultipartFile> fileMap = null;
         //Check whether there is：enctype="multipart/form-data" in the form.
         String contentType = request.getContentType();
-        if (contentType != null && contentType.toLowerCase().contains("multipart")) {
+        if (Objects.nonNull(contentType) && contentType.toLowerCase().contains("multipart")) {
             //Change the request into a multipart request.
             MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
             fileMap = multiRequest.getMultiFileMap();
         }
         return Optional.ofNullable(fileMap)
-                .map(Map::entrySet)
-                .map(entry -> entry.stream()
-                        .flatMap(e -> e.getValue().stream())
-                        .collect(Collectors.toList()))
-                .orElse(Collections.emptyList());
+            .map(Map::entrySet)
+            .map(entry -> entry.stream()
+                .flatMap(e -> e.getValue().stream())
+                .collect(Collectors.toList()))
+            .orElse(Collections.emptyList());
     }
 }

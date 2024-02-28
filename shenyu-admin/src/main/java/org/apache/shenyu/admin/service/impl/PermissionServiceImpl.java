@@ -35,7 +35,7 @@ import org.apache.shenyu.admin.model.vo.PermissionMenuVO.AuthPerm;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.PermissionService;
 import org.apache.shenyu.admin.utils.JwtUtils;
-import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ResourceUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -246,7 +247,7 @@ public class PermissionServiceImpl implements PermissionService {
      */
     private List<String> getListDiff(final List<String> preList, final List<String> lastList) {
         if (CollectionUtils.isEmpty(lastList)) {
-            return null;
+            return Collections.emptyList();
         }
         
         if (CollectionUtils.isEmpty(preList)) {
@@ -255,7 +256,7 @@ public class PermissionServiceImpl implements PermissionService {
         
         Map<String, Integer> map = preList.stream()
                 .distinct()
-                .collect(Collectors.toMap(source -> source, source -> 1));
+                .collect(Collectors.toMap(Function.identity(), source -> 1));
         return lastList.stream()
                 .filter(item -> !map.containsKey(item))
                 .collect(Collectors.toList());

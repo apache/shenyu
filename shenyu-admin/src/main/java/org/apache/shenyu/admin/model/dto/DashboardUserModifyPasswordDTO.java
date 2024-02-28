@@ -17,41 +17,57 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import java.io.Serializable;
+import org.apache.shenyu.admin.model.constant.RegConstant;
+import org.apache.shenyu.admin.utils.FailI18nMessage;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import java.io.Serializable;
 
 /**
  * this is dashboard user from by web front.
  */
 public class DashboardUserModifyPasswordDTO implements Serializable {
-
+    
     /**
      * primary key.
      */
     private String id;
-
+    
     /**
      * user name.
      */
-    @NotBlank
     private String userName;
-
+    
     /**
      * user password.
      */
     @NotBlank
+    @Pattern(regexp = RegConstant.PASSWORD_RULE, message = '{' + FailI18nMessage.PASSWORD_MUST + '}')
     private String password;
-
+    
+    /**
+     * user password.
+     */
+    @NotBlank
+    private String oldPassword;
+    
     public DashboardUserModifyPasswordDTO() {
     }
-
+    
     public DashboardUserModifyPasswordDTO(final String id, final String userName, final String password) {
         this.id = id;
         this.userName = userName;
         this.password = password;
     }
-
+    
+    public DashboardUserModifyPasswordDTO(final String id, final String userName, final String password, final String oldPassword) {
+        this.id = id;
+        this.userName = userName;
+        this.password = password;
+        this.oldPassword = oldPassword;
+    }
+    
     /**
      * Gets the value of id.
      *
@@ -60,7 +76,7 @@ public class DashboardUserModifyPasswordDTO implements Serializable {
     public String getId() {
         return id;
     }
-
+    
     /**
      * Sets the id.
      *
@@ -69,7 +85,7 @@ public class DashboardUserModifyPasswordDTO implements Serializable {
     public void setId(final String id) {
         this.id = id;
     }
-
+    
     /**
      * Gets the value of userName.
      *
@@ -78,7 +94,7 @@ public class DashboardUserModifyPasswordDTO implements Serializable {
     public String getUserName() {
         return userName;
     }
-
+    
     /**
      * Sets the userName.
      *
@@ -87,7 +103,7 @@ public class DashboardUserModifyPasswordDTO implements Serializable {
     public void setUserName(final String userName) {
         this.userName = userName;
     }
-
+    
     /**
      * Gets the value of password.
      *
@@ -96,7 +112,7 @@ public class DashboardUserModifyPasswordDTO implements Serializable {
     public String getPassword() {
         return password;
     }
-
+    
     /**
      * Sets the password.
      *
@@ -104,5 +120,23 @@ public class DashboardUserModifyPasswordDTO implements Serializable {
      */
     public void setPassword(final String password) {
         this.password = password;
+    }
+    
+    /**
+     * get oldPassword.
+     *
+     * @return old password
+     */
+    public String getOldPassword() {
+        return oldPassword;
+    }
+    
+    /**
+     * set oldPassword.
+     *
+     * @param oldPassword old password
+     */
+    public void setOldPassword(final String oldPassword) {
+        this.oldPassword = oldPassword;
     }
 }

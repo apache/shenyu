@@ -29,8 +29,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * ShenyuHttpClientApi.
+ * request local HttpServiceController.
  */
-@ShenyuClient(contextId = "shenyu-gateway", name = "ShenyuSdkApiName")
+@ShenyuClient("shenyu-gateway")
 public interface ShenyuHttpClientApi {
 
     /**

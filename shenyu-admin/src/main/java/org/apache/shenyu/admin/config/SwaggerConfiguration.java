@@ -17,38 +17,22 @@
 
 package org.apache.shenyu.admin.config;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.shenyu.common.constant.Constants;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.security.SecurityScheme.In;
+import io.swagger.v3.oas.models.security.SecurityScheme.Type;
 import org.apache.shenyu.common.utils.VersionUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.ParameterBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.schema.ModelRef;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.service.Contact;
-import springfox.documentation.service.Parameter;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.spring.web.plugins.WebMvcRequestHandlerProvider;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
  * Configuration class for Swagger API document.
  */
 @Configuration
-@EnableSwagger2
 public class SwaggerConfiguration {
 
     private static final String DEFAULT_SWAGGER_API_VERSION = "2.3.0";
@@ -65,78 +49,7 @@ public class SwaggerConfiguration {
 
     private static final String TOKEN_DESCRIPTION = "user auth";
 
-    private static final String TOKEN_MODEL_REF_TYPE = "string";
-
-    private static final String TOKEN_PARAMETER_TYPE = "header";
-
-    @Value("${shenyu.swagger.enable:false}")
-    private boolean enable;
-
     public SwaggerConfiguration() {
-    }
-
-    /**
-     * Configure The Docket with Swagger.
-     *
-     * @return Docket {@linkplain Docket}
-     */
-    @Bean
-    public Docket createRestApi() {
-        ParameterBuilder commonParam = new ParameterBuilder();
-
-        // X-Access-Token
-        List<Parameter> pars = new ArrayList<>();
-        commonParam.name(Constants.X_ACCESS_TOKEN)
-            .description(TOKEN_DESCRIPTION)
-            .modelRef(new ModelRef(TOKEN_MODEL_REF_TYPE))
-            .parameterType(TOKEN_PARAMETER_TYPE)
-            .required(false);
-        pars.add(commonParam.build());
-
-        return new Docket(DocumentationType.SWAGGER_2)
-            .apiInfo(this.apiInfo())
-            .enable(enable)
-            .globalOperationParameters(pars)
-            .select()
-            .apis(RequestHandlerSelectors.basePackage("org.apache.shenyu.admin.controller"))
-            .paths(PathSelectors.any())
-            .build();
-    }
-
-    /**
-     * use bean to be compatible with springboot 2.6.8.
-     * @return BeanPostProcessor
-     */
-    @Bean
-    public BeanPostProcessor springfoxBeanHandler() {
-        return new BeanPostProcessor() {
-            @Override
-            public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
-                if (bean instanceof WebMvcRequestHandlerProvider) {
-                    customizeSpringfoxHandlerMappings(getHandlerMappings(bean));
-                }
-                return bean;
-            }
-
-            private <T extends RequestMappingInfoHandlerMapping> void customizeSpringfoxHandlerMappings(final List<T> mappings) {
-                List<T> copy = mappings.stream()
-                        .filter(mapping -> mapping.getPatternParser() == null)
-                        .collect(Collectors.toList());
-                mappings.clear();
-                mappings.addAll(copy);
-            }
-
-            @SuppressWarnings("unchecked")
-            private List<RequestMappingInfoHandlerMapping> getHandlerMappings(final Object bean) {
-                try {
-                    Field field = ReflectionUtils.findField(bean.getClass(), "handlerMappings");
-                    field.setAccessible(true);
-                    return (List<RequestMappingInfoHandlerMapping>) field.get(bean);
-                } catch (IllegalArgumentException | IllegalAccessException e) {
-                    throw new IllegalStateException(e);
-                }
-            }
-        };
     }
 
     /**
@@ -145,11 +58,21 @@ public class SwaggerConfiguration {
      *
      * @return Api info
      */
-    private ApiInfo apiInfo() {
-        return new ApiInfoBuilder()
-            .title(TITLE).description(DESCRIPTION)
-            .version(VersionUtils.getVersion(getClass(), DEFAULT_SWAGGER_API_VERSION))
-            .contact(new Contact(CONTACT_NAME, CONTACT_URL, CONTACT_EMAIL))
-            .build();
+    @Bean
+    public OpenAPI apiInfo() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title(TITLE).description(DESCRIPTION)
+                        .version(VersionUtils.getVersion(getClass(), DEFAULT_SWAGGER_API_VERSION))
+                        .contact(new Contact().name(CONTACT_NAME).url(CONTACT_URL).email(CONTACT_EMAIL))
+                )
+                .components(new Components()
+                        .addSecuritySchemes(org.apache.shenyu.common.constant.Constants.X_ACCESS_TOKEN, new SecurityScheme()
+                                .name(org.apache.shenyu.common.constant.Constants.X_ACCESS_TOKEN)
+                                .type(Type.APIKEY)
+                                .in(In.HEADER)
+                                .description(TOKEN_DESCRIPTION)
+                        )
+                ).addSecurityItem(new SecurityRequirement().addList(org.apache.shenyu.common.constant.Constants.X_ACCESS_TOKEN));
     }
 }

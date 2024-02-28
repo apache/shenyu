@@ -25,17 +25,17 @@ import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 public class CommonLoggingRuleHandle implements RuleHandle {
 
     /**
-     * mask keyword.
+     * desensitize keyword.
      */
     private String keyword;
 
     /**
-     * mask type, include md5 and character replacement.
+     * desensitize type, include md5 and character replacement.
      */
     private String maskType;
 
     /**
-     * mask status, include true and false.
+     * desensitize status, include true and false.
      */
     private Boolean maskStatus;
 
@@ -57,38 +57,38 @@ public class CommonLoggingRuleHandle implements RuleHandle {
     }
 
     /**
-     * get mask type.
+     * get desensitize type.
      *
-     * @return mask type
+     * @return desensitize type
      */
     public String getMaskType() {
         return maskType;
     }
 
     /**
-     * set mask type.
+     * set desensitize type.
      *
-     * @param maskType mask type
+     * @param desensitizeType desensitize type
      */
-    public void setMaskType(final String maskType) {
+    public void setMaskType(final String desensitizeType) {
         this.maskType = maskType;
     }
 
     /**
-     * get mask status.
+     * get desensitize status.
      *
-     * @return mask status
+     * @return desensitize status
      */
     public Boolean getMaskStatus() {
         return maskStatus;
     }
 
     /**
-     * set mask status.
+     * set desensitize status.
      *
-     * @param maskStatus mask status
+     * @param desensitizeStatus desensitize status
      */
-    public void setMaskStatus(final Boolean maskStatus) {
-        this.maskStatus = maskStatus;
+    public void setMaskStatus(final Boolean desensitizeStatus) {
+        this.maskStatus = desensitizeStatus;
     }
 }

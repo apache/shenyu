@@ -21,6 +21,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.service.DiscoveryService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
@@ -66,18 +68,26 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     private final MetaDataService metaDataService;
 
+    private final DiscoveryService discoveryService;
+
+    private final DiscoveryUpstreamService discoveryUpstreamService;
+
     public SyncDataServiceImpl(final AppAuthService appAuthService,
                                final PluginService pluginService,
                                final SelectorService selectorService,
                                final RuleService ruleService,
                                final ApplicationEventPublisher eventPublisher,
-                               final MetaDataService metaDataService) {
+                               final MetaDataService metaDataService,
+                               final DiscoveryUpstreamService discoveryUpstreamService,
+                               final DiscoveryService discoveryService) {
         this.appAuthService = appAuthService;
         this.pluginService = pluginService;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
         this.eventPublisher = eventPublisher;
         this.metaDataService = metaDataService;
+        this.discoveryUpstreamService = discoveryUpstreamService;
+        this.discoveryService = discoveryService;
     }
 
     @Override
@@ -94,7 +104,7 @@ public class SyncDataServiceImpl implements SyncDataService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, type, ruleDataList));
 
         metaDataService.syncData();
-
+        discoveryService.syncData();
         return true;
     }
 
@@ -105,18 +115,19 @@ public class SyncDataServiceImpl implements SyncDataService {
                 Collections.singletonList(PluginTransfer.INSTANCE.mapDataTOVO(pluginVO))));
 
         List<SelectorData> selectorDataList = selectorService.findByPluginId(pluginId);
-        if (CollectionUtils.isEmpty(selectorDataList)) {
-            return true;
+
+        if (!CollectionUtils.isEmpty(selectorDataList)) {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
+
+            List<String> selectorIdList = selectorDataList.stream().map(SelectorData::getId)
+                    .collect(Collectors.toList());
+            for (String selectorId : selectorIdList) {
+                discoveryUpstreamService.refreshBySelectorId(selectorId);
+            }
+            List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
+
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
         }
-
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
-
-        List<String> selectorIdList = selectorDataList.stream().map(SelectorData::getId)
-                .collect(Collectors.toList());
-        List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
-
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
-
         return true;
     }
 }

@@ -78,13 +78,13 @@ public final class DataPermissionServiceTest {
 
     @BeforeEach
     public void setup() {
-        ruleDTO = new RuleDTO("1", "1", 1, "test", true, true, 1, "test", null);
+        ruleDTO = new RuleDTO("1", "1", 1, "test", true, true, 1, "test", null, false);
         dataPermissionDTO = new DataPermissionDTO();
         dataPermissionDTO.setId("1");
         dataPermissionDTO.setUserId("1001");
         dataPermissionDTO.setDataId("1");
         dataPermissionDTO.setIsSelected(true);
-        selectorDTO = new SelectorDTO("1", "1", "test", 1, 1, 1, true, false, true, "test", null);
+        selectorDTO = new SelectorDTO("1", "1", "test", 1, 1, 1, true, false, true, "test", null, false);
     }
 
     @Test

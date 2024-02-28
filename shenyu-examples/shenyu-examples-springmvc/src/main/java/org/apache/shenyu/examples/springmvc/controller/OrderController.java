@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.springmvc.controller;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuGetMapping;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuPostMapping;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuRequestMapping;
@@ -35,6 +37,7 @@ import java.util.Objects;
  */
 @RestController
 @ShenyuRequestMapping("/order")
+@ApiModule(value = "order")
 public class OrderController {
 
     /**
@@ -44,6 +47,7 @@ public class OrderController {
      * @return the order dto
      */
     @ShenyuPostMapping("/save")
+    @ApiDoc(desc = "save")
     public OrderDTO save(@RequestBody final OrderDTO orderDTO) {
         orderDTO.setName("hello world save order");
         return orderDTO;
@@ -56,6 +60,7 @@ public class OrderController {
      * @return the order dto
      */
     @ShenyuGetMapping("/findById")
+    @ApiDoc(desc = "findById")
     public OrderDTO findById(@RequestParam("id") final String id) {
         return build(id, "hello world findById");
     }
@@ -68,6 +73,7 @@ public class OrderController {
      * @return the path variable
      */
     @ShenyuGetMapping("/path/{id}/{name}")
+    @ApiDoc(desc = "path/{id}/{name}")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
         return build(id, "hello world restful: " + name);
     }
@@ -79,6 +85,7 @@ public class OrderController {
      * @return the order dto
      */
     @ShenyuGetMapping("/path/{id}/name")
+    @ApiDoc(desc = "path/{id}/name")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
         return build(id, "hello world restful inline " + id);
     }
@@ -89,6 +96,7 @@ public class OrderController {
      * @return the oauth2 dto
      */
     @ShenyuGetMapping("/oauth2/test")
+    @ApiDoc(desc = "oauth2/test")
     public OAuth2DTO testRestFul(final HttpServletRequest request) {
         final String token = request.getHeader("Authorization");
         final OAuth2DTO oAuth2DTO = new OAuth2DTO();

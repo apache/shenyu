@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
-import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.rule.HystrixHandle;
 import org.apache.shenyu.common.enums.HystrixIsolationModeEnum;
@@ -28,6 +27,7 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.AfterEach;
@@ -35,16 +35,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
-
-import java.util.HashSet;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.stream.Stream;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -56,6 +52,8 @@ public final class HystrixPluginTest extends AbstractPluginDataInit {
     private static final String TEST_HYSTRIX_PATH = "/http/test/hystrix/pass";
 
     private static final String TEST_HYSTRIX_BAD_REQUEST_PATH = "/http/test/hystrix/fallback";
+    
+    private static final String FALL_BACK = "fallback:/fallback/hystrix";
 
     @BeforeEach
     public void setup() throws IOException {
@@ -75,24 +73,16 @@ public final class HystrixPluginTest extends AbstractPluginDataInit {
     @Test
     public void testFallbackBySemaphore() throws IOException, ExecutionException, InterruptedException {
         String selectorAndRulesResult =
-                initSelectorAndRules(PluginEnum.HYSTRIX.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(TEST_HYSTRIX_BAD_REQUEST_PATH));
+                initSelectorAndRules(PluginEnum.HYSTRIX.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(FALL_BACK));
         assertThat(selectorAndRulesResult, CoreMatchers.is("success"));
-        Set<String> resultSet = new HashSet<>();
-        Type returnType = new TypeToken<Map<String, Object>>() {
-        }.getType();
-        Future<Map<String, Object>> resp0 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_HYSTRIX_BAD_REQUEST_PATH, returnType));
-        Future<Map<String, Object>> resp1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_HYSTRIX_BAD_REQUEST_PATH, returnType));
-        Future<Map<String, Object>> resp2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_HYSTRIX_BAD_REQUEST_PATH, returnType));
-        Stream.of(resp0.get()).filter(s -> null != s.get("message")).forEach(imp -> {
-            resultSet.add(imp.get("message").toString());
-        });
-        Stream.of(resp1.get()).filter(s -> null != s.get("message")).forEach(imp -> {
-            resultSet.add(imp.get("message").toString());
-        });
-        Stream.of(resp2.get()).filter(s -> null != s.get("message")).forEach(imp -> {
-            resultSet.add(imp.get("message").toString());
-        });
-        assertTrue(resultSet.contains("HystrixPlugin fallback success, please check your service status!"));
+        Set<Integer> resultSet = new HashSet<>();
+        Future<ResultBean> resp0 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_HYSTRIX_BAD_REQUEST_PATH, ResultBean.class));
+        Future<ResultBean> resp1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_HYSTRIX_BAD_REQUEST_PATH, ResultBean.class));
+        Future<ResultBean> resp2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_HYSTRIX_BAD_REQUEST_PATH, ResultBean.class));
+        resultSet.add(resp0.get().getCode());
+        resultSet.add(resp1.get().getCode());
+        resultSet.add(resp2.get().getCode());
+        assertTrue(resultSet.contains(ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK.getCode()));
     }
 
     private static List<ConditionData> buildSelectorConditionList() {

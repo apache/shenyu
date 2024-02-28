@@ -34,8 +34,8 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
+import org.apache.shenyu.plugin.logging.kafka.handler.LoggingKafkaPluginDataHandler;
 import org.springframework.lang.NonNull;
 
 import java.nio.charset.StandardCharsets;
@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -70,7 +71,7 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
             LOG.error("kafka props is empty. failed init kafka producer");
             return;
         }
-        String topic = "shenyu-access-logging";
+        String topic = config.getTopic();
         String nameserverAddress = config.getNamesrvAddr();
 
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
@@ -93,7 +94,7 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
                                     config.getUserName(), config.getPassWord()));
         }
         producer = new KafkaProducer<>(props);
-        ProducerRecord<String, String> record = new ProducerRecord<>("shenyu-access-logging", StringSerializer.class.getName(), StringSerializer.class.getName());
+        ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, StringSerializer.class.getName(), StringSerializer.class.getName());
         try {
             producer.send(record);
             LOG.info("init kafkaLogCollectClient success");
@@ -104,7 +105,8 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
         } catch (KafkaException e) {
             // For all other exceptions, just abort the transaction and try again.
             LOG.error(
-                "init kafkaLogCollectClient error，Exceptions other than ProducerFencedException or OutOfOrderSequenceException or AuthorizationException, just abort the transaction and try again", e);
+                    "init kafkaLogCollectClient error，Exceptions other than ProducerFencedException or OutOfOrderSequenceException or AuthorizationException"
+                            + ", just abort the transaction and try again", e);
         }
     }
 
@@ -116,7 +118,9 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
         logs.forEach(log -> {
-            String logTopic = StringUtils.defaultIfBlank(LogCollectConfigUtils.getTopic(log.getPath(), apiTopicMap), topic);
+            String logTopic = Optional.ofNullable(LoggingKafkaPluginDataHandler.getSelectApiConfigMap().get(log.getSelectorId()))
+                    .map(apiConfig -> StringUtils.defaultIfBlank(apiConfig.getTopic(), topic)
+                    ).orElse(topic);
             try {
                 producer.send(toProducerRecord(logTopic, log));
             } catch (Exception e) {
@@ -145,6 +149,7 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
 
     /**
      * set api topic map.
+     *
      * @param uriTopicMap api topic map
      */
     public static void setTopic(final Map<String, String> uriTopicMap) {

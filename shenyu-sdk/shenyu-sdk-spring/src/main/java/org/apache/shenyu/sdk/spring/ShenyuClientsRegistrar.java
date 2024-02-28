@@ -53,6 +53,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -63,13 +64,13 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     private ResourceLoader resourceLoader;
 
     private Environment environment;
-    
+
     /**
      * Instantiates a new Shenyu clients registrar.
      */
     ShenyuClientsRegistrar() {
     }
-    
+
     /**
      * Validate fallback.
      *
@@ -78,7 +79,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     static void validateFallback(final Class clazz) {
         Assert.isTrue(!clazz.isInterface(), "Fallback class must implement the interface annotated by @ShenyuClient");
     }
-    
+
     /**
      * Validate fallback factory.
      *
@@ -98,7 +99,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     public void registerBeanDefinitions(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
         registerShenyuClients(metadata, registry);
     }
-    
+
     /**
      * Register shenyu clients.
      *
@@ -172,7 +173,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
         String[] qualifiers = getQualifiers(attributes);
         if (ObjectUtils.isEmpty(qualifiers)) {
-            qualifiers = new String[] {contextId + "ShenyuClient"};
+            qualifiers = new String[] {Optional.ofNullable(contextId).orElse(name) + "ShenyuClient"};
         }
         BeanDefinitionHolder holder = new BeanDefinitionHolder(beanDefinition, className, qualifiers);
         BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
@@ -181,7 +182,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
     private void validate(final Map<String, Object> attributes) {
         AnnotationAttributes annotation = AnnotationAttributes.fromMap(attributes);
-        // This blows up if an aliased property is overspecified
+        // This blows up if an aliased property is over specified
         validateFallback(annotation.getClass("fallback"));
         validateFallbackFactory(annotation.getClass("fallbackFactory"));
     }
@@ -201,8 +202,8 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
             if (beanFactory == null) {
                 return this.environment.resolvePlaceholders(value);
             }
-            BeanExpressionResolver resolver = beanFactory.getBeanExpressionResolver();
             String resolved = beanFactory.resolveEmbeddedValue(value);
+            BeanExpressionResolver resolver = beanFactory.getBeanExpressionResolver();
             if (resolver == null) {
                 return resolved;
             }
@@ -214,7 +215,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         }
         return value;
     }
-    
+
     /**
      * Gets scanner.
      *
@@ -234,7 +235,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
             }
         };
     }
-    
+
     /**
      * Gets base packages.
      *
@@ -292,7 +293,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     public void setEnvironment(final Environment environment) {
         this.environment = environment;
     }
-    
+
     /**
      * Gets name.
      *
@@ -319,7 +320,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         Assert.state(host != null, "Service id not legal hostname (" + name + ")");
         return name;
     }
-    
+
     /**
      * Gets name.
      *
@@ -329,7 +330,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     String getName(final Map<String, Object> attributes) {
         return getName(null, attributes);
     }
-    
+
     /**
      * Gets name.
      *
@@ -345,7 +346,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         name = resolve(beanFactory, name);
         return getName(name);
     }
-    
+
     /**
      * Gets url.
      *
@@ -382,7 +383,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         String path = resolve(beanFactory, (String) attributes.get("path"));
         return getPath(path);
     }
-    
+
     /**
      * Gets path.
      *

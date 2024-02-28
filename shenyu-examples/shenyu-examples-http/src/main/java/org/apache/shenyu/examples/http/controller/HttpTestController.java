@@ -18,8 +18,12 @@
 package org.apache.shenyu.examples.http.controller;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Objects;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.examples.http.dto.BigObject;
 import org.apache.shenyu.examples.http.dto.UserDTO;
 import org.apache.shenyu.examples.http.result.ResultBean;
 import org.slf4j.Logger;
@@ -61,7 +65,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/test")
 @ShenyuSpringMvcClient("/test/**")
+@ApiModule("/test")
 public class HttpTestController {
+
+    private static final Integer SIZE = 20000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpTestController.class);
 
@@ -72,6 +79,7 @@ public class HttpTestController {
      * @return the user dto
      */
     @PostMapping("/payment")
+    @ApiDoc(desc = "payment")
     public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
@@ -83,6 +91,7 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/findByUserId")
+    @ApiDoc(desc = "findByUserId")
     public UserDTO findByUserId(@RequestParam("userId") final String userId) {
         return buildUser(userId, "hello world");
     }
@@ -95,6 +104,7 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/findByUserIdName")
+    @ApiDoc(desc = "findByUserIdName")
     public UserDTO findByUserId(@RequestParam("userId") final String userId, @RequestParam("name") final String name) {
         return buildUser(userId, name);
     }
@@ -108,6 +118,7 @@ public class HttpTestController {
      * @return the user dto
      */
     @GetMapping("/findByPage")
+    @ApiDoc(desc = "findByPage")
     public UserDTO findByPage(final String keyword, final Integer page, final Integer pageSize) {
         return buildUser(keyword, "hello world keyword is " + keyword + " page is " + page + " pageSize is " + pageSize);
     }
@@ -120,6 +131,7 @@ public class HttpTestController {
      * @return the path variable
      */
     @GetMapping("/path/{id}")
+    @ApiDoc(desc = "path/{id}")
     public UserDTO getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
         return buildUser(id, name);
     }
@@ -132,6 +144,7 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/path/{id}/name")
+    @ApiDoc(desc = "path/{id}/name")
     public UserDTO testRestFul(@PathVariable("id") final String id) {
         return buildUser(id, "hello world");
     }
@@ -316,7 +329,7 @@ public class HttpTestController {
         filePart.transferTo(tempFile.toFile());
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(tempFile.toFile()))) {
             String line = bufferedReader.readLine();
-            while (line != null) {
+            while (Objects.nonNull(line)) {
                 LOGGER.info(line);
                 line = bufferedReader.readLine();
             }
@@ -430,6 +443,49 @@ public class HttpTestController {
         ResultBean resultBean = new ResultBean();
         resultBean.setCode(200);
         resultBean.setData(params);
+        return resultBean;
+    }
+
+    /**
+     * big object.
+     * @return big object
+     */
+    @PostMapping("/bigObject")
+    public BigObject bigObject() {
+        BigObject bigObject = new BigObject();
+        bigObject.setId(1);
+        String[] obj = new String[SIZE];
+        for (int i = 0; i < SIZE; i++) {
+            obj[i] = String.valueOf(i);
+        }
+        bigObject.setObj(obj);
+        return bigObject;
+    }
+    
+    /**
+     * test blank query.
+     *
+     * @return response body
+     */
+    @PostMapping("/ /query")
+    public ResultBean blankQuery() {
+        ResultBean resultBean = new ResultBean();
+        resultBean.setCode(200);
+        resultBean.setData("test blank query");
+        return resultBean;
+    }
+    
+    /**
+     * test blank query with params.
+     *
+     * @param param params
+     * @return response body
+     */
+    @PostMapping("/query")
+    public ResultBean blankQueryWithParams(@RequestParam("param") final String param) {
+        ResultBean resultBean = new ResultBean();
+        resultBean.setCode(200);
+        resultBean.setData(param);
         return resultBean;
     }
 }

@@ -18,6 +18,7 @@
 package org.apache.shenyu.disruptor.consumer;
 
 import com.lmax.disruptor.WorkHandler;
+import java.util.Objects;
 import org.apache.shenyu.disruptor.event.DataEvent;
 import org.apache.shenyu.disruptor.event.OrderlyDataEvent;
 import org.apache.shenyu.disruptor.thread.OrderlyExecutor;
@@ -48,7 +49,7 @@ public class QueueConsumer<T> implements WorkHandler<DataEvent<T>> {
     
     @Override
     public void onEvent(final DataEvent<T> t) {
-        if (t != null) {
+        if (Objects.nonNull(t)) {
             ThreadPoolExecutor executor = orderly(t);
             QueueConsumerExecutor<T> queueConsumerExecutor = factory.create();
             queueConsumerExecutor.setData(t.getData());

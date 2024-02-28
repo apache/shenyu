@@ -20,6 +20,9 @@ package org.apache.shenyu.admin.model.dto;
 import org.apache.shenyu.admin.mapper.ApiMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -51,6 +54,9 @@ public class ApiDTO implements Serializable {
     /**
      * 0-get,1-head,2-post,3-put,4-patch,5-delete,6-options,7-trace.
      */
+    @NotNull(message = "httpMethod not null")
+    @Min(value = 0, message = "httpMethod min 0")
+    @Max(value = 7, message = "httpMethod max 7")
     private Integer httpMethod;
 
     /**
@@ -76,6 +82,9 @@ public class ApiDTO implements Serializable {
     /**
      * 0-unpublished1-published2-offline.
      */
+    @NotNull(message = "state not null")
+    @Min(value = 0, message = "state min 0")
+    @Max(value = 2, message = "state max 2")
     private Integer state;
 
     /**
@@ -96,6 +105,9 @@ public class ApiDTO implements Serializable {
     /**
      * 0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi.
      */
+    @NotNull(message = "apiSource not null")
+    @Min(value = 0, message = "state min 0")
+    @Max(value = 4, message = "state max 4")
     private Integer apiSource;
 
     /**

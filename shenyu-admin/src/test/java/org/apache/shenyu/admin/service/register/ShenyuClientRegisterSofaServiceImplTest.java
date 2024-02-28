@@ -68,8 +68,7 @@ public final class ShenyuClientRegisterSofaServiceImplTest {
     
     @Test
     public void testRuleHandler() {
-        JsonParser parser = new JsonParser();
-        assertEquals(parser.parse("{\"retries\":0,\"loadBalance\":\"random\",\"timeout\":3000}"), parser.parse(shenyuClientRegisterSofaService.ruleHandler()));
+        assertEquals(JsonParser.parseString("{\"retries\":0,\"loadBalance\":\"random\",\"timeout\":3000}"), JsonParser.parseString(shenyuClientRegisterSofaService.ruleHandler()));
     }
     
     @Test

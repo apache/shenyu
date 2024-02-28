@@ -37,7 +37,7 @@ import java.util.stream.Stream.Builder;
 public class ShenYuScenarioInvocationContextProvider implements TestTemplateInvocationContextProvider {
     
     @Override
-    public boolean supportsTestTemplate(ExtensionContext context) {
+    public boolean supportsTestTemplate(final ExtensionContext context) {
         final Method method = context.getRequiredTestMethod();
         if (!method.isAnnotationPresent(ShenYuScenario.class)) {
             return false;
@@ -53,7 +53,7 @@ public class ShenYuScenarioInvocationContextProvider implements TestTemplateInvo
     }
     
     @Override
-    public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(ExtensionContext context) {
+    public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(final ExtensionContext context) {
         Store store = getStore(context);
         
         ShenYuScenarioSupplier supplier = store.get(ShenYuScenarioSupplier.class, ShenYuScenarioSupplier.class);
@@ -63,19 +63,19 @@ public class ShenYuScenarioInvocationContextProvider implements TestTemplateInvo
         return builder.build();
     }
     
-    private static Store getStore(ExtensionContext context) {
+    private static Store getStore(final ExtensionContext context) {
         return context.getStore(Namespace.create(ShenYuScenarioInvocationContextProvider.class, context.getRequiredTestMethod()));
     }
     
     private static class ShenYuTestTemplateInvocationContext implements TestTemplateInvocationContext {
         private final ScenarioSpec scenarioSpec;
         
-        public ShenYuTestTemplateInvocationContext(ScenarioSpec scenarioSpec) {
+        ShenYuTestTemplateInvocationContext(final ScenarioSpec scenarioSpec) {
             this.scenarioSpec = new ScenarioSpecLogProxy(scenarioSpec);
         }
         
         @Override
-        public String getDisplayName(int invocationIndex) {
+        public String getDisplayName(final int invocationIndex) {
             return "#" + invocationIndex + " " + scenarioSpec.getName();
         }
         

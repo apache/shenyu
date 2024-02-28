@@ -21,34 +21,39 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.enums.OperatorEnum;
-import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.apache.shenyu.web.controller.LocalPluginController;
+import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.is;
+import static org.apache.shenyu.common.enums.OperatorEnum.MATCH;
+import static org.apache.shenyu.common.enums.ParamTypeEnum.URI;
+import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.singletonConditionList;
+import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.singletonRuleLocalDataList;
+import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.singletonURIEqConditionList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public final class JwtPluginTest extends AbstractPluginDataInit {
+
+    private static final List<ConditionData> SELECTOR_CONDITION_LIST = singletonConditionList(URI, MATCH, "/http/**");
+
+    private static final List<RuleLocalData> RULE_LOCAL_DATA_LIST = singletonRuleLocalDataList(null, singletonURIEqConditionList("/http/test/findByUserId"));
 
     @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.JWT.getName(), "{\"secretKey\":\"shenyu-test-shenyu-test-shenyu-test\"}");
         assertThat(pluginResult, is("success"));
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.JWT.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.JWT.getName(), "", SELECTOR_CONDITION_LIST, RULE_LOCAL_DATA_LIST);
         assertThat(selectorAndRulesResult, is("success"));
     }
 
@@ -68,31 +73,6 @@ public final class JwtPluginTest extends AbstractPluginDataInit {
         headers.put("token", token);
         Map<String, Object> correctResponse = HttpHelper.INSTANCE.getFromGateway(testPath, headers, Map.class);
         assertThat(correctResponse.get("userId"), is("1001"));
-    }
-
-    private static List<ConditionData> buildSelectorConditionList() {
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamValue("/http/**");
-        return Collections.singletonList(conditionData);
-    }
-
-    private static List<LocalPluginController.RuleLocalData> buildRuleLocalDataList() {
-        List<LocalPluginController.RuleLocalData> ruleLocalDataList = new ArrayList<>();
-        ruleLocalDataList.add(buildRuleLocalData("/http/test/findByUserId"));
-        ruleLocalDataList.add(buildRuleLocalData("/http/test/path/1111/name"));
-        return ruleLocalDataList;
-    }
-
-    private static LocalPluginController.RuleLocalData buildRuleLocalData(final String paramValue) {
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        conditionData.setParamValue(paramValue);
-        LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
-        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        return ruleLocalData;
     }
 
     @AfterAll

@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.web.configuration;
 
-import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -42,15 +41,4 @@ public class ShenyuExtConfiguration {
         return new DefaultShenyuResult();
     }
 
-    /**
-     * Remote address resolver remote address resolver.
-     *
-     * @return the remote address resolver
-     */
-    @Bean
-    @ConditionalOnMissingBean(value = RemoteAddressResolver.class, search = SearchStrategy.ALL)
-    public RemoteAddressResolver remoteAddressResolver() {
-        return new RemoteAddressResolver() {
-        };
-    }
 }

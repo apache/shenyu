@@ -26,6 +26,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ShenYuValue {
     
+    /**
+     * value.
+     * @return String
+     */
     String value();
     
 }

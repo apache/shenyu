@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="discovery_id" jdbcType="VARCHAR" property="discoveryId"/>
+        <result column="handler" jdbcType="VARCHAR" property="handler"/>
+        <result column="listener_node" jdbcType="VARCHAR" property="listenerNode"/>
+        <result column="props" jdbcType="LONGVARCHAR" property="props"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        date_created,
+        date_updated,
+        discovery_id,
+        handler,
+        listener_node,
+        props
+    </sql>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+        FROM discovery_handler
+        WHERE id = #{id} limit 1
+    </select>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery_handler
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByProxySelectorId" resultType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        SELECT
+        dh.id,
+        dh.date_created,
+        dh.date_updated,
+        dh.discovery_id,
+        dh.handler,
+        dh.listener_node
+        FROM discovery_handler dh inner join discovery_rel dr on dh.id = dr.discovery_handler_id
+        WHERE dr.proxy_selector_id = #{proxySelectorId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        from discovery_handler
+    </select>
+
+    <select id="selectByDiscoveryId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        from discovery_handler
+        where discovery_id = #{discoveryId , jdbcType=LONGVARCHAR}
+    </select>
+
+    <select id="selectBySelectorId" resultType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        SELECT
+        dh.id,
+        dh.date_created,
+        dh.date_updated,
+        dh.discovery_id,
+        dh.handler,
+        dh.listener_node
+        FROM discovery_handler dh inner join discovery_rel dr on dh.id = dr.discovery_handler_id
+        WHERE dr.selector_id = #{selectorId, jdbcType=VARCHAR}
+    </select>
+
+    <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
+            parameterType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        INSERT INTO discovery_handler
+        (id,
+        date_created,
+        date_updated,
+        discovery_id,
+        handler,
+        listener_node,
+        props)
+        VALUES
+        (#{id, jdbcType=VARCHAR},
+        #{dateCreated, jdbcType=TIMESTAMP},
+        #{dateUpdated, jdbcType=TIMESTAMP},
+        #{discoveryId, jdbcType=VARCHAR},
+        #{handler, jdbcType=VARCHAR},
+        #{listenerNode, jdbcType=VARCHAR},
+        #{props, jdbcType=LONGVARCHAR})
+    </insert>
+
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        INSERT INTO discovery_handler
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="dateCreated != null">
+                date_created,
+            </if>
+            <if test="dateUpdated != null">
+                date_updated,
+            </if>
+            <if test="discoveryId != null">
+                discovery_id,
+            </if>
+            <if test="handler != null">
+                handler,
+            </if>
+            <if test="listenerNode != null">
+                listener_node,
+            </if>
+            <if test="props != null">
+                props,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id, jdbcType=VARCHAR},
+            <if test="dateCreated != null">
+                #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="discoveryId != null">
+                #{discoveryId, jdbcType=VARCHAR},
+            </if>
+            <if test="handler != null">
+                #{handler, jdbcType=VARCHAR},
+            </if>
+            <if test="listenerNode != null">
+                #{listenerNode, jdbcType=VARCHAR},
+            </if>
+            <if test="props != null">
+                #{props, jdbcType=LONGVARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        UPDATE discovery_handler
+        SET date_created = #{dateCreated, jdbcType=TIMESTAMP},
+        date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+        discovery_id = #{discoveryId, jdbcType=VARCHAR},
+        handler = #{handler, jdbcType=VARCHAR},
+        listener_node = #{listenerNode, jdbcType=VARCHAR},
+        props = #{props, jdbcType=LONGVARCHAR}
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        UPDATE discovery_handler
+        <set>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="discoveryId != null">
+                discovery_id = #{discoveryId, jdbcType=VARCHAR},
+            </if>
+            <if test="handler != null">
+                handler = #{handler, jdbcType=VARCHAR},
+            </if>
+            <if test="listenerNode != null">
+                listener_node = #{listenerNode, jdbcType=VARCHAR},
+            </if>
+            <if test="props != null">
+                props = #{props, jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        DELETE
+        FROM discovery_handler
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </delete>
+</mapper>

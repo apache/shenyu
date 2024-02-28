@@ -62,7 +62,7 @@ public class OracleSQLPrepareInterceptor implements Interceptor {
         // replace desc and true
         String replaceSql = boundSql.getSql().toLowerCase()
                 .replace("`desc`", "\"desc\"")
-                .replace("true", "\'true\'");
+                .replace("true", "'true'");
         // replace`
         replaceSql = replaceSql.replace("`", "");
         // replace resource

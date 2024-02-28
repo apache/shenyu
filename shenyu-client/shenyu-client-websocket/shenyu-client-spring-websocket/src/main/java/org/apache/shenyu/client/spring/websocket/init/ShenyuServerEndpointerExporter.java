@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.spring.websocket.init;
 
+import java.util.Objects;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuServerEndpoint;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
@@ -83,7 +84,7 @@ public class ShenyuServerEndpointerExporter extends WebApplicationObjectSupport 
         ServerEndpointConfig.Configurator configurator = null;
         if (!configuratorClazz.equals(ServerEndpointConfig.Configurator.class)) {
             try {
-                configurator = (ServerEndpointConfig.Configurator) annotation.configurator().getConstructor().newInstance();
+                configurator = annotation.configurator().getConstructor().newInstance();
             } catch (ReflectiveOperationException ex) {
                 LOG.error("ShenyuServerEndpoint configurator init fail! Class name: {}, configurator name: {}", pojo.getName(), annotation.configurator().getName());
                 throw new ShenyuException(ex);
@@ -99,7 +100,7 @@ public class ShenyuServerEndpointerExporter extends WebApplicationObjectSupport 
 
     private void registerEndpoint(final ServerEndpointConfig endpointConfig) {
         ServerContainer serverContainer = this.getServerContainer();
-        Assert.state(serverContainer != null, "No ServerContainer set");
+        Assert.state(Objects.nonNull(serverContainer), "No ServerContainer set");
 
         try {
             if (this.logger.isDebugEnabled()) {

@@ -28,6 +28,8 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,12 +38,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestTemplate;
+
+import okhttp3.OkHttpClient;
 import wiremock.org.apache.http.HttpHeaders;
 import wiremock.org.apache.http.entity.ContentType;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,6 +77,10 @@ public final class HttpSyncDataServiceTest {
     private MetaDataSubscriber metaDataSubscriber;
 
     private AuthDataSubscriber authDataSubscriber;
+
+    private ProxySelectorDataSubscriber proxySelectorDataSubscriber;
+
+    private DiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber;
 
     private HttpSyncDataService httpSyncDataService;
 
@@ -114,16 +121,19 @@ public final class HttpSyncDataServiceTest {
         this.pluginDataSubscriber = mock(PluginDataSubscriber.class);
         this.metaDataSubscriber = mock(MetaDataSubscriber.class);
         this.authDataSubscriber = mock(AuthDataSubscriber.class);
+        this.proxySelectorDataSubscriber = mock(ProxySelectorDataSubscriber.class);
+        this.discoveryUpstreamDataSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
 
-        OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
-        factory.setConnectTimeout(Objects.isNull(httpConfig.getConnectionTimeout()) ? (int) HttpConstants.CLIENT_POLLING_CONNECT_TIMEOUT : httpConfig.getConnectionTimeout());
-        factory.setReadTimeout(Objects.isNull(httpConfig.getReadTimeout()) ? (int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT : httpConfig.getReadTimeout());
-        factory.setWriteTimeout(Objects.isNull(httpConfig.getWriteTimeout()) ? (int) HttpConstants.CLIENT_POLLING_WRITE_TIMEOUT : httpConfig.getWriteTimeout());
-        RestTemplate restTemplate = new RestTemplate(factory);
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .readTimeout(Duration.ofMillis(Objects.isNull(httpConfig.getReadTimeout()) ? (int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT : httpConfig.getReadTimeout()))
+                .connectTimeout(Duration.ofMillis(Objects.isNull(httpConfig.getConnectionTimeout()) ? HttpConstants.CLIENT_POLLING_CONNECT_TIMEOUT : httpConfig.getConnectionTimeout()))
+                .writeTimeout(Duration.ofMillis(Objects.isNull(httpConfig.getWriteTimeout()) ? (int) HttpConstants.CLIENT_POLLING_WRITE_TIMEOUT : httpConfig.getWriteTimeout()))
+                .build();
 
-        AccessTokenManager accessTokenManager = new AccessTokenManager(restTemplate, httpConfig);
-        this.httpSyncDataService = new HttpSyncDataService(httpConfig, pluginDataSubscriber, restTemplate,
-                Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber), accessTokenManager);
+        AccessTokenManager accessTokenManager = new AccessTokenManager(okHttpClient, httpConfig);
+        this.httpSyncDataService = new HttpSyncDataService(httpConfig, pluginDataSubscriber, new OkHttpClient(),
+                Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber), Collections.singletonList(proxySelectorDataSubscriber),
+                Collections.singletonList(discoveryUpstreamDataSubscriber), accessTokenManager);
     }
 
     @AfterEach

@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
+import org.apache.shenyu.admin.model.query.MockRequestRecordQuery;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
@@ -102,6 +103,20 @@ public interface MockRequestRecordMapper extends ExistProvider {
      * @return Number of rows affected
      */
     int deleteById(String id);
+
+    /**
+     * batchDelete.
+     * @param ids ids
+     * @return Number of rows deleted
+     */
+    int batchDelete(List<String> ids);
+
+    /**
+     * selectByQuery.
+     * @param mockRequestRecordQuery mockRequestRecordQuery
+     * @return list of MockRequestRecordDO
+     */
+    List<MockRequestRecordDO> selectByQuery(MockRequestRecordQuery mockRequestRecordQuery);
 
 }
 

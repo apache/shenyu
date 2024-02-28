@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.DiscoveryMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="level" jdbcType="VARCHAR" property="level"/>
+        <result column="server_list" jdbcType="VARCHAR" property="serverList"/>
+        <result column="plugin_name" jdbcType="VARCHAR" property="pluginName"/>
+        <result column="props" jdbcType="LONGVARCHAR" property="props"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        date_created,
+        date_updated,
+        name,
+        type,
+        level,
+        server_list,
+        plugin_name,
+        props
+    </sql>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+        FROM discovery
+        WHERE id = #{id} limit 1
+    </select>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByPluginNameAndLevel" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery
+        WHERE plugin_name = #{pluginName, jdbcType=VARCHAR} AND level = #{level, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery
+    </select>
+
+    <select id="selectBySelectorNameAndPluginName" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        SELECT
+        d.id,
+        d.date_created,
+        d.date_updated,
+        d.name,
+        d.type,
+        d.level,
+        d.server_list,
+        d.plugin_name,
+        d.props
+        FROM discovery d
+        INNER JOIN discovery_handler dh on d.id = dh.discovery_id
+        INNER JOIN discovery_rel dr on dh.id = dr.discovery_handler_id
+        INNER JOIN selector s on dr.selector_id = s.id and s.enabled = 1
+        where s.name = #{selectorName} and d.plugin_name = #{pluginName}
+    </select>
+
+    <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
+            parameterType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        INSERT INTO discovery
+        (id,
+        date_created,
+        date_updated,
+        name,
+        type,
+        level,
+        server_list,
+        plugin_name,
+        props)
+        VALUES
+        (#{id, jdbcType=VARCHAR},
+        #{dateCreated, jdbcType=TIMESTAMP},
+        #{dateUpdated, jdbcType=TIMESTAMP},
+        #{name, jdbcType=VARCHAR},
+        #{type, jdbcType=VARCHAR},
+        #{level, jdbcType=VARCHAR},
+        #{serverList, jdbcType=VARCHAR},
+        #{pluginName, jdbcType=VARCHAR},
+        #{props, jdbcType=LONGVARCHAR})
+    </insert>
+
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        INSERT INTO discovery
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="dateCreated != null">
+                date_created,
+            </if>
+            <if test="dateUpdated != null">
+                date_updated,
+            </if>
+            <if test="name != null">
+                name,
+            </if>
+            <if test="type != null">
+                type,
+            </if>
+            <if test="level != null">
+                level,
+            </if>
+            <if test="serverList != null">
+                server_list,
+            </if>
+            <if test="pluginName != null">
+                plugin_name,
+            </if>
+            <if test="props != null">
+                props,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id, jdbcType=VARCHAR},
+            <if test="dateCreated != null">
+                #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="name != null">
+                #{name, jdbcType=VARCHAR},
+            </if>
+            <if test="type != null">
+                #{type, jdbcType=VARCHAR},
+            </if>
+            <if test="level != null">
+                #{level, jdbcType=VARCHAR},
+            </if>
+            <if test="serverList != null">
+                #{serverList, jdbcType=VARCHAR},
+            </if>
+            <if test="pluginName != null">
+                #{pluginName, jdbcType=VARCHAR},
+            </if>
+            <if test="props != null">
+                #{props, jdbcType=LONGVARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        UPDATE discovery
+        SET date_created = #{dateCreated, jdbcType=TIMESTAMP},
+        date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+        name = #{name, jdbcType=VARCHAR},
+        type = #{type, jdbcType=VARCHAR},
+        level = #{level, jdbcType=VARCHAR},
+        server_list = #{serverList, jdbcType=VARCHAR},
+        plugin_name = #{pluginName, jdbcType=VARCHAR},
+        props = #{props, jdbcType=LONGVARCHAR}
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        UPDATE discovery
+        <set>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="name != null">
+                name = #{name, jdbcType=VARCHAR},
+            </if>
+            <if test="type != null">
+                type = #{type, jdbcType=VARCHAR},
+            </if>
+            <if test="level != null">
+                level = #{level, jdbcType=VARCHAR},
+            </if>
+            <if test="serverList != null">
+                server_list = #{serverList, jdbcType=VARCHAR},
+            </if>
+            <if test="pluginName != null">
+                plugin_name = #{pluginName, jdbcType=VARCHAR},
+            </if>
+            <if test="props != null">
+                props = #{props, jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        DELETE
+        FROM discovery
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </delete>
+</mapper>
