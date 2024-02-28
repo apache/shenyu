@@ -30,7 +30,7 @@ import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrieListener;
-import org.apache.shenyu.plugin.base.cache.ExtendDataHandler;
+import org.apache.shenyu.plugin.isolation.ExtendDataHandler;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.configuration.ErrorHandlerConfiguration;

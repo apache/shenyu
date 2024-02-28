@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.cache;
+package org.apache.shenyu.plugin.isolation;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -35,6 +36,13 @@ public interface ExtendDataHandler<T> {
      * @param extendDatas extendDatas
      */
     void addHandlers(List<T> extendDatas);
+
+
+    /**
+     * removeHandler.
+     * @param rpcTypeEnum - rpcTypeEnum
+     */
+    void removeHandler(RpcTypeEnum rpcTypeEnum);
 
     /**
      * addHandlers.

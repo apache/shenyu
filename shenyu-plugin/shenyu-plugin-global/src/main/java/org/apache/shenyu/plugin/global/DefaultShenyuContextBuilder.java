@@ -26,7 +26,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
-import org.apache.shenyu.plugin.base.cache.ExtendDataHandler;
+import org.apache.shenyu.plugin.isolation.ExtendDataHandler;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
