@@ -114,7 +114,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber, ExtendD
     }
 
     @Override
-    public void removeHandler(RpcTypeEnum rpcTypeEnum) {
+    public void removeHandler(final RpcTypeEnum rpcTypeEnum) {
         handlerMap.remove(rpcTypeEnum.getName());
         LOG.info("shenyu auto remove extends plugin data handler name is :{}", rpcTypeEnum.getName());
     }

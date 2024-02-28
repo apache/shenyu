@@ -72,7 +72,7 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder, Extend
     }
 
     @Override
-    public void removeHandler(RpcTypeEnum rpcTypeEnum) {
+    public void removeHandler(final RpcTypeEnum rpcTypeEnum) {
         this.decoratorMap.remove(rpcTypeEnum.getName());
     }
 

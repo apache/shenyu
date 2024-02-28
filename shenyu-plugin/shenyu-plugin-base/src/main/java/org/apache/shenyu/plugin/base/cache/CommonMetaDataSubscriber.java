@@ -27,7 +27,6 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -60,7 +59,7 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber, ExtendDataH
     }
 
     @Override
-    public void removeHandler(RpcTypeEnum rpcTypeEnum) {
+    public void removeHandler(final RpcTypeEnum rpcTypeEnum) {
         this.handlerMap.remove(rpcTypeEnum.getName());
     }
 
