@@ -42,9 +42,6 @@ public abstract class AbstractContextPathRegisterService extends AbstractShenyuC
     @Override
     public void registerContextPath(final MetaDataRegisterDTO dto) {
         String name = PluginEnum.CONTEXT_PATH.getName();
-        String contextPathSelectorId = getSelectorService().registerDefault(dto, name, "");
-        // avoid repeated registration for many client threads
-        // many client threads may register the same context path for contextPath plugin at the same time
         String contextPath = PathUtils.decoratorContextPath(dto.getContextPath());
         String key = LOCK_KEY_PREFIX + contextPath;
         Lock lock = registry.obtain(key);
@@ -53,6 +50,9 @@ public abstract class AbstractContextPathRegisterService extends AbstractShenyuC
         }
         lock.lock();
         try {
+            String contextPathSelectorId = getSelectorService().registerDefault(dto, name, "");
+            // avoid repeated registration for many client threads
+            // many client threads may register the same context path for contextPath plugin at the same time
             if (Objects.nonNull(getRuleService().findBySelectorIdAndName(contextPathSelectorId, dto.getContextPath()))) {
                 return;
             }
