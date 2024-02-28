@@ -43,10 +43,10 @@ public class MotanPluginConfiguration extends AbstractIsolationConfiguration imp
     public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
         DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) beanFactory;
         MotanProxyService motanProxyService = new MotanProxyService();
-        registerSingleton(defaultListableBeanFactory, "motanProxyService", motanProxyService);
-        registerSingleton(defaultListableBeanFactory, "motanPlugin", new MotanPlugin(motanProxyService));
-        registerSingleton(defaultListableBeanFactory, "motanPluginDataHandler", new MotanPluginDataHandler());
-        registerSingleton(defaultListableBeanFactory, "motanMetaDataHandler", new MotanMetaDataHandler());
-        registerSingleton(defaultListableBeanFactory, "motanShenyuContextDecorator", new MotanShenyuContextDecorator());
+        registerSingleton(defaultListableBeanFactory, motanProxyService);
+        registerSingleton(defaultListableBeanFactory, new MotanPlugin(motanProxyService));
+        registerSingleton(defaultListableBeanFactory, new MotanPluginDataHandler());
+        registerSingleton(defaultListableBeanFactory, new MotanMetaDataHandler());
+        registerSingleton(defaultListableBeanFactory, new MotanShenyuContextDecorator());
     }
 }

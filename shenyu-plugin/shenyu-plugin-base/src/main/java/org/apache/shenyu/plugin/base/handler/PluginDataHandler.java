@@ -20,12 +20,11 @@ package org.apache.shenyu.plugin.base.handler;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.api.ExtendDataBase;
 
 /**
  * The interface Plugin data handler.
  */
-public interface PluginDataHandler extends ExtendDataBase {
+public interface PluginDataHandler {
     
     /**
      * Handler plugin.

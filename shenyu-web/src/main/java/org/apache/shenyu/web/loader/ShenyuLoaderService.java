@@ -22,7 +22,7 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.config.ShenyuConfig.ExtPlugin;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.plugin.api.ExtendDataBase;
+import org.apache.shenyu.plugin.isolation.ExtendDataBase;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.cache.ExtendDataHandler;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
@@ -35,6 +35,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -107,8 +108,9 @@ public class ShenyuLoaderService {
      */
     public List<ShenyuLoaderResult> loadJarPlugins(final InputStream parseJarInputStream, final ClassLoader classLoader) {
         try {
+            ShenyuPluginClassloaderHolder singleton = ShenyuPluginClassloaderHolder.getSingleton();
             PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(parseJarInputStream);
-            ShenyuPluginClassLoader shenyuPluginClassLoader = ShenyuPluginClassloaderHolder.getSingleton().createPluginClassLoader(pluginJar);
+            ShenyuPluginClassLoader shenyuPluginClassLoader = singleton.createPluginClassLoader(pluginJar);
             List<ShenyuLoaderResult> uploadPlugins = shenyuPluginClassLoader.loadUploadedJarPlugins(classLoader);
             loaderPlugins(uploadPlugins);
             return uploadPlugins;
@@ -116,6 +118,18 @@ public class ShenyuLoaderService {
             LOG.error("Shenyu upload plugins load has error ", e);
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * removeJarPlugins.
+     *
+     * @param parseJarInputStream parseJarInputStream
+     */
+    public void removeJarPlugins(final InputStream parseJarInputStream) {
+        ShenyuPluginClassloaderHolder singleton = ShenyuPluginClassloaderHolder.getSingleton();
+        PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(parseJarInputStream);
+        String jarKey = Optional.ofNullable(pluginJar.getAbsolutePath()).orElse(pluginJar.getJarKey());
+        singleton.removePluginClassLoader(jarKey);
     }
 
     /**
@@ -133,4 +147,5 @@ public class ShenyuLoaderService {
                 .filter(Objects::nonNull).collect(Collectors.toList());
         extendDataHandlers.forEach(addDataHandlers1 -> addDataHandlers1.putExtendDataHandler(handlers));
     }
+
 }

@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.base.cache;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -38,7 +40,7 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber, ExtendDataH
 
     private static final Logger LOG = LoggerFactory.getLogger(CommonMetaDataSubscriber.class);
 
-    private final Map<String, MetaDataHandler> handlerMap = new HashMap<>();
+    private final Map<String, MetaDataHandler> handlerMap = new ConcurrentHashMap<>();
 
     /**
      * Instantiates a new Common meta data subscriber.
@@ -54,6 +56,11 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber, ExtendDataH
         handlers.forEach(metaDataHandler -> {
             this.handlerMap.put(metaDataHandler.rpcType(), metaDataHandler);
         });
+    }
+
+    @Override
+    public void removeHandler(RpcTypeEnum rpcTypeEnum) {
+        this.handlerMap.remove(rpcTypeEnum.getName());
     }
 
     @Override

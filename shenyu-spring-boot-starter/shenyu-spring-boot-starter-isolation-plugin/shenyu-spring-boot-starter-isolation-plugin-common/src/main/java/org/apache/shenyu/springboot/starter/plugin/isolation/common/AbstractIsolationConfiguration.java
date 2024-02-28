@@ -37,4 +37,48 @@ public abstract class AbstractIsolationConfiguration {
             defaultListableBeanFactory.registerSingleton(name, obj);
         }
     }
+
+    /**
+     * Register singleton.
+     *
+     * @param defaultListableBeanFactory the default listable bean factory
+     * @param obj                         the obj
+     */
+    protected void registerSingleton(final DefaultListableBeanFactory defaultListableBeanFactory, final Object obj) {
+        String name = lowerCamelClassName(obj.getClass());
+        boolean existBean = defaultListableBeanFactory.containsBean(name);
+        if (!existBean) {
+            defaultListableBeanFactory.registerSingleton(name, obj);
+        }
+    }
+
+    /**
+     * Lower camel class name string
+     *
+     * @param clazz the clazz
+     * @return the string
+     */
+    private String lowerCamelClassName(Class<?> clazz) {
+        String className = clazz.getSimpleName();
+        if (Character.isLowerCase(className.charAt(0)) && !className.contains("_")) {
+            return className;
+        }
+        String[] words = className.split("_");
+        StringBuilder result = new StringBuilder(words[0].toLowerCase());
+
+        for (int i = 1; i < words.length; i++) {
+            result.append(capitalizeFirstLetter(words[i]));
+        }
+        return result.toString();
+    }
+
+    /**
+     * Capitalize first letter string
+     *
+     * @param word the word
+     * @return the string
+     */
+    private String capitalizeFirstLetter(String word) {
+        return Character.toUpperCase(word.charAt(0)) + word.substring(1);
+    }
 }

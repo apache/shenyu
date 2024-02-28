@@ -24,7 +24,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.common.isolation.ReverseClassLoader;
-import org.apache.shenyu.plugin.api.ExtendDataBase;
+import org.apache.shenyu.plugin.isolation.ExtendDataBase;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -47,6 +47,7 @@ import java.io.File;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -299,6 +300,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         // copy a new plugin list.
         List<ShenyuPlugin> newPluginList = new ArrayList<>(this.plugins);
         newPluginList.removeIf(plugin -> plugin.named().equals(pluginData.getName()));
+
         this.plugins = newPluginList;
     }
 

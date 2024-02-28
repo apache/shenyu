@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.api;
+package org.apache.shenyu.plugin.isolation;
 
 /**
  * ExtendDataBase.

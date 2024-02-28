@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.web.loader;
 
-import org.apache.shenyu.plugin.api.ExtendDataBase;
+import org.apache.shenyu.plugin.isolation.ExtendDataBase;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;

@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
+import org.apache.shenyu.plugin.isolation.ExtendDataBase;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 
 import java.util.Objects;
@@ -29,7 +30,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * The sofa metadata handler.
  */
-public class SofaMetaDataHandler implements MetaDataHandler {
+public class SofaMetaDataHandler implements MetaDataHandler, ExtendDataBase {
 
     private static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();
     

@@ -71,6 +71,11 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder, Extend
         });
     }
 
+    @Override
+    public void removeHandler(RpcTypeEnum rpcTypeEnum) {
+        this.decoratorMap.remove(rpcTypeEnum.getName());
+    }
+
     private Pair<String, MetaData> buildData(final ServerWebExchange exchange) {
         ServerHttpRequest request = exchange.getRequest();
         HttpHeaders headers = request.getHeaders();

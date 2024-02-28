@@ -166,15 +166,12 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private Mono<Void> isolationExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-//        if (Objects.isNull(pluginClassLoader)) {
-//            return doExecute(exchange, chain, selector, rule);
-//        }
         ClassLoader current = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
             return doExecute(exchange, chain, selector, rule);
         } catch (Throwable e) {
-            LogUtils.info(LOG, "Plugin class isolation execute failed. plugin: {}, exception: {}", named(), e);
+            LogUtils.error(LOG, "Plugin class isolation execute failed. plugin: {}, exception: {}", named(), e);
         } finally {
             Thread.currentThread().setContextClassLoader(current);
         }

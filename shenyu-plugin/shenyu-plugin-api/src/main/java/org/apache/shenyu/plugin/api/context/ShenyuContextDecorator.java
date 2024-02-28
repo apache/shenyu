@@ -18,12 +18,11 @@
 package org.apache.shenyu.plugin.api.context;
 
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.plugin.api.ExtendDataBase;
 
 /**
  * The interface shenyu context decorator.
  */
-public interface ShenyuContextDecorator extends ExtendDataBase {
+public interface ShenyuContextDecorator {
     
     /**
      * Decorator shenyu context.

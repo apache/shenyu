@@ -17,13 +17,20 @@
 
 package org.apache.shenyu.common.isolation;
 
+import org.apache.shenyu.common.utils.LogUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Objects;
 
 /**
  * ReverseClassLoader.
  */
 public class ReverseClassLoader extends URLClassLoader {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ReverseClassLoader.class);
 
     public ReverseClassLoader(final URL[] urls, final ClassLoader parent) {
         super(urls, parent);
@@ -51,13 +58,13 @@ public class ReverseClassLoader extends URLClassLoader {
         synchronized (getClassLoadingLock(name)) {
             Class<?> c = findLoadedClass(name);
             try {
-                if (c == null) {
+                if (Objects.isNull(c)) {
                     c = findClass(name);
                 }
             } catch (ClassNotFoundException e) {
-                // ignore
+                LogUtils.debug(LOG, "ReverseClassLoader class not found, className: {}", name);
             }
-            if (c == null) {
+            if (Objects.isNull(c)) {
                 c = super.loadClass(name, resolve);
             }
             if (resolve) {

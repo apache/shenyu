@@ -19,24 +19,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-spring-boot-starter-plugin</artifactId>
+        <artifactId>shenyu-plugin</artifactId>
         <version>2.7.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-spring-boot-starter-isolation-plugin</artifactId>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>shenyu-spring-boot-starter-isolation-plugin-common</module>
-        <module>shenyu-spring-boot-starter-isolation-plugin-sofa</module>
-        <module>shenyu-spring-boot-starter-isolation-plugin-motan</module>
-    </modules>
+    <artifactId>shenyu-plugin-isolation</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-base</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
         </dependency>
     </dependencies>
 </project>

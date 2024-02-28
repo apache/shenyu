@@ -20,7 +20,7 @@ package org.apache.shenyu.web.loader;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.plugin.api.ExtendDataBase;
+import org.apache.shenyu.plugin.isolation.ExtendDataBase;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;

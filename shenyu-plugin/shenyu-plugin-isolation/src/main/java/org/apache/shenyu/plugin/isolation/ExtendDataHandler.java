@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -36,13 +35,6 @@ public interface ExtendDataHandler<T> {
      * @param extendDatas extendDatas
      */
     void addHandlers(List<T> extendDatas);
-
-    /**
-     * removeHandlers.
-     *
-     * @param rpcTypeEnum rpcTypeEnum
-     */
-    void removeHandler(RpcTypeEnum rpcTypeEnum);
 
     /**
      * addHandlers.
@@ -63,23 +55,6 @@ public interface ExtendDataHandler<T> {
         dataSubscribers.forEach(dataSubscriber -> {
             if (actualTypeArgument.isAssignableFrom(dataSubscriber.getClass())) {
                 this.addHandlers(Collections.singletonList((T) dataSubscriber));
-            }
-        });
-    }
-
-    /**
-     * removeHandlers.
-     *
-     * @param rpcTypeEnum rpcTypeEnum
-     * @param dataSubscribers dataSubscribers
-     */
-    default void removeExtendDataHandler(RpcTypeEnum rpcTypeEnum, List<?> dataSubscribers) {
-        if (CollectionUtils.isEmpty(dataSubscribers)) {
-            return;
-        }
-        dataSubscribers.forEach(extendDataHandler -> {
-            if (extendDataHandler instanceof ExtendDataHandler) {
-                ((ExtendDataHandler<T>) extendDataHandler).removeHandler(rpcTypeEnum);
             }
         });
     }

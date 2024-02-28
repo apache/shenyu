@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.enums.TrieEventEnum;
 import org.apache.shenyu.common.utils.MapUtils;
@@ -110,7 +111,13 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber, ExtendD
             });
         }
     }
-    
+
+    @Override
+    public void removeHandler(RpcTypeEnum rpcTypeEnum) {
+        handlerMap.remove(rpcTypeEnum.getName());
+        LOG.info("shenyu auto remove extends plugin data handler name is :{}", rpcTypeEnum.getName());
+    }
+
     @Override
     public void onSubscribe(final PluginData pluginData) {
         LOG.info("subscribe plugin data for plugin: [id: {}, name: {}, config: {}]", pluginData.getId(), pluginData.getName(), pluginData.getConfig());

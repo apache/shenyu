@@ -43,12 +43,12 @@ public class SofaPluginConfiguration extends AbstractIsolationConfiguration impl
     @Override
     public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
         DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) beanFactory;
-        registerSingleton(defaultListableBeanFactory, "sofaShenyuContextDecorator", new SofaShenyuContextDecorator());
-        registerSingleton(defaultListableBeanFactory, "sofaMetaDataHandler", new SofaMetaDataHandler());
-        registerSingleton(defaultListableBeanFactory, "sofaPluginDataHandler", new SofaPluginDataHandler());
+        registerSingleton(defaultListableBeanFactory, new SofaShenyuContextDecorator());
+        registerSingleton(defaultListableBeanFactory, new SofaMetaDataHandler());
+        registerSingleton(defaultListableBeanFactory, new SofaPluginDataHandler());
         final SofaParamResolveServiceImpl sofaParamResolveService = new SofaParamResolveServiceImpl();
-        registerSingleton(defaultListableBeanFactory, "sofaParamResolveService", sofaParamResolveService);
-        registerSingleton(defaultListableBeanFactory, "sofaPlugin", new SofaPlugin(new SofaProxyService(sofaParamResolveService)));
+        registerSingleton(defaultListableBeanFactory, sofaParamResolveService);
+        registerSingleton(defaultListableBeanFactory, new SofaPlugin(new SofaProxyService(sofaParamResolveService)));
     }
 
 }
