@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import org.apache.shenyu.admin.lock.RegisterExecutionLock;
-import org.apache.shenyu.admin.lock.RegisterExecutionRepository;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
 import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
@@ -30,6 +28,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.integration.support.locks.LockRegistry;
+import java.util.concurrent.locks.ReentrantLock;
 
 import java.util.List;
 
@@ -55,16 +55,16 @@ class AbstractContextPathRegisterServiceTest {
     private RuleServiceImpl ruleService;
 
     @Mock
-    private RegisterExecutionRepository registerExecutionRepository;
+    private LockRegistry registry;
 
     @Test
     public void testRegisterContextPath() {
         MetaDataRegisterDTO dto = MetaDataRegisterDTO.builder().build();
         dto.setContextPath("Context_Path");
         dto.setAddPrefixed(true);
-        RegisterExecutionLock registerExecutionLock = mock(RegisterExecutionLock.class);
         when(selectorService.registerDefault(dto, PluginEnum.CONTEXT_PATH.getName(), "")).thenReturn("Context_Path_Selector_Id");
-        when(registerExecutionRepository.getLock(any())).thenReturn(registerExecutionLock);
+        // org.springframework.integration.jdbc.lock.JdbcLockRegistry.JdbcLock is private and cannot be mocked directly so we mock the LockRegistry and return a mock ReentrantLock
+        when(registry.obtain(any())).thenReturn(mock(ReentrantLock.class));
         abstractContextPathRegisterService.registerContextPath(dto);
         verify(ruleService).registerDefault(any());
     }

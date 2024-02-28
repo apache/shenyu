@@ -21,3 +21,14 @@ INSERT INTO `plugin_handle` VALUES ('1722804548510507023', '3', 'rewriteMetaData
 
 INSERT INTO `shenyu_dict` VALUES ('1679002911061737478', 'rewriteMetaData', 'REWRITE_META_DATA', 'true', 'true', '', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO `shenyu_dict` VALUES ('1679002911061737479', 'rewriteMetaData', 'REWRITE_META_DATA', 'false', 'false', '', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+-- ----------------------------
+-- Table structure for INT_LOCK
+-- ----------------------------
+DROP TABLE IF EXISTS `INT_LOCK`;
+CREATE TABLE IF NOT EXISTS INT_LOCK  (
+    `LOCK_KEY` CHAR(36) NOT NULL,
+    `REGION` VARCHAR(100) NOT NULL,
+    `CLIENT_ID` CHAR(36),
+    `CREATED_DATE` TIMESTAMP NOT NULL,
+    constraint INT_LOCK_PK primary key (LOCK_KEY, REGION)
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
