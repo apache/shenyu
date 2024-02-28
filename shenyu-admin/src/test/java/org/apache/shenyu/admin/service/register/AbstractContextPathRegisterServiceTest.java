@@ -65,6 +65,8 @@ class AbstractContextPathRegisterServiceTest {
         when(selectorService.registerDefault(dto, PluginEnum.CONTEXT_PATH.getName(), "")).thenReturn("Context_Path_Selector_Id");
         // org.springframework.integration.jdbc.lock.JdbcLockRegistry.JdbcLock is private and cannot be mocked directly so we mock the LockRegistry and return a mock ReentrantLock
         when(registry.obtain(any())).thenReturn(mock(ReentrantLock.class));
+        when(ruleService.findBySelectorIdAndName("Context_Path_Selector_Id", "Context_Path")).thenReturn(null);
+        when(ruleService.registerDefault(any())).thenReturn("Context_Path_Rule_Id");
         abstractContextPathRegisterService.registerContextPath(dto);
         verify(ruleService).registerDefault(any());
     }
