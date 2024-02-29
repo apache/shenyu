@@ -25,12 +25,15 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.metrics.constant.LabelNames;
 import org.apache.shenyu.plugin.metrics.reporter.MetricsReporter;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * the monitor plugin.
@@ -44,6 +47,11 @@ public class MetricsPlugin implements ShenyuPlugin {
         assert shenyuContext != null;
         MetricsReporter.counterIncrement(LabelNames.REQUEST_TYPE_TOTAL, new String[]{exchange.getRequest().getURI().getRawPath(), shenyuContext.getRpcType()});
         LocalDateTime startDateTime = Optional.of(shenyuContext).map(ShenyuContext::getStartDateTime).orElseGet(LocalDateTime::now);
+        exchange.getAttributes().put(Constants.METRICS_RATE_LIMITER, (Consumer<HttpStatus>) status -> {
+            if (Objects.nonNull(status) && HttpStatus.TOO_MANY_REQUESTS.equals(status)) {
+                MetricsReporter.counterIncrement(LabelNames.RATELIMITER_REQUEST_RESTRICT_TOTAL);
+            }
+        });
         return chain.execute(exchange).doOnSuccess(e -> responseCommitted(exchange, startDateTime))
                 .doOnError(throwable -> {
                     MetricsReporter.counterIncrement(LabelNames.REQUEST_THROW_TOTAL);

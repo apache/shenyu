@@ -789,7 +789,12 @@ public interface Constants {
      * the plugin end time of plugin lifecycle.
      */
     String PLUGIN_END_TIME = "pluginEndTime:";
-    
+
+    /**
+     * ratelimiter plugin metrics.
+     */
+    String METRICS_RATE_LIMITER = "metricsRateLimiter";
+
     /**
      * String q.
      */

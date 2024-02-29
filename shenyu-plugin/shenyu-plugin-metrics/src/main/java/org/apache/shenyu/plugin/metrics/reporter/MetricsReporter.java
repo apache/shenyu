@@ -43,6 +43,7 @@ public final class MetricsReporter {
         MetricsReporter.registerCounter(LabelNames.REQUEST_TYPE_TOTAL, new String[]{"path", "type"}, "shenyu http request type total count");
         MetricsReporter.registerCounter(LabelNames.REQUEST_THROW_TOTAL, "shenyu request error total count");
         MetricsReporter.registerHistogram(LabelNames.EXECUTE_LATENCY_NAME, "the shenyu executor latency millis");
+        MetricsReporter.registerCounter(LabelNames.RATELIMITER_REQUEST_RESTRICT_TOTAL, "shenyu ratelimiter request restrict total count");
     }
     
     /**
