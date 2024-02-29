@@ -117,10 +117,6 @@ class AbstractWasmDiscoveryHandlerTest {
         }
 
         @Override
-        public void handlerDiscoveryUpstreamData(final DiscoverySyncData discoverySyncData) {
-        }
-
-        @Override
         public String pluginName() {
             return "SHENYU_TEST";
         }
