@@ -23,7 +23,7 @@ ENV LOCAL_PATH /opt/shenyu-admin
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
-FROM openjdk:17-jdk-alpine
+FROM openjdk:17-jdk
 
 RUN apk --no-cache add procps
 

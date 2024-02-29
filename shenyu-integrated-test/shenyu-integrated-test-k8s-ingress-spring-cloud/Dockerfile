@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:17-jdk-alpine
+FROM openjdk:17-jdk
 
 ENV APP_NAME shenyu-integrated-test-k8s-ingress-spring-cloud
 ENV LOCAL_PATH /opt/${APP_NAME}
