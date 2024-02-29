@@ -96,16 +96,17 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
+            modifyResponseHeadersAndStatus();
             final Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(body);
-            buildModifiedResponse(body);
             return dataBufferMono.flatMap(dataBuffer -> {
                 byte[] bytes = new byte[dataBuffer.readableByteCount()];
                 dataBuffer.read(bytes);
+                DataBufferUtils.release(dataBuffer);
                 return WebFluxResultUtils.result(this.exchange, modifyBody(bytes));
             });
         }
 
-        private void buildModifiedResponse(final Publisher<? extends DataBuffer> body) {
+        private void modifyResponseHeadersAndStatus() {
             HttpHeaders httpHeaders = new HttpHeaders();
             // add origin headers
             httpHeaders.addAll(this.getHeaders());
