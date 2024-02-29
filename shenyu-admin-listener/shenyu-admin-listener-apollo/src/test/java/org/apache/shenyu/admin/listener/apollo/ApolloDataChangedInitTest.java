@@ -17,19 +17,21 @@
 
 package org.apache.shenyu.admin.listener.apollo;
 
-import static org.apache.shenyu.common.constant.NacosPathConstants.AUTH_DATA_ID;
-import static org.apache.shenyu.common.constant.NacosPathConstants.PLUGIN_DATA_ID;
-import static org.apache.shenyu.common.constant.NacosPathConstants.META_DATA_ID;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
-
 import org.apache.shenyu.admin.config.properties.ApolloProperties;
+import org.apache.shenyu.admin.listener.utils.NodeDataPathUtils;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.apache.shenyu.common.constant.ApolloPathConstants.AUTH_DATA_ID;
+import static org.apache.shenyu.common.constant.ApolloPathConstants.META_DATA_ID;
+import static org.apache.shenyu.common.constant.ApolloPathConstants.PLUGIN_DATA_ID;
+import static org.apache.shenyu.common.constant.ApolloPathConstants.PROXY_SELECTOR_DATA_ID;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
 
 @ContextConfiguration(classes = {ApolloDataChangedInit.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -65,21 +67,37 @@ public class ApolloDataChangedInitTest {
     @Test
     public void testNotExist() {
 
-        when(apolloClient.getItemValue(PLUGIN_DATA_ID)).thenReturn(PLUGIN_DATA_ID);
+        when(apolloClient.getItemValue(join(PLUGIN_DATA_ID))).thenReturn(PLUGIN_DATA_ID);
         boolean pluginExist = apolloDataChangedInit.notExist();
         Assertions.assertFalse(pluginExist, "plugin exist.");
-        when(apolloClient.getItemValue(PLUGIN_DATA_ID)).thenReturn(null);
+        when(apolloClient.getItemValue(join(PLUGIN_DATA_ID))).thenReturn(null);
 
-        when(apolloClient.getItemValue(AUTH_DATA_ID)).thenReturn(AUTH_DATA_ID);
+        when(apolloClient.getItemValue(join(AUTH_DATA_ID))).thenReturn(AUTH_DATA_ID);
         boolean authExist = apolloDataChangedInit.notExist();
         Assertions.assertFalse(authExist, "auth exist.");
-        when(apolloClient.getItemValue(AUTH_DATA_ID)).thenReturn(null);
+        when(apolloClient.getItemValue(join(AUTH_DATA_ID))).thenReturn(null);
 
-        when(apolloClient.getItemValue(META_DATA_ID)).thenReturn(META_DATA_ID);
+        when(apolloClient.getItemValue(join(META_DATA_ID))).thenReturn(META_DATA_ID);
         boolean metaDataExist = apolloDataChangedInit.notExist();
         Assertions.assertFalse(metaDataExist, "metadata exist.");
-        when(apolloClient.getItemValue(META_DATA_ID)).thenReturn(null);
+        when(apolloClient.getItemValue(join(META_DATA_ID))).thenReturn(null);
 
+        when(apolloClient.getItemValue(join(PROXY_SELECTOR_DATA_ID))).thenReturn(PROXY_SELECTOR_DATA_ID);
+        boolean selectorDataExist = apolloDataChangedInit.notExist();
+        Assertions.assertFalse(selectorDataExist, "selector exist.");
+    }
+
+    @Test
+    public void testAllExist() {
+        when(apolloClient.getItemValue(join(PLUGIN_DATA_ID))).thenReturn(META_DATA_ID);
+        when(apolloClient.getItemValue(join(AUTH_DATA_ID))).thenReturn(META_DATA_ID);
+        when(apolloClient.getItemValue(join(META_DATA_ID))).thenReturn(META_DATA_ID);
+        when(apolloClient.getItemValue(join(PROXY_SELECTOR_DATA_ID))).thenReturn(META_DATA_ID);
+        Assertions.assertFalse(apolloDataChangedInit.notExist(), "some key not exist.");
+    }
+
+    private String join(final String text) {
+        return NodeDataPathUtils.appendListStuff(text);
     }
 }
 
