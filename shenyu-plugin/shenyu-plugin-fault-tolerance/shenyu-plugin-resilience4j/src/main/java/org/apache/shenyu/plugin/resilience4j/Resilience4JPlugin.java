@@ -39,6 +39,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -88,7 +90,10 @@ public class Resilience4JPlugin extends AbstractShenyuPlugin {
 
     private Function<Throwable, Mono<Void>> fallback(final Executor executor,
                                                      final ServerWebExchange exchange, final String uri) {
-        return throwable -> executor.fallback(exchange, UriUtils.createUri(uri), throwable);
+        return throwable -> executor.fallback(exchange, UriUtils.createUri(uri), throwable).doFinally(monoV -> {
+            final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.METRICS_RESILIENCE4J);
+            Optional.ofNullable(consumer).ifPresent(c -> c.accept(exchange.getResponse().getStatusCode()));
+        });
     }
 
     @Override

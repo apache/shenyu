@@ -789,6 +789,21 @@ public interface Constants {
      * the plugin end time of plugin lifecycle.
      */
     String PLUGIN_END_TIME = "pluginEndTime:";
+
+    /**
+     * sentinel plugin metrics.
+     */
+    String METRICS_SENTINEL = "metricsSentinel";
+
+    /**
+     * resilience4j plugin metrics.
+     */
+    String METRICS_RESILIENCE4J = "metricsResilience4j";
+
+    /**
+     * Hystrix plugin metrics.
+     */
+    String METRICS_HYSTRIX = "metricsHystrix";
     
     /**
      * String q.

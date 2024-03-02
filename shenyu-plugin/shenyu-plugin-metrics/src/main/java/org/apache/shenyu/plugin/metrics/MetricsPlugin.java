@@ -25,12 +25,15 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.metrics.constant.LabelNames;
 import org.apache.shenyu.plugin.metrics.reporter.MetricsReporter;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * the monitor plugin.
@@ -42,6 +45,7 @@ public class MetricsPlugin implements ShenyuPlugin {
         MetricsReporter.counterIncrement(LabelNames.REQUEST_TOTAL);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
+        setMetricsCallbacks(exchange);
         MetricsReporter.counterIncrement(LabelNames.REQUEST_TYPE_TOTAL, new String[]{exchange.getRequest().getURI().getRawPath(), shenyuContext.getRpcType()});
         LocalDateTime startDateTime = Optional.of(shenyuContext).map(ShenyuContext::getStartDateTime).orElseGet(LocalDateTime::now);
         return chain.execute(exchange).doOnSuccess(e -> responseCommitted(exchange, startDateTime))
@@ -49,6 +53,24 @@ public class MetricsPlugin implements ShenyuPlugin {
                     MetricsReporter.counterIncrement(LabelNames.REQUEST_THROW_TOTAL);
                     responseCommitted(exchange, startDateTime);
                 });
+    }
+
+    private void setMetricsCallbacks(final ServerWebExchange exchange) {
+        exchange.getAttributes().put(Constants.METRICS_SENTINEL, (Consumer<HttpStatus>) status -> {
+            if (Objects.equals(HttpStatus.TOO_MANY_REQUESTS, status) || Objects.equals(HttpStatus.INTERNAL_SERVER_ERROR, status)) {
+                MetricsReporter.counterIncrement(LabelNames.SENTINEL_REQUEST_RESTRICT_TOTAL);
+            }
+        });
+        exchange.getAttributes().put(Constants.METRICS_RESILIENCE4J, (Consumer<HttpStatus>) status -> {
+            if (Objects.equals(HttpStatus.TOO_MANY_REQUESTS, status) || Objects.equals(HttpStatus.INTERNAL_SERVER_ERROR, status) || Objects.equals(HttpStatus.GATEWAY_TIMEOUT, status)) {
+                MetricsReporter.counterIncrement(LabelNames.RESILIENCE4J_REQUEST_RESTRICT_TOTAL);
+            }
+        });
+        exchange.getAttributes().put(Constants.METRICS_HYSTRIX, (Consumer<HttpStatus>) status -> {
+            if (Objects.equals(HttpStatus.INTERNAL_SERVER_ERROR, status) || Objects.equals(HttpStatus.GATEWAY_TIMEOUT, status)) {
+                MetricsReporter.counterIncrement(LabelNames.HYSTRIX_REQUEST_RESTRICT_TOTAL);
+            }
+        });
     }
 
     @Override
