@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
@@ -49,7 +50,12 @@ import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.SignUtils;
+import org.apache.shenyu.common.utils.UUIDUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +66,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -67,6 +74,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class AppAuthServiceImpl implements AppAuthService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AppAuthServiceImpl.class);
 
     private final AppAuthMapper appAuthMapper;
 
@@ -249,6 +258,50 @@ public class AppAuthServiceImpl implements AppAuthService {
         return ShenyuAdminResult.success();
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ShenyuAdminResult importData(List<AppAuthVO> authDataList) {
+        if (CollectionUtils.isEmpty(authDataList)) {
+            return ShenyuAdminResult.success();
+        }
+        try {
+            // exist appKey set
+            Set<String> existAppKeySet = Optional.of(this.appAuthMapper.selectAll().stream().filter(Objects::nonNull).map(AppAuthDO::getAppKey).collect(Collectors.toSet())).orElse(Sets.newHashSet());
+
+            for (AppAuthVO appAuth : authDataList) {
+                AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuth);
+                String appKey = appAuth.getAppKey();
+                if (existAppKeySet.contains(appKey)) {
+                    // already exists, just record
+                    LOG.info("to import auth data, appKey: {} already exists", appKey);
+                    // TODO 记录错误信息，最终在结果中返回
+                    continue;
+                }
+                // create
+                String authId = UUIDUtils.getInstance().generateShortUuid();
+                appAuthDO.setId(authId);
+                appAuthMapper.insertSelective(appAuthDO);
+                // auth path
+                List<AuthPathVO> authPathVOList = appAuth.getAuthPathVOList();
+                if (CollectionUtils.isNotEmpty(authPathVOList)) {
+                    List<AuthPathDO> authPathDOS = authPathVOList.stream().map(param -> AuthPathDO.create(param.getPath(), authId, param.getAppName())).collect(Collectors.toList());
+                    authPathMapper.batchSave(authPathDOS);
+                }
+
+                // auth param
+                List<org.apache.shenyu.admin.model.vo.AuthParamVO> authParamVOList = appAuth.getAuthParamVOList();
+                if (CollectionUtils.isNotEmpty(authParamVOList)) {
+                    List<AuthParamDO> authParamDOS = authParamVOList.stream().map(param -> AuthParamDO.create(authId, param.getAppName(), param.getAppParam())).collect(Collectors.toList());
+                    authParamMapper.batchSave(authParamDOS);
+                }
+            }
+            return this.syncData();
+        } catch (Exception e) {
+            LOG.error("import app auth data error", e);
+            throw new ShenyuException("import app auth data error.");
+        }
+    }
+
 
     /**
      * create or update application authority.
@@ -415,6 +468,26 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
+    public List<AppAuthVO> listAllVO() {
+        List<AppAuthDO> appAuthDOList = appAuthMapper.selectAll();
+        if (CollectionUtils.isEmpty(appAuthDOList)) {
+            return new ArrayList<>();
+        }
+
+        List<String> idList = appAuthDOList.stream().map(BaseDO::getId).collect(Collectors.toList());
+        Map<String, List<AuthParamVO>> paramMap = this.prepareAuthParamVO(idList);
+        Map<String, List<AuthPathVO>> pathMap = this.prepareAuthPathVO(idList);
+
+        return appAuthDOList.stream().map(data -> {
+                    AppAuthVO vo = AppAuthTransfer.INSTANCE.mapToVO(data);
+                    vo.setAuthParamVOList(paramMap.get(vo.getId()));
+                    vo.setAuthPathVOList(pathMap.get(vo.getId()));
+                    return vo;
+                }
+        ).collect(Collectors.toList());
+    }
+
+    @Override
     public ShenyuAdminResult updateAppSecretByAppKey(final String appKey, final String appSecret) {
         return ShenyuAdminResult.success(appAuthMapper.updateAppSecretByAppKey(appKey, appSecret));
     }
@@ -504,6 +577,53 @@ public class AppAuthServiceImpl implements AppAuthService {
                         dataList1.addAll(dataList2);
                         return dataList1;
                     }));
+    }
+
+    /**
+     * prepare the Map with authIds.
+     *
+     * @param authIds auth id
+     * @return a map consist of param vo info
+     */
+    private Map<String, List<AuthParamVO>> prepareAuthParamVO(final List<String> authIds) {
+
+        List<AuthParamDO> authPathDOList = authParamMapper.findByAuthIdList(authIds);
+
+        return Optional.ofNullable(authPathDOList).orElseGet(ArrayList::new)
+                .stream().collect(Collectors.toMap(AuthParamDO::getAuthId,
+                        data -> {
+                            List<AuthParamVO> dataList = new ArrayList<>();
+                            AuthParamVO authParamVO = new AuthParamVO();
+                            BeanUtils.copyProperties(data, authParamVO);
+                            dataList.add(authParamVO);
+                            return dataList;
+                        }, (List<AuthParamVO> dataList1, List<AuthParamVO> dataList2) -> {
+                            dataList1.addAll(dataList2);
+                            return dataList1;
+                        }));
+    }
+
+    /**
+     * prepare the Map with authIds.
+     *
+     * @param authIds auth id
+     * @return a map consist of path vo info
+     */
+    private Map<String, List<AuthPathVO>> prepareAuthPathVO(final List<String> authIds) {
+
+        List<AuthPathDO> authPathDOList = authPathMapper.findByAuthIdList(authIds);
+        return Optional.ofNullable(authPathDOList).orElseGet(ArrayList::new)
+                .stream().collect(Collectors.toMap(AuthPathDO::getAuthId,
+                        data -> {
+                            List<AuthPathVO> dataList = new ArrayList<>();
+                            AuthPathVO authPathVO = new AuthPathVO();
+                            BeanUtils.copyProperties(data, authPathVO);
+                            dataList.add(authPathVO);
+                            return dataList;
+                        }, (List<AuthPathVO> dataList1, List<AuthPathVO> dataList2) -> {
+                            dataList1.addAll(dataList2);
+                            return dataList1;
+                        }));
     }
 
 }

@@ -64,6 +64,29 @@ public enum MetaDataTransfer {
     /**
      * Map to entity meta data do.
      *
+     * @param metaDataVO the meta data vo
+     * @return the meta data do
+     */
+    public MetaDataDO mapToEntity(final MetaDataVO metaDataVO) {
+        return Optional.ofNullable(metaDataVO)
+                .map(dto -> MetaDataDO.builder()
+                        .id(dto.getId())
+                        .appName(dto.getAppName())
+                        .path(dto.getPath())
+                        .pathDesc(dto.getPathDesc())
+                        .rpcType(dto.getRpcType())
+                        .serviceName(dto.getServiceName())
+                        .methodName(dto.getMethodName())
+                        .parameterTypes(dto.getParameterTypes())
+                        .rpcExt(dto.getRpcExt())
+                        .enabled(dto.getEnabled())
+                        .build())
+                .orElse(null);
+    }
+
+    /**
+     * Map to entity meta data do.
+     *
      * @param metaDataDTO the meta data dto
      * @return the meta data do
      */

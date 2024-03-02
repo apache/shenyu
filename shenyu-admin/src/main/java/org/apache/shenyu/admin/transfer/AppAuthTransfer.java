@@ -56,6 +56,28 @@ public enum AppAuthTransfer {
                 })
                 .orElse(null);
     }
+    /**
+     * Map to entity app auth do.
+     *
+     * @param appAuthVO the app auth vo
+     * @return the app auth do
+     */
+    public AppAuthDO mapToEntity(final AppAuthVO appAuthVO) {
+        return Optional.ofNullable(appAuthVO)
+                .map(v -> {
+                    AppAuthDO.AppAuthDOBuilder appAuthDO = AppAuthDO.builder();
+                    appAuthDO.id(v.getId());
+                    appAuthDO.appKey(v.getAppKey());
+                    appAuthDO.appSecret(v.getAppSecret());
+                    appAuthDO.enabled(v.getEnabled());
+                    appAuthDO.open(v.getOpen());
+                    appAuthDO.userId(v.getUserId());
+                    appAuthDO.phone(v.getPhone());
+                    appAuthDO.extInfo(v.getExtInfo());
+                    return appAuthDO.build();
+                })
+                .orElse(null);
+    }
 
     /**
      * Map to vo app auth vo.

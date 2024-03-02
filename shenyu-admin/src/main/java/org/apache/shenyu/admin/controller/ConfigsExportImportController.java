@@ -1,0 +1,240 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.shenyu.admin.controller;
+
+import com.alibaba.nacos.common.utils.DateFormatUtils;
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
+import org.apache.shenyu.admin.model.dto.SelectorDTO;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.AppAuthVO;
+import org.apache.shenyu.admin.model.vo.MetaDataVO;
+import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.RuleService;
+import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.utils.ZipUtil;
+import org.apache.shenyu.common.constant.ExportImportConstants;
+import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * this is configs controller.
+ */
+@RestApi("/configs")
+public class ConfigsExportImportController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ConfigsExportImportController.class);
+
+    /**
+     * The AppAuth service.
+     */
+    private final AppAuthService appAuthService;
+
+    /**
+     * The Plugin service.
+     */
+    private final PluginService pluginService;
+
+    /**
+     * The Selector service.
+     */
+    private final SelectorService selectorService;
+
+    /**
+     * The Rule service.
+     */
+    private final RuleService ruleService;
+    /**
+     * The Metadata service.
+     */
+    private final MetaDataService metaDataService;
+
+
+    public ConfigsExportImportController(final AppAuthService appAuthService, final PluginService pluginService, final SelectorService selectorService, final RuleService ruleService, final MetaDataService metaDataService) {
+        this.appAuthService = appAuthService;
+        this.pluginService = pluginService;
+        this.selectorService = selectorService;
+        this.ruleService = ruleService;
+        this.metaDataService = metaDataService;
+    }
+
+
+    /**
+     * Export all configs.
+     *
+     * @return the shenyu result
+     */
+    @GetMapping("/export")
+//    @RequiresPermissions("system:authen:list")
+    public ResponseEntity<byte[]> exportConfigs() {
+        List<ZipUtil.ZipItem> zipItemList = Lists.newArrayList();
+        List<AppAuthVO> authDataList = appAuthService.listAllVO();
+        if (CollectionUtils.isNotEmpty(authDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.AUTH_JSON, JsonUtils.toJson(authDataList)));
+        }
+        List<PluginData> pluginData = pluginService.listAll();
+        if (CollectionUtils.isNotEmpty(pluginData)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_JSON, JsonUtils.toJson(pluginData)));
+        }
+        List<SelectorData> selectorData = selectorService.listAll();
+        if (CollectionUtils.isNotEmpty(selectorData)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.SELECTOR_JSON, JsonUtils.toJson(selectorData)));
+        }
+        List<RuleData> ruleData = ruleService.listAll();
+        if (CollectionUtils.isNotEmpty(ruleData)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.RULE_JSON, JsonUtils.toJson(ruleData)));
+        }
+        List<MetaDataVO> metaData = metaDataService.listAllVO();
+        if (CollectionUtils.isNotEmpty(metaData)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.META_JSON, JsonUtils.toJson(metaData)));
+        }
+        HttpHeaders headers = new HttpHeaders();
+        String fileName = generateFileName();
+        headers.add("Content-Disposition", "attachment;filename=" + fileName);
+        return new ResponseEntity<>(ZipUtil.zip(zipItemList), headers, HttpStatus.OK);
+    }
+
+    /**
+     * generate export file name.
+     *
+     * @return fileName
+     */
+    private String generateFileName() {
+        return ExportImportConstants.EXPORT_CONFIG_FILE_NAME + DateFormatUtils.format(new Date(), ExportImportConstants.EXPORT_CONFIG_FILE_NAME_DATE_FORMAT)
+                + ExportImportConstants.EXPORT_CONFIG_FILE_NAME_EXT;
+    }
+
+
+    @PostMapping("/import")
+    public ShenyuAdminResult importConfigs(MultipartFile file) {
+        if (Objects.isNull(file)) {
+            return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
+        }
+        List<Object> configInfoList = new ArrayList<>();
+        List<Map<String, String>> unrecognizedList = new ArrayList<>();
+        try {
+            ZipUtil.UnZipResult unZipResult = ZipUtil.unzip(file.getBytes());
+            List<ZipUtil.ZipItem> zipItemList = unZipResult.getZipItemList();
+            if (CollectionUtils.isEmpty(zipItemList)) {
+                LOG.info("import file is empty");
+                return ShenyuAdminResult.success();
+            }
+
+            for (ZipUtil.ZipItem zipItem : zipItemList) {
+                switch (zipItem.getItemName()) {
+                    case ExportImportConstants.PLUGIN_JSON:
+//                        String pluginJson = zipItem.getItemData();
+//                        if (StringUtils.isNotEmpty(pluginJson)) {
+//                            List<PluginDTO> pluginList = GsonUtils.getInstance().fromList(pluginJson, PluginDTO.class);
+//                            for (PluginDTO pluginDTO : pluginList) {
+//                                pluginService.createOrUpdate(pluginDTO);
+//                            }
+//                        }
+                        break;
+                    case ExportImportConstants.SELECTOR_JSON:
+                        String selectorJson = zipItem.getItemData();
+                        if (StringUtils.isNotEmpty(selectorJson)) {
+                            List<SelectorData> selectorList = GsonUtils.getInstance().fromList(selectorJson, SelectorData.class);
+                            Set<String> existSet = selectorService.listAll().stream().filter(Objects::nonNull).map(SelectorData::getId).collect(Collectors.toSet());
+                            for (SelectorData selectorData : selectorList) {
+                                SelectorDTO dto = new SelectorDTO();
+                                BeanUtils.copyProperties(selectorData, dto);
+
+                                dto.setLoged(selectorData.getLogged());
+
+                                List<ConditionData> conditionList = selectorData.getConditionList();
+                                List<SelectorConditionDTO> selectorConditionDTOList = Lists.newArrayList();
+                                if (CollectionUtils.isNotEmpty(conditionList)) {
+                                    for (ConditionData conditionData : conditionList) {
+                                        SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
+                                        BeanUtils.copyProperties(conditionData, selectorConditionDTO);
+                                        selectorConditionDTOList.add(selectorConditionDTO);
+                                    }
+                                }
+                                dto.setSelectorConditions(selectorConditionDTOList);
+
+                                // check if id already exists
+                                if (!existSet.contains(selectorData.getId())) {
+                                    selectorService.create(dto);
+                                } else {
+                                    selectorService.update(dto);
+                                }
+                            }
+                        }
+                        break;
+                    case ExportImportConstants.RULE_JSON:
+                        String ruleJson = zipItem.getItemData();
+                        if (StringUtils.isNotEmpty(ruleJson)) {
+
+                        }
+                        break;
+                    case ExportImportConstants.AUTH_JSON:
+                        String authJson = zipItem.getItemData();
+                        if (StringUtils.isNotEmpty(authJson)) {
+                            List<AppAuthVO> authDataList = GsonUtils.getInstance().fromList(authJson, AppAuthVO.class);
+                            appAuthService.importData(authDataList);
+                        }
+                        break;
+                    case ExportImportConstants.META_JSON:
+                        String metaJson = zipItem.getItemData();
+                        if (StringUtils.isNotEmpty(metaJson)) {
+                            List<MetaDataVO> metaDataList = GsonUtils.getInstance().fromList(metaJson, MetaDataVO.class);
+                            metaDataService.importData(metaDataList);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        } catch (IOException e) {
+            LOG.error("parsing data failed", e);
+            return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
+        }
+
+        return ShenyuAdminResult.success();
+    }
+}

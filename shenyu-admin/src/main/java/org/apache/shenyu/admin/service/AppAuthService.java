@@ -129,6 +129,13 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
     List<AppAuthData> listAll();
 
     /**
+     * List all vo list.
+     *
+     * @return the vo list
+     */
+    List<AppAuthVO> listAllVO();
+
+    /**
      * Update app secret by app key shenyu result.
      *
      * @param appKey    the app key
@@ -152,5 +159,13 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
      * @return the shenyu result
      */
     ShenyuAdminResult syncData();
+
+
+    /**
+     * Import shenyu auth data.
+     * @param authDataList app auth vo list
+     * @return the shenyu admin result
+     */
+    ShenyuAdminResult importData(List<AppAuthVO> authDataList);
 
 }
