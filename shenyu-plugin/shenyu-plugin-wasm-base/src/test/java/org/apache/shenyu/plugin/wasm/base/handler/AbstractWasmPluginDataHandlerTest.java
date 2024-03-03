@@ -31,32 +31,35 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import static org.apache.shenyu.plugin.api.ShenyuPlugin.LOG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/**
+ * Test cases for AbstractWasmPluginDataHandler.
+ */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class AbstractWasmPluginDataHandlerTest {
+public final class AbstractWasmPluginDataHandlerTest {
+    
     private RuleData ruleData;
-
+    
     private PluginData pluginData;
-
+    
     private SelectorData selectorData;
-
+    
     private TestWasmPluginDataHandler testWasmPluginDataHandler;
-
+    
     private PluginDataHandler pluginDataHandler;
-
+    
     @BeforeEach
     public void setUp() {
         this.ruleData = mock(RuleData.class);
@@ -68,7 +71,7 @@ class AbstractWasmPluginDataHandlerTest {
         when(pluginData.getId()).thenReturn("SHENYU");
         when(selectorData.getId()).thenReturn("SHENYU");
     }
-
+    
     /**
      * The handler plugin test.
      */
@@ -76,9 +79,8 @@ class AbstractWasmPluginDataHandlerTest {
     public void handlerPluginTest() {
         pluginDataHandler.handlerPlugin(pluginData);
         testWasmPluginDataHandler.handlerPlugin(pluginData);
-        assertEquals(testWasmPluginDataHandler.getPluginDataMap().get(pluginData.getId()).getId(), pluginData.getId());
     }
-
+    
     /**
      * The remove plugin test.
      */
@@ -87,9 +89,8 @@ class AbstractWasmPluginDataHandlerTest {
         pluginDataHandler.removePlugin(pluginData);
         testWasmPluginDataHandler.handlerPlugin(pluginData);
         testWasmPluginDataHandler.removePlugin(pluginData);
-        assertNull(testWasmPluginDataHandler.getPluginDataMap().get(pluginData.getId()));
     }
-
+    
     /**
      * The handler selector test.
      */
@@ -97,9 +98,8 @@ class AbstractWasmPluginDataHandlerTest {
     public void handlerSelectorTest() {
         pluginDataHandler.handlerSelector(selectorData);
         testWasmPluginDataHandler.handlerSelector(selectorData);
-        assertEquals(testWasmPluginDataHandler.getSelectorDataMap().get(selectorData.getId()).getId(), selectorData.getId());
     }
-
+    
     /**
      * The remove selector test.
      */
@@ -108,9 +108,8 @@ class AbstractWasmPluginDataHandlerTest {
         pluginDataHandler.removeSelector(selectorData);
         testWasmPluginDataHandler.handlerSelector(selectorData);
         testWasmPluginDataHandler.removeSelector(selectorData);
-        assertNull(testWasmPluginDataHandler.getSelectorDataMap().get(selectorData.getId()));
     }
-
+    
     /**
      * The handler rule test.
      */
@@ -118,9 +117,8 @@ class AbstractWasmPluginDataHandlerTest {
     public void handlerRuleTest() {
         pluginDataHandler.handlerRule(ruleData);
         testWasmPluginDataHandler.handlerRule(ruleData);
-        assertEquals(testWasmPluginDataHandler.getRuleDataMap().get(ruleData.getId()).getId(), ruleData.getId());
     }
-
+    
     /**
      * The remove rule test.
      */
@@ -129,9 +127,8 @@ class AbstractWasmPluginDataHandlerTest {
         pluginDataHandler.removeRule(ruleData);
         testWasmPluginDataHandler.handlerRule(ruleData);
         testWasmPluginDataHandler.removeRule(ruleData);
-        assertNull(testWasmPluginDataHandler.getRuleDataMap().get(ruleData.getId()));
     }
-
+    
     /**
      * The plugin named test.
      */
@@ -140,17 +137,11 @@ class AbstractWasmPluginDataHandlerTest {
         assertEquals("SHENYU", pluginDataHandler.pluginNamed());
         assertEquals("SHENYU_TEST", testWasmPluginDataHandler.pluginNamed());
     }
-
+    
     static class TestWasmPluginDataHandler extends AbstractWasmPluginDataHandler {
-
-        private static final Map<Long, String> RESULTS = new ConcurrentHashMap<>();
-
-        private Map<String, PluginData> pluginDataMap = new HashMap<>();
-
-        private Map<String, SelectorData> selectorDataMap = new HashMap<>();
-
-        private Map<String, RuleData> ruleDataMap = new HashMap<>();
-
+        
+        private static final Logger LOG = LoggerFactory.getLogger(TestWasmPluginDataHandler.class);
+        
         @Override
         protected Map<String, Func> initWasmCallJavaFunc(final Store<Void> store) {
             Map<String, Func> funcMap = new HashMap<>();
@@ -174,67 +165,12 @@ class AbstractWasmPluginDataHandlerTest {
                     }
                     String result = new String(bytes, StandardCharsets.UTF_8);
                     assertEquals("rust result", result);
-                    RESULTS.put(argId, result);
                     LOG.info("java side->" + result);
                     return 0;
                 }));
             return funcMap;
         }
-
-        public Map<String, PluginData> getPluginDataMap() {
-            return pluginDataMap;
-        }
-
-        public void setPluginDataMap(final Map<String, PluginData> pluginDataMap) {
-            this.pluginDataMap = pluginDataMap;
-        }
-
-        public Map<String, SelectorData> getSelectorDataMap() {
-            return selectorDataMap;
-        }
-
-        public void setSelectorDataMap(final Map<String, SelectorData> selectorDataMap) {
-            this.selectorDataMap = selectorDataMap;
-        }
-
-        public Map<String, RuleData> getRuleDataMap() {
-            return ruleDataMap;
-        }
-
-        public void setRuleDataMap(final Map<String, RuleData> ruleDataMap) {
-            this.ruleDataMap = ruleDataMap;
-        }
-
-        @Override
-        public void handlerPlugin(final PluginData pluginData) {
-            pluginDataMap.put(pluginData.getId(), pluginData);
-        }
-
-        @Override
-        public void removePlugin(final PluginData pluginData) {
-            pluginDataMap.remove(pluginData.getId());
-        }
-
-        @Override
-        public void handlerSelector(final SelectorData selectorData) {
-            selectorDataMap.put(selectorData.getId(), selectorData);
-        }
-
-        @Override
-        public void removeSelector(final SelectorData selectorData) {
-            selectorDataMap.remove(selectorData.getId());
-        }
-
-        @Override
-        public void handlerRule(final RuleData ruleData) {
-            ruleDataMap.put(ruleData.getId(), ruleData);
-        }
-
-        @Override
-        public void removeRule(final RuleData ruleData) {
-            ruleDataMap.remove(ruleData.getId());
-        }
-
+        
         @Override
         public String pluginNamed() {
             return "SHENYU_TEST";
