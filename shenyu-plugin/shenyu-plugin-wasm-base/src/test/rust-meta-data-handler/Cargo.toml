@@ -18,7 +18,7 @@
 #
 
 [package]
-name = "rust-wasm-data-handler-plugin"
+name = "rust-meta-data-handler"
 version = "0.1.0"
 edition = "2021"
 
