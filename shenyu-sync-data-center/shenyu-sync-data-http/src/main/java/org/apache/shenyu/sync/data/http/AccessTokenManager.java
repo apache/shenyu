@@ -19,16 +19,11 @@ package org.apache.shenyu.sync.data.http;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import java.util.Base64;
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
-import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.slf4j.Logger;
@@ -111,7 +106,8 @@ public class AccessTokenManager {
 
     private Boolean doLogin(final String server) {
         if (StringUtils.isNotBlank(httpConfig.getAesSecretKey()) && StringUtils.isNotBlank(httpConfig.getAesSecretIv())) {
-            httpConfig.setPassword(encrypt(httpConfig.getAesSecretKey(), httpConfig.getAesSecretIv(), httpConfig.getPassword()));
+            String password = AesUtils.ctrEncrypt(httpConfig.getAesSecretKey(), httpConfig.getAesSecretIv(), httpConfig.getPassword());
+            httpConfig.setPassword(password);
         }
         String param = Constants.LOGIN_NAME + "=" + httpConfig.getUsername() + "&" + Constants.PASS_WORD + "=" + httpConfig.getPassword();
         String url = String.join("?", server + Constants.LOGIN_PATH, param);
@@ -140,30 +136,6 @@ public class AccessTokenManager {
             LOG.error(String.format("get token from server : [%s] error", server), e);
             return false;
         }
-    }
-
-    /** aes encrypt data.
-     *
-     * @param secretKeyStr secretKeyStr
-     * @param ivStr ivStr
-     * @param data data
-     */
-    private String encrypt(final String secretKeyStr, final String ivStr, final String data) {
-        String encryptStr;
-        byte[] secretKeyBytes = secretKeyStr.getBytes();
-        byte[] ivBytes = ivStr.getBytes();
-        try {
-            SecretKey secretKey = new SecretKeySpec(secretKeyBytes, "AES");
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
-            Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
-            byte[] encryptedBytes = cipher.doFinal(data.getBytes());
-            encryptStr = Base64.getEncoder().encodeToString(encryptedBytes);
-        } catch (Exception e) {
-            LOG.error("aes encrypt fail. cause:{}", e.getMessage());
-            throw new ShenyuException(e);
-        }
-        return encryptStr;
     }
 
     private void start(final List<String> servers) {

@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import java.util.Base64;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.service.SecretService;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,7 +36,7 @@ public class SecretServiceImpl implements SecretService {
     }
 
     @Override
-    public SecretProperties info() {
-        return secretProperties;
+    public String info() {
+        return Base64.getEncoder().encodeToString(JsonUtils.toJson(secretProperties).getBytes());
     }
 }

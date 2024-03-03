@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.admin.service;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
@@ -37,6 +35,7 @@ import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.service.impl.DashboardUserServiceImpl;
 import org.apache.shenyu.admin.service.publish.UserEventPublisher;
+import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.utils.DigestUtils;
@@ -47,10 +46,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
-import javax.crypto.spec.SecretKeySpec;
-import javax.crypto.spec.IvParameterSpec;
 import java.sql.Timestamp;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -225,30 +221,13 @@ public final class DashboardUserServiceTest {
         secretPropertiesTmp.setIv("6075877187097700");
         ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretPropertiesTmp);
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
-        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, encrypt("2095132720951327", "6075877187097700", TEST_PASSWORD)));
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.ctrEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD)));
         verify(dashboardUserMapper, times(3)).findByQuery(eq(TEST_USER_NAME), anyString());
-        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, encrypt("2095132720951327", "6075877187097700", TEST_PASSWORD)));
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.ctrEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD)));
         verify(dashboardUserMapper, times(4)).findByQuery(eq(TEST_USER_NAME), anyString());
 
     }
 
-    private static String encrypt(final String secretKeyStr, final String ivStr, final String data) {
-        String encryptStr;
-        byte[] secretKeyBytes = secretKeyStr.getBytes();
-        byte[] ivBytes = ivStr.getBytes();
-        try {
-            SecretKey secretKey = new SecretKeySpec(secretKeyBytes, "AES");
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
-            Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
-            byte[] encryptedBytes = cipher.doFinal(data.getBytes());
-            encryptStr = Base64.getEncoder().encodeToString(encryptedBytes);
-        } catch (Exception e) {
-            return null;
-        }
-        return encryptStr;
-    }
-    
     private DashboardUserDO createDashboardUserDO() {
         return DashboardUserDO.builder()
                 .id(TEST_ID).userName(TEST_USER_NAME).password(TEST_PASSWORD)

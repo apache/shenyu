@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.config.properties.SecretProperties;
 
 /**
  * SecretService.
@@ -29,5 +28,5 @@ public interface SecretService {
      *
      * @return SecretProperties
      */
-    SecretProperties info();
+    String info();
 }

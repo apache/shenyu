@@ -18,18 +18,12 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import java.nio.charset.StandardCharsets;
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
-import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
@@ -55,6 +49,7 @@ import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.WebI18nAssert;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.slf4j.Logger;
@@ -70,7 +65,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Base64;
 import java.util.stream.Collectors;
 
 /**
@@ -276,19 +270,19 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     @Override
     public LoginDashboardUserVO login(final String userName, final String password) {
         DashboardUserVO dashboardUserVO = null;
-        final String decodePassword;
+        final String ctrDecryptPassword;
         if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())) {
-            decodePassword = aesDecodePassword(password);
+            ctrDecryptPassword = AesUtils.ctrDecrypt(secretProperties.getKey(), secretProperties.getIv(), password);
         } else {
-            decodePassword = password;
+            ctrDecryptPassword = password;
         }
 
         if (Objects.nonNull(ldapTemplate)) {
-            dashboardUserVO = loginByLdap(userName, decodePassword);
+            dashboardUserVO = loginByLdap(userName, ctrDecryptPassword);
         }
         
         if (Objects.isNull(dashboardUserVO)) {
-            dashboardUserVO = loginByDatabase(userName, decodePassword);
+            dashboardUserVO = loginByDatabase(userName, ctrDecryptPassword);
         }
         
         final LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
@@ -337,30 +331,6 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         // Weak password blacklist
         
         return true;
-    }
-
-    /**
-     * aes Decode Password.
-     * @param password password
-     * @return DecodePassword
-     */
-    private String aesDecodePassword(final String password) {
-        String decodePassword;
-        try {
-            String key = secretProperties.getKey();
-            String iv = secretProperties.getIv();
-            Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
-            SecretKey secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "AES");
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
-            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
-            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(password));
-            decodePassword = new String(decryptedBytes);
-        } catch (Exception e) {
-            LOG.error("AES decode error", e);
-            throw new ShenyuAdminException(e);
-        }
-        return decodePassword;
-
     }
 
     private DashboardUserVO loginByLdap(final String userName, final String password) {

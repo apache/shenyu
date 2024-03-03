@@ -81,6 +81,6 @@ public class PlatformController {
      */
     @GetMapping("/secretInfo")
     public ShenyuAdminResult info() {
-        return ShenyuAdminResult.success(secretService.info());
+        return ShenyuAdminResult.success(null, secretService.info());
     }
 }
