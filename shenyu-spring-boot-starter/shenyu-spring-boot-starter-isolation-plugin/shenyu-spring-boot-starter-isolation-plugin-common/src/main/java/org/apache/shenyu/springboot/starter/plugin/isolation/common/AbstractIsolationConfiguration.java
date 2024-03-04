@@ -53,12 +53,12 @@ public abstract class AbstractIsolationConfiguration {
     }
 
     /**
-     * Lower camel class name string
+     * Lower camel class name string.
      *
      * @param clazz the clazz
      * @return the string
      */
-    private String lowerCamelClassName(Class<?> clazz) {
+    private String lowerCamelClassName(final Class<?> clazz) {
         String className = clazz.getSimpleName();
         if (Character.isLowerCase(className.charAt(0)) && !className.contains("_")) {
             return className;
@@ -73,12 +73,12 @@ public abstract class AbstractIsolationConfiguration {
     }
 
     /**
-     * Capitalize first letter string
+     * Capitalize first letter string.
      *
      * @param word the word
      * @return the string
      */
-    private String capitalizeFirstLetter(String word) {
+    private String capitalizeFirstLetter(final String word) {
         return Character.toUpperCase(word.charAt(0)) + word.substring(1);
     }
 }
