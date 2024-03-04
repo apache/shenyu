@@ -48,8 +48,8 @@ public abstract class AbstractContextPathRegisterService extends AbstractShenyuC
         if (logger.isDebugEnabled()) {
             logger.debug("register context-path obtain lock for key:{}", key);
         }
-        lock.lock();
         try {
+            lock.lock();
             String contextPathSelectorId = getSelectorService().registerDefault(dto, name, "");
             // avoid repeated registration for many client threads
             // many client threads may register the same context path for contextPath plugin at the same time
