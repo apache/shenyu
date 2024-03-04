@@ -21,10 +21,8 @@ import io.github.kawamuray.wasmtime.Func;
 import io.github.kawamuray.wasmtime.Store;
 import io.github.kawamuray.wasmtime.WasmFunctions;
 import io.github.kawamuray.wasmtime.WasmValType;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,107 +38,57 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
- * Test cases for AbstractWasmPluginDataHandler.
+ * The Test Case For AbstractWasmMetaDataHandler.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public final class AbstractWasmPluginDataHandlerTest {
+public final class AbstractWasmMetaDataHandlerTest {
     
-    private RuleData ruleData;
+    private TestWasmMetaDataHandler testWasmMetaDataHandler;
     
-    private PluginData pluginData;
-    
-    private SelectorData selectorData;
-    
-    private TestWasmPluginDataHandler testWasmPluginDataHandler;
-    
-    private PluginDataHandler pluginDataHandler;
+    private MetaData metaData;
     
     @BeforeEach
     public void setUp() {
-        this.ruleData = mock(RuleData.class);
-        this.pluginData = mock(PluginData.class);
-        this.selectorData = mock(SelectorData.class);
-        this.testWasmPluginDataHandler = new TestWasmPluginDataHandler();
-        this.pluginDataHandler = () -> "SHENYU";
-        when(ruleData.getId()).thenReturn("SHENYU");
-        when(pluginData.getId()).thenReturn("SHENYU");
-        when(selectorData.getId()).thenReturn("SHENYU");
+        testWasmMetaDataHandler = new TestWasmMetaDataHandler();
+        metaData = new MetaData();
+        metaData.setId("1332017966661636096");
+        metaData.setAppName("dubbo");
+        metaData.setPath("/dubbo/findAll");
+        metaData.setServiceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService");
+        metaData.setMethodName("findAll");
+        metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
+        metaData.setRpcExt("{\"group\":\"Group\",\"version\":\"2.6.5\",\"url\":\"http://192.168.55.113/dubbo\",\"cluster\":\"failover\"}");
+        metaData.setParameterTypes("parameterTypes");
     }
     
-    /**
-     * The handler plugin test.
-     */
     @Test
-    public void handlerPluginTest() {
-        pluginDataHandler.handlerPlugin(pluginData);
-        testWasmPluginDataHandler.handlerPlugin(pluginData);
+    public void testOnSubscribe() {
+        testWasmMetaDataHandler.handle(metaData);
+        MetaData metaData = MetaData.builder()
+                .id("1332017966661636096")
+                .appName("dubbo")
+                .path("/dubbo/findAll")
+                .serviceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService")
+                .methodName("findById")
+                .rpcType(RpcTypeEnum.DUBBO.getName())
+                .rpcExt("{\"group\":\"Group\",\"version\":\"2.6.5\",\"url\":\"http://192.168.55.113/dubbo\",\"cluster\":\"failover\"}")
+                .parameterTypes("parameterTypes").build();
+        TestWasmMetaDataHandler testWasmMetaDataHandlerMock = mock(TestWasmMetaDataHandler.class);
+        doNothing().when(testWasmMetaDataHandlerMock).handle(metaData);
+        testWasmMetaDataHandlerMock.handle(metaData);
+        testWasmMetaDataHandler.handle(metaData);
+        testWasmMetaDataHandler.remove(metaData);
+        testWasmMetaDataHandler.refresh();
     }
     
-    /**
-     * The remove plugin test.
-     */
-    @Test
-    public void removePluginTest() {
-        pluginDataHandler.removePlugin(pluginData);
-        testWasmPluginDataHandler.handlerPlugin(pluginData);
-        testWasmPluginDataHandler.removePlugin(pluginData);
-    }
-    
-    /**
-     * The handler selector test.
-     */
-    @Test
-    public void handlerSelectorTest() {
-        pluginDataHandler.handlerSelector(selectorData);
-        testWasmPluginDataHandler.handlerSelector(selectorData);
-    }
-    
-    /**
-     * The remove selector test.
-     */
-    @Test
-    public void removeSelectorTest() {
-        pluginDataHandler.removeSelector(selectorData);
-        testWasmPluginDataHandler.handlerSelector(selectorData);
-        testWasmPluginDataHandler.removeSelector(selectorData);
-    }
-    
-    /**
-     * The handler rule test.
-     */
-    @Test
-    public void handlerRuleTest() {
-        pluginDataHandler.handlerRule(ruleData);
-        testWasmPluginDataHandler.handlerRule(ruleData);
-    }
-    
-    /**
-     * The remove rule test.
-     */
-    @Test
-    public void removeRuleTest() {
-        pluginDataHandler.removeRule(ruleData);
-        testWasmPluginDataHandler.handlerRule(ruleData);
-        testWasmPluginDataHandler.removeRule(ruleData);
-    }
-    
-    /**
-     * The plugin named test.
-     */
-    @Test
-    public void pluginNamedTest() {
-        assertEquals("SHENYU", pluginDataHandler.pluginNamed());
-        assertEquals("SHENYU_TEST", testWasmPluginDataHandler.pluginNamed());
-    }
-    
-    static class TestWasmPluginDataHandler extends AbstractWasmPluginDataHandler {
+    static class TestWasmMetaDataHandler extends AbstractWasmMetaDataHandler {
         
-        private static final Logger LOG = LoggerFactory.getLogger(TestWasmPluginDataHandler.class);
+        private static final Logger LOG = LoggerFactory.getLogger(TestWasmMetaDataHandler.class);
         
         @Override
         protected Map<String, Func> initWasmCallJavaFunc(final Store<Void> store) {
@@ -172,8 +120,13 @@ public final class AbstractWasmPluginDataHandlerTest {
         }
         
         @Override
-        public String pluginNamed() {
-            return "SHENYU_TEST";
+        public String rpcType() {
+            return "wasm";
+        }
+        
+        @Override
+        protected Long getArgumentId(final MetaData metaData) {
+            return 0L;
         }
     }
 }

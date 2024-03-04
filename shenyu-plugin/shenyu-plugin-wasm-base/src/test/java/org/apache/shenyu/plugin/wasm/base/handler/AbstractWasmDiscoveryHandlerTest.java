@@ -21,127 +21,71 @@ import io.github.kawamuray.wasmtime.Func;
 import io.github.kawamuray.wasmtime.Store;
 import io.github.kawamuray.wasmtime.WasmFunctions;
 import io.github.kawamuray.wasmtime.WasmValType;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import static org.apache.shenyu.plugin.api.ShenyuPlugin.LOG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 
-/**
- * Test cases for AbstractWasmPluginDataHandler.
- */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public final class AbstractWasmPluginDataHandlerTest {
-    
-    private RuleData ruleData;
-    
-    private PluginData pluginData;
-    
-    private SelectorData selectorData;
-    
-    private TestWasmPluginDataHandler testWasmPluginDataHandler;
-    
-    private PluginDataHandler pluginDataHandler;
-    
+class AbstractWasmDiscoveryHandlerTest {
+
+    private DiscoverySyncData discoverySyncData;
+
+    private TestWasmPluginDiscoveryHandler testWasmPluginDiscoveryHandler;
+
+    private DiscoveryUpstreamDataHandler discoveryUpstreamDataHandler;
+
     @BeforeEach
     public void setUp() {
-        this.ruleData = mock(RuleData.class);
-        this.pluginData = mock(PluginData.class);
-        this.selectorData = mock(SelectorData.class);
-        this.testWasmPluginDataHandler = new TestWasmPluginDataHandler();
-        this.pluginDataHandler = () -> "SHENYU";
-        when(ruleData.getId()).thenReturn("SHENYU");
-        when(pluginData.getId()).thenReturn("SHENYU");
-        when(selectorData.getId()).thenReturn("SHENYU");
+
+        this.discoverySyncData = mock(DiscoverySyncData.class);
+        this.testWasmPluginDiscoveryHandler = new TestWasmPluginDiscoveryHandler();
+        this.discoveryUpstreamDataHandler = testWasmPluginDiscoveryHandler;
+        when(discoverySyncData.getSelectorId()).thenReturn("SHENYU");
     }
-    
+
     /**
-     * The handler plugin test.
+     * The handlerDiscoveryUpstreamData test.
      */
     @Test
-    public void handlerPluginTest() {
-        pluginDataHandler.handlerPlugin(pluginData);
-        testWasmPluginDataHandler.handlerPlugin(pluginData);
+    public void handlerDiscoveryUpstreamDataTest() {
+        discoveryUpstreamDataHandler = mock(DiscoveryUpstreamDataHandler.class);
+        discoveryUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+        testWasmPluginDiscoveryHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+        verify(discoveryUpstreamDataHandler).handlerDiscoveryUpstreamData(discoverySyncData);
+
     }
-    
+
     /**
-     * The remove plugin test.
+     * The plugin name test.
      */
     @Test
-    public void removePluginTest() {
-        pluginDataHandler.removePlugin(pluginData);
-        testWasmPluginDataHandler.handlerPlugin(pluginData);
-        testWasmPluginDataHandler.removePlugin(pluginData);
+    public void pluginNameTest() {
+        assertEquals("SHENYU_TEST", discoveryUpstreamDataHandler.pluginName());
+        assertEquals("SHENYU_TEST", testWasmPluginDiscoveryHandler.pluginName());
     }
-    
-    /**
-     * The handler selector test.
-     */
-    @Test
-    public void handlerSelectorTest() {
-        pluginDataHandler.handlerSelector(selectorData);
-        testWasmPluginDataHandler.handlerSelector(selectorData);
-    }
-    
-    /**
-     * The remove selector test.
-     */
-    @Test
-    public void removeSelectorTest() {
-        pluginDataHandler.removeSelector(selectorData);
-        testWasmPluginDataHandler.handlerSelector(selectorData);
-        testWasmPluginDataHandler.removeSelector(selectorData);
-    }
-    
-    /**
-     * The handler rule test.
-     */
-    @Test
-    public void handlerRuleTest() {
-        pluginDataHandler.handlerRule(ruleData);
-        testWasmPluginDataHandler.handlerRule(ruleData);
-    }
-    
-    /**
-     * The remove rule test.
-     */
-    @Test
-    public void removeRuleTest() {
-        pluginDataHandler.removeRule(ruleData);
-        testWasmPluginDataHandler.handlerRule(ruleData);
-        testWasmPluginDataHandler.removeRule(ruleData);
-    }
-    
-    /**
-     * The plugin named test.
-     */
-    @Test
-    public void pluginNamedTest() {
-        assertEquals("SHENYU", pluginDataHandler.pluginNamed());
-        assertEquals("SHENYU_TEST", testWasmPluginDataHandler.pluginNamed());
-    }
-    
-    static class TestWasmPluginDataHandler extends AbstractWasmPluginDataHandler {
-        
-        private static final Logger LOG = LoggerFactory.getLogger(TestWasmPluginDataHandler.class);
-        
+
+    static class TestWasmPluginDiscoveryHandler extends AbstractWasmDiscoveryHandler {
+
+        private static final Map<Long, String> RESULTS = new ConcurrentHashMap<>();
+
         @Override
         protected Map<String, Func> initWasmCallJavaFunc(final Store<Void> store) {
             Map<String, Func> funcMap = new HashMap<>();
@@ -165,15 +109,21 @@ public final class AbstractWasmPluginDataHandlerTest {
                     }
                     String result = new String(bytes, StandardCharsets.UTF_8);
                     assertEquals("rust result", result);
+                    RESULTS.put(argId, result);
                     LOG.info("java side->" + result);
                     return 0;
                 }));
             return funcMap;
         }
-        
+
         @Override
-        public String pluginNamed() {
+        public String pluginName() {
             return "SHENYU_TEST";
+        }
+
+        @Override
+        protected Long getArgumentId(final DiscoverySyncData discoverySyncData) {
+            return 0L;
         }
     }
 }
