@@ -107,6 +107,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
                 canAddList.addAll(diffStatusList);
             }
         }
+
         if (doSubmit(selectorDO.getId(), canAddList)) {
             return null;
         }
