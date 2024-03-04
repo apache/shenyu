@@ -106,7 +106,7 @@ public class AccessTokenManager {
 
     private Boolean doLogin(final String server) {
         if (StringUtils.isNotBlank(httpConfig.getAesSecretKey()) && StringUtils.isNotBlank(httpConfig.getAesSecretIv())) {
-            String password = AesUtils.ctrEncrypt(httpConfig.getAesSecretKey(), httpConfig.getAesSecretIv(), httpConfig.getPassword());
+            String password = AesUtils.cbcEncrypt(httpConfig.getAesSecretKey(), httpConfig.getAesSecretIv(), httpConfig.getPassword());
             httpConfig.setPassword(password);
         }
         String param = Constants.LOGIN_NAME + "=" + httpConfig.getUsername() + "&" + Constants.PASS_WORD + "=" + httpConfig.getPassword();

@@ -18,12 +18,14 @@
 package org.apache.shenyu.common.utils;
 
 import java.nio.charset.StandardCharsets;
+import java.security.Security;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,15 +42,16 @@ public class AesUtils {
      * @param secretKeyStr secretKeyStr
      * @param ivStr        ivStr
      * @param data         data
-     * @return ctrEncrypt str.
+     * @return cbcEncrypt str.
      */
-    public static String ctrEncrypt(final String secretKeyStr, final String ivStr, final String data) {
+    public static String cbcEncrypt(final String secretKeyStr, final String ivStr, final String data) {
+        Security.addProvider(new BouncyCastleProvider());
         String encryptStr;
         byte[] secretKeyBytes = secretKeyStr.getBytes(StandardCharsets.UTF_8);
         byte[] ivBytes = ivStr.getBytes(StandardCharsets.UTF_8);
         try {
             SecretKey secretKey = new SecretKeySpec(secretKeyBytes, "AES");
-            Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
+            Cipher cipher = Cipher.getInstance("AES/CBC/Pkcs7Padding");
             IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
             byte[] encryptedBytes = cipher.doFinal(data.getBytes());
@@ -66,15 +69,16 @@ public class AesUtils {
      * @param secretKeyStr secretKeyStr
      * @param ivStr        ivStr
      * @param data         data
-     * @return ctrDecrypt str.
+     * @return cbcDecrypt str.
      */
-    public static String ctrDecrypt(final String secretKeyStr, final String ivStr, final String data) {
+    public static String cbcDecrypt(final String secretKeyStr, final String ivStr, final String data) {
+        Security.addProvider(new BouncyCastleProvider());
         String decryptStr;
         byte[] secretKeyBytes = secretKeyStr.getBytes(StandardCharsets.UTF_8);
         byte[] ivBytes = ivStr.getBytes(StandardCharsets.UTF_8);
         try {
             SecretKey secretKey = new SecretKeySpec(secretKeyBytes, "AES");
-            Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
+            Cipher cipher = Cipher.getInstance("AES/CBC/Pkcs7Padding");
             IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
             cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
             byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(data));

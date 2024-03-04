@@ -91,7 +91,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
         String secretKey = config.getProps().getProperty(Constants.AES_SECRET_KEY);
         String secretIv = config.getProps().getProperty(Constants.AES_SECRET_IV);
         if (StringUtils.isNotBlank(secretKey) && StringUtils.isNotBlank(secretIv)) {
-            this.password = AesUtils.ctrEncrypt(secretKey, secretIv, password);
+            this.password = AesUtils.cbcEncrypt(secretKey, secretIv, password);
         }
         this.serverList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));
         this.accessToken = Caffeine.newBuilder()

@@ -270,19 +270,19 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     @Override
     public LoginDashboardUserVO login(final String userName, final String password) {
         DashboardUserVO dashboardUserVO = null;
-        final String ctrDecryptPassword;
+        final String cbcDecryptPassword;
         if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())) {
-            ctrDecryptPassword = AesUtils.ctrDecrypt(secretProperties.getKey(), secretProperties.getIv(), password);
+            cbcDecryptPassword = AesUtils.cbcDecrypt(secretProperties.getKey(), secretProperties.getIv(), password);
         } else {
-            ctrDecryptPassword = password;
+            cbcDecryptPassword = password;
         }
 
         if (Objects.nonNull(ldapTemplate)) {
-            dashboardUserVO = loginByLdap(userName, ctrDecryptPassword);
+            dashboardUserVO = loginByLdap(userName, cbcDecryptPassword);
         }
         
         if (Objects.isNull(dashboardUserVO)) {
-            dashboardUserVO = loginByDatabase(userName, ctrDecryptPassword);
+            dashboardUserVO = loginByDatabase(userName, cbcDecryptPassword);
         }
         
         final LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);

@@ -221,9 +221,9 @@ public final class DashboardUserServiceTest {
         secretPropertiesTmp.setIv("6075877187097700");
         ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretPropertiesTmp);
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
-        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.ctrEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD)));
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD)));
         verify(dashboardUserMapper, times(3)).findByQuery(eq(TEST_USER_NAME), anyString());
-        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.ctrEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD)));
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD)));
         verify(dashboardUserMapper, times(4)).findByQuery(eq(TEST_USER_NAME), anyString());
 
     }
