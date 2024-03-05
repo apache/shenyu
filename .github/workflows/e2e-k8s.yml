@@ -19,7 +19,7 @@ on:
   pull_request:
   push:
     branches:
-      - e2e-loggin2
+      - master
 
 jobs:
   changes:
@@ -109,7 +109,7 @@ jobs:
     needs:
       - changes
       - build-docker-images
-    if: (github.repository == 'xcsnx/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
     strategy:
       matrix:
         include:
@@ -176,11 +176,11 @@ jobs:
           sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
           sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
-      - name: Setup Debug Session
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 15
-        with:
-          detached: true
+#      - name: Setup Debug Session
+#        uses: mxschmitt/action-tmate@v3
+#        timeout-minutes: 15
+#        with:
+#          detached: true
 
       - name: Run E2E Tests
         if: steps.filter.outputs.changed == 'true'
