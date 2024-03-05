@@ -26,6 +26,7 @@ import org.apache.shenyu.common.dto.convert.rule.GeneralContextHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.general.context.handler.GeneralContextPluginDataHandler;
@@ -41,6 +42,11 @@ import java.util.Map;
  * GeneralContextPlugin, transfer http headers to rpc context.
  */
 public class GeneralContextPlugin extends AbstractShenyuPlugin {
+    
+    @Override
+    protected String getRawPath(final ServerWebExchange exchange) {
+        return RequestUrlUtils.getRewrittenRawPath(exchange);
+    }
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
