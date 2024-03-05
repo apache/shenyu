@@ -158,8 +158,6 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
         }
     }
 
-
-
     /**
      * doPersistDiscoveryConfig.
      *
