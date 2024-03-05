@@ -108,7 +108,7 @@ public class AccessTokenManager {
         Request request = new Request.Builder().url(url).build();
         try (Response response = this.okHttpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                LOG.warn(String.format("get token from server : [%s] error", server));
+                LOG.warn("get token from server : [{}] error", server);
                 return false;
             }
             ResponseBody responseBody = response.body();
@@ -116,7 +116,7 @@ public class AccessTokenManager {
             String result = responseBody.string();
             Map<String, Object> resultMap = GsonUtils.getInstance().convertToMap(result);
             if (!String.valueOf(CommonErrorCode.SUCCESSFUL).equals(String.valueOf(resultMap.get(Constants.ADMIN_RESULT_CODE)))) {
-                LOG.warn(String.format("get token from server : [%s] error", server));
+                LOG.warn("get token from server : [{}] error", server);
                 return false;
             }
             String tokenJson = GsonUtils.getInstance().toJson(resultMap.get(Constants.ADMIN_RESULT_DATA));
@@ -127,7 +127,7 @@ public class AccessTokenManager {
             this.tokenRefreshWindow = this.tokenExpiredTime / 10;
             return true;
         } catch (IOException e) {
-            LOG.error(String.format("get token from server : [%s] error", server), e);
+            LOG.error("get token from server : [{}] error", server, e);
             return false;
         }
     }
