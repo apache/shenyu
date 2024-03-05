@@ -119,6 +119,7 @@ shenyu:
       - /static/**
       - /index**
       - /platform/login
+      - /platform/secretInfo
       - /websocket
       - /error
       - /actuator/health
