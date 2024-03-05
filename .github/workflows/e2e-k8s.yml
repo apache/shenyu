@@ -92,6 +92,12 @@ jobs:
 #          path: ~/.m2/repository
 #          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
 
+      - name: Setup Debug Session
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 15
+        with:
+          detached: true
+
       - name: Build Docker Image
         run: |
           docker save apache/shenyu-admin:latest > /tmp/apache-shenyu-admin.tar
@@ -176,11 +182,11 @@ jobs:
           sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
           sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
-      - name: Setup Debug Session
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 15
-        with:
-          detached: true
+#      - name: Setup Debug Session
+#        uses: mxschmitt/action-tmate@v3
+#        timeout-minutes: 15
+#        with:
+#          detached: true
 
       - name: Run E2E Tests
         if: steps.filter.outputs.changed == 'true'
