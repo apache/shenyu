@@ -24,6 +24,13 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+/**
+ * The type For update backed register execution lock.
+ * Deprecated: this class is deprecated and will be removed in the next major version.
+ * @since 2.6.1
+ * @deprecated Please use {@link org.springframework.integration.jdbc.lock.JdbcLockRegistry#obtain}.
+ */
+@Deprecated
 public class ForUpdateBackedRegisterExecutionLock implements RegisterExecutionLock {
 
     private final PlatformTransactionManager transactionManager;
