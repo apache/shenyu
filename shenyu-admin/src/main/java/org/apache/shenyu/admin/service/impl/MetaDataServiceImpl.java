@@ -195,21 +195,21 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public ShenyuAdminResult importData(List<MetaDataVO> metaDataVOList) {
-        if (CollectionUtils.isEmpty(metaDataVOList)) {
+    public ShenyuAdminResult importData(List<MetaDataDTO> metaDataList) {
+        if (CollectionUtils.isEmpty(metaDataList)) {
             return ShenyuAdminResult.success();
         }
         try {
             Set<String> existMetadataPathSet = Optional.of(listAll().stream().filter(Objects::nonNull).map(MetaData::getPath).collect(Collectors.toSet())).orElse(Sets.newHashSet());
 
-            for (MetaDataVO metaDataVO : metaDataVOList) {
-                String metaDataPath = metaDataVO.getPath();
+            for (MetaDataDTO metaDataDTO : metaDataList) {
+                String metaDataPath = metaDataDTO.getPath();
                 if(existMetadataPathSet.contains(metaDataPath)){
                     LOG.info("import metadata path: {} already exists",metaDataPath);
                     // TODO 记录错误
                     continue;
                 }
-                MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataVO);
+                MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
                 metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 Timestamp currentTime = new Timestamp(System.currentTimeMillis());
                 metaDataDO.setDateCreated(currentTime);

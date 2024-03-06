@@ -23,7 +23,9 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * this is selector condition view to web front.
@@ -302,5 +304,17 @@ public class SelectorConditionVO implements Serializable {
                 selectorConditionDO.getParamName(), selectorConditionDO.getParamValue(),
                 DateUtils.localDateTimeToString(selectorConditionDO.getDateCreated().toLocalDateTime()),
                 DateUtils.localDateTimeToString(selectorConditionDO.getDateUpdated().toLocalDateTime()));
+    }
+
+    /**
+     * build selectorConditionVO.
+     *
+     * @param selectorConditionDOList {@linkplain SelectorConditionDO}
+     * @return {@linkplain SelectorConditionVO}
+     */
+    public static List<SelectorConditionVO> buildSelectorConditionVOList(final List<SelectorConditionDO> selectorConditionDOList) {
+        return selectorConditionDOList.stream()
+                .map(SelectorConditionVO::buildSelectorConditionVO)
+                .collect(Collectors.toList());
     }
 }

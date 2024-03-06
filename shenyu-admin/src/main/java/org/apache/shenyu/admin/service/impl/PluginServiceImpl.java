@@ -22,26 +22,33 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
+import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
+import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.event.plugin.PluginCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.query.PluginQueryCondition;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
+import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.Assert;
-import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.JarDependencyUtils;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.LogUtils;
 import org.opengauss.util.Base64;
 import org.slf4j.Logger;
@@ -51,6 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -65,23 +73,30 @@ public class PluginServiceImpl implements PluginService {
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(PluginServiceImpl.class);
-    
+
     private final PluginMapper pluginMapper;
-    
+
     private final PluginEventPublisher pluginEventPublisher;
-    
+
+    private final PluginHandleService pluginHandleService;
+    private final SelectorService selectorService;
+
     public PluginServiceImpl(final PluginMapper pluginMapper,
-                             final PluginEventPublisher pluginEventPublisher) {
+                             final PluginEventPublisher pluginEventPublisher,
+                             final PluginHandleService pluginHandleService,
+                             final SelectorService selectorService) {
         this.pluginMapper = pluginMapper;
         this.pluginEventPublisher = pluginEventPublisher;
+        this.pluginHandleService = pluginHandleService;
+        this.selectorService = selectorService;
     }
-    
+
     @Override
     public List<PluginVO> searchByCondition(final PluginQueryCondition condition) {
         condition.init();
         return pluginMapper.searchByCondition(condition);
     }
-    
+
     /**
      * create or update plugin.
      *
@@ -126,7 +141,7 @@ public class PluginServiceImpl implements PluginService {
         }
         return StringUtils.EMPTY;
     }
-    
+
     /**
      * plugin enabled.
      *
@@ -148,7 +163,7 @@ public class PluginServiceImpl implements PluginService {
         }
         return StringUtils.EMPTY;
     }
-    
+
     /**
      * find plugin by id.
      *
@@ -159,7 +174,7 @@ public class PluginServiceImpl implements PluginService {
     public PluginVO findById(final String id) {
         return PluginVO.buildPluginVO(pluginMapper.selectById(id));
     }
-    
+
     /**
      * find page of plugin by query.
      *
@@ -174,7 +189,7 @@ public class PluginServiceImpl implements PluginService {
                 .map(PluginVO::buildPluginVO)
                 .collect(Collectors.toList()));
     }
-    
+
     /**
      * query all plugin.
      *
@@ -184,19 +199,43 @@ public class PluginServiceImpl implements PluginService {
     public List<PluginData> listAll() {
         return ListUtil.map(pluginMapper.selectAll(), PluginTransfer.INSTANCE::mapToData);
     }
-    
+
+    @Override
+    public List<PluginVO> listAllVO() {
+        // plugin handle
+        Map<String, List<PluginHandleVO>> pluginHandleMap = pluginHandleService.listAll()
+                .stream()
+                .collect(Collectors.groupingBy(PluginHandleVO::getPluginId));
+
+        Map<String, List<SelectorVO>> selectorMap = selectorService.listAllVO()
+                .stream()
+                .collect(Collectors.groupingBy(SelectorVO::getPluginId));
+
+        return pluginMapper.selectAll()
+                .stream()
+                .filter(Objects::nonNull)
+                .map(pluginDO -> {
+                    PluginVO exportVO = PluginVO.buildPluginVO(pluginDO);
+                    List<PluginHandleVO> pluginHandleList = pluginHandleMap.get(exportVO.getId());
+                    exportVO.setPluginHandleList(pluginHandleList);
+                    List<SelectorVO> selectorList = selectorMap.get(exportVO.getId());
+                    exportVO.setSelectorList(selectorList);
+                    return exportVO;
+                }).collect(Collectors.toList());
+    }
+
     @Override
     public List<PluginData> listAllNotInResource() {
         return ListUtil.map(pluginMapper.listAllNotInResource(), PluginTransfer.INSTANCE::mapToData);
     }
-    
+
     @Override
     public String selectIdByName(final String name) {
         PluginDO pluginDO = pluginMapper.selectByName(name);
         Objects.requireNonNull(pluginDO);
         return pluginDO.getId();
     }
-    
+
     /**
      * Find by name plugin do.
      *
@@ -209,7 +248,7 @@ public class PluginServiceImpl implements PluginService {
     }
 
     /**
-     *  activate plugin snapshot.
+     * activate plugin snapshot.
      *
      * @return List of plugins snapshot
      */
@@ -217,7 +256,57 @@ public class PluginServiceImpl implements PluginService {
     public List<PluginSnapshotVO> activePluginSnapshot() {
         return pluginMapper.activePluginSnapshot(SessionUtil.isAdmin() ? null : SessionUtil.visitor().getUserId());
     }
-    
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ShenyuAdminResult importData(List<PluginDTO> pluginList) {
+        if(CollectionUtils.isEmpty(pluginList)){
+            return ShenyuAdminResult.success();
+        }
+
+        Map<String, PluginDO> existPluginMap = pluginMapper.selectAll()
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(PluginDO::getName,x->x));
+        try{
+            for (PluginDTO pluginDTO : pluginList) {
+                String pluginName = pluginDTO.getName();
+                if(existPluginMap.containsKey(pluginName)){
+                    PluginDO existPlugin = existPluginMap.get(pluginName);
+                    String pluginId = existPlugin.getId();
+                    // check plugin handle and selector
+                    List<PluginHandleDTO> pluginHandleList = pluginDTO.getPluginHandleList();
+                    if(CollectionUtils.isNotEmpty(pluginHandleList)){
+                        pluginHandleService.importData(pluginHandleList.stream().peek(x->x.setPluginId(pluginId)).collect(Collectors.toList()));
+                    }
+                    List<SelectorDTO> selectorList = pluginDTO.getSelectorList();
+                    if(CollectionUtils.isNotEmpty(selectorList)){
+                        selectorService.importData(selectorList.stream().peek(x->x.setPluginId(pluginId)).collect(Collectors.toList()));
+                    }
+                    continue;
+                }
+                PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+                String pluginId = pluginDO.getId();
+                pluginMapper.updateSelective(pluginDO);
+                // check plugin handle and selector
+                List<PluginHandleDTO> pluginHandleList = pluginDTO.getPluginHandleList();
+                if(CollectionUtils.isNotEmpty(pluginHandleList)){
+                    pluginHandleService.importData(pluginHandleList.stream().peek(x->x.setPluginId(pluginId)).collect(Collectors.toList()));
+                }
+                List<SelectorDTO> selectorList = pluginDTO.getSelectorList();
+                if(CollectionUtils.isNotEmpty(selectorList)){
+                    selectorService.importData(selectorList.stream().peek(x->x.setPluginId(pluginId)).collect(Collectors.toList()));
+                }
+
+            }
+        }catch (Exception e){
+            LOG.error("import plugin data error",e);
+            throw new ShenyuException("import plugin data error");
+        }
+
+        return ShenyuAdminResult.success();
+    }
+
     /**
      * create plugin.<br>
      * insert plugin and insert plugin data.

@@ -163,9 +163,9 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
 
     /**
      * Import shenyu auth data.
-     * @param authDataList app auth vo list
+     * @param authDataList app auth list
      * @return the shenyu admin result
      */
-    ShenyuAdminResult importData(List<AppAuthVO> authDataList);
+    ShenyuAdminResult importData(List<AppAuthDTO> authDataList);
 
 }

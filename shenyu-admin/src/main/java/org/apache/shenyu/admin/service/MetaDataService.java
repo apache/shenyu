@@ -145,8 +145,8 @@ public interface MetaDataService {
     /**
      * Import shenyu meta data.
      *
-     * @param metaDataVOList meta data vo list
+     * @param metaDataList meta data list
      * @return the shenyu admin result
      */
-    ShenyuAdminResult importData(List<MetaDataVO> metaDataVOList);
+    ShenyuAdminResult importData(List<MetaDataDTO> metaDataList);
 }

@@ -134,6 +134,9 @@ public final class SelectorServiceTest {
     @Mock
     private SelectorEventPublisher selectorEventPublisher;
 
+    @Mock
+    private RuleService ruleService;
+
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
@@ -148,7 +151,7 @@ public final class SelectorServiceTest {
         doNothing().when(discoveryProcessor).removeDiscovery(any(DiscoveryDO.class));
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
         selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper, eventPublisher, discoveryMapper, discoveryHandlerMapper, discoveryRelMapper,
-                discoveryUpstreamMapper, discoveryProcessorHolder, selectorEventPublisher);
+                discoveryUpstreamMapper, discoveryProcessorHolder, selectorEventPublisher,ruleService);
     }
 
     @Test

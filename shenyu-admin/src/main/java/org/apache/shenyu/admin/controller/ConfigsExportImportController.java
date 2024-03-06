@@ -22,29 +22,23 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
-import org.apache.shenyu.admin.model.dto.SelectorDTO;
+import org.apache.shenyu.admin.model.dto.AppAuthDTO;
+import org.apache.shenyu.admin.model.dto.MetaDataDTO;
+import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
+import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
-import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.utils.ZipUtil;
 import org.apache.shenyu.common.constant.ExportImportConstants;
-import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,8 +52,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * this is configs controller.
@@ -78,27 +70,15 @@ public class ConfigsExportImportController {
      * The Plugin service.
      */
     private final PluginService pluginService;
-
-    /**
-     * The Selector service.
-     */
-    private final SelectorService selectorService;
-
-    /**
-     * The Rule service.
-     */
-    private final RuleService ruleService;
     /**
      * The Metadata service.
      */
     private final MetaDataService metaDataService;
 
 
-    public ConfigsExportImportController(final AppAuthService appAuthService, final PluginService pluginService, final SelectorService selectorService, final RuleService ruleService, final MetaDataService metaDataService) {
+    public ConfigsExportImportController(final AppAuthService appAuthService, final PluginService pluginService, final MetaDataService metaDataService) {
         this.appAuthService = appAuthService;
         this.pluginService = pluginService;
-        this.selectorService = selectorService;
-        this.ruleService = ruleService;
         this.metaDataService = metaDataService;
     }
 
@@ -116,22 +96,17 @@ public class ConfigsExportImportController {
         if (CollectionUtils.isNotEmpty(authDataList)) {
             zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.AUTH_JSON, JsonUtils.toJson(authDataList)));
         }
-        List<PluginData> pluginData = pluginService.listAll();
-        if (CollectionUtils.isNotEmpty(pluginData)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_JSON, JsonUtils.toJson(pluginData)));
+
+        List<MetaDataVO> metaDataList = metaDataService.listAllVO();
+        if (CollectionUtils.isNotEmpty(metaDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.META_JSON, JsonUtils.toJson(metaDataList)));
         }
-        List<SelectorData> selectorData = selectorService.listAll();
-        if (CollectionUtils.isNotEmpty(selectorData)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.SELECTOR_JSON, JsonUtils.toJson(selectorData)));
+
+        List<PluginVO> pluginDataList = pluginService.listAllVO();
+        if (CollectionUtils.isNotEmpty(pluginDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_JSON, JsonUtils.toJson(pluginDataList)));
         }
-        List<RuleData> ruleData = ruleService.listAll();
-        if (CollectionUtils.isNotEmpty(ruleData)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.RULE_JSON, JsonUtils.toJson(ruleData)));
-        }
-        List<MetaDataVO> metaData = metaDataService.listAllVO();
-        if (CollectionUtils.isNotEmpty(metaData)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.META_JSON, JsonUtils.toJson(metaData)));
-        }
+
         HttpHeaders headers = new HttpHeaders();
         String fileName = generateFileName();
         headers.add("Content-Disposition", "attachment;filename=" + fileName);
@@ -167,62 +142,23 @@ public class ConfigsExportImportController {
             for (ZipUtil.ZipItem zipItem : zipItemList) {
                 switch (zipItem.getItemName()) {
                     case ExportImportConstants.PLUGIN_JSON:
-//                        String pluginJson = zipItem.getItemData();
-//                        if (StringUtils.isNotEmpty(pluginJson)) {
-//                            List<PluginDTO> pluginList = GsonUtils.getInstance().fromList(pluginJson, PluginDTO.class);
-//                            for (PluginDTO pluginDTO : pluginList) {
-//                                pluginService.createOrUpdate(pluginDTO);
-//                            }
-//                        }
-                        break;
-                    case ExportImportConstants.SELECTOR_JSON:
-                        String selectorJson = zipItem.getItemData();
-                        if (StringUtils.isNotEmpty(selectorJson)) {
-                            List<SelectorData> selectorList = GsonUtils.getInstance().fromList(selectorJson, SelectorData.class);
-                            Set<String> existSet = selectorService.listAll().stream().filter(Objects::nonNull).map(SelectorData::getId).collect(Collectors.toSet());
-                            for (SelectorData selectorData : selectorList) {
-                                SelectorDTO dto = new SelectorDTO();
-                                BeanUtils.copyProperties(selectorData, dto);
-
-                                dto.setLoged(selectorData.getLogged());
-
-                                List<ConditionData> conditionList = selectorData.getConditionList();
-                                List<SelectorConditionDTO> selectorConditionDTOList = Lists.newArrayList();
-                                if (CollectionUtils.isNotEmpty(conditionList)) {
-                                    for (ConditionData conditionData : conditionList) {
-                                        SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
-                                        BeanUtils.copyProperties(conditionData, selectorConditionDTO);
-                                        selectorConditionDTOList.add(selectorConditionDTO);
-                                    }
-                                }
-                                dto.setSelectorConditions(selectorConditionDTOList);
-
-                                // check if id already exists
-                                if (!existSet.contains(selectorData.getId())) {
-                                    selectorService.create(dto);
-                                } else {
-                                    selectorService.update(dto);
-                                }
-                            }
-                        }
-                        break;
-                    case ExportImportConstants.RULE_JSON:
-                        String ruleJson = zipItem.getItemData();
-                        if (StringUtils.isNotEmpty(ruleJson)) {
-
+                        String pluginJson = zipItem.getItemData();
+                        if (StringUtils.isNotEmpty(pluginJson)) {
+                            List<PluginDTO> pluginList = GsonUtils.getInstance().fromList(pluginJson, PluginDTO.class);
+                            pluginService.importData(pluginList);
                         }
                         break;
                     case ExportImportConstants.AUTH_JSON:
                         String authJson = zipItem.getItemData();
                         if (StringUtils.isNotEmpty(authJson)) {
-                            List<AppAuthVO> authDataList = GsonUtils.getInstance().fromList(authJson, AppAuthVO.class);
+                            List<AppAuthDTO> authDataList = GsonUtils.getInstance().fromList(authJson, AppAuthDTO.class);
                             appAuthService.importData(authDataList);
                         }
                         break;
                     case ExportImportConstants.META_JSON:
                         String metaJson = zipItem.getItemData();
                         if (StringUtils.isNotEmpty(metaJson)) {
-                            List<MetaDataVO> metaDataList = GsonUtils.getInstance().fromList(metaJson, MetaDataVO.class);
+                            List<MetaDataDTO> metaDataList = GsonUtils.getInstance().fromList(metaJson, MetaDataDTO.class);
                             metaDataService.importData(metaDataList);
                         }
                         break;

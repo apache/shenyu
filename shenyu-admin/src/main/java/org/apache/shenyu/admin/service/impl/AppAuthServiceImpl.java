@@ -260,15 +260,21 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ShenyuAdminResult importData(List<AppAuthVO> authDataList) {
+    public ShenyuAdminResult importData(List<AppAuthDTO> authDataList) {
         if (CollectionUtils.isEmpty(authDataList)) {
             return ShenyuAdminResult.success();
         }
         try {
             // exist appKey set
-            Set<String> existAppKeySet = Optional.of(this.appAuthMapper.selectAll().stream().filter(Objects::nonNull).map(AppAuthDO::getAppKey).collect(Collectors.toSet())).orElse(Sets.newHashSet());
+            Set<String> existAppKeySet = Optional.of(
+                    this.appAuthMapper.selectAll()
+                            .stream()
+                            .filter(Objects::nonNull)
+                            .map(AppAuthDO::getAppKey)
+                            .collect(Collectors.toSet()))
+                    .orElse(Sets.newHashSet());
 
-            for (AppAuthVO appAuth : authDataList) {
+            for (AppAuthDTO appAuth : authDataList) {
                 AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuth);
                 String appKey = appAuth.getAppKey();
                 if (existAppKeySet.contains(appKey)) {
@@ -282,16 +288,22 @@ public class AppAuthServiceImpl implements AppAuthService {
                 appAuthDO.setId(authId);
                 appAuthMapper.insertSelective(appAuthDO);
                 // auth path
-                List<AuthPathVO> authPathVOList = appAuth.getAuthPathVOList();
-                if (CollectionUtils.isNotEmpty(authPathVOList)) {
-                    List<AuthPathDO> authPathDOS = authPathVOList.stream().map(param -> AuthPathDO.create(param.getPath(), authId, param.getAppName())).collect(Collectors.toList());
+                List<AuthPathDTO> authPathDTOList = appAuth.getAuthPathDTOList();
+                if (CollectionUtils.isNotEmpty(authPathDTOList)) {
+                    List<AuthPathDO> authPathDOS = authPathDTOList
+                            .stream()
+                            .map(param -> AuthPathDO.create(param.getPath(), authId, param.getAppName()))
+                            .collect(Collectors.toList());
                     authPathMapper.batchSave(authPathDOS);
                 }
 
                 // auth param
-                List<org.apache.shenyu.admin.model.vo.AuthParamVO> authParamVOList = appAuth.getAuthParamVOList();
+                List<AuthParamDTO> authParamVOList = appAuth.getAuthParamDTOList();
                 if (CollectionUtils.isNotEmpty(authParamVOList)) {
-                    List<AuthParamDO> authParamDOS = authParamVOList.stream().map(param -> AuthParamDO.create(authId, param.getAppName(), param.getAppParam())).collect(Collectors.toList());
+                    List<AuthParamDO> authParamDOS = authParamVOList
+                            .stream()
+                            .map(param -> AuthParamDO.create(authId, param.getAppName(), param.getAppParam()))
+                            .collect(Collectors.toList());
                     authParamMapper.batchSave(authParamDOS);
                 }
             }
