@@ -110,7 +110,7 @@ public final class AppAuthServiceTest {
     public void testUpdateDetail() {
         AppAuthDTO appAuthDTO = buildAppAuthDTO(UUIDUtils.getInstance().generateShortUuid());
         List<AuthParamDTO> authParamDTOList = Collections.singletonList(buildAuthParamDTO());
-        appAuthDTO.setAuthParamDTOList(authParamDTOList);
+        appAuthDTO.setAuthParamList(authParamDTOList);
         ShenyuAdminResult successResult = this.appAuthService.updateDetail(appAuthDTO);
         assertEquals(CommonErrorCode.SUCCESSFUL, successResult.getCode().intValue());
     }
@@ -172,7 +172,7 @@ public final class AppAuthServiceTest {
         AppAuthVO appAuthVO = this.appAuthService.findById(appAuthDO.getId());
         assertNotNull(appAuthVO);
         assertEquals(appAuthDO.getId(), appAuthVO.getId());
-        assertNotNull(appAuthVO.getAuthParamVOList());
+        assertNotNull(appAuthVO.getAuthParamList());
     }
 
     @Test
