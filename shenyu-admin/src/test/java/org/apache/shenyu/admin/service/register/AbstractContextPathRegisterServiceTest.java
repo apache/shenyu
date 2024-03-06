@@ -23,14 +23,17 @@ import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.integration.support.locks.LockRegistry;
-import java.util.concurrent.locks.ReentrantLock;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -63,12 +66,46 @@ class AbstractContextPathRegisterServiceTest {
         dto.setContextPath("Context_Path");
         dto.setAddPrefixed(true);
         when(selectorService.registerDefault(dto, PluginEnum.CONTEXT_PATH.getName(), "")).thenReturn("Context_Path_Selector_Id");
-        // org.springframework.integration.jdbc.lock.JdbcLockRegistry.JdbcLock is private and cannot be mocked directly so we mock the LockRegistry and return a mock ReentrantLock
-        when(registry.obtain(any())).thenReturn(mock(ReentrantLock.class));
+        // org.springframework.integration.jdbc.lock.JdbcLockRegistry.JdbcLock is private and cannot be mocked directly so we mock the LockRegistry and return a mock MockLock
+        // here  mock ReentrantLock   cause cpu usage 100% in the jdk 19 20 21 environment
+        when(registry.obtain(any())).thenReturn(mock(MockLock.class));
         when(ruleService.findBySelectorIdAndName("Context_Path_Selector_Id", "Context_Path")).thenReturn(null);
         when(ruleService.registerDefault(any())).thenReturn("Context_Path_Rule_Id");
         abstractContextPathRegisterService.registerContextPath(dto);
         verify(ruleService).registerDefault(any());
+    }
+
+    static class MockLock implements Lock {
+        @Override
+        public void lock() {
+
+        }
+
+        @Override
+        public void lockInterruptibly() throws InterruptedException {
+
+        }
+
+        @Override
+        public boolean tryLock() {
+            return false;
+        }
+
+        @Override
+        public boolean tryLock(final long time, @NotNull final TimeUnit unit) throws InterruptedException {
+            return false;
+        }
+
+        @Override
+        public void unlock() {
+
+        }
+
+        @NotNull
+        @Override
+        public Condition newCondition() {
+            return null;
+        }
     }
 
     static class MockAbstractContextPathRegisterService extends AbstractContextPathRegisterService {
