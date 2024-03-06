@@ -17,12 +17,14 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import org.apache.shenyu.admin.lock.RegisterExecutionLock;
-import org.apache.shenyu.admin.lock.RegisterExecutionRepository;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.integration.support.locks.LockRegistry;
+import java.util.concurrent.locks.Lock;
 import javax.annotation.Resource;
 import java.util.Objects;
 
@@ -30,24 +32,32 @@ import java.util.Objects;
  * The type Abstract context path register service.
  */
 public abstract class AbstractContextPathRegisterService extends AbstractShenyuClientRegisterServiceImpl {
+    private static final String LOCK_KEY_PREFIX = "context-path:";
+
+    private final Logger logger = LoggerFactory.getLogger(AbstractContextPathRegisterService.class);
 
     @Resource
-    private RegisterExecutionRepository registerExecutionRepository;
+    private LockRegistry registry;
 
     @Override
     public void registerContextPath(final MetaDataRegisterDTO dto) {
         String name = PluginEnum.CONTEXT_PATH.getName();
-        String contextPathSelectorId = getSelectorService().registerDefault(dto, name, "");
-        // avoid repeated registration for many client threads
-        // many client threads may register the same context path for contextPath plugin at the same time
-        RegisterExecutionLock lock = registerExecutionRepository.getLock(name);
-        lock.lock();
+        String contextPath = PathUtils.decoratorContextPath(dto.getContextPath());
+        String key = LOCK_KEY_PREFIX + contextPath;
+        Lock lock = registry.obtain(key);
+        if (logger.isDebugEnabled()) {
+            logger.debug("register context-path obtain lock for key:{}", key);
+        }
         try {
+            lock.lock();
+            String contextPathSelectorId = getSelectorService().registerDefault(dto, name, "");
+            // avoid repeated registration for many client threads
+            // many client threads may register the same context path for contextPath plugin at the same time
             if (Objects.nonNull(getRuleService().findBySelectorIdAndName(contextPathSelectorId, dto.getContextPath()))) {
                 return;
             }
             ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
-            handle.setContextPath(PathUtils.decoratorContextPath(dto.getContextPath()));
+            handle.setContextPath(contextPath);
             handle.setAddPrefixed(dto.getAddPrefixed());
             getRuleService().registerDefault(buildContextPathDefaultRuleDTO(contextPathSelectorId, dto, handle.toJson()));
         } finally {
