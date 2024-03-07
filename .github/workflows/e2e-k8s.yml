@@ -180,7 +180,7 @@ jobs:
 #        uses: mxschmitt/action-tmate@v3
 #        timeout-minutes: 15
 #        with:
-#          detached: true
+#          detached: rue
 
       - name: Run E2E Tests
         if: steps.filter.outputs.changed == 'true'
