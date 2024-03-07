@@ -219,6 +219,7 @@
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.AppAuthDO">
         UPDATE app_auth
            SET
+               app_key = #{appKey, jdbcType=VARCHAR},
                app_secret = #{appSecret, jdbcType=VARCHAR},
                phone = #{phone, jdbcType=VARCHAR},
                user_id = #{userId, jdbcType=VARCHAR},
@@ -231,6 +232,9 @@
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.AppAuthDO">
         UPDATE app_auth
         <set>
+            <if test="appKey != null">
+                app_key = #{appKey, jdbcType=VARCHAR},
+            </if>
             <if test="appSecret != null">
                 app_secret = #{appSecret, jdbcType=VARCHAR},
             </if>
