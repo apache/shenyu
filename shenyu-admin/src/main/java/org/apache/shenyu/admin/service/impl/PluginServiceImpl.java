@@ -30,6 +30,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.query.PluginQueryCondition;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
@@ -259,52 +260,66 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ShenyuAdminResult importData(List<PluginDTO> pluginList) {
-        if(CollectionUtils.isEmpty(pluginList)){
-            return ShenyuAdminResult.success();
+    public ConfigImportResult importData(List<PluginDTO> pluginList) {
+        if (CollectionUtils.isEmpty(pluginList)) {
+            return ConfigImportResult.success();
         }
-
         Map<String, PluginDO> existPluginMap = pluginMapper.selectAll()
                 .stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toMap(PluginDO::getName,x->x));
-        try{
+                .collect(Collectors.toMap(PluginDO::getName, x -> x));
+        try {
+            StringBuilder errorMsgBuilder = new StringBuilder();
+            int successCount = 0;
             for (PluginDTO pluginDTO : pluginList) {
                 String pluginName = pluginDTO.getName();
-                if(existPluginMap.containsKey(pluginName)){
+                String pluginId;
+                // check plugin base info
+                if (existPluginMap.containsKey(pluginName)) {
                     PluginDO existPlugin = existPluginMap.get(pluginName);
-                    String pluginId = existPlugin.getId();
-                    // check plugin handle and selector
-                    List<PluginHandleDTO> pluginHandleList = pluginDTO.getPluginHandleList();
-                    if(CollectionUtils.isNotEmpty(pluginHandleList)){
-                        pluginHandleService.importData(pluginHandleList.stream().peek(x->x.setPluginId(pluginId)).collect(Collectors.toList()));
+                    pluginId = existPlugin.getId();
+                    errorMsgBuilder
+                            .append(pluginName)
+                            .append(AdminConstants.WHITE_SPACE)
+                            .append(System.lineSeparator())
+                            .append(AdminConstants.WHITE_SPACE);
+                } else {
+                    PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+                    pluginId = pluginDO.getId();
+                    if (pluginMapper.insertSelective(pluginDO) > 0) {
+                        // publish create event. init plugin data
+                        pluginEventPublisher.onCreated(pluginDO);
                     }
-                    List<SelectorDTO> selectorList = pluginDTO.getSelectorList();
-                    if(CollectionUtils.isNotEmpty(selectorList)){
-                        selectorService.importData(selectorList.stream().peek(x->x.setPluginId(pluginId)).collect(Collectors.toList()));
-                    }
-                    continue;
                 }
-                PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
-                String pluginId = pluginDO.getId();
-                pluginMapper.updateSelective(pluginDO);
-                // check plugin handle and selector
+                // check and import plugin handle
                 List<PluginHandleDTO> pluginHandleList = pluginDTO.getPluginHandleList();
-                if(CollectionUtils.isNotEmpty(pluginHandleList)){
-                    pluginHandleService.importData(pluginHandleList.stream().peek(x->x.setPluginId(pluginId)).collect(Collectors.toList()));
+                if (CollectionUtils.isNotEmpty(pluginHandleList)) {
+                    pluginHandleService
+                            .importData(pluginHandleList
+                                    .stream()
+                                    .peek(x -> x.setPluginId(pluginId))
+                                    .collect(Collectors.toList()));
                 }
+                // check and import plugin selector
                 List<SelectorDTO> selectorList = pluginDTO.getSelectorList();
-                if(CollectionUtils.isNotEmpty(selectorList)){
-                    selectorService.importData(selectorList.stream().peek(x->x.setPluginId(pluginId)).collect(Collectors.toList()));
+                if (CollectionUtils.isNotEmpty(selectorList)) {
+                    selectorService
+                            .importData(selectorList
+                                    .stream()
+                                    .peek(x -> x.setPluginId(pluginId))
+                                    .collect(Collectors.toList()));
                 }
-
             }
-        }catch (Exception e){
-            LOG.error("import plugin data error",e);
+            if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+                return ConfigImportResult
+                        .fail(successCount, "plugin data import fail pluginName: " + errorMsgBuilder);
+            }
+            return ConfigImportResult.success(successCount);
+        } catch (Exception e) {
+            LOG.error("import plugin data error", e);
             throw new ShenyuException("import plugin data error");
         }
 
-        return ShenyuAdminResult.success();
     }
 
     /**

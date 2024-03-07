@@ -19,12 +19,14 @@ package org.apache.shenyu.admin.controller;
 
 import com.alibaba.nacos.common.utils.DateFormatUtils;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
@@ -34,9 +36,12 @@ import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.utils.ZipUtil;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.ExportImportConstants;
+import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -89,7 +94,6 @@ public class ConfigsExportImportController {
      * @return the shenyu result
      */
     @GetMapping("/export")
-//    @RequiresPermissions("system:authen:list")
     public ResponseEntity<byte[]> exportConfigs() {
         List<ZipUtil.ZipItem> zipItemList = Lists.newArrayList();
         List<AppAuthVO> authDataList = appAuthService.listAllVO();
@@ -129,9 +133,8 @@ public class ConfigsExportImportController {
         if (Objects.isNull(file)) {
             return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
         }
-        List<Object> configInfoList = new ArrayList<>();
-        List<Map<String, String>> unrecognizedList = new ArrayList<>();
         try {
+            Map<String, Object> result = Maps.newHashMap();
             ZipUtil.UnZipResult unZipResult = ZipUtil.unzip(file.getBytes());
             List<ZipUtil.ZipItem> zipItemList = unZipResult.getZipItemList();
             if (CollectionUtils.isEmpty(zipItemList)) {
@@ -145,32 +148,44 @@ public class ConfigsExportImportController {
                         String pluginJson = zipItem.getItemData();
                         if (StringUtils.isNotEmpty(pluginJson)) {
                             List<PluginDTO> pluginList = GsonUtils.getInstance().fromList(pluginJson, PluginDTO.class);
-                            pluginService.importData(pluginList);
+                            ConfigImportResult configImportResult = pluginService.importData(pluginList);
+                            result.put(ExportImportConstants.PLUGIN_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
+                            if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
+                                result.put(ExportImportConstants.PLUGIN_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
+                            }
                         }
                         break;
                     case ExportImportConstants.AUTH_JSON:
                         String authJson = zipItem.getItemData();
                         if (StringUtils.isNotEmpty(authJson)) {
                             List<AppAuthDTO> authDataList = GsonUtils.getInstance().fromList(authJson, AppAuthDTO.class);
-                            appAuthService.importData(authDataList);
+                            ConfigImportResult configImportResult = appAuthService.importData(authDataList);
+                            result.put(ExportImportConstants.AUTH_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
+                            if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
+                                result.put(ExportImportConstants.AUTH_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
+                            }
                         }
                         break;
                     case ExportImportConstants.META_JSON:
                         String metaJson = zipItem.getItemData();
                         if (StringUtils.isNotEmpty(metaJson)) {
                             List<MetaDataDTO> metaDataList = GsonUtils.getInstance().fromList(metaJson, MetaDataDTO.class);
-                            metaDataService.importData(metaDataList);
+                            ConfigImportResult configImportResult = metaDataService.importData(metaDataList);
+                            result.put(ExportImportConstants.META_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
+                            if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
+                                result.put(ExportImportConstants.META_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
+                            }
                         }
                         break;
                     default:
                         break;
                 }
             }
+            return ShenyuAdminResult.success(result);
         } catch (IOException e) {
             LOG.error("parsing data failed", e);
             return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
         }
 
-        return ShenyuAdminResult.success();
     }
 }

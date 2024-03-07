@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
@@ -164,8 +165,8 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
     /**
      * Import shenyu auth data.
      * @param authDataList app auth list
-     * @return the shenyu admin result
+     * @return the config import result
      */
-    ShenyuAdminResult importData(List<AppAuthDTO> authDataList);
+    ConfigImportResult importData(List<AppAuthDTO> authDataList);
 
 }

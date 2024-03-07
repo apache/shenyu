@@ -30,6 +30,7 @@ import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.admin.service.MetaDataService;
@@ -195,30 +196,46 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public ShenyuAdminResult importData(List<MetaDataDTO> metaDataList) {
+    public ConfigImportResult importData(List<MetaDataDTO> metaDataList) {
         if (CollectionUtils.isEmpty(metaDataList)) {
-            return ShenyuAdminResult.success();
+            return ConfigImportResult.success();
         }
         try {
-            Set<String> existMetadataPathSet = Optional.of(listAll().stream().filter(Objects::nonNull).map(MetaData::getPath).collect(Collectors.toSet())).orElse(Sets.newHashSet());
-
+            Set<String> existMetadataPathSet = Optional
+                    .of(listAll()
+                            .stream()
+                            .filter(Objects::nonNull)
+                            .map(MetaData::getPath)
+                            .collect(Collectors.toSet()))
+                    .orElse(Sets.newHashSet());
+            StringBuilder errorMsgBuilder = new StringBuilder();
+            int successCount = 0;
             for (MetaDataDTO metaDataDTO : metaDataList) {
                 String metaDataPath = metaDataDTO.getPath();
-                if(existMetadataPathSet.contains(metaDataPath)){
-                    LOG.info("import metadata path: {} already exists",metaDataPath);
-                    // TODO 记录错误
+                if (existMetadataPathSet.contains(metaDataPath)) {
+                    LOG.info("import metadata path: {} already exists", metaDataPath);
+                    errorMsgBuilder
+                            .append(metaDataPath)
+                            .append(AdminConstants.WHITE_SPACE)
+                            .append(System.lineSeparator())
+                            .append(AdminConstants.WHITE_SPACE);
                     continue;
                 }
-                MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
-                metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-                metaDataDO.setDateCreated(currentTime);
-                metaDataDO.setDateUpdated(currentTime);
-                metaDataMapper.insert(metaDataDO);
-                // TODO publish
-
+                String createResult = create(metaDataDTO);
+                if (!ShenyuResultMessage.CREATE_SUCCESS.equalsIgnoreCase(createResult)) {
+                    errorMsgBuilder
+                            .append(createResult)
+                            .append(AdminConstants.WHITE_SPACE)
+                            .append(System.lineSeparator())
+                            .append(AdminConstants.WHITE_SPACE);
+                }else{
+                    successCount++;
+                }
             }
-            return ShenyuAdminResult.success();
+            if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+                return ConfigImportResult.fail(successCount,"meta data import fail path: " + errorMsgBuilder);
+            }
+            return ConfigImportResult.success(successCount);
         } catch (Exception e) {
             LOG.error("import metadata error", e);
             throw new ShenyuException("import metadata error.");

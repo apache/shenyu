@@ -37,6 +37,7 @@ import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthParamVO;
@@ -129,7 +130,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                     .collect(Collectors.toList());
             authPathMapper.batchSave(collect);
             data.setPathDataList(collect.stream().map(authPathDO ->
-                    AuthPathData.builder().appName(authPathDO.getAppName()).path(authPathDO.getPath()).enabled(authPathDO.getEnabled()).build())
+                            AuthPathData.builder().appName(authPathDO.getAppName()).path(authPathDO.getPath()).enabled(authPathDO.getEnabled()).build())
                     .collect(Collectors.toList()));
         }
 
@@ -260,54 +261,68 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ShenyuAdminResult importData(List<AppAuthDTO> authDataList) {
+    public ConfigImportResult importData(List<AppAuthDTO> authDataList) {
         if (CollectionUtils.isEmpty(authDataList)) {
-            return ShenyuAdminResult.success();
+            return ConfigImportResult.success();
         }
         try {
+            StringBuilder errorMsgBuilder = new StringBuilder();
+            int successCount = 0;
             // exist appKey set
             Set<String> existAppKeySet = Optional.of(
-                    this.appAuthMapper.selectAll()
-                            .stream()
-                            .filter(Objects::nonNull)
-                            .map(AppAuthDO::getAppKey)
-                            .collect(Collectors.toSet()))
+                            this.appAuthMapper.selectAll()
+                                    .stream()
+                                    .filter(Objects::nonNull)
+                                    .map(AppAuthDO::getAppKey)
+                                    .collect(Collectors.toSet()))
                     .orElse(Sets.newHashSet());
 
             for (AppAuthDTO appAuth : authDataList) {
-                AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuth);
                 String appKey = appAuth.getAppKey();
                 if (existAppKeySet.contains(appKey)) {
-                    // already exists, just record
-                    LOG.info("to import auth data, appKey: {} already exists", appKey);
-                    // TODO 记录错误信息，最终在结果中返回
+                    // already exists, just record fail info, and continue
+                    LOG.info("import auth data, appKey: {} already exists", appKey);
+                    errorMsgBuilder
+                            .append(appKey)
+                            .append(AdminConstants.WHITE_SPACE)
+                            .append(System.lineSeparator())
+                            .append(AdminConstants.WHITE_SPACE);
                     continue;
                 }
+                AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuth);
                 // create
                 String authId = UUIDUtils.getInstance().generateShortUuid();
                 appAuthDO.setId(authId);
-                appAuthMapper.insertSelective(appAuthDO);
-                // auth path
-                List<AuthPathDTO> authPathDTOList = appAuth.getAuthPathList();
-                if (CollectionUtils.isNotEmpty(authPathDTOList)) {
-                    List<AuthPathDO> authPathDOS = authPathDTOList
-                            .stream()
-                            .map(param -> AuthPathDO.create(param.getPath(), authId, param.getAppName()))
-                            .collect(Collectors.toList());
-                    authPathMapper.batchSave(authPathDOS);
-                }
+                int inserted = appAuthMapper.insertSelective(appAuthDO);
+                if (inserted > 0) {
+                    successCount++;
+                    // auth path
+                    List<AuthPathDTO> authPathDTOList = appAuth.getAuthPathList();
+                    if (CollectionUtils.isNotEmpty(authPathDTOList)) {
+                        List<AuthPathDO> authPathDOS = authPathDTOList
+                                .stream()
+                                .map(param -> AuthPathDO.create(param.getPath(), authId, param.getAppName()))
+                                .collect(Collectors.toList());
+                        authPathMapper.batchSave(authPathDOS);
+                    }
 
-                // auth param
-                List<AuthParamDTO> authParamVOList = appAuth.getAuthParamList();
-                if (CollectionUtils.isNotEmpty(authParamVOList)) {
-                    List<AuthParamDO> authParamDOS = authParamVOList
-                            .stream()
-                            .map(param -> AuthParamDO.create(authId, param.getAppName(), param.getAppParam()))
-                            .collect(Collectors.toList());
-                    authParamMapper.batchSave(authParamDOS);
+                    // auth param
+                    List<AuthParamDTO> authParamVOList = appAuth.getAuthParamList();
+                    if (CollectionUtils.isNotEmpty(authParamVOList)) {
+                        List<AuthParamDO> authParamDOS = authParamVOList
+                                .stream()
+                                .map(param -> AuthParamDO.create(authId, param.getAppName(), param.getAppParam()))
+                                .collect(Collectors.toList());
+                        authParamMapper.batchSave(authParamDOS);
+                    }
                 }
             }
-            return this.syncData();
+            this.syncData();
+            if (StringUtils.isEmpty(errorMsgBuilder)) {
+                return ConfigImportResult.success(successCount);
+            } else {
+                return ConfigImportResult.fail(successCount, "app auth data import fail appKey: " + errorMsgBuilder);
+            }
         } catch (Exception e) {
             LOG.error("import app auth data error", e);
             throw new ShenyuException("import app auth data error.");
@@ -366,13 +381,13 @@ public class AppAuthServiceImpl implements AppAuthService {
         authPathMapper.deleteByAuthIds(ids);
 
         List<AppAuthData> appAuthData = appAuthList.stream().map(appAuthDO -> AppAuthData.builder()
-            .appKey(appAuthDO.getAppKey())
-            .appSecret(appAuthDO.getAppSecret())
-            .open(appAuthDO.getOpen())
-            .enabled(appAuthDO.getEnabled())
-            .paramDataList(null)
-            .pathDataList(null)
-            .build()).collect(Collectors.toCollection(() -> new ArrayList<>(appAuthList.size())));
+                .appKey(appAuthDO.getAppKey())
+                .appSecret(appAuthDO.getAppSecret())
+                .open(appAuthDO.getOpen())
+                .enabled(appAuthDO.getEnabled())
+                .paramDataList(null)
+                .pathDataList(null)
+                .build()).collect(Collectors.toCollection(() -> new ArrayList<>(appAuthList.size())));
         // publish delete event of AppAuthData
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.DELETE, appAuthData));
 
@@ -455,8 +470,8 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public CommonPager<AppAuthVO> listByPage(final AppAuthQuery appAuthQuery) {
         return PageResultUtils.result(appAuthQuery.getPageParameter(),
-            () -> appAuthMapper.countByQuery(appAuthQuery),
-            () -> appAuthMapper.selectByQuery(appAuthQuery)
+                () -> appAuthMapper.countByQuery(appAuthQuery),
+                () -> appAuthMapper.selectByQuery(appAuthQuery)
                         .stream()
                         .map(AppAuthTransfer.INSTANCE::mapToVO)
                         .collect(Collectors.toList()));
@@ -552,6 +567,7 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     /**
      * prepare the Map with authIds.
+     *
      * @param authIds auth id
      * @return a map consist of param info
      */
@@ -561,18 +577,19 @@ public class AppAuthServiceImpl implements AppAuthService {
 
         return Optional.ofNullable(authPathDOList).orElseGet(ArrayList::new)
                 .stream().collect(Collectors.toMap(AuthParamDO::getAuthId,
-                    data -> {
-                        List<AuthParamData> dataList = new ArrayList<>();
-                        dataList.add(new AuthParamData(data.getAppName(), data.getAppParam()));
-                        return dataList;
-                    }, (List<AuthParamData> dataList1, List<AuthParamData> dataList2) -> {
-                        dataList1.addAll(dataList2);
-                        return dataList1;
-                    }));
+                        data -> {
+                            List<AuthParamData> dataList = new ArrayList<>();
+                            dataList.add(new AuthParamData(data.getAppName(), data.getAppParam()));
+                            return dataList;
+                        }, (List<AuthParamData> dataList1, List<AuthParamData> dataList2) -> {
+                            dataList1.addAll(dataList2);
+                            return dataList1;
+                        }));
     }
 
     /**
      * prepare the Map with authIds.
+     *
      * @param authIds auth id
      * @return a map consist of path info
      */
@@ -581,14 +598,14 @@ public class AppAuthServiceImpl implements AppAuthService {
         List<AuthPathDO> authPathDOList = authPathMapper.findByAuthIdList(authIds);
         return Optional.ofNullable(authPathDOList).orElseGet(ArrayList::new)
                 .stream().collect(Collectors.toMap(AuthPathDO::getAuthId,
-                    data -> {
-                        List<AuthPathData> dataList = new ArrayList<>();
-                        dataList.add(new AuthPathData(data.getAppName(), data.getPath(), data.getEnabled()));
-                        return dataList;
-                    }, (List<AuthPathData> dataList1, List<AuthPathData> dataList2) -> {
-                        dataList1.addAll(dataList2);
-                        return dataList1;
-                    }));
+                        data -> {
+                            List<AuthPathData> dataList = new ArrayList<>();
+                            dataList.add(new AuthPathData(data.getAppName(), data.getPath(), data.getEnabled()));
+                            return dataList;
+                        }, (List<AuthPathData> dataList1, List<AuthPathData> dataList2) -> {
+                            dataList1.addAll(dataList2);
+                            return dataList1;
+                        }));
     }
 
     /**

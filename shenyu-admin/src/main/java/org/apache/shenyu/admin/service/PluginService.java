@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.query.PluginQueryCondition;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
@@ -129,7 +130,7 @@ public interface PluginService extends PageService<PluginQueryCondition, PluginV
     /**
      * import plugin data.
      * @param pluginList the plugin data
-     * @return shenyu admin result
+     * @return config import result
      */
-    ShenyuAdminResult importData(List<PluginDTO> pluginList);
+    ConfigImportResult importData(List<PluginDTO> pluginList);
 }

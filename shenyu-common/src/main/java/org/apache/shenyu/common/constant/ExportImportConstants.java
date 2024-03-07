@@ -40,6 +40,16 @@ public final class ExportImportConstants {
     public static final String PLUGIN_JSON = "plugin.json";
 
     /**
+     * plugin import success count.
+     */
+    public static final String PLUGIN_IMPORT_SUCCESS_COUNT = "pluginImportSuccessCount";
+
+    /**
+     * plugin import fail message.
+     */
+    public static final String PLUGIN_IMPORT_FAIL_MESSAGE = "pluginImportFailMessage";
+
+    /**
      * selector json config name.
      */
     public static final String SELECTOR_JSON = "selector.json";
@@ -55,18 +65,29 @@ public final class ExportImportConstants {
     public static final String AUTH_JSON = "auth.json";
 
     /**
+     * auth import success count.
+     */
+    public static final String AUTH_IMPORT_SUCCESS_COUNT = "authImportSuccessCount";
+
+    /**
+     * auth import fail message.
+     */
+    public static final String AUTH_IMPORT_FAIL_MESSAGE = "authImportFailMessage";
+
+    /**
      * meta json config name.
      */
     public static final String META_JSON = "meta.json";
 
     /**
-     * auth path properties name.
+     * meta import success count.
      */
-    public static final String AUTH_PATH = "authPathVOList";
+    public static final String META_IMPORT_SUCCESS_COUNT = "metaImportSuccessCount";
 
     /**
-     * auth param properties name.
+     * meta import fail message.
      */
-    public static final String AUTH_PARAM = "authParamVOList";
+    public static final String META_IMPORT_FAIL_MESSAGE = "metaImportFailMessage";
+
 
 }
