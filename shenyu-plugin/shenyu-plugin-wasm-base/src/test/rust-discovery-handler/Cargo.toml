@@ -18,7 +18,7 @@
 #
 
 [package]
-name = "rust-discovery-handler-plugin"
+name = "rust-discovery-handler"
 version = "0.1.0"
 edition = "2021"
 

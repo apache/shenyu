@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Aes Secret configuration.
+ * Only the password used in Shenyu admin login is used for encryption, and it is not safe to be exposed to the outside world.
  */
 @Component
 @ConfigurationProperties(prefix = "shenyu.aes.secret")

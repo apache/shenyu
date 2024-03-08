@@ -2078,3 +2078,15 @@ CREATE TABLE IF NOT EXISTS `alert_receiver`
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for INT_LOCK
+-- ----------------------------
+DROP TABLE IF EXISTS `INT_LOCK`;
+CREATE TABLE IF NOT EXISTS INT_LOCK  (
+    `LOCK_KEY` CHAR(36) NOT NULL,
+    `REGION` VARCHAR(100) NOT NULL,
+    `CLIENT_ID` CHAR(36),
+    `CREATED_DATE` TIMESTAMP NOT NULL,
+    constraint INT_LOCK_PK primary key (LOCK_KEY, REGION)
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
