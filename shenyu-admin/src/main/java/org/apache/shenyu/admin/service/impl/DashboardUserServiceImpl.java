@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
+import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
@@ -48,6 +49,7 @@ import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.WebI18nAssert;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.slf4j.Logger;
@@ -90,7 +92,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private final UserEventPublisher publisher;
     
     private final DashboardProperties properties;
-    
+
+    private final SecretProperties secretProperties;
+
     public DashboardUserServiceImpl(final DashboardUserMapper dashboardUserMapper,
                                     final UserRoleMapper userRoleMapper,
                                     final RoleMapper roleMapper,
@@ -98,7 +102,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                                     @Nullable final LdapTemplate ldapTemplate,
                                     final JwtProperties jwtProperties,
                                     final UserEventPublisher publisher,
-                                    final DashboardProperties properties) {
+                                    final DashboardProperties properties,
+                                    final SecretProperties secretProperties) {
         this.dashboardUserMapper = dashboardUserMapper;
         this.userRoleMapper = userRoleMapper;
         this.roleMapper = roleMapper;
@@ -107,6 +112,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         this.jwtProperties = jwtProperties;
         this.publisher = publisher;
         this.properties = properties;
+        this.secretProperties = secretProperties;
     }
     
     /**
@@ -264,12 +270,19 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     @Override
     public LoginDashboardUserVO login(final String userName, final String password) {
         DashboardUserVO dashboardUserVO = null;
+        final String cbcDecryptPassword;
+        if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())) {
+            cbcDecryptPassword = AesUtils.cbcDecrypt(secretProperties.getKey(), secretProperties.getIv(), password);
+        } else {
+            cbcDecryptPassword = password;
+        }
+
         if (Objects.nonNull(ldapTemplate)) {
-            dashboardUserVO = loginByLdap(userName, password);
+            dashboardUserVO = loginByLdap(userName, cbcDecryptPassword);
         }
         
         if (Objects.isNull(dashboardUserVO)) {
-            dashboardUserVO = loginByDatabase(userName, password);
+            dashboardUserVO = loginByDatabase(userName, cbcDecryptPassword);
         }
         
         final LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
@@ -319,7 +332,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         
         return true;
     }
-    
+
     private DashboardUserVO loginByLdap(final String userName, final String password) {
         Assert.notNull(ldapProperties, "ldap config is not enable");
         String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), LdapEncoder.nameEncode(userName), ldapProperties.getBaseDn());

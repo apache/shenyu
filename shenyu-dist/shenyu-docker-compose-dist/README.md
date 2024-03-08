@@ -14,4 +14,6 @@ $ sh ./install.sh ${version} #please replace the ${version}, such as v2.4.2 or l
 
 ```shell
 docker-compose -f ./docker-compose.yaml up -d
+# if docker version > 1.25.5 ，use docker compose command
+docker compose -f ./docker-compose.yaml up -d
 ```
