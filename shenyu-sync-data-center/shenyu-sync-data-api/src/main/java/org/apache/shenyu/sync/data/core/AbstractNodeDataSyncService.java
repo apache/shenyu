@@ -130,7 +130,7 @@ public abstract class AbstractNodeDataSyncService {
             watchCommonList(NacosPathConstants.PROXY_SELECTOR_DATA_ID + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.JOIN_POINT,
                     this::cacheProxySelectorData, this::unCacheProxySelectorData);
             watchCommonList(NacosPathConstants.DISCOVERY_DATA_ID + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.JOIN_POINT,
-                    this::cacheProxySelectorData, this::unCacheProxySelectorData);
+                    this::cacheDiscoveryUpstreamData, this::unCacheDiscoveryUpstreamData);
         });
     }
 
