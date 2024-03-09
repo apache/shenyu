@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.EnumService;
+import org.apache.shenyu.admin.service.SecretService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
@@ -60,6 +61,9 @@ public final class PlatformControllerTest {
 
     @Mock
     private EnumService enumService;
+
+    @Mock
+    private SecretService secretService;
 
     /**
      * dashboardUser mock data.
@@ -106,4 +110,19 @@ public final class PlatformControllerTest {
                 .andExpect(jsonPath("$.data", is(this.enumService.list())))
                 .andReturn();
     }
+
+    /**
+     * test method QuerySecretInfo.
+     */
+    @Test
+    public void testQuerySecretInfo() throws Exception {
+        final String querySecretInfoUri = "/platform/secretInfo";
+
+        this.mockMvc.perform(MockMvcRequestBuilders.request(HttpMethod.GET, querySecretInfoUri))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code", is(CommonErrorCode.SUCCESSFUL)))
+            .andExpect(jsonPath("$.data", is(secretService.info())))
+            .andReturn();
+    }
+
 }

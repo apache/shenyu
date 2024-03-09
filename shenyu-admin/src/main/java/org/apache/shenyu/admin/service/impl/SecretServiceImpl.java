@@ -15,24 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.lock;
+package org.apache.shenyu.admin.service.impl;
 
+import java.util.Base64;
+import org.apache.shenyu.admin.config.properties.SecretProperties;
+import org.apache.shenyu.admin.service.SecretService;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.springframework.stereotype.Service;
 
 /**
- * The interface Register execution lock.
- * Deprecated: this class is deprecated and will be removed in the next major version.
- * @since 2.6.1
- * @deprecated Please use {@link org.springframework.integration.jdbc.lock.JdbcLockRegistry#obtain}.
+ * Implementation of the {@link org.apache.shenyu.admin.service.SecretService}.
  */
-@Deprecated
-public interface RegisterExecutionLock {
-    /**
-     * Acquire the client register lock.
-     */
-    void lock();
+@Service
+public class SecretServiceImpl implements SecretService {
 
-    /**
-     * Release the client register lock.
-     */
-    void unlock();
+    private final SecretProperties secretProperties;
+
+    public SecretServiceImpl(final SecretProperties secretProperties) {
+        this.secretProperties = secretProperties;
+    }
+
+    @Override
+    public String info() {
+        return Base64.getEncoder().encodeToString(JsonUtils.toJson(secretProperties).getBytes());
+    }
 }

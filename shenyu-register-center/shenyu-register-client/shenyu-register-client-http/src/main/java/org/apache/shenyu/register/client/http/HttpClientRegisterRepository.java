@@ -24,6 +24,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.FailbackRegistryRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
@@ -87,13 +88,18 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     public void init(final ShenyuRegisterCenterConfig config) {
         this.username = config.getProps().getProperty(Constants.USER_NAME);
         this.password = config.getProps().getProperty(Constants.PASS_WORD);
+        String secretKey = config.getProps().getProperty(Constants.AES_SECRET_KEY);
+        String secretIv = config.getProps().getProperty(Constants.AES_SECRET_IV);
+        if (StringUtils.isNotBlank(secretKey) && StringUtils.isNotBlank(secretIv)) {
+            this.password = AesUtils.cbcEncrypt(secretKey, secretIv, password);
+        }
         this.serverList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));
         this.accessToken = Caffeine.newBuilder()
                 //see org.apache.shenyu.admin.config.properties.JwtProperties#expiredSeconds
                 .expireAfterWrite(24L, TimeUnit.HOURS)
                 .build(new CacheLoader<String, String>() {
                     @Override
-                    public @Nullable String load(@NonNull final String server) throws Exception {
+                    public @Nullable String load(@NonNull final String server) {
                         try {
                             Optional<?> login = RegisterUtils.doLogin(username, password, server.concat(Constants.LOGIN_PATH));
                             return login.map(String::valueOf).orElse(null);
