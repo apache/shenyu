@@ -36,12 +36,9 @@ import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.utils.ZipUtil;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.ExportImportConstants;
-import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -51,8 +48,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +91,7 @@ public class ConfigsExportImportController {
      * @return the shenyu result
      */
     @GetMapping("/export")
-    public ResponseEntity<byte[]> exportConfigs() {
+    public ResponseEntity<byte[]> exportConfigs(HttpServletResponse response) {
         List<ZipUtil.ZipItem> zipItemList = Lists.newArrayList();
         List<AppAuthVO> authDataList = appAuthService.listAllVO();
         if (CollectionUtils.isNotEmpty(authDataList)) {
@@ -113,6 +110,7 @@ public class ConfigsExportImportController {
 
         HttpHeaders headers = new HttpHeaders();
         String fileName = generateFileName();
+        response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
         headers.add("Content-Disposition", "attachment;filename=" + fileName);
         return new ResponseEntity<>(ZipUtil.zip(zipItemList), headers, HttpStatus.OK);
     }
@@ -127,7 +125,11 @@ public class ConfigsExportImportController {
                 + ExportImportConstants.EXPORT_CONFIG_FILE_NAME_EXT;
     }
 
-
+    /**
+     * Import configs.
+     * @param file config file
+     * @return shenyu admin result
+     */
     @PostMapping("/import")
     public ShenyuAdminResult importConfigs(MultipartFile file) {
         if (Objects.isNull(file)) {
