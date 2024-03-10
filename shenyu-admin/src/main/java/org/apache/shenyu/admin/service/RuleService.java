@@ -158,5 +158,10 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      */
     RuleDO findBySelectorIdAndName(String selectorId, String name);
 
+    /**
+     * Import data.
+     * @param ruleList rule list
+     * @return shenyu admin result
+     */
     ShenyuAdminResult importData(List<RuleDTO> ruleList);
 }

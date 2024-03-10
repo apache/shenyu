@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.admin.model.result;
 
 import java.io.Serializable;
@@ -9,15 +26,10 @@ public class ConfigImportResult implements Serializable {
 
     private static final long serialVersionUID = 7527987507527292299L;
 
-    private Integer successCount;
+    private final Integer successCount;
 
-    private String failMessage;
+    private final String failMessage;
 
-    /**
-     * Instantiates a new config import result.
-     */
-    public ConfigImportResult() {
-    }
 
     /**
      * Instantiates a new config import result.
@@ -25,7 +37,7 @@ public class ConfigImportResult implements Serializable {
      * @param successCount success count
      * @param failMessage  fail message
      */
-    public ConfigImportResult(Integer successCount, String failMessage) {
+    public ConfigImportResult(final Integer successCount, final String failMessage) {
         this.successCount = successCount;
         this.failMessage = failMessage;
     }
@@ -41,19 +53,21 @@ public class ConfigImportResult implements Serializable {
 
     /**
      * return success.
-     *
+     * @param successCount success count
      * @return {@linkplain ConfigImportResult}
      */
-    public static ConfigImportResult success(Integer successCount) {
+    public static ConfigImportResult success(final Integer successCount) {
         return new ConfigImportResult(successCount, "");
     }
 
     /**
      * return success.
      *
+     * @param successCount success count
+     * @param failMessage fail message
      * @return {@linkplain ConfigImportResult}
      */
-    public static ConfigImportResult fail(Integer successCount, String failMessage) {
+    public static ConfigImportResult fail(final Integer successCount, final String failMessage) {
         return new ConfigImportResult(successCount, failMessage);
     }
 
@@ -67,15 +81,6 @@ public class ConfigImportResult implements Serializable {
     }
 
     /**
-     * Sets the success count.
-     *
-     * @param successCount the success count
-     */
-    public void setSuccessCount(Integer successCount) {
-        this.successCount = successCount;
-    }
-
-    /**
      * Gets the fail message.
      *
      * @return the fail message
@@ -84,12 +89,4 @@ public class ConfigImportResult implements Serializable {
         return failMessage;
     }
 
-    /**
-     * Sets the fail message.
-     *
-     * @param failMessage the fail message
-     */
-    public void setFailMessage(String failMessage) {
-        this.failMessage = failMessage;
-    }
 }

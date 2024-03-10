@@ -138,7 +138,7 @@ public class PluginHandleServiceImpl implements PluginHandleService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ShenyuAdminResult importData(List<PluginHandleDTO> pluginHandleList) {
+    public ShenyuAdminResult importData(final List<PluginHandleDTO> pluginHandleList) {
         Map<String, List<PluginHandleVO>> existHandleMap = listAll()
                 .stream()
                 .filter(Objects::nonNull)

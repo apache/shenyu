@@ -22,7 +22,6 @@ import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
-import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;

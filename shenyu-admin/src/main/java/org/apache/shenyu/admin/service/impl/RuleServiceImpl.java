@@ -243,7 +243,8 @@ public class RuleServiceImpl implements RuleService {
     }
 
     @Override
-    public ShenyuAdminResult importData(List<RuleDTO> ruleList) {
+    @Transactional(rollbackFor = Exception.class)
+    public ShenyuAdminResult importData(final List<RuleDTO> ruleList) {
         if (CollectionUtils.isEmpty(ruleList)) {
             return ShenyuAdminResult.success();
         }

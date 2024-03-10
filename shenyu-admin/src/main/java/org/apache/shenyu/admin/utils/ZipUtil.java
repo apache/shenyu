@@ -1,11 +1,12 @@
 /*
- * Copyright 1999-2018 Alibaba Group Holding Ltd.
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,56 +40,14 @@ public final class ZipUtil {
     private ZipUtil() {
     }
 
-    public static class ZipItem {
-
-        private String itemName;
-
-        private String itemData;
-
-        public ZipItem(String itemName, String itemData) {
-            this.itemName = itemName;
-            this.itemData = itemData;
-        }
-
-        public String getItemName() {
-            return itemName;
-        }
-
-        public void setItemName(String itemName) {
-            this.itemName = itemName;
-        }
-
-        public String getItemData() {
-            return itemData;
-        }
-
-        public void setItemData(String itemData) {
-            this.itemData = itemData;
-        }
-    }
-
-    public static class UnZipResult {
-
-        private List<ZipItem> zipItemList;
-
-        public UnZipResult(List<ZipItem> zipItemList) {
-            this.zipItemList = zipItemList;
-        }
-
-        public List<ZipItem> getZipItemList() {
-            return zipItemList;
-        }
-
-        public void setZipItemList(List<ZipItem> zipItemList) {
-            this.zipItemList = zipItemList;
-        }
-
-    }
 
     /**
      * zip method.
+     *
+     * @param source zip source
+     * @return byte array
      */
-    public static byte[] zip(List<ZipItem> source) {
+    public static byte[] zip(final List<ZipItem> source) {
         byte[] result = null;
         try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream(); ZipOutputStream zipOut = new ZipOutputStream(
                 byteOut)) {
@@ -107,8 +66,11 @@ public final class ZipUtil {
 
     /**
      * unzip method.
+     *
+     * @param source source
+     * @return unzip result
      */
-    public static UnZipResult unzip(byte[] source) {
+    public static UnZipResult unzip(final byte[] source) {
         List<ZipItem> itemList = Lists.newArrayList();
         try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(source))) {
             ZipEntry entry;
@@ -132,6 +94,58 @@ public final class ZipUtil {
             LOG.error("unzip error", e);
         }
         return new UnZipResult(itemList);
+    }
+
+    public static class ZipItem {
+
+        private final String itemName;
+
+        private final String itemData;
+
+        public ZipItem(final String itemName, final String itemData) {
+            this.itemName = itemName;
+            this.itemData = itemData;
+        }
+
+        /**
+         * Gets the item name.
+         *
+         * @return the item name
+         */
+        public String getItemName() {
+            return itemName;
+        }
+
+        /**
+         * Gets the item data.
+         *
+         * @return the item data
+         */
+        public String getItemData() {
+            return itemData;
+        }
+
+    }
+
+    public static class UnZipResult {
+        /**
+         * zip item list.
+         */
+        private final List<ZipItem> zipItemList;
+
+        public UnZipResult(final List<ZipItem> zipItemList) {
+            this.zipItemList = zipItemList;
+        }
+
+        /**
+         * Gets the zip item list.
+         *
+         * @return the zip item list
+         */
+        public List<ZipItem> getZipItemList() {
+            return zipItemList;
+        }
+
     }
 
 }

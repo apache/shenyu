@@ -291,7 +291,7 @@ public class PluginVO implements Serializable {
      *
      * @param pluginHandleList the plugin handle list
      */
-    public void setPluginHandleList(List<PluginHandleVO> pluginHandleList) {
+    public void setPluginHandleList(final List<PluginHandleVO> pluginHandleList) {
         this.pluginHandleList = pluginHandleList;
     }
 
@@ -309,7 +309,7 @@ public class PluginVO implements Serializable {
      *
      * @param selectorList the plugin selector list
      */
-    public void setSelectorList(List<SelectorVO> selectorList) {
+    public void setSelectorList(final List<SelectorVO> selectorList) {
         this.selectorList = selectorList;
     }
 

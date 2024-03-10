@@ -261,7 +261,7 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ConfigImportResult importData(List<AppAuthDTO> authDataList) {
+    public ConfigImportResult importData(final List<AppAuthDTO> authDataList) {
         if (CollectionUtils.isEmpty(authDataList)) {
             return ConfigImportResult.success();
         }
@@ -470,11 +470,11 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public CommonPager<AppAuthVO> listByPage(final AppAuthQuery appAuthQuery) {
         return PageResultUtils.result(appAuthQuery.getPageParameter(),
-                () -> appAuthMapper.countByQuery(appAuthQuery),
-                () -> appAuthMapper.selectByQuery(appAuthQuery)
-                        .stream()
-                        .map(AppAuthTransfer.INSTANCE::mapToVO)
-                        .collect(Collectors.toList()));
+            () -> appAuthMapper.countByQuery(appAuthQuery),
+            () -> appAuthMapper.selectByQuery(appAuthQuery)
+                .stream()
+                .map(AppAuthTransfer.INSTANCE::mapToVO)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -506,11 +506,11 @@ public class AppAuthServiceImpl implements AppAuthService {
         Map<String, List<AuthPathVO>> pathMap = this.prepareAuthPathVO(idList);
 
         return appAuthDOList.stream().map(data -> {
-                    AppAuthVO vo = AppAuthTransfer.INSTANCE.mapToVO(data);
-                    vo.setAuthParamList(paramMap.get(vo.getId()));
-                    vo.setAuthPathList(pathMap.get(vo.getId()));
-                    return vo;
-                }
+                AppAuthVO vo = AppAuthTransfer.INSTANCE.mapToVO(data);
+                vo.setAuthParamList(paramMap.get(vo.getId()));
+                vo.setAuthPathList(pathMap.get(vo.getId()));
+                return vo;
+            }
         ).collect(Collectors.toList());
     }
 
@@ -576,15 +576,14 @@ public class AppAuthServiceImpl implements AppAuthService {
         List<AuthParamDO> authPathDOList = authParamMapper.findByAuthIdList(authIds);
 
         return Optional.ofNullable(authPathDOList).orElseGet(ArrayList::new)
-                .stream().collect(Collectors.toMap(AuthParamDO::getAuthId,
-                        data -> {
-                            List<AuthParamData> dataList = new ArrayList<>();
-                            dataList.add(new AuthParamData(data.getAppName(), data.getAppParam()));
-                            return dataList;
-                        }, (List<AuthParamData> dataList1, List<AuthParamData> dataList2) -> {
-                            dataList1.addAll(dataList2);
-                            return dataList1;
-                        }));
+                .stream().collect(Collectors.toMap(AuthParamDO::getAuthId, data -> {
+                    List<AuthParamData> dataList = new ArrayList<>();
+                    dataList.add(new AuthParamData(data.getAppName(), data.getAppParam()));
+                    return dataList;
+                }, (List<AuthParamData> dataList1, List<AuthParamData> dataList2) -> {
+                        dataList1.addAll(dataList2);
+                        return dataList1;
+                    }));
     }
 
     /**
@@ -598,14 +597,14 @@ public class AppAuthServiceImpl implements AppAuthService {
         List<AuthPathDO> authPathDOList = authPathMapper.findByAuthIdList(authIds);
         return Optional.ofNullable(authPathDOList).orElseGet(ArrayList::new)
                 .stream().collect(Collectors.toMap(AuthPathDO::getAuthId,
-                        data -> {
-                            List<AuthPathData> dataList = new ArrayList<>();
-                            dataList.add(new AuthPathData(data.getAppName(), data.getPath(), data.getEnabled()));
-                            return dataList;
-                        }, (List<AuthPathData> dataList1, List<AuthPathData> dataList2) -> {
-                            dataList1.addAll(dataList2);
-                            return dataList1;
-                        }));
+                    data -> {
+                        List<AuthPathData> dataList = new ArrayList<>();
+                        dataList.add(new AuthPathData(data.getAppName(), data.getPath(), data.getEnabled()));
+                        return dataList;
+                    }, (List<AuthPathData> dataList1, List<AuthPathData> dataList2) -> {
+                        dataList1.addAll(dataList2);
+                        return dataList1;
+                    }));
     }
 
     /**
@@ -620,16 +619,16 @@ public class AppAuthServiceImpl implements AppAuthService {
 
         return Optional.ofNullable(authPathDOList).orElseGet(ArrayList::new)
                 .stream().collect(Collectors.toMap(AuthParamDO::getAuthId,
-                        data -> {
-                            List<AuthParamVO> dataList = new ArrayList<>();
-                            AuthParamVO authParamVO = new AuthParamVO();
-                            BeanUtils.copyProperties(data, authParamVO);
-                            dataList.add(authParamVO);
-                            return dataList;
-                        }, (List<AuthParamVO> dataList1, List<AuthParamVO> dataList2) -> {
-                            dataList1.addAll(dataList2);
-                            return dataList1;
-                        }));
+                    data -> {
+                        List<AuthParamVO> dataList = new ArrayList<>();
+                        AuthParamVO authParamVO = new AuthParamVO();
+                        BeanUtils.copyProperties(data, authParamVO);
+                        dataList.add(authParamVO);
+                        return dataList;
+                    }, (List<AuthParamVO> dataList1, List<AuthParamVO> dataList2) -> {
+                        dataList1.addAll(dataList2);
+                        return dataList1;
+                    }));
     }
 
     /**
@@ -643,16 +642,16 @@ public class AppAuthServiceImpl implements AppAuthService {
         List<AuthPathDO> authPathDOList = authPathMapper.findByAuthIdList(authIds);
         return Optional.ofNullable(authPathDOList).orElseGet(ArrayList::new)
                 .stream().collect(Collectors.toMap(AuthPathDO::getAuthId,
-                        data -> {
-                            List<AuthPathVO> dataList = new ArrayList<>();
-                            AuthPathVO authPathVO = new AuthPathVO();
-                            BeanUtils.copyProperties(data, authPathVO);
-                            dataList.add(authPathVO);
-                            return dataList;
-                        }, (List<AuthPathVO> dataList1, List<AuthPathVO> dataList2) -> {
-                            dataList1.addAll(dataList2);
-                            return dataList1;
-                        }));
+                    data -> {
+                        List<AuthPathVO> dataList = new ArrayList<>();
+                        AuthPathVO authPathVO = new AuthPathVO();
+                        BeanUtils.copyProperties(data, authPathVO);
+                        dataList.add(authPathVO);
+                        return dataList;
+                    }, (List<AuthPathVO> dataList1, List<AuthPathVO> dataList2) -> {
+                        dataList1.addAll(dataList2);
+                        return dataList1;
+                    }));
     }
 
 }

@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import java.util.LinkedList;
-
 import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,19 +29,18 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
-import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.publish.MetaDataEventPublisher;
 import org.apache.shenyu.admin.transfer.MetaDataTransfer;
 import org.apache.shenyu.admin.utils.Assert;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
@@ -51,9 +48,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -196,7 +195,8 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public ConfigImportResult importData(List<MetaDataDTO> metaDataList) {
+    @Transactional(rollbackFor = Exception.class)
+    public ConfigImportResult importData(final List<MetaDataDTO> metaDataList) {
         if (CollectionUtils.isEmpty(metaDataList)) {
             return ConfigImportResult.success();
         }
@@ -228,13 +228,13 @@ public class MetaDataServiceImpl implements MetaDataService {
                             .append(AdminConstants.WHITE_SPACE)
                             .append(System.lineSeparator())
                             .append(AdminConstants.WHITE_SPACE);
-                }else{
+                } else {
                     successCount++;
                 }
             }
             this.syncData();
             if (StringUtils.isNotEmpty(errorMsgBuilder)) {
-                return ConfigImportResult.fail(successCount,"meta data import fail path: " + errorMsgBuilder);
+                return ConfigImportResult.fail(successCount, "meta data import fail path: " + errorMsgBuilder);
             }
             return ConfigImportResult.success(successCount);
         } catch (Exception e) {

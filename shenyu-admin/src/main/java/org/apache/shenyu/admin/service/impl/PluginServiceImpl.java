@@ -79,6 +79,7 @@ public class PluginServiceImpl implements PluginService {
     private final PluginEventPublisher pluginEventPublisher;
 
     private final PluginHandleService pluginHandleService;
+
     private final SelectorService selectorService;
 
     public PluginServiceImpl(final PluginMapper pluginMapper,
@@ -259,7 +260,7 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ConfigImportResult importData(List<PluginDTO> pluginList) {
+    public ConfigImportResult importData(final List<PluginDTO> pluginList) {
         if (CollectionUtils.isEmpty(pluginList)) {
             return ConfigImportResult.success();
         }

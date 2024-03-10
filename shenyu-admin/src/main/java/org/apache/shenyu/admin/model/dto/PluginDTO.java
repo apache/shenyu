@@ -225,11 +225,11 @@ public class PluginDTO implements Serializable {
     }
 
     /**
-     * Sets the the plugin handle list.
+     * Sets the plugin handle list.
      *
      * @param pluginHandleList the plugin handle list
      */
-    public void setPluginHandleList(List<PluginHandleDTO> pluginHandleList) {
+    public void setPluginHandleList(final List<PluginHandleDTO> pluginHandleList) {
         this.pluginHandleList = pluginHandleList;
     }
 
@@ -247,7 +247,7 @@ public class PluginDTO implements Serializable {
      *
      * @param selectorList the plugin selector list
      */
-    public void setSelectorList(List<SelectorDTO> selectorList) {
+    public void setSelectorList(final List<SelectorDTO> selectorList) {
         this.selectorList = selectorList;
     }
 

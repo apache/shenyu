@@ -427,7 +427,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ShenyuAdminResult importData(List<SelectorDTO> selectorList) {
+    public ShenyuAdminResult importData(final List<SelectorDTO> selectorList) {
         if (CollectionUtils.isEmpty(selectorList)) {
             return ShenyuAdminResult.success();
         }
@@ -590,7 +590,7 @@ public class SelectorServiceImpl implements SelectorService {
                     if (Objects.isNull(pluginDO)) {
                         return null;
                     }
-                    List<SelectorConditionVO> selectorConditionList = SelectorConditionVO.buildSelectorConditionVOList((selectorConditionMap.get(id)));
+                    List<SelectorConditionVO> selectorConditionList = SelectorConditionVO.buildSelectorConditionVOList(selectorConditionMap.get(id));
                     List<RuleVO> selectRuleList = selectorRuleMap.get(id);
                     SelectorVO selectorExportVO = SelectorVO.buildSelectorVO(selectorDO);
                     selectorExportVO.setSelectorConditions(selectorConditionList);

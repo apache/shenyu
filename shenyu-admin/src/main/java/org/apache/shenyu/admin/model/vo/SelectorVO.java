@@ -523,7 +523,7 @@ public class SelectorVO implements Serializable {
      *
      * @param selectorRules the rules
      */
-    public void setSelectorRules(List<RuleVO> selectorRules) {
+    public void setSelectorRules(final List<RuleVO> selectorRules) {
         this.selectorRules = selectorRules;
     }
 
