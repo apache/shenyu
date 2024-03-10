@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.model.entity;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
-import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
@@ -176,33 +175,6 @@ public final class SelectorConditionDO extends BaseDO {
      */
     public static SelectorConditionDO buildSelectorConditionDO(final SelectorConditionDTO selectorConditionDTO) {
         return Optional.ofNullable(selectorConditionDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            SelectorConditionDO selectorConditionDO = SelectorConditionDO.builder()
-                    .paramType(item.getParamType())
-                    .selectorId(item.getSelectorId())
-                    .operator(item.getOperator())
-                    .paramName(item.getParamName())
-                    .paramValue(StringUtils.defaultIfBlank(item.getParamValue(), "").trim())
-                    .dateUpdated(currentTime)
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                selectorConditionDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                selectorConditionDO.setDateCreated(currentTime);
-            } else {
-                selectorConditionDO.setId(item.getId());
-            }
-            return selectorConditionDO;
-        }).orElse(null);
-    }
-
-    /**
-     * build selectorConditionDO.
-     *
-     * @param selectorConditionVO {@linkplain SelectorConditionVO}
-     * @return {@linkplain SelectorConditionDO}
-     */
-    public static SelectorConditionDO buildSelectorConditionDO(final SelectorConditionVO selectorConditionVO) {
-        return Optional.ofNullable(selectorConditionVO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             SelectorConditionDO selectorConditionDO = SelectorConditionDO.builder()
                     .paramType(item.getParamType())

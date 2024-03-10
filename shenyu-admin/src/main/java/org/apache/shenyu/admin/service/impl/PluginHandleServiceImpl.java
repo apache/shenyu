@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -136,6 +137,7 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult importData(List<PluginHandleDTO> pluginHandleList) {
         Map<String, List<PluginHandleVO>> existHandleMap = listAll()
                 .stream()
@@ -159,21 +161,17 @@ public class PluginHandleServiceImpl implements PluginHandleService {
                             .collect(Collectors.toSet());
                     for (PluginHandleDTO handle : handles) {
                         if (!handleFiledMap.contains(handle.getField())) {
-                            PluginHandleDO pluginHandleDO = PluginHandleDO.buildPluginHandleDO(handle);
-                            pluginHandleMapper.insertSelective(pluginHandleDO);
+                            create(handle);
                         }
                     }
                 } else {
                     for (PluginHandleDTO handle : handles) {
-                        PluginHandleDO pluginHandleDO = PluginHandleDO.buildPluginHandleDO(handle);
-                        pluginHandleMapper.insertSelective(pluginHandleDO);
+                        create(handle);
                     }
                 }
             }
         }
-
-
-        return null;
+        return ShenyuAdminResult.success();
     }
 
     /**

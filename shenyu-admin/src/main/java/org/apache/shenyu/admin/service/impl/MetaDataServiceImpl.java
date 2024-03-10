@@ -232,6 +232,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                     successCount++;
                 }
             }
+            this.syncData();
             if (StringUtils.isNotEmpty(errorMsgBuilder)) {
                 return ConfigImportResult.fail(successCount,"meta data import fail path: " + errorMsgBuilder);
             }

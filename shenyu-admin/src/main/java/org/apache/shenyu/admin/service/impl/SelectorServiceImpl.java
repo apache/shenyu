@@ -80,7 +80,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -427,6 +426,7 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult importData(List<SelectorDTO> selectorList) {
         if (CollectionUtils.isEmpty(selectorList)) {
             return ShenyuAdminResult.success();
@@ -454,36 +454,34 @@ public class SelectorServiceImpl implements SelectorService {
                         SelectorDTO selectorDTO = selectorDTOEntry.getValue();
                         if (!existSelectorSet.contains(selectorName)) {
                             SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-                            selectorDTO.setId(selectorDO.getId());
                             final int selectorCount = selectorMapper.insertSelective(selectorDO);
+                            selectorDTO.setId(selectorDO.getId());
                             createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
                             createRule(selectorDO.getId(), selectorDTO.getSelectorRules());
-//                            publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
-//                            if (selectorCount > 0) {
-//                                selectorEventPublisher.onCreated(selectorDO);
-//                            }
+                            publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
+                            if (selectorCount > 0) {
+                                selectorEventPublisher.onCreated(selectorDO);
+                            }
                         }
                     }
 
                 } else {
                     for (SelectorDTO selectorDTO : selectorDTOList) {
                         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-                        selectorDTO.setId(selectorDO.getId());
                         final int selectorCount = selectorMapper.insertSelective(selectorDO);
+                        selectorDTO.setId(selectorDO.getId());
                         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
                         createRule(selectorDO.getId(), selectorDTO.getSelectorRules());
-//                            publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
-//                        if (selectorCount > 0) {
-//                            selectorEventPublisher.onCreated(selectorDO);
-//                        }
+                        publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
+                        if (selectorCount > 0) {
+                            selectorEventPublisher.onCreated(selectorDO);
+                        }
                     }
 
                 }
             }
         }
-
-
-        return null;
+        return ShenyuAdminResult.success();
     }
 
     /**
