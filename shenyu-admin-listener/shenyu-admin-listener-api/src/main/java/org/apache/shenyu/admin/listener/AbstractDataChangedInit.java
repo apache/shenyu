@@ -46,4 +46,5 @@ public abstract class AbstractDataChangedInit implements DataChangedInit {
      * @return boolean.
      */
     protected abstract boolean notExist();
+
 }

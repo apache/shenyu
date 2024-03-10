@@ -1349,6 +1349,10 @@ INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507016', '35', 'sampl
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507017', '36', 'sampleRate', 'sampleRate', 2, 3, 11, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507018', '36', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507021', '14', 'rewriteContextPath', 'rewriteContextPath', 2, 2, 2, '{"required":"0","defaultValue":""}', '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507022', '14', 'percentage', 'percentage', 1, 2, 3, '{"required":"1","defaultValue":"100"}', '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507023', '3', 'rewriteMetaData', 'rewriteMetaData', 3, 2, 3, '{"required":"1","defaultValue":"false"}', '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
@@ -2115,6 +2119,8 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737472', 'discoveryMode
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737473', 'discoveryMode', 'DISCOVERY_MODE', 'etcd', '{"etcdTimeout": "3000", "etcdTTL": "5"}', 'discoery mode to link etcd', 0, 1 ,'2023-03-01 10:48:49', '2023-03-01 10:48:49');
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737474', 'discoveryMode', 'DISCOVERY_MODE', 'nacos', '{"groupName": "SHENYU_GROUP", "nacosNameSpace": "", "username": "", "password": "", "accessKey": "", "secretKey": ""}', 'discoery mode to link nacos', 0, 1,'2023-03-01 10:48:49', '2023-03-01 10:48:49');
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737475', 'discoveryMode', 'DISCOVERY_MODE', 'eureka', '{"eurekaClientRefreshInterval": "10", "eurekaClientRegistryFetchIntervalSeconds": "10"}', 'discoery mode to link eureka', 0, 1,'2023-03-01 10:48:49', '2023-03-01 10:48:49');
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737478', 'rewriteMetaData', 'REWRITE_META_DATA', 'true', 'true', '', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737479', 'rewriteMetaData', 'REWRITE_META_DATA', 'false', 'false', '', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 
 -- ----------------------------
 -- Table structure for user_role
@@ -2500,3 +2506,15 @@ COMMENT ON COLUMN "public"."alert_receiver"."type" IS 'notice type 0-SMS 1-Email
 COMMENT ON COLUMN "public"."alert_receiver"."match_all" IS 'match all or not';
 COMMENT ON COLUMN "public"."alert_receiver"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."alert_receiver"."date_updated" IS 'update time';
+DROP TABLE IF EXISTS "public"."int_lock";
+CREATE TABLE "public"."int_lock" (
+    "lock_key" CHAR(36) NOT NULL,
+    "region" VARCHAR(100) NOT NULL,
+    "client_id" CHAR(36),
+    "created_date" TIMESTAMP WITH TIME ZONE NOT NULL,
+    CONSTRAINT INT_LOCK_PK PRIMARY KEY ("lock_key", "region")
+);
+COMMENT ON COLUMN "public"."int_lock"."lock_key" IS 'lock_key';
+COMMENT ON COLUMN "public"."int_lock"."region" IS 'region';
+COMMENT ON COLUMN "public"."int_lock"."client_id" IS 'client_id';
+COMMENT ON COLUMN "public"."int_lock"."created_date" IS 'created_date';

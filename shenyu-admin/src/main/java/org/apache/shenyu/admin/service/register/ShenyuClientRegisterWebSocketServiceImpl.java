@@ -17,18 +17,29 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
@@ -86,7 +97,30 @@ public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPat
 
     private List<WebSocketUpstream> buildWebSocketUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
-            .map(dto -> CommonUpstreamUtils.buildWebSocketUpstream(dto.getProtocol(), dto.getHost(), dto.getPort()))
-            .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
+                .map(dto -> CommonUpstreamUtils.buildWebSocketUpstream(dto.getProtocol(), dto.getHost(), dto.getPort()))
+                .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
+
+    @Override
+    public String offline(final String selectorName, final List<URIRegisterDTO> offlineList) {
+        String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
+        SelectorService selectorService = getSelectorService();
+        SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, pluginName);
+        if (Objects.isNull(selectorDO)) {
+            return Constants.SUCCESS;
+        }
+        List<URIRegisterDTO> validOfflineUrl = offlineList.stream()
+                .filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost()))
+                .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(validOfflineUrl)) {
+            for (URIRegisterDTO offlineUrl : validOfflineUrl) {
+                WebSocketUpstream webSocketUpstream = CommonUpstreamUtils.buildWebSocketUpstream(offlineUrl.getProtocol(), offlineUrl.getHost(), offlineUrl.getPort());
+                removeDiscoveryUpstream(selectorDO.getId(), webSocketUpstream.getUrl());
+            }
+            DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName);
+            getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
+        }
+        return Constants.SUCCESS;
+    }
+
 }

@@ -97,7 +97,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (Objects.isNull(pluginData) || !pluginData.getEnabled()) {
             return chain.execute(exchange);
         }
-        final String path = exchange.getRequest().getURI().getRawPath();
+        final String path = getRawPath(exchange);
         List<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
         if (CollectionUtils.isEmpty(selectors)) {
             return handleSelectorIfNull(pluginName, exchange, chain);
@@ -152,7 +152,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         printLog(ruleData, pluginName);
         return isolationExecute(exchange, chain, selectorData, ruleData);
     }
-
+    
+    protected String getRawPath(final ServerWebExchange exchange) {
+        return exchange.getRequest().getURI().getRawPath();
+    }
+    
     private void initCacheConfig() {
         if (Objects.isNull(selectorMatchConfig) || Objects.isNull(ruleMatchConfig)) {
             ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
