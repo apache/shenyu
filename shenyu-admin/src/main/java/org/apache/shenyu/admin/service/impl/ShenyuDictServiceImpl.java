@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
@@ -25,14 +27,18 @@ import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.publish.DictEventPublisher;
 import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -100,7 +106,44 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
     public Integer enabled(final List<String> ids, final Boolean enabled) {
         return shenyuDictMapper.enabled(ids, enabled);
     }
-    
+
+    @Override
+    public ConfigImportResult importData(final List<ShenyuDictDTO> dictList) {
+        if (CollectionUtils.isEmpty(dictList)) {
+            return ConfigImportResult.success();
+        }
+        Map<String, List<ShenyuDictVO>> dictTypeMap = listAll()
+                .stream()
+                .collect(Collectors.groupingBy(ShenyuDictVO::getType));
+        int successCount = 0;
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        for (ShenyuDictDTO dictDTO : dictList) {
+            String type = dictDTO.getType();
+            String dictName = dictDTO.getDictName();
+            Set<String> existDictNameSet = dictTypeMap
+                    .getOrDefault(type, Lists.newArrayList())
+                    .stream()
+                    .map(ShenyuDictVO::getDictName)
+                    .collect(Collectors.toSet());
+            // check if dictName exists for this type
+            if (existDictNameSet.contains(dictName)) {
+                errorMsgBuilder
+                        .append(dictName)
+                        .append(AdminConstants.WHITE_SPACE)
+                        .append(System.lineSeparator())
+                        .append(AdminConstants.WHITE_SPACE);
+                continue;
+            }
+            create(dictDTO);
+            successCount++;
+        }
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            return ConfigImportResult
+                    .fail(successCount, "dict data import fail dictName: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
+    }
+
     @Override
     public ShenyuDictVO findById(final String id) {
         return ShenyuDictVO.buildShenyuDictVO(shenyuDictMapper.selectById(id));
@@ -119,5 +162,13 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
                 .map(ShenyuDictVO::buildShenyuDictVO)
                 .collect(Collectors.toList());
     }
-    
+
+    @Override
+    public List<ShenyuDictVO> listAll() {
+        ShenyuDictQuery shenyuDictQuery = new ShenyuDictQuery();
+        return shenyuDictMapper.selectByQuery(shenyuDictQuery).stream()
+                .map(ShenyuDictVO::buildShenyuDictVO)
+                .collect(Collectors.toList());
+    }
+
 }

@@ -36,7 +36,6 @@ import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
-import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.BaseDO;
@@ -52,13 +51,11 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
-import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
-import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
-import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
@@ -72,9 +69,12 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -97,6 +97,8 @@ import java.util.stream.Collectors;
 @Service
 public class SelectorServiceImpl implements SelectorService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(SelectorServiceImpl.class);
+
     private final SelectorMapper selectorMapper;
 
     private final SelectorConditionMapper selectorConditionMapper;
@@ -117,8 +119,6 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
-    private final RuleService ruleService;
-
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
@@ -128,8 +128,7 @@ public class SelectorServiceImpl implements SelectorService {
                                final DiscoveryRelMapper discoveryRelMapper,
                                final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                final DiscoveryProcessorHolder discoveryProcessorHolder,
-                               final SelectorEventPublisher selectorEventPublisher,
-                               final RuleService ruleService) {
+                               final SelectorEventPublisher selectorEventPublisher) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
@@ -140,7 +139,6 @@ public class SelectorServiceImpl implements SelectorService {
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.eventPublisher = eventPublisher;
         this.selectorEventPublisher = selectorEventPublisher;
-        this.ruleService = ruleService;
     }
 
     @Override
@@ -427,61 +425,59 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ShenyuAdminResult importData(final List<SelectorDTO> selectorList) {
+    public ConfigImportResult importData(final List<SelectorDTO> selectorList) {
         if (CollectionUtils.isEmpty(selectorList)) {
-            return ShenyuAdminResult.success();
+            return ConfigImportResult.success();
         }
-        Map<String, List<SelectorDO>> pluginSelectorMap = selectorMapper.selectAll().stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.groupingBy(SelectorDO::getPluginId));
+        try {
+            StringBuilder errorMsgBuilder = new StringBuilder();
+            int successCount = 0;
+            Map<String, List<SelectorDO>> pluginSelectorMap = selectorMapper.selectAll().stream()
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.groupingBy(SelectorDO::getPluginId));
 
-        Map<String, List<SelectorDTO>> importSelectorMap = selectorList.stream()
-                .collect(Collectors.groupingBy(SelectorDTO::getPluginId));
+            Map<String, List<SelectorDTO>> importSelectorMap = selectorList.stream()
+                    .collect(Collectors.groupingBy(SelectorDTO::getPluginId));
 
-        for (Map.Entry<String, List<SelectorDTO>> selector : importSelectorMap.entrySet()) {
-            String pluginId = selector.getKey();
-            List<SelectorDTO> selectorDTOList = selector.getValue();
-            if (CollectionUtils.isNotEmpty(selectorDTOList)) {
-                Map<String, SelectorDTO> selectDTOMap = selectorDTOList.stream()
-                        .collect(Collectors.toMap(SelectorDTO::getName, x -> x));
-                if (pluginSelectorMap.containsKey(pluginId)) {
-                    Set<String> existSelectorSet = Optional.of(pluginSelectorMap.get(pluginId)).orElse(Lists.newArrayList())
+            for (Map.Entry<String, List<SelectorDTO>> selectorEntry : importSelectorMap.entrySet()) {
+                // the import selector's pluginId
+                String pluginId = selectorEntry.getKey();
+                List<SelectorDTO> selectorDTOList = selectorEntry.getValue();
+                if (CollectionUtils.isNotEmpty(selectorDTOList)) {
+
+                    Set<String> existSelectorSet = Optional
+                            .of(pluginSelectorMap.get(pluginId))
+                            .orElse(Lists.newArrayList())
                             .stream()
                             .map(SelectorDO::getName)
                             .collect(Collectors.toSet());
-                    for (Map.Entry<String, SelectorDTO> selectorDTOEntry : selectDTOMap.entrySet()) {
-                        String selectorName = selectorDTOEntry.getKey();
-                        SelectorDTO selectorDTO = selectorDTOEntry.getValue();
-                        if (!existSelectorSet.contains(selectorName)) {
-                            SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-                            final int selectorCount = selectorMapper.insertSelective(selectorDO);
-                            selectorDTO.setId(selectorDO.getId());
-                            createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
-                            createRule(selectorDO.getId(), selectorDTO.getSelectorRules());
-                            publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
-                            if (selectorCount > 0) {
-                                selectorEventPublisher.onCreated(selectorDO);
-                            }
-                        }
-                    }
 
-                } else {
                     for (SelectorDTO selectorDTO : selectorDTOList) {
-                        SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-                        final int selectorCount = selectorMapper.insertSelective(selectorDO);
-                        selectorDTO.setId(selectorDO.getId());
-                        createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
-                        createRule(selectorDO.getId(), selectorDTO.getSelectorRules());
-                        publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
-                        if (selectorCount > 0) {
-                            selectorEventPublisher.onCreated(selectorDO);
+                        // filter by selectorName
+                        String selectorName = selectorDTO.getName();
+                        if (CollectionUtils.isNotEmpty(existSelectorSet)
+                                && existSelectorSet.contains(selectorName)) {
+                            errorMsgBuilder
+                                    .append(selectorName)
+                                    .append(AdminConstants.WHITE_SPACE)
+                                    .append(System.lineSeparator())
+                                    .append(AdminConstants.WHITE_SPACE);
+                        } else {
+                            create(selectorDTO);
+                            successCount++;
                         }
                     }
-
                 }
             }
+            if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+                return ConfigImportResult
+                        .fail(successCount, "selector data import fail selector: " + errorMsgBuilder);
+            }
+            return ConfigImportResult.success(successCount);
+        } catch (Exception e) {
+            LOG.error("import selector data error", e);
+            throw new ShenyuException("import selector data error");
         }
-        return ShenyuAdminResult.success();
     }
 
     /**
@@ -498,13 +494,6 @@ public class SelectorServiceImpl implements SelectorService {
         for (SelectorConditionDTO condition : selectorConditions) {
             condition.setSelectorId(selectorId);
             selectorConditionMapper.insertSelective(SelectorConditionDO.buildSelectorConditionDO(condition));
-        }
-    }
-
-    private void createRule(final String selectorId, final List<RuleDTO> selectorRules) {
-        for (RuleDTO rule : selectorRules) {
-            rule.setSelectorId(selectorId);
-            ruleService.create(rule);
         }
     }
 
@@ -576,7 +565,6 @@ public class SelectorServiceImpl implements SelectorService {
             return new ArrayList<>();
         }
         Map<String, List<SelectorConditionDO>> selectorConditionMap = ListUtil.groupBy(selectorConditionMapper.selectBySelectorIds(idMap.keySet()), SelectorConditionDO::getSelectorId);
-        Map<String, List<RuleVO>> selectorRuleMap = ListUtil.groupBy(ruleService.listAllVO(), RuleVO::getSelectorId);
 
         Map<String, PluginDO> pluginDOMap = ListUtil.toMap(pluginMapper.selectByIds(Lists.newArrayList(idMap.values())), PluginDO::getId);
 
@@ -591,10 +579,8 @@ public class SelectorServiceImpl implements SelectorService {
                         return null;
                     }
                     List<SelectorConditionVO> selectorConditionList = SelectorConditionVO.buildSelectorConditionVOList(selectorConditionMap.get(id));
-                    List<RuleVO> selectRuleList = selectorRuleMap.get(id);
                     SelectorVO selectorExportVO = SelectorVO.buildSelectorVO(selectorDO);
                     selectorExportVO.setSelectorConditions(selectorConditionList);
-                    selectorExportVO.setSelectorRules(selectRuleList);
                     return selectorExportVO;
                 })
                 .filter(Objects::nonNull)

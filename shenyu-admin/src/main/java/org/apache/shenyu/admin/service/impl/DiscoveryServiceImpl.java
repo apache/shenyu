@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.discovery.DiscoveryLevel;
 import org.apache.shenyu.admin.discovery.DiscoveryMode;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -36,11 +37,13 @@ import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
@@ -53,9 +56,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class DiscoveryServiceImpl implements DiscoveryService {
@@ -274,6 +280,19 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
+    public List<DiscoveryVO> listAllVO() {
+        return discoveryMapper
+                .selectAll()
+                .stream()
+                .map(x -> {
+                    DiscoveryVO discoveryVO = new DiscoveryVO();
+                    BeanUtils.copyProperties(x, discoveryVO);
+                    return discoveryVO;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public DiscoveryHandlerDTO findDiscoveryHandlerBySelectorId(final String selectorId) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
         return DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO);
@@ -308,5 +327,44 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         discoveryRelDO.setPluginName(pluginName);
         discoveryRelMapper.insertSelective(discoveryRelDO);
         return discoveryHandlerId;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ConfigImportResult importData(final List<DiscoveryDTO> discoveryList) {
+        if (CollectionUtils.isEmpty(discoveryList)) {
+            return ConfigImportResult.success();
+        }
+
+        Map<String, List<DiscoveryDO>> pluginDiscoveryMap = discoveryMapper
+                .selectAll()
+                .stream()
+                .collect(Collectors.groupingBy(DiscoveryDO::getPluginName));
+        int successCount = 0;
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        for (DiscoveryDTO discoveryDTO : discoveryList) {
+            String pluginName = discoveryDTO.getPluginName();
+            String discoveryName = discoveryDTO.getName();
+            Set<String> existDiscoveryNameSet = pluginDiscoveryMap
+                    .getOrDefault(pluginName, Lists.newArrayList())
+                    .stream()
+                    .map(DiscoveryDO::getName)
+                    .collect(Collectors.toSet());
+            if (existDiscoveryNameSet.contains(discoveryName)) {
+                errorMsgBuilder
+                        .append(discoveryName)
+                        .append(AdminConstants.WHITE_SPACE)
+                        .append(System.lineSeparator())
+                        .append(AdminConstants.WHITE_SPACE);
+            } else {
+                create(discoveryDTO);
+                successCount++;
+            }
+        }
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            return ConfigImportResult
+                    .fail(successCount, "discovery data import fail : " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
     }
 }

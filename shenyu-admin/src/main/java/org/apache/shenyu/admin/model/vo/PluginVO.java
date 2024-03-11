@@ -83,11 +83,6 @@ public class PluginVO implements Serializable {
      */
     private List<PluginHandleVO> pluginHandleList;
 
-    /**
-     * selector list.
-     */
-    private List<SelectorVO> selectorList;
-
     public PluginVO() {
     }
 
@@ -100,8 +95,7 @@ public class PluginVO implements Serializable {
                     final String dateCreated,
                     final String dateUpdated,
                     final String file,
-                    final List<PluginHandleVO> pluginHandleList,
-                    final List<SelectorVO> selectorList) {
+                    final List<PluginHandleVO> pluginHandleList) {
         this.id = id;
         this.role = role;
         this.name = name;
@@ -112,7 +106,6 @@ public class PluginVO implements Serializable {
         this.dateUpdated = dateUpdated;
         this.file = file;
         this.pluginHandleList = pluginHandleList;
-        this.selectorList = selectorList;
     }
 
     /**
@@ -296,24 +289,6 @@ public class PluginVO implements Serializable {
     }
 
     /**
-     * Gets the plugin selector list.
-     *
-     * @return the plugin selector list
-     */
-    public List<SelectorVO> getSelectorList() {
-        return selectorList;
-    }
-
-    /**
-     * Sets the plugin selector list.
-     *
-     * @param selectorList the plugin selector list
-     */
-    public void setSelectorList(final List<SelectorVO> selectorList) {
-        this.selectorList = selectorList;
-    }
-
-    /**
      * build pluginVO.
      *
      * @param pluginDO {@linkplain PluginDO}
@@ -325,6 +300,6 @@ public class PluginVO implements Serializable {
                 DateUtils.localDateTimeToString(pluginDO.getDateCreated().toLocalDateTime()),
                 DateUtils.localDateTimeToString(pluginDO.getDateUpdated().toLocalDateTime()),
                 Optional.ofNullable(pluginDO.getPluginJar()).map(Base64::encodeToString).orElse(""),
-                Lists.newArrayList(), Lists.newArrayList());
+                Lists.newArrayList());
     }
 }

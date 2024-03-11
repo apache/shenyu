@@ -92,7 +92,7 @@ public final class PluginControllerTest {
                 .setControllerAdvice(new ExceptionHandlers(null))
                 .build();
         this.pluginVO = new PluginVO("123", "1", "t_n", "1", 1, true,
-                DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()), "", null, null);
+                DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()), "", null);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
 
     }

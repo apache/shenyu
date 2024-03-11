@@ -42,16 +42,6 @@ public final class ExportImportConstants {
     public static final String PLUGIN_JSON = "plugin.json";
 
     /**
-     * plugin import success count.
-     */
-    public static final String PLUGIN_IMPORT_SUCCESS_COUNT = "pluginImportSuccessCount";
-
-    /**
-     * plugin import fail message.
-     */
-    public static final String PLUGIN_IMPORT_FAIL_MESSAGE = "pluginImportFailMessage";
-
-    /**
      * selector json config name.
      */
     public static final String SELECTOR_JSON = "selector.json";
@@ -62,9 +52,104 @@ public final class ExportImportConstants {
     public static final String RULE_JSON = "rule.json";
 
     /**
+     * meta json config name.
+     */
+    public static final String META_JSON = "meta.json";
+
+    /**
      * auth json config name.
      */
     public static final String AUTH_JSON = "auth.json";
+
+    /**
+     * dict json config name.
+     */
+    public static final String DICT_JSON = "dict.json";
+
+    /**
+     * proxy_selector json config name.
+     */
+    public static final String PROXY_SELECTOR_JSON = "proxy_selector.json";
+
+    /**
+     * discovery json config name.
+     */
+    public static final String DISCOVERY_JSON = "discovery.json";
+
+    /**
+     * discovery_upstream json config name.
+     */
+    public static final String DISCOVERY_UPSTREAM_JSON = "discovery_upstream.json";
+
+    /**
+     * plugin import success count.
+     */
+    public static final String PLUGIN_IMPORT_SUCCESS_COUNT = "pluginImportSuccessCount";
+
+    /**
+     * plugin import fail message.
+     */
+    public static final String PLUGIN_IMPORT_FAIL_MESSAGE = "pluginImportFailMessage";
+
+    /**
+     * selector import success count.
+     */
+    public static final String SELECTOR_IMPORT_SUCCESS_COUNT = "selectorImportSuccessCount";
+
+    /**
+     * selector import fail message.
+     */
+    public static final String SELECTOR_IMPORT_FAIL_MESSAGE = "selectorImportFailMessage";
+
+    /**
+     * rule import success count.
+     */
+    public static final String RULE_IMPORT_SUCCESS_COUNT = "ruleImportSuccessCount";
+
+    /**
+     * rule import fail message.
+     */
+    public static final String RULE_IMPORT_FAIL_MESSAGE = "ruleImportFailMessage";
+
+    /**
+     * dict import success count.
+     */
+    public static final String DICT_IMPORT_SUCCESS_COUNT = "dictImportSuccessCount";
+
+    /**
+     * dict import fail message.
+     */
+    public static final String DICT_IMPORT_FAIL_MESSAGE = "dictImportFailMessage";
+
+    /**
+     * proxy_selector import success count.
+     */
+    public static final String PROXY_SELECTOR_IMPORT_SUCCESS_COUNT = "proxySelectorImportSuccessCount";
+
+    /**
+     * proxy_selector import fail message.
+     */
+    public static final String PROXY_SELECTOR_IMPORT_FAIL_MESSAGE = "proxySelectorImportFailMessage";
+
+    /**
+     * discovery import success count.
+     */
+    public static final String DISCOVERY_IMPORT_SUCCESS_COUNT = "discoveryImportSuccessCount";
+
+    /**
+     * discovery import fail message.
+     */
+    public static final String DISCOVERY_IMPORT_FAIL_MESSAGE = "discoveryImportFailMessage";
+
+    /**
+     * discoveryUpstream import success count.
+     */
+    public static final String DISCOVERY_UPSTREAM_IMPORT_SUCCESS_COUNT = "discoveryUpstreamImportSuccessCount";
+
+    /**
+     * discoveryUpstream import fail message.
+     */
+    public static final String DISCOVERY_UPSTREAM_IMPORT_FAIL_MESSAGE = "discoveryUpstreamImportFailMessage";
 
     /**
      * auth import success count.
@@ -75,11 +160,6 @@ public final class ExportImportConstants {
      * auth import fail message.
      */
     public static final String AUTH_IMPORT_FAIL_MESSAGE = "authImportFailMessage";
-
-    /**
-     * meta json config name.
-     */
-    public static final String META_JSON = "meta.json";
 
     /**
      * meta import success count.

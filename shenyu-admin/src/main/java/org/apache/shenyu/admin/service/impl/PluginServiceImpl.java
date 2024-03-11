@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
-import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.event.plugin.PluginCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -34,10 +34,8 @@ import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
-import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.service.PluginService;
-import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.Assert;
@@ -60,6 +58,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -80,16 +79,12 @@ public class PluginServiceImpl implements PluginService {
 
     private final PluginHandleService pluginHandleService;
 
-    private final SelectorService selectorService;
-
     public PluginServiceImpl(final PluginMapper pluginMapper,
                              final PluginEventPublisher pluginEventPublisher,
-                             final PluginHandleService pluginHandleService,
-                             final SelectorService selectorService) {
+                             final PluginHandleService pluginHandleService) {
         this.pluginMapper = pluginMapper;
         this.pluginEventPublisher = pluginEventPublisher;
         this.pluginHandleService = pluginHandleService;
-        this.selectorService = selectorService;
     }
 
     @Override
@@ -208,19 +203,19 @@ public class PluginServiceImpl implements PluginService {
                 .stream()
                 .collect(Collectors.groupingBy(PluginHandleVO::getPluginId));
 
-        Map<String, List<SelectorVO>> selectorMap = selectorService.listAllVO()
-                .stream()
-                .collect(Collectors.groupingBy(SelectorVO::getPluginId));
-
         return pluginMapper.selectAll()
                 .stream()
                 .filter(Objects::nonNull)
                 .map(pluginDO -> {
                     PluginVO exportVO = PluginVO.buildPluginVO(pluginDO);
-                    List<PluginHandleVO> pluginHandleList = pluginHandleMap.get(exportVO.getId());
+                    List<PluginHandleVO> pluginHandleList = Optional
+                            .ofNullable(pluginHandleMap.get(exportVO.getId()))
+                            .orElse(Lists.newArrayList())
+                            .stream()
+                            // to make less volume of export data
+                            .peek(x -> x.setDictOptions(null))
+                            .collect(Collectors.toList());
                     exportVO.setPluginHandleList(pluginHandleList);
-                    List<SelectorVO> selectorList = selectorMap.get(exportVO.getId());
-                    exportVO.setSelectorList(selectorList);
                     return exportVO;
                 }).collect(Collectors.toList());
     }
@@ -297,15 +292,6 @@ public class PluginServiceImpl implements PluginService {
                 if (CollectionUtils.isNotEmpty(pluginHandleList)) {
                     pluginHandleService
                             .importData(pluginHandleList
-                                    .stream()
-                                    .peek(x -> x.setPluginId(pluginId))
-                                    .collect(Collectors.toList()));
-                }
-                // check and import plugin selector
-                List<SelectorDTO> selectorList = pluginDTO.getSelectorList();
-                if (CollectionUtils.isNotEmpty(selectorList)) {
-                    selectorService
-                            .importData(selectorList
                                     .stream()
                                     .peek(x -> x.setPluginId(pluginId))
                                     .collect(Collectors.toList()));

@@ -82,11 +82,6 @@ public class PluginDTO implements Serializable {
     private List<PluginHandleDTO> pluginHandleList;
 
     /**
-     * selector list.
-     */
-    private List<SelectorDTO> selectorList;
-
-    /**
      * Gets the value of file.
      *
      * @return the value of file
@@ -233,24 +228,6 @@ public class PluginDTO implements Serializable {
         this.pluginHandleList = pluginHandleList;
     }
 
-    /**
-     * Gets the plugin selector list.
-     *
-     * @return the plugin selector list
-     */
-    public List<SelectorDTO> getSelectorList() {
-        return selectorList;
-    }
-
-    /**
-     * Sets the plugin selector list.
-     *
-     * @param selectorList the plugin selector list
-     */
-    public void setSelectorList(final List<SelectorDTO> selectorList) {
-        this.selectorList = selectorList;
-    }
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -267,12 +244,11 @@ public class PluginDTO implements Serializable {
                 && Objects.equals(sort, pluginDTO.sort)
                 && Objects.equals(enabled, pluginDTO.enabled)
                 && Objects.equals(file, pluginDTO.file)
-                && Objects.equals(pluginHandleList, pluginDTO.pluginHandleList)
-                && Objects.equals(selectorList, pluginDTO.selectorList);
+                && Objects.equals(pluginHandleList, pluginDTO.pluginHandleList);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, config, role, sort, enabled, file, pluginHandleList, selectorList);
+        return Objects.hash(id, name, config, role, sort, enabled, file, pluginHandleList);
     }
 }

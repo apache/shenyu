@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
@@ -37,19 +38,19 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.RuleQueryCondition;
-import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.RuleConditionVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
-import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.MatchModeEnum;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -244,19 +246,50 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ShenyuAdminResult importData(final List<RuleDTO> ruleList) {
+    public ConfigImportResult importData(final List<RuleDTO> ruleList) {
         if (CollectionUtils.isEmpty(ruleList)) {
-            return ShenyuAdminResult.success();
+            return ConfigImportResult.success();
         }
+
+        Map<String, List<RuleDO>> selectorRuleMap = ruleMapper
+                .selectAll()
+                .stream()
+                .collect(Collectors.groupingBy(RuleDO::getSelectorId));
+
+        int successCount = 0;
+        StringBuilder errorMsgBuilder = new StringBuilder();
         for (RuleDTO ruleDTO : ruleList) {
+            String selectorId = ruleDTO.getSelectorId();
+            String ruleName = ruleDTO.getName();
+            List<RuleDO> existRuleList = selectorRuleMap.getOrDefault(selectorId, Lists.newArrayList());
+
+            if (CollectionUtils.isNotEmpty(existRuleList)) {
+                Set<String> existRuleName = existRuleList
+                        .stream()
+                        .map(RuleDO::getName)
+                        .collect(Collectors.toSet());
+                if (existRuleName.contains(ruleName)) {
+                    errorMsgBuilder
+                            .append(ruleName)
+                            .append(AdminConstants.WHITE_SPACE)
+                            .append(System.lineSeparator())
+                            .append(AdminConstants.WHITE_SPACE);
+                    continue;
+                }
+            }
             RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
             final int ruleCount = ruleMapper.insertSelective(ruleDO);
             addCondition(ruleDO, ruleDTO.getRuleConditions());
             if (ruleCount > 0) {
                 ruleEventPublisher.onCreated(ruleDO, ruleDTO.getRuleConditions());
+                successCount++;
             }
         }
-        return null;
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            return ConfigImportResult
+                    .fail(successCount, "rule data import fail ruleName: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
     }
 
     /**

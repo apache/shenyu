@@ -82,12 +82,9 @@ public final class PluginServiceTest {
     @Mock
     private PluginHandleService pluginHandleService;
 
-    @Mock
-    private SelectorService selectorService;
-
     @BeforeEach
     public void setUp() {
-        pluginService = new PluginServiceImpl(pluginMapper, modelDataEventPublisher, pluginHandleService, selectorService);
+        pluginService = new PluginServiceImpl(pluginMapper, modelDataEventPublisher, pluginHandleService);
     }
 
     @Test

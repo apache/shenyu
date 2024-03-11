@@ -23,7 +23,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
-import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -224,7 +224,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     /**
      * Import the plugin selector list.
      * @param selectorList the plugin selector list
-     * @return shenyu admin result
+     * @return config import result
      */
-    ShenyuAdminResult importData(List<SelectorDTO> selectorList);
+    ConfigImportResult importData(List<SelectorDTO> selectorList);
 }
