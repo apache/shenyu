@@ -57,7 +57,7 @@ public final class MetricsReporterTest {
         Field field1 = metricsRegister.getClass().getDeclaredField("COUNTER_MAP");
         field1.setAccessible(true);
         Map<String, Counter> map1 = (Map<String, Counter>) field1.get(metricsRegister);
-        Assertions.assertEquals(map1.size(), 3);
+        Assertions.assertEquals(map1.size(), 4);
         Field field2 = metricsRegister.getClass().getDeclaredField("HISTOGRAM_MAP");
         field2.setAccessible(true);
         Map<String, Histogram> map2 = (Map<String, Histogram>) field2.get(metricsRegister);
@@ -72,7 +72,7 @@ public final class MetricsReporterTest {
         Field field3 = metricsRegister.getClass().getDeclaredField("COUNTER_MAP");
         field3.setAccessible(true);
         Map<String, Counter> map3 = (Map<String, Counter>) field3.get(metricsRegister);
-        Assertions.assertEquals(map3.size(), 4);
+        Assertions.assertEquals(map3.size(), 5);
         Field field4 = metricsRegister.getClass().getDeclaredField("HISTOGRAM_MAP");
         field4.setAccessible(true);
         Map<String, Histogram> map4 = (Map<String, Histogram>) field4.get(metricsRegister);
