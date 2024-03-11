@@ -18,21 +18,31 @@
 package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.converter.GrpcSelectorHandleConverter;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -109,4 +119,27 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
                 .map(dto -> CommonUpstreamUtils.buildDefaultGrpcUpstream(dto.getHost(), dto.getPort()))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
+
+    @Override
+    public String offline(final String selectorName, final List<URIRegisterDTO> offlineList) {
+        String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
+        SelectorService selectorService = getSelectorService();
+        SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, pluginName);
+        if (Objects.isNull(selectorDO)) {
+            return Constants.SUCCESS;
+        }
+        List<URIRegisterDTO> validOfflineUrl = offlineList.stream()
+                .filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost()))
+                .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(validOfflineUrl)) {
+            for (URIRegisterDTO offlineUrl : validOfflineUrl) {
+                GrpcUpstream grpcUpstream = CommonUpstreamUtils.buildDefaultGrpcUpstream(offlineUrl.getHost(), offlineUrl.getPort());
+                removeDiscoveryUpstream(selectorDO.getId(), grpcUpstream.getUpstreamUrl());
+            }
+            DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName);
+            getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
+        }
+        return Constants.SUCCESS;
+    }
+
 }

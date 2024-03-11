@@ -29,6 +29,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.jdbc.lock.DefaultLockRepository;
+import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
+import org.springframework.integration.jdbc.lock.LockRepository;
+import javax.sql.DataSource;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
@@ -83,5 +87,29 @@ public class RegisterCenterConfiguration {
     @ConditionalOnMissingBean(name = "registerExecutionRepository")
     public RegisterExecutionRepository registerExecutionRepository(final PlatformTransactionManager platformTransactionManager, final PluginMapper pluginMapper) {
         return new PlatformTransactionRegisterExecutionRepository(platformTransactionManager, pluginMapper);
+    }
+
+
+    /**
+     * Shenyu Admin distributed lock by spring-integration-jdbc.
+     *
+     * @param dataSource the dataSource
+     * @return  defaultLockRepository
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "shenyu.distributed-lock")
+    public DefaultLockRepository defaultLockRepository(final DataSource dataSource) {
+        return new DefaultLockRepository(dataSource);
+    }
+
+    /**
+     * Shenyu Admin distributed lock by spring-integration-jdbc.
+     *
+     * @param lockRepository the lockRepository
+     * @return the shenyu Admin register repository
+     */
+    @Bean
+    public JdbcLockRegistry jdbcLockRegistry(final LockRepository lockRepository) {
+        return new JdbcLockRegistry(lockRepository);
     }
 }

@@ -46,6 +46,7 @@ public final class MetricsReporter {
         MetricsReporter.registerCounter(LabelNames.SENTINEL_REQUEST_RESTRICT_TOTAL, "shenyu sentinel request restrict total count");
         MetricsReporter.registerCounter(LabelNames.RESILIENCE4J_REQUEST_RESTRICT_TOTAL, "shenyu resilience4j request restrict total count");
         MetricsReporter.registerCounter(LabelNames.HYSTRIX_REQUEST_RESTRICT_TOTAL, "shenyu hystrix request restrict total count");
+        MetricsReporter.registerCounter(LabelNames.RATELIMITER_REQUEST_RESTRICT_TOTAL, "shenyu ratelimiter request restrict total count");
     }
 
     /**

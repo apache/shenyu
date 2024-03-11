@@ -15,24 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.lock;
+package org.apache.shenyu.admin.service;
 
 
 /**
- * The interface Register execution lock.
- * Deprecated: this class is deprecated and will be removed in the next major version.
- * @since 2.6.1
- * @deprecated Please use {@link org.springframework.integration.jdbc.lock.JdbcLockRegistry#obtain}.
+ * SecretService.
  */
-@Deprecated
-public interface RegisterExecutionLock {
-    /**
-     * Acquire the client register lock.
-     */
-    void lock();
+public interface SecretService {
 
     /**
-     * Release the client register lock.
+     * get Secret info.
+     *
+     * @return SecretProperties
      */
-    void unlock();
+    String info();
 }
