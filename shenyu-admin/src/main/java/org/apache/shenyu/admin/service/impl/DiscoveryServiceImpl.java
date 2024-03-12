@@ -38,6 +38,8 @@ import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
+import org.apache.shenyu.admin.model.vo.DiscoveryHandlerVO;
+import org.apache.shenyu.admin.model.vo.DiscoveryRelVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.SelectorService;
@@ -281,12 +283,28 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     @Override
     public List<DiscoveryVO> listAllVO() {
+        Map<String, DiscoveryHandlerVO> discoveryHandlerMap = discoveryHandlerMapper
+                .selectAll()
+                .stream()
+                .map(DiscoveryTransfer.INSTANCE::mapToVo)
+                .collect(Collectors.toMap(DiscoveryHandlerVO::getDiscoveryId, x -> x));
+        Map<String, DiscoveryRelVO> discoveryRelMap = discoveryRelMapper
+                .selectAll()
+                .stream()
+                .map(DiscoveryTransfer.INSTANCE::mapToVo)
+                .collect(Collectors.toMap(DiscoveryRelVO::getDiscoveryHandlerId, x -> x));
         return discoveryMapper
                 .selectAll()
                 .stream()
                 .map(x -> {
                     DiscoveryVO discoveryVO = new DiscoveryVO();
                     BeanUtils.copyProperties(x, discoveryVO);
+                    DiscoveryHandlerVO discoveryHandlerVO = discoveryHandlerMap.getOrDefault(discoveryVO.getId(), new DiscoveryHandlerVO());
+                    discoveryVO.setDiscoveryHandler(discoveryHandlerVO);
+                    if (StringUtils.isNotEmpty(discoveryHandlerVO.getId())) {
+                        DiscoveryRelVO discoveryRelVO = discoveryRelMap.getOrDefault(discoveryHandlerVO.getId(), new DiscoveryRelVO());
+                        discoveryVO.setDiscoveryRel(discoveryRelVO);
+                    }
                     return discoveryVO;
                 })
                 .collect(Collectors.toList());
@@ -356,9 +374,28 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                         .append(AdminConstants.WHITE_SPACE)
                         .append(System.lineSeparator())
                         .append(AdminConstants.WHITE_SPACE);
-            } else {
-                create(discoveryDTO);
-                successCount++;
+                continue;
+            }
+            String discoveryId = UUIDUtils.getInstance().generateShortUuid();
+            discoveryDTO.setId(discoveryId);
+            create(discoveryDTO);
+            successCount++;
+
+            // import discovery handler data
+            if (null != discoveryDTO.getDiscoveryHandler()) {
+                DiscoveryHandlerDO discoveryHandlerDO = DiscoveryTransfer
+                        .INSTANCE
+                        .mapToDO(discoveryDTO.getDiscoveryHandler());
+                discoveryHandlerDO.setDiscoveryId(discoveryId);
+                discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
+            }
+
+            // import discovery rel data
+            if (null != discoveryDTO.getDiscoveryRel()) {
+                DiscoveryRelDO discoveryRelDO = DiscoveryTransfer
+                        .INSTANCE
+                        .mapToDO(discoveryDTO.getDiscoveryRel());
+                discoveryRelMapper.insertSelective(discoveryRelDO);
             }
         }
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {

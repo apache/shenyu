@@ -18,13 +18,16 @@
 package org.apache.shenyu.admin.transfer;
 
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryRelDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.vo.DiscoveryHandlerVO;
+import org.apache.shenyu.admin.model.vo.DiscoveryRelVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
@@ -78,6 +81,28 @@ public enum DiscoveryTransfer {
         vo.setProps(discoveryUpstreamDO.getProps());
         vo.setStartupTime(String.valueOf(discoveryUpstreamDO.getDateCreated().getTime()));
         return vo;
+    }
+
+
+    public DiscoveryRelVO mapToVo(DiscoveryRelDO discoveryRelDO) {
+        DiscoveryRelVO discoveryRelVO = new DiscoveryRelVO();
+        discoveryRelVO.setId(discoveryRelDO.getId());
+        discoveryRelVO.setPluginName(discoveryRelDO.getPluginName());
+        discoveryRelVO.setDiscoveryHandlerId(discoveryRelDO.getDiscoveryHandlerId());
+        discoveryRelVO.setSelectorId(discoveryRelDO.getSelectorId());
+        discoveryRelVO.setProxySelectorId(discoveryRelDO.getProxySelectorId());
+        return discoveryRelVO;
+    }
+
+
+    public DiscoveryRelDO mapToDO(DiscoveryRelDTO discoveryRelDTO) {
+        DiscoveryRelDO discoveryRelDO = new DiscoveryRelDO();
+        discoveryRelDO.setId(discoveryRelDTO.getId());
+        discoveryRelDO.setPluginName(discoveryRelDTO.getPluginName());
+        discoveryRelDO.setDiscoveryHandlerId(discoveryRelDTO.getDiscoveryHandlerId());
+        discoveryRelDO.setSelectorId(discoveryRelDTO.getSelectorId());
+        discoveryRelDO.setProxySelectorId(discoveryRelDTO.getProxySelectorId());
+        return discoveryRelDO;
     }
 
 
@@ -212,6 +237,22 @@ public enum DiscoveryTransfer {
         discoveryHandlerDTO.setListenerNode(discoveryHandlerDO.getListenerNode());
         discoveryHandlerDTO.setId(discoveryHandlerDO.getId());
         return discoveryHandlerDTO;
+    }
+
+    /**
+     * mapToDO.
+     *
+     * @param discoveryHandlerDTO discoveryHandlerDTO
+     * @return DiscoveryHandlerDTO
+     */
+    public DiscoveryHandlerDO mapToDO(DiscoveryHandlerDTO discoveryHandlerDTO) {
+        DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
+        discoveryHandlerDO.setDiscoveryId(discoveryHandlerDTO.getDiscoveryId());
+        discoveryHandlerDO.setHandler(discoveryHandlerDTO.getHandler());
+        discoveryHandlerDO.setProps(discoveryHandlerDTO.getProps());
+        discoveryHandlerDO.setListenerNode(discoveryHandlerDTO.getListenerNode());
+        discoveryHandlerDO.setId(discoveryHandlerDTO.getId());
+        return discoveryHandlerDO;
     }
 
     /**

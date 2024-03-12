@@ -154,56 +154,92 @@ public class ConfigsExportImportController {
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportConfigs(final HttpServletResponse response) {
         List<ZipUtil.ZipItem> zipItemList = Lists.newArrayList();
-        List<AppAuthVO> authDataList = appAuthService.listAllVO();
-        if (CollectionUtils.isNotEmpty(authDataList)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.AUTH_JSON, JsonUtils.toJson(authDataList)));
-        }
+        exportAuthData(zipItemList);
 
-        List<MetaDataVO> metaDataList = metaDataService.listAllVO();
-        if (CollectionUtils.isNotEmpty(metaDataList)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.META_JSON, JsonUtils.toJson(metaDataList)));
-        }
+        exportMetadata(zipItemList);
 
-        List<PluginVO> pluginDataList = pluginService.listAllVO();
-        if (CollectionUtils.isNotEmpty(pluginDataList)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_JSON, JsonUtils.toJson(pluginDataList)));
-        }
+        exportPluginData(zipItemList);
 
-        List<SelectorVO> selectorDataList = selectorService.listAllVO();
-        if (CollectionUtils.isNotEmpty(selectorDataList)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.SELECTOR_JSON, JsonUtils.toJson(selectorDataList)));
-        }
+        exportSelectorData(zipItemList);
 
-        List<RuleVO> ruleDataList = ruleService.listAllVO();
-        if (CollectionUtils.isNotEmpty(ruleDataList)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.RULE_JSON, JsonUtils.toJson(ruleDataList)));
-        }
+        exportRuleData(zipItemList);
 
-        List<ShenyuDictVO> dictDataList = shenyuDictService.listAll();
-        if (CollectionUtils.isNotEmpty(dictDataList)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.DICT_JSON, JsonUtils.toJson(dictDataList)));
-        }
+        exportDictData(zipItemList);
 
-        List<ProxySelectorData> proxySelectorDataList = proxySelectorService.listAll();
-        if (CollectionUtils.isNotEmpty(proxySelectorDataList)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PROXY_SELECTOR_JSON, JsonUtils.toJson(proxySelectorDataList)));
-        }
+        exportProxySelectorData(zipItemList);
 
-        List<DiscoveryVO> discoveryList = discoveryService.listAllVO();
-        if (CollectionUtils.isNotEmpty(discoveryList)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.DISCOVERY_JSON, JsonUtils.toJson(discoveryList)));
-        }
+        exportDiscoveryData(zipItemList);
 
-        List<DiscoveryUpstreamVO> discoveryUpstreamList = discoveryUpstreamService.listAllVO();
-        if (CollectionUtils.isNotEmpty(discoveryUpstreamList)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.DISCOVERY_UPSTREAM_JSON, JsonUtils.toJson(discoveryUpstreamList)));
-        }
+        exportDiscoveryUpstreamData(zipItemList);
 
         HttpHeaders headers = new HttpHeaders();
         String fileName = generateFileName();
         response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
         headers.add("Content-Disposition", "attachment;filename=" + fileName);
         return new ResponseEntity<>(ZipUtil.zip(zipItemList), headers, HttpStatus.OK);
+    }
+
+    private void exportDiscoveryUpstreamData(final List<ZipUtil.ZipItem> zipItemList) {
+        List<DiscoveryUpstreamVO> discoveryUpstreamList = discoveryUpstreamService.listAllVO();
+        if (CollectionUtils.isNotEmpty(discoveryUpstreamList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.DISCOVERY_UPSTREAM_JSON, JsonUtils.toJson(discoveryUpstreamList)));
+        }
+    }
+
+    private void exportDiscoveryData(final List<ZipUtil.ZipItem> zipItemList) {
+        List<DiscoveryVO> discoveryList = discoveryService.listAllVO();
+        if (CollectionUtils.isNotEmpty(discoveryList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.DISCOVERY_JSON, JsonUtils.toJson(discoveryList)));
+        }
+    }
+
+    private void exportProxySelectorData(final List<ZipUtil.ZipItem> zipItemList) {
+        List<ProxySelectorData> proxySelectorDataList = proxySelectorService.listAll();
+        if (CollectionUtils.isNotEmpty(proxySelectorDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PROXY_SELECTOR_JSON, JsonUtils.toJson(proxySelectorDataList)));
+        }
+    }
+
+    private void exportDictData(final List<ZipUtil.ZipItem> zipItemList) {
+        List<ShenyuDictVO> dictDataList = shenyuDictService.listAll();
+        if (CollectionUtils.isNotEmpty(dictDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.DICT_JSON, JsonUtils.toJson(dictDataList)));
+        }
+    }
+
+    private void exportRuleData(final List<ZipUtil.ZipItem> zipItemList) {
+        List<RuleVO> ruleDataList = ruleService.listAllVO();
+        if (CollectionUtils.isNotEmpty(ruleDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.RULE_JSON, JsonUtils.toJson(ruleDataList)));
+        }
+    }
+
+    private void exportSelectorData(final List<ZipUtil.ZipItem> zipItemList) {
+        List<SelectorVO> selectorDataList = selectorService.listAllVO();
+        if (CollectionUtils.isNotEmpty(selectorDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.SELECTOR_JSON, JsonUtils.toJson(selectorDataList)));
+        }
+    }
+
+    private void exportPluginData(final List<ZipUtil.ZipItem> zipItemList) {
+        List<PluginVO> pluginDataList = pluginService.listAllVO();
+        if (CollectionUtils.isNotEmpty(pluginDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_JSON, JsonUtils.toJson(pluginDataList)));
+        }
+    }
+
+    private void exportMetadata(final List<ZipUtil.ZipItem> zipItemList) {
+        List<MetaDataVO> metaDataList = metaDataService.listAllVO();
+        if (CollectionUtils.isNotEmpty(metaDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.META_JSON, JsonUtils.toJson(metaDataList)));
+        }
+    }
+
+    private void exportAuthData(final List<ZipUtil.ZipItem> zipItemList) {
+        List<AppAuthVO> authDataList = appAuthService.listAllVO();
+        if (CollectionUtils.isNotEmpty(authDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.AUTH_JSON, JsonUtils.toJson(authDataList)));
+        }
     }
 
     /**

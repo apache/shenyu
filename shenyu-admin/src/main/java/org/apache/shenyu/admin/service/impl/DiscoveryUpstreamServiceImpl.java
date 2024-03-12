@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
@@ -40,6 +41,7 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.springframework.stereotype.Service;
@@ -48,7 +50,9 @@ import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -232,11 +236,35 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             return ConfigImportResult.success();
         }
         int successCount = 0;
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        Map<String, List<DiscoveryUpstreamDO>> discoveryHandlerUpstreamMap = discoveryUpstreamMapper
+                .selectAll()
+                .stream()
+                .collect(Collectors.groupingBy(DiscoveryUpstreamDO::getDiscoveryHandlerId));
         for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamList) {
+            String discoveryHandlerId = discoveryUpstreamDTO.getDiscoveryHandlerId();
+            String url = discoveryUpstreamDTO.getUrl();
+            Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap
+                    .getOrDefault(discoveryHandlerId, Lists.newArrayList())
+                    .stream()
+                    .map(DiscoveryUpstreamDO::getUrl)
+                    .collect(Collectors.toSet());
+            if (existsUpstreamUrlSet.contains(url)) {
+                errorMsgBuilder
+                        .append(url)
+                        .append(AdminConstants.WHITE_SPACE)
+                        .append(System.lineSeparator())
+                        .append(AdminConstants.WHITE_SPACE);
+                continue;
+            }
             discoveryUpstreamDTO.setId(null);
             DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
             discoveryUpstreamMapper.insert(discoveryUpstreamDO);
             successCount++;
+        }
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(errorMsgBuilder)) {
+            return ConfigImportResult
+                    .fail(successCount, "discovery upstream data import fail : " + errorMsgBuilder);
         }
         return ConfigImportResult.success(successCount);
     }
