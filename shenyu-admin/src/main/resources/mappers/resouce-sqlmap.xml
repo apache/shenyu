@@ -132,7 +132,7 @@
     <select id="selectAll" resultMap="BaseResultMap">
         SELECT
                 <include refid="Base_Column_List"/>
-          FROM resource
+          FROM resource ORDER BY sort, id ASC
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
