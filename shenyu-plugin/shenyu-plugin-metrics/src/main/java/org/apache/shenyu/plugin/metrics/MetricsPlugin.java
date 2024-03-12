@@ -39,7 +39,7 @@ import java.util.function.Consumer;
  * the monitor plugin.
  */
 public class MetricsPlugin implements ShenyuPlugin {
-    
+
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         MetricsReporter.counterIncrement(LabelNames.REQUEST_TOTAL);
@@ -48,11 +48,6 @@ public class MetricsPlugin implements ShenyuPlugin {
         setMetricsCallbacks(exchange);
         MetricsReporter.counterIncrement(LabelNames.REQUEST_TYPE_TOTAL, new String[]{exchange.getRequest().getURI().getRawPath(), shenyuContext.getRpcType()});
         LocalDateTime startDateTime = Optional.of(shenyuContext).map(ShenyuContext::getStartDateTime).orElseGet(LocalDateTime::now);
-        exchange.getAttributes().put(Constants.METRICS_RATE_LIMITER, (Consumer<HttpStatus>) status -> {
-            if (Objects.nonNull(status) && HttpStatus.TOO_MANY_REQUESTS.equals(status)) {
-                MetricsReporter.counterIncrement(LabelNames.RATELIMITER_REQUEST_RESTRICT_TOTAL);
-            }
-        });
         return chain.execute(exchange).doOnSuccess(e -> responseCommitted(exchange, startDateTime))
                 .doOnError(throwable -> {
                     MetricsReporter.counterIncrement(LabelNames.REQUEST_THROW_TOTAL);
@@ -62,18 +57,27 @@ public class MetricsPlugin implements ShenyuPlugin {
 
     private void setMetricsCallbacks(final ServerWebExchange exchange) {
         exchange.getAttributes().put(Constants.METRICS_SENTINEL, (Consumer<HttpStatus>) status -> {
-            if (Objects.equals(HttpStatus.TOO_MANY_REQUESTS, status) || Objects.equals(HttpStatus.INTERNAL_SERVER_ERROR, status)) {
+            if (Objects.equals(HttpStatus.TOO_MANY_REQUESTS, status)) {
                 MetricsReporter.counterIncrement(LabelNames.SENTINEL_REQUEST_RESTRICT_TOTAL);
+            } else if (Objects.equals(HttpStatus.INTERNAL_SERVER_ERROR, status)) {
+                MetricsReporter.counterIncrement(LabelNames.SENTINEL_REQUEST_CIRCUITBREAKER_TOTAL);
             }
         });
         exchange.getAttributes().put(Constants.METRICS_RESILIENCE4J, (Consumer<HttpStatus>) status -> {
-            if (Objects.equals(HttpStatus.TOO_MANY_REQUESTS, status) || Objects.equals(HttpStatus.INTERNAL_SERVER_ERROR, status) || Objects.equals(HttpStatus.GATEWAY_TIMEOUT, status)) {
+            if (Objects.equals(HttpStatus.TOO_MANY_REQUESTS, status)) {
                 MetricsReporter.counterIncrement(LabelNames.RESILIENCE4J_REQUEST_RESTRICT_TOTAL);
+            } else if (Objects.equals(HttpStatus.INTERNAL_SERVER_ERROR, status)) {
+                MetricsReporter.counterIncrement(LabelNames.RESILIENCE4J_REQUEST_CIRCUITBREAKER_TOTAL);
             }
         });
         exchange.getAttributes().put(Constants.METRICS_HYSTRIX, (Consumer<HttpStatus>) status -> {
-            if (Objects.equals(HttpStatus.INTERNAL_SERVER_ERROR, status) || Objects.equals(HttpStatus.GATEWAY_TIMEOUT, status)) {
+            if (Objects.equals(HttpStatus.INTERNAL_SERVER_ERROR, status)) {
                 MetricsReporter.counterIncrement(LabelNames.HYSTRIX_REQUEST_RESTRICT_TOTAL);
+            }
+        });
+        exchange.getAttributes().put(Constants.METRICS_RATE_LIMITER, (Consumer<HttpStatus>) status -> {
+            if (Objects.nonNull(status) && HttpStatus.TOO_MANY_REQUESTS.equals(status)) {
+                MetricsReporter.counterIncrement(LabelNames.RATELIMITER_REQUEST_RESTRICT_TOTAL);
             }
         });
     }
@@ -82,12 +86,12 @@ public class MetricsPlugin implements ShenyuPlugin {
     public int getOrder() {
         return PluginEnum.METRICS.getCode();
     }
-    
+
     @Override
     public String named() {
         return PluginEnum.METRICS.getName();
     }
-    
+
     private void responseCommitted(final ServerWebExchange exchange, final LocalDateTime startDateTime) {
         ServerHttpResponse response = exchange.getResponse();
         if (response.isCommitted()) {
@@ -99,7 +103,7 @@ public class MetricsPlugin implements ShenyuPlugin {
             });
         }
     }
-    
+
     private void recordTime(final LocalDateTime startDateTime) {
         long millisBetween = DateUtils.acquireMillisBetween(startDateTime, LocalDateTime.now());
         MetricsReporter.recordTime(LabelNames.EXECUTE_LATENCY_NAME, millisBetween);

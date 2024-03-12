@@ -58,7 +58,7 @@ public final class MetricsReporterTest {
     @Test
     public void testRegister() throws Exception {
         Map<String, Counter> map1 = getPrivateField(metricsRegister, "COUNTER_MAP", Map.class);
-        Assertions.assertEquals(map1.size(), 7);
+        Assertions.assertEquals(map1.size(), 9);
         Map<String, Histogram> map2 = getPrivateField(metricsRegister, "HISTOGRAM_MAP", Map.class);
         Assertions.assertEquals(map2.size(), 3);
         List<String> labels = new ArrayList<>();
@@ -69,7 +69,7 @@ public final class MetricsReporterTest {
         metrics.add(new Metric(MetricType.HISTOGRAM, "name3", DOCUMENT, labels));
         MetricsReporter.registerMetrics(metrics);
         Map<String, Counter> map3 = getPrivateField(metricsRegister, "COUNTER_MAP", Map.class);
-        Assertions.assertEquals(map3.size(), 8);
+        Assertions.assertEquals(map3.size(), 10);
         Map<String, Histogram> map4 = getPrivateField(metricsRegister, "HISTOGRAM_MAP", Map.class);
         Assertions.assertEquals(map4.size(), 4);
         Map<String, Gauge> map5 = getPrivateField(metricsRegister, "GAUGE_MAP", Map.class);
