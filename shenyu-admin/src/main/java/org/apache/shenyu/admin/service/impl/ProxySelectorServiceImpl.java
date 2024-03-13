@@ -48,7 +48,6 @@ import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.jetbrains.annotations.NotNull;
@@ -473,9 +472,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             if (existProxySelectorNameSet.contains(proxySelectorName)) {
                 errorMsgBuilder
                         .append(proxySelectorName)
-                        .append(AdminConstants.WHITE_SPACE)
-                        .append(System.lineSeparator())
-                        .append(AdminConstants.WHITE_SPACE);
+                        .append(",");
                 continue;
             }
             ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(selectorData);
@@ -484,8 +481,9 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             }
         }
         if (org.apache.commons.lang3.StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
             return ConfigImportResult
-                    .fail(successCount, "proxy selector data import fail: " + errorMsgBuilder);
+                    .fail(successCount, "import fail proxy selector: " + errorMsgBuilder);
         }
         return ConfigImportResult.success(successCount);
     }

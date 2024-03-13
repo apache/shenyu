@@ -446,7 +446,7 @@ public class SelectorServiceImpl implements SelectorService {
                 if (CollectionUtils.isNotEmpty(selectorDTOList)) {
 
                     Set<String> existSelectorSet = Optional
-                            .of(pluginSelectorMap.get(pluginId))
+                            .ofNullable(pluginSelectorMap.get(pluginId))
                             .orElse(Lists.newArrayList())
                             .stream()
                             .map(SelectorDO::getName)
@@ -459,9 +459,7 @@ public class SelectorServiceImpl implements SelectorService {
                                 && existSelectorSet.contains(selectorName)) {
                             errorMsgBuilder
                                     .append(selectorName)
-                                    .append(AdminConstants.WHITE_SPACE)
-                                    .append(System.lineSeparator())
-                                    .append(AdminConstants.WHITE_SPACE);
+                                    .append(",");
                         } else {
                             create(selectorDTO);
                             successCount++;
@@ -470,8 +468,9 @@ public class SelectorServiceImpl implements SelectorService {
                 }
             }
             if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+                errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
                 return ConfigImportResult
-                        .fail(successCount, "selector data import fail selector: " + errorMsgBuilder);
+                        .fail(successCount, "import fail selector: " + errorMsgBuilder);
             }
             return ConfigImportResult.success(successCount);
         } catch (Exception e) {

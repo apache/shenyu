@@ -284,9 +284,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                     LOG.info("import auth data, appKey: {} already exists", appKey);
                     errorMsgBuilder
                             .append(appKey)
-                            .append(AdminConstants.WHITE_SPACE)
-                            .append(System.lineSeparator())
-                            .append(AdminConstants.WHITE_SPACE);
+                            .append(",");
                     continue;
                 }
                 AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuth);
@@ -318,11 +316,10 @@ public class AppAuthServiceImpl implements AppAuthService {
                 }
             }
             this.syncData();
-            if (StringUtils.isEmpty(errorMsgBuilder)) {
-                return ConfigImportResult.success(successCount);
-            } else {
-                return ConfigImportResult.fail(successCount, "app auth data import fail appKey: " + errorMsgBuilder);
+            if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+                return ConfigImportResult.fail(successCount, "import fail appKey: " + errorMsgBuilder);
             }
+            return ConfigImportResult.success(successCount);
         } catch (Exception e) {
             LOG.error("import app auth data error", e);
             throw new ShenyuException("import app auth data error.");

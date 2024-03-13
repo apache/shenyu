@@ -41,7 +41,6 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.springframework.stereotype.Service;
@@ -252,9 +251,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             if (existsUpstreamUrlSet.contains(url)) {
                 errorMsgBuilder
                         .append(url)
-                        .append(AdminConstants.WHITE_SPACE)
-                        .append(System.lineSeparator())
-                        .append(AdminConstants.WHITE_SPACE);
+                        .append(",");
                 continue;
             }
             discoveryUpstreamDTO.setId(null);
@@ -263,8 +260,9 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             successCount++;
         }
         if (org.apache.commons.lang3.StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
             return ConfigImportResult
-                    .fail(successCount, "discovery upstream data import fail : " + errorMsgBuilder);
+                    .fail(successCount, "import fail discovery upstream: " + errorMsgBuilder);
         }
         return ConfigImportResult.success(successCount);
     }

@@ -32,7 +32,6 @@ import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.publish.DictEventPublisher;
 import org.apache.shenyu.admin.utils.Assert;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -129,17 +128,16 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
             if (existDictNameSet.contains(dictName)) {
                 errorMsgBuilder
                         .append(dictName)
-                        .append(AdminConstants.WHITE_SPACE)
-                        .append(System.lineSeparator())
-                        .append(AdminConstants.WHITE_SPACE);
+                        .append(",");
                 continue;
             }
             create(dictDTO);
             successCount++;
         }
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
             return ConfigImportResult
-                    .fail(successCount, "dict data import fail dictName: " + errorMsgBuilder);
+                    .fail(successCount, "import fail dict: " + errorMsgBuilder);
         }
         return ConfigImportResult.success(successCount);
     }

@@ -18,19 +18,19 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import org.apache.shenyu.admin.discovery.DiscoveryLevel;
-import org.apache.shenyu.admin.discovery.DiscoveryMode;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
-import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.discovery.DiscoveryLevel;
+import org.apache.shenyu.admin.discovery.DiscoveryMode;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
-import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
@@ -45,7 +45,6 @@ import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
@@ -371,9 +370,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             if (existDiscoveryNameSet.contains(discoveryName)) {
                 errorMsgBuilder
                         .append(discoveryName)
-                        .append(AdminConstants.WHITE_SPACE)
-                        .append(System.lineSeparator())
-                        .append(AdminConstants.WHITE_SPACE);
+                        .append(",");
                 continue;
             }
             String discoveryId = UUIDUtils.getInstance().generateShortUuid();
@@ -399,8 +396,9 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             }
         }
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
             return ConfigImportResult
-                    .fail(successCount, "discovery data import fail : " + errorMsgBuilder);
+                    .fail(successCount, "import fail discovery: " + errorMsgBuilder);
         }
         return ConfigImportResult.success(successCount);
     }

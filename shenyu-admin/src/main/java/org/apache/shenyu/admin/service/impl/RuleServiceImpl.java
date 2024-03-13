@@ -271,9 +271,7 @@ public class RuleServiceImpl implements RuleService {
                 if (existRuleName.contains(ruleName)) {
                     errorMsgBuilder
                             .append(ruleName)
-                            .append(AdminConstants.WHITE_SPACE)
-                            .append(System.lineSeparator())
-                            .append(AdminConstants.WHITE_SPACE);
+                            .append(",");
                     continue;
                 }
             }
@@ -286,8 +284,9 @@ public class RuleServiceImpl implements RuleService {
             }
         }
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
             return ConfigImportResult
-                    .fail(successCount, "rule data import fail ruleName: " + errorMsgBuilder);
+                    .fail(successCount, "import fail rule: " + errorMsgBuilder);
         }
         return ConfigImportResult.success(successCount);
     }

@@ -275,9 +275,7 @@ public class PluginServiceImpl implements PluginService {
                     pluginId = existPlugin.getId();
                     errorMsgBuilder
                             .append(pluginName)
-                            .append(AdminConstants.WHITE_SPACE)
-                            .append(System.lineSeparator())
-                            .append(AdminConstants.WHITE_SPACE);
+                            .append(",");
                 } else {
                     PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
                     pluginId = pluginDO.getId();
@@ -298,8 +296,9 @@ public class PluginServiceImpl implements PluginService {
                 }
             }
             if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+                errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
                 return ConfigImportResult
-                        .fail(successCount, "plugin data import fail pluginName: " + errorMsgBuilder);
+                        .fail(successCount, "import fail plugin: " + errorMsgBuilder);
             }
             return ConfigImportResult.success(successCount);
         } catch (Exception e) {

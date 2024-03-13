@@ -216,25 +216,16 @@ public class MetaDataServiceImpl implements MetaDataService {
                     LOG.info("import metadata path: {} already exists", metaDataPath);
                     errorMsgBuilder
                             .append(metaDataPath)
-                            .append(AdminConstants.WHITE_SPACE)
-                            .append(System.lineSeparator())
-                            .append(AdminConstants.WHITE_SPACE);
+                            .append(",");
                     continue;
                 }
-                String createResult = create(metaDataDTO);
-                if (!ShenyuResultMessage.CREATE_SUCCESS.equalsIgnoreCase(createResult)) {
-                    errorMsgBuilder
-                            .append(createResult)
-                            .append(AdminConstants.WHITE_SPACE)
-                            .append(System.lineSeparator())
-                            .append(AdminConstants.WHITE_SPACE);
-                } else {
-                    successCount++;
-                }
+                create(metaDataDTO);
+                successCount++;
             }
             this.syncData();
             if (StringUtils.isNotEmpty(errorMsgBuilder)) {
-                return ConfigImportResult.fail(successCount, "meta data import fail path: " + errorMsgBuilder);
+                errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+                return ConfigImportResult.fail(successCount, "import fail meta: " + errorMsgBuilder);
             }
             return ConfigImportResult.success(successCount);
         } catch (Exception e) {
