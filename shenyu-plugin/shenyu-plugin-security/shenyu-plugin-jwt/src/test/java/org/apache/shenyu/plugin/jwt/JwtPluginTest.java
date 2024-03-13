@@ -152,10 +152,10 @@ public final class JwtPluginTest {
         Map<String, Object> map = ImmutableMap.<String, Object>builder().put("userId", 1).build();
 
         String token = Jwts.builder()
-                .setIssuedAt(new Date(1636371125000L))
-                .setExpiration(new Date())
-                .setClaims(map)
-                .signWith(Keys.hmacShaKeyFor(secreteKey.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
+                .issuedAt(new Date(1636371125000L))
+                .expiration(new Date())
+                .claims(map)
+                .signWith(Keys.hmacShaKeyFor(secreteKey.getBytes(StandardCharsets.UTF_8)))
                 .compact();
 
         return MockServerWebExchange.from(MockServerHttpRequest
