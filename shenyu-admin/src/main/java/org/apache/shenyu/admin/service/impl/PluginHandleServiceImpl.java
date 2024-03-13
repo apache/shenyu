@@ -130,7 +130,7 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     }
 
     @Override
-    public List<PluginHandleVO> listAll() {
+    public List<PluginHandleVO> listAllData() {
         List<PluginHandleDO> pluginHandleDOList = pluginHandleMapper.selectByQuery(PluginHandleQuery.builder()
                 .build());
         return buildPluginHandleVO(pluginHandleDOList);
@@ -139,7 +139,7 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult importData(final List<PluginHandleDTO> pluginHandleList) {
-        Map<String, List<PluginHandleVO>> existHandleMap = listAll()
+        Map<String, List<PluginHandleVO>> existHandleMap = listAllData()
                 .stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(PluginHandleVO::getPluginId));

@@ -85,7 +85,7 @@ public interface PluginService extends PageService<PluginQueryCondition, PluginV
      *
      * @return the vo list
      */
-    List<PluginVO> listAllVO();
+    List<PluginVO> listAllData();
     
     /**
      * list all not in resource.

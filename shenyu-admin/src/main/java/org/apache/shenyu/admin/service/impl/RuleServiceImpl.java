@@ -220,7 +220,7 @@ public class RuleServiceImpl implements RuleService {
     }
 
     @Override
-    public List<RuleVO> listAllVO() {
+    public List<RuleVO> listAllData() {
         return this.buildRuleVOList(ruleMapper.selectAll());
     }
 
@@ -261,19 +261,17 @@ public class RuleServiceImpl implements RuleService {
         for (RuleDTO ruleDTO : ruleList) {
             String selectorId = ruleDTO.getSelectorId();
             String ruleName = ruleDTO.getName();
-            List<RuleDO> existRuleList = selectorRuleMap.getOrDefault(selectorId, Lists.newArrayList());
+            Set<String> existRuleNameSet = selectorRuleMap
+                    .getOrDefault(selectorId, Lists.newArrayList())
+                    .stream()
+                    .map(RuleDO::getName)
+                    .collect(Collectors.toSet());
 
-            if (CollectionUtils.isNotEmpty(existRuleList)) {
-                Set<String> existRuleName = existRuleList
-                        .stream()
-                        .map(RuleDO::getName)
-                        .collect(Collectors.toSet());
-                if (existRuleName.contains(ruleName)) {
-                    errorMsgBuilder
-                            .append(ruleName)
-                            .append(",");
-                    continue;
-                }
+            if (existRuleNameSet.contains(ruleName)) {
+                errorMsgBuilder
+                        .append(ruleName)
+                        .append(",");
+                continue;
             }
             RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
             final int ruleCount = ruleMapper.insertSelective(ruleDO);

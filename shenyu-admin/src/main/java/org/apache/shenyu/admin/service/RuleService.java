@@ -123,7 +123,7 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      *
      * @return the rule vo list
      */
-    List<RuleVO> listAllVO();
+    List<RuleVO> listAllData();
 
     /**
      * Find by selector id list.

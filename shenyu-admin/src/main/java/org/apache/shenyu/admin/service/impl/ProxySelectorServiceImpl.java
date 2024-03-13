@@ -415,7 +415,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     }
 
     @Override
-    public List<ProxySelectorVO> listAllVO() {
+    public List<ProxySelectorVO> listAllData() {
         List<ProxySelectorVO> result = Lists.newArrayList();
         proxySelectorMapper.selectAll().forEach(proxySelectorDO -> {
             ProxySelectorVO vo = new ProxySelectorVO();

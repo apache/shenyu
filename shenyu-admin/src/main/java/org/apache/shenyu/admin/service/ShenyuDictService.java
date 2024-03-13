@@ -75,7 +75,7 @@ public interface ShenyuDictService {
      *
      * @return shenyu dict list.
      */
-    List<ShenyuDictVO> listAll();
+    List<ShenyuDictVO> listAllData();
 
     /**
      * delete shenyu dicts.

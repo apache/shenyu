@@ -281,7 +281,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
-    public List<DiscoveryVO> listAllVO() {
+    public List<DiscoveryVO> listAllData() {
         Map<String, DiscoveryHandlerVO> discoveryHandlerMap = discoveryHandlerMapper
                 .selectAll()
                 .stream()

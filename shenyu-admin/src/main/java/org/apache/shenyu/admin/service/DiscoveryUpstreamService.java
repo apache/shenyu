@@ -69,11 +69,11 @@ public interface DiscoveryUpstreamService {
     List<DiscoverySyncData> listAll();
 
     /**
-     * list all vo.
+     * list all data.
      *
      * @return DiscoveryUpstreamVO
      */
-    List<DiscoveryUpstreamVO> listAllVO();
+    List<DiscoveryUpstreamVO> listAllData();
 
     /**
      * refresh and push event.

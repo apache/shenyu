@@ -167,7 +167,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     }
 
     @Override
-    public List<DiscoveryUpstreamVO> listAllVO() {
+    public List<DiscoveryUpstreamVO> listAllData() {
         return discoveryUpstreamMapper
                 .selectAll()
                 .stream()

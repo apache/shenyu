@@ -84,11 +84,11 @@ public interface ProxySelectorService {
     List<ProxySelectorData> listAll();
 
     /**
-     * list all vo.
+     * list all data.
      *
      * @return ProxySelectorVOList
      */
-    List<ProxySelectorVO> listAllVO();
+    List<ProxySelectorVO> listAllData();
 
     /**
      * Import proxy selector list.

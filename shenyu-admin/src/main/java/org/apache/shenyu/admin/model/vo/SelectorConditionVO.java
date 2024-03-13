@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.model.vo;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
@@ -313,6 +315,9 @@ public class SelectorConditionVO implements Serializable {
      * @return {@linkplain SelectorConditionVO}
      */
     public static List<SelectorConditionVO> buildSelectorConditionVOList(final List<SelectorConditionDO> selectorConditionDOList) {
+        if (CollectionUtils.isEmpty(selectorConditionDOList)) {
+            return Lists.newArrayList();
+        }
         return selectorConditionDOList.stream()
                 .map(SelectorConditionVO::buildSelectorConditionVO)
                 .collect(Collectors.toList());

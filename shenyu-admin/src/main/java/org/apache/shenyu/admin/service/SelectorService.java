@@ -219,7 +219,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      *
      * @return the vo list
      */
-    List<SelectorVO> listAllVO();
+    List<SelectorVO> listAllData();
 
     /**
      * Import the plugin selector list.

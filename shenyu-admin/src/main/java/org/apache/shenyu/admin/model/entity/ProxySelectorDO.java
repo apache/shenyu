@@ -25,6 +25,7 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -119,10 +120,10 @@ public class ProxySelectorDO extends BaseDO {
                 proxySelectorDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 proxySelectorDO.setDateCreated(currentTime);
             }
-            if (null == proxySelectorDO.getDateCreated()) {
+            if (Objects.isNull(proxySelectorDO.getDateCreated())) {
                 proxySelectorDO.setDateCreated(currentTime);
             }
-            if (null == proxySelectorDO.getDateUpdated()) {
+            if (Objects.isNull(proxySelectorDO.getDateUpdated())) {
                 proxySelectorDO.setDateUpdated(currentTime);
             }
             return proxySelectorDO;

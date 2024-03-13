@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.impl.PluginServiceImpl;
 import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
@@ -34,6 +35,7 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.assertj.core.util.Lists;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -172,6 +174,34 @@ public final class PluginServiceTest {
         assertEquals(pluginDOList.size(), dataList.size());
     }
 
+    @Test
+    public void testListAllData() {
+        PluginDO pluginDO = buildPluginDO("123");
+        List<PluginDO> pluginDOList = Collections.singletonList(pluginDO);
+        given(this.pluginMapper.selectAll()).willReturn(pluginDOList);
+        List<PluginVO> dataList = this.pluginService.listAllData();
+        assertNotNull(dataList);
+        assertEquals(pluginDOList.size(), dataList.size());
+    }
+
+    @Test
+    public void testImportData() {
+        List<PluginDO> pluginDOS = Collections.singletonList(buildPluginDO());
+        when(pluginMapper.selectAll()).thenReturn(pluginDOS);
+
+        PluginDTO pluginDTO = buildPluginDTO("", "haha");
+        final List<PluginDTO> pluginDTOList = Collections.singletonList(pluginDTO);
+        given(this.pluginMapper.insertSelective(any())).willReturn(1);
+        when(pluginMapper.nameExisted(pluginDTO.getName())).thenReturn(null);
+        when(pluginMapper.insert(any())).thenReturn(1);
+
+        ConfigImportResult configImportResult = this.pluginService.importData(pluginDTOList);
+
+        assertNotNull(configImportResult);
+        Assertions.assertEquals(configImportResult.getSuccessCount(), pluginDTOList.size());
+
+    }
+
     private void publishEvent() {
         PluginDO pluginDO = buildPluginDO();
         given(this.pluginMapper.selectById("123")).willReturn(pluginDO);
@@ -206,6 +236,18 @@ public final class PluginServiceTest {
             pluginDTO.setId(id);
         }
         pluginDTO.setName("test");
+        pluginDTO.setConfig("{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}");
+        pluginDTO.setRole("0");
+        pluginDTO.setEnabled(true);
+        return pluginDTO;
+    }
+
+    private PluginDTO buildPluginDTO(final String id, final String name) {
+        PluginDTO pluginDTO = new PluginDTO();
+        if (StringUtils.isNotBlank(id)) {
+            pluginDTO.setId(id);
+        }
+        pluginDTO.setName(name);
         pluginDTO.setConfig("{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}");
         pluginDTO.setRole("0");
         pluginDTO.setEnabled(true);

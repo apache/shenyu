@@ -51,7 +51,6 @@ import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
@@ -265,65 +264,60 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (CollectionUtils.isEmpty(authDataList)) {
             return ConfigImportResult.success();
         }
-        try {
-            StringBuilder errorMsgBuilder = new StringBuilder();
-            int successCount = 0;
-            // exist appKey set
-            Set<String> existAppKeySet = Optional.of(
-                            this.appAuthMapper.selectAll()
-                                    .stream()
-                                    .filter(Objects::nonNull)
-                                    .map(AppAuthDO::getAppKey)
-                                    .collect(Collectors.toSet()))
-                    .orElse(Sets.newHashSet());
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        int successCount = 0;
+        // exist appKey set
+        Set<String> existAppKeySet = Optional.of(
+                        this.appAuthMapper.selectAll()
+                                .stream()
+                                .filter(Objects::nonNull)
+                                .map(AppAuthDO::getAppKey)
+                                .collect(Collectors.toSet()))
+                .orElse(Sets.newHashSet());
 
-            for (AppAuthDTO appAuth : authDataList) {
-                String appKey = appAuth.getAppKey();
-                if (existAppKeySet.contains(appKey)) {
-                    // already exists, just record fail info, and continue
-                    LOG.info("import auth data, appKey: {} already exists", appKey);
-                    errorMsgBuilder
-                            .append(appKey)
-                            .append(",");
-                    continue;
+        for (AppAuthDTO appAuth : authDataList) {
+            String appKey = appAuth.getAppKey();
+            if (existAppKeySet.contains(appKey)) {
+                // already exists, just record fail info, and continue
+                LOG.info("import auth data, appKey: {} already exists", appKey);
+                errorMsgBuilder
+                        .append(appKey)
+                        .append(",");
+                continue;
+            }
+            AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuth);
+            // create
+            String authId = UUIDUtils.getInstance().generateShortUuid();
+            appAuthDO.setId(authId);
+            int inserted = appAuthMapper.insertSelective(appAuthDO);
+            if (inserted > 0) {
+                successCount++;
+                // auth path
+                List<AuthPathDTO> authPathDTOList = appAuth.getAuthPathList();
+                if (CollectionUtils.isNotEmpty(authPathDTOList)) {
+                    List<AuthPathDO> authPathDOS = authPathDTOList
+                            .stream()
+                            .map(param -> AuthPathDO.create(param.getPath(), authId, param.getAppName()))
+                            .collect(Collectors.toList());
+                    authPathMapper.batchSave(authPathDOS);
                 }
-                AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuth);
-                // create
-                String authId = UUIDUtils.getInstance().generateShortUuid();
-                appAuthDO.setId(authId);
-                int inserted = appAuthMapper.insertSelective(appAuthDO);
-                if (inserted > 0) {
-                    successCount++;
-                    // auth path
-                    List<AuthPathDTO> authPathDTOList = appAuth.getAuthPathList();
-                    if (CollectionUtils.isNotEmpty(authPathDTOList)) {
-                        List<AuthPathDO> authPathDOS = authPathDTOList
-                                .stream()
-                                .map(param -> AuthPathDO.create(param.getPath(), authId, param.getAppName()))
-                                .collect(Collectors.toList());
-                        authPathMapper.batchSave(authPathDOS);
-                    }
 
-                    // auth param
-                    List<AuthParamDTO> authParamVOList = appAuth.getAuthParamList();
-                    if (CollectionUtils.isNotEmpty(authParamVOList)) {
-                        List<AuthParamDO> authParamDOS = authParamVOList
-                                .stream()
-                                .map(param -> AuthParamDO.create(authId, param.getAppName(), param.getAppParam()))
-                                .collect(Collectors.toList());
-                        authParamMapper.batchSave(authParamDOS);
-                    }
+                // auth param
+                List<AuthParamDTO> authParamVOList = appAuth.getAuthParamList();
+                if (CollectionUtils.isNotEmpty(authParamVOList)) {
+                    List<AuthParamDO> authParamDOS = authParamVOList
+                            .stream()
+                            .map(param -> AuthParamDO.create(authId, param.getAppName(), param.getAppParam()))
+                            .collect(Collectors.toList());
+                    authParamMapper.batchSave(authParamDOS);
                 }
             }
-            this.syncData();
-            if (StringUtils.isNotEmpty(errorMsgBuilder)) {
-                return ConfigImportResult.fail(successCount, "import fail appKey: " + errorMsgBuilder);
-            }
-            return ConfigImportResult.success(successCount);
-        } catch (Exception e) {
-            LOG.error("import app auth data error", e);
-            throw new ShenyuException("import app auth data error.");
         }
+        this.syncData();
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            return ConfigImportResult.fail(successCount, "import fail appKey: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
     }
 
 
@@ -492,7 +486,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
-    public List<AppAuthVO> listAllVO() {
+    public List<AppAuthVO> listAllData() {
         List<AppAuthDO> appAuthDOList = appAuthMapper.selectAll();
         if (CollectionUtils.isEmpty(appAuthDOList)) {
             return new ArrayList<>();

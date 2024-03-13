@@ -94,7 +94,7 @@ public interface PluginHandleService {
      *
      * @return plugin handle list.
      */
-    List<PluginHandleVO> listAll();
+    List<PluginHandleVO> listAllData();
 
     /**
      * import plugin handle list.

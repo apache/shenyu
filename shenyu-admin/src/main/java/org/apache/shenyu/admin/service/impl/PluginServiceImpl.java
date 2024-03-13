@@ -197,9 +197,9 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
-    public List<PluginVO> listAllVO() {
+    public List<PluginVO> listAllData() {
         // plugin handle
-        Map<String, List<PluginHandleVO>> pluginHandleMap = pluginHandleService.listAll()
+        Map<String, List<PluginHandleVO>> pluginHandleMap = pluginHandleService.listAllData()
                 .stream()
                 .collect(Collectors.groupingBy(PluginHandleVO::getPluginId));
 

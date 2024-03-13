@@ -80,7 +80,7 @@ public interface DiscoveryService {
      * list all vo.
      * @return discovery vo
      */
-    List<DiscoveryVO> listAllVO();
+    List<DiscoveryVO> listAllData();
 
     /**
      * findDiscoveryHandlerBySelectorId.

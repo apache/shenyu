@@ -419,7 +419,7 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
-    public List<SelectorVO> listAllVO() {
+    public List<SelectorVO> listAllData() {
         return this.buildSelectorExportVOList(selectorMapper.selectAll());
     }
 

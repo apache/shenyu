@@ -134,7 +134,7 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
      *
      * @return the vo list
      */
-    List<AppAuthVO> listAllVO();
+    List<AppAuthVO> listAllData();
 
     /**
      * Update app secret by app key shenyu result.

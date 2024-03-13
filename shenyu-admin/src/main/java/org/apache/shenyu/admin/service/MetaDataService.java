@@ -101,7 +101,7 @@ public interface MetaDataService {
      *
      * @return the vo list
      */
-    List<MetaDataVO> listAllVO();
+    List<MetaDataVO> listAllData();
 
     /**
      * Enabled string.

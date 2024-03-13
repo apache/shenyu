@@ -111,7 +111,7 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
         if (CollectionUtils.isEmpty(dictList)) {
             return ConfigImportResult.success();
         }
-        Map<String, List<ShenyuDictVO>> dictTypeMap = listAll()
+        Map<String, List<ShenyuDictVO>> dictTypeMap = listAllData()
                 .stream()
                 .collect(Collectors.groupingBy(ShenyuDictVO::getType));
         int successCount = 0;
@@ -162,7 +162,7 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
     }
 
     @Override
-    public List<ShenyuDictVO> listAll() {
+    public List<ShenyuDictVO> listAllData() {
         ShenyuDictQuery shenyuDictQuery = new ShenyuDictQuery();
         return shenyuDictMapper.selectByQuery(shenyuDictQuery).stream()
                 .map(ShenyuDictVO::buildShenyuDictVO)
