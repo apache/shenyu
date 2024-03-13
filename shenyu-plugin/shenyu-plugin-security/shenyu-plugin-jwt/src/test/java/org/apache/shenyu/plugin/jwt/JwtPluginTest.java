@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.jwt;
 
 import com.google.common.collect.ImmutableMap;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
