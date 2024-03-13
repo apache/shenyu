@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:17-jdk
+FROM openjdk:17-jdk-buster
 
 ENV APP_NAME shenyu-examples-springmvc
 ENV LOCAL_PATH /opt/${APP_NAME}
