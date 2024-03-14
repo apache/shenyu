@@ -259,7 +259,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             discoveryUpstreamMapper.insert(discoveryUpstreamDO);
             successCount++;
         }
-        if (org.apache.commons.lang3.StringUtils.isNotEmpty(errorMsgBuilder)) {
+        if (StringUtils.hasLength(errorMsgBuilder)) {
             errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
             return ConfigImportResult
                     .fail(successCount, "import fail discovery upstream: " + errorMsgBuilder);

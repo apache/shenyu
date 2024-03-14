@@ -34,10 +34,12 @@ import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.impl.DiscoveryUpstreamServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,8 +53,10 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 
 /**
@@ -151,6 +155,24 @@ public final class DiscoveryUpstreamServiceTest {
     }
 
     @Test
+    public void testImportData() {
+        List<DiscoveryUpstreamDO> list = Collections.singletonList(buildDiscoveryUpstreamDO("", "123", "url1"));
+        when(discoveryUpstreamMapper.selectAll()).thenReturn(list);
+        given(this.discoveryUpstreamMapper.insert(any())).willReturn(1);
+
+        final List<DiscoveryUpstreamDTO> upstreamDTOList = Collections.singletonList(buildDiscoveryUpstreamDTO("", "123", "url2"));
+        ConfigImportResult configImportResult = this.discoveryUpstreamService.importData(upstreamDTOList);
+        assertNotNull(configImportResult);
+        Assertions.assertEquals(configImportResult.getSuccessCount(), upstreamDTOList.size());
+
+        final List<DiscoveryUpstreamDTO> upstreamDTOList1 = Collections.singletonList(buildDiscoveryUpstreamDTO("", "123", "url1"));
+        ConfigImportResult configImportResult1 = this.discoveryUpstreamService.importData(upstreamDTOList1);
+        assertNotNull(configImportResult1);
+        Assertions.assertEquals(0, configImportResult1.getSuccessCount());
+
+    }
+
+    @Test
     public void testUpdateBatch() {
         when(discoveryUpstreamMapper.insert(any())).thenReturn(1);
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
@@ -203,6 +225,20 @@ public final class DiscoveryUpstreamServiceTest {
         discoveryUpstreamDO.setId(id);
         discoveryUpstreamDO.setStatus(1);
         discoveryUpstreamDO.setWeight(50);
+        discoveryUpstreamDO.setDiscoveryHandlerId("123");
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        discoveryUpstreamDO.setDateCreated(now);
+        discoveryUpstreamDO.setDateUpdated(now);
+        return discoveryUpstreamDO;
+    }
+
+    private DiscoveryUpstreamDO buildDiscoveryUpstreamDO(final String id, final String discoveryHandlerId, final String url) {
+        DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
+        discoveryUpstreamDO.setId(id);
+        discoveryUpstreamDO.setStatus(1);
+        discoveryUpstreamDO.setWeight(50);
+        discoveryUpstreamDO.setUrl(url);
+        discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         discoveryUpstreamDO.setDateCreated(now);
         discoveryUpstreamDO.setDateUpdated(now);
@@ -214,6 +250,17 @@ public final class DiscoveryUpstreamServiceTest {
         discoveryUpstreamDTO.setId(id);
         discoveryUpstreamDTO.setStatus(1);
         discoveryUpstreamDTO.setWeight(50);
+        discoveryUpstreamDTO.setDiscoveryHandlerId("123");
+        return discoveryUpstreamDTO;
+    }
+
+    private DiscoveryUpstreamDTO buildDiscoveryUpstreamDTO(final String id, final String discoveryHandlerId, final String url) {
+        DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
+        discoveryUpstreamDTO.setId(id);
+        discoveryUpstreamDTO.setStatus(1);
+        discoveryUpstreamDTO.setWeight(50);
+        discoveryUpstreamDTO.setUrl(url);
+        discoveryUpstreamDTO.setDiscoveryHandlerId(discoveryHandlerId);
         return discoveryUpstreamDTO;
     }
 
