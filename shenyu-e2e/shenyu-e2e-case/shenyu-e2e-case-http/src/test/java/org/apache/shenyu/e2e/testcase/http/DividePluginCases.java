@@ -56,6 +56,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         .build())
                 .build();
     }
+
     private ShenYuScenarioSpec testRocketMQHello() {
         return ShenYuScenarioSpec.builder()
                 .name("testRocketMQHello")
@@ -89,8 +90,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
 //                                            public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext consumeConcurrentlyContext) {
 //                                                if (CollectionUtils.isNotEmpty(msgs)) {
 //                                                    msgs.forEach(e -> {
-//                                                        System.out.println("Thread：{}，QueueID：{}，receive message：{}" + Thread.currentThread().getName() + e.getQueueId() + new String(e.getBody()));
-//                                                        if (new String(e.getBody()).contains("/http/order/findById?id=22")) {
+//                                                          if (new String(e.getBody()).contains("/http/order/findById?id=22")) {
 //                                                            isLog.set(true);
 //                                                        }
 //                                                    });

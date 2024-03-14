@@ -65,8 +65,6 @@ public class DividePluginTest {
 
     private List<String> selectorIds = Lists.newArrayList();
 
-
-
     @BeforeEach
     void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
         spec.getChecker().check(gateway);
@@ -109,28 +107,13 @@ public class DividePluginTest {
         formData.add("enabled", "true");
         formData.add("role", "Logging");
         formData.add("sort", "170");
-        formData.add("config","{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"http://localhost:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
+        formData.add("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"http://localhost:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
         adminClient.changePluginStatus("29", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq");
     }
-
 
     @ShenYuScenario(provider = DividePluginCases.class)
     void testDivide(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
-
-
-//    @AfterAll
-//    void afterAll(final AdminClient adminClient, final GatewayClient gatewayClient)throws Exception{
-//        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-//        formData.add("id", "29");
-//        formData.add("name", "loggingRocketMQ");
-//        formData.add("enabled", "false");
-//        formData.add("role", "Logging");
-//        formData.add("sort", "170");
-//        formData.add("config","{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"http://111.231.239.140:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
-//        adminClient.changePluginStatus("29", formData);
-//        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq");
-//    }
 }
