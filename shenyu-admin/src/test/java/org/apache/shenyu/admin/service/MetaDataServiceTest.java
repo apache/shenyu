@@ -253,8 +253,6 @@ public final class MetaDataServiceTest {
         given(this.metaDataMapper.insert(any())).willReturn(1);
         given(this.metaDataMapper.pathExisted(any())).willReturn(null);
 
-//        given(this.metaDataMapper.selectById(any())).willReturn(buildPluginDO());
-
         ConfigImportResult configImportResult = this.metaDataService.importData(metaDataDTOList);
 
         assertNotNull(configImportResult);
