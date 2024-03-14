@@ -151,9 +151,9 @@ public final class JwtPluginTest {
         Map<String, Object> map = ImmutableMap.<String, Object>builder().put("userId", 1).build();
 
         String token = Jwts.builder()
-                .issuedAt(new Date(1636371125000L))
-                .expiration(new Date())
                 .claims(map)
+                .issuedAt(new Date(1636371125000L))
+                .expiration(new Date(new Date().getTime() + 10000L))
                 .signWith(Keys.hmacShaKeyFor(secreteKey.getBytes(StandardCharsets.UTF_8)))
                 .compact();
 
