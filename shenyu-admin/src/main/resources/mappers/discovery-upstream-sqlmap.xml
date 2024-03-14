@@ -122,6 +122,12 @@
         WHERE discovery_handler_id=#{id, jdbcType=VARCHAR} and url =#{url}
     </update>
 
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery_upstream
+    </select>
+
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
