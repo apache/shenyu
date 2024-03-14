@@ -104,9 +104,14 @@ public final class SelectorDTO implements Serializable {
      * selector conditions.
      */
     private List<SelectorConditionDTO> selectorConditions;
-    
+
     @NotNull
     private Boolean matchRestful;
+
+    /**
+     * selector rules.
+     */
+    private List<RuleDTO> selectorRules;
     
     public SelectorDTO() {
     }
@@ -122,7 +127,8 @@ public final class SelectorDTO implements Serializable {
                        @NotNull final Boolean continued,
                        final String handle,
                        @Valid final List<SelectorConditionDTO> selectorConditions,
-                       @NotNull final Boolean matchRestful) {
+                       @NotNull final Boolean matchRestful,
+                       @Valid final List<RuleDTO> selectorRules) {
         this.id = id;
         this.pluginId = pluginId;
         this.name = name;
@@ -135,6 +141,7 @@ public final class SelectorDTO implements Serializable {
         this.handle = handle;
         this.selectorConditions = selectorConditions;
         this.matchRestful = matchRestful;
+        this.selectorRules = selectorRules;
     }
     
     /**
@@ -352,6 +359,24 @@ public final class SelectorDTO implements Serializable {
     public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
+
+    /**
+     * Gets the value of selectorRules.
+     *
+     * @return the value of selectorRules
+     */
+    public List<RuleDTO> getSelectorRules() {
+        return selectorRules;
+    }
+
+    /**
+     * Sets the selectorRules.
+     *
+     * @param selectorRules selectorRules
+     */
+    public void setSelectorRules(final List<RuleDTO> selectorRules) {
+        this.selectorRules = selectorRules;
+    }
     
     /**
      * builder method.
@@ -416,6 +441,8 @@ public final class SelectorDTO implements Serializable {
         private List<SelectorConditionDTO> selectorConditions;
         
         private Boolean matchRestful;
+
+        private List<RuleDTO> selectorRules;
         
         private SelectorDTOBuilder() {
         }
@@ -551,6 +578,17 @@ public final class SelectorDTO implements Serializable {
             this.matchRestful = matchRestful;
             return this;
         }
+
+        /**
+         * selectorRules.
+         *
+         * @param selectorRules the selectorRules.
+         * @return SelectorDTOBuilder.
+         */
+        public SelectorDTOBuilder selectorRules(final List<RuleDTO> selectorRules) {
+            this.selectorRules = selectorRules;
+            return this;
+        }
         
         /**
          * build method.
@@ -559,7 +597,7 @@ public final class SelectorDTO implements Serializable {
          */
         public SelectorDTO build() {
             return new SelectorDTO(id, pluginId, name, matchMode, type, sort, enabled, loged, continued, handle,
-                    selectorConditions, matchRestful);
+                    selectorConditions, matchRestful, selectorRules);
         }
     }
 }

@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -32,7 +33,7 @@ import java.util.Map;
  * this is application authority service.
  */
 public interface MetaDataService {
-    
+
     /**
      * save or update mate data.
      * {@link org.apache.shenyu.admin.service.register.AbstractShenyuClientRegisterServiceImpl}
@@ -41,7 +42,7 @@ public interface MetaDataService {
      * @param metaDataDTO meta data dto {@link MetaDataRegisterDTO}
      */
     void saveOrUpdateMetaData(MetaDataDO exist, MetaDataRegisterDTO metaDataDTO);
-    
+
     /**
      * Create or update int.
      *
@@ -49,7 +50,7 @@ public interface MetaDataService {
      * @return the String
      */
     String createOrUpdate(MetaDataDTO metaDataDTO);
-    
+
     /**
      * delete application authorities.
      *
@@ -57,7 +58,7 @@ public interface MetaDataService {
      * @return rows int
      */
     int delete(List<String> ids);
-    
+
     /**
      * Find by id meta data vo.
      *
@@ -65,7 +66,7 @@ public interface MetaDataService {
      * @return the meta data vo
      */
     MetaDataVO findById(String id);
-    
+
     /**
      * List by page common pager.
      *
@@ -73,28 +74,35 @@ public interface MetaDataService {
      * @return the common pager
      */
     CommonPager<MetaDataVO> listByPage(MetaDataQuery metaDataQuery);
-    
+
     /**
      * Find all list.
      *
      * @return the list
      */
     List<MetaDataVO> findAll();
-    
+
     /**
      * Find all group map.
      *
      * @return the map
      */
     Map<String, List<MetaDataVO>> findAllGroup();
-    
+
     /**
      * List all list.
      *
      * @return the list
      */
     List<MetaData> listAll();
-    
+
+    /**
+     * List all vo list.
+     *
+     * @return the vo list
+     */
+    List<MetaDataVO> listAllData();
+
     /**
      * Enabled string.
      *
@@ -103,12 +111,12 @@ public interface MetaDataService {
      * @return the string
      */
     String enabled(List<String> ids, Boolean enabled);
-    
+
     /**
      * Sync data.
      */
     void syncData();
-    
+
     /**
      * find meta data by path.
      *
@@ -116,7 +124,7 @@ public interface MetaDataService {
      * @return {@link MetaDataDO}
      */
     MetaDataDO findByPath(String path);
-    
+
     /**
      * find meta data by service's name and method's name.
      *
@@ -125,7 +133,7 @@ public interface MetaDataService {
      * @return {@link MetaDataDO}
      */
     MetaDataDO findByServiceNameAndMethodName(String serviceName, String methodName);
-    
+
     /**
      * insert MetaDataDO.
      *
@@ -133,4 +141,12 @@ public interface MetaDataService {
      * @return the success rows.
      */
     int insert(MetaDataDO metaDataDO);
+
+    /**
+     * Import shenyu meta data.
+     *
+     * @param metaDataList meta data list
+     * @return the config impotr result
+     */
+    ConfigImportResult importData(List<MetaDataDTO> metaDataList);
 }
