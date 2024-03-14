@@ -18,6 +18,13 @@
 package org.apache.shenyu.e2e.testcase.http;
 
 import com.google.common.collect.Lists;
+import io.restassured.http.Method;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
+import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
+import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
+import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
+import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
@@ -26,14 +33,23 @@ import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
 import org.apache.shenyu.e2e.model.MatchMode;
 import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.data.Condition;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
 
 public class DividePluginCases implements ShenYuScenarioProvider {
+
+    private final static String nameServer = "http://localhost:9876";
+
+    private final static String consumerGroup = "shenyu-plugin-logging-rocketmq";
+
+    private final static String topic = "shenyu-access-logging";
 
     private static final String TEST = "/http/order/findById?id=123";
 
@@ -80,32 +96,29 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .caseSpec(
                         ShenYuCaseSpec.builder()
                                 .add(request -> {
-//                                    try {
-//                                        request.request(Method.GET, "/http/order/findById?id=22");
-//                                        DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(consumerGroup);
-//                                        consumer.setNamesrvAddr(nameServer);
-//                                        consumer.subscribe(topic, "*");
-//                                        AtomicBoolean isLog = new AtomicBoolean(false);
-//                                        consumer.registerMessageListener(new MessageListenerConcurrently() {
-//                                            public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext consumeConcurrentlyContext) {
-//                                                if (CollectionUtils.isNotEmpty(msgs)) {
-//                                                    msgs.forEach(e -> {
-//                                                          if (new String(e.getBody()).contains("/http/order/findById?id=22")) {
-//                                                            isLog.set(true);
-//                                                        }
-//                                                    });
-//
-//                                                }
-//                                                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
-//                                            }
-//                                        });
-//                                        consumer.start();
-//                                        Thread.sleep(2000);
-//                                        Assertions.assertEquals(true, isLog.get());
-//                                    } catch (Exception e) {
-//
-//                                    }
-
+                                    try {
+                                        request.request(Method.GET, "/http/order/findById?id=22");
+                                        DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(consumerGroup);
+                                        consumer.setNamesrvAddr(nameServer);
+                                        consumer.subscribe(topic, "*");
+                                        AtomicBoolean isLog = new AtomicBoolean(false);
+                                        consumer.registerMessageListener(new MessageListenerConcurrently() {
+                                            public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext consumeConcurrentlyContext) {
+                                                if (CollectionUtils.isNotEmpty(msgs)) {
+                                                    msgs.forEach(e -> {
+                                                        if (new String(e.getBody()).contains("/http/order/findById?id=22")) {
+                                                            isLog.set(true);
+                                                        }
+                                                    });
+                                                }
+                                                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+                                            }
+                                        });
+                                        consumer.start();
+                                        Thread.sleep(2000);
+                                        Assertions.assertEquals(true, isLog.get());
+                                    } catch (Exception e) {
+                                    }
                                 })
                                 .build()
                 )
