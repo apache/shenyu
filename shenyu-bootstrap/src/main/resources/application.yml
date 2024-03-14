@@ -76,9 +76,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*" # or health,info
-
-
+        include:
+          - 'health'
+          - 'info'
 shenyu:
   selectorMatchCache:
     ## selector L1 cache
