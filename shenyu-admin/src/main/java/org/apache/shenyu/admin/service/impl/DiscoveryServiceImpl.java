@@ -379,7 +379,9 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             }
         }
         // sync data
-        this.syncData();
+        if (successCount > 0) {
+            this.syncData();
+        }
 
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
             errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
