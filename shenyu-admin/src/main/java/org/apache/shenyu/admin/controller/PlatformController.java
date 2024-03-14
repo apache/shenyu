@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.EnumService;
+import org.apache.shenyu.admin.service.SecretService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -37,9 +38,12 @@ public class PlatformController {
 
     private final EnumService enumService;
 
-    public PlatformController(final DashboardUserService dashboardUserService, final EnumService enumService) {
+    private final SecretService secretService;
+
+    public PlatformController(final DashboardUserService dashboardUserService, final EnumService enumService, final SecretService secretService) {
         this.dashboardUserService = dashboardUserService;
         this.enumService = enumService;
+        this.secretService = secretService;
     }
 
     /**
@@ -69,5 +73,14 @@ public class PlatformController {
     @GetMapping("/enum")
     public ShenyuAdminResult queryEnums() {
         return ShenyuAdminResult.success(enumService.list());
+    }
+
+    /**
+     * Secret info.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @GetMapping("/secretInfo")
+    public ShenyuAdminResult info() {
+        return ShenyuAdminResult.success(null, secretService.info());
     }
 }

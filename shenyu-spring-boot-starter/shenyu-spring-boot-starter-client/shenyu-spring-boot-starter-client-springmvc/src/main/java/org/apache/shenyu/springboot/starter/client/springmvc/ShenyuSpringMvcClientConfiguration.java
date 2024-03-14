@@ -53,12 +53,12 @@ public class ShenyuSpringMvcClientConfiguration {
     }
 
     /**
-     * Spring mvc client bean post processor.
+     * Spring mvc client event listener.
      *
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
      * @param env                            the env
-     * @return the spring mvc client bean post processor
+     * @return the spring mvc client event listener
      */
     @Bean
     @ConditionalOnMissingBean(ClientRegisterConfiguration.class)
