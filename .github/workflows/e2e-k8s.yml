@@ -19,7 +19,7 @@ on:
   pull_request:
   push:
     branches:
-      - e2e-loggin2
+      - master
 
 jobs:
   changes:
@@ -92,12 +92,6 @@ jobs:
 #          path: ~/.m2/repository
 #          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
 
-      - name: Setup Debug Session
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 15
-        with:
-          detached: true
-
       - name: Build Docker Image
         run: |
           docker save apache/shenyu-admin:latest > /tmp/apache-shenyu-admin.tar
@@ -115,7 +109,7 @@ jobs:
     needs:
       - changes
       - build-docker-images
-    if: (github.repository == 'csn/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
     strategy:
       matrix:
         include:
@@ -286,6 +280,7 @@ jobs:
         run: |
           sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
           sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
+
 
 #      - name: Setup Debug Session
 #        uses: mxschmitt/action-tmate@v3
