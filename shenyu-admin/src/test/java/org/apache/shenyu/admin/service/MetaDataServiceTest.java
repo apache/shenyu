@@ -262,6 +262,48 @@ public final class MetaDataServiceTest {
 
     }
 
+    @Test
+    public void testFindByPath() {
+        final MetaDataDO metaDataDO1 = MetaDataDO.builder()
+                .id("id1")
+                .appName("appName1")
+                .path("path1")
+                .build();
+        given(this.metaDataMapper.findByPath(any())).willReturn(metaDataDO1);
+        MetaDataDO metaDataDO = metaDataService.findByPath("path1");
+        assertNotNull(metaDataDO);
+        Assertions.assertEquals(metaDataDO, metaDataDO1);
+    }
+
+    @Test
+    public void testFindByServiceNameAndMethodName() {
+        final MetaDataDO metaDataDO1 = MetaDataDO.builder()
+                .id("id1")
+                .appName("appName1")
+                .path("path1")
+                .serviceName("serviceName1")
+                .methodName("method1")
+                .build();
+        given(this.metaDataMapper.findByServiceNameAndMethod(any(), any()))
+                .willReturn(Collections.singletonList(metaDataDO1));
+        MetaDataDO metaDataDO = metaDataService
+                .findByServiceNameAndMethodName("serviceName1", "method1");
+        assertNotNull(metaDataDO);
+        Assertions.assertEquals(metaDataDO, metaDataDO1);
+    }
+
+    @Test
+    public void testInsert() {
+        final MetaDataDO metaDataDO1 = MetaDataDO.builder()
+                .id("id1")
+                .appName("appName1")
+                .path("path1")
+                .build();
+        given(this.metaDataMapper.insert(any())).willReturn(1);
+        int inserted = metaDataService.insert(metaDataDO1);
+        Assertions.assertEquals(inserted, 1);
+    }
+
     private void testSaveOrUpdateMetaDataForInsert() {
         metaDataService.saveOrUpdateMetaData(null, new MetaDataRegisterDTO());
         verify(metaDataMapper).insert(any(MetaDataDO.class));
