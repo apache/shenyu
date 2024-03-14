@@ -69,7 +69,6 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -287,7 +286,7 @@ public class SelectorServiceImpl implements SelectorService {
             discoveryRelMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
             discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
             DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
-            if (!Objects.isNull(discoveryDO)) {
+            if (Objects.nonNull(discoveryDO)) {
                 DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
                 ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
                 proxySelectorDTO.setName(selector.getName());
@@ -429,54 +428,49 @@ public class SelectorServiceImpl implements SelectorService {
         if (CollectionUtils.isEmpty(selectorList)) {
             return ConfigImportResult.success();
         }
-        try {
-            StringBuilder errorMsgBuilder = new StringBuilder();
-            int successCount = 0;
-            Map<String, List<SelectorDO>> pluginSelectorMap = selectorMapper.selectAll().stream()
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.groupingBy(SelectorDO::getPluginId));
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        int successCount = 0;
+        Map<String, List<SelectorDO>> pluginSelectorMap = selectorMapper.selectAll().stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(SelectorDO::getPluginId));
 
-            Map<String, List<SelectorDTO>> importSelectorMap = selectorList.stream()
-                    .collect(Collectors.groupingBy(SelectorDTO::getPluginId));
+        Map<String, List<SelectorDTO>> importSelectorMap = selectorList.stream()
+                .collect(Collectors.groupingBy(SelectorDTO::getPluginId));
 
-            for (Map.Entry<String, List<SelectorDTO>> selectorEntry : importSelectorMap.entrySet()) {
-                // the import selector's pluginId
-                String pluginId = selectorEntry.getKey();
-                List<SelectorDTO> selectorDTOList = selectorEntry.getValue();
-                if (CollectionUtils.isNotEmpty(selectorDTOList)) {
+        for (Map.Entry<String, List<SelectorDTO>> selectorEntry : importSelectorMap.entrySet()) {
+            // the import selector's pluginId
+            String pluginId = selectorEntry.getKey();
+            List<SelectorDTO> selectorDTOList = selectorEntry.getValue();
+            if (CollectionUtils.isNotEmpty(selectorDTOList)) {
 
-                    Set<String> existSelectorSet = Optional
-                            .ofNullable(pluginSelectorMap.get(pluginId))
-                            .orElse(Lists.newArrayList())
-                            .stream()
-                            .map(SelectorDO::getName)
-                            .collect(Collectors.toSet());
+                Set<String> existSelectorSet = Optional
+                        .ofNullable(pluginSelectorMap.get(pluginId))
+                        .orElseGet(Lists::newArrayList)
+                        .stream()
+                        .map(SelectorDO::getName)
+                        .collect(Collectors.toSet());
 
-                    for (SelectorDTO selectorDTO : selectorDTOList) {
-                        // filter by selectorName
-                        String selectorName = selectorDTO.getName();
-                        if (CollectionUtils.isNotEmpty(existSelectorSet)
-                                && existSelectorSet.contains(selectorName)) {
-                            errorMsgBuilder
-                                    .append(selectorName)
-                                    .append(",");
-                        } else {
-                            create(selectorDTO);
-                            successCount++;
-                        }
+                for (SelectorDTO selectorDTO : selectorDTOList) {
+                    // filter by selectorName
+                    String selectorName = selectorDTO.getName();
+                    if (CollectionUtils.isNotEmpty(existSelectorSet)
+                            && existSelectorSet.contains(selectorName)) {
+                        errorMsgBuilder
+                                .append(selectorName)
+                                .append(",");
+                    } else {
+                        create(selectorDTO);
+                        successCount++;
                     }
                 }
             }
-            if (StringUtils.isNotEmpty(errorMsgBuilder)) {
-                errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
-                return ConfigImportResult
-                        .fail(successCount, "import fail selector: " + errorMsgBuilder);
-            }
-            return ConfigImportResult.success(successCount);
-        } catch (Exception e) {
-            LOG.error("import selector data error", e);
-            throw new ShenyuException("import selector data error");
         }
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+            return ConfigImportResult
+                    .fail(successCount, "import fail selector: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
     }
 
     /**

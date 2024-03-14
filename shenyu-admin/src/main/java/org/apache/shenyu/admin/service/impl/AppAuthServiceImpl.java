@@ -55,7 +55,6 @@ import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -273,7 +272,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                                 .filter(Objects::nonNull)
                                 .map(AppAuthDO::getAppKey)
                                 .collect(Collectors.toSet()))
-                .orElse(Sets.newHashSet());
+                .orElseGet(Sets::newHashSet);
 
         for (AppAuthDTO appAuth : authDataList) {
             String appKey = appAuth.getAppKey();
@@ -612,8 +611,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                 .stream().collect(Collectors.toMap(AuthParamDO::getAuthId,
                     data -> {
                         List<AuthParamVO> dataList = new ArrayList<>();
-                        AuthParamVO authParamVO = new AuthParamVO();
-                        BeanUtils.copyProperties(data, authParamVO);
+                        AuthParamVO authParamVO = AppAuthTransfer.INSTANCE.mapToVO(data);
                         dataList.add(authParamVO);
                         return dataList;
                     }, (List<AuthParamVO> dataList1, List<AuthParamVO> dataList2) -> {
@@ -635,8 +633,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                 .stream().collect(Collectors.toMap(AuthPathDO::getAuthId,
                     data -> {
                         List<AuthPathVO> dataList = new ArrayList<>();
-                        AuthPathVO authPathVO = new AuthPathVO();
-                        BeanUtils.copyProperties(data, authPathVO);
+                        AuthPathVO authPathVO = AppAuthTransfer.INSTANCE.mapToVO(data);
                         dataList.add(authPathVO);
                         return dataList;
                     }, (List<AuthPathVO> dataList1, List<AuthPathVO> dataList2) -> {

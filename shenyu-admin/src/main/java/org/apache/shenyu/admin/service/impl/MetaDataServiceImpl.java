@@ -205,7 +205,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                         .filter(Objects::nonNull)
                         .map(MetaData::getPath)
                         .collect(Collectors.toSet()))
-                .orElse(Sets.newHashSet());
+                .orElseGet(Sets::newHashSet);
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
         for (MetaDataDTO metaDataDTO : metaDataList) {

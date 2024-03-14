@@ -263,48 +263,43 @@ public class PluginServiceImpl implements PluginService {
                 .stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(PluginDO::getName, x -> x));
-        try {
-            StringBuilder errorMsgBuilder = new StringBuilder();
-            int successCount = 0;
-            for (PluginDTO pluginDTO : pluginList) {
-                String pluginName = pluginDTO.getName();
-                String pluginId;
-                // check plugin base info
-                if (existPluginMap.containsKey(pluginName)) {
-                    PluginDO existPlugin = existPluginMap.get(pluginName);
-                    pluginId = existPlugin.getId();
-                    errorMsgBuilder
-                            .append(pluginName)
-                            .append(",");
-                } else {
-                    PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
-                    pluginId = pluginDO.getId();
-                    if (pluginMapper.insertSelective(pluginDO) > 0) {
-                        // publish create event. init plugin data
-                        pluginEventPublisher.onCreated(pluginDO);
-                        successCount++;
-                    }
-                }
-                // check and import plugin handle
-                List<PluginHandleDTO> pluginHandleList = pluginDTO.getPluginHandleList();
-                if (CollectionUtils.isNotEmpty(pluginHandleList)) {
-                    pluginHandleService
-                            .importData(pluginHandleList
-                                    .stream()
-                                    .peek(x -> x.setPluginId(pluginId))
-                                    .collect(Collectors.toList()));
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        int successCount = 0;
+        for (PluginDTO pluginDTO : pluginList) {
+            String pluginName = pluginDTO.getName();
+            String pluginId;
+            // check plugin base info
+            if (existPluginMap.containsKey(pluginName)) {
+                PluginDO existPlugin = existPluginMap.get(pluginName);
+                pluginId = existPlugin.getId();
+                errorMsgBuilder
+                        .append(pluginName)
+                        .append(",");
+            } else {
+                PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+                pluginId = pluginDO.getId();
+                if (pluginMapper.insertSelective(pluginDO) > 0) {
+                    // publish create event. init plugin data
+                    pluginEventPublisher.onCreated(pluginDO);
+                    successCount++;
                 }
             }
-            if (StringUtils.isNotEmpty(errorMsgBuilder)) {
-                errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
-                return ConfigImportResult
-                        .fail(successCount, "import fail plugin: " + errorMsgBuilder);
+            // check and import plugin handle
+            List<PluginHandleDTO> pluginHandleList = pluginDTO.getPluginHandleList();
+            if (CollectionUtils.isNotEmpty(pluginHandleList)) {
+                pluginHandleService
+                        .importData(pluginHandleList
+                                .stream()
+                                .peek(x -> x.setPluginId(pluginId))
+                                .collect(Collectors.toList()));
             }
-            return ConfigImportResult.success(successCount);
-        } catch (Exception e) {
-            LOG.error("import plugin data error", e);
-            throw new ShenyuException("import plugin data error");
         }
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+            return ConfigImportResult
+                    .fail(successCount, "import fail plugin: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
 
     }
 
@@ -319,7 +314,7 @@ public class PluginServiceImpl implements PluginService {
      */
     private String create(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), AdminConstants.PLUGIN_NAME_IS_EXIST);
-        if (!Objects.isNull(pluginDTO.getFile())) {
+        if (Objects.nonNull(pluginDTO.getFile())) {
             Assert.isTrue(checkFile(Base64.decode(pluginDTO.getFile())), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
@@ -339,7 +334,7 @@ public class PluginServiceImpl implements PluginService {
      */
     private String update(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), AdminConstants.PLUGIN_NAME_IS_EXIST);
-        if (!Objects.isNull(pluginDTO.getFile())) {
+        if (Objects.nonNull(pluginDTO.getFile())) {
             Assert.isTrue(checkFile(Base64.decode(pluginDTO.getFile())), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
         final PluginDO before = pluginMapper.selectById(pluginDTO.getId());

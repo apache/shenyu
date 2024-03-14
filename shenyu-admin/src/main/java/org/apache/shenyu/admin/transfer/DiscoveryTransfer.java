@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.transfer;
 
+import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryRelDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
@@ -105,7 +106,6 @@ public enum DiscoveryTransfer {
         return discoveryRelDO;
     }
 
-
     public DiscoveryVO mapToVo(DiscoveryDO discoveryDO) {
         DiscoveryVO discoveryVO = new DiscoveryVO();
         discoveryVO.setId(discoveryDO.getId());
@@ -116,6 +116,18 @@ public enum DiscoveryTransfer {
         discoveryVO.setPluginName(discoveryDO.getPluginName());
         discoveryVO.setProps(discoveryDO.getProps());
         return discoveryVO;
+    }
+
+    public DiscoveryDTO mapToDTO(DiscoveryDO discoveryDO) {
+        DiscoveryDTO discoveryDTO = new DiscoveryDTO();
+        discoveryDTO.setId(discoveryDO.getId());
+        discoveryDTO.setName(discoveryDO.getName());
+        discoveryDTO.setType(discoveryDO.getType());
+        discoveryDTO.setLevel(discoveryDO.getLevel());
+        discoveryDTO.setServerList(discoveryDO.getServerList());
+        discoveryDTO.setPluginName(discoveryDO.getPluginName());
+        discoveryDTO.setProps(discoveryDO.getProps());
+        return discoveryDTO;
     }
 
     public DiscoveryHandlerVO mapToVo(DiscoveryHandlerDO discoveryDO) {

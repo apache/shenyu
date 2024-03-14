@@ -51,7 +51,6 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,7 +106,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public DiscoveryVO discovery(final String pluginName, final String level) {
-        return discoveryVO(discoveryMapper.selectByPluginNameAndLevel(pluginName, level));
+        return DiscoveryTransfer.INSTANCE.mapToVo(discoveryMapper.selectByPluginNameAndLevel(pluginName, level));
     }
 
     @Override
@@ -218,7 +217,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             discoveryDO.setId(UUIDUtils.getInstance().generateShortUuid());
         }
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
-        DiscoveryVO result = discoveryMapper.insert(discoveryDO) > 0 ? discoveryVO(discoveryDO) : null;
+        DiscoveryVO result = discoveryMapper.insert(discoveryDO) > 0 ? DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO) : null;
         discoveryProcessor.createDiscovery(discoveryDO);
         return result;
     }
@@ -236,22 +235,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .props(discoveryDTO.getProps())
                 .dateUpdated(currentTime)
                 .build();
-        return discoveryMapper.updateSelective(discoveryDO) > 0 ? discoveryVO(discoveryDO) : null;
-    }
-
-    /**
-     * copy discovery data.
-     *
-     * @param discoveryDO {@link DiscoveryDTO}
-     * @return {@link DiscoveryVO}
-     */
-    private DiscoveryVO discoveryVO(final DiscoveryDO discoveryDO) {
-        if (discoveryDO == null) {
-            return null;
-        }
-        DiscoveryVO discoveryVO = new DiscoveryVO();
-        BeanUtils.copyProperties(discoveryDO, discoveryVO);
-        return discoveryVO;
+        return discoveryMapper.updateSelective(discoveryDO) > 0 ? DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO) : null;
     }
 
     @Override
@@ -296,8 +280,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .selectAll()
                 .stream()
                 .map(x -> {
-                    DiscoveryVO discoveryVO = new DiscoveryVO();
-                    BeanUtils.copyProperties(x, discoveryVO);
+                    DiscoveryVO discoveryVO = DiscoveryTransfer.INSTANCE.mapToVo(x);
                     DiscoveryHandlerVO discoveryHandlerVO = discoveryHandlerMap.getOrDefault(discoveryVO.getId(), new DiscoveryHandlerVO());
                     discoveryVO.setDiscoveryHandler(discoveryHandlerVO);
                     if (StringUtils.isNotEmpty(discoveryHandlerVO.getId())) {

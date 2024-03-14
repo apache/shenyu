@@ -53,7 +53,6 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -125,15 +124,14 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             vo.setUpdateTime(proxySelectorDO.getDateUpdated());
             vo.setProps(proxySelectorDO.getProps());
             DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByProxySelectorId(proxySelectorDO.getId());
-            if (!Objects.isNull(discoveryRelDO)) {
+            if (Objects.nonNull(discoveryRelDO)) {
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryRelDO.getDiscoveryHandlerId());
-                if (!Objects.isNull(discoveryHandlerDO)) {
+                if (Objects.nonNull(discoveryHandlerDO)) {
                     vo.setDiscoveryHandlerId(discoveryHandlerDO.getId());
                     vo.setListenerNode(discoveryHandlerDO.getListenerNode());
                     vo.setHandler(discoveryHandlerDO.getHandler());
                     DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
-                    DiscoveryDTO discoveryDTO = new DiscoveryDTO();
-                    BeanUtils.copyProperties(discoveryDO, discoveryDTO);
+                    DiscoveryDTO discoveryDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryDO);
                     vo.setDiscovery(discoveryDTO);
                     List<DiscoveryUpstreamDO> discoveryUpstreamDOList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryRelDO.getDiscoveryHandlerId());
                     Optional.ofNullable(discoveryUpstreamDOList).ifPresent(list -> {
@@ -427,15 +425,14 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             vo.setUpdateTime(proxySelectorDO.getDateUpdated());
             vo.setProps(proxySelectorDO.getProps());
             DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByProxySelectorId(proxySelectorDO.getId());
-            if (!Objects.isNull(discoveryRelDO)) {
+            if (Objects.nonNull(discoveryRelDO)) {
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryRelDO.getDiscoveryHandlerId());
-                if (!Objects.isNull(discoveryHandlerDO)) {
+                if (Objects.nonNull(discoveryHandlerDO)) {
                     vo.setDiscoveryHandlerId(discoveryHandlerDO.getId());
                     vo.setListenerNode(discoveryHandlerDO.getListenerNode());
                     vo.setHandler(discoveryHandlerDO.getHandler());
                     DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
-                    DiscoveryDTO discoveryDTO = new DiscoveryDTO();
-                    BeanUtils.copyProperties(discoveryDO, discoveryDTO);
+                    DiscoveryDTO discoveryDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryDO);
                     vo.setDiscovery(discoveryDTO);
                     List<DiscoveryUpstreamDO> discoveryUpstreamDOList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryRelDO.getDiscoveryHandlerId());
                     Optional.ofNullable(discoveryUpstreamDOList).ifPresent(list -> {
@@ -480,7 +477,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 successCount++;
             }
         }
-        if (org.apache.commons.lang3.StringUtils.isNotEmpty(errorMsgBuilder)) {
+        if (StringUtils.hasLength(errorMsgBuilder)) {
             errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
             return ConfigImportResult
                     .fail(successCount, "import fail proxy selector: " + errorMsgBuilder);
