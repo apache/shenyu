@@ -71,10 +71,10 @@ public class AppAuthDTO implements Serializable {
     private Boolean enabled;
 
     @Valid
-    private List<AuthParamDTO> authParamDTOList;
+    private List<AuthParamDTO> authParamList;
 
     @Valid
-    private List<AuthPathDTO> authPathDTOList;
+    private List<AuthPathDTO> authPathList;
     
     /**
      * Gets the value of id.
@@ -225,17 +225,17 @@ public class AppAuthDTO implements Serializable {
      *
      * @return the value of authParamDTOList
      */
-    public List<AuthParamDTO> getAuthParamDTOList() {
-        return authParamDTOList;
+    public List<AuthParamDTO> getAuthParamList() {
+        return authParamList;
     }
     
     /**
      * Sets the authParamDTOList.
      *
-     * @param authParamDTOList authParamDTOList
+     * @param authParamList authParamDTOList
      */
-    public void setAuthParamDTOList(final List<AuthParamDTO> authParamDTOList) {
-        this.authParamDTOList = authParamDTOList;
+    public void setAuthParamList(final List<AuthParamDTO> authParamList) {
+        this.authParamList = authParamList;
     }
     
     /**
@@ -243,17 +243,17 @@ public class AppAuthDTO implements Serializable {
      *
      * @return the value of authPathDTOList
      */
-    public List<AuthPathDTO> getAuthPathDTOList() {
-        return authPathDTOList;
+    public List<AuthPathDTO> getAuthPathList() {
+        return authPathList;
     }
     
     /**
      * Sets the authPathDTOList.
      *
-     * @param authPathDTOList authPathDTOList
+     * @param authPathList authPathDTOList
      */
-    public void setAuthPathDTOList(final List<AuthPathDTO> authPathDTOList) {
-        this.authPathDTOList = authPathDTOList;
+    public void setAuthPathList(final List<AuthPathDTO> authPathList) {
+        this.authPathList = authPathList;
     }
     
     @Override
@@ -273,12 +273,12 @@ public class AppAuthDTO implements Serializable {
                 && Objects.equals(extInfo, that.extInfo)
                 && Objects.equals(open, that.open)
                 && Objects.equals(enabled, that.enabled)
-                && Objects.equals(authParamDTOList, that.authParamDTOList)
-                && Objects.equals(authPathDTOList, that.authPathDTOList);
+                && Objects.equals(authParamList, that.authParamList)
+                && Objects.equals(authPathList, that.authPathList);
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(id, appKey, appSecret, userId, phone, extInfo, open, enabled, authParamDTOList, authPathDTOList);
+        return Objects.hash(id, appKey, appSecret, userId, phone, extInfo, open, enabled, authParamList, authPathList);
     }
 }

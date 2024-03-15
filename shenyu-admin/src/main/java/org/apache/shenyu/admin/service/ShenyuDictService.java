@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 
 import java.util.List;
@@ -70,6 +71,13 @@ public interface ShenyuDictService {
     List<ShenyuDictVO> list(String type);
 
     /**
+     * find shenyu dict list .
+     *
+     * @return shenyu dict list.
+     */
+    List<ShenyuDictVO> listAllData();
+
+    /**
      * delete shenyu dicts.
      *
      * @param ids ids to delete
@@ -85,4 +93,11 @@ public interface ShenyuDictService {
      * @return the effect rows
      */
     Integer enabled(List<String> ids, Boolean enabled);
+
+    /**
+     * Import shenyu dict data.
+     * @param dictList the dict data
+     * @return config import resut
+     */
+    ConfigImportResult importData(List<ShenyuDictDTO> dictList);
 }
