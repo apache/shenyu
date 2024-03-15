@@ -98,7 +98,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 .add(request -> {
                                     AtomicBoolean isLog = new AtomicBoolean(false);
                                     try {
-                                        request.request(Method.GET, "/http/order/findById?id=22");
+                                        request.request(Method.GET, "/http/order/findById?id=23");
                                         DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP);
                                         consumer.setNamesrvAddr(NAMESERVER);
                                         consumer.subscribe(TOPIC, "*");
@@ -106,7 +106,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                             public ConsumeConcurrentlyStatus consumeMessage(final List<MessageExt> msgs, final ConsumeConcurrentlyContext consumeConcurrentlyContext) {
                                                 if (CollectionUtils.isNotEmpty(msgs)) {
                                                     msgs.forEach(e -> {
-                                                        if (new String(e.getBody()).contains("/http/order/findById?id=22")) {
+                                                        if (new String(e.getBody()).contains("/http/order/findById?id=23")) {
                                                             isLog.set(true);
                                                         }
                                                     });
