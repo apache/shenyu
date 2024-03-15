@@ -45,11 +45,11 @@ import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBui
 
 public class DividePluginCases implements ShenYuScenarioProvider {
 
-    private final static String nameServer = "http://localhost:9876";
+    private static final String NAMESERVER = "http://localhost:9876";
 
-    private final static String consumerGroup = "shenyu-plugin-logging-rocketmq";
+    private static final String CONSUMERGROUP = "shenyu-plugin-logging-rocketmq";
 
-    private final static String topic = "shenyu-access-logging";
+    private static final String TOPIC = "shenyu-access-logging";
 
     private static final String TEST = "/http/order/findById?id=123";
 
@@ -98,12 +98,12 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 .add(request -> {
                                     try {
                                         request.request(Method.GET, "/http/order/findById?id=22");
-                                        DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(consumerGroup);
-                                        consumer.setNamesrvAddr(nameServer);
-                                        consumer.subscribe(topic, "*");
+                                        DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP);
+                                        consumer.setNamesrvAddr(NAMESERVER);
+                                        consumer.subscribe(TOPIC, "*");
                                         AtomicBoolean isLog = new AtomicBoolean(false);
                                         consumer.registerMessageListener(new MessageListenerConcurrently() {
-                                            public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext consumeConcurrentlyContext) {
+                                            public ConsumeConcurrentlyStatus consumeMessage(final List<MessageExt> msgs, final ConsumeConcurrentlyContext consumeConcurrentlyContext) {
                                                 if (CollectionUtils.isNotEmpty(msgs)) {
                                                     msgs.forEach(e -> {
                                                         if (new String(e.getBody()).contains("/http/order/findById?id=22")) {
@@ -118,6 +118,8 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         Thread.sleep(2000);
                                         Assertions.assertEquals(true, isLog.get());
                                     } catch (Exception e) {
+                                        int i = 0;
+                                        i = i + 1;
                                     }
                                 })
                                 .build()
