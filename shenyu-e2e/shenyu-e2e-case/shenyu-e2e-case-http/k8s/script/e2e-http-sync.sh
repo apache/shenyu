@@ -27,6 +27,9 @@ CUR_PATH=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$CUR_PATH")
 kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-cm.yml
 
+
+kubectl apply -f "${PRGDIR}"/rocket-mq.yml
+
 # init shenyu sync
 SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
 #SYNC_ARRAY=("websocket" "nacos")
@@ -76,3 +79,4 @@ for sync in ${SYNC_ARRAY[@]}; do
   fi
   echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
 done
+kubectl delete -f "${PRGDIR}"/rocket-mq.yml

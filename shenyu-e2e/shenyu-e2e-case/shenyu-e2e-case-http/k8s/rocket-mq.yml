@@ -1,0 +1,85 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rocketmq
+spec:
+  selector:
+    matchLabels:
+      app: rocketmq
+  serviceName: rocketmq-headless
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: rocketmq
+    spec:
+      containers:
+        - name: namesrv
+          image: rocketmqinc/rocketmq:4.9.3
+          command: [ "sh", "-c", "cd /opt/rocketmq/bin/ && sh mqnamesrv" ]
+          ports:
+            - containerPort: 9876
+              name: namesrv
+        - name: broker
+          image: rocketmqinc/rocketmq:4.9.3
+          command: [ "sh", "-c", "cd /opt/rocketmq/bin/ && sh mqbroker" ]
+          ports:
+            - containerPort: 10909
+              name: broker
+            - containerPort: 10911
+              name: broker-tcp
+  volumeClaimTemplates:
+    - metadata:
+        name: rocketmq-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocketmq-headless
+spec:
+  clusterIP: None
+  selector:
+    app: rocketmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocketmq
+spec:
+  ports:
+    - port: 9876
+      targetPort: 9876
+      protocol: TCP
+      name: namesrv
+    - port: 10909
+      targetPort: 10909
+      protocol: TCP
+      name: broker
+    - port: 10911
+      targetPort: 10911
+      protocol: TCP
+      name: broker-tcp
+  selector:
+    app: rocketmq
+
