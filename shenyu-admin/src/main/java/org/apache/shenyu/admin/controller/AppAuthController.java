@@ -52,13 +52,13 @@ import java.util.List;
  */
 @RestApi("/appAuth")
 public class AppAuthController implements PagedController<AppAuthQuery, AppAuthVO> {
-    
+
     private final AppAuthService appAuthService;
-    
+
     public AppAuthController(final AppAuthService appAuthService) {
         this.appAuthService = appAuthService;
     }
-    
+
     /**
      * Apply App auth.
      *
@@ -73,7 +73,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
         }
         return appAuthService.applyCreate(authApplyDTO);
     }
-    
+
     /**
      * Update sk of App auth.
      *
@@ -88,7 +88,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
                                       @RequestParam("appSecret") final String appSecret) {
         return appAuthService.updateAppSecretByAppKey(appKey, appSecret);
     }
-    
+
     /**
      * Find App auth page by query.
      *
@@ -110,7 +110,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
         CommonPager<AppAuthVO> commonPager = appAuthService.listByPage(query);
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
-    
+
     /**
      * Get detail of App auth.
      *
@@ -124,7 +124,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
                                             provider = AppAuthMapper.class) final String id) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.findById(id));
     }
-    
+
     /**
      * Update App auth.
      *
@@ -136,7 +136,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     public ShenyuAdminResult updateDetail(@RequestBody @Valid final AppAuthDTO appAuthDTO) {
         return appAuthService.updateDetail(appAuthDTO);
     }
-    
+
     /**
      * Detail path of App auth.
      *
@@ -152,7 +152,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
                                         @NotBlank final String authId) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.detailPath(authId));
     }
-    
+
     /**
      * Update detail path.
      *
@@ -164,7 +164,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     public ShenyuAdminResult updateDetailPath(@RequestBody @Valid final AuthPathWarpDTO authPathWarpDTO) {
         return appAuthService.updateDetailPath(authPathWarpDTO);
     }
-    
+
     /**
      * delete application authorities.
      *
@@ -177,7 +177,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
         Integer deleteCount = appAuthService.delete(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
-    
+
     /**
      * Batch enabled App auth.
      *
@@ -193,7 +193,23 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
     }
-    
+
+    /**
+     * Batch opened App auth.
+     *
+     * @param batchCommonDTO the batch common dto
+     * @return the shenyu result
+     */
+    @PostMapping("/batchOpened")
+    @RequiresPermissions("system:authen:open")
+    public ShenyuAdminResult batchOpended(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
+        final String result = appAuthService.opened(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
+        if (StringUtils.isNoneBlank(result)) {
+            return ShenyuAdminResult.error(result);
+        }
+        return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
+    }
+
     /**
      * Sync App auth data.
      *
@@ -204,7 +220,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     public ShenyuAdminResult syncData() {
         return appAuthService.syncData();
     }
-    
+
     @Override
     public PageService<AppAuthQuery, AppAuthVO> pageService() {
         return appAuthService;
