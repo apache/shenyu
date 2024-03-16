@@ -64,6 +64,10 @@ public interface FallbackHandler {
             DispatcherHandler dispatcherHandler =
                     SpringBeanUtils.getInstance().getBean(DispatcherHandler.class);
             URI previsouUri = exchange.getRequest().getURI();
+            // avoid redirect loop, return error.
+            if (UriUtils.getPathWithParams(previsouUri).equals(fallbackPath)) {
+                return withoutFallback(exchange, t);
+            }
             URI fallbackUri = UriUtils.createUri(previsouUri.getScheme(), previsouUri.getAuthority(), fallbackPath);
             ServerHttpRequest request = exchange.getRequest().mutate().uri(fallbackUri).build();
             ServerWebExchange mutated = exchange.mutate().request(request).build();
