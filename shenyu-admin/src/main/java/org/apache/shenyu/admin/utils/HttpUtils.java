@@ -351,7 +351,7 @@ public class HttpUtils {
             .execute();
         if (response.isSuccessful()) {
             ResponseBody body = response.body();
-            return body == null ? null : body.byteStream();
+            return Objects.isNull(body) ? null : body.byteStream();
         }
         return null;
     }
