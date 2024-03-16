@@ -195,7 +195,8 @@ public final class SyncDataServiceTest {
                 true,
                 dateTime,
                 dateTime,
-                ""
+                "",
+                null
         );
     }
 }

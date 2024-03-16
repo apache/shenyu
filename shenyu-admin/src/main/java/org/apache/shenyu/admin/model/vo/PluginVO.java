@@ -17,11 +17,13 @@
 
 package org.apache.shenyu.admin.model.vo;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shiro.codec.Base64;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -76,6 +78,11 @@ public class PluginVO implements Serializable {
      */
     private String file;
 
+    /**
+     * plugin handle List.
+     */
+    private List<PluginHandleVO> pluginHandleList;
+
     public PluginVO() {
     }
 
@@ -87,7 +94,8 @@ public class PluginVO implements Serializable {
                     final Boolean enabled,
                     final String dateCreated,
                     final String dateUpdated,
-                    final String file) {
+                    final String file,
+                    final List<PluginHandleVO> pluginHandleList) {
         this.id = id;
         this.role = role;
         this.name = name;
@@ -97,6 +105,7 @@ public class PluginVO implements Serializable {
         this.dateCreated = dateCreated;
         this.dateUpdated = dateUpdated;
         this.file = file;
+        this.pluginHandleList = pluginHandleList;
     }
 
     /**
@@ -245,6 +254,7 @@ public class PluginVO implements Serializable {
 
     /**
      * Gets the value of plugin jar.
+     *
      * @return the value of plugin
      */
     public String getFile() {
@@ -253,10 +263,29 @@ public class PluginVO implements Serializable {
 
     /**
      * set plugin jar.
+     *
      * @param file jar
      */
     public void setFile(final String file) {
         this.file = file;
+    }
+
+    /**
+     * Gets the plugin handle list.
+     *
+     * @return the plugin handle list
+     */
+    public List<PluginHandleVO> getPluginHandleList() {
+        return pluginHandleList;
+    }
+
+    /**
+     * Sets the the plugin handle list.
+     *
+     * @param pluginHandleList the plugin handle list
+     */
+    public void setPluginHandleList(final List<PluginHandleVO> pluginHandleList) {
+        this.pluginHandleList = pluginHandleList;
     }
 
     /**
@@ -270,6 +299,7 @@ public class PluginVO implements Serializable {
                 pluginDO.getConfig(), pluginDO.getSort(), pluginDO.getEnabled(),
                 DateUtils.localDateTimeToString(pluginDO.getDateCreated().toLocalDateTime()),
                 DateUtils.localDateTimeToString(pluginDO.getDateUpdated().toLocalDateTime()),
-                Optional.ofNullable(pluginDO.getPluginJar()).map(Base64::encodeToString).orElse(""));
+                Optional.ofNullable(pluginDO.getPluginJar()).map(Base64::encodeToString).orElse(""),
+                Lists.newArrayList());
     }
 }

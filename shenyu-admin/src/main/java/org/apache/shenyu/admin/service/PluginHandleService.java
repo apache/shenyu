@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public interface PluginHandleService {
      * @return {@link CommonPager}
      */
     CommonPager<PluginHandleVO> listByPage(PluginHandleQuery pluginHandleQuery);
-    
+
     /**
      * create or update plugin handle.
      *
@@ -46,7 +47,7 @@ public interface PluginHandleService {
     default Integer createOrUpdate(PluginHandleDTO pluginHandleDTO) {
         return StringUtils.isBlank(pluginHandleDTO.getId()) ? create(pluginHandleDTO) : update(pluginHandleDTO);
     }
-    
+
     /**
      * create.
      *
@@ -54,7 +55,7 @@ public interface PluginHandleService {
      * @return changed count
      */
     Integer create(PluginHandleDTO pluginHandleDTO);
-    
+
     /**
      * update.
      *
@@ -62,7 +63,7 @@ public interface PluginHandleService {
      * @return changed count
      */
     Integer update(PluginHandleDTO pluginHandleDTO);
-    
+
     /**
      * delete plugin handles.
      *
@@ -70,7 +71,7 @@ public interface PluginHandleService {
      * @return The number of rows deleted
      */
     Integer deletePluginHandles(List<String> ids);
-    
+
     /**
      * find plugin handle by id.
      *
@@ -78,7 +79,7 @@ public interface PluginHandleService {
      * @return {@linkplain PluginHandleVO}
      */
     PluginHandleVO findById(String id);
-    
+
     /**
      * find plugin handle list by plugin id.
      *
@@ -87,4 +88,18 @@ public interface PluginHandleService {
      * @return plugin handle list.
      */
     List<PluginHandleVO> list(String pluginId, Integer type);
+
+    /**
+     * find all plugin handle list.
+     *
+     * @return plugin handle list.
+     */
+    List<PluginHandleVO> listAllData();
+
+    /**
+     * import plugin handle list.
+     * @param pluginHandleList the plugin handle list
+     * @return shenyu admin result
+     */
+    ShenyuAdminResult importData(List<PluginHandleDTO> pluginHandleList);
 }
