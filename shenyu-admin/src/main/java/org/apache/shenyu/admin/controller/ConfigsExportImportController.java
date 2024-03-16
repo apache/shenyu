@@ -105,6 +105,7 @@ public class ConfigsExportImportController {
         try {
             ShenyuAdminResult importResult = configsService.configsImport(file.getBytes());
             if (importResult.getCode().equals(CommonErrorCode.SUCCESSFUL)) {
+                // sync data
                 syncDataService.syncAll(DataEventTypeEnum.REFRESH);
             }
             return importResult;
