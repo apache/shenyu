@@ -42,6 +42,10 @@ public class UriUtils {
         return null;
     }
 
+    public static URI createUri(final String scheme, final String authority, final String path) {
+        return createUri(scheme + "://" + authority + repairData(path));
+    }
+
     /**
      * Repair data string.
      *
