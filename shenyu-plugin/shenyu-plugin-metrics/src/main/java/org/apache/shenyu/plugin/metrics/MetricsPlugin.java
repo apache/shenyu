@@ -72,7 +72,7 @@ public class MetricsPlugin implements ShenyuPlugin {
         });
         exchange.getAttributes().put(Constants.METRICS_HYSTRIX, (Consumer<HttpStatus>) status -> {
             if (Objects.equals(HttpStatus.INTERNAL_SERVER_ERROR, status)) {
-                MetricsReporter.counterIncrement(LabelNames.HYSTRIX_REQUEST_RESTRICT_TOTAL);
+                MetricsReporter.counterIncrement(LabelNames.HYSTRIX_REQUEST_CIRCUITBREAKER_TOTAL);
             }
         });
         exchange.getAttributes().put(Constants.METRICS_RATE_LIMITER, (Consumer<HttpStatus>) status -> {
