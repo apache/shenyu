@@ -312,6 +312,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                 }
             }
         }
+        this.syncData();
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
             return ConfigImportResult.fail(successCount, "import fail appKey: " + errorMsgBuilder);
         }

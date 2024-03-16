@@ -378,6 +378,10 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 discoveryRelMapper.insertSelective(discoveryRelDO);
             }
         }
+        // sync data
+        if (successCount > 0) {
+            this.syncData();
+        }
 
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
             errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);

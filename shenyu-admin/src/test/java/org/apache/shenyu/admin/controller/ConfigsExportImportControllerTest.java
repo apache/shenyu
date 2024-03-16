@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.controller;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.ConfigsService;
-import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.utils.ZipUtil;
 import org.assertj.core.util.Lists;
@@ -65,19 +64,12 @@ public class ConfigsExportImportControllerTest {
     @Mock
     private ConfigsService configsService;
 
-    /**
-     * The configs service.
-     */
-    @Mock
-    private SyncDataService syncDataService;
-
     @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders
                 .standaloneSetup(configsExportImportController)
                 .setControllerAdvice(new ExceptionHandlers(null))
                 .setControllerAdvice(configsService)
-                .setControllerAdvice(syncDataService)
                 .build();
     }
 

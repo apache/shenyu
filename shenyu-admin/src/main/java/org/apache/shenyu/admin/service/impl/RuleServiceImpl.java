@@ -277,6 +277,7 @@ public class RuleServiceImpl implements RuleService {
             final int ruleCount = ruleMapper.insertSelective(ruleDO);
             addCondition(ruleDO, ruleDTO.getRuleConditions());
             if (ruleCount > 0) {
+                ruleEventPublisher.onCreated(ruleDO, ruleDTO.getRuleConditions());
                 successCount++;
             }
         }
