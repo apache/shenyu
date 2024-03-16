@@ -21,8 +21,10 @@ import com.alibaba.nacos.common.utils.DateFormatUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.ConfigsService;
+import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.ExportImportConstants;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
@@ -52,8 +54,12 @@ public class ConfigsExportImportController {
      */
     private final ConfigsService configsService;
 
-    public ConfigsExportImportController(final ConfigsService configsService) {
+    private final SyncDataService syncDataService;
+
+    public ConfigsExportImportController(final ConfigsService configsService,
+                                         final SyncDataService syncDataService) {
         this.configsService = configsService;
+        this.syncDataService = syncDataService;
     }
 
     /**
@@ -65,7 +71,7 @@ public class ConfigsExportImportController {
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportConfigs(final HttpServletResponse response) {
         ShenyuAdminResult result = configsService.configsExport();
-        if (!Objects.equals(CommonErrorCode.SUCCESSFUL, result.getCode())) {
+        if (!result.getCode().equals(CommonErrorCode.SUCCESSFUL)) {
             throw new ShenyuException(result.getMessage());
         }
         HttpHeaders headers = new HttpHeaders();
@@ -97,7 +103,11 @@ public class ConfigsExportImportController {
             return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
         }
         try {
-            return configsService.configsImport(file.getBytes());
+            ShenyuAdminResult importResult = configsService.configsImport(file.getBytes());
+            if (importResult.getCode().equals(CommonErrorCode.SUCCESSFUL)) {
+                syncDataService.syncAll(DataEventTypeEnum.REFRESH);
+            }
+            return importResult;
         } catch (IOException e) {
             LOG.error("parsing data failed", e);
             return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
