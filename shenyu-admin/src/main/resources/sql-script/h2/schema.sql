@@ -1205,3 +1205,15 @@ CREATE TABLE IF NOT EXISTS `INT_LOCK`  (
    `CREATED_DATE` TIMESTAMP NOT NULL,
    constraint INT_LOCK_PK primary key (LOCK_KEY, REGION)
 );
+
+-- ----------------------------
+-- Table structure for cluster_master
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS cluster_master  (
+    `id`           varchar(128) NOT NULL COMMENT 'primary key id',
+    `master_host`  varchar(255) COMMENT 'master host',
+    `master_port`  varchar(255) COMMENT 'master port',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+) ;
