@@ -137,7 +137,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @param enabled the status
      * @return the count
      */
-    int updateOpenBatch(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
+    int batchUpdateAppAuth(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
 
 
     /**

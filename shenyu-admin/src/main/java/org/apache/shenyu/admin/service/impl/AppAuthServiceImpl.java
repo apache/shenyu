@@ -428,7 +428,7 @@ public class AppAuthServiceImpl implements AppAuthService {
             return this.buildByEntityWithParamAndPath(appAuthDO, paramMap.get(id), pathMap.get(id));
         }).collect(Collectors.toList());
 
-        appAuthMapper.updateOpenBatch(distinctIds, enabled);
+        appAuthMapper.batchUpdateAppAuth(distinctIds, enabled);
 
         // publish change event.
         if (CollectionUtils.isNotEmpty(authDataList)) {

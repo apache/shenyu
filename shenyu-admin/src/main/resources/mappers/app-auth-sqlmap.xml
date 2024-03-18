@@ -285,7 +285,7 @@
         </foreach>
     </update>
 
-    <update id="updateOpenBatch">
+    <update id="batchUpdateAppAuth">
         UPDATE app_auth
         SET open = #{enabled,jdbcType=TINYINT}
         WHERE id IN
