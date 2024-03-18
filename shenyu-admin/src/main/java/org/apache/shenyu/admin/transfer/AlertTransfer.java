@@ -38,7 +38,7 @@ public enum AlertTransfer {
      * @param alertReceiverDTO the alert receiver dto
      * @return the alert receiver do
      */
-    public AlertReceiverDO mapToEntity(final AlertReceiverDTO alertReceiverDTO) {
+    public AlertReceiverDO mapToAlertReciverDO(final AlertReceiverDTO alertReceiverDTO) {
         return Optional.ofNullable(alertReceiverDTO)
                 .map(v -> {
                     AlertReceiverDO alertReceiverDO = new AlertReceiverDO();
@@ -80,7 +80,7 @@ public enum AlertTransfer {
      * @param alertReceiverDO the alert receiver do
      * @return the alert receiver do
      */
-    public AlertReceiverDTO mapToDTO(final AlertReceiverDO alertReceiverDO) {
+    public AlertReceiverDTO mapToAlertReceiverDTO(final AlertReceiverDO alertReceiverDO) {
         return Optional.ofNullable(alertReceiverDO)
                 .map(v -> {
                     AlertReceiverDTO alertReceiverDTO = new AlertReceiverDTO();

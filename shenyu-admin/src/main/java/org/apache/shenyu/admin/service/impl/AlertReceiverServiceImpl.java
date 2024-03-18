@@ -55,7 +55,7 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     
     @Override
     public void addReceiver(final AlertReceiverDTO alertReceiverDTO) {
-        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToEntity(alertReceiverDTO);
+        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReciverDO(alertReceiverDTO);
         receiverDO.setId(UUIDUtils.getInstance().generateShortUuid());
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         receiverDO.setDateCreated(currentTime);
@@ -72,7 +72,7 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     
     @Override
     public void updateReceiver(final AlertReceiverDTO alertReceiverDTO) {
-        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToEntity(alertReceiverDTO);
+        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReciverDO(alertReceiverDTO);
         alertDispatchService.clearCache();
         alertReceiverMapper.updateByPrimaryKey(receiverDO);
     }
@@ -88,7 +88,7 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
         return PageResultUtils.result(receiverQuery.getPageParameter(), 
             () -> alertReceiverMapper.selectByQuery(receiverQuery)
                           .stream()
-                          .map(AlertTransfer.INSTANCE::mapToDTO)
+                          .map(AlertTransfer.INSTANCE::mapToAlertReceiverDTO)
                           .collect(Collectors.toList()));
     }
     
@@ -96,7 +96,7 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     public AlertReceiverDTO detail(final String id) {
         AlertReceiverDO receiverDO = alertReceiverMapper.selectByPrimaryKey(id);
         if (receiverDO != null) {
-            return AlertTransfer.INSTANCE.mapToDTO(receiverDO);
+            return AlertTransfer.INSTANCE.mapToAlertReceiverDTO(receiverDO);
         } else {
             return null;
         }

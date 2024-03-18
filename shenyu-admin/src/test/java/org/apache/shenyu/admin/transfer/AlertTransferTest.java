@@ -19,11 +19,8 @@ package org.apache.shenyu.admin.transfer;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.entity.AlertReceiverDO;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
-import org.apache.shenyu.common.utils.DateUtils;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -105,7 +102,7 @@ public final class AlertTransferTest {
 
     @Test
     void testMapToEntity() {
-        AlertReceiverDO entity = AlertTransfer.INSTANCE.mapToEntity(alertReceiverDTO);
+        AlertReceiverDO entity = AlertTransfer.INSTANCE.mapToAlertReciverDO(alertReceiverDTO);
         assertNotNull(entity);
         assertEquals(entity.getId(), alertReceiverDTO.getId());
         assertEquals(entity.getName(), alertReceiverDTO.getName());
@@ -138,7 +135,7 @@ public final class AlertTransferTest {
 
     @Test
     void testMapToDTO() {
-        AlertReceiverDTO dto = AlertTransfer.INSTANCE.mapToDTO(alertReceiverDO);
+        AlertReceiverDTO dto = AlertTransfer.INSTANCE.mapToAlertReceiverDTO(alertReceiverDO);
         assertNotNull(dto);
         assertEquals(dto.getId(), alertReceiverDO.getId());
         assertEquals(dto.getName(), alertReceiverDO.getName());
