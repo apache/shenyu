@@ -39,6 +39,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -153,7 +154,7 @@ public final class WebsocketCollectorTest {
 
     private long getSessionSetSize() {
         Set sessionSet = (Set) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_SET");
-        return sessionSet == null ? -1 : sessionSet.size();
+        return Objects.isNull(sessionSet) ? -1 : sessionSet.size();
     }
 
     private Session getSession() {

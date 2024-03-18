@@ -84,6 +84,29 @@ public enum MetaDataTransfer {
     }
 
     /**
+     * COpy to entity meta data do.
+     *
+     * @param metaDataDO the meta data source do
+     * @return the meta data do
+     */
+    public MetaDataDO copy(final MetaDataDO metaDataDO) {
+        return Optional.ofNullable(metaDataDO)
+                .map(source -> MetaDataDO.builder()
+                        .id(source.getId())
+                        .appName(source.getAppName())
+                        .path(source.getPath())
+                        .pathDesc(source.getPathDesc())
+                        .rpcType(source.getRpcType())
+                        .serviceName(source.getServiceName())
+                        .methodName(source.getMethodName())
+                        .parameterTypes(source.getParameterTypes())
+                        .rpcExt(source.getRpcExt())
+                        .enabled(source.getEnabled())
+                        .build())
+                .orElse(null);
+    }
+
+    /**
      * Map to data meta data.
      *
      * @param metaDataDTO the meta data dto

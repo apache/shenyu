@@ -226,7 +226,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                         .dateCreated(currentTime)
                         .dateUpdated(currentTime)
                         .listenerNode(proxySelectorAddDTO.getListenerNode())
-                        .handler(proxySelectorAddDTO.getHandler() == null ? "" : proxySelectorAddDTO.getHandler())
+                        .handler(Objects.isNull(proxySelectorAddDTO.getHandler()) ? "" : proxySelectorAddDTO.getHandler())
                         .props(proxySelectorAddDTO.getProps())
                         .build();
                 discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
@@ -310,7 +310,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .listenerNode(proxySelectorAddDTO.getListenerNode())
-                .handler(proxySelectorAddDTO.getHandler() == null ? "" : proxySelectorAddDTO.getHandler())
+                .handler(Objects.isNull(proxySelectorAddDTO.getHandler()) ? "" : proxySelectorAddDTO.getHandler())
                 .props(proxySelectorAddDTO.getProps())
                 .build();
         discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
