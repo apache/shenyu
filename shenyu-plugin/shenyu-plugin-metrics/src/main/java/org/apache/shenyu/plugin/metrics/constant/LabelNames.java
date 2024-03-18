@@ -46,4 +46,29 @@ public final class LabelNames {
      * The constant RATELIMITER_REQUEST_RESTRICT_TOTAL.
      */
     public static final String RATELIMITER_REQUEST_RESTRICT_TOTAL = "shenyu_ratelimiter_request_restrict_total";
+
+    /**
+     * The constant SENTINEL_REQUEST_RESTRICT_TOTAL.
+     */
+    public static final String SENTINEL_REQUEST_RESTRICT_TOTAL = "shenyu_sentinel_request_restrict_total";
+
+    /**
+     * The constant SENTINEL_REQUEST_CIRCUITBREAKER_TOTAL.
+     */
+    public static final String SENTINEL_REQUEST_CIRCUITBREAKER_TOTAL = "shenyu_sentinel_request_circuitbreaker_total";
+
+    /**
+     * The constant RESILIENCE4J_REQUEST_RESTRICT_TOTAL.
+     */
+    public static final String RESILIENCE4J_REQUEST_RESTRICT_TOTAL = "shenyu_resilience4j_request_restrict_total";
+
+    /**
+     * The constant RESILIENCE4J_REQUEST_CIRCUITBREAKER_TOTAL.
+     */
+    public static final String RESILIENCE4J_REQUEST_CIRCUITBREAKER_TOTAL = "shenyu_resilience4j_request_circuitbreaker_total";
+
+    /**
+     * The constant HYSTRIX_REQUEST_CIRCUITBREAKER_TOTAL.
+     */
+    public static final String HYSTRIX_REQUEST_CIRCUITBREAKER_TOTAL = "shenyu_hystrix_request_circuitbreaker_total";
 }
