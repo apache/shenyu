@@ -92,7 +92,7 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
     
     @Override
     public boolean sendNoticeMsg(final AlertReceiverDTO receiver, final AlarmContent alert) {
-        if (receiver == null || receiver.getType() == null) {
+        if (Objects.isNull(receiver) || Objects.isNull(receiver.getType())) {
             log.warn("DispatcherAlarm-sendNoticeMsg params is empty alert:[{}], receiver:[{}]", alert, receiver);
             return false;
         }
@@ -164,7 +164,7 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
                     }
                     if (!CollectionUtils.isEmpty(item.getLabels())) {
                         return item.getLabels().entrySet().stream().anyMatch(entry -> {
-                            if (alert.getLabels() == null || !alert.getLabels().containsKey(entry.getKey())) {
+                            if (Objects.isNull(alert.getLabels()) || !alert.getLabels().containsKey(entry.getKey())) {
                                 return false;
                             }
                             String labelValue = alert.getLabels().get(entry.getKey());
