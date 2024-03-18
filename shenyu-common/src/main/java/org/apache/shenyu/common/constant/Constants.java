@@ -806,6 +806,21 @@ public interface Constants {
     String METRICS_RATE_LIMITER = "metricsRateLimiter";
 
     /**
+     * sentinel plugin metrics.
+     */
+    String METRICS_SENTINEL = "metricsSentinel";
+
+    /**
+     * resilience4j plugin metrics.
+     */
+    String METRICS_RESILIENCE4J = "metricsResilience4j";
+
+    /**
+     * Hystrix plugin metrics.
+     */
+    String METRICS_HYSTRIX = "metricsHystrix";
+
+    /**
      * String q.
      */
     default void findConstants() {
