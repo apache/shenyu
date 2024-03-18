@@ -35,6 +35,7 @@ import org.springframework.integration.jdbc.lock.LockRepository;
 import javax.sql.DataSource;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -110,6 +111,9 @@ public class RegisterCenterConfiguration {
      */
     @Bean
     public JdbcLockRegistry jdbcLockRegistry(final LockRepository lockRepository) {
-        return new JdbcLockRegistry(lockRepository);
+        JdbcLockRegistry jdbcLockRegistry = new JdbcLockRegistry(lockRepository);
+        // Specify a Duration to sleep between lock record insert/update attempts. Defaults to 100
+        jdbcLockRegistry.setIdleBetweenTries(Duration.ofMillis(5000));
+        return jdbcLockRegistry;
     }
 }

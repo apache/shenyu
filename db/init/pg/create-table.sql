@@ -2513,3 +2513,22 @@ COMMENT ON COLUMN "public"."int_lock"."lock_key" IS 'lock_key';
 COMMENT ON COLUMN "public"."int_lock"."region" IS 'region';
 COMMENT ON COLUMN "public"."int_lock"."client_id" IS 'client_id';
 COMMENT ON COLUMN "public"."int_lock"."created_date" IS 'created_date';
+
+-- ----------------------------
+-- Table structure for cluster_master
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."cluster_master";
+CREATE TABLE "public"."cluster_master"
+(
+    "id"                   varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "master_host"                 varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "master_port"                 varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."alert_receiver"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."alert_receiver"."master_host" IS 'master host';
+COMMENT ON COLUMN "public"."alert_receiver"."master_port" IS 'master port';
+COMMENT ON COLUMN "public"."alert_receiver"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."alert_receiver"."date_updated" IS 'update time';

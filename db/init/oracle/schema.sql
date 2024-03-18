@@ -2690,3 +2690,34 @@ comment on column INT_LOCK.CLIENT_ID
   is 'CLIENT_ID';
 comment on column INT_LOCK.CREATED_DATE
   is 'CREATED_DATE';
+
+-- ----------------------------
+-- Table structure for cluster_master
+-- ----------------------------
+create table cluster_master
+(
+    id                   varchar(128)   not null,
+    master_host          varchar(255)   not null,
+    master_port          varchar(255)   not null,
+    date_created      timestamp(3) default SYSDATE not null,
+    date_updated      timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+)
+;
+-- Add comments to the columns
+comment
+on column alert_receiver.id
+  is 'primary key id';
+comment
+on column alert_receiver.master_host
+  is 'master host';
+comment
+on column alert_receiver.master_port
+  is 'master port';
+comment
+on column alert_receiver.date_created
+  is 'create time';
+comment
+on column alert_receiver.date_updated
+  is 'update time';
+
