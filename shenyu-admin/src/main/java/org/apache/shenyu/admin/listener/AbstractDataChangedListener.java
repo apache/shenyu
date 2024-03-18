@@ -270,7 +270,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     protected abstract void afterInitialize();
 
     /**
-     * if md5 is not the same as the original, then update lcoal cache.
+     * if md5 is not the same as the original, then update local cache.
      *
      * @param group ConfigGroupEnum
      * @param <T>   the type of class

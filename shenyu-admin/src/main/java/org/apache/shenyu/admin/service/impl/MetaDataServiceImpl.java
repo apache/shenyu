@@ -44,7 +44,6 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -259,8 +258,7 @@ public class MetaDataServiceImpl implements MetaDataService {
             final List<MetaDataDO> befores = Optional.ofNullable(metaDataMapper.findByServiceNameAndMethod(
                     metaDataDO.getServiceName(), null)).orElseGet(LinkedList::new);
             for (MetaDataDO b : befores) {
-                MetaDataDO update = new MetaDataDO();
-                BeanUtils.copyProperties(b, update);
+                MetaDataDO update = MetaDataTransfer.INSTANCE.copy(b);
                 update.setRpcExt(metaDataDTO.getRpcExt());
                 if (metaDataMapper.update(update) > 0) {
                     publisher.onUpdated(update, b);
