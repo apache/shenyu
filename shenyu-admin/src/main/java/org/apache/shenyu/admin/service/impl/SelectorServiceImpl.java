@@ -70,6 +70,7 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
@@ -471,6 +472,20 @@ public class SelectorServiceImpl implements SelectorService {
                     .fail(successCount, "import fail selector: " + errorMsgBuilder);
         }
         return ConfigImportResult.success(successCount);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean enabled(final List<String> ids, final Boolean enabled) {
+        ids.forEach(id -> {
+            SelectorDO selectorDO = selectorMapper.selectById(id);
+            SelectorDO before = JsonUtils.jsonToObject(JsonUtils.toJson(selectorDO), SelectorDO.class);
+            selectorDO.setEnabled(enabled);
+            if (selectorMapper.updateEnable(id, enabled) > 0) {
+                selectorEventPublisher.onUpdated(selectorDO, before);
+            }
+        });
+        return Boolean.TRUE;
     }
 
     /**

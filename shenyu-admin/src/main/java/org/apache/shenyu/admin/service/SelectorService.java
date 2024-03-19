@@ -227,4 +227,13 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @return config import result
      */
     ConfigImportResult importData(List<SelectorDTO> selectorList);
+
+    /**
+     * Enabled string.
+     *
+     * @param ids     the ids
+     * @param enabled the enable
+     * @return the result
+     */
+    Boolean enabled(List<String> ids, Boolean enabled);
 }
