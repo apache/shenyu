@@ -57,7 +57,6 @@ public class ShenyuNettyWebServerConfigurationTest {
                 "shenyu.netty.http.serverSocketChannel.soBacklog=64",
                 "shenyu.netty.http.serverSocketChannel.connectTimeoutMillis=65536",
                 "shenyu.netty.http.serverSocketChannel.writeBufferLowWaterMark=65536",
-                "shenyu.netty.http.serverSocketChannel.soRcvBuf=65536",
                 "shenyu.netty.http.socketChannel.soSndBuf=128",
                 "shenyu.netty.http.socketChannel.ipTos=64",
                 "shenyu.netty.http.socketChannel.soKeepAlive=true",
@@ -69,7 +68,6 @@ public class ShenyuNettyWebServerConfigurationTest {
                 "shenyu.netty.http.socketChannel.writeSpinCount=8",
                 "shenyu.netty.http.socketChannel.autoRead=false",
                 "shenyu.netty.http.socketChannel.soReuseAddr=true",
-                "shenyu.netty.http.socketChannel.soRcvBuf=65536",
                 "shenyu.netty.http.socketChannel.messageSizeEstimator=8",
                 "shenyu.netty.http.socketChannel.singleEventExecutorPerGroup=false"
             )
