@@ -195,4 +195,13 @@ public interface SelectorMapper extends ExistProvider {
      * @return SelectorDOs
      */
     List<SelectorDO> selectByDiscoveryId(@Param("discoveryId") String discoveryId);
+
+    /**
+     * update status.
+     *
+     * @param id id
+     * @param enabled enabled
+     * @return result
+     */
+    int updateEnable(@Param("id") String id, @Param("enabled") Boolean enabled);
 }

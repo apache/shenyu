@@ -403,6 +403,10 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
+    <update id="updateEnable">
+        UPDATE selector SET enabled = #{enabled, jdbcType=TINYINT} WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
     <delete id="delete" parameterType="java.lang.String">
         DELETE FROM selector
               WHERE id = #{id, jdbcType=VARCHAR}
