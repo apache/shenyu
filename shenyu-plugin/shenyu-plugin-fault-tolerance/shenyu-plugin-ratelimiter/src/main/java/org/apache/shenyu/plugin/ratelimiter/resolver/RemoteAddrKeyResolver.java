@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ratelimiter.resolver;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.spi.Join;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -32,6 +33,29 @@ public class RemoteAddrKeyResolver implements RateLimiterKeyResolver {
 
     @Override
     public String resolve(final ServerWebExchange exchange) {
+        String[] headers = {"X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"};
+        String ip;
+        for (String header : headers) {
+            ip = exchange.getRequest().getHeaders().getFirst(header);
+            boolean isUnknown = StringUtils.isBlank(ip) || "unknown".equalsIgnoreCase(ip);
+            if (!isUnknown) {
+                if (StringUtils.indexOf(ip, ',') > 0) {
+                    String[] split = StringUtils.split(ip, ',');
+                    for (int i = 0; i < split.length; i++) {
+                        split[i] = split[i].trim();
+                    }
+                    for (final String subIp : split) {
+                        boolean isUnknownSubIp = StringUtils.isBlank(subIp) || "unknown".equalsIgnoreCase(subIp);
+                        if (!isUnknownSubIp) {
+                            ip = subIp;
+                            break;
+                        }
+                    }
+                }
+                return ip;
+            }
+        }
         return Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
     }
+
 }
