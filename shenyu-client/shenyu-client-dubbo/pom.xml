@@ -28,7 +28,6 @@
 
     <modules>
         <module>shenyu-client-dubbo-common</module>
-        <module>shenyu-client-alibaba-dubbo</module>
         <module>shenyu-client-apache-dubbo</module>
     </modules>
 </project>
