@@ -50,6 +50,7 @@ import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.MatchModeEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -286,6 +287,20 @@ public class RuleServiceImpl implements RuleService {
                     .fail(successCount, "import fail rule: " + errorMsgBuilder);
         }
         return ConfigImportResult.success(successCount);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean enabled(final List<String> ids, final Boolean enabled) {
+        ids.forEach(id -> {
+            RuleDO ruleDO = ruleMapper.selectById(id);
+            RuleDO before = JsonUtils.jsonToObject(JsonUtils.toJson(ruleDO), RuleDO.class);
+            ruleDO.setEnabled(enabled);
+            if (ruleMapper.updateEnable(id, enabled) > 0) {
+                ruleEventPublisher.onUpdated(ruleDO, before);
+            }
+        });
+        return Boolean.TRUE;
     }
 
     /**
