@@ -871,7 +871,7 @@ INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1678997557628272642', '15', 'loadBalance', 'loadBalance', 3, 2, 3, '{"required":"0","defaultValue":"random","rule":""}');
 
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1678997557628272643', '44', 'defaultHandleJson', 'defaultHandleJson', 2, 3, 2, '{"required":"0","defaultValue":"{\"authorization\":\"test:test123\"}","placeholder":""}');
-    
+
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1721435546642157568', '45', 'host', 'host', 2, 3, 0, '{"required":"1","defaultValue":"127.0.0.1","rule":""}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1721435708743618560', '45', 'port', 'port', 1, 3, 0, '{"required":"1","defaultValue":"15672","rule":""}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1721436368046264320', '45', 'password', 'password', 2, 3, 0, '{"required":"0","defaultValue":"admin","rule":""}');
@@ -958,6 +958,8 @@ INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `compo
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`) VALUES('1347032453707214848','1346777157943259136','SHENYU.BUTTON.SYSTEM.DELETE','','','','2','2','','1','0','system:manager:delete','1');
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`) VALUES('1347032509051056128','1346777157943259136','SHENYU.BUTTON.SYSTEM.EDIT','','','','2','3','','1','0','system:manager:edit','1');
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`) VALUES('1386680049203195904','1346777157943259136','SHENYU.BUTTON.DATA.PERMISSION.CONFIG', '', '', '', 2, 0, '', 1, 0, 'system:manager:configureDataPermission', 1);
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`) VALUES('1386680049203195915','1346777157943259136','SHENYU.COMMON.EXPORT','','','','2','3','','1','0','system:manager:exportConfig','1');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`) VALUES('1386680049203195916','1346777157943259136','SHENYU.COMMON.IMPORT','','','','2','3','','1','0','system:manager:importConfig','1');
 
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`) VALUES('1350106119681622016','1346776175553376256','SHENYU.MENU.SYSTEM.MANAGMENT.ROLE','role','/system/role','role','1','0','usergroup-add','0','0','','1');
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`) VALUES('1350107709494804480','1350106119681622016','SHENYU.BUTTON.SYSTEM.ADD','','','','2','0','','1','0','system:role:add','1');
@@ -1027,6 +1029,8 @@ INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1351
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1351007708694323200', '1346358560427216896', '1347032453707214848');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1351007708698517504', '1346358560427216896', '1347032509051056128');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1386680049203195905', '1346358560427216896', '1386680049203195904');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1386680049203195906', '1346358560427216896', '1386680049203195915');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1386680049203195907', '1346358560427216896', '1386680049203195916');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1351007709080199168', '1346358560427216896', '1350106119681622016');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1351007709080199169', '1346358560427216896', '1350107709494804480');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1351007709084393472', '1346358560427216896', '1350107842236137472');

@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.ExportImportConstants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -63,6 +64,7 @@ public class ConfigsExportImportController {
      * @return the shenyu result
      */
     @GetMapping("/export")
+    @RequiresPermissions("system:manager:exportConfig")
     public ResponseEntity<byte[]> exportConfigs(final HttpServletResponse response) {
         ShenyuAdminResult result = configsService.configsExport();
         if (!Objects.equals(CommonErrorCode.SUCCESSFUL, result.getCode())) {
@@ -92,6 +94,7 @@ public class ConfigsExportImportController {
      * @return shenyu admin result
      */
     @PostMapping("/import")
+    @RequiresPermissions("system:manager:importConfig")
     public ShenyuAdminResult importConfigs(final MultipartFile file) {
         if (Objects.isNull(file)) {
             return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);

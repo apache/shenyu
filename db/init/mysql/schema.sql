@@ -399,6 +399,8 @@ INSERT INTO `permission` VALUES ('1357977745893326848', '1346358560427216896', '
 INSERT INTO `permission` VALUES ('1357977912126177281', '1346358560427216896', '1357977912126177280', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `permission` VALUES ('1357977971827900417', '1346358560427216896', '1357977971827900416', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `permission` VALUES ('1386680049203195905', '1346358560427216896', '1386680049203195904', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `permission` VALUES ('1386680049203195906', '1346358560427216896', '1386680049203195915', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `permission` VALUES ('1386680049203195907', '1346358560427216896', '1386680049203195916', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `permission` VALUES ('1529402639305326592', '1346358560427216896', '1529402639271772160', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `permission` VALUES ('1529402639305326593', '1346358560427216896', '1529402639284355072', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `permission` VALUES ('1529402639305326594', '1346358560427216896', '1529402639284355073', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
@@ -839,7 +841,7 @@ INSERT INTO `plugin` VALUES ('42', 'tcp', NULL, 'Proxy', 320, 1, '2023-05-30 18:
 INSERT INTO `plugin` VALUES ('43', 'loggingHuaweiLts', '{\"totalSizeInBytes\":\"104857600\",\"maxBlockMs\":\"0\",\"ioThreadCount\":\"1\",\"batchSizeThresholdInBytes\":\"524288\",\"batchCountThreshold\":\"4096\",\"lingerMs\":\"2000\",\"retries\":\"100\",\"baseRetryBackoffMs\":\"100\",\"maxRetryBackoffMs\":\"100\",\"enableLocalTest\":\"true\",\"setGiveUpExtraLongSingleLog\":\"false\"}', 'Logging', 177, 0, '2023-07-05 14:03:53.686', '2023-07-06 12:42:07.234', NULL);
 INSERT INTO `plugin` VALUES ('44', 'basicAuth', '{\"defaultHandleJson\":\"{\\\"authorization\\\":\\\"test:test123\\\"}\"}', 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00', null);
 INSERT INTO `plugin` VALUES ('45', 'loggingRabbitMQ', '{\"host\":\"127.0.0.1\",\"port\":5672,\"password\":\"admin\",\"username\":\"admin\",\"exchangeName\":\"exchange.logging.plugin\",\"queueName\":\"queue.logging.plugin\",\"routingKey\":\"topic.logging\",\"virtualHost\":\"/\",\"exchangeType\":\"direct\",\"durable\":\"true\",\"exclusive\":\"false\",\"autoDelete\":\"false\"}', 'Logging', 171, 0, '2023-11-06 15:49:56.454', '2023-11-10 10:40:58.447', NULL);
- 
+
 -- ----------------------------
 -- Table structure for plugin_handle
 -- ----------------------------
@@ -1287,6 +1289,8 @@ INSERT INTO `resource` VALUES ('1357977745889132544', '1355163372527050752', 'SH
 INSERT INTO `resource` VALUES ('1357977912126177280', '1355163372527050752', 'SHENYU.SYSTEM.EDITOR', '', '', '', 2, 5, '', 1, 0, 'system:resource:editButton', 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `resource` VALUES ('1357977971827900416', '1355163372527050752', 'SHENYU.SYSTEM.DELETEDATA', '', '', '', 2, 6, '', 1, 0, 'system:resource:deleteButton', 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `resource` VALUES ('1386680049203195904', '1346777157943259136', 'SHENYU.BUTTON.DATA.PERMISSION.CONFIG', '', '', '', 2, 0, '', 1, 0, 'system:manager:configureDataPermission', 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `resource` VALUES ('1386680049203195915', '1346777157943259136', 'SHENYU.COMMON.EXPORT', '', '', '', 2, 0, '', 1, 0, 'system:manager:exportConfig', 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `resource` VALUES ('1386680049203195916', '1346777157943259136', 'SHENYU.COMMON.IMPORT', '', '', '', 2, 0, '', 1, 0, 'system:manager:importConfig', 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `resource` VALUES ('1529402639271772160', '1346775491550474240', 'sign', 'sign', '/plug/sign', 'sign', 1, 0, 'thunderbolt', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639284355072', '1346775491550474240', 'sentinel', 'sentinel', '/plug/sentinel', 'sentinel', 1, 0, 'stop', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639284355073', '1346775491550474240', 'sofa', 'sofa', '/plug/sofa', 'sofa', 1, 0, 'key', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
