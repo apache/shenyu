@@ -29,7 +29,6 @@
 
     <modules>
         <module>shenyu-plugin-dubbo-common</module>
-        <module>shenyu-plugin-alibaba-dubbo</module>
         <module>shenyu-plugin-apache-dubbo</module>
     </modules>
 
