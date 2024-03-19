@@ -148,7 +148,7 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return {@link RuleDO}
      */
     RuleDO findByName(String name);
-    
+
     /**
      * Find by selector id and name rule do.
      *
@@ -164,4 +164,13 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return config import result
      */
     ConfigImportResult importData(List<RuleDTO> ruleList);
+
+    /**
+     * Enabled string.
+     *
+     * @param ids     the ids
+     * @param enabled the enable
+     * @return the result
+     */
+    Boolean enabled(List<String> ids, Boolean enabled);
 }
