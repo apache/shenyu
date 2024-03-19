@@ -71,7 +71,7 @@ public class ConfigsExportImportController {
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportConfigs(final HttpServletResponse response) {
         ShenyuAdminResult result = configsService.configsExport();
-        if (!result.getCode().equals(CommonErrorCode.SUCCESSFUL)) {
+        if (!Objects.equals(CommonErrorCode.SUCCESSFUL, result.getCode())) {
             throw new ShenyuException(result.getMessage());
         }
         HttpHeaders headers = new HttpHeaders();
@@ -104,7 +104,7 @@ public class ConfigsExportImportController {
         }
         try {
             ShenyuAdminResult importResult = configsService.configsImport(file.getBytes());
-            if (importResult.getCode().equals(CommonErrorCode.SUCCESSFUL)) {
+            if (Objects.equals(CommonErrorCode.SUCCESSFUL, importResult.getCode())) {
                 // sync data
                 syncDataService.syncAll(DataEventTypeEnum.REFRESH);
             }
