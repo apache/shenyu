@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
+import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 
@@ -67,6 +69,13 @@ public interface DiscoveryUpstreamService {
     List<DiscoverySyncData> listAll();
 
     /**
+     * list all data.
+     *
+     * @return DiscoveryUpstreamVO
+     */
+    List<DiscoveryUpstreamVO> listAllData();
+
+    /**
      * refresh and push event.
      *
      * @param selectorId selectorId
@@ -89,4 +98,11 @@ public interface DiscoveryUpstreamService {
      * @param url        url
      */
     void deleteBySelectorIdAndUrl(String selectorId, String url);
+
+    /**
+     * Import the discoveryUpstream data list.
+     * @param discoveryUpstreamList the discoveryUpstream data
+     * @return config import result
+     */
+    ConfigImportResult importData(List<DiscoveryUpstreamDTO> discoveryUpstreamList);
 }

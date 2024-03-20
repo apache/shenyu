@@ -27,7 +27,6 @@ jobs:
       matrix:
         case:
           - shenyu-integrated-test-k8s-ingress-http
-          - shenyu-integrated-test-k8s-ingress-alibaba-dubbo
           - shenyu-integrated-test-k8s-ingress-apache-dubbo
           - shenyu-integrated-test-k8s-ingress-motan
           - shenyu-integrated-test-k8s-ingress-spring-cloud

@@ -67,6 +67,16 @@ public class DiscoveryVO implements Serializable {
     private String props;
 
     /**
+     * discoveryHandler.
+     */
+    private DiscoveryHandlerVO discoveryHandler;
+
+    /**
+     * discoveryRel.
+     */
+    private DiscoveryRelVO discoveryRel;
+
+    /**
      * get id.
      *
      * @return id
@@ -192,6 +202,38 @@ public class DiscoveryVO implements Serializable {
         this.props = props;
     }
 
+    /**
+     * Get discoveryHandler.
+     * @return discoveryHandler
+     */
+    public DiscoveryHandlerVO getDiscoveryHandler() {
+        return discoveryHandler;
+    }
+
+    /**
+     * Set discoveryHandler.
+     * @param discoveryHandler discoveryHandler
+     */
+    public void setDiscoveryHandler(final DiscoveryHandlerVO discoveryHandler) {
+        this.discoveryHandler = discoveryHandler;
+    }
+
+    /**
+     * Get discoveryRel.
+     * @return discoveryRel
+     */
+    public DiscoveryRelVO getDiscoveryRel() {
+        return discoveryRel;
+    }
+
+    /**
+     * Set discoveryRel.
+     * @param discoveryRel discoveryRel
+     */
+    public void setDiscoveryRel(final DiscoveryRelVO discoveryRel) {
+        this.discoveryRel = discoveryRel;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -204,11 +246,13 @@ public class DiscoveryVO implements Serializable {
         DiscoveryVO that = (DiscoveryVO) o;
         return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(type, that.type)
                 && Objects.equals(level, that.level) && Objects.equals(serverList, that.serverList)
-                && Objects.equals(pluginName, that.pluginName) && Objects.equals(props, that.props);
+                && Objects.equals(pluginName, that.pluginName) && Objects.equals(props, that.props)
+                && Objects.equals(discoveryHandler, that.discoveryHandler)
+                && Objects.equals(discoveryRel, that.discoveryRel);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, type, level, serverList, pluginName, props);
+        return Objects.hash(id, name, type, level, serverList, pluginName, props, discoveryHandler, discoveryRel);
     }
 }

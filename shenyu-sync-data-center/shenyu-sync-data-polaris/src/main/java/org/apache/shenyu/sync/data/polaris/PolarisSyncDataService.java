@@ -101,7 +101,7 @@ public class PolarisSyncDataService extends AbstractNodeDataSyncService implemen
     @Override
     protected void doRemoveListener(final String removeKey) {
         final ConfigFileChangeListener configFileChangeListener = watchCache.get(removeKey);
-        if (!Objects.isNull(configFileChangeListener)) {
+        if (Objects.nonNull(configFileChangeListener)) {
             final ConfigFile configFile = configFileService.getConfigFile(polarisConfig.getNamespace(), polarisConfig.getFileGroup(), removeKey);
             configFile.removeChangeListener(configFileChangeListener);
         }
@@ -110,7 +110,7 @@ public class PolarisSyncDataService extends AbstractNodeDataSyncService implemen
     @Override
     public void close() {
         watchCache.forEach((key, configFileChangeListener) -> {
-            if (!Objects.isNull(configFileChangeListener)) {
+            if (Objects.nonNull(configFileChangeListener)) {
                 final ConfigFile configFile = configFileService.getConfigFile(polarisConfig.getNamespace(), polarisConfig.getFileGroup(), key);
                 configFile.removeChangeListener(configFileChangeListener);
             }

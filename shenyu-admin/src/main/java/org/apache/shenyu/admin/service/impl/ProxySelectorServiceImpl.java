@@ -22,26 +22,27 @@ import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.discovery.DiscoveryLevel;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
-import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
-import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
-import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.ProxySelectorService;
@@ -52,7 +53,6 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -60,8 +60,10 @@ import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -122,15 +124,14 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             vo.setUpdateTime(proxySelectorDO.getDateUpdated());
             vo.setProps(proxySelectorDO.getProps());
             DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByProxySelectorId(proxySelectorDO.getId());
-            if (!Objects.isNull(discoveryRelDO)) {
+            if (Objects.nonNull(discoveryRelDO)) {
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryRelDO.getDiscoveryHandlerId());
-                if (!Objects.isNull(discoveryHandlerDO)) {
+                if (Objects.nonNull(discoveryHandlerDO)) {
                     vo.setDiscoveryHandlerId(discoveryHandlerDO.getId());
                     vo.setListenerNode(discoveryHandlerDO.getListenerNode());
                     vo.setHandler(discoveryHandlerDO.getHandler());
                     DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
-                    DiscoveryDTO discoveryDTO = new DiscoveryDTO();
-                    BeanUtils.copyProperties(discoveryDO, discoveryDTO);
+                    DiscoveryDTO discoveryDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryDO);
                     vo.setDiscovery(discoveryDTO);
                     List<DiscoveryUpstreamDO> discoveryUpstreamDOList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryRelDO.getDiscoveryHandlerId());
                     Optional.ofNullable(discoveryUpstreamDOList).ifPresent(list -> {
@@ -225,7 +226,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                         .dateCreated(currentTime)
                         .dateUpdated(currentTime)
                         .listenerNode(proxySelectorAddDTO.getListenerNode())
-                        .handler(proxySelectorAddDTO.getHandler() == null ? "" : proxySelectorAddDTO.getHandler())
+                        .handler(Objects.isNull(proxySelectorAddDTO.getHandler()) ? "" : proxySelectorAddDTO.getHandler())
                         .props(proxySelectorAddDTO.getProps())
                         .build();
                 discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
@@ -309,7 +310,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .listenerNode(proxySelectorAddDTO.getListenerNode())
-                .handler(proxySelectorAddDTO.getHandler() == null ? "" : proxySelectorAddDTO.getHandler())
+                .handler(Objects.isNull(proxySelectorAddDTO.getHandler()) ? "" : proxySelectorAddDTO.getHandler())
                 .props(proxySelectorAddDTO.getProps())
                 .build();
         discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
@@ -409,5 +410,78 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     public List<ProxySelectorData> listAll() {
         return proxySelectorMapper.selectAll().stream()
                 .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProxySelectorVO> listAllData() {
+        List<ProxySelectorVO> result = Lists.newArrayList();
+        proxySelectorMapper.selectAll().forEach(proxySelectorDO -> {
+            ProxySelectorVO vo = new ProxySelectorVO();
+            vo.setId(proxySelectorDO.getId());
+            vo.setName(proxySelectorDO.getName());
+            vo.setType(proxySelectorDO.getType());
+            vo.setForwardPort(proxySelectorDO.getForwardPort());
+            vo.setCreateTime(proxySelectorDO.getDateCreated());
+            vo.setUpdateTime(proxySelectorDO.getDateUpdated());
+            vo.setProps(proxySelectorDO.getProps());
+            DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByProxySelectorId(proxySelectorDO.getId());
+            if (Objects.nonNull(discoveryRelDO)) {
+                DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryRelDO.getDiscoveryHandlerId());
+                if (Objects.nonNull(discoveryHandlerDO)) {
+                    vo.setDiscoveryHandlerId(discoveryHandlerDO.getId());
+                    vo.setListenerNode(discoveryHandlerDO.getListenerNode());
+                    vo.setHandler(discoveryHandlerDO.getHandler());
+                    DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+                    DiscoveryDTO discoveryDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryDO);
+                    vo.setDiscovery(discoveryDTO);
+                    List<DiscoveryUpstreamDO> discoveryUpstreamDOList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryRelDO.getDiscoveryHandlerId());
+                    Optional.ofNullable(discoveryUpstreamDOList).ifPresent(list -> {
+                        List<DiscoveryUpstreamVO> upstreamVOS = list.stream().map(DiscoveryTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
+                        vo.setDiscoveryUpstreams(upstreamVOS);
+                    });
+                }
+            }
+            result.add(vo);
+        });
+        return result;
+    }
+
+    @Override
+    public ConfigImportResult importData(final List<ProxySelectorData> proxySelectorList) {
+        if (CollectionUtils.isEmpty(proxySelectorList)) {
+            return ConfigImportResult.success();
+        }
+        Map<String, List<ProxySelectorDO>> pluginProxySelectorMap = proxySelectorMapper
+                .selectAll()
+                .stream()
+                .collect(Collectors.groupingBy(ProxySelectorDO::getPluginName));
+        int successCount = 0;
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        for (ProxySelectorData selectorData : proxySelectorList) {
+            String pluginName = selectorData.getPluginName();
+            String proxySelectorName = selectorData.getName();
+            Set<String> existProxySelectorNameSet = pluginProxySelectorMap
+                    .getOrDefault(pluginName, Lists.newArrayList())
+                    .stream()
+                    .map(ProxySelectorDO::getName)
+                    .collect(Collectors.toSet());
+
+            if (existProxySelectorNameSet.contains(proxySelectorName)) {
+                errorMsgBuilder
+                        .append(proxySelectorName)
+                        .append(",");
+                continue;
+            }
+            ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(selectorData);
+            if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
+                successCount++;
+            }
+        }
+        if (StringUtils.hasLength(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+            return ConfigImportResult
+                    .fail(successCount, "import fail proxy selector: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
     }
 }

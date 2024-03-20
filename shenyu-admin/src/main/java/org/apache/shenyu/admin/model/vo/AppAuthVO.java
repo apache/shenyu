@@ -58,9 +58,9 @@ public class AppAuthVO implements Serializable {
      */
     private Boolean enabled;
 
-    private List<AuthParamVO> authParamVOList;
+    private List<AuthParamVO> authParamList;
 
-    private List<AuthPathVO> authPathVOList;
+    private List<AuthPathVO> authPathList;
 
     /**
      * updated time.
@@ -78,8 +78,8 @@ public class AppAuthVO implements Serializable {
                      final String extInfo,
                      final Boolean open,
                      final Boolean enabled,
-                     final List<AuthParamVO> authParamVOList,
-                     final List<AuthPathVO> authPathVOList,
+                     final List<AuthParamVO> authParamList,
+                     final List<AuthPathVO> authPathList,
                      final String dateUpdated) {
         this.id = id;
         this.appKey = appKey;
@@ -89,8 +89,8 @@ public class AppAuthVO implements Serializable {
         this.extInfo = extInfo;
         this.open = open;
         this.enabled = enabled;
-        this.authParamVOList = authParamVOList;
-        this.authPathVOList = authPathVOList;
+        this.authParamList = authParamList;
+        this.authPathList = authPathList;
         this.dateUpdated = dateUpdated;
     }
 
@@ -243,17 +243,17 @@ public class AppAuthVO implements Serializable {
      *
      * @return the value of authParamVOList
      */
-    public List<AuthParamVO> getAuthParamVOList() {
-        return authParamVOList;
+    public List<AuthParamVO> getAuthParamList() {
+        return authParamList;
     }
 
     /**
      * Sets the authParamVOList.
      *
-     * @param authParamVOList authParamVOList
+     * @param authParamList authParamVOList
      */
-    public void setAuthParamVOList(final List<AuthParamVO> authParamVOList) {
-        this.authParamVOList = authParamVOList;
+    public void setAuthParamList(final List<AuthParamVO> authParamList) {
+        this.authParamList = authParamList;
     }
 
     /**
@@ -261,17 +261,17 @@ public class AppAuthVO implements Serializable {
      *
      * @return the value of authPathVOList
      */
-    public List<AuthPathVO> getAuthPathVOList() {
-        return authPathVOList;
+    public List<AuthPathVO> getAuthPathList() {
+        return authPathList;
     }
 
     /**
      * Sets the authPathVOList.
      *
-     * @param authPathVOList authPathVOList
+     * @param authPathList authPathVOList
      */
-    public void setAuthPathVOList(final List<AuthPathVO> authPathVOList) {
-        this.authPathVOList = authPathVOList;
+    public void setAuthPathList(final List<AuthPathVO> authPathList) {
+        this.authPathList = authPathList;
     }
 
     /**

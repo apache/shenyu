@@ -322,9 +322,9 @@ The text of each license is the standard Apache 2.0 license.
     jetcd-grpc 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
     jettison 1.4.0: https://github.com/jettison-json/jettison, Apache 2.0
 	jcommander 1.78: https://mvnrepository.com/artifact/com.beust/jcommander, Apache 2.0
-    jjwt-api 0.11.5: https://jwt.io, Apache 2.0
-    jjwt-impl 0.11.5: https://jwt.io, Apache 2.0
-    jjwt-jackson 0.11.5: https://jwt.io, Apache 2.0
+    jjwt-api 0.12.3: https://jwt.io, Apache 2.0
+    jjwt-impl 0.12.3: https://jwt.io, Apache 2.0
+    jjwt-jackson 0.12.3: https://jwt.io, Apache 2.0
     json-patch 1.9: https://github.com/fge/json-patch, Apache 2.0 and LGPL
     json-path 2.7.0: https://github.com/jayway/JsonPath, Apache 2.0
     json-smart 2.4.11: https://www.minidev.net/, Apache 2.0
