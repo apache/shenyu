@@ -156,7 +156,6 @@ public class ShenyuNettyWebServerConfiguration {
                     // server socket channel parameters
                     .option(ChannelOption.SO_BACKLOG, nettyHttpProperties.getServerSocketChannel().getSoBacklog())
                     .option(ChannelOption.SO_REUSEADDR, nettyHttpProperties.getServerSocketChannel().isSoReuseAddr())
-                    .option(ChannelOption.SO_RCVBUF, nettyHttpProperties.getServerSocketChannel().getSoRcvBuf())
                     // common parameters
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyHttpProperties.getServerSocketChannel().getConnectTimeoutMillis())
                     .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyHttpProperties.getServerSocketChannel().getWriteBufferLowWaterMark(),
@@ -171,10 +170,8 @@ public class ShenyuNettyWebServerConfiguration {
                     .childOption(ChannelOption.SO_KEEPALIVE, nettyHttpProperties.getSocketChannel().isSoKeepAlive())
                     .childOption(ChannelOption.SO_LINGER, nettyHttpProperties.getSocketChannel().getSoLinger())
                     .childOption(ChannelOption.TCP_NODELAY, nettyHttpProperties.getSocketChannel().isTcpNoDelay())
-                    .childOption(ChannelOption.SO_SNDBUF, nettyHttpProperties.getSocketChannel().getSoSndBuf())
                     .childOption(ChannelOption.IP_TOS, nettyHttpProperties.getSocketChannel().getIpTos())
                     .childOption(ChannelOption.ALLOW_HALF_CLOSURE, nettyHttpProperties.getSocketChannel().isAllowHalfClosure())
-                    .childOption(ChannelOption.SO_RCVBUF, nettyHttpProperties.getSocketChannel().getSoRcvBuf())
                     .childOption(ChannelOption.SO_REUSEADDR, nettyHttpProperties.getSocketChannel().isSoReuseAddr())
                     // common parameters
                     .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyHttpProperties.getSocketChannel().getConnectTimeoutMillis())
