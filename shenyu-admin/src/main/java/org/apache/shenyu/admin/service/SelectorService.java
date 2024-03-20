@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -212,4 +213,27 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @return the list
      */
     List<SelectorData> listAll();
+
+    /**
+     * List all export vo list.
+     *
+     * @return the vo list
+     */
+    List<SelectorVO> listAllData();
+
+    /**
+     * Import the plugin selector list.
+     * @param selectorList the plugin selector list
+     * @return config import result
+     */
+    ConfigImportResult importData(List<SelectorDTO> selectorList);
+
+    /**
+     * Enabled string.
+     *
+     * @param ids     the ids
+     * @param enabled the enable
+     * @return the result
+     */
+    Boolean enabled(List<String> ids, Boolean enabled);
 }

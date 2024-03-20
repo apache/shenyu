@@ -25,10 +25,12 @@ import org.apache.shenyu.plugin.metrics.config.Metric;
 import org.apache.shenyu.plugin.metrics.enums.MetricType;
 import org.apache.shenyu.plugin.metrics.prometheus.PrometheusMetricsRegister;
 import org.apache.shenyu.plugin.metrics.spi.MetricsRegister;
+import org.junit.FixMethodOrder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.runners.MethodSorters;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
@@ -40,6 +42,7 @@ import java.util.Map;
 /**
  * The Test Case For MetricsReporter.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class MetricsReporterTest {
 
     private static final String DOCUMENT = "testDocument";
@@ -54,13 +57,9 @@ public final class MetricsReporterTest {
 
     @Test
     public void testRegister() throws Exception {
-        Field field1 = metricsRegister.getClass().getDeclaredField("COUNTER_MAP");
-        field1.setAccessible(true);
-        Map<String, Counter> map1 = (Map<String, Counter>) field1.get(metricsRegister);
-        Assertions.assertEquals(map1.size(), 3);
-        Field field2 = metricsRegister.getClass().getDeclaredField("HISTOGRAM_MAP");
-        field2.setAccessible(true);
-        Map<String, Histogram> map2 = (Map<String, Histogram>) field2.get(metricsRegister);
+        Map<String, Counter> map1 = getPrivateField(metricsRegister, "COUNTER_MAP", Map.class);
+        Assertions.assertEquals(map1.size(), 9);
+        Map<String, Histogram> map2 = getPrivateField(metricsRegister, "HISTOGRAM_MAP", Map.class);
         Assertions.assertEquals(map2.size(), 3);
         List<String> labels = new ArrayList<>();
         labels.add("shenyu_request_total");
@@ -69,20 +68,12 @@ public final class MetricsReporterTest {
         metrics.add(new Metric(MetricType.GAUGE, "name2", DOCUMENT, labels));
         metrics.add(new Metric(MetricType.HISTOGRAM, "name3", DOCUMENT, labels));
         MetricsReporter.registerMetrics(metrics);
-        Field field3 = metricsRegister.getClass().getDeclaredField("COUNTER_MAP");
-        field3.setAccessible(true);
-        Map<String, Counter> map3 = (Map<String, Counter>) field3.get(metricsRegister);
-        Assertions.assertEquals(map3.size(), 4);
-        Field field4 = metricsRegister.getClass().getDeclaredField("HISTOGRAM_MAP");
-        field4.setAccessible(true);
-        Map<String, Histogram> map4 = (Map<String, Histogram>) field4.get(metricsRegister);
+        Map<String, Counter> map3 = getPrivateField(metricsRegister, "COUNTER_MAP", Map.class);
+        Assertions.assertEquals(map3.size(), 10);
+        Map<String, Histogram> map4 = getPrivateField(metricsRegister, "HISTOGRAM_MAP", Map.class);
         Assertions.assertEquals(map4.size(), 4);
-        Field field5 = metricsRegister.getClass().getDeclaredField("GAUGE_MAP");
-        field5.setAccessible(true);
-        Map<String, Gauge> map5 = (Map<String, Gauge>) field5.get(metricsRegister);
+        Map<String, Gauge> map5 = getPrivateField(metricsRegister, "GAUGE_MAP", Map.class);
         Assertions.assertEquals(map5.size(), 3);
-        MetricsReporter.clean();
-        Assertions.assertTrue(CollectionUtils.isEmpty(map3));
     }
 
     @Test
@@ -119,6 +110,30 @@ public final class MetricsReporterTest {
     }
 
     @Test
+    public void testCounter() throws Exception {
+        String counterName1 = "request_total1";
+        String counterName2 = "request_total2";
+        String[] labelNames = new String[]{"name1", "name2"};
+        MetricsReporter.registerCounter(counterName1, DOCUMENT);
+        MetricsReporter.registerCounter(counterName2, labelNames, DOCUMENT);
+        MetricsReporter.counterIncrement(counterName1);
+        Field field1 = metricsRegister.getClass().getDeclaredField("COUNTER_MAP");
+        field1.setAccessible(true);
+        Map<String, Counter> counterMap = getPrivateField(metricsRegister, "COUNTER_MAP", Map.class);
+        Assertions.assertEquals(counterMap.get(counterName1).get(), 1);
+        MetricsReporter.counterIncrement(counterName2, labelNames);
+        Assertions.assertEquals(counterMap.get(counterName2).labels(labelNames).get(), 1);
+        MetricsReporter.counterIncrement(counterName2, labelNames, 2);
+        Assertions.assertEquals(counterMap.get(counterName2).labels(labelNames).get(), 3);
+    }
+
+    private <T> T getPrivateField(final Object object, final String fieldName, final Class<T> fieldType) throws NoSuchFieldException, IllegalAccessException {
+        Field field = object.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return fieldType.cast(field.get(object));
+    }
+
+    @Test
     public void testRecordTime() {
         String name1 = "requests_latency_histogram_millis1";
         String name2 = "requests_latency_histogram_millis2";
@@ -133,6 +148,17 @@ public final class MetricsReporterTest {
         Map<String, Histogram> histogramMap2 = (Map<String, Histogram>) ReflectUtils.getFieldValue(metricsRegister, "HISTOGRAM_MAP");
         Histogram histogram2 = histogramMap2.get(name2);
         Assertions.assertEquals(histogram2.labels().get().sum, 1000.0);
+    }
+
+    @Test
+    public void testZClean() throws Exception {
+        String name = "test_metrics_name";
+        MetricsReporter.registerCounter(name, DOCUMENT);
+        Map<String, Counter> counterMap1 = getPrivateField(metricsRegister, "COUNTER_MAP", Map.class);
+        Assertions.assertFalse(CollectionUtils.isEmpty(counterMap1));
+        MetricsReporter.clean();
+        Map<String, Counter> counterMap2 = getPrivateField(metricsRegister, "COUNTER_MAP", Map.class);
+        Assertions.assertTrue(CollectionUtils.isEmpty(counterMap2));
     }
 
     @AfterAll

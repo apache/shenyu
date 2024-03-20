@@ -57,7 +57,6 @@ public class ShenyuNettyWebServerConfigurationTest {
                 "shenyu.netty.http.serverSocketChannel.soBacklog=64",
                 "shenyu.netty.http.serverSocketChannel.connectTimeoutMillis=65536",
                 "shenyu.netty.http.serverSocketChannel.writeBufferLowWaterMark=65536",
-                "shenyu.netty.http.serverSocketChannel.soRcvBuf=65536",
                 "shenyu.netty.http.socketChannel.soSndBuf=128",
                 "shenyu.netty.http.socketChannel.ipTos=64",
                 "shenyu.netty.http.socketChannel.soKeepAlive=true",
@@ -69,7 +68,6 @@ public class ShenyuNettyWebServerConfigurationTest {
                 "shenyu.netty.http.socketChannel.writeSpinCount=8",
                 "shenyu.netty.http.socketChannel.autoRead=false",
                 "shenyu.netty.http.socketChannel.soReuseAddr=true",
-                "shenyu.netty.http.socketChannel.soRcvBuf=65536",
                 "shenyu.netty.http.socketChannel.messageSizeEstimator=8",
                 "shenyu.netty.http.socketChannel.singleEventExecutorPerGroup=false"
             )
@@ -84,9 +82,7 @@ public class ShenyuNettyWebServerConfigurationTest {
                 assertThat(properties.getServerSocketChannel().getSoBacklog(), is(64));
                 assertThat(properties.getServerSocketChannel().getConnectTimeoutMillis(), is(65536));
                 assertThat(properties.getServerSocketChannel().getWriteBufferLowWaterMark(), is(65536));
-                assertThat(properties.getServerSocketChannel().getSoRcvBuf(), is(65536));
                 assertNotNull(properties.getSocketChannel());
-                assertThat(properties.getSocketChannel().getSoSndBuf(), is(128));
                 assertThat(properties.getSocketChannel().getIpTos(), is(64));
                 assertThat(properties.getSocketChannel().isSoKeepAlive(), is(true));
                 assertThat(properties.getSocketChannel().isAllowHalfClosure(), is(true));
@@ -97,7 +93,6 @@ public class ShenyuNettyWebServerConfigurationTest {
                 assertThat(properties.getSocketChannel().getWriteSpinCount(), is(8));
                 assertThat(properties.getSocketChannel().isAutoRead(), is(false));
                 assertThat(properties.getSocketChannel().isSoReuseAddr(), is(true));
-                assertThat(properties.getSocketChannel().getSoRcvBuf(), is(65536));
                 assertThat(properties.getSocketChannel().getMessageSizeEstimator(), is(8));
                 assertThat(properties.getSocketChannel().getSingleEventExecutorPerGroup(), is(false));
             });

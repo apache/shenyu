@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.mapper.PluginMapper;
@@ -92,7 +93,7 @@ public final class PluginControllerTest {
                 .setControllerAdvice(new ExceptionHandlers(null))
                 .build();
         this.pluginVO = new PluginVO("123", "1", "t_n", "1", 1, true,
-                DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()), "");
+                DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()), "", Lists.newArrayList());
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
 
     }
