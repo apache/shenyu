@@ -51,8 +51,6 @@ public class NettyChannelProperties {
 
     private Boolean soReuseAddr = false;
 
-    private Integer soRcvBuf = 87380;
-
     /**
      * message estimator.
      */
@@ -196,24 +194,6 @@ public class NettyChannelProperties {
      */
     public void setSoReuseAddr(final Boolean soReuseAddr) {
         this.soReuseAddr = soReuseAddr;
-    }
-
-    /**
-     * get soRcvBuf.
-     *
-     * @return soRcvBuf
-     */
-    public Integer getSoRcvBuf() {
-        return soRcvBuf;
-    }
-
-    /**
-     * set soRcvBuf.
-     *
-     * @param soRcvBuf SO_RCVBUF
-     */
-    public void setSoRcvBuf(final Integer soRcvBuf) {
-        this.soRcvBuf = soRcvBuf;
     }
 
     /**

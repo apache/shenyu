@@ -37,7 +37,7 @@ public class AesUtils {
     private static final Logger LOG = LoggerFactory.getLogger(AesUtils.class);
 
     /**
-     * AES/CTR/NoPadding encrypt data.
+     * AES/CBC/Pkcs7Padding encrypt data.
      *
      * @param secretKeyStr secretKeyStr
      * @param ivStr        ivStr
@@ -64,7 +64,7 @@ public class AesUtils {
     }
 
     /**
-     * AES/CTR/NoPadding decrypt data.
+     * AES/CBC/Pkcs7Padding decrypt data.
      *
      * @param secretKeyStr secretKeyStr
      * @param ivStr        ivStr
