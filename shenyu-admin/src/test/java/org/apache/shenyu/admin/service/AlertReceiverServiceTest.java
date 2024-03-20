@@ -43,6 +43,7 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -108,6 +109,7 @@ public final class AlertReceiverServiceTest {
         final CommonPager<AlertReceiverDTO> commonPager = this.alertReceiverService.listByPage(alertReceiverQuery);
         assertEquals(commonPager.getDataList().size(), receiverDOList.size());
     }
+
     @Test
     public void testDetail() {
         AlertReceiverDO receiverDO = buildAlertReceiverDO("123");
@@ -115,6 +117,14 @@ public final class AlertReceiverServiceTest {
         AlertReceiverDTO receiverDTO = alertReceiverService.detail("123");
         assertNotNull(receiverDTO);
         assertEquals(receiverDTO.getId(), receiverDO.getId());
+    }
+
+    @Test
+    public void testSendTestMsg() {
+        AlertReceiverDTO alertReceiverDTO = buildAlertReceiverDTO("123");
+        given(this.alertDispatchService.sendNoticeMsg(any(), any())).willReturn(true);
+        boolean sent = alertReceiverService.sendTestMsg(alertReceiverDTO);
+        assertTrue(sent);
     }
 
     private AlertReceiverDO buildAlertReceiverDO(final String id) {
