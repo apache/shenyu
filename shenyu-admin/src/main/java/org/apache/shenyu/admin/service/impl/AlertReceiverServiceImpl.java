@@ -29,7 +29,6 @@ import org.apache.shenyu.admin.transfer.AlertTransfer;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.apache.shenyu.common.dto.AlarmContent;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -47,12 +46,16 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     
     private static final String ALERT_TEST_CONTENT = "test send msg! \n This is the test data. It is proved that it can be received successfully";
     
-    @Autowired
-    private AlertReceiverMapper alertReceiverMapper;
+    private final AlertReceiverMapper alertReceiverMapper;
     
-    @Autowired
-    private AlertDispatchService alertDispatchService;
-    
+    private final AlertDispatchService alertDispatchService;
+
+    public AlertReceiverServiceImpl(final AlertReceiverMapper alertReceiverMapper,
+                                    final AlertDispatchService alertDispatchService) {
+        this.alertReceiverMapper = alertReceiverMapper;
+        this.alertDispatchService = alertDispatchService;
+    }
+
     @Override
     public void addReceiver(final AlertReceiverDTO alertReceiverDTO) {
         AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReciverDO(alertReceiverDTO);
