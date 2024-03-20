@@ -154,7 +154,7 @@ public class DocManagerImpl implements DocManager {
             docInfo.setContextPath(contexPath);
             return docInfo;
         } catch (Exception e) {
-            LOG.error("getDocInfo clusterName={} error={} ", clusterName, e);
+            LOG.error("getDocInfo clusterName={} error", clusterName, e);
             return null;
         }
     }

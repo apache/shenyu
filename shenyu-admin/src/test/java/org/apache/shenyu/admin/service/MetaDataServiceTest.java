@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
 import org.apache.shenyu.admin.service.publish.MetaDataEventPublisher;
@@ -51,8 +52,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
@@ -78,7 +81,7 @@ public final class MetaDataServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
-    
+
     @Mock
     private MetaDataEventPublisher publisher;
 
@@ -228,6 +231,77 @@ public final class MetaDataServiceTest {
                 "The List should be contain " + (metaDataDOList.size() - 1) + " element.");
     }
 
+    /**
+     * Test case for listAllData.
+     */
+    @Test
+    public void testListAllData() {
+        ArrayList<MetaDataDO> metaDataDOList = getMetaDataDOList();
+        metaDataDOList.add(null);
+        when(metaDataMapper.selectAll()).thenReturn(metaDataDOList);
+        List<MetaDataVO> all = metaDataService.listAllData();
+        Assertions.assertEquals(metaDataDOList.size() - 1, all.size(),
+                "The List should be contain " + (metaDataDOList.size() - 1) + " element.");
+    }
+
+    @Test
+    public void testImportData() {
+        List<MetaDataDO> metaDataDOList = getMetaDataDOList();
+        when(metaDataMapper.selectAll()).thenReturn(metaDataDOList);
+
+        final List<MetaDataDTO> metaDataDTOList = getMetaDataDTOList();
+        given(this.metaDataMapper.insert(any())).willReturn(1);
+        given(this.metaDataMapper.pathExisted(any())).willReturn(null);
+
+        ConfigImportResult configImportResult = this.metaDataService.importData(metaDataDTOList);
+
+        assertNotNull(configImportResult);
+        Assertions.assertEquals(configImportResult.getSuccessCount(), metaDataDTOList.size());
+
+    }
+
+    @Test
+    public void testFindByPath() {
+        final MetaDataDO metaDataDO1 = MetaDataDO.builder()
+                .id("id1")
+                .appName("appName1")
+                .path("path1")
+                .build();
+        given(this.metaDataMapper.findByPath(any())).willReturn(metaDataDO1);
+        MetaDataDO metaDataDO = metaDataService.findByPath("path1");
+        assertNotNull(metaDataDO);
+        Assertions.assertEquals(metaDataDO, metaDataDO1);
+    }
+
+    @Test
+    public void testFindByServiceNameAndMethodName() {
+        final MetaDataDO metaDataDO1 = MetaDataDO.builder()
+                .id("id1")
+                .appName("appName1")
+                .path("path1")
+                .serviceName("serviceName1")
+                .methodName("method1")
+                .build();
+        given(this.metaDataMapper.findByServiceNameAndMethod(any(), any()))
+                .willReturn(Collections.singletonList(metaDataDO1));
+        MetaDataDO metaDataDO = metaDataService
+                .findByServiceNameAndMethodName("serviceName1", "method1");
+        assertNotNull(metaDataDO);
+        Assertions.assertEquals(metaDataDO, metaDataDO1);
+    }
+
+    @Test
+    public void testInsert() {
+        final MetaDataDO metaDataDO1 = MetaDataDO.builder()
+                .id("id1")
+                .appName("appName1")
+                .path("path1")
+                .build();
+        given(this.metaDataMapper.insert(any())).willReturn(1);
+        int inserted = metaDataService.insert(metaDataDO1);
+        Assertions.assertEquals(inserted, 1);
+    }
+
     private void testSaveOrUpdateMetaDataForInsert() {
         metaDataService.saveOrUpdateMetaData(null, new MetaDataRegisterDTO());
         verify(metaDataMapper).insert(any(MetaDataDO.class));
@@ -237,7 +311,7 @@ public final class MetaDataServiceTest {
         metaDataService.saveOrUpdateMetaData(MetaDataDO.builder().id("1").build(), new MetaDataRegisterDTO());
         verify(metaDataMapper).update(any(MetaDataDO.class));
     }
-    
+
     /**
      * Cases where check passed and insert operation.<br>
      * The stub declared in createOrUpdateCase1 will not be repeated.
@@ -298,15 +372,34 @@ public final class MetaDataServiceTest {
         final MetaDataDO metaDataDO1 = MetaDataDO.builder()
                 .id("id1")
                 .appName("appName1")
+                .path("path1")
                 .build();
         final MetaDataDO metaDataDO2 = MetaDataDO.builder()
                 .id("id2")
                 .appName("appName2")
+                .path("path2")
                 .build();
         final MetaDataDO metaDataDO3 = MetaDataDO.builder()
                 .id("id3")
                 .appName("appName3")
+                .path("path3")
                 .build();
         return Lists.newArrayList(metaDataDO1, metaDataDO2, metaDataDO3);
+    }
+
+    private ArrayList<MetaDataDTO> getMetaDataDTOList() {
+        final MetaDataDTO metaDataDTO1 = new MetaDataDTO();
+        metaDataDTO1.setId("id123");
+        metaDataDTO1.setAppName("appName123");
+        metaDataDTO1.setPath("appName123");
+        final MetaDataDTO metaDataDTO2 = new MetaDataDTO();
+        metaDataDTO1.setId("id234");
+        metaDataDTO1.setAppName("appName234");
+        metaDataDTO1.setPath("appName234");
+        final MetaDataDTO metaDataDTO3 = new MetaDataDTO();
+        metaDataDTO1.setId("id345");
+        metaDataDTO1.setAppName("appName345");
+        metaDataDTO1.setPath("appName345");
+        return Lists.newArrayList(metaDataDTO1, metaDataDTO2, metaDataDTO3);
     }
 }

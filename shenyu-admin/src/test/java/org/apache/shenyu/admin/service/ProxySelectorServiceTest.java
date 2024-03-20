@@ -18,18 +18,22 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
-import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
+import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
+import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.impl.ProxySelectorServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,9 +45,12 @@ import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -118,5 +125,63 @@ class ProxySelectorServiceTest {
         ids.add("123");
         given(proxySelectorMapper.deleteByIds(ids)).willReturn(1);
         assertEquals(proxySelectorService.delete(ids), ShenyuResultMessage.DELETE_SUCCESS);
+    }
+
+    @Test
+    void testListAllData() {
+        List<ProxySelectorDO> selectorDOList = Collections.singletonList(buildProxySelectorDO());
+        given(proxySelectorMapper.selectAll()).willReturn(selectorDOList);
+        given(discoveryRelMapper.selectByProxySelectorId(any())).willReturn(buildDiscoveryRelDO());
+        List<ProxySelectorVO> selectorVOList = proxySelectorService.listAllData();
+        assertNotNull(selectorVOList);
+        assertEquals(selectorVOList.size(), selectorDOList.size());
+    }
+
+    @Test
+    void testImportData() {
+        final List<ProxySelectorDO> selectorDOs = Collections.singletonList(buildProxySelectorDO());
+        given(this.proxySelectorMapper.selectAll()).willReturn(selectorDOs);
+
+        final List<ProxySelectorData> proxySelectorDataList = Collections.singletonList(buildProxySelectorData());
+        given(this.proxySelectorMapper.insert(any())).willReturn(1);
+
+        ConfigImportResult configImportResult = this.proxySelectorService.importData(proxySelectorDataList);
+
+        assertNotNull(configImportResult);
+        assertEquals(configImportResult.getSuccessCount(), proxySelectorDataList.size());
+    }
+
+    private ProxySelectorDO buildProxySelectorDO() {
+        ProxySelectorDO proxySelectorDO = new ProxySelectorDO();
+        proxySelectorDO.setId("123");
+        proxySelectorDO.setName("test");
+        proxySelectorDO.setPluginName("test");
+        proxySelectorDO.setForwardPort(8080);
+        proxySelectorDO.setProps("test");
+        proxySelectorDO.setDateCreated(new Timestamp(System.currentTimeMillis()));
+        proxySelectorDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+        return proxySelectorDO;
+    }
+
+    private ProxySelectorData buildProxySelectorData() {
+        ProxySelectorData selectorData = new ProxySelectorData();
+        selectorData.setId("123");
+        selectorData.setName("test123456");
+        selectorData.setPluginName("test");
+        selectorData.setForwardPort(8080);
+        selectorData.setProps(null);
+        return selectorData;
+    }
+
+    private DiscoveryRelDO buildDiscoveryRelDO() {
+        DiscoveryRelDO discoveryRelDO = new DiscoveryRelDO();
+        discoveryRelDO.setSelectorId("123");
+        discoveryRelDO.setDiscoveryHandlerId("123");
+        discoveryRelDO.setProxySelectorId("123");
+        discoveryRelDO.setPluginName("test");
+        discoveryRelDO.setId("456");
+        discoveryRelDO.setDateCreated(new Timestamp(System.currentTimeMillis()));
+        discoveryRelDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+        return discoveryRelDO;
     }
 }
