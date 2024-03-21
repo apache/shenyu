@@ -37,7 +37,7 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
     @Resource
     private LoadServiceDocEntry loadServiceDocEntry;
 
-    @Value("${server.servlet.context-path:'/'}")
+    @Value("${server.servlet.context-path:}")
     private String contextPath;
 
     @Override
