@@ -149,6 +149,20 @@ public final class AppAuthServiceTest {
     }
 
     @Test
+    public void testOpened() {
+        BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
+        batchCommonDTO.setEnabled(Boolean.TRUE);
+        batchCommonDTO.setIds(Collections.singletonList(appAuthDO.getId()));
+        assertEquals(AdminConstants.ID_NOT_EXIST, this.appAuthService.opened(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
+
+        given(this.appAuthMapper.selectById(appAuthDO.getId())).willReturn(appAuthDO);
+        given(this.appAuthMapper.selectByIds(Collections.singletonList(appAuthDO.getId()))).willReturn(Collections.singletonList(appAuthDO));
+        assertEquals(StringUtils.EMPTY, this.appAuthService.opened(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
+        AppAuthVO appAuthVO = this.appAuthService.findById(appAuthDO.getId());
+        assertEquals(Boolean.TRUE, appAuthVO.getOpen());
+    }
+
+    @Test
     public void testEnabled() {
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setEnabled(Boolean.TRUE);
