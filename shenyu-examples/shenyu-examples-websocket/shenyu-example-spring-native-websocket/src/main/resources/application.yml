@@ -24,7 +24,7 @@ shenyu:
     port: 8868
   register:
     registerType: http
-    serverLists: http://localhost:9095
+    serverLists: ${shenyu.register.serverLists:http://localhost:9095}
     props:
       username: admin
       password: 123456
