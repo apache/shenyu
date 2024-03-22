@@ -97,6 +97,16 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
      */
     String enabled(List<String> ids, Boolean enabled);
 
+
+    /**
+     * Opened string.
+     *
+     * @param ids     the ids
+     * @param enabled the enable
+     * @return the string
+     */
+    String opened(List<String> ids, Boolean enabled);
+
     /**
      * find application authority by id.
      *
