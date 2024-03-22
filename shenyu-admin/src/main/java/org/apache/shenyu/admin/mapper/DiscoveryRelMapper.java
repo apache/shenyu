@@ -21,6 +21,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 
+import java.util.List;
+
 /**
  * DiscoveryRelMapper.
  */
@@ -34,6 +36,13 @@ public interface DiscoveryRelMapper {
      * @return {@linkplain DiscoveryRelDO}
      */
     DiscoveryRelDO selectById(String id);
+
+    /**
+     * select all discoveryRel.
+     *
+     * @return {@linkplain DiscoveryRelDO}
+     */
+    List<DiscoveryRelDO> selectAll();
 
     /**
      * select discoveryRel by proxy selector id.

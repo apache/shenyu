@@ -265,8 +265,7 @@
                 AND dict_name LIKE #{dictNameLike, jdbcType=VARCHAR}
             </if>
         </where>
-      ORDER BY `type`,
-                sort ASC
+      ORDER BY `type`, `sort`, `id` ASC
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
