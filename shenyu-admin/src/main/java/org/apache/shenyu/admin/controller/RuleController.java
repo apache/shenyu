@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.RuleMapper;
+import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageCondition;
@@ -51,13 +52,13 @@ import java.util.List;
  */
 @RestApi("/rule")
 public class RuleController implements PagedController<RuleQueryCondition, RuleVO> {
-    
+
     private final RuleService ruleService;
-    
+
     public RuleController(final RuleService ruleService) {
         this.ruleService = ruleService;
     }
-    
+
     /**
      * query rules.
      *
@@ -77,7 +78,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
         condition.setKeyword(name);
         return searchAdaptor(new PageCondition<>(currentPage, pageSize, condition));
     }
-    
+
     /**
      * detail rule.
      *
@@ -91,7 +92,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
         RuleVO ruleVO = ruleService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, ruleVO);
     }
-    
+
     /**
      * create rule.
      *
@@ -103,7 +104,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
         Integer createCount = ruleService.createOrUpdate(ruleDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
-    
+
     /**
      * update rule.
      *
@@ -120,7 +121,21 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
         Integer updateCount = ruleService.createOrUpdate(ruleDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
     }
-    
+
+    /**
+     * Batch enabled rule.
+     *
+     * @param batchCommonDTO the batch common dto
+     * @return the shenyu result
+     */
+    @PostMapping("/batchEnabled")
+    public ShenyuAdminResult batchEnabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
+        if (!ruleService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())) {
+            return ShenyuAdminResult.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
+        }
+        return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
+    }
+
     /**
      * delete rules.
      *
@@ -132,7 +147,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
         Integer deleteCount = ruleService.delete(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
-    
+
     @Override
     public PageService<RuleQueryCondition, RuleVO> pageService() {
         return ruleService;

@@ -18,19 +18,8 @@
 package org.apache.shenyu.admin.service.manager.impl;
 
 import com.google.common.collect.Sets;
-import com.google.gson.JsonElement;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.collections4.CollectionUtils;
@@ -42,7 +31,17 @@ import org.apache.shenyu.admin.model.bean.DocModule;
 import org.apache.shenyu.admin.model.bean.DocParameter;
 import org.apache.shenyu.admin.service.manager.DocParser;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.springframework.beans.BeanUtils;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Parse the JSON content of swagger.
@@ -206,8 +205,7 @@ public class SwaggerDocParser implements DocParser {
                 int index = name.indexOf('.');
                 String module = name.substring(0, index);
                 String newName = name.substring(index + 1);
-                DocParameter ret = new DocParameter();
-                BeanUtils.copyProperties(docParameter, ret);
+                DocParameter ret = DocParameter.copy(docParameter);
                 ret.setName(newName);
                 ret.setModule(module);
                 return ret;
