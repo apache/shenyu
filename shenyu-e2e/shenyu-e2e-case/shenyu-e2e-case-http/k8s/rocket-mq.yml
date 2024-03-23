@@ -134,6 +134,8 @@ spec:
       nodePort: 31876
   selector:
     app: rocketmq-namesrv
+status:
+  loadBalancer: {}
 ---
 apiVersion: v1
 kind: Service
@@ -164,6 +166,8 @@ spec:
       nodePort: 30912
   selector:
     app: rocketmq-broker
+status:
+  loadBalancer: {}
 #apiVersion: v1
 #kind: Service
 #metadata:
