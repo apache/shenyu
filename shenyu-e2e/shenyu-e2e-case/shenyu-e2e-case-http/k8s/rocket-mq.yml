@@ -73,11 +73,11 @@ spec:
             - name: config-volume
               mountPath: /opt/rocketmq-4.4.0/conf/broker.conf
               subPath: broker.conf
-          resources:
-            limits:
-              memory: 1200Mi
-            requests:
-              memory: 1200Mi
+#          resources:
+#            limits:
+#              memory: 1200Mi
+#            requests:
+#              memory: 1200Mi
       volumes:
         - name: config-volume
           configMap:
