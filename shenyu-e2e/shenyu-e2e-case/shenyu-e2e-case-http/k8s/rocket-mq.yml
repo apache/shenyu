@@ -85,6 +85,7 @@ spec:
             items:
               - key: broker.conf
                 path: broker.conf
+status: {}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -116,6 +117,7 @@ spec:
               memory: 600Mi
             requests:
               memory: 600Mi
+status: {}
 ---
 apiVersion: v1
 kind: Service
