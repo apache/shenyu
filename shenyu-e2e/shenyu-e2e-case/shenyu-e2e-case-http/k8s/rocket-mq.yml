@@ -1,85 +1,165 @@
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-apiVersion: apps/v1
-kind: StatefulSet
+# ConfigMap config.yaml
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: rocketmq
+  name: rocketmq-broker-config
+data:
+  broker.conf: |
+    brokerClusterName = DefaultCluster
+    brokerName = broker-c
+    brokerId = 0
+    deleteWhen = 04
+    fileReservedTime = 48
+    brokerRole = ASYNC_MASTER
+    flushDiskType = ASYNC_FLUSH
+    listenPort=30911
+    managePort=30912
+    haListenPort=30912
+    fastListenPort=30909
+    brokerIP1=127.0.0.1
+  
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: rocketmq-broker
+  name: rocketmq-broker
+  namespace: default
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      app: rocketmq
-  serviceName: rocketmq-headless
-  replicas: 1
+      app: rocketmq-broker
   template:
     metadata:
       labels:
-        app: rocketmq
+        app: rocketmq-broker
+    spec:
+      containers:
+        - name: broker
+          env:
+            - name: NAMESRV_ADDR     #通过环境变量指定namesrv 地址，注意该值为namesrv svc地址
+              value: rocketmq-dialevoneid:9876
+          image: rocketmqinc/rocketmq:4.4.0
+          command: [ "/bin/sh", "mqbroker","-c", "../conf/broker.conf" ]
+          ports:
+            - containerPort: 30909
+              name: tcp-30909
+              protocol: TCP
+            - containerPort: 30911
+              name: tcp-30911
+              protocol: TCP
+            - containerPort: 30912
+              name: tcp-30912
+              protocol: TCP
+          volumeMounts:
+            - name: config-volume
+              mountPath: /opt/rocketmq-4.4.0/conf/broker.conf
+              subPath: broker.conf
+          resources:
+            limits:
+              memory: 1200Mi
+            requests:
+              memory: 1200Mi
+      volumes:
+        - name: config-volume
+          configMap:
+            name: rocketmq-broker-config
+            items:
+              - key: broker.conf
+                path: broker.conf
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: rocketmq-namesrv
+  name: rocketmq-namesrv
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocketmq-namesrv
+  template:
+    metadata:
+      labels:
+        app: rocketmq-namesrv
     spec:
       containers:
         - name: namesrv
-          image: rocketmqinc/rocketmq:4.9.3
-          command: [ "sh", "-c", "cd /opt/rocketmq/bin/ && sh mqnamesrv" ]
+          image: rocketmqinc/rocketmq:4.4.0
+          command: [ "/bin/sh", "mqnamesrv" ]
           ports:
             - containerPort: 9876
-              name: namesrv
-        - name: broker
-          image: rocketmqinc/rocketmq:4.9.3
-          command: [ "sh", "-c", "cd /opt/rocketmq/bin/ && sh mqbroker" ]
-          ports:
-            - containerPort: 10909
-              name: broker
-            - containerPort: 10911
-              name: broker-tcp
-  volumeClaimTemplates:
-    - metadata:
-        name: rocketmq-storage
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 10Gi
+              name: tcp-9876
+              protocol: TCP
+          resources:
+            limits:
+              memory: 600Mi
+            requests:
+              memory: 600Mi
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: rocketmq-headless
+  labels:
+    app: rocketmq-dialevoneid
+  name: rocketmq-dialevoneid
+  namespace: default
 spec:
-  clusterIP: None
-  selector:
-    app: rocketmq
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: rocketmq
-spec:
+  type: NodePort
   ports:
-    - port: 9876
+    - name: tcp-9876
+      port: 9876
+      protocol: TCP
       targetPort: 9876
-      protocol: TCP
-      name: namesrv
-    - port: 10909
-      targetPort: 10909
-      protocol: TCP
-      name: broker
-    - port: 10911
-      targetPort: 10911
-      protocol: TCP
-      name: broker-tcp
+      nodePort: 31876
   selector:
-    app: rocketmq
+    app: rocketmq-namesrv
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: rocketmq-demo2
+  name: rocketmq-demo2
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - name: tcp-30909
+      port: 30909
+      protocol: TCP
+      targetPort: 30909
+      nodePort: 30909
 
+    - name: tcp-30911
+      port: 30911
+      protocol: TCP
+      targetPort: 30911
+      nodePort: 30911
+
+    - name: tcp-30912
+      port: 30912
+      protocol: TCP
+      targetPort: 30912
+      nodePort: 30912
+  selector:
+    app: rocketmq-broker
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  labels:
+#    app: rocketmq-dashboard
+#  name: rocketmq-dashboard
+#  namespace: default
+#spec:
+#  ports:
+#    - port: 8080
+#      protocol: TCP
+#      targetPort: 8080
+#  selector:
+#    app: rocketmq-dashboard
