@@ -2705,6 +2705,7 @@ create table cluster_master
     id                   varchar(128)   not null,
     master_host          varchar(255)   not null,
     master_port          varchar(255)   not null,
+    context_path          varchar(255)   not null,
     date_created      timestamp(3) default SYSDATE not null,
     date_updated      timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
@@ -2720,6 +2721,9 @@ on column alert_receiver.master_host
 comment
 on column alert_receiver.master_port
   is 'master port';
+comment
+on column alert_receiver.context_path
+  is 'master context_path';
 comment
 on column alert_receiver.date_created
   is 'create time';

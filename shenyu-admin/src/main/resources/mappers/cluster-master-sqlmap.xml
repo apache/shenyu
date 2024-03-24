@@ -24,6 +24,7 @@
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="master_host" jdbcType="VARCHAR" property="masterHost"/>
         <result column="master_port" jdbcType="VARCHAR" property="masterPort"/>
+        <result column="context_path" jdbcType="VARCHAR" property="contextPath"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
     </resultMap>
@@ -36,12 +37,14 @@
         (id,
         master_host,
         master_port,
+        context_path,
         date_created,
         date_updated)
         VALUES
         (#{id, jdbcType=VARCHAR},
         #{masterHost, jdbcType=VARCHAR},
         #{masterPort, jdbcType=VARCHAR},
+        #{contextPath, jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
         #{dateUpdated, jdbcType=TIMESTAMP})
     </insert>
@@ -60,6 +63,9 @@
             </if>
             <if test="masterPort != null">
                 master_port = #{masterPort, jdbcType=VARCHAR},
+            </if>
+            <if test="contextPath != null">
+                context_path = #{contextPath, jdbcType=VARCHAR},
             </if>
         </set>
         WHERE id = #{id, jdbcType=VARCHAR}
