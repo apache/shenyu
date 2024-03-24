@@ -25,11 +25,10 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.AlertReceiverQuery;
 import org.apache.shenyu.admin.service.AlertDispatchService;
 import org.apache.shenyu.admin.service.AlertReceiverService;
+import org.apache.shenyu.admin.transfer.AlertTransfer;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.apache.shenyu.common.dto.AlarmContent;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -47,16 +46,19 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     
     private static final String ALERT_TEST_CONTENT = "test send msg! \n This is the test data. It is proved that it can be received successfully";
     
-    @Autowired
-    private AlertReceiverMapper alertReceiverMapper;
+    private final AlertReceiverMapper alertReceiverMapper;
     
-    @Autowired
-    private AlertDispatchService alertDispatchService;
-    
+    private final AlertDispatchService alertDispatchService;
+
+    public AlertReceiverServiceImpl(final AlertReceiverMapper alertReceiverMapper,
+                                    final AlertDispatchService alertDispatchService) {
+        this.alertReceiverMapper = alertReceiverMapper;
+        this.alertDispatchService = alertDispatchService;
+    }
+
     @Override
     public void addReceiver(final AlertReceiverDTO alertReceiverDTO) {
-        AlertReceiverDO receiverDO = new AlertReceiverDO();
-        BeanUtils.copyProperties(alertReceiverDTO, receiverDO);
+        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReciverDO(alertReceiverDTO);
         receiverDO.setId(UUIDUtils.getInstance().generateShortUuid());
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         receiverDO.setDateCreated(currentTime);
@@ -73,8 +75,7 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     
     @Override
     public void updateReceiver(final AlertReceiverDTO alertReceiverDTO) {
-        AlertReceiverDO receiverDO = new AlertReceiverDO();
-        BeanUtils.copyProperties(alertReceiverDTO, receiverDO);
+        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReciverDO(alertReceiverDTO);
         alertDispatchService.clearCache();
         alertReceiverMapper.updateByPrimaryKey(receiverDO);
     }
@@ -90,21 +91,15 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
         return PageResultUtils.result(receiverQuery.getPageParameter(), 
             () -> alertReceiverMapper.selectByQuery(receiverQuery)
                           .stream()
-                          .map(item -> {
-                              AlertReceiverDTO receiverDTO = new AlertReceiverDTO();
-                              BeanUtils.copyProperties(item, receiverDTO);
-                              return receiverDTO;
-                          })
+                          .map(AlertTransfer.INSTANCE::mapToAlertReceiverDTO)
                           .collect(Collectors.toList()));
     }
     
     @Override
     public AlertReceiverDTO detail(final String id) {
-        AlertReceiverDTO receiverDTO = new AlertReceiverDTO();
         AlertReceiverDO receiverDO = alertReceiverMapper.selectByPrimaryKey(id);
         if (receiverDO != null) {
-            BeanUtils.copyProperties(receiverDO, receiverDTO);
-            return receiverDTO;
+            return AlertTransfer.INSTANCE.mapToAlertReceiverDTO(receiverDO);
         } else {
             return null;
         }

@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -85,7 +86,7 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
     }
 
     private int update(final MockRequestRecordDTO mockRequestRecordDTO) {
-        if (mockRequestRecordDTO == null || mockRequestRecordDTO.getId() == null) {
+        if (Objects.isNull(mockRequestRecordDTO) || Objects.isNull(mockRequestRecordDTO.getId())) {
             return 0;
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());

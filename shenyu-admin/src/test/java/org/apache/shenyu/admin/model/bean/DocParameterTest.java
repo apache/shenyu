@@ -67,4 +67,20 @@ public final class DocParameterTest {
         final String example = docParameter.getExample();
         assertEquals("shenyuXExample", docParameter.getExample());
     }
+
+    @Test
+    public void testCopy() {
+        DocParameter copied = DocParameter.copy(docParameter);
+        assertEquals("shenyuDescription", copied.getDescription());
+        assertEquals(0, copied.getId().intValue());
+        assertEquals("shenyuMaxLength", copied.getMaxLength());
+        assertEquals("shenyuSetModule", copied.getModule());
+        assertEquals("shenyuName", copied.getName());
+        assertTrue(copied.isRequired());
+        assertEquals("shenyuType", copied.getType());
+        assertEquals("shenyuXExample", copied.getXExample());
+
+        copied.setRefs(Collections.singletonList(copied));
+        assertEquals(Collections.singletonList(copied), copied.getRefs());
+    }
 }

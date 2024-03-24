@@ -312,7 +312,6 @@ public class AppAuthServiceImpl implements AppAuthService {
                 }
             }
         }
-        this.syncData();
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
             return ConfigImportResult.fail(successCount, "import fail appKey: " + errorMsgBuilder);
         }
@@ -402,6 +401,33 @@ public class AppAuthServiceImpl implements AppAuthService {
         }).collect(Collectors.toList());
 
         appAuthMapper.updateEnableBatch(distinctIds, enabled);
+
+        // publish change event.
+        if (CollectionUtils.isNotEmpty(authDataList)) {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.UPDATE,
+                    authDataList));
+        }
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    public String opened(final List<String> ids, final Boolean enabled) {
+        List<String> distinctIds = ids.stream().distinct().collect(Collectors.toList());
+        List<AppAuthDO> appAuthDOList = appAuthMapper.selectByIds(distinctIds);
+        if (CollectionUtils.isEmpty(appAuthDOList)) {
+            return AdminConstants.ID_NOT_EXIST;
+        }
+
+        Map<String, List<AuthParamData>> paramMap = this.prepareAuthParamData(distinctIds);
+        Map<String, List<AuthPathData>> pathMap = this.prepareAuthPathData(distinctIds);
+
+        List<AppAuthData> authDataList = appAuthDOList.stream().map(appAuthDO -> {
+            String id = appAuthDO.getId();
+            appAuthDO.setEnabled(enabled);
+            return this.buildByEntityWithParamAndPath(appAuthDO, paramMap.get(id), pathMap.get(id));
+        }).collect(Collectors.toList());
+
+        appAuthMapper.batchUpdateAppAuth(distinctIds, enabled);
 
         // publish change event.
         if (CollectionUtils.isNotEmpty(authDataList)) {

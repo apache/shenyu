@@ -52,7 +52,7 @@ public class Resilience4JHandle {
     private long timeoutDuration = Constants.TIMEOUT_DURATION;
 
     /**
-     * circuitBreaker timeoutDuration.
+     * circuitBreaker fallbackUri.
      */
     private String fallbackUri = "/fallback/resilience4j";
 
@@ -77,7 +77,7 @@ public class Resilience4JHandle {
     private int waitIntervalFunctionInOpenState = Constants.WAIT_INTERVAL_FUNCTION_IN_OPEN_STATE;
 
     /**
-     * circuitBreaker waitIntervalFunctionInOpenState.
+     * circuitBreaker permittedNumberOfCallsInHalfOpenState.
      */
     private int permittedNumberOfCallsInHalfOpenState = Constants.PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE;
 

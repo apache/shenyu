@@ -36,11 +36,14 @@ import org.apache.shenyu.plugin.hystrix.command.HystrixCommandOnThread;
 import org.apache.shenyu.plugin.hystrix.handler.HystrixPluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Subscription;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Hystrix Plugin.
@@ -74,7 +77,10 @@ public class HystrixPlugin extends AbstractShenyuPlugin {
             LOG.error("hystrix execute exception:", throwable);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
             chain.execute(exchange);
-        }).then();
+        }).then().doFinally(monoV -> {
+            final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.METRICS_HYSTRIX);
+            Optional.ofNullable(consumer).ifPresent(c -> c.accept(exchange.getResponse().getStatusCode()));
+        });
     }
 
     private Command fetchCommand(final HystrixHandle hystrixHandle, final ServerWebExchange exchange, final ShenyuPluginChain chain, final String commandKey, final String groupKey) {

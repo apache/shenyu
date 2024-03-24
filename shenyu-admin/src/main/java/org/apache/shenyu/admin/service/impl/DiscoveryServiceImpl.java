@@ -223,7 +223,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     private DiscoveryVO update(final DiscoveryDTO discoveryDTO) {
-        if (discoveryDTO == null || discoveryDTO.getId() == null) {
+        if (Objects.isNull(discoveryDTO) || Objects.isNull(discoveryDTO.getId())) {
             return null;
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
@@ -377,10 +377,6 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                         .mapToDO(discoveryDTO.getDiscoveryRel());
                 discoveryRelMapper.insertSelective(discoveryRelDO);
             }
-        }
-        // sync data
-        if (successCount > 0) {
-            this.syncData();
         }
 
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
