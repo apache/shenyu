@@ -135,9 +135,6 @@ public class ShenyuTrie {
             selectorData = (SelectorData) source;
             node = keyRootMap.computeIfAbsent(selectorData.getPluginName(), key -> new ShenyuTrieNode("/", "/", false));
         }
-        if (TrieMatchModeEnum.PATH_PATTERN.equals(matchMode)) {
-            checkLegalPath(uriPath, pathParts);
-        }
         for (int i = 0; i < pathParts.length; i++) {
             node = putNode0(pathParts[i], node);
             if (Objects.isNull(node)) {
