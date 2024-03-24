@@ -289,6 +289,7 @@ public class ClusterMasterDO implements Serializable {
             clusterMasterDO.setId(id);
             clusterMasterDO.setMasterHost(masterHost);
             clusterMasterDO.setMasterPort(masterPort);
+            clusterMasterDO.setContextPath(contextPath);
             clusterMasterDO.setDateCreated(dateCreated);
             clusterMasterDO.setDateUpdated(dateUpdated);
             return clusterMasterDO;
