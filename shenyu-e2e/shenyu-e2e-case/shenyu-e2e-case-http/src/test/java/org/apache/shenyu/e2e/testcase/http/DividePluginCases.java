@@ -34,6 +34,8 @@ import org.apache.shenyu.e2e.model.MatchMode;
 import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.data.Condition;
 import org.junit.jupiter.api.Assertions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -52,6 +54,8 @@ public class DividePluginCases implements ShenYuScenarioProvider {
     private static final String TOPIC = "shenyu-access-logging";
 
     private static final String TEST = "/http/order/findById?id=123";
+
+    private static final Logger LOG = LoggerFactory.getLogger(DividePluginCases.class);
 
     @Override
     public List<ScenarioSpec> get() {
@@ -104,6 +108,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         consumer.subscribe(TOPIC, "*");
                                         consumer.registerMessageListener(new MessageListenerConcurrently() {
                                             public ConsumeConcurrentlyStatus consumeMessage(final List<MessageExt> msgs, final ConsumeConcurrentlyContext consumeConcurrentlyContext) {
+                                                LOG.info("msgs:{}", msgs);
                                                 if (CollectionUtils.isNotEmpty(msgs)) {
                                                     msgs.forEach(e -> {
                                                         if (new String(e.getBody()).contains("/http/order/findById?id=23")) {
@@ -114,8 +119,10 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
                                             }
                                         });
+                                        LOG.info("isLog.get():{}", isLog.get());
                                         consumer.start();
                                         Thread.sleep(4000);
+                                        LOG.info("isLog.get():{}", isLog.get());
                                         Assertions.assertEquals(true, isLog.get());
                                     } catch (Exception e) {
                                         Assertions.assertEquals(true, isLog.get());
