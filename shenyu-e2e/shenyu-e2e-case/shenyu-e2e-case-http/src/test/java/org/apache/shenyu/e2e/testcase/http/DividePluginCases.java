@@ -125,7 +125,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         LOG.info("isLog.get():{}", isLog.get());
                                         Assertions.assertEquals(true, isLog.get());
                                     } catch (Exception e) {
-                                        Assertions.assertEquals(true, isLog.get());
+                                        Assertions.assertTrue(isLog.get());
                                     }
                                 })
                                 .build()
