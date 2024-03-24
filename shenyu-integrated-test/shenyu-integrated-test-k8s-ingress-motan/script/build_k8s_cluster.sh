@@ -20,8 +20,5 @@ kind load docker-image "shenyu-examples-motan:latest"
 kind load docker-image "apache/shenyu-integrated-test-k8s-ingress-motan:latest"
 kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-motan/deploy/deploy-shenyu.yaml
 kubectl apply -f ./shenyu-examples/shenyu-examples-motan/shenyu-examples-motan-service/k8s/shenyu-zookeeper.yml
-
-sleep 30
-
 kubectl apply -f ./shenyu-examples/shenyu-examples-motan/shenyu-examples-motan-service/k8s/shenyu-examples-motan.yml
 kubectl apply -f ./shenyu-examples/shenyu-examples-motan/shenyu-examples-motan-service/k8s/ingress.yml
