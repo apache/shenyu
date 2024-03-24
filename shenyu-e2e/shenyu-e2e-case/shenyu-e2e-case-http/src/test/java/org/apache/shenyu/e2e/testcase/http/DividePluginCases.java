@@ -119,7 +119,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
                                             }
                                         });
-                                        LOG.info("isLog.get( ):{}", isLog.get());
+                                        LOG.info("isLog.get():{}", isLog.get());
                                         consumer.start();
                                         Thread.sleep(1000 * 30);
                                         LOG.info("isLog.get():{}", isLog.get());
