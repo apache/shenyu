@@ -71,7 +71,7 @@ public interface FallbackHandler {
         ServerHttpRequest request = exchange.getRequest();
         // avoid redirect loop, return error.
         boolean isSameUri;
-        if (!Objects.isNull(uri.getScheme())) {
+        if (Objects.nonNull(uri.getScheme())) {
             isSameUri = request.getURI().toString().equals(uri.toString());
         } else {
             String uriStr = UriUtils.repairData(uri.toString());

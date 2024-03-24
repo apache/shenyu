@@ -28,7 +28,6 @@
 
     <modules>
         <module>shenyu-spring-boot-starter-plugin-dubbo-common</module>
-        <module>shenyu-spring-boot-starter-plugin-alibaba-dubbo</module>
         <module>shenyu-spring-boot-starter-plugin-apache-dubbo</module>
     </modules>
 

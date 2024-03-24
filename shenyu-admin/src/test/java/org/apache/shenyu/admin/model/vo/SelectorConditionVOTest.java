@@ -21,10 +21,13 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
+import org.assertj.core.util.Lists;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
+import java.util.List;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -46,5 +49,20 @@ public final class SelectorConditionVOTest extends AbstractReflectGetterSetterTe
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .build()));
+    }
+
+    @Test
+    public void testBuildSelectorConditionVOList() {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        SelectorConditionDO selectorConditionDO = SelectorConditionDO.builder()
+                .paramType(ParamTypeEnum.POST.getName())
+                .operator(OperatorEnum.MATCH.getAlias())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
+        List<SelectorConditionDO> doList = Lists.newArrayList(selectorConditionDO);
+        List<SelectorConditionVO> voList = SelectorConditionVO.buildSelectorConditionVOList(doList);
+        assertNotNull(voList);
+        assertEquals(voList.size(), doList.size());
     }
 }

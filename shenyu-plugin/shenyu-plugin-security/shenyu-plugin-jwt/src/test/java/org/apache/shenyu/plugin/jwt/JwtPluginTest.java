@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.jwt;
 
 import com.google.common.collect.ImmutableMap;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -152,10 +151,10 @@ public final class JwtPluginTest {
         Map<String, Object> map = ImmutableMap.<String, Object>builder().put("userId", 1).build();
 
         String token = Jwts.builder()
-                .setIssuedAt(new Date(1636371125000L))
-                .setExpiration(new Date())
-                .setClaims(map)
-                .signWith(Keys.hmacShaKeyFor(secreteKey.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
+                .claims(map)
+                .issuedAt(new Date(1636371125000L))
+                .expiration(new Date(new Date().getTime() + 10000L))
+                .signWith(Keys.hmacShaKeyFor(secreteKey.getBytes(StandardCharsets.UTF_8)))
                 .compact();
 
         return MockServerWebExchange.from(MockServerHttpRequest

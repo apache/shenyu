@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.model.entity.AuthPathDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
@@ -44,6 +45,7 @@ import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -110,7 +112,7 @@ public final class AppAuthServiceTest {
     public void testUpdateDetail() {
         AppAuthDTO appAuthDTO = buildAppAuthDTO(UUIDUtils.getInstance().generateShortUuid());
         List<AuthParamDTO> authParamDTOList = Collections.singletonList(buildAuthParamDTO());
-        appAuthDTO.setAuthParamDTOList(authParamDTOList);
+        appAuthDTO.setAuthParamList(authParamDTOList);
         ShenyuAdminResult successResult = this.appAuthService.updateDetail(appAuthDTO);
         assertEquals(CommonErrorCode.SUCCESSFUL, successResult.getCode().intValue());
     }
@@ -147,6 +149,20 @@ public final class AppAuthServiceTest {
     }
 
     @Test
+    public void testOpened() {
+        BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
+        batchCommonDTO.setEnabled(Boolean.TRUE);
+        batchCommonDTO.setIds(Collections.singletonList(appAuthDO.getId()));
+        assertEquals(AdminConstants.ID_NOT_EXIST, this.appAuthService.opened(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
+
+        given(this.appAuthMapper.selectById(appAuthDO.getId())).willReturn(appAuthDO);
+        given(this.appAuthMapper.selectByIds(Collections.singletonList(appAuthDO.getId()))).willReturn(Collections.singletonList(appAuthDO));
+        assertEquals(StringUtils.EMPTY, this.appAuthService.opened(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
+        AppAuthVO appAuthVO = this.appAuthService.findById(appAuthDO.getId());
+        assertEquals(Boolean.TRUE, appAuthVO.getOpen());
+    }
+
+    @Test
     public void testEnabled() {
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setEnabled(Boolean.TRUE);
@@ -172,7 +188,7 @@ public final class AppAuthServiceTest {
         AppAuthVO appAuthVO = this.appAuthService.findById(appAuthDO.getId());
         assertNotNull(appAuthVO);
         assertEquals(appAuthDO.getId(), appAuthVO.getId());
-        assertNotNull(appAuthVO.getAuthParamVOList());
+        assertNotNull(appAuthVO.getAuthParamList());
     }
 
     @Test
@@ -215,6 +231,29 @@ public final class AppAuthServiceTest {
         List<AppAuthData> appAuthDataList = this.appAuthService.listAll();
         assertEquals(1, appAuthDataList.size());
         assertEquals(appAuthDO.getAppKey(), appAuthDataList.get(0).getAppKey());
+    }
+
+    @Test
+    public void testListAllData() {
+        given(this.appAuthMapper.selectAll()).willReturn(Collections.singletonList(appAuthDO));
+        List<AppAuthVO> appAuthDataList = this.appAuthService.listAllData();
+        assertEquals(1, appAuthDataList.size());
+        assertEquals(appAuthDO.getAppKey(), appAuthDataList.get(0).getAppKey());
+    }
+
+    @Test
+    public void testImportData() {
+        List<AppAuthDO> list = Lists.newArrayList(new AppAuthDO());
+        when(appAuthMapper.selectAll()).thenReturn(list);
+
+        AppAuthDTO appAuthDTO = buildAppAuthDTO();
+        final List<AppAuthDTO> appAuthDTOList = Collections.singletonList(appAuthDTO);
+        given(this.appAuthMapper.insertSelective(any())).willReturn(1);
+
+        ConfigImportResult configImportResult = this.appAuthService.importData(appAuthDTOList);
+
+        assertNotNull(configImportResult);
+        Assertions.assertEquals(configImportResult.getSuccessCount(), appAuthDTOList.size());
     }
 
     @Test

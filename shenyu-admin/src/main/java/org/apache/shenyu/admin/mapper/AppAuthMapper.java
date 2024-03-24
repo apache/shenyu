@@ -32,7 +32,7 @@ import java.util.List;
  */
 @Mapper
 public interface AppAuthMapper extends ExistProvider {
-    
+
     /**
      * exited.
      *
@@ -41,7 +41,7 @@ public interface AppAuthMapper extends ExistProvider {
      */
     @Override
     Boolean existed(@Param("id") Serializable id);
-    
+
     /**
      * exited.
      *
@@ -49,7 +49,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @return existed
      */
     Boolean appKeyExisted(@Param("appKey") Serializable appKey);
-    
+
     /**
      * select application authority by id.
      *
@@ -57,7 +57,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @return {@linkplain AppAuthDO}
      */
     AppAuthDO selectById(String id);
-    
+
     /**
      * select application authority by id.
      *
@@ -65,7 +65,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @return {@linkplain AppAuthDO}
      */
     List<AppAuthDO> selectByIds(List<String> ids);
-    
+
     /**
      * select application authority by query.
      *
@@ -73,14 +73,14 @@ public interface AppAuthMapper extends ExistProvider {
      * @return {@linkplain List}
      */
     List<AppAuthDO> selectByQuery(AppAuthQuery appAuthQuery);
-    
+
     /**
      * select all.
      *
      * @return {@linkplain List}
      */
     List<AppAuthDO> selectAll();
-    
+
     /**
      * count application authority by query.
      *
@@ -88,7 +88,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @return {@linkplain Integer}
      */
     Integer countByQuery(AppAuthQuery appAuthQuery);
-    
+
     /**
      * insert application authority.
      *
@@ -96,7 +96,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @return rows int
      */
     int insert(AppAuthDO appAuthDO);
-    
+
     /**
      * insert selective application authority.
      *
@@ -104,7 +104,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @return rows int
      */
     int insertSelective(AppAuthDO appAuthDO);
-    
+
     /**
      * update application authority.
      *
@@ -112,7 +112,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @return rows int
      */
     int update(AppAuthDO appAuthDO);
-    
+
     /**
      * Update enable int.
      *
@@ -120,7 +120,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @return the int
      */
     int updateEnable(AppAuthDO appAuthDO);
-    
+
     /**
      * update enable batch.
      *
@@ -129,8 +129,17 @@ public interface AppAuthMapper extends ExistProvider {
      * @return the count
      */
     int updateEnableBatch(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
-    
-    
+
+    /**
+     * update open batch.
+     *
+     * @param idList  the ids
+     * @param enabled the status
+     * @return the count
+     */
+    int batchUpdateAppAuth(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
+
+
     /**
      * Update app secret by app key int.
      *
@@ -139,7 +148,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @return the int
      */
     int updateAppSecretByAppKey(@Param("appKey") String appKey, @Param("appSecret") String appSecret);
-    
+
     /**
      * update selective application authority.
      *
@@ -147,7 +156,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @return rows int
      */
     int updateSelective(AppAuthDO appAuthDO);
-    
+
     /**
      * deleteSelector application authority.
      *
@@ -155,7 +164,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @return rows int
      */
     int delete(String id);
-    
+
     /**
      * deleteSelector application authority.
      *
@@ -163,7 +172,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @return rows int
      */
     int deleteByIds(List<String> ids);
-    
+
     /**
      * Find by app key app auth do.
      *
@@ -171,7 +180,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @return the app auth do
      */
     AppAuthDO findByAppKey(String appKey);
-    
+
     /**
      * select by condition.
      *
