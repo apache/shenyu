@@ -104,7 +104,6 @@ spec:
       labels:
         app: rocketmq-namesrv
     spec:
-      hostNetwork: true
       containers:
         - name: namesrv
           image: rocketmqinc/rocketmq:4.4.0
