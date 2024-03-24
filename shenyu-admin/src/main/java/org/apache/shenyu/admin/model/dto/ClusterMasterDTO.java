@@ -44,6 +44,11 @@ public class ClusterMasterDTO implements Serializable {
     private String masterPort;
 
     /**
+     * the master contextPath.
+     */
+    private String contextPath;
+
+    /**
      * create time.
      */
     private Date dateCreated;
@@ -102,7 +107,23 @@ public class ClusterMasterDTO implements Serializable {
     public void setMasterPort(final String masterPort) {
         this.masterPort = masterPort;
     }
-
+    
+    /**
+     * Get context path.
+     * @return context path
+     */
+    public String getContextPath() {
+        return contextPath;
+    }
+    
+    /**
+     * Set context path.
+     * @param contextPath context path
+     */
+    public void setContextPath(final String contextPath) {
+        this.contextPath = contextPath;
+    }
+    
     /**
      * getDateCreated.
      *

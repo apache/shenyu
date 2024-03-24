@@ -18,12 +18,7 @@
 package org.apache.shenyu.admin.transfer;
 
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
-import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.entity.ClusterMasterDO;
-import org.apache.shenyu.admin.model.entity.MetaDataDO;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-
-import java.util.Optional;
 
 /**
  * The interface Cluster Master transfer.
@@ -46,6 +41,7 @@ public enum ClusterMasterTransfer {
         clusterMasterDTO.setId(clusterMasterDO.getId());
         clusterMasterDTO.setMasterHost(clusterMasterDO.getMasterHost());
         clusterMasterDTO.setMasterPort(clusterMasterDO.getMasterPort());
+        clusterMasterDTO.setContextPath(clusterMasterDO.getContextPath());
         clusterMasterDTO.setDateCreated(clusterMasterDO.getDateCreated());
         clusterMasterDTO.setDateUpdated(clusterMasterDO.getDateUpdated());
         return clusterMasterDTO;
