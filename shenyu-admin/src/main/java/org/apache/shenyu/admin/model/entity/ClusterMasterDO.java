@@ -44,6 +44,11 @@ public class ClusterMasterDO implements Serializable {
     private String masterPort;
 
     /**
+     * the contextPath.
+     */
+    private String contextPath;
+
+    /**
      * created time.
      */
     private Timestamp dateCreated;
@@ -113,7 +118,23 @@ public class ClusterMasterDO implements Serializable {
     public void setMasterPort(final String masterPort) {
         this.masterPort = masterPort;
     }
-
+    
+    /**
+     * Get the contextPath.
+     * @return contextPath
+     */
+    public String getContextPath() {
+        return contextPath;
+    }
+    
+    /**
+     * Set the contextPath.
+     * @param contextPath contextPath
+     */
+    public void setContextPath(final String contextPath) {
+        this.contextPath = contextPath;
+    }
+    
     /**
      * getDateCreated.
      *
@@ -178,6 +199,11 @@ public class ClusterMasterDO implements Serializable {
         private String masterPort;
 
         /**
+         * the master contextPath.
+         */
+        private String contextPath;
+
+        /**
          * created time.
          */
         private Timestamp dateCreated;
@@ -217,6 +243,17 @@ public class ClusterMasterDO implements Serializable {
          */
         public ClusterMasterDOBuilder masterPort(final String masterPort) {
             this.masterPort = masterPort;
+            return this;
+        }
+
+        /**
+         * master contextPath.
+         *
+         * @param contextPath the master contextPath.
+         * @return ClusterMasterDOBuilder.
+         */
+        public ClusterMasterDOBuilder contextPath(final String contextPath) {
+            this.contextPath = contextPath;
             return this;
         }
 

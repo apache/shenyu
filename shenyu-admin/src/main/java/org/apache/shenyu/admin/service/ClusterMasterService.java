@@ -28,8 +28,9 @@ public interface ClusterMasterService {
      * select master.
      * @param masterHost master host
      * @param masterPort master host
+     * @param contextPath master contextPath
      */
-    void selectMaster(String masterHost, String masterPort);
+    void selectMaster(String masterHost, String masterPort, String contextPath);
 
     /**
      * check master.

@@ -40,12 +40,13 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
     }
 
     @Override
-    public void selectMaster(String masterHost, String masterPort) {
+    public void selectMaster(String masterHost, String masterPort, String contextPath) {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         ClusterMasterDO masterDO = ClusterMasterDO.builder()
                 .id(MASTER_ID)
                 .masterHost(masterHost)
                 .masterPort(masterPort)
+                .contextPath(contextPath)
                 .dateCreated(now)
                 .dateUpdated(now)
                 .build();
