@@ -93,10 +93,6 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 .checker(exists(TEST))
                                 .build()
                 )
-//                .beforeEachSpec(
-//                        ShenYuBeforeEachSpec.builder().checker(supplier -> Assertions.assertTrue(SocketUtils.checkUrl("http://localhost:31876", 3000))
-//                        ).build()
-//                )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
                                 .add(request -> {
