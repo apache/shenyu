@@ -31,7 +31,7 @@ data:
     managePort=30912
     haListenPort=30912
     fastListenPort=30909
-    brokerIP1=rocketmq-dialevoneid
+    brokerIP1=rocketmq-demo2
   
 
 ---
