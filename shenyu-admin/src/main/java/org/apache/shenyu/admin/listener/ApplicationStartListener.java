@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.admin.utils.ShenyuDomain;
 import org.apache.shenyu.common.utils.IpUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
@@ -36,13 +37,16 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
     @Resource
     private LoadServiceDocEntry loadServiceDocEntry;
 
+    @Value("${server.servlet.context-path:}")
+    private String contextPath;
+
     @Override
     public void onApplicationEvent(final WebServerInitializedEvent event) {
         int port = event.getWebServer().getPort();
         final String host = IpUtils.getHost();
         final String domain = System.getProperty("shenyu.httpPath");
         if (StringUtils.isBlank(domain)) {
-            ShenyuDomain.getInstance().setHttpPath("http://" + String.join(":", host, String.valueOf(port)));
+            ShenyuDomain.getInstance().setHttpPath("http://" + String.join(":", host, String.valueOf(port)) + contextPath);
         } else {
             ShenyuDomain.getInstance().setHttpPath(domain);
         }

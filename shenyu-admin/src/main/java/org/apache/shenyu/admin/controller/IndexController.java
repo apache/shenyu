@@ -34,7 +34,7 @@ public class IndexController {
      * @param model the model
      * @return the string
      */
-    @RequestMapping("/index")
+    @RequestMapping(value = {"/index", "/"})
     public String index(final Model model) {
         model.addAttribute("domain", ShenyuDomain.getInstance().getHttpPath());
         return "index";
