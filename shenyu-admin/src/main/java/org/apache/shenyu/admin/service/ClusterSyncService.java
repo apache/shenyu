@@ -17,39 +17,18 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 
 /**
- * Cluster Master service.
+ * Cluster Sync service.
  */
-public interface ClusterMasterService {
-
+public interface ClusterSyncService {
+    
     /**
-     * select master.
-     * @param masterHost master host
-     * @param masterPort master host
-     * @param contextPath master contextPath
+     * Sync data.
+     *
+     * @param registerDTO data register dto
+     * @return sync result
      */
-    void selectMaster(String masterHost, String masterPort, String contextPath);
-
-    /**
-     * check master.
-     * @param myHost my host
-     * @param myPort my port
-     * @param contextPath my contextPath
-     * @return am i master
-     */
-    boolean checkMaster(String myHost, String myPort, String contextPath);
-
-    /**
-     * check master.
-     * @return am i master
-     */
-    boolean checkMaster();
-
-    /**
-     * Get master.
-     * @return ClusterMasterDTO
-     */
-    ClusterMasterDTO getMaster();
+    String clusterSync(DataTypeParent registerDTO);
 }
