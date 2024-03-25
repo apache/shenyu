@@ -58,10 +58,11 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
     }
 
     @Override
-    public boolean checkMaster(String myHost, String myPort) {
+    public boolean checkMaster(String myHost, String myPort, String contextPath) {
         ClusterMasterDO masterDO = ClusterMasterDO.builder()
                 .masterHost(myHost)
                 .masterPort(myPort)
+                .contextPath(contextPath)
                 .build();
         return clusterMasterMapper.count(masterDO) > 0;
     }

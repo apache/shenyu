@@ -36,9 +36,10 @@ public interface ClusterMasterService {
      * check master.
      * @param myHost my host
      * @param myPort my port
+     * @param contextPath my contextPath
      * @return am i master
      */
-    boolean checkMaster(String myHost, String myPort);
+    boolean checkMaster(String myHost, String myPort, String contextPath);
 
     /**
      * Get master.
