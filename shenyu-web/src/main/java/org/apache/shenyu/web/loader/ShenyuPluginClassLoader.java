@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.web.loader;
 
-import org.apache.shenyu.plugin.isolation.ExtendDataBase;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.isolation.ExtendDataBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -43,7 +43,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 /**
  * ShenyuUploadPluginClassLoader.
@@ -88,35 +87,22 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
     /**
      * loadUploadedJarResourcesList.
      *
-     * @param classLoader classLoader
-     * @return the list
+     * @param classLoader classLoader.
+     * @return the list.
      */
     public List<ShenyuLoaderResult> loadUploadedJarPlugins(final ClassLoader classLoader) {
         List<ShenyuLoaderResult> results = new ArrayList<>();
-        List<String> names = pluginJar.getClazzMap().keySet().stream()
-                .sorted((a, b) -> b.contains("Configuration") ? 1 : 0 - (a.contains("Configuration") ? 1 : 0)).distinct().collect(Collectors.toList());
-        List<String> beanNames = new ArrayList<>(names.size());
-        // register jar all BeanDefinition
+        Set<String> names = pluginJar.getClazzMap().keySet();
         names.forEach(className -> {
-            String beanName;
+            Object instance;
             try {
-                beanName = registerBeanDefinition(className, classLoader);
-                if (Objects.nonNull(beanName)) {
-                    beanNames.add(beanName);
-                    LOG.info("The class registerBeanDefinition successfully {}", className);
+                instance = getOrCreateSpringBean(className, classLoader);
+                if (Objects.nonNull(instance)) {
+                    results.add(buildResult(instance));
+                    LOG.info("The class successfully loaded into a upload-Jar-plugin {} is registered as a spring bean", className);
                 }
             } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
                 LOG.warn("Registering upload-Jar-plugins succeeds spring bean fails:{}", className, e);
-            }
-        });
-        beanNames.forEach(beanName -> {
-            Object instance;
-            try {
-                instance = SpringBeanUtils.getInstance().getBean(beanName);
-                results.add(buildResult(instance));
-                LOG.info("The class successfully loaded into a upload-Jar-plugin {} is registered as a spring bean", beanName);
-            } catch (Exception e) {
-                LOG.warn("beanFactory doGetBean spring bean fails:{}", beanName, e);
             }
         });
         return results;
@@ -168,7 +154,7 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
         }
     }
 
-    private <T> T registerBeanDefinition(final String className, final ClassLoader classLoader) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    private <T> T getOrCreateSpringBean(final String className, final ClassLoader classLoader) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         if (SpringBeanUtils.getInstance().existBean(className)) {
             T inst = SpringBeanUtils.getInstance().getBeanByClassName(className);
             // if the class is loaded by other classloader, then reload it
@@ -194,7 +180,8 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
                     beanDefinition.setBeanClassName(className);
                     beanDefinition.setAutowireCandidate(true);
                     beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-                    return SpringBeanUtils.getInstance().registerBean(beanDefinition, classLoader);
+                    SpringBeanUtils.getInstance().registerBean(beanDefinition, classLoader);
+                    return SpringBeanUtils.getInstance().getBeanByClassName(className);
                 }
             }
             return null;
