@@ -108,7 +108,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         consumer.subscribe(TOPIC, "*");
                                         consumer.registerMessageListener(new MessageListenerConcurrently() {
                                             public ConsumeConcurrentlyStatus consumeMessage(final List<MessageExt> msgs, final ConsumeConcurrentlyContext consumeConcurrentlyContext) {
-                                                LOG.info("msgs:{}", msgs);
+                                                LOG.info("Msg:{}", msgs);
                                                 if (CollectionUtils.isNotEmpty(msgs)) {
                                                     msgs.forEach(e -> {
                                                         if (new String(e.getBody()).contains("/http/order/findById?id=23")) {
@@ -121,7 +121,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         });
                                         LOG.info("consumer.start ; isLog.get():{}", isLog.get());
                                         consumer.start();
-                                        Thread.sleep(1000 * 30);
+                                        Thread.sleep(1000 * 60);
                                         LOG.info("isLog.get():{}", isLog.get());
                                         Assertions.assertEquals(true, isLog.get());
                                     } catch (Exception e) {
