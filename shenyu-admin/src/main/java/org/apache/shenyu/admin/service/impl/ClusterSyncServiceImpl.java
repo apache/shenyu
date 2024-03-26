@@ -26,10 +26,10 @@ import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -38,16 +38,19 @@ import java.util.Collections;
 @Service
 public class ClusterSyncServiceImpl implements ClusterSyncService {
     
+    private static final Logger LOG = LoggerFactory.getLogger(ClusterSyncServiceImpl.class);
+    
     @Resource
     private ClusterMasterService clusterMasterService;
     
-    private HttpUtils HTTP_UTILS = new HttpUtils();
+    private final HttpUtils httpUtils = new HttpUtils();
     
     @Override
     public String clusterSync(final DataTypeParent registerDTO) {
         String fullUrl = getFullUrl(registerDTO);
         try {
-            Response response = HTTP_UTILS.requestJson(fullUrl,
+            LOG.debug("sync dataType: {} to master", registerDTO.getType().name());
+            Response response = httpUtils.requestJson(fullUrl,
                     JsonUtils.toJson(registerDTO),
                     Collections.EMPTY_MAP);
             return response.body().toString();
@@ -59,7 +62,7 @@ public class ClusterSyncServiceImpl implements ClusterSyncService {
     @NotNull
     private String getFullUrl(final DataTypeParent registerDTO) {
         String fullUrl = getMasterUrl();
-        switch (registerDTO.getType()){
+        switch (registerDTO.getType()) {
             case URI:
                 fullUrl += Constants.URI_PATH;
                 break;
@@ -71,6 +74,8 @@ public class ClusterSyncServiceImpl implements ClusterSyncService {
                 break;
             case DISCOVERY_CONFIG:
                 fullUrl += Constants.DISCOVERY_CONFIG_PATH;
+                break;
+            default:
                 break;
         }
         return fullUrl;

@@ -49,7 +49,7 @@ public class ClusterSelectMasterServiceImpl implements ClusterSelectMasterServic
     }
     
     @Override
-    public void startSelectMaster(String host, String port, String contextPath) {
+    public void startSelectMaster(final String host, final String port, final String contextPath) {
         executorService.scheduleAtFixedRate(new SelectMasterTask(jdbcLockRegistry,
                         clusterMasterService,
                         host, port, contextPath),
@@ -58,7 +58,7 @@ public class ClusterSelectMasterServiceImpl implements ClusterSelectMasterServic
                 TimeUnit.MILLISECONDS);
     }
     
-    static class SelectMasterTask implements Runnable{
+    static class SelectMasterTask implements Runnable {
         
         private static final Logger LOG = LoggerFactory.getLogger(SelectMasterTask.class);
         
@@ -74,8 +74,7 @@ public class ClusterSelectMasterServiceImpl implements ClusterSelectMasterServic
         
         private final String contextPath;
         
-        
-        public SelectMasterTask(final JdbcLockRegistry jdbcLockRegistry,
+        SelectMasterTask(final JdbcLockRegistry jdbcLockRegistry,
                                 final ClusterMasterService clusterMasterService,
                                 final String host,
                                 final String port,
@@ -87,7 +86,7 @@ public class ClusterSelectMasterServiceImpl implements ClusterSelectMasterServic
             this.contextPath = contextPath;
         }
         
-        public void doSelectMaster(String host, String port, String contextPath) {
+        public void doSelectMaster(final String host, final String port, final String contextPath) {
             try {
                 // expires all locks older than 10 seconds
                 jdbcLockRegistry.expireUnusedOlderThan(AdminConstants.TEN_SECONDS_MILLIS_TIME);

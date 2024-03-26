@@ -159,8 +159,7 @@ public class ClusterMasterDTO implements Serializable {
     public void setDateUpdated(final Date dateUpdated) {
         this.dateUpdated = dateUpdated;
     }
-
-
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

@@ -45,17 +45,17 @@ import static org.mockito.Mockito.verify;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class ClusterMasterServiceTest {
     
-    @InjectMocks
-    private ClusterMasterServiceImpl clusterMasterService;
-    
-    @Mock
-    private ClusterMasterMapper clusterMasterMapper;
-    
     private static final String CONTEXT_PATH = "/test";
     
     private static final String PORT = "8080";
     
     private static final String HOST = "127.0.0.1";
+    
+    @InjectMocks
+    private ClusterMasterServiceImpl clusterMasterService;
+    
+    @Mock
+    private ClusterMasterMapper clusterMasterMapper;
     
     @BeforeEach
     public void setUp() {
@@ -63,7 +63,7 @@ public final class ClusterMasterServiceTest {
     }
     
     @Test
-    void testSelectMaster(){
+    void testSelectMaster() {
         given(clusterMasterMapper.insert(any())).willReturn(1);
         
         clusterMasterService.selectMaster(HOST, PORT, CONTEXT_PATH);
@@ -72,7 +72,7 @@ public final class ClusterMasterServiceTest {
     }
     
     @Test
-    void testCheckMasterSuccess(){
+    void testCheckMasterSuccess() {
         given(clusterMasterMapper.count(any())).willReturn(1L);
         
         boolean isMaster = clusterMasterService.checkMaster(HOST, PORT, CONTEXT_PATH);
@@ -81,7 +81,7 @@ public final class ClusterMasterServiceTest {
     }
     
     @Test
-    void testCheckMasterFail(){
+    void testCheckMasterFail() {
         given(clusterMasterMapper.count(any())).willReturn(0L);
         
         boolean isMaster = clusterMasterService.checkMaster(HOST, PORT, CONTEXT_PATH);

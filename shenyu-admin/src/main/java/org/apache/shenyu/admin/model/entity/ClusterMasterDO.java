@@ -61,7 +61,11 @@ public class ClusterMasterDO implements Serializable {
     public ClusterMasterDO() {
     }
 
-    public ClusterMasterDO(String id, String masterHost, String masterPort, Timestamp dateCreated, Timestamp dateUpdated) {
+    public ClusterMasterDO(final String id,
+                           final String masterHost,
+                           final String masterPort,
+                           final Timestamp dateCreated,
+                           final Timestamp dateUpdated) {
         this.id = id;
         this.masterHost = masterHost;
         this.masterPort = masterPort;

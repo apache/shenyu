@@ -22,7 +22,6 @@ import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.model.entity.ClusterMasterDO;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.apache.shenyu.admin.transfer.ClusterMasterTransfer;
-import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -38,8 +37,6 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
 
     private final ClusterMasterMapper clusterMasterMapper;
     
-    private HttpUtils HTTP_UTILS = new HttpUtils();
-    
     @Value("${server.port}")
     private int port;
     
@@ -51,7 +48,7 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
     }
 
     @Override
-    public void selectMaster(String masterHost, String masterPort, String contextPath) {
+    public void selectMaster(final String masterHost, final String masterPort, final String contextPath) {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         ClusterMasterDO masterDO = ClusterMasterDO.builder()
                 .id(MASTER_ID)
@@ -69,7 +66,7 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
     }
 
     @Override
-    public boolean checkMaster(String myHost, String myPort, String contextPath) {
+    public boolean checkMaster(final String myHost, final String myPort, final String contextPath) {
         ClusterMasterDO masterDO = ClusterMasterDO.builder()
                 .masterHost(myHost)
                 .masterPort(myPort)
