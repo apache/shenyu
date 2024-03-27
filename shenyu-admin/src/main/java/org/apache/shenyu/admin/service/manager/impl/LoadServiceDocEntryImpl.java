@@ -156,7 +156,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                     return instance;
                 }).collect(Collectors.toList());
             } catch (Exception e) {
-                LOG.error("Error getting cluster instance list. contextPath={} error={}", contextPath, e);
+                LOG.error("Error getting cluster instance list. contextPath={} error", contextPath, e);
                 return Collections.emptyList();
             }
         }
@@ -241,7 +241,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                     return instance;
                 }).collect(Collectors.toList());
             } catch (Exception e) {
-                LOG.error("Error getting cluster instance list. contextPath={} error={}", contextPath, e);
+                LOG.error("Error getting cluster instance list. contextPath={} error", contextPath, e);
                 return Collections.emptyList();
             }
         }

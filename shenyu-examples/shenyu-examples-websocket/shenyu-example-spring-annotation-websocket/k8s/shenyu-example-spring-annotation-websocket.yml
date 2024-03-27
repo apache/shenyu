@@ -38,12 +38,16 @@ spec:
         - image: shenyu-example-spring-annotation-websocket
           name: shenyu-example-spring-annotation-websocket
           livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
             exec:
               command:
+                - /bin/sh
+                - "-c"
                 - wget -q -O - http://localhost:8001/actuator/health | grep UP || exit 1
-            initialDelaySeconds: 10
-            failureThreshold: 3
-            timeoutSeconds: 2
           env:
             - name: shenyu.register.serverLists
               value: http://shenyu-admin:9095

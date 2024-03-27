@@ -19,7 +19,11 @@ package org.apache.shenyu.admin.transfer;
 
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
+import org.apache.shenyu.admin.model.entity.AuthParamDO;
+import org.apache.shenyu.admin.model.entity.AuthPathDO;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
+import org.apache.shenyu.admin.model.vo.AuthParamVO;
+import org.apache.shenyu.admin.model.vo.AuthPathVO;
 import org.apache.shenyu.common.utils.DateUtils;
 
 import java.util.Optional;
@@ -79,6 +83,40 @@ public enum AppAuthTransfer {
                             .map(u -> DateUtils.localDateTimeToString(u.toLocalDateTime()))
                             .orElse(null));
                     return appAuthVO;
+                })
+                .orElse(null);
+    }
+
+    /**
+     * Map to auth param vo.
+     * @param authParamDO authParamDO
+     * @return authParamVO
+     */
+    public AuthParamVO mapToVO(final AuthParamDO authParamDO) {
+        return Optional.ofNullable(authParamDO)
+                .map(v -> {
+                    AuthParamVO authParamVO = new AuthParamVO();
+                    authParamVO.setAppName(v.getAppName());
+                    authParamVO.setAppParam(v.getAppParam());
+                    return authParamVO;
+                })
+                .orElse(null);
+    }
+
+    /**
+     * Map to auth path vo.
+     * @param authPathDO authPathDO
+     * @return authPathVO
+     */
+    public AuthPathVO mapToVO(final AuthPathDO authPathDO) {
+        return Optional.ofNullable(authPathDO)
+                .map(v -> {
+                    AuthPathVO authPathVO = new AuthPathVO();
+                    authPathVO.setId(v.getId());
+                    authPathVO.setAppName(v.getAppName());
+                    authPathVO.setPath(v.getPath());
+                    authPathVO.setEnabled(v.getEnabled());
+                    return authPathVO;
                 })
                 .orElse(null);
     }

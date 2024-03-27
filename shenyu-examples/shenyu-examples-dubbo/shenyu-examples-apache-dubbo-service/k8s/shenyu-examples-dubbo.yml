@@ -39,12 +39,16 @@ spec:
         - image: shenyu-examples-apache-dubbo-service
           name: shenyu-examples-dubbo
           livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
             exec:
               command:
+                - /bin/sh
+                - "-c"
                 - wget -q -O - http://localhost:8081/actuator/health | grep UP || exit 1
-            initialDelaySeconds: 10
-            failureThreshold: 3
-            timeoutSeconds: 2
           env:
             - name: shenyu.register.serverLists
               value: http://shenyu-admin:9095

@@ -84,7 +84,7 @@ public final class DataPermissionServiceTest {
         dataPermissionDTO.setUserId("1001");
         dataPermissionDTO.setDataId("1");
         dataPermissionDTO.setIsSelected(true);
-        selectorDTO = new SelectorDTO("1", "1", "test", 1, 1, 1, true, false, true, "test", null, false);
+        selectorDTO = new SelectorDTO("1", "1", "test", 1, 1, 1, true, false, true, "test", null, false, null);
     }
 
     @Test
