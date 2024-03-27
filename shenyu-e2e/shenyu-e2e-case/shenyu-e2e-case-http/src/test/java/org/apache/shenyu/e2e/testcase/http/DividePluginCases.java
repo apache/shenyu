@@ -123,7 +123,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         consumer.start();
                                         Thread.sleep(1000 * 60);
                                         LOG.info("isLog.get():{}", isLog.get());
-                                        Assertions.assertEquals(true, isLog.get());
+                                        Assertions.assertTrue(isLog.get());
                                     } catch (Exception e) {
                                         LOG.error("error", e);
                                         Assertions.assertTrue(isLog.get());
