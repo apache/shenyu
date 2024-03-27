@@ -124,3 +124,23 @@ spec:
             requests:
               memory: 600Mi
 status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: rocketmq-dialevoneid
+  name: rocketmq-dialevoneid
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - name: tcp-9876
+      port: 9876
+      protocol: TCP
+      targetPort: 9876
+      nodePort: 31876
+  selector:
+    app: rocketmq-namesrv
+status:
+  loadBalancer: {}
