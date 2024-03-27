@@ -39,15 +39,6 @@ spec:
       containers:
         - image: shenyu-examples-eureka
           name: shenyu-examples-eureka
-          livenessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-            httpGet:
-              port: 8885
-              path: /actuator/health
           env:
             - name: eureka.instance.client.serviceUrl.defaultZone
               value: http://shenyu-examples-eureka:8761
