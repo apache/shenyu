@@ -48,11 +48,10 @@ public class ClusterSyncServiceImpl implements ClusterSyncService {
     @Override
     public String clusterSync(final DataTypeParent registerDTO) {
         String fullUrl = getFullUrl(registerDTO);
-        try {
-            LOG.debug("sync dataType: {} to master", registerDTO.getType().name());
-            Response response = httpUtils.requestJson(fullUrl,
-                    JsonUtils.toJson(registerDTO),
-                    Collections.EMPTY_MAP);
+        LOG.debug("sync dataType: {} to master", registerDTO.getType().name());
+        try (Response response = httpUtils.requestJson(fullUrl,
+                JsonUtils.toJson(registerDTO),
+                Collections.EMPTY_MAP)) {
             return response.body().toString();
         } catch (Exception e) {
             throw new ShenyuException(e);

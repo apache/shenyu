@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.shenyu.admin.service.ClusterMasterService;
-import org.apache.shenyu.admin.service.ClusterSelectMasterService;
+import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.slf4j.Logger;
@@ -32,26 +32,37 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 @Service
-public class ClusterSelectMasterServiceImpl implements ClusterSelectMasterService {
+public class AppStartClusterSelectMasterService {
     
     private final ClusterMasterService clusterMasterService;
     
     private final JdbcLockRegistry jdbcLockRegistry;
     
+    private final UpstreamCheckService upstreamCheckService;
+    
+    private final LoadServiceDocEntry loadServiceDocEntry;
+    
     private final ScheduledExecutorService executorService;
     
-    public ClusterSelectMasterServiceImpl(final JdbcLockRegistry jdbcLockRegistry,
-            final ClusterMasterService clusterMasterService) {
+    public AppStartClusterSelectMasterService(final JdbcLockRegistry jdbcLockRegistry,
+                                              final ClusterMasterService clusterMasterService,
+                                              final UpstreamCheckService upstreamCheckService,
+                                              final LoadServiceDocEntry loadServiceDocEntry) {
         this.jdbcLockRegistry = jdbcLockRegistry;
         this.clusterMasterService = clusterMasterService;
+        this.upstreamCheckService = upstreamCheckService;
+        this.loadServiceDocEntry = loadServiceDocEntry;
         this.executorService = new ScheduledThreadPoolExecutor(1,
                 ShenyuThreadFactory.create("master-selector", true));
     }
     
-    @Override
     public void startSelectMaster(final String host, final String port, final String contextPath) {
-        executorService.scheduleAtFixedRate(new SelectMasterTask(jdbcLockRegistry,
+        executorService.scheduleAtFixedRate(
+                new SelectMasterTask(
+                        jdbcLockRegistry,
                         clusterMasterService,
+                        upstreamCheckService,
+                        loadServiceDocEntry,
                         host, port, contextPath),
                 AdminConstants.TEN_SECONDS_MILLIS_TIME,
                 AdminConstants.TEN_SECONDS_MILLIS_TIME,
@@ -68,6 +79,10 @@ public class ClusterSelectMasterServiceImpl implements ClusterSelectMasterServic
         
         private final ClusterMasterService clusterMasterService;
         
+        private final UpstreamCheckService upstreamCheckService;
+        
+        private final LoadServiceDocEntry loadServiceDocEntry;
+        
         private final String host;
         
         private final String port;
@@ -76,11 +91,15 @@ public class ClusterSelectMasterServiceImpl implements ClusterSelectMasterServic
         
         SelectMasterTask(final JdbcLockRegistry jdbcLockRegistry,
                                 final ClusterMasterService clusterMasterService,
+                                final UpstreamCheckService upstreamCheckService,
+                                final LoadServiceDocEntry loadServiceDocEntry,
                                 final String host,
                                 final String port,
                                 final String contextPath) {
             this.jdbcLockRegistry = jdbcLockRegistry;
             this.clusterMasterService = clusterMasterService;
+            this.upstreamCheckService = upstreamCheckService;
+            this.loadServiceDocEntry = loadServiceDocEntry;
             this.host = host;
             this.port = port;
             this.contextPath = contextPath;
@@ -101,7 +120,12 @@ public class ClusterSelectMasterServiceImpl implements ClusterSelectMasterServic
                     LOG.debug("select master fail, wait for next time");
                     return;
                 }
+                
                 clusterMasterService.selectMaster(host, port, contextPath);
+                
+                upstreamCheckService.setup();
+                
+                loadServiceDocEntry.loadApiDocument();
                 
                 while (true) {
                     try {

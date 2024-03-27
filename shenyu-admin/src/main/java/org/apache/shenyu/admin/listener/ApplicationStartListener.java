@@ -18,8 +18,7 @@
 package org.apache.shenyu.admin.listener;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.service.ClusterSelectMasterService;
-import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
+import org.apache.shenyu.admin.service.impl.AppStartClusterSelectMasterService;
 import org.apache.shenyu.admin.utils.ShenyuDomain;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,14 +35,11 @@ import javax.annotation.Resource;
 @Component
 public class ApplicationStartListener implements ApplicationListener<WebServerInitializedEvent> {
 
-    @Resource
-    private LoadServiceDocEntry loadServiceDocEntry;
-
     @Value("${server.servlet.context-path:}")
     private String contextPath;
     
     @Resource
-    private ClusterSelectMasterService clusterSelectMasterService;
+    private AppStartClusterSelectMasterService appStartClusterSelectMasterService;
 
     @Override
     public void onApplicationEvent(final WebServerInitializedEvent event) {
@@ -55,8 +51,7 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
         } else {
             ShenyuDomain.getInstance().setHttpPath(domain);
         }
-        loadServiceDocEntry.loadApiDocument();
         
-        clusterSelectMasterService.startSelectMaster(host, String.valueOf(port), contextPath);
+        appStartClusterSelectMasterService.startSelectMaster(host, String.valueOf(port), contextPath);
     }
 }
