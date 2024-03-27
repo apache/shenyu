@@ -35,6 +35,7 @@ import reactor.test.StepVerifier;
 import java.net.InetSocketAddress;
 import java.net.URI;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -50,6 +51,8 @@ public final class FallbackHandlerTest {
 
     private TestFallbackHandler testFallbackHandler;
 
+    private TestFallbackAvoidRedirectLoopHandler testFallbackAvoidRedirectLoopHandler;
+
     @BeforeEach
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
@@ -62,6 +65,7 @@ public final class FallbackHandlerTest {
                 .build());
         when(handler.handle(any())).thenReturn(Mono.empty());
         this.testFallbackHandler = new TestFallbackHandler();
+        this.testFallbackAvoidRedirectLoopHandler = new TestFallbackAvoidRedirectLoopHandler();
     }
 
     /**
@@ -76,15 +80,32 @@ public final class FallbackHandlerTest {
      * The fallback test.
      */
     @Test
-    public void fallbackTest() {
+    public void httpFallbackPrefixTest() {
         StepVerifier.create(testFallbackHandler.fallback(exchange, null, mock(RuntimeException.class))).expectSubscription().verifyComplete();
         StepVerifier.create(testFallbackHandler.fallback(exchange, URI.create("http://127.0.0.1:8090/SHENYU"), mock(RuntimeException.class))).expectSubscription().verifyComplete();
+    }
+
+    /**
+     * The fallback test.
+     */
+    @Test
+    public void fallbackPrefixTest() {
+        StepVerifier.create(testFallbackHandler.fallback(exchange, URI.create("fallback:/SHENYU"), mock(RuntimeException.class))).expectSubscription().verifyComplete();
+        assertThrows(RuntimeException.class, () -> StepVerifier.create(testFallbackAvoidRedirectLoopHandler.fallback(exchange,
+                URI.create("fallback:/SHENYU/SHENYU"), mock(RuntimeException.class))).expectSubscription().verifyComplete());
     }
 
     static class TestFallbackHandler implements FallbackHandler {
         @Override
         public Mono<Void> withoutFallback(final ServerWebExchange exchange, final Throwable throwable) {
             return Mono.empty();
+        }
+    }
+
+    static class TestFallbackAvoidRedirectLoopHandler implements FallbackHandler {
+        @Override
+        public Mono<Void> withoutFallback(final ServerWebExchange exchange, final Throwable throwable) {
+            throw new RuntimeException(throwable.getCause());
         }
     }
 }

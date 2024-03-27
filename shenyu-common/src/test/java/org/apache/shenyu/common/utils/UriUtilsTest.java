@@ -41,6 +41,9 @@ public final class UriUtilsTest {
 
         uri = UriUtils.createUri("");
         assertNull(uri);
+
+        uri = UriUtils.createUri("https", "example.com", "/http");
+        assertEquals("https://example.com/http", uri.toString());
     }
 
     @Test
