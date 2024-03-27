@@ -47,7 +47,7 @@ import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBui
 
 public class DividePluginCases implements ShenYuScenarioProvider {
 
-    private static final String NAMESERVER = "http://localhost:31876";
+    private static final String NAMESERVER = "http://localhost:9876";
 
     private static final String CONSUMERGROUP = "shenyu-plugin-logging-rocketmq";
 

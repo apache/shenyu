@@ -31,7 +31,7 @@ data:
     managePort=30912
     haListenPort=30912
     fastListenPort=30909
-    brokerIP1=rocketmq-demo2
+    brokerIP1=localhost
   
 
 ---
@@ -52,21 +52,25 @@ spec:
       labels:
         app: rocketmq-broker
     spec:
+      hostNetwork: true
       containers:
         - name: broker
           env:
             - name: NAMESRV_ADDR     #通过环境变量指定namesrv 地址，注意该值为namesrv svc地址
-              value: rocketmq-dialevoneid:9876
+              value: localhost:9876
           image: rocketmqinc/rocketmq:4.4.0
           command: [ "/bin/sh", "mqbroker","-c", "../conf/broker.conf" ]
           ports:
             - containerPort: 30909
+              hostPort: 30909
               name: tcp-30909
               protocol: TCP
             - containerPort: 30911
+              hostPort: 30911
               name: tcp-30911
               protocol: TCP
             - containerPort: 30912
+              hostPort: 30912
               name: tcp-30912
               protocol: TCP
           volumeMounts:
@@ -104,12 +108,14 @@ spec:
       labels:
         app: rocketmq-namesrv
     spec:
+      hostNetwork: true
       containers:
         - name: namesrv
           image: rocketmqinc/rocketmq:4.4.0
           command: [ "/bin/sh", "mqnamesrv" ]
           ports:
             - containerPort: 9876
+              hostPort: 9876
               name: tcp-9876
               protocol: TCP
           resources:
@@ -118,69 +124,3 @@ spec:
             requests:
               memory: 600Mi
 status: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: rocketmq-dialevoneid
-  name: rocketmq-dialevoneid
-  namespace: default
-spec:
-  type: NodePort
-  ports:
-    - name: tcp-9876
-      port: 9876
-      protocol: TCP
-      targetPort: 9876
-      nodePort: 31876
-  selector:
-    app: rocketmq-namesrv
-status:
-  loadBalancer: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: rocketmq-demo2
-  name: rocketmq-demo2
-  namespace: default
-spec:
-  type: NodePort
-  ports:
-    - name: tcp-30909
-      port: 30909
-      protocol: TCP
-      targetPort: 30909
-      nodePort: 30909
-
-    - name: tcp-30911
-      port: 30911
-      protocol: TCP
-      targetPort: 30911
-      nodePort: 30911
-
-    - name: tcp-30912
-      port: 30912
-      protocol: TCP
-      targetPort: 30912
-      nodePort: 30912
-  selector:
-    app: rocketmq-broker
-status:
-  loadBalancer: {}
-#apiVersion: v1
-#kind: Service
-#metadata:
-#  labels:
-#    app: rocketmq-dashboard
-#  name: rocketmq-dashboard
-#  namespace: default
-#spec:
-#  ports:
-#    - port: 8080
-#      protocol: TCP
-#      targetPort: 8080
-#  selector:
-#    app: rocketmq-dashboard
