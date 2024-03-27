@@ -53,7 +53,7 @@ services:
     image: shenyu-examples-sdk-http:latest
     restart: always
     environment:
-      - shenyu.register.serverLists=http://shenyu-admin:9095
+      - shenyu_register_serverLists=http://shenyu-admin:9095
       - shenyu.sdk.register-type=zookeeper
       - shenyu.sdk.server-lists=shenyu-zk:2181
     healthcheck:
@@ -77,7 +77,7 @@ services:
     image: shenyu-examples-sdk-feign:latest
     restart: always
     environment:
-      - shenyu.register.serverLists=http://shenyu-admin:9095
+      - shenyu_register_serverLists=http://shenyu-admin:9095
       - shenyu.sdk.registerType=zookeeper
       - shenyu.sdk.serverLists=shenyu-zk:2181
     healthcheck:
@@ -104,7 +104,7 @@ services:
     environment:
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
       - shenyu.register.registerType=zookeeper
-      - shenyu.register.serverLists=shenyu-zk:2181
+      - shenyu_register_serverLists=shenyu-zk:2181
     depends_on:
       shenyu-admin:
         condition: service_healthy

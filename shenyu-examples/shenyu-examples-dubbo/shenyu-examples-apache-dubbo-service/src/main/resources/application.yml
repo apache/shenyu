@@ -23,12 +23,12 @@ spring:
     allow-bean-definition-overriding: true
 dubbo:
   registry:
-    address: zookeeper://localhost:2181
+    address: ${dubbo_registry_address:zookeeper://localhost:2181}
     
 shenyu:
   register:
     registerType: http
-    serverLists: http://localhost:9095
+    serverLists: ${shenyu_register_serverLists:http://127.0.0.1:9095}
     props:
       username: admin
       password: 123456

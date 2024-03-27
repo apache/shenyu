@@ -42,7 +42,7 @@ spec:
             failureThreshold: 3
             timeoutSeconds: 2
           env:
-            - name: shenyu.register.serverLists
+            - name: shenyu_register_serverLists
               value: http://shenyu-admin:9095
           ports:
             - containerPort: 8189

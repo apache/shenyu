@@ -44,9 +44,9 @@ spec:
             successThreshold: 1
             failureThreshold: 3
           env:
-            - name: shenyu.register.serverLists
+            - name: shenyu_register_serverLists
               value: http://shenyu-admin:9095
-            - name: eureka.client.serviceUrl.defaultZone
+            - name: eureka_client_serviceUrl_defaultZone
               value: http://shenyu-examples-eureka:8761/eureka/
           ports:
             - containerPort: 8884

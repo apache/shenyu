@@ -47,6 +47,7 @@ spec:
             successThreshold: 1
             failureThreshold: 3
           env:
+            # todo not the prop in application is eureka.client.serviceUrl.defaultZone, not instance
             - name: eureka.instance.client.serviceUrl.defaultZone
               value: http://shenyu-examples-eureka:8761
           ports:

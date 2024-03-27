@@ -42,8 +42,9 @@ spec:
             failureThreshold: 3
             timeoutSeconds: 2
           env:
-            - name: shenyu.register.serverLists
+            - name: shenyu_register_serverLists
               value: http://shenyu-admin:9095
+              # todo not has this property in application yml
             - name: websocket.registry.address
               value: zookeeper://shenyu-zookeeper:2181
           ports:

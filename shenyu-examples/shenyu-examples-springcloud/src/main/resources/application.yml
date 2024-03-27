@@ -36,7 +36,7 @@ eureka:
   client:
     enabled: true
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${eureka_client_serviceUrl_defaultZone:http://localhost:8761/eureka/}
   instance:
     prefer-ip-address: true   
     
@@ -47,7 +47,7 @@ springCloud-test:
 shenyu:
   register:
     registerType: http
-    serverLists: http://localhost:9095
+    serverLists: ${shenyu_register_serverLists:http://127.0.0.1:9095}
     props:
       username: admin
       password: 123456

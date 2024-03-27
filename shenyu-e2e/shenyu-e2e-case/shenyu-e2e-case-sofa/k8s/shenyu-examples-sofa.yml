@@ -35,9 +35,9 @@ spec:
         - image: shenyu-examples-sofa:latest
           name: shenyu-examples-sofa
           env:
-            - name: shenyu.register.serverLists
+            - name: shenyu_register_serverLists
               value: http://shenyu-admin:9095
-            - name: com.alipay.sofa.rpc.registry-address
+            - name: com_alipay_sofa_rpc_registry-address
               value: zookeeper://shenyu-zookeeper:2181
           ports:
             - containerPort: 8011

@@ -26,7 +26,7 @@ spring:
 shenyu:
   register:
     registerType: http
-    serverLists: http://localhost:9095
+    serverLists: ${shenyu_register_serverLists:http://127.0.0.1:9095}
     props:
       username: admin
       password: 123456
@@ -44,8 +44,8 @@ shenyu:
         name: motan2
 motan:
   registry:
-    protocol: zk
-    address: 127.0.0.1:2181
+    protocol: ${motan_registry_protocol:zk}
+    address: ${motan_registry_address:127.0.0.1:2181}
 
 logging:
   level:

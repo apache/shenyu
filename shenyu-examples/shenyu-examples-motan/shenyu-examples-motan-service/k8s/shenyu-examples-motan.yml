@@ -49,11 +49,11 @@ spec:
             failureThreshold: 3
             timeoutSeconds: 2
           env:
-            - name: shenyu.register.serverLists
+            - name: shenyu_register_serverLists
               value: http://shenyu-admin:9095
-            - name: motan.registry.protocol
+            - name: motan_registry_protocol
               value: zookeeper
-            - name: motan.registry.address
+            - name: motan_registry_address
               value: shenyu-zk:2181
           ports:
             - containerPort: 8081
