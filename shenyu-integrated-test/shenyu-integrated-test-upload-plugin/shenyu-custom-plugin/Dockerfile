@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:17-jdk-buster
+FROM openjdk:8-jre-alpine
 ENV APP_NAME shenyu-integrated-test-custom-plugin
 
 ADD target/shenyu-custom-plugin-2.7.0-SNAPSHOT.jar /opt/shenyu-custom-plugin.jar
