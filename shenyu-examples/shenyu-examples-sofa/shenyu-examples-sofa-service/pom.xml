@@ -28,7 +28,8 @@
     <artifactId>shenyu-examples-sofa-service</artifactId>
 
     <properties>
-        <rpc-sofa-boot-starter.version>3.12.1</rpc-sofa-boot-starter.version>
+        <rpc-sofa-boot-starter.version>6.0.4</rpc-sofa-boot-starter.version>
+        <sofa-boot-dependencies.version>4.2.0</sofa-boot-dependencies.version>
         <curator.version>4.3.0</curator.version>
         <micrometer.version>1.8.6</micrometer.version>
     </properties>
@@ -38,7 +39,7 @@
             <dependency>
                 <groupId>com.alipay.sofa</groupId>
                 <artifactId>sofaboot-dependencies</artifactId>
-                <version>${rpc-sofa-boot-starter.version}</version>
+                <version>${sofa-boot-dependencies.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -55,7 +56,20 @@
                     <groupId>io.grpc</groupId>
                     <artifactId>grpc-core</artifactId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>commons-logging</artifactId>
+                    <groupId>commons-logging</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>snakeyaml</artifactId>
+                    <groupId>org.yaml</groupId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.2</version>
         </dependency>
 
         <dependency>
@@ -95,6 +109,10 @@
                 <exclusion>
                     <artifactId>guava</artifactId>
                     <groupId>com.google.guava</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>snakeyaml</artifactId>
+                    <groupId>org.yaml</groupId>
                 </exclusion>
             </exclusions>
         </dependency>

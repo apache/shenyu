@@ -124,7 +124,7 @@
         <prometheus-java-client.version>0.15.0</prometheus-java-client.version>
         <prometheus-jmx.version>0.15.0</prometheus-jmx.version>
         <springdoc.version>1.7.0</springdoc.version>
-        <sofa.rpc.version>5.7.6</sofa.rpc.version>
+        <sofa.rpc.version>5.12.0</sofa.rpc.version>
         <tars.version>1.7.2</tars.version>
         <curator.version>4.3.0</curator.version>
         <wiremock.version>2.18.0</wiremock.version>
