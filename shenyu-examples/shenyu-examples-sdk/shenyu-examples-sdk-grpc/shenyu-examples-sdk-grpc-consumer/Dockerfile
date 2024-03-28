@@ -18,7 +18,6 @@ FROM openjdk:17-jdk-buster
 
 ENV APP_NAME shenyu-examples-sdk-grpc-consumer
 ENV LOCAL_PATH /opt/${APP_NAME}
-ENV JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.math=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/java.security=ALL-UNNAMED --add-opens java.base/java.text=ALL-UNNAMED --add-opens java.base/java.time=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/jdk.internal.access=ALL-UNNAMED --add-opens java.base/jdk.internal.misc=ALL-UNNAMED"
 
 RUN mkdir -p ${LOCAL_PATH}
 
@@ -27,4 +26,4 @@ ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 WORKDIR ${LOCAL_PATH}
 EXPOSE 8899
 
-CMD java -jar ${JAVA_OPTS} ${APP_NAME}.jar
+CMD java -jar ${APP_NAME}.jar
