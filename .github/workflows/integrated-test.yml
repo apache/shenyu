@@ -69,7 +69,7 @@ jobs:
       - uses: actions/setup-java@v3
         if: steps.filter.outputs.changed == 'true'
         with:
-          java-version: 17
+          java-version: 8
           distribution: 'temurin'
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
