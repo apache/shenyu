@@ -52,7 +52,7 @@ public enum DiscoveryTransfer {
      * @param discoveryUpstreamData discoveryUpstreamData
      * @return DiscoveryUpstreamDO
      */
-    public DiscoveryUpstreamDO mapToDo(DiscoveryUpstreamData discoveryUpstreamData) {
+    public DiscoveryUpstreamDO mapToDo(final DiscoveryUpstreamData discoveryUpstreamData) {
         return DiscoveryUpstreamDO.builder()
                 .discoveryHandlerId(discoveryUpstreamData.getDiscoveryHandlerId())
                 .id(discoveryUpstreamData.getId())
@@ -71,7 +71,7 @@ public enum DiscoveryTransfer {
      * @param discoveryUpstreamDO discoveryUpstreamDO
      * @return DiscoveryUpstreamVO
      */
-    public DiscoveryUpstreamVO mapToVo(DiscoveryUpstreamDO discoveryUpstreamDO) {
+    public DiscoveryUpstreamVO mapToVo(final DiscoveryUpstreamDO discoveryUpstreamDO) {
         DiscoveryUpstreamVO vo = new DiscoveryUpstreamVO();
         vo.setId(discoveryUpstreamDO.getId());
         vo.setDiscoveryHandlerId(discoveryUpstreamDO.getDiscoveryHandlerId());
@@ -83,7 +83,6 @@ public enum DiscoveryTransfer {
         vo.setStartupTime(String.valueOf(discoveryUpstreamDO.getDateCreated().getTime()));
         return vo;
     }
-
 
     public DiscoveryRelVO mapToVo(DiscoveryRelDO discoveryRelDO) {
         DiscoveryRelVO discoveryRelVO = new DiscoveryRelVO();
@@ -146,7 +145,7 @@ public enum DiscoveryTransfer {
      * @param discoveryUpstreamDO discoveryUpstreamDO
      * @return DiscoveryUpstreamData
      */
-    public DiscoveryUpstreamData mapToData(DiscoveryUpstreamDO discoveryUpstreamDO) {
+    public DiscoveryUpstreamData mapToData(final DiscoveryUpstreamDO discoveryUpstreamDO) {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setId(discoveryUpstreamDO.getId());
         discoveryUpstreamData.setProtocol(discoveryUpstreamDO.getProtocol());
@@ -166,7 +165,7 @@ public enum DiscoveryTransfer {
      * @param discoveryUpstreamDTO discoveryUpstreamDTO
      * @return DiscoveryUpstreamData
      */
-    public DiscoveryUpstreamData mapToData(DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+    public DiscoveryUpstreamData mapToData(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setId(discoveryUpstreamDTO.getId());
         discoveryUpstreamData.setProtocol(discoveryUpstreamDTO.getProtocol());
@@ -186,7 +185,7 @@ public enum DiscoveryTransfer {
      * @param proxySelectorDTO proxySelectorDTO
      * @return ProxySelectorData
      */
-    public ProxySelectorData mapToData(ProxySelectorDTO proxySelectorDTO) {
+    public ProxySelectorData mapToData(final ProxySelectorDTO proxySelectorDTO) {
         ProxySelectorData proxySelectorData = new ProxySelectorData();
         proxySelectorData.setId(proxySelectorDTO.getId());
         proxySelectorData.setName(proxySelectorDTO.getName());
@@ -205,7 +204,7 @@ public enum DiscoveryTransfer {
      * @param proxySelectorDO proxySelectorDO
      * @return ProxySelectorData
      */
-    public ProxySelectorData mapToData(ProxySelectorDO proxySelectorDO) {
+    public ProxySelectorData mapToData(final ProxySelectorDO proxySelectorDO) {
         ProxySelectorData proxySelectorData = new ProxySelectorData();
         proxySelectorData.setId(proxySelectorDO.getId());
         proxySelectorData.setName(proxySelectorDO.getName());
@@ -224,7 +223,7 @@ public enum DiscoveryTransfer {
      * @param proxySelectorDO proxySelectorDO
      * @return ProxySelectorDTO
      */
-    public ProxySelectorDTO mapToDTO(ProxySelectorDO proxySelectorDO) {
+    public ProxySelectorDTO mapToDTO(final ProxySelectorDO proxySelectorDO) {
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
         proxySelectorDTO.setId(proxySelectorDO.getId());
         proxySelectorDTO.setName(proxySelectorDO.getName());
@@ -241,7 +240,7 @@ public enum DiscoveryTransfer {
      * @param discoveryHandlerDO discoveryHandlerDO
      * @return DiscoveryHandlerDTO
      */
-    public DiscoveryHandlerDTO mapToDTO(DiscoveryHandlerDO discoveryHandlerDO) {
+    public DiscoveryHandlerDTO mapToDTO(final DiscoveryHandlerDO discoveryHandlerDO) {
         DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
         discoveryHandlerDTO.setDiscoveryId(discoveryHandlerDO.getDiscoveryId());
         discoveryHandlerDTO.setHandler(discoveryHandlerDO.getHandler());
@@ -273,7 +272,7 @@ public enum DiscoveryTransfer {
      * @param discoveryUpstreamDO discoveryUpstreamDO
      * @return DiscoveryUpstreamDTO
      */
-    public DiscoveryUpstreamDTO mapToDTO(DiscoveryUpstreamDO discoveryUpstreamDO) {
+    public DiscoveryUpstreamDTO mapToDTO(final DiscoveryUpstreamDO discoveryUpstreamDO) {
         DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
         discoveryUpstreamDTO.setProps(discoveryUpstreamDO.getProps());
         discoveryUpstreamDTO.setStatus(discoveryUpstreamDO.getStatus());

@@ -427,7 +427,6 @@ public class ShenyuRequestLog {
         this.selectorId = selectorId;
     }
 
-
     /**
      * get request ruleId.
      *
@@ -436,7 +435,6 @@ public class ShenyuRequestLog {
     public String getRuleId() {
         return ruleId;
     }
-
 
     /**
      * request ruleId.

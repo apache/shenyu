@@ -65,7 +65,7 @@
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-sofa</artifactId>
+            <artifactId>shenyu-spring-boot-starter-isolation-plugin-sofa</artifactId>
             <version>${project.version}</version>
         </dependency>
 

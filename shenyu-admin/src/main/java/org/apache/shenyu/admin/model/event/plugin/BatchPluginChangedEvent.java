@@ -29,8 +29,7 @@ import java.util.stream.Collectors;
  * BatchPluginChangedEvent.
  */
 public class BatchPluginChangedEvent extends BatchChangedEvent {
-    
-    
+
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *

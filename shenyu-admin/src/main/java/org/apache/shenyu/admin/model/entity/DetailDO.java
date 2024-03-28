@@ -140,7 +140,6 @@ public class DetailDO extends BaseDO {
         return Objects.hash(super.hashCode(), fieldId, example, fieldValue, valueDesc);
     }
 
-
     /**
      * builder.
      *

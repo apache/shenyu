@@ -155,7 +155,6 @@ public class IngressConstants {
 
     public static final String PLUGIN_CONTEXT_PATH_ADD_PREFIXED = "shenyu.apache.org/plugin-context-path-add-prefixed";
 
-
     //The configuration key to specify the Brpc application name for the plugin, in string
     public static final String PLUGIN_BRPC_APP_NAME = "shenyu.apache.org/plugin-brpc-app-name";
 

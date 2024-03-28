@@ -231,8 +231,6 @@ public final class Condition {
         }
     }
 
-
-
     /**
      * class builder.
      *
@@ -382,7 +380,6 @@ public final class Condition {
      * class builder.
      */
     public static final class Builder {
-
 
         /**
          * primary key.

@@ -259,7 +259,6 @@ public final class BaseDataCache {
         return RULE_MAP;
     }
     
-
     /**
      *  cache rule data.
      *

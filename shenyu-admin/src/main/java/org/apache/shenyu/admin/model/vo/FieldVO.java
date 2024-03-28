@@ -180,7 +180,6 @@ public class FieldVO {
         this.ext = ext;
     }
 
-
     /**
      * getId.
      *

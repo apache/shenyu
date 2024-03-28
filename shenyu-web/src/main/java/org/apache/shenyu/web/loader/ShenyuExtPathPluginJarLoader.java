@@ -19,6 +19,7 @@ package org.apache.shenyu.web.loader;
 
 import com.google.common.collect.Sets;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -55,7 +56,7 @@ public class ShenyuExtPathPluginJarLoader {
                 continue;
             }
             byte[] pluginBytes = Files.readAllBytes(Paths.get(absolutePath));
-            PluginJarParser.PluginJar uploadPluginJar = PluginJarParser.parseJar(pluginBytes);
+            PluginJarParser.PluginJar uploadPluginJar = PluginJarParser.parseJar(new ByteArrayInputStream(pluginBytes));
             uploadPluginJar.setAbsolutePath(absolutePath);
             uploadPluginJars.add(uploadPluginJar);
         }

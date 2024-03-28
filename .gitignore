@@ -13,6 +13,7 @@ dependency-reduced-pom.xml
 release.properties
 cobertura.ser
 *.gpg
+plugins
 
 # eclipse ignore
 .settings/

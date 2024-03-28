@@ -44,7 +44,6 @@ public abstract class BaseExcludedSearchCondition implements SearchCondition {
         }
     }
     
-    
     /**
      * set keyword.
      *

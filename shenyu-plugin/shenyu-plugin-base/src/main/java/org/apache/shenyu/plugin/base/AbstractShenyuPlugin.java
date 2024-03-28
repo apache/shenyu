@@ -60,7 +60,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
 
     private static final String URI_CONDITION_TYPE = "uri";
-    
+
     private ShenyuTrie selectorTrie;
     
     private ShenyuTrie ruleTrie;
@@ -119,7 +119,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         printLog(selectorData, pluginName);
         if (!selectorData.getContinued()) {
             // if continued， not match rules
-            return doExecute(exchange, chain, selectorData, defaultRuleData(selectorData));
+            return isolationExecute(exchange, chain, selectorData, defaultRuleData(selectorData));
         }
         List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
         if (CollectionUtils.isEmpty(rules)) {
@@ -129,7 +129,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             //get last
             RuleData rule = rules.get(rules.size() - 1);
             printLog(rule, pluginName);
-            return doExecute(exchange, chain, selectorData, rule);
+            return isolationExecute(exchange, chain, selectorData, rule);
         }
         // lru map as L1 cache,the cache is enabled by default.
         // if the L1 cache fails to hit, using L2 cache based on trie cache.
@@ -150,7 +150,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             }
         }
         printLog(ruleData, pluginName);
-        return doExecute(exchange, chain, selectorData, ruleData);
+        return isolationExecute(exchange, chain, selectorData, ruleData);
     }
     
     protected String getRawPath(final ServerWebExchange exchange) {
@@ -167,6 +167,19 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
             ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
         }
+    }
+
+    private Mono<Void> isolationExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        ClassLoader current = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+            return doExecute(exchange, chain, selector, rule);
+        } catch (Throwable e) {
+            LogUtils.error(LOG, "Plugin class isolation execute failed. plugin: {}, exception: {}", named(), e);
+        } finally {
+            Thread.currentThread().setContextClassLoader(current);
+        }
+        return chain.execute(exchange);
     }
     
     private SelectorData obtainSelectorDataCacheIfEnabled(final String path) {
@@ -442,5 +455,5 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             LOG.info("{} rule success match , rule name :{}", pluginName, ruleData.getName());
         }
     }
-    
+
 }

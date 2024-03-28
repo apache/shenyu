@@ -79,7 +79,6 @@ public class WebSocketCheckers {
         };
     }
 
-
     /**
      * update websocket client uri.
      * @param client client

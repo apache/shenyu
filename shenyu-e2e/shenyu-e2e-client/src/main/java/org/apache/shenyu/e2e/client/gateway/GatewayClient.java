@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
@@ -178,6 +179,9 @@ public class GatewayClient extends BaseClient {
         List<SelectorCacheData> selectorDataList = new ArrayList<>();
         for (Map.Entry entry : s.entrySet()) {
             List list = (List) entry.getValue();
+            if (CollectionUtils.isEmpty(list)) {
+                continue;
+            }
             String json = MAPPER.writeValueAsString(list.get(0));
             SelectorCacheData selectorData = MAPPER.readValue(json, SelectorCacheData.class);
             selectorDataList.add(selectorData);

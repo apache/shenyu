@@ -37,7 +37,6 @@ public class DiscoveryUpstreamData {
      */
     private Timestamp dateUpdated;
 
-
     /**
      * discoveryHandlerId.
      */
@@ -67,7 +66,6 @@ public class DiscoveryUpstreamData {
      * props.
      */
     private String props;
-
 
     /**
      * getDiscoveryHandlerId.

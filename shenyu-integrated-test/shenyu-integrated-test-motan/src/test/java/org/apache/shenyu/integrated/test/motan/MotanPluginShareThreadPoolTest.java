@@ -35,9 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class MotanPluginShareThreadPoolTest extends AbstractPluginDataInit {
 
     @BeforeAll
-    public static void setup() throws IOException {
+    public static void setup() throws IOException, InterruptedException {
         String pluginResult = initPlugin(PluginEnum.MOTAN.getName(), "{\"registerProtocol\":\"zk\",\"registerAddress\":\"shenyu-zk:2181\",\"threadpool\": \"shared\"}");
         assertThat(pluginResult, is("success"));
+        Thread.sleep(10000L);
     }
 
     @Test

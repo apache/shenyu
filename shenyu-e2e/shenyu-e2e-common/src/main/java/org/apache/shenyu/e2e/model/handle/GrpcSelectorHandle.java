@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.e2e.model.handle;
 
-
 /**
  * SpringCLoud selector handle.
  */

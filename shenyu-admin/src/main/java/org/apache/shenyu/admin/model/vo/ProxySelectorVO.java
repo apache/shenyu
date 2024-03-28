@@ -81,7 +81,6 @@ public class ProxySelectorVO implements Serializable {
      */
     private String props;
 
-
     /**
      * discovery.
      */

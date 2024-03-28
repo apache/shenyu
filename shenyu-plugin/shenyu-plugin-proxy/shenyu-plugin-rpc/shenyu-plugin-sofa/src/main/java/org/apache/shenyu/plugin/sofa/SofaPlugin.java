@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.sofa;
 
 import com.alipay.sofa.rpc.context.RpcInvokeContext;
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -41,6 +40,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -110,12 +110,12 @@ public class SofaPlugin extends AbstractShenyuPlugin {
     public boolean skip(final ServerWebExchange exchange) {
         return skipExcept(exchange, RpcTypeEnum.SOFA);
     }
-    
+
     @Override
     protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noSelectorResult(pluginName, exchange);
     }
-    
+
     @Override
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);

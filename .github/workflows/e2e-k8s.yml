@@ -209,6 +209,8 @@ jobs:
             script: e2e-springcloud-sync
           - case: shenyu-e2e-case-apache-dubbo
             script: e2e-apache-dubbo-sync
+          - case: shenyu-e2e-case-motan
+            script: e2e-motan-sync
           - case: shenyu-e2e-case-sofa
             script: e2e-sofa-sync
           - case: shenyu-e2e-case-grpc

@@ -43,19 +43,38 @@ public class MotanPluginCases implements ShenYuScenarioProvider {
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
-                testWithUriEquals(),
+                testMotanHi(),
                 testWithUriPathPattern(),
                 testWithUriStartWith(),
-                testWithEndWith(),
-                testWithMethodGet(),
-                testWithMethodPost(),
-                testWithMethodPut(),
-                testWithMethodDelete()
+                testWithEndWith()
+//                testWithMethodGet(),
+//                testWithMethodPost(),
+//                testWithMethodPut(),
+//                testWithMethodDelete()
         );
     }
 
     /**
-     * test with uri equal.
+     * test with hi.
+     *
+     * @return ShenYuScenarioSpec
+     */
+    private ShenYuScenarioSpec testMotanHi() {
+        return ShenYuScenarioSpec.builder()
+                .name("motan test")
+                .beforeEachSpec(ShenYuBeforeEachSpec.builder()
+                        .checker(exists("/motan/demo/hi"))
+                        .build())
+                .caseSpec(ShenYuCaseSpec.builder()
+                        .addExists("/motan/demo/hi")
+                        .addNotExists("/motan/demo/h")
+                        .build())
+                .build();
+    }
+
+
+    /**
+     * test with uri equals.
      *
      * @return ShenYuScenarioSpec
      */

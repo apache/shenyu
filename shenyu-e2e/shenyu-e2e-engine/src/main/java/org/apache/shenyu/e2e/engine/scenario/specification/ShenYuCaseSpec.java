@@ -188,7 +188,6 @@ public class ShenYuCaseSpec implements CaseSpec {
             return add(WebSocketCheckers.exists(endpoint, sendMessage, receiveMessage));
         }
 
-
         /**
          * add exist method endpoint case spec.
          * @param method method
@@ -199,7 +198,6 @@ public class ShenYuCaseSpec implements CaseSpec {
         public ShenYuTestCaseSpecBuilder addExists(final Method method, final String endpoint, final Map<String, ?> body) {
             return add(exists(method, endpoint, body));
         }
-
 
         /**
          * add not exist endpoint case spec.

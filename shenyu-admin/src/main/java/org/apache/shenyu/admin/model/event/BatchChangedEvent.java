@@ -26,8 +26,7 @@ import java.util.Objects;
  * BatchChangedEvent.
  */
 public class BatchChangedEvent extends AdminDataModelChangedEvent {
-    
-    
+
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *

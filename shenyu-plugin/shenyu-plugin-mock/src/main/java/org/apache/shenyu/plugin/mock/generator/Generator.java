@@ -76,7 +76,6 @@ public interface Generator<T> {
      */
     boolean match(String rule);
 
-
     /**
      * return prefix and suffix for generate data.
      *
