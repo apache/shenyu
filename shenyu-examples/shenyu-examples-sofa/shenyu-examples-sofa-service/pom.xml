@@ -28,11 +28,22 @@
     <artifactId>shenyu-examples-sofa-service</artifactId>
 
     <properties>
-        <rpc-sofa-boot-starter.version>4.2.0</rpc-sofa-boot-starter.version>
+        <rpc-sofa-boot-starter.version>3.12.1</rpc-sofa-boot-starter.version>
         <curator.version>4.3.0</curator.version>
         <micrometer.version>1.8.6</micrometer.version>
     </properties>
-    
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.alipay.sofa</groupId>
+                <artifactId>sofaboot-dependencies</artifactId>
+                <version>${rpc-sofa-boot-starter.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
