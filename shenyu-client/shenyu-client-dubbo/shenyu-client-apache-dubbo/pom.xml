@@ -34,7 +34,6 @@
         <dependency>
             <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo</artifactId>
-            <version>${apache.dubbo.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
