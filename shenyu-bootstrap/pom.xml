@@ -252,6 +252,14 @@
                     <groupId>io.grpc</groupId>
                     <artifactId>grpc-core</artifactId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>commons-io</artifactId>
+                    <groupId>commons-io</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>okio</artifactId>
+                    <groupId>com.squareup.okio</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
