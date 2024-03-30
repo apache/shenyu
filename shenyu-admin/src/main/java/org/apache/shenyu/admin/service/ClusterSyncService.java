@@ -27,8 +27,8 @@ public interface ClusterSyncService {
     /**
      * Sync data.
      *
-     * @param registerDTO data register dto
+     * @param syncData sync data
      * @return sync result
      */
-    String clusterSync(DataTypeParent registerDTO);
+    String clusterDataSync(DataTypeParent syncData);
 }

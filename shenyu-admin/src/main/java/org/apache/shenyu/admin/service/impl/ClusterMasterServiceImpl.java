@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.ClusterMasterMapper;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.model.entity.ClusterMasterDO;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.apache.shenyu.admin.transfer.ClusterMasterTransfer;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +34,8 @@ import java.util.Objects;
 public class ClusterMasterServiceImpl implements ClusterMasterService {
 
     private static final String MASTER_ID = "1";
+    
+    private volatile boolean isMaster = false;
 
     private final ClusterMasterMapper clusterMasterMapper;
     
@@ -48,7 +50,8 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
     }
 
     @Override
-    public void selectMaster(final String masterHost, final String masterPort, final String contextPath) {
+    public void setMaster(final String masterHost, final String masterPort, final String contextPath) {
+        this.isMaster = true;
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         ClusterMasterDO masterDO = ClusterMasterDO.builder()
                 .id(MASTER_ID)
@@ -66,7 +69,7 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
     }
 
     @Override
-    public boolean checkMaster(final String myHost, final String myPort, final String contextPath) {
+    public boolean isMaster(final String myHost, final String myPort, final String contextPath) {
         ClusterMasterDO masterDO = ClusterMasterDO.builder()
                 .masterHost(myHost)
                 .masterPort(myPort)
@@ -76,13 +79,22 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
     }
     
     @Override
-    public boolean checkMaster() {
-        return checkMaster(IpUtils.getHost(), String.valueOf(port), contextPath);
+    public boolean isMaster() {
+        return isMaster;
     }
     
     @Override
     public ClusterMasterDTO getMaster() {
         ClusterMasterDO masterDO = clusterMasterMapper.selectById(MASTER_ID);
         return Objects.isNull(masterDO) ? new ClusterMasterDTO() : ClusterMasterTransfer.INSTANCE.mapToDTO(masterDO);
+    }
+    
+    @Override
+    public String getMasterUrl() {
+        ClusterMasterDO master = clusterMasterMapper.selectById(MASTER_ID);
+        if (StringUtils.isEmpty(master.getContextPath())) {
+            return "http://" + master.getMasterHost() + ":" + master.getMasterPort();
+        }
+        return "http://" + master.getMasterHost() + ":" + master.getMasterPort() + "/" + master.getContextPath();
     }
 }

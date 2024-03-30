@@ -25,12 +25,12 @@ import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 public interface ClusterMasterService {
 
     /**
-     * select master.
+     * set master.
      * @param masterHost master host
      * @param masterPort master host
      * @param contextPath master contextPath
      */
-    void selectMaster(String masterHost, String masterPort, String contextPath);
+    void setMaster(String masterHost, String masterPort, String contextPath);
 
     /**
      * check master.
@@ -39,17 +39,23 @@ public interface ClusterMasterService {
      * @param contextPath my contextPath
      * @return am i master
      */
-    boolean checkMaster(String myHost, String myPort, String contextPath);
+    boolean isMaster(String myHost, String myPort, String contextPath);
 
     /**
      * check master.
-     * @return am i master
+     * @return is this node master
      */
-    boolean checkMaster();
+    boolean isMaster();
 
     /**
      * Get master.
      * @return ClusterMasterDTO
      */
     ClusterMasterDTO getMaster();
+
+    /**
+     * Get master url.
+     * @return master url
+     */
+    String getMasterUrl();
 }

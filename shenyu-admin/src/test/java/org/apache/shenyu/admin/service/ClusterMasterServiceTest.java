@@ -63,10 +63,10 @@ public final class ClusterMasterServiceTest {
     }
     
     @Test
-    void testSelectMaster() {
+    void testSetMaster() {
         given(clusterMasterMapper.insert(any())).willReturn(1);
         
-        clusterMasterService.selectMaster(HOST, PORT, CONTEXT_PATH);
+        clusterMasterService.setMaster(HOST, PORT, CONTEXT_PATH);
         
         verify(clusterMasterMapper, times(1)).insert(any());
     }
@@ -75,7 +75,7 @@ public final class ClusterMasterServiceTest {
     void testCheckMasterSuccess() {
         given(clusterMasterMapper.count(any())).willReturn(1L);
         
-        boolean isMaster = clusterMasterService.checkMaster(HOST, PORT, CONTEXT_PATH);
+        boolean isMaster = clusterMasterService.isMaster(HOST, PORT, CONTEXT_PATH);
         
         assertTrue(isMaster);
     }
@@ -84,7 +84,7 @@ public final class ClusterMasterServiceTest {
     void testCheckMasterFail() {
         given(clusterMasterMapper.count(any())).willReturn(0L);
         
-        boolean isMaster = clusterMasterService.checkMaster(HOST, PORT, CONTEXT_PATH);
+        boolean isMaster = clusterMasterService.isMaster(HOST, PORT, CONTEXT_PATH);
         
         assertFalse(isMaster);
     }

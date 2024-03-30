@@ -73,8 +73,8 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @PostMapping("/register-metadata")
     @ResponseBody
     public String registerMetadata(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        if (!clusterMasterService.checkMaster()) {
-            return clusterSyncService.clusterSync(metaDataRegisterDTO);
+        if (!clusterMasterService.isMaster()) {
+            return clusterSyncService.clusterDataSync(metaDataRegisterDTO);
         }
         publisher.publish(metaDataRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
@@ -89,8 +89,8 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @PostMapping("/register-uri")
     @ResponseBody
     public String registerURI(@RequestBody final URIRegisterDTO uriRegisterDTO) {
-        if (!clusterMasterService.checkMaster()) {
-            return clusterSyncService.clusterSync(uriRegisterDTO);
+        if (!clusterMasterService.isMaster()) {
+            return clusterSyncService.clusterDataSync(uriRegisterDTO);
         }
         publisher.publish(uriRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
@@ -105,8 +105,8 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @PostMapping("/register-apiDoc")
     @ResponseBody
     public String registerApiDoc(@RequestBody final ApiDocRegisterDTO apiDocRegisterDTO) {
-        if (!clusterMasterService.checkMaster()) {
-            return clusterSyncService.clusterSync(apiDocRegisterDTO);
+        if (!clusterMasterService.isMaster()) {
+            return clusterSyncService.clusterDataSync(apiDocRegisterDTO);
         }
         publisher.publish(apiDocRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
@@ -121,8 +121,8 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @PostMapping("/register-discoveryConfig")
     @ResponseBody
     public String registerDiscoveryConfig(@RequestBody final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
-        if (!clusterMasterService.checkMaster()) {
-            return clusterSyncService.clusterSync(discoveryConfigRegisterDTO);
+        if (!clusterMasterService.isMaster()) {
+            return clusterSyncService.clusterDataSync(discoveryConfigRegisterDTO);
         }
         publisher.publish(discoveryConfigRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
@@ -137,6 +137,9 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @PostMapping("/offline")
     @ResponseBody
     public String offline(@RequestBody final URIRegisterDTO offlineDTO) {
+        if (!clusterMasterService.isMaster()) {
+            return clusterSyncService.clusterDataSync(offlineDTO);
+        }
         publisher.publish(offlineDTO);
         return ShenyuResultMessage.SUCCESS;
     }

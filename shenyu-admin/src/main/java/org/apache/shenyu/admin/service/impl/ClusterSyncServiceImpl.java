@@ -18,14 +18,13 @@
 package org.apache.shenyu.admin.service.impl;
 
 import okhttp3.Response;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.apache.shenyu.admin.service.ClusterSyncService;
 import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -46,11 +45,12 @@ public class ClusterSyncServiceImpl implements ClusterSyncService {
     private final HttpUtils httpUtils = new HttpUtils();
     
     @Override
-    public String clusterSync(final DataTypeParent registerDTO) {
-        String fullUrl = getFullUrl(registerDTO);
-        LOG.debug("sync dataType: {} to master", registerDTO.getType().name());
-        try (Response response = httpUtils.requestJson(fullUrl,
-                JsonUtils.toJson(registerDTO),
+    public String clusterDataSync(final DataTypeParent syncData) {
+        String syncUrl = getSyncUrl(syncData.getType());
+        String json = JsonUtils.toJson(syncData);
+        LOG.debug("sync dataType: {} to master, data content:{}", syncData.getType().name(), json);
+        try (Response response = httpUtils.requestJson(syncUrl,
+                json,
                 Collections.EMPTY_MAP)) {
             return response.body().toString();
         } catch (Exception e) {
@@ -59,32 +59,24 @@ public class ClusterSyncServiceImpl implements ClusterSyncService {
     }
     
     @NotNull
-    private String getFullUrl(final DataTypeParent registerDTO) {
-        String fullUrl = getMasterUrl();
-        switch (registerDTO.getType()) {
+    private String getSyncUrl(final DataType dataType) {
+        String syncUrl = clusterMasterService.getMasterUrl();
+        switch (dataType) {
             case URI:
-                fullUrl += Constants.URI_PATH;
+                syncUrl += Constants.URI_PATH;
                 break;
             case META_DATA:
-                fullUrl += Constants.META_PATH;
+                syncUrl += Constants.META_PATH;
                 break;
             case API_DOC:
-                fullUrl += Constants.API_DOC_PATH;
+                syncUrl += Constants.API_DOC_PATH;
                 break;
             case DISCOVERY_CONFIG:
-                fullUrl += Constants.DISCOVERY_CONFIG_PATH;
+                syncUrl += Constants.DISCOVERY_CONFIG_PATH;
                 break;
             default:
                 break;
         }
-        return fullUrl;
-    }
-    
-    private String getMasterUrl() {
-        ClusterMasterDTO master = clusterMasterService.getMaster();
-        if (StringUtils.isEmpty(master.getContextPath())) {
-            return "http://" + master.getMasterHost() + ":" + master.getMasterPort();
-        }
-        return "http://" + master.getMasterHost() + ":" + master.getMasterPort() + "/" + master.getContextPath();
+        return syncUrl;
     }
 }
