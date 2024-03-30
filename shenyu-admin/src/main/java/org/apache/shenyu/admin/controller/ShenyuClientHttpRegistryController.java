@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterRepository;
-import org.apache.shenyu.admin.service.ClusterMasterService;
+import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
@@ -40,22 +40,22 @@ import javax.annotation.Resource;
 @RequestMapping("/shenyu-client")
 @Join
 public class ShenyuClientHttpRegistryController implements ShenyuClientServerRegisterRepository {
-    
+
     private ShenyuClientServerRegisterPublisher publisher;
-    
+
     @Resource
-    private ClusterMasterService clusterMasterService;
-    
+    private DiscoveryService discoveryService;
+
     @Override
     public void init(final ShenyuClientServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
         this.publisher = publisher;
     }
-    
+
     @Override
     public void close() {
         publisher.close();
     }
-    
+
     /**
      * Register metadata string.
      *
@@ -65,13 +65,10 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @PostMapping("/register-metadata")
     @ResponseBody
     public String registerMetadata(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        if (!clusterMasterService.isMaster()) {
-            return clusterMasterService.clusterDataSync(metaDataRegisterDTO);
-        }
         publisher.publish(metaDataRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
     /**
      * Register uri string.
      *
@@ -81,13 +78,10 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @PostMapping("/register-uri")
     @ResponseBody
     public String registerURI(@RequestBody final URIRegisterDTO uriRegisterDTO) {
-        if (!clusterMasterService.isMaster()) {
-            return clusterMasterService.clusterDataSync(uriRegisterDTO);
-        }
         publisher.publish(uriRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
     /**
      * registerApiDoc.
      *
@@ -97,13 +91,10 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @PostMapping("/register-apiDoc")
     @ResponseBody
     public String registerApiDoc(@RequestBody final ApiDocRegisterDTO apiDocRegisterDTO) {
-        if (!clusterMasterService.isMaster()) {
-            return clusterMasterService.clusterDataSync(apiDocRegisterDTO);
-        }
         publisher.publish(apiDocRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
     /**
      * registerDiscoveryConfig.
      *
@@ -113,13 +104,10 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @PostMapping("/register-discoveryConfig")
     @ResponseBody
     public String registerDiscoveryConfig(@RequestBody final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
-        if (!clusterMasterService.isMaster()) {
-            return clusterMasterService.clusterDataSync(discoveryConfigRegisterDTO);
-        }
         publisher.publish(discoveryConfigRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
     /**
      * Offline result string.
      *
@@ -129,9 +117,6 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @PostMapping("/offline")
     @ResponseBody
     public String offline(@RequestBody final URIRegisterDTO offlineDTO) {
-        if (!clusterMasterService.isMaster()) {
-            return clusterMasterService.clusterDataSync(offlineDTO);
-        }
         publisher.publish(offlineDTO);
         return ShenyuResultMessage.SUCCESS;
     }

@@ -48,7 +48,7 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
 
     private static final String MASTER_ID = "1";
     
-    private volatile boolean isMaster = false;
+    private volatile boolean isMaster;
     
     private final HttpUtils httpUtils = new HttpUtils();
 
@@ -112,6 +112,7 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
         }
         return "http://" + master.getMasterHost() + ":" + master.getMasterPort() + "/" + master.getContextPath();
     }
+    
     @Override
     public String clusterDataSync(final DataTypeParent syncData) {
         String syncUrl = getSyncUrl(syncData.getType());
