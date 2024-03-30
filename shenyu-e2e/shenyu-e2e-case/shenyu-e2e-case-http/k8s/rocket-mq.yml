@@ -51,12 +51,11 @@ spec:
       labels:
         app: rocketmq-broker
     spec:
-      hostNetwork: true
       containers:
         - name: broker
           env:
             - name: NAMESRV_ADDR     #通过环境变量指定namesrv 地址，注意该值为namesrv svc地址
-              value: localhost:9876
+              value: rocketmq-dialevoneid:9876
           image: rocketmqinc/rocketmq:4.4.0
           command: [ "/bin/sh", "mqbroker","-c", "../conf/broker.conf" ]
           ports:
@@ -107,7 +106,6 @@ spec:
       labels:
         app: rocketmq-namesrv
     spec:
-      hostNetwork: true
       containers:
         - name: namesrv
           image: rocketmqinc/rocketmq:4.4.0
