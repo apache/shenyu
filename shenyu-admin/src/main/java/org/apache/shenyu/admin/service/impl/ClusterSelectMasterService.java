@@ -61,6 +61,12 @@ public class ClusterSelectMasterService {
                 ShenyuThreadFactory.create("master-selector", true));
     }
     
+    /**
+     * start master select task.
+     * @param host host
+     * @param port port
+     * @param contextPath contextPath
+     */
     public void startSelectMasterTask(final String host, final String port, final String contextPath) {
         executorService.scheduleAtFixedRate(() -> doSelectMaster(host, port, contextPath),
                 AdminConstants.TEN_SECONDS_MILLIS_TIME,
@@ -76,13 +82,15 @@ public class ClusterSelectMasterService {
             // DEFAULT_TTL = 10000 ms
             Lock lock = jdbcLockRegistry.obtain(MASTER_LOCK_KEY);
             
-            boolean locked = lock.tryLock(AdminConstants.FIVE_SECONDS_MILLIS_TIME,
+            boolean locked = lock.tryLock(AdminConstants.TEN_SECONDS_MILLIS_TIME,
                     TimeUnit.MILLISECONDS);
             
             if (!locked) {
                 LOG.debug("select master fail, wait for next time");
                 return;
             }
+            LOG.debug("select master success");
+            
             // set master info
             clusterMasterService.setMaster(host, port, contextPath);
             
