@@ -77,7 +77,7 @@ spec:
               subPath: broker.conf
 #          resources:
 #            limits:
-#              memory: 1200Mi
+#              memory:  1200Mi
 #            requests:
 #              memory: 1200Mi
       volumes:
