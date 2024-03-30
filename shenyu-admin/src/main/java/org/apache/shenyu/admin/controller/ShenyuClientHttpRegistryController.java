@@ -20,8 +20,6 @@ package org.apache.shenyu.admin.controller;
 import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.admin.service.ClusterMasterService;
-import org.apache.shenyu.admin.service.ClusterSyncService;
-import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
@@ -46,13 +44,7 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     private ShenyuClientServerRegisterPublisher publisher;
     
     @Resource
-    private DiscoveryService discoveryService;
-    
-    @Resource
     private ClusterMasterService clusterMasterService;
-    
-    @Resource
-    private ClusterSyncService clusterSyncService;
     
     @Override
     public void init(final ShenyuClientServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
@@ -74,7 +66,7 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @ResponseBody
     public String registerMetadata(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
         if (!clusterMasterService.isMaster()) {
-            return clusterSyncService.clusterDataSync(metaDataRegisterDTO);
+            return clusterMasterService.clusterDataSync(metaDataRegisterDTO);
         }
         publisher.publish(metaDataRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
@@ -90,7 +82,7 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @ResponseBody
     public String registerURI(@RequestBody final URIRegisterDTO uriRegisterDTO) {
         if (!clusterMasterService.isMaster()) {
-            return clusterSyncService.clusterDataSync(uriRegisterDTO);
+            return clusterMasterService.clusterDataSync(uriRegisterDTO);
         }
         publisher.publish(uriRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
@@ -106,7 +98,7 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @ResponseBody
     public String registerApiDoc(@RequestBody final ApiDocRegisterDTO apiDocRegisterDTO) {
         if (!clusterMasterService.isMaster()) {
-            return clusterSyncService.clusterDataSync(apiDocRegisterDTO);
+            return clusterMasterService.clusterDataSync(apiDocRegisterDTO);
         }
         publisher.publish(apiDocRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
@@ -122,7 +114,7 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @ResponseBody
     public String registerDiscoveryConfig(@RequestBody final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
         if (!clusterMasterService.isMaster()) {
-            return clusterSyncService.clusterDataSync(discoveryConfigRegisterDTO);
+            return clusterMasterService.clusterDataSync(discoveryConfigRegisterDTO);
         }
         publisher.publish(discoveryConfigRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
@@ -138,7 +130,7 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @ResponseBody
     public String offline(@RequestBody final URIRegisterDTO offlineDTO) {
         if (!clusterMasterService.isMaster()) {
-            return clusterSyncService.clusterDataSync(offlineDTO);
+            return clusterMasterService.clusterDataSync(offlineDTO);
         }
         publisher.publish(offlineDTO);
         return ShenyuResultMessage.SUCCESS;

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 
 /**
  * Cluster Master service.
@@ -58,4 +59,12 @@ public interface ClusterMasterService {
      * @return master url
      */
     String getMasterUrl();
+    
+    /**
+     * Sync data.
+     *
+     * @param syncData sync data
+     * @return sync result
+     */
+    String clusterDataSync(DataTypeParent syncData);
 }
