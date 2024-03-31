@@ -119,12 +119,12 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         }
     }
     
-    private void copyHeaders(HttpServletRequest request, HttpHeaders headers) {
+    private void copyHeaders(final HttpServletRequest request, final HttpHeaders headers) {
         Collections.list(request.getHeaderNames())
                 .forEach(headerName -> headers.add(headerName, request.getHeader(headerName)));
     }
     
-    private void copyHeaders(HttpHeaders sourceHeaders, HttpServletResponse response) {
+    private void copyHeaders(final HttpHeaders sourceHeaders, final HttpServletResponse response) {
         sourceHeaders.forEach((headerName, headerValues) -> {
             if (!response.containsHeader(headerName)) {
                 headerValues.forEach(headerValue -> response.addHeader(headerName, headerValue));
@@ -132,7 +132,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         });
     }
     
-    private byte[] getBody(HttpServletRequest request) throws IOException {
+    private byte[] getBody(final HttpServletRequest request) throws IOException {
         InputStream is = request.getInputStream();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
