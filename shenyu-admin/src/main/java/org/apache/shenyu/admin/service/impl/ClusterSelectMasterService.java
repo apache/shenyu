@@ -92,7 +92,7 @@ public class ClusterSelectMasterService {
             }
             LOG.debug("select master success");
             
-            // set master info
+            // set master info (db and local flag)
             clusterMasterService.setMaster(host, port, contextPath);
             
             // upstream check task
@@ -108,13 +108,15 @@ public class ClusterSelectMasterService {
                     jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
                     LOG.debug("renew master lock success");
                 } catch (Exception e) {
+                    LOG.error("renew master lock fail", e);
+                    // if renew fail, remove local master flag
                     clusterMasterService.removeMaster();
                     String message = String.format("renew master lock fail, %s", e.getMessage());
                     throw new ShenyuException(message);
                 }
             }
         } catch (Exception e) {
-            LOG.error("renew master lock error", e);
+            LOG.error("select master error", e);
         }
     }
 }
