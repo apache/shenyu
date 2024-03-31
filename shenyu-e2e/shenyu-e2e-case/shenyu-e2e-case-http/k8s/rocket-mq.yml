@@ -14,26 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: rocketmq-broker-config
-data:
-  broker.conf: |
-    brokerClusterName = DefaultCluster
-    brokerName = broker-c
-    brokerId = 0
-    deleteWhen = 04
-    fileReservedTime = 48
-    brokerRole = ASYNC_MASTER
-    flushDiskType = ASYNC_FLUSH
-    listenPort=30911
-    managePort=30912
-    haListenPort=30912
-    fastListenPort=30909
-  
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -57,36 +37,21 @@ spec:
             - name: NAMESRV_ADDR     #通过环境变量指定namesrv 地址，注意该值为namesrv svc地址
               value: rocketmq-dialevoneid:9876
           image: rocketmqinc/rocketmq:4.4.0
-          command: [ "/bin/sh", "mqbroker","-c", "../conf/broker.conf" ]
+          command: [ "/bin/sh", "mqbroker" ]
           ports:
-            - containerPort: 30909
-              hostPort: 30909
-              name: tcp-30909
+            - containerPort: 10909
+              hostPort: 10909
+              name: tcp-10909
               protocol: TCP
-            - containerPort: 30911
-              hostPort: 30911
-              name: tcp-30911
+            - containerPort: 10911
+              hostPort: 10911
+              name: tcp-10911
               protocol: TCP
-            - containerPort: 30912
-              hostPort: 30912
-              name: tcp-30912
+            - containerPort: 10912
+              hostPort: 10912
+              name: tcp-10912
               protocol: TCP
-          volumeMounts:
-            - name: config-volume
-              mountPath: /opt/rocketmq-4.4.0/conf/broker.conf
-              subPath: broker.conf
-#          resources:
-#            limits:
-#              memory: 1200Mi
-#            requests:
-#              memory: 1200Mi
-      volumes:
-        - name: config-volume
-          configMap:
-            name: rocketmq-broker-config
-            items:
-              - key: broker.conf
-                path: broker.conf
+
 status: {}
 ---
 apiVersion: apps/v1
