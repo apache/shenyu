@@ -80,16 +80,16 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             return;
         }
         
+        if (clusterMasterService.isMaster()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         String uri = request.getRequestURI();
         String contextPath = request.getContextPath();
         String replaced = uri.replaceAll(contextPath, "");
         boolean anyMatch = clusterProperties.getForwardList().stream().anyMatch(x -> PATH_MATCHER.match(x, replaced));
         if (!anyMatch) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        
-        if (clusterMasterService.isMaster()) {
             filterChain.doFilter(request, response);
             return;
         }
