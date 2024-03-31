@@ -49,6 +49,11 @@ public interface ClusterMasterService {
     boolean isMaster();
 
     /**
+     * remove master.
+     */
+    void removeMaster();
+
+    /**
      * Get master.
      * @return ClusterMasterDTO
      */
