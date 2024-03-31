@@ -26,7 +26,7 @@
     <artifactId>shenyu-client-sofa</artifactId>
 
     <properties>
-        <runtime-sofa-boot-starter.version>3.1.4</runtime-sofa-boot-starter.version>
+        <runtime-sofa-boot-starter.version>3.22.0</runtime-sofa-boot-starter.version>
     </properties>
 
     <dependencies>
@@ -53,11 +53,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.alipay.sofa.common</groupId>-->
-<!--            <artifactId>sofa-common-tools</artifactId>-->
-<!--            <version>2.1.0</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>
