@@ -112,6 +112,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         copyHeaders(responseEntity.getHeaders(), response);
         // fix cors error
         response.addHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
         
         try (Writer writer = response.getWriter()) {
             writer.write(Objects.requireNonNull(responseEntity.getBody()));

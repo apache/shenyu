@@ -65,7 +65,7 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
     }
 
     @Override
-    public void setMaster(final String masterHost, final String masterPort, final String contextPath) {
+    public synchronized void setMaster(final String masterHost, final String masterPort, final String contextPath) {
         this.isMaster = true;
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         ClusterMasterDO masterDO = ClusterMasterDO.builder()
@@ -96,6 +96,11 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
     @Override
     public boolean isMaster() {
         return isMaster;
+    }
+    
+    @Override
+    public synchronized void removeMaster() {
+        this.isMaster = false;
     }
     
     @Override

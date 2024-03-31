@@ -87,6 +87,7 @@ public class ClusterSelectMasterService {
             
             if (!locked) {
                 LOG.debug("select master fail, wait for next time");
+                clusterMasterService.removeMaster();
                 return;
             }
             LOG.debug("select master success");
@@ -107,6 +108,7 @@ public class ClusterSelectMasterService {
                     jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
                     LOG.debug("renew master lock success");
                 } catch (Exception e) {
+                    clusterMasterService.removeMaster();
                     String message = String.format("renew master lock fail, %s", e.getMessage());
                     throw new ShenyuException(message);
                 }
