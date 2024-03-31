@@ -172,8 +172,12 @@ public class UpstreamCheckService {
     @PreDestroy
     public void close() {
         if (checked) {
-            scheduledFuture.cancel(false);
-            executor.shutdown();
+            if (Objects.nonNull(scheduledFuture)) {
+                scheduledFuture.cancel(false);
+            }
+            if (Objects.nonNull(executor)) {
+                executor.shutdown();
+            }
         }
     }
 
