@@ -34,7 +34,7 @@ spec:
       containers:
         - name: broker
           env:
-            - name: NAMESRV_ADDR     #通过环境变量指定namesrv 地址，注意该值为namesrv svc地址
+            - name: NAMESRV_ADDR
               value: rocketmq-dialevoneid:9876
           image: rocketmqinc/rocketmq:4.4.0
           command: [ "/bin/sh", "mqbroker" ]
