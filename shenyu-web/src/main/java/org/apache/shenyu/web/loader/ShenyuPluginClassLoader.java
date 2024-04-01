@@ -180,11 +180,11 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
                     beanDefinition.setBeanClassName(className);
                     beanDefinition.setAutowireCandidate(true);
                     beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-                    SpringBeanUtils.getInstance().registerBean(beanDefinition, classLoader);
-                    return SpringBeanUtils.getInstance().getBeanByClassName(className);
+                    String beanName = SpringBeanUtils.getInstance().registerBean(beanDefinition, classLoader);
+                    inst = SpringBeanUtils.getInstance().getBeanByClassName(beanName);
                 }
             }
-            return null;
+            return inst;
         } finally {
             lock.unlock();
         }
@@ -201,7 +201,7 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
         return !inst.getClass().getClassLoader().equals(this);
     }
 
-    private ShenyuLoaderResult buildResult(final Object instance) {
+    private <T> ShenyuLoaderResult buildResult(final T instance) {
         ShenyuLoaderResult result = new ShenyuLoaderResult();
         if (instance instanceof ShenyuPlugin) {
             result.setShenyuPlugin((ShenyuPlugin) instance);

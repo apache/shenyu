@@ -86,7 +86,7 @@ public class PluginJarParser {
                 }
             }
         } catch (IOException e) {
-            throw new ShenyuException("load jar classes find error");
+            throw new ShenyuException("load jar classes find error, exception:{}", e);
         }
         return pluginJar;
     }

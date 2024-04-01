@@ -21,11 +21,12 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.isolation.ExtendDataBase;
 
 /**
  * The type Sofa shenyu context decorator.
  */
-public class SofaShenyuContextDecorator implements ShenyuContextDecorator {
+public class SofaShenyuContextDecorator implements ShenyuContextDecorator, ExtendDataBase {
     
     @Override
     public ShenyuContext decorator(final ShenyuContext shenyuContext, final MetaData metaData) {
