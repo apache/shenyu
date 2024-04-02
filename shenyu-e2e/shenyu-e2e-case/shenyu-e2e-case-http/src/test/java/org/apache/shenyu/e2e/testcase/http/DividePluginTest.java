@@ -17,14 +17,27 @@
 
 package org.apache.shenyu.e2e.testcase.http;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.apache.shenyu.e2e.model.ResourcesData;
+import org.apache.shenyu.e2e.model.data.BindingData;
+import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+import java.util.List;
+import java.util.Objects;
 
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
@@ -47,15 +60,58 @@ import org.junit.jupiter.api.BeforeAll;
         )
 })
 public class DividePluginTest {
-    
+
+    private static final Logger LOG = LoggerFactory.getLogger(DividePluginTest.class);
+
+    private List<String> selectorIds = Lists.newArrayList();
+
+    @BeforeEach
+    void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
+        spec.getChecker().check(gateway);
+
+        ResourcesData resources = spec.getResources();
+        for (ResourcesData.Resource res : resources.getResources()) {
+            SelectorDTO dto = client.create(res.getSelector());
+            selectorIds.add(dto.getId());
+            res.getRules().forEach(rule -> {
+                rule.setSelectorId(dto.getId());
+                client.create(rule);
+            });
+            BindingData bindingData = res.getBindingData();
+            if (Objects.nonNull(bindingData)) {
+                bindingData.setSelectorId(dto.getId());
+                client.bindingData(bindingData);
+            }
+        }
+
+        spec.getWaiting().waitFor(gateway);
+    }
+
+//    @AfterEach
+//    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
+//        spec.getDeleter().delete(client, selectorIds);
+//        spec.deleteWaiting().waitFor(gateway);
+//        selectorIds = Lists.newArrayList();
+//    }
+
     @BeforeAll
     void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
+        LOG.info("start loggingRocketMQ plugin");
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("id", "29");
+        formData.add("name", "loggingRocketMQ");
+        formData.add("enabled", "true");
+        formData.add("role", "Logging");
+        formData.add("sort", "170");
+        formData.add("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"rocketmq-dialevoneid:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
+        adminClient.changePluginStatus("29", formData);
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq");
     }
-    
+
     @ShenYuScenario(provider = DividePluginCases.class)
     void testDivide(final GatewayClient gateway, final CaseSpec spec) {
         spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
