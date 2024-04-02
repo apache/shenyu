@@ -113,6 +113,7 @@
                                     <exclude>org.apache.shenyu:shenyu-spi</exclude>
                                     <exclude>org.apache.shenyu:shenyu-sync-data-api</exclude>
                                     <exclude>org.apache.shenyu:shenyu-plugin-base</exclude>
+                                    <exclude>org.apache.shenyu:shenyu-plugin-isolation</exclude>
                                     <exclude>org.apache.commons:commons-lang3</exclude>
                                     <exclude>com.google.code.gson:gson</exclude>
                                     <exclude>com.alibaba:fastjson</exclude>
