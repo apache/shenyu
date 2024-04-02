@@ -156,6 +156,7 @@
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>
+            <version>${sofa.rpc.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>net.jcip</groupId>
