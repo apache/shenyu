@@ -330,47 +330,6 @@
         <!-- Dubbo zookeeper registry dependency end -->
         <!-- shenyu  apache dubbo plugin end-->
 
-        <!--shenyu motan plugin start-->
-        <!--If you plan to use the motan plugin and want to use the hessian serialization,
-        please check the sofa plugin related dependencies.In particular, the reliance on sofa-hessian should be excluded.
-        Because sofa-hessian and caucho-hessian can cause class loading conflicts and cause some unexpected problems-->
-        <dependency>
-            <groupId>com.weibo</groupId>
-            <artifactId>motan-core</artifactId>
-            <version>${motan.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.weibo</groupId>
-            <artifactId>motan-transport-netty4</artifactId>
-            <version>${motan.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.weibo</groupId>
-            <artifactId>motan-registry-zookeeper</artifactId>
-            <version>${motan.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.weibo</groupId>
-            <artifactId>motan-springsupport</artifactId>
-            <version>${motan.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-motan</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu motan plugin end-->
-
         <!--shenyu data sync start use zookeeper-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
