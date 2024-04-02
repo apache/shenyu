@@ -35,14 +35,16 @@ spec:
         - image: shenyu-examples-springcloud:latest
           name: shenyu-examples-springcloud
           livenessProbe:
-            exec:
-              command:
-                - wget -q -O - http://localhost:8884/actuator/health | grep UP || exit 1
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 3
+            exec:
+              command:
+                - /bin/sh
+                - "-c"
+                - wget -q -O - http://localhost:8884/actuator/health | grep UP || exit 1
           env:
             - name: shenyu.register.serverLists
               value: http://shenyu-admin:9095
