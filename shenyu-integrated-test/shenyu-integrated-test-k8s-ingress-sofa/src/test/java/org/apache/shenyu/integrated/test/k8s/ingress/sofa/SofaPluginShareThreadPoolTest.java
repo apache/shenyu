@@ -17,17 +17,12 @@
 
 package org.apache.shenyu.integrated.test.k8s.ingress.sofa;
 
-import com.google.gson.reflect.TypeToken;
-import org.apache.shenyu.integrated.test.k8s.ingress.sofa.dto.SofaTestData;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.hamcrest.core.Is;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class SofaPluginShareThreadPoolTest extends AbstractPluginDataInit {
 
