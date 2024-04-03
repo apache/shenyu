@@ -53,6 +53,7 @@ public enum DiscoveryTransfer {
      * @return DiscoveryUpstreamDO
      */
     public DiscoveryUpstreamDO mapToDo(DiscoveryUpstreamData discoveryUpstreamData) {
+        if (discoveryUpstreamData == null)    return null;
         return DiscoveryUpstreamDO.builder()
                 .discoveryHandlerId(discoveryUpstreamData.getDiscoveryHandlerId())
                 .id(discoveryUpstreamData.getId())
@@ -72,6 +73,7 @@ public enum DiscoveryTransfer {
      * @return DiscoveryUpstreamVO
      */
     public DiscoveryUpstreamVO mapToVo(DiscoveryUpstreamDO discoveryUpstreamDO) {
+        if (discoveryUpstreamDO == null)    return null;
         DiscoveryUpstreamVO vo = new DiscoveryUpstreamVO();
         vo.setId(discoveryUpstreamDO.getId());
         vo.setDiscoveryHandlerId(discoveryUpstreamDO.getDiscoveryHandlerId());
@@ -86,6 +88,7 @@ public enum DiscoveryTransfer {
 
 
     public DiscoveryRelVO mapToVo(DiscoveryRelDO discoveryRelDO) {
+        if (discoveryRelDO == null)    return null;
         DiscoveryRelVO discoveryRelVO = new DiscoveryRelVO();
         discoveryRelVO.setId(discoveryRelDO.getId());
         discoveryRelVO.setPluginName(discoveryRelDO.getPluginName());
@@ -97,6 +100,7 @@ public enum DiscoveryTransfer {
 
 
     public DiscoveryRelDO mapToDO(DiscoveryRelDTO discoveryRelDTO) {
+        if (discoveryRelDTO == null)    return null;
         DiscoveryRelDO discoveryRelDO = new DiscoveryRelDO();
         discoveryRelDO.setId(discoveryRelDTO.getId());
         discoveryRelDO.setPluginName(discoveryRelDTO.getPluginName());
@@ -107,6 +111,7 @@ public enum DiscoveryTransfer {
     }
 
     public DiscoveryVO mapToVo(DiscoveryDO discoveryDO) {
+        if (discoveryDO == null)    return null;
         DiscoveryVO discoveryVO = new DiscoveryVO();
         discoveryVO.setId(discoveryDO.getId());
         discoveryVO.setName(discoveryDO.getName());
@@ -119,6 +124,7 @@ public enum DiscoveryTransfer {
     }
 
     public DiscoveryDTO mapToDTO(DiscoveryDO discoveryDO) {
+        if (discoveryDO == null)    return null;
         DiscoveryDTO discoveryDTO = new DiscoveryDTO();
         discoveryDTO.setId(discoveryDO.getId());
         discoveryDTO.setName(discoveryDO.getName());
@@ -131,6 +137,7 @@ public enum DiscoveryTransfer {
     }
 
     public DiscoveryHandlerVO mapToVo(DiscoveryHandlerDO discoveryDO) {
+        if (discoveryDO == null)    return null;
         DiscoveryHandlerVO vo = new DiscoveryHandlerVO();
         vo.setId(discoveryDO.getId());
         vo.setDiscoveryId(discoveryDO.getDiscoveryId());
@@ -147,6 +154,7 @@ public enum DiscoveryTransfer {
      * @return DiscoveryUpstreamData
      */
     public DiscoveryUpstreamData mapToData(DiscoveryUpstreamDO discoveryUpstreamDO) {
+        if (discoveryUpstreamDO == null)    return null;
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setId(discoveryUpstreamDO.getId());
         discoveryUpstreamData.setProtocol(discoveryUpstreamDO.getProtocol());
@@ -167,6 +175,7 @@ public enum DiscoveryTransfer {
      * @return DiscoveryUpstreamData
      */
     public DiscoveryUpstreamData mapToData(DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+        if (discoveryUpstreamDTO == null)    return null;
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setId(discoveryUpstreamDTO.getId());
         discoveryUpstreamData.setProtocol(discoveryUpstreamDTO.getProtocol());
@@ -187,6 +196,7 @@ public enum DiscoveryTransfer {
      * @return ProxySelectorData
      */
     public ProxySelectorData mapToData(ProxySelectorDTO proxySelectorDTO) {
+        if (proxySelectorDTO == null)    return null;
         ProxySelectorData proxySelectorData = new ProxySelectorData();
         proxySelectorData.setId(proxySelectorDTO.getId());
         proxySelectorData.setName(proxySelectorDTO.getName());
@@ -206,6 +216,7 @@ public enum DiscoveryTransfer {
      * @return ProxySelectorData
      */
     public ProxySelectorData mapToData(ProxySelectorDO proxySelectorDO) {
+        if (proxySelectorDO == null)    return null;
         ProxySelectorData proxySelectorData = new ProxySelectorData();
         proxySelectorData.setId(proxySelectorDO.getId());
         proxySelectorData.setName(proxySelectorDO.getName());
@@ -225,6 +236,7 @@ public enum DiscoveryTransfer {
      * @return ProxySelectorDTO
      */
     public ProxySelectorDTO mapToDTO(ProxySelectorDO proxySelectorDO) {
+        if (proxySelectorDO == null)    return null;
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
         proxySelectorDTO.setId(proxySelectorDO.getId());
         proxySelectorDTO.setName(proxySelectorDO.getName());
@@ -242,6 +254,7 @@ public enum DiscoveryTransfer {
      * @return DiscoveryHandlerDTO
      */
     public DiscoveryHandlerDTO mapToDTO(DiscoveryHandlerDO discoveryHandlerDO) {
+        if (discoveryHandlerDO == null)    return null;
         DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
         discoveryHandlerDTO.setDiscoveryId(discoveryHandlerDO.getDiscoveryId());
         discoveryHandlerDTO.setHandler(discoveryHandlerDO.getHandler());
@@ -258,6 +271,7 @@ public enum DiscoveryTransfer {
      * @return DiscoveryHandlerDTO
      */
     public DiscoveryHandlerDO mapToDO(DiscoveryHandlerDTO discoveryHandlerDTO) {
+        if (discoveryHandlerDTO == null)    return null;
         DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
         discoveryHandlerDO.setDiscoveryId(discoveryHandlerDTO.getDiscoveryId());
         discoveryHandlerDO.setHandler(discoveryHandlerDTO.getHandler());
@@ -274,6 +288,7 @@ public enum DiscoveryTransfer {
      * @return DiscoveryUpstreamDTO
      */
     public DiscoveryUpstreamDTO mapToDTO(DiscoveryUpstreamDO discoveryUpstreamDO) {
+        if (discoveryUpstreamDO == null)    return null;
         DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
         discoveryUpstreamDTO.setProps(discoveryUpstreamDO.getProps());
         discoveryUpstreamDTO.setStatus(discoveryUpstreamDO.getStatus());
