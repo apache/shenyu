@@ -82,10 +82,10 @@ public final class AppAuthControllerTest {
 
     @Mock
     private AppAuthService appAuthService;
-    
+
     @Mock
     private AuthPathMapper authPathMapper;
-    
+
     @Mock
     private AppAuthMapper appAuthMapper;
 
@@ -285,6 +285,21 @@ public final class AppAuthControllerTest {
     }
 
     @Test
+    public void testBatchOpened() throws Exception {
+        final BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
+        batchCommonDTO.setIds(Arrays.asList("0001", "0002"));
+        batchCommonDTO.setEnabled(true);
+        given(this.appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()))
+                .willReturn(StringUtils.EMPTY);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/batchOpened")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ENABLE_SUCCESS)))
+                .andReturn();
+    }
+
+    @Test
     public void testBatchEnabled() throws Exception {
         final BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Arrays.asList("0001", "0002"));
@@ -296,6 +311,21 @@ public final class AppAuthControllerTest {
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ENABLE_SUCCESS)))
+                .andReturn();
+    }
+
+    @Test
+    public void testBatchOpenedWithError() throws Exception {
+        final BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
+        batchCommonDTO.setIds(Arrays.asList("0001", "0002"));
+        batchCommonDTO.setEnabled(true);
+        given(this.appAuthService.opened(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()))
+                .willReturn(AdminConstants.ID_NOT_EXIST);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/batchOpened")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(AdminConstants.ID_NOT_EXIST)))
                 .andReturn();
     }
 
