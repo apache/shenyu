@@ -23,7 +23,6 @@ import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -33,7 +32,6 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import javax.annotation.Resource;
 import javax.servlet.FilterChain;
@@ -59,9 +57,6 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     
     @Resource
     private RestTemplate restTemplate;
-    
-    @Autowired
-    private RequestMappingHandlerMapping requestMappingHandlerMapping;
     
     @Resource
     private ClusterMasterService clusterMasterService;

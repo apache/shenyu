@@ -68,6 +68,7 @@ public class ClusterSelectMasterService {
      * @param contextPath contextPath
      */
     public void startSelectMasterTask(final String host, final String port, final String contextPath) {
+        LOG.debug("starting select master task");
         executorService.scheduleAtFixedRate(() -> doSelectMaster(host, port, contextPath),
                 AdminConstants.TEN_SECONDS_MILLIS_TIME,
                 AdminConstants.TEN_SECONDS_MILLIS_TIME,
@@ -111,8 +112,8 @@ public class ClusterSelectMasterService {
                     LOG.error("renew master lock fail", e);
                     // if renew fail, remove local master flag
                     clusterMasterService.removeMaster();
-                    String message = String.format("renew master lock fail, %s", e.getMessage());
-                    throw new ShenyuException(message);
+//                    String message = String.format("renew master lock fail, %s", e.getMessage());
+//                    throw new ShenyuException(message);
                 }
             }
         } catch (Exception e) {
