@@ -109,11 +109,11 @@ public class ClusterSelectMasterService {
                     jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
                     LOG.debug("renew master lock success");
                 } catch (Exception e) {
-                    LOG.error("renew master lock fail", e);
+//                    LOG.error("renew master lock fail", e);
                     // if renew fail, remove local master flag
                     clusterMasterService.removeMaster();
-//                    String message = String.format("renew master lock fail, %s", e.getMessage());
-//                    throw new ShenyuException(message);
+                    String message = String.format("renew master lock fail, %s", e.getMessage());
+                    throw new ShenyuException(message);
                 }
             }
         } catch (Exception e) {
