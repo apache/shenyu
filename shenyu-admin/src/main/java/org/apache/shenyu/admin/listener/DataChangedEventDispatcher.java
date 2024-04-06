@@ -64,7 +64,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
     @SuppressWarnings("unchecked")
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
         if (!clusterMasterService.isMaster()) {
-            LOG.debug("received DataChangedEvent, not master, pass: {}", JsonUtils.toJson(event));
+            LOG.debug("received DataChangedEvent, not master, pass");
             return;
         }
         for (DataChangedListener listener : listeners) {
