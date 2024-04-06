@@ -20,13 +20,16 @@ package org.apache.shenyu.admin.listener;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
@@ -43,6 +46,8 @@ import java.util.List;
  */
 @Component
 public class DataChangedEventDispatcher implements ApplicationListener<DataChangedEvent>, InitializingBean {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(DataChangedEventDispatcher.class);
 
     private final ApplicationContext applicationContext;
 
@@ -58,34 +63,36 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
     @Override
     @SuppressWarnings("unchecked")
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
-        if (clusterMasterService.isMaster()) {
-            for (DataChangedListener listener : listeners) {
-                switch (event.getGroupKey()) {
-                    case APP_AUTH:
-                        listener.onAppAuthChanged((List<AppAuthData>) event.getSource(), event.getEventType());
-                        break;
-                    case PLUGIN:
-                        listener.onPluginChanged((List<PluginData>) event.getSource(), event.getEventType());
-                        break;
-                    case RULE:
-                        listener.onRuleChanged((List<RuleData>) event.getSource(), event.getEventType());
-                        break;
-                    case SELECTOR:
-                        listener.onSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
-                        break;
-                    case META_DATA:
-                        listener.onMetaDataChanged((List<MetaData>) event.getSource(), event.getEventType());
-                        break;
-                    case PROXY_SELECTOR:
-                        listener.onProxySelectorChanged((List<ProxySelectorData>) event.getSource(), event.getEventType());
-                        break;
-                    case DISCOVER_UPSTREAM:
-                        listener.onDiscoveryUpstreamChanged((List<DiscoverySyncData>) event.getSource(), event.getEventType());
-                        applicationContext.getBean(LoadServiceDocEntry.class).loadDocOnUpstreamChanged((List<DiscoverySyncData>) event.getSource(), event.getEventType());
-                        break;
-                    default:
-                        throw new IllegalStateException("Unexpected value: " + event.getGroupKey());
-                }
+        if (!clusterMasterService.isMaster()) {
+            LOG.debug("received DataChangedEvent, not master, pass: {}", JsonUtils.toJson(event));
+            return;
+        }
+        for (DataChangedListener listener : listeners) {
+            switch (event.getGroupKey()) {
+                case APP_AUTH:
+                    listener.onAppAuthChanged((List<AppAuthData>) event.getSource(), event.getEventType());
+                    break;
+                case PLUGIN:
+                    listener.onPluginChanged((List<PluginData>) event.getSource(), event.getEventType());
+                    break;
+                case RULE:
+                    listener.onRuleChanged((List<RuleData>) event.getSource(), event.getEventType());
+                    break;
+                case SELECTOR:
+                    listener.onSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
+                    break;
+                case META_DATA:
+                    listener.onMetaDataChanged((List<MetaData>) event.getSource(), event.getEventType());
+                    break;
+                case PROXY_SELECTOR:
+                    listener.onProxySelectorChanged((List<ProxySelectorData>) event.getSource(), event.getEventType());
+                    break;
+                case DISCOVER_UPSTREAM:
+                    listener.onDiscoveryUpstreamChanged((List<DiscoverySyncData>) event.getSource(), event.getEventType());
+                    applicationContext.getBean(LoadServiceDocEntry.class).loadDocOnUpstreamChanged((List<DiscoverySyncData>) event.getSource(), event.getEventType());
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + event.getGroupKey());
             }
         }
     }
