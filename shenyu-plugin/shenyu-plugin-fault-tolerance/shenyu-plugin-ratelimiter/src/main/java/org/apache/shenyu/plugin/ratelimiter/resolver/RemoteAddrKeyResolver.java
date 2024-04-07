@@ -26,6 +26,10 @@ import java.util.Objects;
 @Join
 public class RemoteAddrKeyResolver implements RateLimiterKeyResolver {
 
+    private static final String[] HEADERS = {"X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"};
+
+    private static final String UNKNOWN = "unknown";
+
     @Override
     public String getKeyResolverName() {
         return "REMOTE_ADDRESS_KEY_RESOLVER";
@@ -33,19 +37,18 @@ public class RemoteAddrKeyResolver implements RateLimiterKeyResolver {
 
     @Override
     public String resolve(final ServerWebExchange exchange) {
-        String[] headers = {"X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"};
         String ip;
-        for (String header : headers) {
+        for (String header : HEADERS) {
             ip = exchange.getRequest().getHeaders().getFirst(header);
-            boolean isUnknown = StringUtils.isBlank(ip) || "unknown".equalsIgnoreCase(ip);
+            boolean isUnknown = StringUtils.isBlank(ip) || UNKNOWN.equalsIgnoreCase(ip);
             if (!isUnknown) {
                 if (StringUtils.indexOf(ip, ',') > 0) {
                     String[] split = StringUtils.split(ip, ',');
                     for (int i = 0; i < split.length; i++) {
                         split[i] = split[i].trim();
                     }
-                    for (final String subIp : split) {
-                        boolean isUnknownSubIp = StringUtils.isBlank(subIp) || "unknown".equalsIgnoreCase(subIp);
+                    for (String subIp : split) {
+                        boolean isUnknownSubIp = StringUtils.isBlank(subIp) || UNKNOWN.equalsIgnoreCase(subIp);
                         if (!isUnknownSubIp) {
                             ip = subIp;
                             break;
