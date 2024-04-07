@@ -76,12 +76,12 @@ public class ClusterSelectMasterService {
     }
     
     private void doSelectMaster(final String host, final String port, final String contextPath) {
+        // expires all locks older than 10 seconds
+        jdbcLockRegistry.expireUnusedOlderThan(AdminConstants.TEN_SECONDS_MILLIS_TIME);
+        
+        // DEFAULT_TTL = 10000 ms
+        Lock lock = jdbcLockRegistry.obtain(MASTER_LOCK_KEY);
         try {
-            // expires all locks older than 10 seconds
-            jdbcLockRegistry.expireUnusedOlderThan(AdminConstants.TEN_SECONDS_MILLIS_TIME);
-            
-            // DEFAULT_TTL = 10000 ms
-            Lock lock = jdbcLockRegistry.obtain(MASTER_LOCK_KEY);
             
             boolean locked = lock.tryLock(AdminConstants.TEN_SECONDS_MILLIS_TIME,
                     TimeUnit.MILLISECONDS);
@@ -118,6 +118,8 @@ public class ClusterSelectMasterService {
             }
         } catch (Exception e) {
             LOG.error("select master error", e);
+        } finally {
+            lock.unlock();
         }
     }
 }
