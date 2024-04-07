@@ -69,8 +69,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
                                     @NotNull final HttpServletResponse response,
                                     @NotNull final FilterChain filterChain) throws ServletException, IOException {
         String method = request.getMethod();
-        if (StringUtils.equals(HttpMethod.OPTIONS.name(), method)
-                || StringUtils.equals(HttpMethod.GET.name(), method)) {
+        if (StringUtils.equals(HttpMethod.OPTIONS.name(), method)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -98,9 +97,12 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         HttpHeaders headers = new HttpHeaders();
         copyHeaders(request, headers);
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
-        
+        String urlWithParams = url;
+        if (StringUtils.isNotEmpty(request.getQueryString())) {
+            urlWithParams += "?" + request.getQueryString();
+        }
         // Send request
-        ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.valueOf(request.getMethod()), requestEntity, String.class);
+        ResponseEntity<String> responseEntity = restTemplate.exchange(urlWithParams, HttpMethod.valueOf(request.getMethod()), requestEntity, String.class, request.getQueryString());
         
         // Set response status and headers
         response.setStatus(responseEntity.getStatusCodeValue());
