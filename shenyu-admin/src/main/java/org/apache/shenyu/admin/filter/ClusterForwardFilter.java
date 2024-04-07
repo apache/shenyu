@@ -102,7 +102,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             urlWithParams += "?" + request.getQueryString();
         }
         // Send request
-        ResponseEntity<String> responseEntity = restTemplate.exchange(urlWithParams, HttpMethod.valueOf(request.getMethod()), requestEntity, String.class, request.getQueryString());
+        ResponseEntity<String> responseEntity = restTemplate.exchange(urlWithParams, HttpMethod.valueOf(request.getMethod()), requestEntity, String.class);
         
         // Set response status and headers
         response.setStatus(responseEntity.getStatusCodeValue());
