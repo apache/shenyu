@@ -112,6 +112,8 @@ public class ClusterSelectMasterService {
 //                    LOG.error("renew master lock fail", e);
                     // if renew fail, remove local master flag
                     clusterMasterService.removeMaster();
+                    // close the upstream check service
+                    upstreamCheckService.close();
                     String message = String.format("renew master lock fail, %s", e.getMessage());
                     throw new ShenyuException(message);
                 }

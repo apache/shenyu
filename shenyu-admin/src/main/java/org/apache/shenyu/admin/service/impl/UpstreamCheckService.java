@@ -33,6 +33,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.event.selector.SelectorCreatedEvent;
 import org.apache.shenyu.admin.model.event.selector.SelectorUpdatedEvent;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
+import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
@@ -57,6 +58,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -118,6 +120,9 @@ public class UpstreamCheckService {
     private ScheduledThreadPoolExecutor invokeExecutor;
 
     private final List<CompletableFuture<Void>> futures = Lists.newArrayList();
+    
+    @Resource
+    private ClusterMasterService clusterMasterService;
 
     /**
      * Instantiates a new Upstream check service.
@@ -259,8 +264,11 @@ public class UpstreamCheckService {
 
     private void scheduled() {
         try {
-            doCheck();
-            waitFinish();
+            // only if this node is master
+            if (clusterMasterService.isMaster()) {
+                doCheck();
+                waitFinish();
+            }
         } catch (Exception e) {
             LOG.error("upstream scheduled check error -------- ", e);
         }
