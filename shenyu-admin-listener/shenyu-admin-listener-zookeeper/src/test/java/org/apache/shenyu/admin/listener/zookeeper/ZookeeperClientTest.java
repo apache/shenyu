@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -119,7 +120,7 @@ class ZookeeperClientTest {
 
     @Test
     void isExist() throws Exception {
-        assertThrows(ShenyuException.class, () -> client.isExist("/test"));
+        assertFalse(() -> client.isExist("/test"));
         ExistsBuilderImpl existsBuilder = mock(ExistsBuilderImpl.class);
         when(curatorFramework.checkExists()).thenReturn(existsBuilder);
         when(existsBuilder.forPath(anyString())).thenReturn(new Stat());
