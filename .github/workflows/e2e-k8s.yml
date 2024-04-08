@@ -94,8 +94,8 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker save apache/shenyu-admin:latest > /tmp/apache-shenyu-admin.tar
           docker save apache/shenyu-bootstrap:latest > /tmp/apache-shenyu-bootstrap.tar
+          docker save apache/shenyu-admin:latest > /tmp/apache-shenyu-admin.tar
 
       - name: Upload Docker Image Artifacts
         uses: actions/upload-artifact@v3
@@ -280,6 +280,7 @@ jobs:
         run: |
           sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
           sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
+
 
 #      - name: Setup Debug Session
 #        uses: mxschmitt/action-tmate@v3

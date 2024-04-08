@@ -35,12 +35,14 @@ spec:
         - image: shenyu-examples-http
           name: shenyu-examples-http
           livenessProbe:
-            exec:
-              command:
-                - wget -q -O - http://localhost:8189/actuator/health | grep UP || exit 1
             initialDelaySeconds: 10
             failureThreshold: 3
             timeoutSeconds: 2
+            exec:
+              command:
+                - /bin/sh
+                - "-c"
+                - wget -q -O - http://localhost:8189/actuator/health | grep UP || exit 1
           env:
             - name: shenyu.register.serverLists
               value: http://shenyu-admin:9095
