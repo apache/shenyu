@@ -80,9 +80,9 @@ public class EtcdSyncDataService extends AbstractPathDataSyncService {
             final List<String> childrenKeys = etcdClient.getChildrenKeys(registerPath, "/");
             if (!ObjectUtils.isEmpty(childrenKeys)) {
                 childrenKeys.forEach(nodePath -> {
-                    String joinPath = String.join(Constants.PATH_SEPARATOR, registerPath, nodePath);
-                    final String nodeData = etcdClient.get(joinPath);
-                    super.event(joinPath, nodeData, registerPath, EventType.PUT);
+                    String updatePath = String.join(Constants.PATH_SEPARATOR, registerPath, nodePath);
+                    final String nodeData = etcdClient.get(updatePath);
+                    super.event(updatePath, nodeData, registerPath, EventType.PUT);
                 });
             }
         } catch (Exception e) {
