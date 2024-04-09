@@ -111,7 +111,8 @@ public class ZookeeperClient {
         try {
             return null != client.checkExists().forPath(key);
         } catch (Exception e) {
-            throw new ShenyuException(e);
+            LOGGER.error("check if key exist error", e);
+            return false;
         }
     }
 
