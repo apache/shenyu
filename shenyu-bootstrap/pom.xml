@@ -332,6 +332,7 @@
         <dependency>
             <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo</artifactId>
+            <version>${apache.dubbo.version}</version>
         </dependency>
         <!-- Dubbo Nacos registry dependency -->
         <!--  <dependency>
