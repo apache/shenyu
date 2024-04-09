@@ -28,8 +28,8 @@
 
     <properties>
         <curator.version>5.2.1</curator.version>
-        <nacos-client.version>2.0.4</nacos-client.version>
-        <apache.dubbo.version>2.7.15</apache.dubbo.version>
+        <nacos-client.version>2.2.4</nacos-client.version>
+        <apache.dubbo.version>3.2.11</apache.dubbo.version>
         <zookeeper.version>3.7.2</zookeeper.version>
     </properties>
 
@@ -110,6 +110,11 @@
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
+            <version>${curator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-x-discovery</artifactId>
             <version>${curator.version}</version>
         </dependency>
 
