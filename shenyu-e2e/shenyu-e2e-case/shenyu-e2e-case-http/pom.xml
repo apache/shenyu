@@ -32,5 +32,10 @@
             <artifactId>rocketmq-client</artifactId>
             <version>4.9.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>3.4.0</version>
+        </dependency>
     </dependencies>
 </project>

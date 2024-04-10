@@ -101,6 +101,11 @@ public class DividePluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         LOG.info("start loggingRocketMQ plugin");
+        enableLoggingRocketMQPlugin(adminClient, gatewayClient);
+        enableLoggingKafkaPlugin(adminClient, gatewayClient);
+    }
+
+    private void enableLoggingRocketMQPlugin(AdminClient adminClient, GatewayClient gatewayClient) throws Exception {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "29");
         formData.add("name", "loggingRocketMQ");
@@ -110,6 +115,18 @@ public class DividePluginTest {
         formData.add("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"rocketmq-dialevoneid:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
         adminClient.changePluginStatus("29", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq");
+    }
+
+    private void enableLoggingKafkaPlugin(AdminClient adminClient, GatewayClient gatewayClient) throws Exception {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("id", "33");
+        formData.add("name", "loggingKafka");
+        formData.add("enabled", "true");
+        formData.add("role", "Logging");
+        formData.add("sort", "180");
+        formData.add("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"localhost:9092\"}");
+        adminClient.changePluginStatus("29", formData);
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.kafka");
     }
 
     @ShenYuScenario(provider = DividePluginCases.class)
