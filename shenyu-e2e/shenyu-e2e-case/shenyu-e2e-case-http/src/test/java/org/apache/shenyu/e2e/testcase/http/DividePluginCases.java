@@ -60,6 +60,8 @@ public class DividePluginCases implements ShenYuScenarioProvider {
 
     private static final String CONSUMERGROUP = "shenyu-plugin-logging-rocketmq";
 
+    private static final String KAFKA_CONSUMER = "shenyu-plugin-logging-kafka";
+
     private static final String TOPIC = "shenyu-access-logging";
 
     private static final String TEST = "/http/order/findById?id=123";
@@ -203,7 +205,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
         consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_BROKER);
         consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, CONSUMERGROUP);
+        consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, KAFKA_CONSUMER);
         return new KafkaConsumer<>(consumerProperties);
     }
 }
