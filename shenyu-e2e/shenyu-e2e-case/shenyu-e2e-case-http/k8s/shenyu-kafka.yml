@@ -32,7 +32,7 @@ spec:
         app: shenyu-kafka
     spec:
       containers:
-        - image: kafka:latest
+        - image: apache/kafka:latest
           name: shenyu-kafka
           ports:
             - containerPort: 9092
