@@ -1,0 +1,108 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: rocketmq-broker
+  name: rocketmq-broker
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocketmq-broker
+  template:
+    metadata:
+      labels:
+        app: rocketmq-broker
+    spec:
+      containers:
+        - name: broker
+          env:
+            - name: NAMESRV_ADDR
+              value: rocketmq-dialevoneid:9876
+          image: rocketmqinc/rocketmq:4.4.0
+          command: [ "/bin/sh", "mqbroker" ]
+          ports:
+            - containerPort: 10909
+              hostPort: 10909
+              name: tcp-10909
+              protocol: TCP
+            - containerPort: 10911
+              hostPort: 10911
+              name: tcp-10911
+              protocol: TCP
+            - containerPort: 10912
+              hostPort: 10912
+              name: tcp-10912
+              protocol: TCP
+
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: rocketmq-namesrv
+  name: rocketmq-namesrv
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocketmq-namesrv
+  template:
+    metadata:
+      labels:
+        app: rocketmq-namesrv
+    spec:
+      containers:
+        - name: namesrv
+          image: rocketmqinc/rocketmq:4.4.0
+          command: [ "/bin/sh", "mqnamesrv" ]
+          ports:
+            - containerPort: 9876
+              hostPort: 9876
+              name: tcp-9876
+              protocol: TCP
+          resources:
+            limits:
+              memory: 600Mi
+            requests:
+              memory: 600Mi
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: rocketmq-dialevoneid
+  name: rocketmq-dialevoneid
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - name: tcp-9876
+      port: 9876
+      protocol: TCP
+      targetPort: 9876
+      nodePort: 31876
+  selector:
+    app: rocketmq-namesrv
+status:
+  loadBalancer: {}
