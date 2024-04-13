@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.filter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
+import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -92,7 +93,15 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     }
     
     private void forwardRequest(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
-        String url = clusterMasterService.getMasterUrl() + request.getRequestURI();
+        ClusterMasterDTO master = clusterMasterService.getMaster();
+        String host = master.getMasterHost();
+        String port = master.getMasterPort();
+        String contextPath = master.getContextPath();
+        String url = "http://" + host + ":" + port;
+        if (StringUtils.isNotEmpty(master.getContextPath())) {
+            url = url + "/" + contextPath;
+        }
+        url = url + request.getRequestURI();
         LOG.debug("forwarding request to url: {}", url);
         // Create request entity
         HttpHeaders headers = new HttpHeaders();
@@ -109,7 +118,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         response.setStatus(responseEntity.getStatusCodeValue());
         copyHeaders(responseEntity.getHeaders(), response);
         // fix cors error
-        response.addHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Origin", host);
         response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
         
         try (Writer writer = response.getWriter()) {
