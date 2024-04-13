@@ -88,14 +88,15 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             return;
         }
         // cluster forward request to master
-        forwardRequest(clusterMasterService.getMasterUrl() + request.getRequestURI(), request, response);
+        forwardRequest(request, response);
     }
     
-    private void forwardRequest(final String url, final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+    private void forwardRequest(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+        String url = clusterMasterService.getMasterUrl() + request.getRequestURI();
         LOG.debug("forwarding request to url: {}", url);
         // Create request entity
         HttpHeaders headers = new HttpHeaders();
-        copyHeaders(request, headers);
+//        copyHeaders(request, headers);
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
         String urlWithParams = url;
         if (StringUtils.isNotEmpty(request.getQueryString())) {
@@ -106,7 +107,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         
         // Set response status and headers
         response.setStatus(responseEntity.getStatusCodeValue());
-        copyHeaders(responseEntity.getHeaders(), response);
+//        copyHeaders(responseEntity.getHeaders(), response);
         // fix cors error
         response.addHeader("Access-Control-Allow-Origin", "*");
         response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
