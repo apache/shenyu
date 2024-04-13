@@ -32,24 +32,26 @@ import org.springframework.http.HttpMethod;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * custom Stateless AccessControlFilter.
  */
 public class StatelessAuthFilter extends AccessControlFilter {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(StatelessAuthFilter.class);
-
+    
     @Override
     protected boolean isAccessAllowed(final ServletRequest servletRequest,
                                       final ServletResponse servletResponse,
                                       final Object o) {
         return false;
     }
-
+    
     @Override
     protected boolean onAccessDenied(final ServletRequest servletRequest,
                                      final ServletResponse servletResponse) throws Exception {
@@ -57,18 +59,18 @@ public class StatelessAuthFilter extends AccessControlFilter {
         if (StringUtils.equals(HttpMethod.OPTIONS.name(), httpServletRequest.getMethod())) {
             return true;
         }
-
-        String tokenValue = httpServletRequest.getHeader(Constants.X_ACCESS_TOKEN);
+        
+        String tokenValue = getTokenValue(httpServletRequest, Constants.X_ACCESS_TOKEN);
         if (StringUtils.isBlank(tokenValue)) {
             LOG.error("token is null.");
             unionFailResponse(servletResponse);
             return false;
         }
-
+        
         BearerToken token = new BearerToken(tokenValue);
-
+        
         Subject subject = getSubject(servletRequest, servletResponse);
-
+        
         try {
             subject.login(token);
         } catch (Exception e) {
@@ -76,10 +78,27 @@ public class StatelessAuthFilter extends AccessControlFilter {
             unionFailResponse(servletResponse);
             return false;
         }
-
+        
         return true;
     }
-
+    
+    private String getTokenValue(final HttpServletRequest httpServletRequest, final String tokenName) {
+        String tokenValue = httpServletRequest.getHeader(tokenName);
+        if (StringUtils.isNotEmpty(tokenValue)) {
+            return tokenName;
+        }
+        tokenValue = httpServletRequest.getParameter(tokenName);
+        if (StringUtils.isNotEmpty(tokenValue)) {
+            return tokenName;
+        }
+        Cookie[] cookies = httpServletRequest.getCookies();
+        return Arrays.stream(cookies)
+                .filter(cookie -> StringUtils.equals(tokenName, cookie.getName()))
+                .findFirst()
+                .orElse(new Cookie("", ""))
+                .getValue();
+    }
+    
     /**
      * union response same result form exception.
      *
@@ -95,7 +114,7 @@ public class StatelessAuthFilter extends AccessControlFilter {
                 ShenyuResultMessage.TOKEN_IS_ERROR);
         httpResponse.getWriter().println(GsonUtils.getInstance().toJson(result));
     }
-
+    
     /**
      * add cors.
      *
