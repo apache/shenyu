@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.filter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.service.ClusterMasterService;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,9 +93,6 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     
     private void forwardRequest(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
         String url = clusterMasterService.getMasterUrl() + request.getRequestURI();
-        if (!isValid(url)) {
-            throw new ShenyuException("not a valid url");
-        }
         LOG.debug("forwarding request to url: {}", url);
         // Create request entity
         HttpHeaders headers = new HttpHeaders();
@@ -113,7 +109,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         response.setStatus(responseEntity.getStatusCodeValue());
         copyHeaders(responseEntity.getHeaders(), response);
         // fix cors error
-        response.addHeader("Access-Control-Allow-Origin", "localhost");
+        response.addHeader("Access-Control-Allow-Origin", "*");
         response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
         
         try (Writer writer = response.getWriter()) {
@@ -122,21 +118,25 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         }
     }
     
-    private boolean isValid(final String url) {
-        return true;
-    }
-    
     private void copyHeaders(final HttpServletRequest request, final HttpHeaders headers) {
         Collections.list(request.getHeaderNames())
-                .forEach(headerName -> headers.add(headerName, request.getHeader(headerName)));
+                .forEach(headerName -> headers.add(headerName, sanitizeHeaderValue(request.getHeader(headerName))));
     }
     
     private void copyHeaders(final HttpHeaders sourceHeaders, final HttpServletResponse response) {
         sourceHeaders.forEach((headerName, headerValues) -> {
             if (!response.containsHeader(headerName)) {
-                headerValues.forEach(headerValue -> response.addHeader(headerName, headerValue));
+                headerValues.forEach(headerValue -> response.addHeader(headerName, sanitizeHeaderValue(headerValue)));
             }
         });
+    }
+    
+    private static String sanitizeHeaderValue(final String headerValue) {
+        if (StringUtils.isBlank(headerValue)) {
+            return headerValue;
+        }
+        // Remove any newline characters (CRLF) from the header value
+        return headerValue.replaceAll("[\\r\\n]", "");
     }
     
     private byte[] getBody(final HttpServletRequest request) throws IOException {
