@@ -17,11 +17,15 @@
 
 package org.apache.shenyu.admin.filter;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.jetbrains.annotations.NotNull;
+import org.owasp.esapi.Encoder;
+import org.owasp.esapi.errors.EncodingException;
+import org.owasp.esapi.reference.DefaultEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -129,23 +133,51 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     
     private void copyHeaders(final HttpServletRequest request, final HttpHeaders headers) {
         Collections.list(request.getHeaderNames())
-                .forEach(headerName -> headers.add(headerName, sanitizeHeaderValue(request.getHeader(headerName))));
+                .forEach(headerName -> {
+                    try {
+                        headers.add(headerName, sanitizeHeaderValue(request.getHeader(headerName)));
+                    } catch (EncodingException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
     
     private void copyHeaders(final HttpHeaders sourceHeaders, final HttpServletResponse response) {
         sourceHeaders.forEach((headerName, headerValues) -> {
             if (!response.containsHeader(headerName)) {
-                headerValues.forEach(headerValue -> response.addHeader(headerName, sanitizeHeaderValue(headerValue)));
+                headerValues.forEach(headerValue -> {
+                    try {
+                        response.addHeader(headerName, sanitizeHeaderValue(headerValue));
+                    } catch (EncodingException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
             }
         });
     }
     
-    private static String sanitizeHeaderValue(final String headerValue) {
-        if (StringUtils.isBlank(headerValue)) {
-            return headerValue;
+    private static String sanitizeHeaderValue(final String headerValue) throws EncodingException {
+        Encoder encoder = new DefaultEncoder(Lists.newArrayList());
+        //first canonicalize
+        String clean = encoder.canonicalize(headerValue).trim();
+        //then url decode
+        clean = encoder.decodeFromURL(clean);
+        
+        //detect and remove any existent \r\n == %0D%0A == CRLF to prevent HTTP Response Splitting
+        int idxR = clean.indexOf('\r');
+        int idxN = clean.indexOf('\n');
+        
+        if (idxN >= 0 || idxR >= 0) {
+            if (idxN < idxR) {
+                //just cut off the part after the LF
+                clean = clean.substring(0, idxN);
+            } else {
+                //just cut off the part after the CR
+                clean = clean.substring(0, idxR);
+            }
         }
-        // Remove any newline characters (CRLF) from the header value
-        return headerValue.replaceAll("[\\r\\n]", "");
+        //re-encode again
+        return encoder.encodeForURL(clean);
     }
     
     private byte[] getBody(final HttpServletRequest request) throws IOException {
