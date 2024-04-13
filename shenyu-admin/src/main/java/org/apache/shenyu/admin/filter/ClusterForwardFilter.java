@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.filter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.service.ClusterMasterService;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,10 +94,13 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     
     private void forwardRequest(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
         String url = clusterMasterService.getMasterUrl() + request.getRequestURI();
+        if (!isValid(url)) {
+            throw new ShenyuException("not a valid url");
+        }
         LOG.debug("forwarding request to url: {}", url);
         // Create request entity
         HttpHeaders headers = new HttpHeaders();
-//        copyHeaders(request, headers);
+        copyHeaders(request, headers);
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
         String urlWithParams = url;
         if (StringUtils.isNotEmpty(request.getQueryString())) {
@@ -107,15 +111,19 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         
         // Set response status and headers
         response.setStatus(responseEntity.getStatusCodeValue());
-//        copyHeaders(responseEntity.getHeaders(), response);
+        copyHeaders(responseEntity.getHeaders(), response);
         // fix cors error
-        response.addHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Origin", "localhost");
         response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
         
         try (Writer writer = response.getWriter()) {
             writer.write(Objects.requireNonNull(responseEntity.getBody()));
             writer.flush();
         }
+    }
+    
+    private boolean isValid(final String url) {
+        return true;
     }
     
     private void copyHeaders(final HttpServletRequest request, final HttpHeaders headers) {
