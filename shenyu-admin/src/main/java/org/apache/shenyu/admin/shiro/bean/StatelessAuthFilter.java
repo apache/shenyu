@@ -85,11 +85,11 @@ public class StatelessAuthFilter extends AccessControlFilter {
     private String getTokenValue(final HttpServletRequest httpServletRequest, final String tokenName) {
         String tokenValue = httpServletRequest.getHeader(tokenName);
         if (StringUtils.isNotEmpty(tokenValue)) {
-            return tokenName;
+            return tokenValue;
         }
         tokenValue = httpServletRequest.getParameter(tokenName);
         if (StringUtils.isNotEmpty(tokenValue)) {
-            return tokenName;
+            return tokenValue;
         }
         Cookie[] cookies = httpServletRequest.getCookies();
         return Arrays.stream(cookies)
