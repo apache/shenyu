@@ -45,6 +45,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -72,6 +73,7 @@ public class GsonUtils {
             .registerTypeAdapter(String.class, new StringTypeAdapter())
             .registerTypeHierarchyAdapter(Pair.class, new PairTypeAdapter())
             .registerTypeHierarchyAdapter(Duration.class, new DurationTypeAdapter())
+            .registerTypeHierarchyAdapter(Timestamp.class, new TimestampTypeAdapter())
             .create();
 
     private static final Gson GSON_MAP = new GsonBuilder().serializeNulls().registerTypeHierarchyAdapter(new TypeToken<Map<String, Object>>() {
@@ -491,6 +493,35 @@ public class GsonUtils {
                     return null;
                 }
                 return Duration.parse(reader.nextString());
+            } catch (IOException e) {
+                throw new ShenyuException(e);
+            }
+        }
+    }
+
+    private static class TimestampTypeAdapter extends TypeAdapter<Timestamp> {
+        @Override
+        public void write(final JsonWriter out, final Timestamp value) {
+            try {
+                if (value == null) {
+                    out.nullValue();
+                    return;
+                }
+                out.value(value.getTime());
+            } catch (IOException e) {
+                LOG.error("failed to write", e);
+            }
+        }
+
+        @Override
+        public Timestamp read(final JsonReader reader) {
+            try {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.nextNull();
+                    return null;
+                }
+                long timestamp = reader.nextLong();
+                return new Timestamp(timestamp);
             } catch (IOException e) {
                 throw new ShenyuException(e);
             }
