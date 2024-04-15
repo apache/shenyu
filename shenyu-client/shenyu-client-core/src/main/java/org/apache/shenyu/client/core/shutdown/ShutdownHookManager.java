@@ -37,6 +37,8 @@ public final class ShutdownHookManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShutdownHookManager.class);
 
+    private static String hookName = "ShenyuClientShutdownHook";
+
     private final Set<HookEntry> hooks =
             Collections.synchronizedSet(new HashSet<HookEntry>());
 
@@ -57,8 +59,9 @@ public final class ShutdownHookManager {
                             LOG.error(ex.getMessage(), ex);
                         }
                     }
-                })
+                }, getHookName())
         );
+        LOG.info("Add hook {}", getHookName());
     }
 
     /**
@@ -160,6 +163,22 @@ public final class ShutdownHookManager {
      */
     public void clearShutdownHooks() {
         hooks.clear();
+    }
+
+    /**
+     * Returns client shutdown hook name.
+     *
+     * @return client shutdown hook name
+     */
+    public static String getHookName() {
+        return hookName;
+    }
+
+    /**
+     * clear client shutdown hook name.
+     */
+    public static void clearHookName() {
+        hookName = null;
     }
 
     /**
