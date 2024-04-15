@@ -63,8 +63,7 @@ public enum DiscoveryTransfer {
             .props(data.getProps())
             .url(data.getUrl())
             .dateUpdated(data.getDateUpdated())
-            .dateCreated(data.getDateCreated()).build())
-        .orElse(null);
+            .dateCreated(data.getDateCreated()).build()).orElse(null);
     }
 
     /**
@@ -85,8 +84,7 @@ public enum DiscoveryTransfer {
             vo.setProps(data.getProps());
             vo.setStartupTime(String.valueOf(data.getDateCreated().getTime()));
             return vo;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
 
@@ -99,8 +97,7 @@ public enum DiscoveryTransfer {
             discoveryRelVO.setSelectorId(data.getSelectorId());
             discoveryRelVO.setProxySelectorId(data.getProxySelectorId());
             return discoveryRelVO;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
 
@@ -113,8 +110,7 @@ public enum DiscoveryTransfer {
             discoveryRelDO.setSelectorId(data.getSelectorId());
             discoveryRelDO.setProxySelectorId(data.getProxySelectorId());
             return discoveryRelDO;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
     public DiscoveryVO mapToVo(DiscoveryDO discoveryDO) {
@@ -128,8 +124,7 @@ public enum DiscoveryTransfer {
             discoveryVO.setPluginName(data.getPluginName());
             discoveryVO.setProps(data.getProps());
             return discoveryVO;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
     public DiscoveryDTO mapToDTO(DiscoveryDO discoveryDO) {
@@ -143,8 +138,7 @@ public enum DiscoveryTransfer {
             discoveryDTO.setPluginName(data.getPluginName());
             discoveryDTO.setProps(data.getProps());
             return discoveryDTO;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
     public DiscoveryHandlerVO mapToVo(DiscoveryHandlerDO discoveryDO) {
@@ -156,8 +150,7 @@ public enum DiscoveryTransfer {
             vo.setListenerNode(data.getListenerNode());
             vo.setProps(data.getProps());
             return vo;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
     /**
@@ -179,8 +172,7 @@ public enum DiscoveryTransfer {
             discoveryUpstreamData.setDateUpdated(data.getDateUpdated());
             discoveryUpstreamData.setDateCreated(data.getDateCreated());
             return discoveryUpstreamData;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
     /**
@@ -202,8 +194,7 @@ public enum DiscoveryTransfer {
             discoveryUpstreamData.setDateCreated(data.getDateCreated());
             discoveryUpstreamData.setDateUpdated(data.getDateUpdated());
             return discoveryUpstreamData;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
     /**
@@ -224,8 +215,7 @@ public enum DiscoveryTransfer {
             Properties properties = GsonUtils.getInstance().fromJson(props, Properties.class);
             proxySelectorData.setProps(properties);
             return proxySelectorData;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
     /**
@@ -246,8 +236,7 @@ public enum DiscoveryTransfer {
             Properties properties = GsonUtils.getInstance().fromJson(props, Properties.class);
             proxySelectorData.setProps(properties);
             return proxySelectorData;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
     /**
@@ -266,8 +255,7 @@ public enum DiscoveryTransfer {
             proxySelectorDTO.setForwardPort(data.getForwardPort());
             proxySelectorDTO.setPluginName(data.getPluginName());
             return proxySelectorDTO;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
     /**
@@ -285,8 +273,7 @@ public enum DiscoveryTransfer {
             discoveryHandlerDTO.setListenerNode(data.getListenerNode());
             discoveryHandlerDTO.setId(data.getId());
             return discoveryHandlerDTO;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
     /**
@@ -304,8 +291,7 @@ public enum DiscoveryTransfer {
             discoveryHandlerDO.setListenerNode(data.getListenerNode());
             discoveryHandlerDO.setId(data.getId());
             return discoveryHandlerDO;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
     /**
@@ -327,8 +313,7 @@ public enum DiscoveryTransfer {
             discoveryUpstreamDTO.setDateCreated(data.getDateCreated());
             discoveryUpstreamDTO.setDateUpdated(data.getDateUpdated());
             return discoveryUpstreamDTO;
-        })
-        .orElse(null);
+        }).orElse(null);
     }
 
 }
