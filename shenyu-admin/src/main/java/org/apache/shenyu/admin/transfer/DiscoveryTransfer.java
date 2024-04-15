@@ -35,6 +35,7 @@ import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -108,6 +109,9 @@ public enum DiscoveryTransfer {
 
     public DiscoveryVO mapToVo(DiscoveryDO discoveryDO) {
         DiscoveryVO discoveryVO = new DiscoveryVO();
+        if (Objects.isNull(discoveryDO)) {
+            return discoveryVO;
+        }
         discoveryVO.setId(discoveryDO.getId());
         discoveryVO.setName(discoveryDO.getName());
         discoveryVO.setType(discoveryDO.getType());
