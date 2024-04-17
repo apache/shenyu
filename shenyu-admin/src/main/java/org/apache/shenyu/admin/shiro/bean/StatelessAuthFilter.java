@@ -90,6 +90,7 @@ public class StatelessAuthFilter extends AccessControlFilter {
      */
     private String getTokenValue(final HttpServletRequest httpServletRequest) {
         String tokenName = Constants.X_ACCESS_TOKEN;
+        // get token from header
         String tokenValue = httpServletRequest.getHeader(tokenName);
         if (StringUtils.isNoneBlank(tokenValue)) {
             return tokenValue;
