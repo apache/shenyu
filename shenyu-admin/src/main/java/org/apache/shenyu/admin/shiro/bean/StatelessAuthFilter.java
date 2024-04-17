@@ -60,7 +60,7 @@ public class StatelessAuthFilter extends AccessControlFilter {
             return true;
         }
         
-        String tokenValue = getTokenValue(httpServletRequest, Constants.X_ACCESS_TOKEN);
+        String tokenValue = getTokenValue(httpServletRequest);
         if (StringUtils.isBlank(tokenValue)) {
             LOG.error("token is null.");
             unionFailResponse(servletResponse);
@@ -84,17 +84,18 @@ public class StatelessAuthFilter extends AccessControlFilter {
     
     /**
      * get token value from request.
+     *
      * @param httpServletRequest request
-     * @param tokenName token name
      * @return tokenValue
      */
-    private String getTokenValue(final HttpServletRequest httpServletRequest, final String tokenName) {
+    private String getTokenValue(final HttpServletRequest httpServletRequest) {
+        String tokenName = Constants.X_ACCESS_TOKEN;
         String tokenValue = httpServletRequest.getHeader(tokenName);
-        if (StringUtils.isNotEmpty(tokenValue)) {
+        if (StringUtils.isNoneBlank(tokenValue)) {
             return tokenValue;
         }
         tokenValue = httpServletRequest.getParameter(tokenName);
-        if (StringUtils.isNotEmpty(tokenValue)) {
+        if (StringUtils.isNoneBlank(tokenValue)) {
             return tokenValue;
         }
         Cookie[] cookies = httpServletRequest.getCookies();
