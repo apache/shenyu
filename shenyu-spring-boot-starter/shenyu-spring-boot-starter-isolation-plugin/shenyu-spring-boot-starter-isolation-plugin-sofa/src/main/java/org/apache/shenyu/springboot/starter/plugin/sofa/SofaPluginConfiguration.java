@@ -21,6 +21,7 @@ import org.apache.shenyu.plugin.sofa.SofaPlugin;
 import org.apache.shenyu.plugin.sofa.context.SofaShenyuContextDecorator;
 import org.apache.shenyu.plugin.sofa.handler.SofaMetaDataHandler;
 import org.apache.shenyu.plugin.sofa.handler.SofaPluginDataHandler;
+import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveServiceImpl;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
 import org.apache.shenyu.springboot.starter.plugin.isolation.common.AbstractIsolationConfiguration;
@@ -47,7 +48,7 @@ public class SofaPluginConfiguration extends AbstractIsolationConfiguration impl
         registerSingleton(defaultListableBeanFactory, new SofaMetaDataHandler());
         registerSingleton(defaultListableBeanFactory, new SofaPluginDataHandler());
         final SofaParamResolveServiceImpl sofaParamResolveService = new SofaParamResolveServiceImpl();
-        registerSingleton(defaultListableBeanFactory, sofaParamResolveService);
+        registerSingleton(defaultListableBeanFactory, SofaParamResolveService.class, sofaParamResolveService);
         registerSingleton(defaultListableBeanFactory, new SofaPlugin(new SofaProxyService(sofaParamResolveService)));
     }
 
