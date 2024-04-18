@@ -45,7 +45,7 @@ spec:
             - name: MYSQL_USER
               value: shenyue2e
             - name: MYSQL_PASSWORD
-              value: 12345678
+              value: shenyue2e
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
