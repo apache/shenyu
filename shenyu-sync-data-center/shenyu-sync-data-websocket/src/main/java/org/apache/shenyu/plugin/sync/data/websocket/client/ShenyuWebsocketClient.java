@@ -58,6 +58,8 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     private final Timer timer;
 
     private TimerTask timerTask;
+    
+    private URI serverUri;
 
     /**
      * Instantiates a new shenyu websocket client.
@@ -79,6 +81,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
+        this.serverUri = serverUri;
     }
 
     /**
@@ -102,6 +105,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
+        this.serverUri = serverUri;
     }
 
     private void connection() {
@@ -189,7 +193,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * @param result result
      */
     private void handleResult(final String result) {
-        LOG.info("handleResult({})", result);
+        LOG.info("uri:{}, handleResult({})", serverUri.toString(), result);
         WebsocketData<?> websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
         ConfigGroupEnum groupEnum = ConfigGroupEnum.acquireByName(websocketData.getGroupType());
         String eventType = websocketData.getEventType();
