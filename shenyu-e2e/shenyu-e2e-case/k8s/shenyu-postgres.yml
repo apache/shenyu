@@ -41,9 +41,9 @@ spec:
           }
           env:
             - name: POSTGRES_USER
-              value: shenyue2e
+              value: postgres
             - name: POSTGRES_PASSWORD
-              value: shenyue2e
+              value: 123456
             - name: POSTGRES_DB
               value: shenyu
           livenessProbe:
