@@ -2534,9 +2534,9 @@ CREATE TABLE "public"."cluster_master"
     "date_updated"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
-COMMENT ON COLUMN "public"."alert_receiver"."id" IS 'primary key id';
-COMMENT ON COLUMN "public"."alert_receiver"."master_host" IS 'master host';
-COMMENT ON COLUMN "public"."alert_receiver"."master_port" IS 'master port';
-COMMENT ON COLUMN "public"."alert_receiver"."context_path" IS 'master context_path';
-COMMENT ON COLUMN "public"."alert_receiver"."date_created" IS 'create time';
-COMMENT ON COLUMN "public"."alert_receiver"."date_updated" IS 'update time';
+COMMENT ON COLUMN "public"."cluster_master"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."cluster_master"."master_host" IS 'master host';
+COMMENT ON COLUMN "public"."cluster_master"."master_port" IS 'master port';
+COMMENT ON COLUMN "public"."cluster_master"."context_path" IS 'master context_path';
+COMMENT ON COLUMN "public"."cluster_master"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."cluster_master"."date_updated" IS 'update time';
