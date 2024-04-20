@@ -23,9 +23,9 @@ ENV LOCAL_PATH /opt/shenyu-bootstrap
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
-FROM openjdk:17-jdk-buster
+FROM openjdk:8-jre-alpine
 
-# RUN apk --no-cache add procps
+RUN apk --no-cache add procps
 
 ENV LOCAL_PATH /opt/shenyu-bootstrap
 ENV BOOT_JVM ""
