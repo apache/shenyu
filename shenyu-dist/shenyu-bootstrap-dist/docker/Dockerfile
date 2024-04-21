@@ -23,9 +23,9 @@ ENV LOCAL_PATH /opt/shenyu-bootstrap
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
-FROM openjdk:8-jre-alpine
+FROM openjdk:17-jdk-alpine3.14
 
-RUN apk --no-cache add procps
+RUN apk --no-cache add wget
 
 ENV LOCAL_PATH /opt/shenyu-bootstrap
 ENV BOOT_JVM ""
