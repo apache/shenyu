@@ -37,11 +37,11 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: og
-            - name: SPRING_DATASOURCE_USERNAME
+            - name: spring.datasource.username
               value: gaussdb
-            - name: SPRING_DATASOURCE_PASSWORD
+            - name: spring.datasource.password
               value: ShenYuE2E@123
-            - name: SPRING_DATASOURCE_URL
+            - name: spring.datasource.url
               value: jdbc:opengauss://shenyu-opengauss:5432/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
           ports:
             - containerPort: 9095

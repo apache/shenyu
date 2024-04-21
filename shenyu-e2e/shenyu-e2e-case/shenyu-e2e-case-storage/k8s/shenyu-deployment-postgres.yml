@@ -37,11 +37,11 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: pg
-            - name: SPRING_DATASOURCE_USERNAME
+            - name: spring.datasource.username
               value: shenyue2e
-            - name: SPRING_DATASOURCE_PASSWORD
+            - name: spring.datasource.password
               value: shenyue2e
-            - name: SPRING_DATASOURCE_URL
+            - name: spring.datasource.url
               value: jdbc:postgresql://shenyu-postgres:5432/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
           ports:
             - containerPort: 9095
