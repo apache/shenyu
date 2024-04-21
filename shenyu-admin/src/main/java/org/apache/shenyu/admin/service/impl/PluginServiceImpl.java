@@ -312,7 +312,7 @@ public class PluginServiceImpl implements PluginService {
      * @see PluginCreatedEvent
      */
     private String create(final PluginDTO pluginDTO) {
-        Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), AdminConstants.PLUGIN_NAME_IS_EXIST + pluginDTO.getName());
+        Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), "create" + AdminConstants.PLUGIN_NAME_IS_EXIST + pluginDTO.getName());
         if (Objects.nonNull(pluginDTO.getFile())) {
             Assert.isTrue(checkFile(Base64.decode(pluginDTO.getFile())), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
