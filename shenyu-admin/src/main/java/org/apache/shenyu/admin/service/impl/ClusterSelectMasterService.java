@@ -70,7 +70,7 @@ public class ClusterSelectMasterService {
     public void startSelectMasterTask(final String host, final String port, final String contextPath) {
         LOG.debug("starting select master task");
         executorService.scheduleAtFixedRate(() -> doSelectMaster(host, port, contextPath),
-                AdminConstants.TEN_SECONDS_MILLIS_TIME,
+                0,
                 AdminConstants.TEN_SECONDS_MILLIS_TIME,
                 TimeUnit.MILLISECONDS);
     }
