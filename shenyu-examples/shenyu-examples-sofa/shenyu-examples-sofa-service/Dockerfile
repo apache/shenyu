@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:17.0.2
+FROM openjdk:17-jdk-alpine3.14
 
 ENV APP_NAME shenyu-examples-sofa
 ENV LOCAL_PATH /opt/${APP_NAME}
