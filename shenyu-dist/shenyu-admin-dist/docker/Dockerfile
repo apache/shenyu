@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM alpine AS prepare
+FROM debian AS prepare
 
 ARG APP_NAME
 
@@ -23,7 +23,7 @@ ENV LOCAL_PATH /opt/shenyu-admin
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
-FROM openjdk:17-jdk-alpine3.14
+FROM openjdk:17.0.2-slim-buster
 
 # RUN apk --no-cache add procps
 
