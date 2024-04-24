@@ -23,9 +23,6 @@ import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.jetbrains.annotations.NotNull;
-import org.owasp.esapi.Encoder;
-import org.owasp.esapi.errors.EncodingException;
-import org.owasp.esapi.reference.DefaultEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -134,11 +131,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     private void copyHeaders(final HttpServletRequest request, final HttpHeaders headers) {
         Collections.list(request.getHeaderNames())
                 .forEach(headerName -> {
-                    try {
-                        headers.add(headerName, sanitizeHeaderValue(request.getHeader(headerName)).replace("\r", "").replace("\n", ""));
-                    } catch (EncodingException e) {
-                        throw new RuntimeException(e);
-                    }
+                    headers.add(headerName, sanitizeHeaderValue(request.getHeader(headerName)));
                 });
     }
     
@@ -146,38 +139,14 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         sourceHeaders.forEach((headerName, headerValues) -> {
             if (!response.containsHeader(headerName)) {
                 headerValues.forEach(headerValue -> {
-                    try {
-                        response.addHeader(headerName, sanitizeHeaderValue(headerValue).replace("\r", "").replace("\n", ""));
-                    } catch (EncodingException e) {
-                        throw new RuntimeException(e);
-                    }
+                    response.addHeader(headerName, sanitizeHeaderValue(headerValue));
                 });
             }
         });
     }
     
-    private static String sanitizeHeaderValue(final String headerValue) throws EncodingException {
-        Encoder encoder = new DefaultEncoder(Lists.newArrayList());
-        //first canonicalize
-        String clean = encoder.canonicalize(headerValue).trim();
-        //then url decode
-        clean = encoder.decodeFromURL(clean);
-        
-        //detect and remove any existent \r\n == %0D%0A == CRLF to prevent HTTP Response Splitting
-        int idxR = clean.indexOf('\r');
-        int idxN = clean.indexOf('\n');
-        
-        if (idxN >= 0 || idxR >= 0) {
-            if (idxN < idxR) {
-                //just cut off the part after the LF
-                clean = clean.substring(0, idxN);
-            } else {
-                //just cut off the part after the CR
-                clean = clean.substring(0, idxR);
-            }
-        }
-        //re-encode again
-        return encoder.encodeForURL(clean);
+    private static String sanitizeHeaderValue(final String headerValue) {
+        return headerValue.replace("\r", "").replace("\n", "");
     }
     
     private byte[] getBody(final HttpServletRequest request) throws IOException {
