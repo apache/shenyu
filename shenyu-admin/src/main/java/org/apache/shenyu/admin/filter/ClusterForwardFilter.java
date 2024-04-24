@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.filter;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
