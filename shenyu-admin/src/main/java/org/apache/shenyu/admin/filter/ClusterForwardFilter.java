@@ -135,7 +135,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         Collections.list(request.getHeaderNames())
                 .forEach(headerName -> {
                     try {
-                        headers.add(headerName, sanitizeHeaderValue(request.getHeader(headerName)));
+                        headers.add(headerName, sanitizeHeaderValue(request.getHeader(headerName)).replace("\r", "").replace("\n", ""));
                     } catch (EncodingException e) {
                         throw new RuntimeException(e);
                     }
@@ -147,7 +147,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             if (!response.containsHeader(headerName)) {
                 headerValues.forEach(headerValue -> {
                     try {
-                        response.addHeader(headerName, sanitizeHeaderValue(headerValue));
+                        response.addHeader(headerName, sanitizeHeaderValue(headerValue).replace("\r", "").replace("\n", ""));
                     } catch (EncodingException e) {
                         throw new RuntimeException(e);
                     }
