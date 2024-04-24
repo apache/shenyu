@@ -42,8 +42,6 @@ kubectl logs "$(kubectl get pod -o wide | grep shenyu-mysql | awk '{print $1}')"
 
 kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
 
-kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
-
 ## run e2e-test
 
 curl -S "http://localhost:31195/actuator/pluginData"
