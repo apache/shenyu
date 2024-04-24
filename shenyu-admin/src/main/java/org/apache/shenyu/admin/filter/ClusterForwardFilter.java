@@ -43,6 +43,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Objects;
 
@@ -125,7 +126,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
         
         try (Writer writer = response.getWriter()) {
-            writer.write(Objects.requireNonNull(responseEntity.getBody()));
+            writer.write(URLEncoder.encode(Objects.requireNonNull(responseEntity.getBody()), "UTF-8"));
             writer.flush();
         }
     }
