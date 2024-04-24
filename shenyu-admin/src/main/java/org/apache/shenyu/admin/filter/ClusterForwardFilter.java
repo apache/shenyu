@@ -133,7 +133,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     private void copyHeaders(final HttpServletRequest request, final HttpHeaders headers) {
         Collections.list(request.getHeaderNames())
                 .forEach(headerName -> {
-                    headers.add(headerName, request.getHeader(headerName).replace("\r", "").replace("\n", ""));
+                    headers.add(headerName, removeSpecial(request.getHeader(headerName)));
                 });
     }
     
@@ -141,10 +141,14 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         sourceHeaders.forEach((headerName, headerValues) -> {
             if (!response.containsHeader(headerName)) {
                 headerValues.forEach(headerValue -> {
-                    response.addHeader(headerName, headerValue.replace("\r", "").replace("\n", ""));
+                    response.addHeader(headerName, removeSpecial(headerValue));
                 });
             }
         });
+    }
+    
+    private static String removeSpecial(final String str) {
+        return str.replaceAll("[^a-zA-Z ]", "");
     }
     
     private byte[] getBody(final HttpServletRequest request) throws IOException {
