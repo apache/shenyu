@@ -39,6 +39,7 @@ import javax.annotation.Resource;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -92,58 +93,66 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         }
         
         // cluster forward request to master
-        forwardRequest(request, response);
+        forwardRequest(request, response, filterChain);
     }
     
-    private void forwardRequest(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+    private void forwardRequest(final HttpServletRequest request,
+                                final HttpServletResponse response,
+                                final FilterChain filterChain) throws IOException, ServletException {
         ClusterMasterDTO master = clusterMasterService.getMaster();
         String host = master.getMasterHost();
         String port = master.getMasterPort();
-        String contextPath = master.getContextPath();
+//        String contextPath = master.getContextPath();
         
         // new URL
-        String uri = request.getRequestURI();
-        String requestContextPath = request.getContextPath();
-        uri = uri.replaceAll(requestContextPath, "");
-        if (StringUtils.isNotEmpty(contextPath)) {
-            uri = contextPath + "/" + uri;
-        }
-        UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
-                .host(host)
-                .port(port)
-                .path(uri);
+//        String uri = request.getRequestURI();
+//        String requestContextPath = request.getContextPath();
+//        uri = uri.replaceAll(requestContextPath, "");
+//        if (StringUtils.isNotEmpty(contextPath)) {
+//            uri = contextPath + "/" + uri;
+//        }
+//        UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
+//                .host(host)
+//                .port(port)
+//                .path(uri);
+        String originalUrl = request.getRequestURL().toString();
+        UriComponentsBuilder builder =UriComponentsBuilder.fromHttpUrl(originalUrl).host(host)
+                .port(port);
         
         // 添加查询参数
-        if (StringUtils.isNotEmpty(request.getQueryString())) {
-            builder.query(request.getQueryString());
-        }
-        
-        LOG.debug("forwarding request to url: {}", builder.toUriString());
-        // Create request entity
-        HttpHeaders headers = new HttpHeaders();
-        copyHeaders(request, headers);
-        HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
-//        String urlWithParams = url;
 //        if (StringUtils.isNotEmpty(request.getQueryString())) {
-//            urlWithParams += "?" + request.getQueryString();
+//            builder.query(request.getQueryString());
 //        }
-//        if (!urlWithParams.startsWith(clusterMasterService.getMasterUrl() + uri)) {
-//            throw new IllegalArgumentException("Invalid URL");
+//
+//        LOG.debug("forwarding request to url: {}", builder.toUriString());
+//        // Create request entity
+//        HttpHeaders headers = new HttpHeaders();
+//        copyHeaders(request, headers);
+//        HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
+//        //        String urlWithParams = url;
+//        //        if (StringUtils.isNotEmpty(request.getQueryString())) {
+//        //            urlWithParams += "?" + request.getQueryString();
+//        //        }
+//        //        if (!urlWithParams.startsWith(clusterMasterService.getMasterUrl() + uri)) {
+//        //            throw new IllegalArgumentException("Invalid URL");
+//        //        }
+//        // Send request
+//        ResponseEntity<String> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.valueOf(request.getMethod()), requestEntity, String.class);
+//
+//        // Set response status and headers
+//        response.setStatus(responseEntity.getStatusCodeValue());
+//        copyHeaders(responseEntity.getHeaders(), response);
+//        // fix cors error
+//        response.addHeader("Access-Control-Allow-Origin", host);
+//        response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+//
+//        try (Writer writer = response.getWriter()) {
+//            writer.write(URLEncoder.encode(Objects.requireNonNull(responseEntity.getBody()), "UTF-8"));
+//            writer.flush();
 //        }
-        // Send request
-        ResponseEntity<String> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.valueOf(request.getMethod()), requestEntity, String.class);
+        HttpServletRequest newRequest = new UrlRewriteRequestWrapper(request, builder.toUriString());
+        filterChain.doFilter(newRequest, response);
         
-        // Set response status and headers
-        response.setStatus(responseEntity.getStatusCodeValue());
-        copyHeaders(responseEntity.getHeaders(), response);
-        // fix cors error
-        response.addHeader("Access-Control-Allow-Origin", host);
-        response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-        
-        try (Writer writer = response.getWriter()) {
-            writer.write(URLEncoder.encode(Objects.requireNonNull(responseEntity.getBody()), "UTF-8"));
-            writer.flush();
-        }
     }
     
     private String checkValidUrl(final String url) {
@@ -180,5 +189,19 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             baos.write(buffer, 0, bytesRead);
         }
         return baos.toByteArray();
+    }
+    
+    static class UrlRewriteRequestWrapper extends HttpServletRequestWrapper {
+        private final String url;
+        
+        public UrlRewriteRequestWrapper(HttpServletRequest request, String url) {
+            super(request);
+            this.url = url;
+        }
+        
+        @Override
+        public String getRequestURI() {
+            return this.url;
+        }
     }
 }
