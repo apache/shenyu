@@ -141,9 +141,10 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     
     private void copyHeaders(final HttpHeaders sourceHeaders, final HttpServletResponse response) {
         sourceHeaders.forEach((headerName, headerValues) -> {
-            if (!response.containsHeader(headerName)) {
+            String name = headerName.replaceAll("[^a-zA-Z ]", "");
+            if (!response.containsHeader(name)) {
                 headerValues.forEach(headerValue -> {
-                    response.addHeader(headerName.replaceAll("[^a-zA-Z ]", ""), headerValue.replaceAll("[^a-zA-Z ]", ""));
+                    response.addHeader(name, headerValue.replaceAll("[^a-zA-Z ]", ""));
                 });
             }
         });
