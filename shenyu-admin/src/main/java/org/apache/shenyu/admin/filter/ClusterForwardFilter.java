@@ -134,7 +134,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     }
     
     private String checkValidUrl(final String url) {
-        if (!url.startsWith(clusterMasterService.getMasterUrl() )) {
+        if (!url.startsWith(clusterMasterService.getMasterUrl())) {
             throw new IllegalArgumentException("Invalid URL");
         }
         return url;
