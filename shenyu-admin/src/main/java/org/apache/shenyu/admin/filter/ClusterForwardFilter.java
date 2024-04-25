@@ -81,14 +81,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             return;
         }
         
-        String uri = request.getRequestURI();
-        String contextPath = request.getContextPath();
-        String replaced = uri.replaceAll(contextPath, "");
-        boolean anyMatch = clusterProperties.getForwardList().stream().anyMatch(x -> PATH_MATCHER.match(x, replaced));
-        if (!anyMatch) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        
         // cluster forward request to master
         forwardRequest(request, response);
     }
@@ -102,8 +95,15 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         if (StringUtils.isNotEmpty(master.getContextPath())) {
             url = url + "/" + contextPath;
         }
-        url = url + request.getRequestURI();
-        if (!(clusterMasterService.getMasterUrl() + request.getRequestURI()).equals(url)) {
+        String uri = request.getRequestURI();
+        String requestContextPath = request.getContextPath();
+        String replaced = uri.replaceAll(requestContextPath, "");
+        boolean anyMatch = clusterProperties.getForwardList().stream().anyMatch(x -> PATH_MATCHER.match(x, replaced));
+        if (!anyMatch) {
+            throw new IllegalArgumentException("Invalid URL");
+        }
+        url = url + uri;
+        if (!(clusterMasterService.getMasterUrl() + uri).equals(url)) {
             throw new IllegalArgumentException("Invalid URL");
         }
         LOG.debug("forwarding request to url: {}", url);
@@ -115,7 +115,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         if (StringUtils.isNotEmpty(request.getQueryString())) {
             urlWithParams += "?" + request.getQueryString();
         }
-        if (!urlWithParams.startsWith(clusterMasterService.getMasterUrl() + request.getRequestURI())) {
+        if (!urlWithParams.startsWith(clusterMasterService.getMasterUrl() + uri)) {
             throw new IllegalArgumentException("Invalid URL");
         }
         // Send request
