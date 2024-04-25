@@ -81,7 +81,6 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             return;
         }
         
-        
         // cluster forward request to master
         forwardRequest(request, response);
     }
