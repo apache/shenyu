@@ -58,12 +58,18 @@ public interface FallbackHandler {
         // client HttpStatusCodeException, return the client response directly
         if (t instanceof HttpStatusCodeException || Objects.isNull(uri)) {
             return withoutFallback(exchange, t);
-        } 
+        }
         if (uri.toString().startsWith(PREFIX)) {
-            String fallbackUri = uri.toString().substring(PREFIX.length());
+            String fallbackPath = uri.toString().substring(PREFIX.length());
             DispatcherHandler dispatcherHandler =
                     SpringBeanUtils.getInstance().getBean(DispatcherHandler.class);
-            ServerHttpRequest request = exchange.getRequest().mutate().uri(URI.create(fallbackUri)).build();
+            URI previsouUri = exchange.getRequest().getURI();
+            // avoid redirect loop, return error.
+            if (UriUtils.getPathWithParams(previsouUri).equals(fallbackPath)) {
+                return withoutFallback(exchange, t);
+            }
+            URI fallbackUri = UriUtils.createUri(previsouUri.getScheme(), previsouUri.getAuthority(), fallbackPath);
+            ServerHttpRequest request = exchange.getRequest().mutate().uri(fallbackUri).build();
             ServerWebExchange mutated = exchange.mutate().request(request).build();
             return dispatcherHandler.handle(mutated);
         }
