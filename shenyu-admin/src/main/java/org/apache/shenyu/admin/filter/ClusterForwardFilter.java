@@ -118,7 +118,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             throw new IllegalArgumentException("Invalid URL");
         }
         // Send request
-        ResponseEntity<String> responseEntity = restTemplate.exchange(urlWithParams, HttpMethod.valueOf(request.getMethod()), requestEntity, String.class);
+        ResponseEntity<String> responseEntity = restTemplate.exchange(checkValidUrl(urlWithParams), HttpMethod.valueOf(request.getMethod()), requestEntity, String.class);
         
         // Set response status and headers
         response.setStatus(responseEntity.getStatusCodeValue());
@@ -131,6 +131,13 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             writer.write(URLEncoder.encode(Objects.requireNonNull(responseEntity.getBody()), "UTF-8"));
             writer.flush();
         }
+    }
+    
+    private String checkValidUrl(final String url) {
+        if (!url.startsWith(clusterMasterService.getMasterUrl() )) {
+            throw new IllegalArgumentException("Invalid URL");
+        }
+        return url;
     }
     
     private void copyHeaders(final HttpServletRequest request, final HttpHeaders headers) {
