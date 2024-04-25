@@ -111,7 +111,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
 //                .port(port)
 //                .path(uri);
         String originalUrl = request.getRequestURL().toString();
-        UriComponentsBuilder builder =UriComponentsBuilder.fromHttpUrl(originalUrl).host(host)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(originalUrl).host(host)
                 .port(port);
         
         // 添加查询参数
@@ -189,7 +189,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     static class UrlRewriteRequestWrapper extends HttpServletRequestWrapper {
         private final String url;
         
-        public UrlRewriteRequestWrapper(HttpServletRequest request, String url) {
+        private UrlRewriteRequestWrapper(final HttpServletRequest request, final String url) {
             super(request);
             this.url = url;
         }
