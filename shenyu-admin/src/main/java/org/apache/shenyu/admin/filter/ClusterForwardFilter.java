@@ -143,7 +143,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         sourceHeaders.forEach((headerName, headerValues) -> {
             if (!response.containsHeader(headerName)) {
                 headerValues.forEach(headerValue -> {
-                    response.addHeader(headerName, headerValue.replaceAll("[^a-zA-Z ]", ""));
+                    response.addHeader(headerName.replaceAll("[^a-zA-Z ]", ""), headerValue.replaceAll("[^a-zA-Z ]", ""));
                 });
             }
         });
