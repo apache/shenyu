@@ -682,7 +682,7 @@ public class HttpUtils {
                         input.close();
                     }
                 } catch (IOException ioe) {
-                    LOG.error(e);
+                    LOG.error(ioe);
                 }
             }
         }
