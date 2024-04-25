@@ -186,7 +186,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         return baos.toByteArray();
     }
     
-    static class UrlRewriteRequestWrapper extends HttpServletRequestWrapper {
+    final static class UrlRewriteRequestWrapper extends HttpServletRequestWrapper {
         private final String url;
         
         private UrlRewriteRequestWrapper(final HttpServletRequest request, final String url) {
