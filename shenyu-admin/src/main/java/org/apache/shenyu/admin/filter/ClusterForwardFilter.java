@@ -103,14 +103,14 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             url = url + "/" + contextPath;
         }
         url = url + request.getRequestURI();
+        if (!(clusterMasterService.getMasterUrl() + request.getRequestURI()).equals(url)) {
+            throw new IllegalArgumentException("Invalid URL");
+        }
         LOG.debug("forwarding request to url: {}", url);
         // Create request entity
         HttpHeaders headers = new HttpHeaders();
         copyHeaders(request, headers);
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
-        if (!(clusterMasterService.getMasterUrl() + request.getRequestURI()).equals(url)) {
-            throw new IllegalArgumentException("Invalid URL");
-        }
         String urlWithParams = url;
         if (StringUtils.isNotEmpty(request.getQueryString())) {
             urlWithParams += "?" + request.getQueryString();
