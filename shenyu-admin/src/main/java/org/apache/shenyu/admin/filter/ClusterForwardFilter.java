@@ -108,12 +108,13 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         HttpHeaders headers = new HttpHeaders();
         copyHeaders(request, headers);
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
-        if (!(clusterMasterService.getMasterUrl() + request.getRequestURI()).equals(url)) {
-            throw new IllegalArgumentException("Invalid URL");
-        }
+        
         String urlWithParams = url;
         if (StringUtils.isNotEmpty(request.getQueryString())) {
             urlWithParams += "?" + request.getQueryString();
+        }
+        if (!urlWithParams.startsWith(clusterMasterService.getMasterUrl() + request.getRequestURI())) {
+            throw new IllegalArgumentException("Invalid URL");
         }
         // Send request
         ResponseEntity<String> responseEntity = restTemplate.exchange(urlWithParams, HttpMethod.valueOf(request.getMethod()), requestEntity, String.class);
@@ -134,7 +135,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     private void copyHeaders(final HttpServletRequest request, final HttpHeaders headers) {
         Collections.list(request.getHeaderNames())
                 .forEach(headerName -> {
-                    headers.add(headerName, removeSpecial(request.getHeader(headerName)));
+                    headers.add(headerName, request.getHeader(headerName).replaceAll("[^a-zA-Z ]", ""));
                 });
     }
     
@@ -142,14 +143,10 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         sourceHeaders.forEach((headerName, headerValues) -> {
             if (!response.containsHeader(headerName)) {
                 headerValues.forEach(headerValue -> {
-                    response.addHeader(headerName, removeSpecial(headerValue));
+                    response.addHeader(headerName, headerValue.replaceAll("[^a-zA-Z ]", ""));
                 });
             }
         });
-    }
-    
-    private static String removeSpecial(final String str) {
-        return str.replaceAll("[^a-zA-Z ]", "");
     }
     
     private byte[] getBody(final HttpServletRequest request) throws IOException {
