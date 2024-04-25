@@ -33,6 +33,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.Resource;
 import javax.servlet.FilterChain;
@@ -81,6 +82,15 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             return;
         }
         
+        String uri = request.getRequestURI();
+        String requestContextPath = request.getContextPath();
+        String replaced = uri.replaceAll(requestContextPath, "");
+        boolean anyMatch = clusterProperties.getForwardList().stream().anyMatch(x -> PATH_MATCHER.match(x, replaced));
+        if (!anyMatch) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         // cluster forward request to master
         forwardRequest(request, response);
     }
@@ -90,35 +100,38 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         String host = master.getMasterHost();
         String port = master.getMasterPort();
         String contextPath = master.getContextPath();
-        String url = "http://" + host + ":" + port;
-        if (StringUtils.isNotEmpty(master.getContextPath())) {
-            url = url + "/" + contextPath;
-        }
+        
+        // new URL
         String uri = request.getRequestURI();
         String requestContextPath = request.getContextPath();
-        String replaced = uri.replaceAll(requestContextPath, "");
-        boolean anyMatch = clusterProperties.getForwardList().stream().anyMatch(x -> PATH_MATCHER.match(x, replaced));
-        if (!anyMatch) {
-            throw new IllegalArgumentException("Invalid URL");
+        uri = uri.replaceAll(requestContextPath, "");
+        if (StringUtils.isNotEmpty(contextPath)) {
+            uri = contextPath + "/" + uri;
         }
-        url = url + uri;
-        if (!(clusterMasterService.getMasterUrl() + uri).equals(url)) {
-            throw new IllegalArgumentException("Invalid URL");
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
+                .host(host)
+                .port(port)
+                .path(uri);
+        
+        // 添加查询参数
+        if (StringUtils.isNotEmpty(request.getQueryString())) {
+            builder.query(request.getQueryString());
         }
-        LOG.debug("forwarding request to url: {}", url);
+        
+        LOG.debug("forwarding request to url: {}", builder.toUriString());
         // Create request entity
         HttpHeaders headers = new HttpHeaders();
         copyHeaders(request, headers);
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
-        String urlWithParams = url;
-        if (StringUtils.isNotEmpty(request.getQueryString())) {
-            urlWithParams += "?" + request.getQueryString();
-        }
-        if (!urlWithParams.startsWith(clusterMasterService.getMasterUrl() + uri)) {
-            throw new IllegalArgumentException("Invalid URL");
-        }
+//        String urlWithParams = url;
+//        if (StringUtils.isNotEmpty(request.getQueryString())) {
+//            urlWithParams += "?" + request.getQueryString();
+//        }
+//        if (!urlWithParams.startsWith(clusterMasterService.getMasterUrl() + uri)) {
+//            throw new IllegalArgumentException("Invalid URL");
+//        }
         // Send request
-        ResponseEntity<String> responseEntity = restTemplate.exchange(checkValidUrl(urlWithParams), HttpMethod.valueOf(request.getMethod()), requestEntity, String.class);
+        ResponseEntity<String> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.valueOf(request.getMethod()), requestEntity, String.class);
         
         // Set response status and headers
         response.setStatus(responseEntity.getStatusCodeValue());
