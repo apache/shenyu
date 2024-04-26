@@ -31,10 +31,6 @@ kubectl get pod -o wide
 
 sleep 30s
 
-kubectl get pod -o wide
-
-sleep 30s
-
 chmod +x "${curPath}"/healthcheck.sh
 sh "${curPath}"/healthcheck.sh mysql http://localhost:31095/actuator/health http://localhost:31195/actuator/health
 
