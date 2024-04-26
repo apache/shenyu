@@ -682,7 +682,7 @@ public class HttpUtils {
                         input.close();
                     }
                 } catch (IOException ioe) {
-                    System.err.println(ioe);
+                    LOG.error("toBytes error", ioe);
                 }
             }
         }
