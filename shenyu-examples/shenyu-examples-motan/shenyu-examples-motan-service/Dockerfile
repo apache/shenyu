@@ -27,4 +27,4 @@ WORKDIR ${LOCAL_PATH}
 EXPOSE 8081
 EXPOSE 8002
 
-CMD java -jar ${APP_NAME}.jar
+CMD java --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.net.util=ALL-UNNAMED -jar ${APP_NAME}.jar
