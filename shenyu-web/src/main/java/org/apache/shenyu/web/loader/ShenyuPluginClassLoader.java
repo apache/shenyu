@@ -198,7 +198,7 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
      * @return boolean
      */
     private <T> boolean isLoadedByOtherClassLoader(final T inst) {
-        return !inst.getClass().getClassLoader().equals(this);
+        return !Objects.equals(inst.getClass().getClassLoader(), this);
     }
 
     private <T> ShenyuLoaderResult buildResult(final T instance) {
