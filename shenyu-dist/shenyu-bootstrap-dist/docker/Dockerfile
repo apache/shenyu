@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM centos:7 AS prepare
+FROM alpine AS prepare
 
 ARG APP_NAME
 
@@ -23,7 +23,7 @@ ENV LOCAL_PATH /opt/shenyu-bootstrap
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
-FROM eclipse-temurin:17-centos7
+FROM bellsoft/liberica-openjdk-alpine:17
 
 # RUN apk --no-cache add wget
 
