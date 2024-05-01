@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM eclipse-temurin:17-centos7
+FROM bellsoft/liberica-openjdk-alpine:17
 
 ENV APP_NAME shenyu-examples-apache-dubbo-service
 ENV LOCAL_PATH /opt/${APP_NAME}
