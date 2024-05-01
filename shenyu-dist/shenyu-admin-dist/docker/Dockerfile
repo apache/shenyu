@@ -25,7 +25,7 @@ RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
 FROM bellsoft/liberica-openjdk-alpine:17
 
-# RUN apk --no-cache add wget
+RUN apk --no-cache add wget
 
 ENV LOCAL_PATH /opt/shenyu-admin
 ENV ADMIN_JVM ""
