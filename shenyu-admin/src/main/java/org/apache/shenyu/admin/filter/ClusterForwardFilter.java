@@ -123,6 +123,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         LOG.debug("forwarding request to url: {}", builder.toUriString());
         // Create request entity
         HttpHeaders headers = new HttpHeaders();
+        
         copyHeaders(request, headers);
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
         // Send request
@@ -145,7 +146,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     
     private void copyHeaders(final HttpServletRequest request, final HttpHeaders headers) {
         Collections.list(request.getHeaderNames())
-                .forEach(headerName -> headers.add(headerName, request.getHeader(headerName)));
+                .forEach(headerName -> headers.add(headerName, request.getHeader(headerName).replaceAll("\r", "").replaceAll("\n", "")));
     }
     
     private void copyHeaders(final HttpHeaders sourceHeaders, final HttpServletResponse response) {
@@ -153,7 +154,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
 //            String name = headerName.replaceAll("[^a-zA-Z ]", "");
             if (!response.containsHeader(headerName)) {
                 headerValues.forEach(headerValue -> {
-                    response.addHeader(headerName, headerValue);
+                    response.addHeader(headerName, headerValue.replaceAll("\r", "").replaceAll("\n", ""));
                 });
             }
         });
