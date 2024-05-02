@@ -68,7 +68,7 @@ public class ClusterSelectMasterService {
      * @param contextPath contextPath
      */
     public void startSelectMasterTask(final String host, final String port, final String contextPath) {
-        LOG.debug("starting select master task");
+        LOG.info("starting select master task");
         executorService.scheduleAtFixedRate(() -> doSelectMaster(host, port, contextPath),
                 0,
                 AdminConstants.TEN_SECONDS_MILLIS_TIME,
@@ -87,11 +87,11 @@ public class ClusterSelectMasterService {
                     TimeUnit.MILLISECONDS);
             
             if (!locked) {
-                LOG.debug("select master fail, wait for next time");
+                LOG.info("select master fail, wait for next time");
                 clusterMasterService.removeMaster();
                 return;
             }
-            LOG.debug("select master success");
+            LOG.info("select master success");
             
             // set master info (db and local flag)
             clusterMasterService.setMaster(host, port, contextPath);
@@ -107,7 +107,7 @@ public class ClusterSelectMasterService {
                     // sleeps 10s then renew the lock
                     TimeUnit.MILLISECONDS.sleep(AdminConstants.TEN_SECONDS_MILLIS_TIME);
                     jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
-                    LOG.debug("renew master lock success");
+                    LOG.info("renew master lock success");
                 } catch (Exception e) {
 //                    LOG.error("renew master lock fail", e);
                     // if renew fail, remove local master flag
