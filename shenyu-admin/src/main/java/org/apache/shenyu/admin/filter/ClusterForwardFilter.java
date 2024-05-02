@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.jetbrains.annotations.NotNull;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -138,7 +139,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
 
         try (Writer writer = response.getWriter()) {
 //            writer.write(URLEncoder.encode(Objects.requireNonNull(responseEntity.getBody()), "UTF-8"));
-            writer.write(Objects.requireNonNull(responseEntity.getBody()));
+            writer.write(Encode.forJava(Objects.requireNonNull(responseEntity.getBody())));
             writer.flush();
         }
         
