@@ -73,7 +73,6 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     @Autowired
     private RequestMappingHandlerMapping requestMappingHandlerMapping;
     
-    
     @Override
     protected void doFilterInternal(@NotNull final HttpServletRequest request,
                                     @NotNull final HttpServletResponse response,
