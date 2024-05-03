@@ -141,6 +141,9 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         copyHeaders(request, headers);
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
         // Send request
+        if (!builder.toUriString().startsWith(clusterMasterService.getMasterUrl())) {
+            throw new IllegalArgumentException("Invalid URL");
+        }
         ResponseEntity<byte[]> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.valueOf(request.getMethod()), requestEntity, byte[].class);
 
         // Set response status and headers
