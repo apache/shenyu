@@ -117,9 +117,9 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
                 .port(port);
         
         // 添加查询参数
-        if (StringUtils.isNotEmpty(request.getQueryString())) {
-            builder.query(request.getQueryString());
-        }
+//        if (StringUtils.isNotEmpty(request.getQueryString())) {
+//            builder.query(request.getQueryString());
+//        }
         
         LOG.debug("forwarding request to url: {}", builder.toUriString());
         // Create request entity
