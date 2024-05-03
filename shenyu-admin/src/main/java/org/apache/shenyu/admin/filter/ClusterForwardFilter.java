@@ -25,7 +25,6 @@ import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -36,7 +35,6 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.Resource;
@@ -69,9 +67,6 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     
     @Resource
     private ClusterProperties clusterProperties;
-    
-    @Autowired
-    private RequestMappingHandlerMapping requestMappingHandlerMapping;
     
     @Override
     protected void doFilterInternal(@NotNull final HttpServletRequest request,
@@ -125,15 +120,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         if (StringUtils.isNotEmpty(request.getQueryString())) {
             builder.query(request.getQueryString());
         }
-//        HandlerExecutionChain handlerExecutionChain = null;
-//            handlerExecutionChain = requestMappingHandlerMapping.getHandler(request);
-//            if (handlerExecutionChain == null) {
-//                // 没有匹配的处理程序
-//                return filterChain.doFilter(request, response);
-//            }
-//            // 获取目标方法
-//            HandlerMethod handlerMethod = (HandlerMethod) handlerExecutionChain.getHandler();
-//            Method method = handlerMethod.getMethod();
+        
         LOG.debug("forwarding request to url: {}", builder.toUriString());
         // Create request entity
         HttpHeaders headers = new HttpHeaders();
