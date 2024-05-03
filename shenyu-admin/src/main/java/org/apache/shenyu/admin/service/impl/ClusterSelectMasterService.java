@@ -105,7 +105,7 @@ public class ClusterSelectMasterService {
             while (true) {
                 try {
                     // sleeps 10s then renew the lock
-                    TimeUnit.MILLISECONDS.sleep(AdminConstants.TEN_SECONDS_MILLIS_TIME);
+                    TimeUnit.MILLISECONDS.sleep(AdminConstants.FIVE_SECONDS_MILLIS_TIME);
                     jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
                     LOG.info("renew master lock success");
                 } catch (Exception e) {

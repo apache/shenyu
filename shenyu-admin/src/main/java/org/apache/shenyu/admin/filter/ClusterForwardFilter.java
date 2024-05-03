@@ -42,7 +42,6 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -116,12 +115,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
                 .host(host)
                 .port(port);
         
-        // 添加查询参数
-//        if (StringUtils.isNotEmpty(request.getQueryString())) {
-//            builder.query(request.getQueryString());
-//        }
-        
-        LOG.debug("forwarding request to url: {}", builder.toUriString());
+        LOG.info("forwarding request to url: {}", builder.toUriString());
         // Create request entity
         HttpHeaders headers = new HttpHeaders();
         
@@ -131,7 +125,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         if (!builder.toUriString().startsWith(clusterMasterService.getMasterUrl())) {
             throw new IllegalArgumentException("Invalid URL");
         }
-        ResponseEntity<byte[]> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.valueOf(request.getMethod()), requestEntity, byte[].class);
+        ResponseEntity<InputStream> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.valueOf(request.getMethod()), requestEntity, InputStream.class);
 
         // Set response status and headers
         response.setStatus(responseEntity.getStatusCodeValue());
@@ -140,14 +134,8 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         response.addHeader("Access-Control-Allow-Origin", "*");
         response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
 
-//        try (Writer writer = response.getWriter()) {
-//            writer.write(URLEncoder.encode(Objects.requireNonNull(responseEntity.getBody()), "UTF-8"));
-//            writer.write();
-        IOUtils.copy(new ByteArrayInputStream(Objects.requireNonNull(responseEntity.getBody())), response.getOutputStream());
+        IOUtils.copy(Objects.requireNonNull(responseEntity.getBody()), response.getOutputStream());
         response.getOutputStream().flush();
-//            writer.flush();
-//        }
-        
     }
     
     private void copyHeaders(final HttpServletRequest request, final HttpHeaders headers) {
