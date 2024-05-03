@@ -52,12 +52,6 @@ for sync in ${SYNC_ARRAY[@]}; do
   sleep 10s
   kubectl get pod -o wide
 
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-mysql | awk '{print $1}')"
-
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
-
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
-
   ## run e2e-test
   ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-websocket -am test
   # shellcheck disable=SC2181
