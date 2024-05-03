@@ -54,8 +54,6 @@ for sync in ${SYNC_ARRAY[@]}; do
 
   kubectl logs "$(kubectl get pod -o wide | grep shenyu-mysql | awk '{print $1}')"
 
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-"${sync}" | awk '{print $1}')"
-
   kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
 
   kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
@@ -65,6 +63,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   # shellcheck disable=SC2181
   if (($?)); then
     echo "${sync}-sync-e2e-test failed"
+    kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-websocket | awk '{print $1}')"
     echo "shenyu-admin log:"
     echo "------------------"
     kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
