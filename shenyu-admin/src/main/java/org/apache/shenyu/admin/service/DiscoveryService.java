@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 
@@ -75,6 +76,11 @@ public interface DiscoveryService {
      */
     void syncData();
 
+    /**
+     * list all vo.
+     * @return discovery vo
+     */
+    List<DiscoveryVO> listAllData();
 
     /**
      * findDiscoveryHandlerBySelectorId.
@@ -93,4 +99,11 @@ public interface DiscoveryService {
      * @return discoveryHandlerId
      */
     String registerDefaultDiscovery(String selectorId, String pluginName);
+
+    /**
+     * Import discovery data list.
+     * @param discoveryList the discovery data
+     * @return config import result
+     */
+    ConfigImportResult importData(List<DiscoveryDTO> discoveryList);
 }

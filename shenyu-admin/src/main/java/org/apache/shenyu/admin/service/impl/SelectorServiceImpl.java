@@ -51,6 +51,7 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
@@ -69,8 +70,11 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -82,6 +86,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -91,6 +96,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class SelectorServiceImpl implements SelectorService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SelectorServiceImpl.class);
 
     private final SelectorMapper selectorMapper;
 
@@ -280,7 +287,7 @@ public class SelectorServiceImpl implements SelectorService {
             discoveryRelMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
             discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
             DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
-            if (!Objects.isNull(discoveryDO)) {
+            if (Objects.nonNull(discoveryDO)) {
                 DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
                 ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
                 proxySelectorDTO.setName(selector.getName());
@@ -411,6 +418,76 @@ public class SelectorServiceImpl implements SelectorService {
         return this.buildSelectorDataList(selectorMapper.selectAll());
     }
 
+    @Override
+    public List<SelectorVO> listAllData() {
+        return this.buildSelectorExportVOList(selectorMapper.selectAll());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ConfigImportResult importData(final List<SelectorDTO> selectorList) {
+        if (CollectionUtils.isEmpty(selectorList)) {
+            return ConfigImportResult.success();
+        }
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        int successCount = 0;
+        Map<String, List<SelectorDO>> pluginSelectorMap = selectorMapper.selectAll().stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(SelectorDO::getPluginId));
+
+        Map<String, List<SelectorDTO>> importSelectorMap = selectorList.stream()
+                .collect(Collectors.groupingBy(SelectorDTO::getPluginId));
+
+        for (Map.Entry<String, List<SelectorDTO>> selectorEntry : importSelectorMap.entrySet()) {
+            // the import selector's pluginId
+            String pluginId = selectorEntry.getKey();
+            List<SelectorDTO> selectorDTOList = selectorEntry.getValue();
+            if (CollectionUtils.isNotEmpty(selectorDTOList)) {
+
+                Set<String> existSelectorSet = Optional
+                        .ofNullable(pluginSelectorMap.get(pluginId))
+                        .orElseGet(Lists::newArrayList)
+                        .stream()
+                        .map(SelectorDO::getName)
+                        .collect(Collectors.toSet());
+
+                for (SelectorDTO selectorDTO : selectorDTOList) {
+                    // filter by selectorName
+                    String selectorName = selectorDTO.getName();
+                    if (CollectionUtils.isNotEmpty(existSelectorSet)
+                            && existSelectorSet.contains(selectorName)) {
+                        errorMsgBuilder
+                                .append(selectorName)
+                                .append(",");
+                    } else {
+                        create(selectorDTO);
+                        successCount++;
+                    }
+                }
+            }
+        }
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+            return ConfigImportResult
+                    .fail(successCount, "import fail selector: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean enabled(final List<String> ids, final Boolean enabled) {
+        ids.forEach(id -> {
+            SelectorDO selectorDO = selectorMapper.selectById(id);
+            SelectorDO before = JsonUtils.jsonToObject(JsonUtils.toJson(selectorDO), SelectorDO.class);
+            selectorDO.setEnabled(enabled);
+            if (selectorMapper.updateEnable(id, enabled) > 0) {
+                selectorEventPublisher.onUpdated(selectorDO, before);
+            }
+        });
+        return Boolean.TRUE;
+    }
+
     /**
      * the plugin delete, synchronously delete selectors.
      *
@@ -485,6 +562,34 @@ public class SelectorServiceImpl implements SelectorService {
                     }
                     List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(selectorConditionMap.get(id));
                     return SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private List<SelectorVO> buildSelectorExportVOList(final List<SelectorDO> selectorDOList) {
+        Map<String, String> idMap = ListUtil.toMap(selectorDOList, SelectorDO::getId, SelectorDO::getPluginId);
+        if (MapUtils.isEmpty(idMap)) {
+            return new ArrayList<>();
+        }
+        Map<String, List<SelectorConditionDO>> selectorConditionMap = ListUtil.groupBy(selectorConditionMapper.selectBySelectorIds(idMap.keySet()), SelectorConditionDO::getSelectorId);
+
+        Map<String, PluginDO> pluginDOMap = ListUtil.toMap(pluginMapper.selectByIds(Lists.newArrayList(idMap.values())), PluginDO::getId);
+
+        return Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new)
+                .stream()
+                .filter(Objects::nonNull)
+                .map(selectorDO -> {
+                    String id = selectorDO.getId();
+                    String pluginId = selectorDO.getPluginId();
+                    PluginDO pluginDO = pluginDOMap.get(pluginId);
+                    if (Objects.isNull(pluginDO)) {
+                        return null;
+                    }
+                    List<SelectorConditionVO> selectorConditionList = SelectorConditionVO.buildSelectorConditionVOList(selectorConditionMap.get(id));
+                    SelectorVO selectorExportVO = SelectorVO.buildSelectorVO(selectorDO);
+                    selectorExportVO.setSelectorConditions(selectorConditionList);
+                    return selectorExportVO;
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());

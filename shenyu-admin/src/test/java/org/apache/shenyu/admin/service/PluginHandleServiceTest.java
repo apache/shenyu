@@ -200,4 +200,15 @@ public final class PluginHandleServiceTest {
         assertThat(result, notNullValue());
         assertEquals(pluginHandleDOs.size(), result.size());
     }
+
+    @Test
+    public void testListAllData() {
+        final List<PluginHandleDO> pluginHandleDOs = buildPluginHandleDOList();
+        final List<ShenyuDictDO> shenyuDictDOList = buildShenyuDictDOs();
+        given(this.pluginHandleMapper.selectByQuery(any())).willReturn(pluginHandleDOs);
+        given(this.shenyuDictMapper.findByTypeBatch(any())).willReturn(shenyuDictDOList);
+        final List<PluginHandleVO> result = pluginHandleService.listAllData();
+        assertThat(result, notNullValue());
+        assertEquals(pluginHandleDOs.size(), result.size());
+    }
 }

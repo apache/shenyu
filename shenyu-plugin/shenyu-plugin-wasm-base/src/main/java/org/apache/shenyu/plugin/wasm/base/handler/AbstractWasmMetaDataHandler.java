@@ -35,9 +35,9 @@ public abstract class AbstractWasmMetaDataHandler extends WasmLoader implements 
     
     protected static final Map<Long, MetaData> ARGUMENTS = new ConcurrentHashMap<>();
     
-    protected static final String HANDLE_METHOD_NAME = "handle";
+    protected static final String HANDLE_METHOD_NAME = "handleMetaData";
     
-    protected static final String REMOVE_METHOD_NAME = "remove";
+    protected static final String REMOVE_METHOD_NAME = "removeMetaData";
     
     protected static final String REFRESH_METHOD_NAME = "refresh";
     

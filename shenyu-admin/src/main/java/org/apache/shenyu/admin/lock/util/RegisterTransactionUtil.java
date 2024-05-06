@@ -20,6 +20,13 @@ package org.apache.shenyu.admin.lock.util;
 import org.springframework.core.NamedThreadLocal;
 import org.springframework.transaction.TransactionStatus;
 
+/**
+ * The type Register transaction util.
+ * @deprecated this class is deprecated and will be removed in the next major version.
+ *
+ * @since 2.6.1
+ */
+@Deprecated
 public final class RegisterTransactionUtil {
     private static final ThreadLocal<TransactionStatus> TRANSACTION_INFO_HOLDER = new NamedThreadLocal<>("Current Shenyu Register transaction");
 

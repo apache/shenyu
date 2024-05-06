@@ -641,7 +641,17 @@ public interface Constants {
      * When register by http, admin password.
      */
     String PASS_WORD = "password";
-    
+
+    /**
+     * key.
+     */
+    String AES_SECRET_KEY = "aes-secret-key";
+
+    /**
+     * iv.
+     */
+    String AES_SECRET_IV = "aes-secret-iv";
+
     /**
      * X-Access-Token.
      */
@@ -789,7 +799,27 @@ public interface Constants {
      * the plugin end time of plugin lifecycle.
      */
     String PLUGIN_END_TIME = "pluginEndTime:";
-    
+
+    /**
+     * ratelimiter plugin metrics.
+     */
+    String METRICS_RATE_LIMITER = "metricsRateLimiter";
+
+    /**
+     * sentinel plugin metrics.
+     */
+    String METRICS_SENTINEL = "metricsSentinel";
+
+    /**
+     * resilience4j plugin metrics.
+     */
+    String METRICS_RESILIENCE4J = "metricsResilience4j";
+
+    /**
+     * Hystrix plugin metrics.
+     */
+    String METRICS_HYSTRIX = "metricsHystrix";
+
     /**
      * String q.
      */

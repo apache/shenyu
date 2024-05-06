@@ -21,27 +21,28 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
-import org.apache.shenyu.admin.mapper.DiscoveryMapper;
-import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
-import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
-import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.DataPermissionDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.model.entity.DiscoveryDO;
-import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
@@ -80,10 +81,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doNothing;
 
 /**
  * Test cases for SelectorService.
@@ -249,6 +250,36 @@ public final class SelectorServiceTest {
         // Test the situation where the selector cannot be found based on the contextPath.
         given(pluginMapper.selectByName("test")).willReturn(buildPluginDO());
         assertNotNull(selectorService.registerDefault(buildMetaDataRegisterDTO(), "test", ""));
+    }
+
+    @Test
+    public void testListAllData() {
+        final List<SelectorDO> selectorDOs = buildSelectorDOList();
+        given(this.selectorMapper.selectAll()).willReturn(selectorDOs);
+        given(this.pluginMapper.selectByIds(any())).willReturn(Collections.singletonList(buildPluginDO()));
+        List<SelectorVO> dataList = this.selectorService.listAllData();
+        assertNotNull(dataList);
+        assertEquals(selectorDOs.size(), dataList.size());
+    }
+
+    @Test
+    public void testImportData() {
+        final List<SelectorDO> selectorDOs = buildSelectorDOList();
+        given(this.selectorMapper.selectAll()).willReturn(selectorDOs);
+
+        final List<SelectorDTO> selectorDTOs = buildSelectorDTOList();
+        given(this.selectorMapper.insertSelective(any())).willReturn(1);
+
+        given(this.pluginMapper.selectById(any())).willReturn(buildPluginDO());
+
+        ConfigImportResult configImportResult = this.selectorService.importData(selectorDTOs);
+
+        assertNotNull(configImportResult);
+        assertEquals(configImportResult.getSuccessCount(), selectorDTOs.size());
+    }
+
+    private List<SelectorDTO> buildSelectorDTOList() {
+        return Collections.singletonList(buildSelectorDTO("456"));
     }
 
     private void testUpdate() {

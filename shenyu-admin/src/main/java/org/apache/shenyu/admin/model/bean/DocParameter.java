@@ -18,9 +18,9 @@
 package org.apache.shenyu.admin.model.bean;
 
 import com.google.gson.annotations.SerializedName;
+import org.apache.commons.lang3.ObjectUtils;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * DocParameter.
@@ -44,7 +44,7 @@ public class DocParameter {
 
     private String description;
 
-    private String example = "";
+    private Object example = "";
 
     @SerializedName("x-example")
     private String xExample;
@@ -199,7 +199,7 @@ public class DocParameter {
      * @return String
      */
     public String getExample() {
-        return StringUtils.isBlank(example) ? xExample : example;
+        return ObjectUtils.isEmpty(example) ? xExample : example.toString();
     }
 
     /**
@@ -207,7 +207,7 @@ public class DocParameter {
      *
      * @param example example
      */
-    public void setExample(final String example) {
+    public void setExample(final Object example) {
         this.example = example;
     }
 
@@ -227,5 +227,25 @@ public class DocParameter {
      */
     public void setRefs(final List<DocParameter> refs) {
         this.refs = refs;
+    }
+
+    /**
+     * copy DocParameter from source.
+     * @param source DocParameter
+     * @return DocParameter
+     */
+    public static DocParameter copy(final DocParameter source) {
+        DocParameter target = new DocParameter();
+        target.setId(source.getId());
+        target.setExample(source.getExample());
+        target.setDescription(source.getDescription());
+        target.setName(source.getName());
+        target.setModule(source.getModule());
+        target.setMaxLength(source.getMaxLength());
+        target.setRefs(source.getRefs());
+        target.setRequired(source.isRequired());
+        target.setType(source.getType());
+        target.setXExample(source.getXExample());
+        return target;
     }
 }

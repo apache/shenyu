@@ -17,20 +17,25 @@
 
 package org.apache.shenyu.admin.transfer;
 
+import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryRelDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.vo.DiscoveryHandlerVO;
+import org.apache.shenyu.admin.model.vo.DiscoveryRelVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -49,16 +54,16 @@ public enum DiscoveryTransfer {
      * @return DiscoveryUpstreamDO
      */
     public DiscoveryUpstreamDO mapToDo(DiscoveryUpstreamData discoveryUpstreamData) {
-        return DiscoveryUpstreamDO.builder()
-                .discoveryHandlerId(discoveryUpstreamData.getDiscoveryHandlerId())
-                .id(discoveryUpstreamData.getId())
-                .protocol(discoveryUpstreamData.getProtocol())
-                .status(discoveryUpstreamData.getStatus())
-                .weight(discoveryUpstreamData.getWeight())
-                .props(discoveryUpstreamData.getProps())
-                .url(discoveryUpstreamData.getUrl())
-                .dateUpdated(discoveryUpstreamData.getDateUpdated())
-                .dateCreated(discoveryUpstreamData.getDateCreated()).build();
+        return Optional.ofNullable(discoveryUpstreamData).map(data -> DiscoveryUpstreamDO.builder()
+            .discoveryHandlerId(data.getDiscoveryHandlerId())
+            .id(data.getId())
+            .protocol(data.getProtocol())
+            .status(data.getStatus())
+            .weight(data.getWeight())
+            .props(data.getProps())
+            .url(data.getUrl())
+            .dateUpdated(data.getDateUpdated())
+            .dateCreated(data.getDateCreated()).build()).orElse(null);
     }
 
     /**
@@ -68,39 +73,84 @@ public enum DiscoveryTransfer {
      * @return DiscoveryUpstreamVO
      */
     public DiscoveryUpstreamVO mapToVo(DiscoveryUpstreamDO discoveryUpstreamDO) {
-        DiscoveryUpstreamVO vo = new DiscoveryUpstreamVO();
-        vo.setId(discoveryUpstreamDO.getId());
-        vo.setDiscoveryHandlerId(discoveryUpstreamDO.getDiscoveryHandlerId());
-        vo.setProtocol(discoveryUpstreamDO.getProtocol());
-        vo.setUrl(discoveryUpstreamDO.getUrl());
-        vo.setStatus(discoveryUpstreamDO.getStatus());
-        vo.setWeight(discoveryUpstreamDO.getWeight());
-        vo.setProps(discoveryUpstreamDO.getProps());
-        vo.setStartupTime(String.valueOf(discoveryUpstreamDO.getDateCreated().getTime()));
-        return vo;
+        return Optional.ofNullable(discoveryUpstreamDO).map(data -> {
+            DiscoveryUpstreamVO vo = new DiscoveryUpstreamVO();
+            vo.setId(data.getId());
+            vo.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
+            vo.setProtocol(data.getProtocol());
+            vo.setUrl(data.getUrl());
+            vo.setStatus(data.getStatus());
+            vo.setWeight(data.getWeight());
+            vo.setProps(data.getProps());
+            vo.setStartupTime(String.valueOf(data.getDateCreated().getTime()));
+            return vo;
+        }).orElse(null);
     }
 
 
+    public DiscoveryRelVO mapToVo(DiscoveryRelDO discoveryRelDO) {
+        return Optional.ofNullable(discoveryRelDO).map(data -> {
+            DiscoveryRelVO discoveryRelVO = new DiscoveryRelVO();
+            discoveryRelVO.setId(data.getId());
+            discoveryRelVO.setPluginName(data.getPluginName());
+            discoveryRelVO.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
+            discoveryRelVO.setSelectorId(data.getSelectorId());
+            discoveryRelVO.setProxySelectorId(data.getProxySelectorId());
+            return discoveryRelVO;
+        }).orElse(null);
+    }
+
+
+    public DiscoveryRelDO mapToDO(DiscoveryRelDTO discoveryRelDTO) {
+        return Optional.ofNullable(discoveryRelDTO).map(data -> {
+            DiscoveryRelDO discoveryRelDO = new DiscoveryRelDO();
+            discoveryRelDO.setId(data.getId());
+            discoveryRelDO.setPluginName(data.getPluginName());
+            discoveryRelDO.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
+            discoveryRelDO.setSelectorId(data.getSelectorId());
+            discoveryRelDO.setProxySelectorId(data.getProxySelectorId());
+            return discoveryRelDO;
+        }).orElse(null);
+    }
+
     public DiscoveryVO mapToVo(DiscoveryDO discoveryDO) {
-        DiscoveryVO discoveryVO = new DiscoveryVO();
-        discoveryVO.setId(discoveryDO.getId());
-        discoveryVO.setName(discoveryDO.getName());
-        discoveryVO.setType(discoveryDO.getType());
-        discoveryVO.setLevel(discoveryDO.getLevel());
-        discoveryVO.setServerList(discoveryDO.getServerList());
-        discoveryVO.setPluginName(discoveryDO.getPluginName());
-        discoveryVO.setProps(discoveryDO.getProps());
-        return discoveryVO;
+        return Optional.ofNullable(discoveryDO).map(data -> {
+            DiscoveryVO discoveryVO = new DiscoveryVO();
+            discoveryVO.setId(data.getId());
+            discoveryVO.setName(data.getName());
+            discoveryVO.setType(data.getType());
+            discoveryVO.setLevel(data.getLevel());
+            discoveryVO.setServerList(data.getServerList());
+            discoveryVO.setPluginName(data.getPluginName());
+            discoveryVO.setProps(data.getProps());
+            return discoveryVO;
+        }).orElse(null);
+    }
+
+    public DiscoveryDTO mapToDTO(DiscoveryDO discoveryDO) {
+        return Optional.ofNullable(discoveryDO).map(data -> {
+            DiscoveryDTO discoveryDTO = new DiscoveryDTO();
+            discoveryDTO.setId(data.getId());
+            discoveryDTO.setName(data.getName());
+            discoveryDTO.setType(data.getType());
+            discoveryDTO.setLevel(data.getLevel());
+            discoveryDTO.setServerList(data.getServerList());
+            discoveryDTO.setPluginName(data.getPluginName());
+            discoveryDTO.setProps(data.getProps());
+            return discoveryDTO;
+        }).orElse(null);
     }
 
     public DiscoveryHandlerVO mapToVo(DiscoveryHandlerDO discoveryDO) {
-        DiscoveryHandlerVO vo = new DiscoveryHandlerVO();
-        vo.setId(discoveryDO.getId());
-        vo.setDiscoveryId(discoveryDO.getDiscoveryId());
-        vo.setHandler(discoveryDO.getHandler());
-        vo.setListenerNode(discoveryDO.getListenerNode());
-        vo.setProps(discoveryDO.getProps());
-        return vo;
+        return Optional.ofNullable(discoveryDO).map(data -> {
+            DiscoveryHandlerVO vo = new DiscoveryHandlerVO();
+            vo.setId(data.getId());
+            vo.setDiscoveryId(data.getDiscoveryId());
+            vo.setHandler(data.getHandler());
+            vo.setListenerNode(data.getListenerNode());
+            vo.setProps(data.getProps());
+            return vo;
+        }).orElse(null);
     }
 
     /**
@@ -110,17 +160,19 @@ public enum DiscoveryTransfer {
      * @return DiscoveryUpstreamData
      */
     public DiscoveryUpstreamData mapToData(DiscoveryUpstreamDO discoveryUpstreamDO) {
-        DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
-        discoveryUpstreamData.setId(discoveryUpstreamDO.getId());
-        discoveryUpstreamData.setProtocol(discoveryUpstreamDO.getProtocol());
-        discoveryUpstreamData.setUrl(discoveryUpstreamDO.getUrl());
-        discoveryUpstreamData.setStatus(discoveryUpstreamDO.getStatus());
-        discoveryUpstreamData.setDiscoveryHandlerId(discoveryUpstreamDO.getDiscoveryHandlerId());
-        discoveryUpstreamData.setWeight(discoveryUpstreamDO.getWeight());
-        discoveryUpstreamData.setProps(discoveryUpstreamDO.getProps());
-        discoveryUpstreamData.setDateUpdated(discoveryUpstreamDO.getDateUpdated());
-        discoveryUpstreamData.setDateCreated(discoveryUpstreamDO.getDateCreated());
-        return discoveryUpstreamData;
+        return Optional.ofNullable(discoveryUpstreamDO).map(data -> {
+            DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
+            discoveryUpstreamData.setId(data.getId());
+            discoveryUpstreamData.setProtocol(data.getProtocol());
+            discoveryUpstreamData.setUrl(data.getUrl());
+            discoveryUpstreamData.setStatus(data.getStatus());
+            discoveryUpstreamData.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
+            discoveryUpstreamData.setWeight(data.getWeight());
+            discoveryUpstreamData.setProps(data.getProps());
+            discoveryUpstreamData.setDateUpdated(data.getDateUpdated());
+            discoveryUpstreamData.setDateCreated(data.getDateCreated());
+            return discoveryUpstreamData;
+        }).orElse(null);
     }
 
     /**
@@ -130,17 +182,19 @@ public enum DiscoveryTransfer {
      * @return DiscoveryUpstreamData
      */
     public DiscoveryUpstreamData mapToData(DiscoveryUpstreamDTO discoveryUpstreamDTO) {
-        DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
-        discoveryUpstreamData.setId(discoveryUpstreamDTO.getId());
-        discoveryUpstreamData.setProtocol(discoveryUpstreamDTO.getProtocol());
-        discoveryUpstreamData.setUrl(discoveryUpstreamDTO.getUrl());
-        discoveryUpstreamData.setStatus(discoveryUpstreamDTO.getStatus());
-        discoveryUpstreamData.setDiscoveryHandlerId(discoveryUpstreamDTO.getDiscoveryHandlerId());
-        discoveryUpstreamData.setWeight(discoveryUpstreamDTO.getWeight());
-        discoveryUpstreamData.setProps(discoveryUpstreamDTO.getProps());
-        discoveryUpstreamData.setDateCreated(discoveryUpstreamDTO.getDateCreated());
-        discoveryUpstreamData.setDateUpdated(discoveryUpstreamDTO.getDateUpdated());
-        return discoveryUpstreamData;
+        return Optional.ofNullable(discoveryUpstreamDTO).map(data -> {
+            DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
+            discoveryUpstreamData.setId(data.getId());
+            discoveryUpstreamData.setProtocol(data.getProtocol());
+            discoveryUpstreamData.setUrl(data.getUrl());
+            discoveryUpstreamData.setStatus(data.getStatus());
+            discoveryUpstreamData.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
+            discoveryUpstreamData.setWeight(data.getWeight());
+            discoveryUpstreamData.setProps(data.getProps());
+            discoveryUpstreamData.setDateCreated(data.getDateCreated());
+            discoveryUpstreamData.setDateUpdated(data.getDateUpdated());
+            return discoveryUpstreamData;
+        }).orElse(null);
     }
 
     /**
@@ -150,16 +204,18 @@ public enum DiscoveryTransfer {
      * @return ProxySelectorData
      */
     public ProxySelectorData mapToData(ProxySelectorDTO proxySelectorDTO) {
-        ProxySelectorData proxySelectorData = new ProxySelectorData();
-        proxySelectorData.setId(proxySelectorDTO.getId());
-        proxySelectorData.setName(proxySelectorDTO.getName());
-        proxySelectorData.setPluginName(proxySelectorDTO.getPluginName());
-        proxySelectorData.setType(proxySelectorDTO.getType());
-        proxySelectorData.setForwardPort(proxySelectorDTO.getForwardPort());
-        String props = proxySelectorDTO.getProps();
-        Properties properties = GsonUtils.getInstance().fromJson(props, Properties.class);
-        proxySelectorData.setProps(properties);
-        return proxySelectorData;
+        return Optional.ofNullable(proxySelectorDTO).map(data -> {
+            ProxySelectorData proxySelectorData = new ProxySelectorData();
+            proxySelectorData.setId(data.getId());
+            proxySelectorData.setName(data.getName());
+            proxySelectorData.setPluginName(data.getPluginName());
+            proxySelectorData.setType(data.getType());
+            proxySelectorData.setForwardPort(data.getForwardPort());
+            String props = data.getProps();
+            Properties properties = GsonUtils.getInstance().fromJson(props, Properties.class);
+            proxySelectorData.setProps(properties);
+            return proxySelectorData;
+        }).orElse(null);
     }
 
     /**
@@ -169,16 +225,18 @@ public enum DiscoveryTransfer {
      * @return ProxySelectorData
      */
     public ProxySelectorData mapToData(ProxySelectorDO proxySelectorDO) {
-        ProxySelectorData proxySelectorData = new ProxySelectorData();
-        proxySelectorData.setId(proxySelectorDO.getId());
-        proxySelectorData.setName(proxySelectorDO.getName());
-        proxySelectorData.setPluginName(proxySelectorDO.getPluginName());
-        proxySelectorData.setType(proxySelectorDO.getType());
-        proxySelectorData.setForwardPort(proxySelectorDO.getForwardPort());
-        String props = proxySelectorDO.getProps();
-        Properties properties = GsonUtils.getInstance().fromJson(props, Properties.class);
-        proxySelectorData.setProps(properties);
-        return proxySelectorData;
+        return Optional.ofNullable(proxySelectorDO).map(data -> {
+            ProxySelectorData proxySelectorData = new ProxySelectorData();
+            proxySelectorData.setId(data.getId());
+            proxySelectorData.setName(data.getName());
+            proxySelectorData.setPluginName(data.getPluginName());
+            proxySelectorData.setType(data.getType());
+            proxySelectorData.setForwardPort(data.getForwardPort());
+            String props = data.getProps();
+            Properties properties = GsonUtils.getInstance().fromJson(props, Properties.class);
+            proxySelectorData.setProps(properties);
+            return proxySelectorData;
+        }).orElse(null);
     }
 
     /**
@@ -188,14 +246,16 @@ public enum DiscoveryTransfer {
      * @return ProxySelectorDTO
      */
     public ProxySelectorDTO mapToDTO(ProxySelectorDO proxySelectorDO) {
-        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
-        proxySelectorDTO.setId(proxySelectorDO.getId());
-        proxySelectorDTO.setName(proxySelectorDO.getName());
-        proxySelectorDTO.setType(proxySelectorDO.getType());
-        proxySelectorDTO.setProps(proxySelectorDO.getProps());
-        proxySelectorDTO.setForwardPort(proxySelectorDO.getForwardPort());
-        proxySelectorDTO.setPluginName(proxySelectorDO.getPluginName());
-        return proxySelectorDTO;
+        return Optional.ofNullable(proxySelectorDO).map(data -> {
+            ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+            proxySelectorDTO.setId(data.getId());
+            proxySelectorDTO.setName(data.getName());
+            proxySelectorDTO.setType(data.getType());
+            proxySelectorDTO.setProps(data.getProps());
+            proxySelectorDTO.setForwardPort(data.getForwardPort());
+            proxySelectorDTO.setPluginName(data.getPluginName());
+            return proxySelectorDTO;
+        }).orElse(null);
     }
 
     /**
@@ -205,13 +265,33 @@ public enum DiscoveryTransfer {
      * @return DiscoveryHandlerDTO
      */
     public DiscoveryHandlerDTO mapToDTO(DiscoveryHandlerDO discoveryHandlerDO) {
-        DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
-        discoveryHandlerDTO.setDiscoveryId(discoveryHandlerDO.getDiscoveryId());
-        discoveryHandlerDTO.setHandler(discoveryHandlerDO.getHandler());
-        discoveryHandlerDTO.setProps(discoveryHandlerDO.getProps());
-        discoveryHandlerDTO.setListenerNode(discoveryHandlerDO.getListenerNode());
-        discoveryHandlerDTO.setId(discoveryHandlerDO.getId());
-        return discoveryHandlerDTO;
+        return Optional.ofNullable(discoveryHandlerDO).map(data -> {
+            DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
+            discoveryHandlerDTO.setDiscoveryId(data.getDiscoveryId());
+            discoveryHandlerDTO.setHandler(data.getHandler());
+            discoveryHandlerDTO.setProps(data.getProps());
+            discoveryHandlerDTO.setListenerNode(data.getListenerNode());
+            discoveryHandlerDTO.setId(data.getId());
+            return discoveryHandlerDTO;
+        }).orElse(null);
+    }
+
+    /**
+     * mapToDO.
+     *
+     * @param discoveryHandlerDTO discoveryHandlerDTO
+     * @return DiscoveryHandlerDTO
+     */
+    public DiscoveryHandlerDO mapToDO(DiscoveryHandlerDTO discoveryHandlerDTO) {
+        return Optional.ofNullable(discoveryHandlerDTO).map(data -> {
+            DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
+            discoveryHandlerDO.setDiscoveryId(data.getDiscoveryId());
+            discoveryHandlerDO.setHandler(data.getHandler());
+            discoveryHandlerDO.setProps(data.getProps());
+            discoveryHandlerDO.setListenerNode(data.getListenerNode());
+            discoveryHandlerDO.setId(data.getId());
+            return discoveryHandlerDO;
+        }).orElse(null);
     }
 
     /**
@@ -221,17 +301,19 @@ public enum DiscoveryTransfer {
      * @return DiscoveryUpstreamDTO
      */
     public DiscoveryUpstreamDTO mapToDTO(DiscoveryUpstreamDO discoveryUpstreamDO) {
-        DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
-        discoveryUpstreamDTO.setProps(discoveryUpstreamDO.getProps());
-        discoveryUpstreamDTO.setStatus(discoveryUpstreamDO.getStatus());
-        discoveryUpstreamDTO.setUrl(discoveryUpstreamDO.getUrl());
-        discoveryUpstreamDTO.setDiscoveryHandlerId(discoveryUpstreamDO.getDiscoveryHandlerId());
-        discoveryUpstreamDTO.setProtocol(discoveryUpstreamDO.getProtocol());
-        discoveryUpstreamDTO.setId(discoveryUpstreamDO.getId());
-        discoveryUpstreamDTO.setWeight(discoveryUpstreamDO.getWeight());
-        discoveryUpstreamDTO.setDateCreated(discoveryUpstreamDO.getDateCreated());
-        discoveryUpstreamDTO.setDateUpdated(discoveryUpstreamDO.getDateUpdated());
-        return discoveryUpstreamDTO;
+        return Optional.ofNullable(discoveryUpstreamDO).map(data -> {
+            DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
+            discoveryUpstreamDTO.setProps(data.getProps());
+            discoveryUpstreamDTO.setStatus(data.getStatus());
+            discoveryUpstreamDTO.setUrl(data.getUrl());
+            discoveryUpstreamDTO.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
+            discoveryUpstreamDTO.setProtocol(data.getProtocol());
+            discoveryUpstreamDTO.setId(data.getId());
+            discoveryUpstreamDTO.setWeight(data.getWeight());
+            discoveryUpstreamDTO.setDateCreated(data.getDateCreated());
+            discoveryUpstreamDTO.setDateUpdated(data.getDateUpdated());
+            return discoveryUpstreamDTO;
+        }).orElse(null);
     }
 
 }

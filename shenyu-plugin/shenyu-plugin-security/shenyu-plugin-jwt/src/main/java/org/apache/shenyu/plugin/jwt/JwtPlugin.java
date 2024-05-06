@@ -21,6 +21,7 @@ import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.JwtParserBuilder;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -42,7 +43,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 
@@ -130,10 +130,10 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         if (StringUtils.isEmpty(authorization)) {
             return null;
         }
-        JwtParserBuilder jwtParserBuilder = Jwts.parserBuilder();
+        JwtParserBuilder jwtParserBuilder = Jwts.parser();
         JwtParser jwtParser = jwtParserBuilder.build();
         if (jwtParser.isSigned(authorization)) {
-            jwtParserBuilder.setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8));
+            jwtParserBuilder.verifyWith(Keys.hmacShaKeyFor(secretKey.getBytes()));
             JwtParser jwtParserExec = jwtParserBuilder.build();
             Jwt jwt = ThrowingFunction.wrap(() -> jwtParserExec.parse(authorization));
             if (jwt == null) {

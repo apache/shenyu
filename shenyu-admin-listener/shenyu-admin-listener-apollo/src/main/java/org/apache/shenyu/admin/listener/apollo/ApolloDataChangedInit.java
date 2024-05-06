@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.listener.apollo;
 
 import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
+import org.apache.shenyu.admin.listener.utils.NodeDataPathUtils;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
 
 import java.util.Objects;
@@ -42,12 +43,14 @@ public class ApolloDataChangedInit extends AbstractDataChangedInit {
 
     /**
      * not exist.
+     *
      * @return true if not exist
      */
     @Override
     protected boolean notExist() {
-        return Stream.of(ApolloPathConstants.PLUGIN_DATA_ID, ApolloPathConstants.AUTH_DATA_ID, ApolloPathConstants.META_DATA_ID, ApolloPathConstants.PROXY_SELECTOR_DATA_ID).allMatch(
-            this::dataIdNotExist);
+        return Stream.of(ApolloPathConstants.PLUGIN_DATA_ID, ApolloPathConstants.AUTH_DATA_ID, ApolloPathConstants.META_DATA_ID, ApolloPathConstants.PROXY_SELECTOR_DATA_ID)
+                .map(NodeDataPathUtils::appendListStuff)
+                .allMatch(this::dataIdNotExist);
     }
 
     /**

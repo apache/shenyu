@@ -346,14 +346,15 @@ public class HttpUtils {
         addHeader(requestBuilder, header);
 
         Request request = requestBuilder.build();
-        Response response = httpClient
-            .newCall(request)
-            .execute();
-        if (response.isSuccessful()) {
-            ResponseBody body = response.body();
-            return body == null ? null : body.byteStream();
+        try (Response response = httpClient
+                .newCall(request)
+                .execute()) {
+            if (response.isSuccessful()) {
+                ResponseBody body = response.body();
+                return Objects.isNull(body) ? null : body.byteStream();
+            }
+            return null;
         }
-        return null;
     }
 
     /**
@@ -681,7 +682,7 @@ public class HttpUtils {
                         input.close();
                     }
                 } catch (IOException ioe) {
-                    System.err.println(ioe);
+                    LOG.error("toBytes error", ioe);
                 }
             }
         }

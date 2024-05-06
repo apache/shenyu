@@ -17,25 +17,29 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import org.apache.shenyu.admin.discovery.DiscoveryLevel;
-import org.apache.shenyu.admin.discovery.DiscoveryMode;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
-import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.discovery.DiscoveryLevel;
+import org.apache.shenyu.admin.discovery.DiscoveryMode;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
-import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
+import org.apache.shenyu.admin.model.vo.DiscoveryHandlerVO;
+import org.apache.shenyu.admin.model.vo.DiscoveryRelVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.SelectorService;
@@ -47,15 +51,17 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class DiscoveryServiceImpl implements DiscoveryService {
@@ -100,7 +106,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public DiscoveryVO discovery(final String pluginName, final String level) {
-        return discoveryVO(discoveryMapper.selectByPluginNameAndLevel(pluginName, level));
+        return DiscoveryTransfer.INSTANCE.mapToVo(discoveryMapper.selectByPluginNameAndLevel(pluginName, level));
     }
 
     @Override
@@ -211,13 +217,13 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             discoveryDO.setId(UUIDUtils.getInstance().generateShortUuid());
         }
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
-        DiscoveryVO result = discoveryMapper.insert(discoveryDO) > 0 ? discoveryVO(discoveryDO) : null;
+        DiscoveryVO result = discoveryMapper.insert(discoveryDO) > 0 ? DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO) : null;
         discoveryProcessor.createDiscovery(discoveryDO);
         return result;
     }
 
     private DiscoveryVO update(final DiscoveryDTO discoveryDTO) {
-        if (discoveryDTO == null || discoveryDTO.getId() == null) {
+        if (Objects.isNull(discoveryDTO) || Objects.isNull(discoveryDTO.getId())) {
             return null;
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
@@ -229,22 +235,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .props(discoveryDTO.getProps())
                 .dateUpdated(currentTime)
                 .build();
-        return discoveryMapper.updateSelective(discoveryDO) > 0 ? discoveryVO(discoveryDO) : null;
-    }
-
-    /**
-     * copy discovery data.
-     *
-     * @param discoveryDO {@link DiscoveryDTO}
-     * @return {@link DiscoveryVO}
-     */
-    private DiscoveryVO discoveryVO(final DiscoveryDO discoveryDO) {
-        if (discoveryDO == null) {
-            return null;
-        }
-        DiscoveryVO discoveryVO = new DiscoveryVO();
-        BeanUtils.copyProperties(discoveryDO, discoveryVO);
-        return discoveryVO;
+        return discoveryMapper.updateSelective(discoveryDO) > 0 ? DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO) : null;
     }
 
     @Override
@@ -271,6 +262,34 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 discoveryProcessor.fetchAll(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
             }
         });
+    }
+
+    @Override
+    public List<DiscoveryVO> listAllData() {
+        Map<String, DiscoveryHandlerVO> discoveryHandlerMap = discoveryHandlerMapper
+                .selectAll()
+                .stream()
+                .map(DiscoveryTransfer.INSTANCE::mapToVo)
+                .collect(Collectors.toMap(DiscoveryHandlerVO::getDiscoveryId, x -> x));
+        Map<String, DiscoveryRelVO> discoveryRelMap = discoveryRelMapper
+                .selectAll()
+                .stream()
+                .map(DiscoveryTransfer.INSTANCE::mapToVo)
+                .collect(Collectors.toMap(DiscoveryRelVO::getDiscoveryHandlerId, x -> x));
+        return discoveryMapper
+                .selectAll()
+                .stream()
+                .map(x -> {
+                    DiscoveryVO discoveryVO = DiscoveryTransfer.INSTANCE.mapToVo(x);
+                    DiscoveryHandlerVO discoveryHandlerVO = discoveryHandlerMap.getOrDefault(discoveryVO.getId(), new DiscoveryHandlerVO());
+                    discoveryVO.setDiscoveryHandler(discoveryHandlerVO);
+                    if (StringUtils.isNotEmpty(discoveryHandlerVO.getId())) {
+                        DiscoveryRelVO discoveryRelVO = discoveryRelMap.getOrDefault(discoveryHandlerVO.getId(), new DiscoveryRelVO());
+                        discoveryVO.setDiscoveryRel(discoveryRelVO);
+                    }
+                    return discoveryVO;
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -308,5 +327,63 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         discoveryRelDO.setPluginName(pluginName);
         discoveryRelMapper.insertSelective(discoveryRelDO);
         return discoveryHandlerId;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ConfigImportResult importData(final List<DiscoveryDTO> discoveryList) {
+        if (CollectionUtils.isEmpty(discoveryList)) {
+            return ConfigImportResult.success();
+        }
+
+        Map<String, List<DiscoveryDO>> pluginDiscoveryMap = discoveryMapper
+                .selectAll()
+                .stream()
+                .collect(Collectors.groupingBy(DiscoveryDO::getPluginName));
+        int successCount = 0;
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        for (DiscoveryDTO discoveryDTO : discoveryList) {
+            String pluginName = discoveryDTO.getPluginName();
+            String discoveryName = discoveryDTO.getName();
+            Set<String> existDiscoveryNameSet = pluginDiscoveryMap
+                    .getOrDefault(pluginName, Lists.newArrayList())
+                    .stream()
+                    .map(DiscoveryDO::getName)
+                    .collect(Collectors.toSet());
+            if (existDiscoveryNameSet.contains(discoveryName)) {
+                errorMsgBuilder
+                        .append(discoveryName)
+                        .append(",");
+                continue;
+            }
+            String discoveryId = UUIDUtils.getInstance().generateShortUuid();
+            discoveryDTO.setId(discoveryId);
+            create(discoveryDTO);
+            successCount++;
+
+            // import discovery handler data
+            if (null != discoveryDTO.getDiscoveryHandler()) {
+                DiscoveryHandlerDO discoveryHandlerDO = DiscoveryTransfer
+                        .INSTANCE
+                        .mapToDO(discoveryDTO.getDiscoveryHandler());
+                discoveryHandlerDO.setDiscoveryId(discoveryId);
+                discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
+            }
+
+            // import discovery rel data
+            if (null != discoveryDTO.getDiscoveryRel()) {
+                DiscoveryRelDO discoveryRelDO = DiscoveryTransfer
+                        .INSTANCE
+                        .mapToDO(discoveryDTO.getDiscoveryRel());
+                discoveryRelMapper.insertSelective(discoveryRelDO);
+            }
+        }
+
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+            return ConfigImportResult
+                    .fail(successCount, "import fail discovery: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
     }
 }

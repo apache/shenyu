@@ -46,12 +46,16 @@ spec:
         - image: shenyu-examples-grpc
           name: shenyu-examples-grpc
           livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
             exec:
               command:
+                - /bin/sh
+                - "-c"
                 - wget -q -O - http://localhost:55290/actuator/health | grep UP || exit 1
-            initialDelaySeconds: 10
-            failureThreshold: 3
-            timeoutSeconds: 2
           env:
             - name: shenyu.register.serverLists
               value: http://shenyu-admin:9095

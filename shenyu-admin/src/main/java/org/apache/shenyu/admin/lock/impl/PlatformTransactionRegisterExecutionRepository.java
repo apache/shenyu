@@ -22,6 +22,13 @@ import org.apache.shenyu.admin.lock.RegisterExecutionRepository;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.springframework.transaction.PlatformTransactionManager;
 
+/**
+ * The type Platform transaction register execution repository.
+ * Deprecated: this class is deprecated and will be removed in the next major version.
+ * @since 2.6.1
+ * @deprecated Please use {@link org.springframework.integration.jdbc.lock.DefaultLockRepository}.
+ */
+@Deprecated
 public class PlatformTransactionRegisterExecutionRepository implements RegisterExecutionRepository {
 
     private final PlatformTransactionManager platformTransactionManager;
