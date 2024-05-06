@@ -66,7 +66,7 @@ jobs:
       - uses: actions/setup-java@v3
         if: steps.filter.outputs.changed == 'true'
         with:
-          java-version: 8
+          java-version: 17
           distribution: 'temurin'
 
       - name: Install Go
@@ -93,7 +93,7 @@ jobs:
       - uses: actions/setup-java@v3
         if: steps.filter.outputs.changed == 'true'
         with:
-          java-version: 8
+          java-version: 17
           distribution: 'temurin'
 
       - name: Build with Maven
