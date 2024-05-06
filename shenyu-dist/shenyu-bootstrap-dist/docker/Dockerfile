@@ -23,9 +23,9 @@ ENV LOCAL_PATH /opt/shenyu-bootstrap
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
-FROM bellsoft/liberica-openjdk-alpine:17
+FROM amazoncorretto:17.0.11-alpine3.19
 
-RUN apk --no-cache add wget
+RUN apk --no-cache add wget curl
 
 ENV LOCAL_PATH /opt/shenyu-bootstrap
 ENV BOOT_JVM ""
