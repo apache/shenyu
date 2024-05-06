@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:8-jre-alpine
+FROM eclipse-temurin:17-centos7
 
 ENV APP_NAME shenyu-integrated-test-k8s-ingress-sofa
 ENV LOCAL_PATH /opt/${APP_NAME}
@@ -26,4 +26,4 @@ ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 WORKDIR ${LOCAL_PATH}
 EXPOSE 9195
 
-CMD java -jar ${APP_NAME}.jar
+CMD java --add-opens java.base/java.lang=ALL-UNNAMED -jar ${APP_NAME}.jar

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:11
+FROM eclipse-temurin:17-centos7
 
 ENV APP_NAME shenyu-examples-https
 ENV LOCAL_PATH /opt/${APP_NAME}
