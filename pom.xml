@@ -182,7 +182,7 @@
         <huawei-log-sdk.version>1.0.1</huawei-log-sdk.version>
         <opengauss-jdbc.version>5.0.0-og</opengauss-jdbc.version>
         <wasmtime-java.version>0.19.0</wasmtime-java.version>
-        <bcprov-jdk18on.version>1.77</bcprov-jdk18on.version>
+        <bcprov-jdk18on.version>1.78</bcprov-jdk18on.version>
         <!-- dependency version end -->
     </properties>
 
