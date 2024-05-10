@@ -25,6 +25,7 @@ import java.util.Objects;
 
 /**
  * AdminDataModelChangedEvent.
+ * 管理员数据模型变更事件
  */
 public class AdminDataModelChangedEvent extends ApplicationEvent {
     

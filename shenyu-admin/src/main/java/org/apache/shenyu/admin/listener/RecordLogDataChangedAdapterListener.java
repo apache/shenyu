@@ -25,10 +25,14 @@ import org.springframework.stereotype.Component;
 
 /**
  * RecordLogDataChangedAdapterListener.
+ * 操作记录日志数据变更的适配监听器
  */
 @Component
 public class RecordLogDataChangedAdapterListener implements DataChangedListener, ApplicationListener<AdminDataModelChangedEvent> {
-    
+
+    /**
+     * 操作日志记录的数据访问对象
+     */
     private final OperationRecordLogMapper logMapper;
     
     public RecordLogDataChangedAdapterListener(final OperationRecordLogMapper logMapper) {
