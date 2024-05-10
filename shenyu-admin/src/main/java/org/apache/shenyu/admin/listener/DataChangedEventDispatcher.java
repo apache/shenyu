@@ -63,6 +63,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
         for (DataChangedListener listener : listeners) {
             switch (event.getGroupKey()) {
                 case APP_AUTH:
+                    // 应用认证数据
                     listener.onAppAuthChanged((List<AppAuthData>) event.getSource(), event.getEventType());
                     break;
                 case PLUGIN:
@@ -79,6 +80,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                     applicationContext.getBean(LoadServiceDocEntry.class).loadDocOnSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
                     break;
                 case META_DATA:
+                    // 元数据变更
                     listener.onMetaDataChanged((List<MetaData>) event.getSource(), event.getEventType());
                     break;
                 case PROXY_SELECTOR:
