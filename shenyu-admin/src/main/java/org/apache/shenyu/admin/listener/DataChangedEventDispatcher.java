@@ -37,12 +37,19 @@ import java.util.List;
 
 /**
  * Event forwarders, which forward the changed events to each ConfigEventListener.
+ * 数据变更事件的分发器
  */
 @Component
 public class DataChangedEventDispatcher implements ApplicationListener<DataChangedEvent>, InitializingBean {
 
+    /**
+     * 应用上下文
+     */
     private final ApplicationContext applicationContext;
 
+    /**
+     * 数据变更事件的监听器列表
+     */
     private List<DataChangedListener> listeners;
 
     public DataChangedEventDispatcher(final ApplicationContext applicationContext) {
@@ -52,18 +59,22 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
     @Override
     @SuppressWarnings("unchecked")
     public void onApplicationEvent(final DataChangedEvent event) {
+        // 数据变更事件的监听器
         for (DataChangedListener listener : listeners) {
             switch (event.getGroupKey()) {
                 case APP_AUTH:
                     listener.onAppAuthChanged((List<AppAuthData>) event.getSource(), event.getEventType());
                     break;
                 case PLUGIN:
+                    // 插件数据变更
                     listener.onPluginChanged((List<PluginData>) event.getSource(), event.getEventType());
                     break;
                 case RULE:
+                    // 规则数据变更
                     listener.onRuleChanged((List<RuleData>) event.getSource(), event.getEventType());
                     break;
                 case SELECTOR:
+                    // 选择器数据变更
                     listener.onSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
                     applicationContext.getBean(LoadServiceDocEntry.class).loadDocOnSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
                     break;
@@ -84,6 +95,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
 
     @Override
     public void afterPropertiesSet() {
+        // 数据变更事件的监听器列表
         Collection<DataChangedListener> listenerBeans = applicationContext.getBeansOfType(DataChangedListener.class).values();
         this.listeners = Collections.unmodifiableList(new ArrayList<>(listenerBeans));
     }
