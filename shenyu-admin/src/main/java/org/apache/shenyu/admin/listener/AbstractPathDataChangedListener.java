@@ -36,13 +36,20 @@ import java.util.List;
 
 /**
  * AbstractPathDataChangedListener.
+ * 路径数据变更的监听器的抽象框架实现
  */
 public abstract class AbstractPathDataChangedListener implements DataChangedListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractPathDataChangedListener.class);
 
+    /**
+     * 规则同步对象锁
+     */
     private final Object ruleSyncObject = new Object();
 
+    /**
+     * 选择器同步对象锁
+     */
     private final Object selectorSyncObject = new Object();
 
     @Override
@@ -116,28 +123,37 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
 
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
+        // 选择器数据的刷新事件
         if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
+            // 构建选择器的父路径("/shenyu/selector/${pluginName}")
             String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(changed.get(0).getPluginName());
+            // 递归地删除节点路径
             deletePathRecursive(selectorParentPath);
         }
+        // 变更的选择器数据遍历
         for (SelectorData data : changed) {
+            // 选择器的真实路径("/shenyu/selector/${pluginName}/${selectorId}")
             String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(data.getPluginName(), data.getId());
+            // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteNode(selectorRealPath);
                 LOG.debug("[DataChangedListener] delete appKey {}", selectorRealPath);
                 continue;
             }
-            //create or update
+            // create or update
             synchronized (selectorSyncObject) {
                 createOrUpdate(selectorRealPath, data);
             }
+            // 操作日志
             LOG.debug("[DataChangedListener] change path {} with data {}", selectorRealPath, data);
         }
     }
 
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
+        // 变更的插件数据遍历
         for (PluginData data : changed) {
+            // 构建插件路径("/shenyu/plugin/${pluginName}")
             String pluginPath = DefaultPathConstants.buildPluginPath(data.getName());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
@@ -149,28 +165,36 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
                 LOG.debug("[DataChangedListener] delete pluginPath {}", pluginPath);
                 continue;
             }
-            //create or update
+            // create or update
             createOrUpdate(pluginPath, data);
+            // 操作日志
             LOG.debug("[DataChangedListener] change path {} with data {}", pluginPath, data);
         }
     }
 
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
+        // 规则数据的刷新事件
         if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
-            String selectorParentPath = DefaultPathConstants.buildRuleParentPath(changed.get(0).getPluginName());
-            deletePathRecursive(selectorParentPath);
+            // 构建规则的父路径("/shenyu/rule/${pluginName}")
+            String ruleParentPath = DefaultPathConstants.buildRuleParentPath(changed.get(0).getPluginName());
+            // 递归地删除节点路径
+            deletePathRecursive(ruleParentPath);
         }
+        // 变更的规则数据遍历
         for (RuleData data : changed) {
+            // 规则的真实路径("/shenyu/rule/${pluginName}/${selectorId-ruleId}")
             String ruleRealPath = DefaultPathConstants.buildRulePath(data.getPluginName(), data.getSelectorId(), data.getId());
+            // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteNode(ruleRealPath);
                 continue;
             }
-            //create or update
+            // create or update
             synchronized (ruleSyncObject) {
                 createOrUpdate(ruleRealPath, data);
             }
+            // 操作日志
             LOG.debug("[DataChangedListener] change path {} with data {}", ruleRealPath, data);
         }
     }
