@@ -24,21 +24,25 @@ import java.util.Objects;
 
 /**
  * The enum Data event type.
+ * 数据事件类型
  */
 public enum DataEventTypeEnum {
 
     /**
      * delete event.
+     * 删除事件
      */
     DELETE,
 
     /**
      * insert event.
+     * 插入事件
      */
     CREATE,
 
     /**
      * update event.
+     * 更新事件
      */
     UPDATE,
 
