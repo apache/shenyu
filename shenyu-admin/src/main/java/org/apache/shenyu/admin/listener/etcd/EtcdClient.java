@@ -75,7 +75,9 @@ public class EtcdClient {
      */
     public void put(final String key, final String value) {
         try {
-            client.getKVClient().put(ByteSequence.from(key, StandardCharsets.UTF_8), ByteSequence.from(value, StandardCharsets.UTF_8)).get();
+            client.getKVClient()
+                    .put(ByteSequence.from(key, StandardCharsets.UTF_8), ByteSequence.from(value, StandardCharsets.UTF_8))
+                    .get();
         } catch (Exception e) {
             LOG.error("update value of node error.", e);
             throw new ShenyuException(e.getMessage());
@@ -87,7 +89,8 @@ public class EtcdClient {
      * @param key node name
      */
     public void delete(final String key) {
-        client.getKVClient().delete(ByteSequence.from(key, StandardCharsets.UTF_8));
+        client.getKVClient()
+                .delete(ByteSequence.from(key, StandardCharsets.UTF_8));
     }
 
     /**
