@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 /**
  * Data change event.
+ * 数据变更事件
  *
  * @see DataChangedEventDispatcher
  * @since 2.0.0
@@ -35,8 +36,14 @@ public class DataChangedEvent extends ApplicationEvent {
 
     private static final long serialVersionUID = 8397163004365988739L;
 
+    /**
+     * 数据事件类型
+     */
     private final DataEventTypeEnum eventType;
 
+    /**
+     * 配置分组
+     */
     private final ConfigGroupEnum groupKey;
 
     /**
