@@ -24,6 +24,7 @@ import java.util.Objects;
 
 /**
  * configuration group.
+ * 配置分组
  */
 public enum ConfigGroupEnum {
 
@@ -34,21 +35,25 @@ public enum ConfigGroupEnum {
 
     /**
      * Plugin config group enum.
+     * 插件配置分组
      */
     PLUGIN,
 
     /**
      * Rule config group enum.
+     * 规则配置分组
      */
     RULE,
 
     /**
      * Selector config group enum.
+     * 选择器配置分组
      */
     SELECTOR,
 
     /**
      * Meta data config group enum.
+     * 元数据配置分组
      */
     META_DATA,
 
