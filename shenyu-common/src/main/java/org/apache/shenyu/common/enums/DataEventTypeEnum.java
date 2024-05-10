@@ -48,6 +48,7 @@ public enum DataEventTypeEnum {
 
     /**
      * REFRESH data event type enum.
+     * 刷新数据事件
      */
     REFRESH,
 

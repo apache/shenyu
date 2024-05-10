@@ -50,19 +50,25 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     /**
      * The Plugin service.
+     * 插件服务
      */
     private final PluginService pluginService;
 
     /**
      * The Selector service.
+     * 选择器服务
      */
     private final SelectorService selectorService;
 
     /**
      * The Rule service.
+     * 规则服务
      */
     private final RuleService ruleService;
 
+    /**
+     * 事件发布者
+     */
     private final ApplicationEventPublisher eventPublisher;
 
     private final MetaDataService metaDataService;
@@ -105,19 +111,26 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     @Override
     public boolean syncPluginData(final String pluginId) {
+        // 通过插件ID查找插件视图数据
         PluginVO pluginVO = pluginService.findById(pluginId);
+        // 发布插件数据更新事件
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(PluginTransfer.INSTANCE.mapDataTOVO(pluginVO))));
 
+        // 通过插件ID查找选择器数据列表
         List<SelectorData> selectorDataList = selectorService.findByPluginId(pluginId);
 
         if (!CollectionUtils.isEmpty(selectorDataList)) {
+            // 发布选择器数据列表的刷新事件
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
 
+            // 选择器ID列表
             List<String> selectorIdList = selectorDataList.stream().map(SelectorData::getId)
                     .collect(Collectors.toList());
+            // 获取所有规则数据列表
             List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
 
+            // 发布规则数据列表的刷新事件
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
         }
         return true;

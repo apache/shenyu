@@ -21,6 +21,7 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 
 /**
  * The interface Sync data service.
+ * 同步数据服务
  */
 public interface SyncDataService {
     
@@ -34,6 +35,7 @@ public interface SyncDataService {
     
     /**
      * Sync plugin data boolean.
+     * 同步插件数据
      *
      * @param pluginId the plugin id
      * @return the boolean

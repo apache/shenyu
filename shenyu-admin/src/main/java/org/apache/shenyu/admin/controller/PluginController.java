@@ -59,9 +59,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/plugin")
 public class PluginController implements PagedController<PluginQueryCondition, PluginVO> {
-    
+
+    /**
+     * 插件服务
+     */
     private final PluginService pluginService;
-    
+
+    /**
+     * 同步数据服务
+     */
     private final SyncDataService syncDataService;
     
     public PluginController(final PluginService pluginService, final SyncDataService syncDataService) {
@@ -208,6 +214,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     
     /**
      * Sync plugin data.
+     * 同步插件数据
      *
      * @param id the id
      * @return the mono
@@ -216,7 +223,8 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     public ShenyuAdminResult syncPluginData(@PathVariable("id")
                                             @Existed(message = "plugin is not existed",
                                                     provider = PluginMapper.class) final String id) {
-        return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
+        boolean syncResult = syncDataService.syncPluginData(id);
+        return ShenyuAdminResult.success(syncResult ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
     }
     
     /**
