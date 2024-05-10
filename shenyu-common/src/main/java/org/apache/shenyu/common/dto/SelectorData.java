@@ -22,20 +22,31 @@ import java.util.Objects;
 
 /**
  * SelectorData.
+ * 选择器数据
  *
  * @since 2.0.0
  */
 public class SelectorData {
 
+    /**
+     * 选择器ID
+     */
     private String id;
 
+    /**
+     * 插件ID
+     */
     private String pluginId;
 
     /**
      * plugin name.
+     * 插件名称
      */
     private String pluginName;
 
+    /**
+     * 选择器名称
+     */
     private String name;
 
     /**
@@ -58,6 +69,9 @@ public class SelectorData {
 
     private String handle;
 
+    /**
+     * 匹配条件列表
+     */
     private List<ConditionData> conditionList;
     
     private List<ConditionData> beforeConditionList;

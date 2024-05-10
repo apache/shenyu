@@ -21,6 +21,7 @@ import java.util.Objects;
 
 /**
  * ConditionDTO.
+ * 匹配条件数据
  *
  * @since 2.0.0
  */
@@ -28,21 +29,25 @@ public class ConditionData {
 
     /**
      * {@linkplain org.apache.shenyu.common.enums.ParamTypeEnum}.
+     * 参数类型
      */
     private String paramType;
 
     /**
      * {@linkplain org.apache.shenyu.common.enums.OperatorEnum}.
+     * 操作符
      */
     private String operator;
 
     /**
      * param name.
+     * 参数名称
      */
     private String paramName;
 
     /**
      * param value.
+     * 参数值
      */
     private String paramValue;
 

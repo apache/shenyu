@@ -21,19 +21,35 @@ import java.util.Objects;
 
 /**
  * PluginData.
+ * 插件数据
  *
  * @since 2.0.0
  */
 public class PluginData {
 
+    /**
+     * 插件ID
+     */
     private String id;
 
+    /**
+     * 插件名称
+     */
     private String name;
 
+    /**
+     * 配置
+     */
     private String config;
 
+    /**
+     * 角色
+     */
     private String role;
 
+    /**
+     * 开关
+     */
     private Boolean enabled;
 
     private Integer sort;

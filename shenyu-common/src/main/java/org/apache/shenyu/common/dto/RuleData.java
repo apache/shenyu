@@ -22,17 +22,30 @@ import java.util.Objects;
 
 /**
  * RuleData.
+ * 规则数据
  *
  * @since 2.0.0
  */
 public class RuleData {
 
+    /**
+     * 规则ID
+     */
     private String id;
 
+    /**
+     * 规则名称
+     */
     private String name;
 
+    /**
+     * 插件名称
+     */
     private String pluginName;
 
+    /**
+     * 选择器ID
+     */
     private String selectorId;
 
     /**
@@ -51,6 +64,9 @@ public class RuleData {
      */
     private String handle;
 
+    /**
+     * 匹配条件列表
+     */
     private List<ConditionData> conditionDataList;
 
     private List<ConditionData> beforeConditionDataList;
