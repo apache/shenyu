@@ -23,9 +23,13 @@ import org.apache.zookeeper.CreateMode;
 
 /**
  * Use zookeeper to push data changes.
+ * 使用ZooKeeper发布数据变更
  */
 public class ZookeeperDataChangedListener extends AbstractPathDataChangedListener {
 
+    /**
+     * ZooKeeper客户端
+     */
     private final ZookeeperClient zkClient;
 
     public ZookeeperDataChangedListener(final ZookeeperClient zkClient) {
@@ -34,12 +38,14 @@ public class ZookeeperDataChangedListener extends AbstractPathDataChangedListene
 
     @Override
     public void createOrUpdate(final String path, final Object data) {
+        // 创建持久化路径节点
         zkClient.createOrUpdate(path, data, CreateMode.PERSISTENT);
     }
 
     @Override
     public void deleteNode(final String path) {
         if (zkClient.isExist(path)) {
+            // 删除路径节点
             zkClient.delete(path);
         }
     }
@@ -47,6 +53,7 @@ public class ZookeeperDataChangedListener extends AbstractPathDataChangedListene
     @Override
     public void deletePathRecursive(final String path) {
         if (zkClient.isExist(path)) {
+            // 删除路径节点
             zkClient.delete(path);
         }
     }

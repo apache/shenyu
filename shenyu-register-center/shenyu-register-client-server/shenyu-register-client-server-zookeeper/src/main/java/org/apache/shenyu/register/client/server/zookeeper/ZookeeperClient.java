@@ -157,7 +157,11 @@ public class ZookeeperClient {
     public void createOrUpdate(final String key, final String value, final CreateMode mode) {
         String val = StringUtils.isEmpty(value) ? "" : value;
         try {
-            client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
+            client.create()
+                    .orSetData()
+                    .creatingParentsIfNeeded()
+                    .withMode(mode)
+                    .forPath(key, val.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
@@ -186,7 +190,10 @@ public class ZookeeperClient {
      */
     public void delete(final String key) {
         try {
-            client.delete().guaranteed().deletingChildrenIfNeeded().forPath(key);
+            client.delete()
+                    .guaranteed()
+                    .deletingChildrenIfNeeded()
+                    .forPath(key);
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
