@@ -29,11 +29,15 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Use nacos to push data changes.
+ * 使用nacos注册中心发布数据变更
  */
 public class NacosDataChangedListener extends AbstractNodeDataChangedListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(NacosDataChangedListener.class);
 
+    /**
+     * 配置服务
+     */
     private final ConfigService configService;
 
     public NacosDataChangedListener(final ConfigService configService) {

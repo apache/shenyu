@@ -23,7 +23,7 @@ import org.apache.zookeeper.CreateMode;
 
 /**
  * Use zookeeper to push data changes.
- * 使用ZooKeeper发布数据变更
+ * 使用ZooKeeper注册中心发布数据变更
  */
 public class ZookeeperDataChangedListener extends AbstractPathDataChangedListener {
 

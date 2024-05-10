@@ -22,7 +22,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 
 /**
  * EtcdDataDataChangedListener.
- * 使用etcd发布数据变更
+ * 使用etcd注册中心发布数据变更
  */
 public class EtcdDataDataChangedListener extends AbstractPathDataChangedListener {
 
