@@ -31,6 +31,7 @@ import java.util.List;
 /**
  * Event listener, used to send notification of event changes,
  * used to support HTTP, websocket, zookeeper and other event notifications.
+ * 数据变更事件监听器
  */
 public interface DataChangedListener {
 
@@ -45,6 +46,7 @@ public interface DataChangedListener {
 
     /**
      * invoke this method when Plugin was received.
+     * 插件变更
      *
      * @param changed   the changed
      * @param eventType the event type
@@ -54,6 +56,7 @@ public interface DataChangedListener {
 
     /**
      * invoke this method when Selector was received.
+     * 选择器变更
      *
      * @param changed   the changed
      * @param eventType the event type
@@ -73,6 +76,7 @@ public interface DataChangedListener {
 
     /**
      * invoke this method when Rule was received.
+     * 规则变更
      *
      * @param changed   the changed
      * @param eventType the event type
