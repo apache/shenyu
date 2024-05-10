@@ -22,6 +22,7 @@ import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
@@ -59,16 +60,18 @@ public class NacosSyncDataConfiguration {
      * @param metaSubscribers   the meta subscribers
      * @param authSubscribers   the auth subscribers
      * @param proxySelectorSubscribers   the auth subscribers
+     * @param discoveryUpstreamDataSubscribers discoveryUpstreamDataSubscribers
      * @return the sync data service
      */
     @Bean
     public SyncDataService nacosSyncDataService(final ObjectProvider<ConfigService> configService, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                                 final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
-                                                final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers) {
+                                                final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers,
+                                                final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
         LOGGER.info("you use nacos sync shenyu data.......");
         return new NacosSyncDataService(configService.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
-                proxySelectorSubscribers.getIfAvailable());
+                proxySelectorSubscribers.getIfAvailable(), discoveryUpstreamDataSubscribers.getIfAvailable());
     }
 
     /**

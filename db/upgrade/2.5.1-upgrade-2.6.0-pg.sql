@@ -17,7 +17,7 @@
 -- this file works for PostgreSQL, can not use "`" syntax.
 
 ALTER TABLE selector ADD COLUMN match_restful int2 NOT NULL;
-COMMENT ON COLUMN "public"."rule"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
+COMMENT ON COLUMN "public"."selector"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
 COMMIT;
 
 ALTER TABLE rule ADD COLUMN match_restful int2 NOT NULL;
