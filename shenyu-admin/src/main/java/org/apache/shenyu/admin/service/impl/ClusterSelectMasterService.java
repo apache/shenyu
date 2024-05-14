@@ -20,13 +20,13 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -63,40 +63,43 @@ public class ClusterSelectMasterService {
     
     /**
      * start master select task.
+     *
      * @param host host
      * @param port port
      * @param contextPath contextPath
      */
     public void startSelectMasterTask(final String host, final String port, final String contextPath) {
         LOG.info("starting select master task");
+        //
+        jdbcLockRegistry.setIdleBetweenTries(Duration.ofMillis(15000));
+        // 15s
         executorService.scheduleAtFixedRate(() -> doSelectMaster(host, port, contextPath),
                 0,
-                AdminConstants.TEN_SECONDS_MILLIS_TIME,
-                TimeUnit.MILLISECONDS);
+                15,
+                TimeUnit.SECONDS);
     }
     
     private void doSelectMaster(final String host, final String port, final String contextPath) {
         // expires all locks older than 10 seconds
-        jdbcLockRegistry.expireUnusedOlderThan(AdminConstants.TEN_SECONDS_MILLIS_TIME);
+        //        jdbcLockRegistry.expireUnusedOlderThan(10 * 1000L);
         
         // DEFAULT_TTL = 10000 ms
         Lock lock = jdbcLockRegistry.obtain(MASTER_LOCK_KEY);
+        // wait for getting lock 5 seconds
+        boolean locked = lock.tryLock();
         try {
-            
-            boolean locked = lock.tryLock(AdminConstants.TEN_SECONDS_MILLIS_TIME,
-                    TimeUnit.MILLISECONDS);
-            
             if (!locked) {
                 LOG.info("select master fail, wait for next time");
                 clusterMasterService.removeMaster();
                 return;
             }
+            
             LOG.info("select master success");
             
             // set master info (db and local flag)
             clusterMasterService.setMaster(host, port, contextPath);
             
-            // upstream check task
+            // start upstream check task
             upstreamCheckService.setup();
             
             // load api
@@ -105,7 +108,8 @@ public class ClusterSelectMasterService {
             while (true) {
                 try {
                     // sleeps 10s then renew the lock
-                    TimeUnit.MILLISECONDS.sleep(AdminConstants.FIVE_SECONDS_MILLIS_TIME);
+                    TimeUnit.SECONDS.sleep(14L);
+                    
                     jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
                     LOG.info("renew master lock success");
                 } catch (Exception e) {
@@ -121,7 +125,9 @@ public class ClusterSelectMasterService {
         } catch (Exception e) {
             LOG.error("select master error", e);
         } finally {
-            lock.unlock();
+            if (locked) {
+                lock.unlock();
+            }
         }
     }
 }

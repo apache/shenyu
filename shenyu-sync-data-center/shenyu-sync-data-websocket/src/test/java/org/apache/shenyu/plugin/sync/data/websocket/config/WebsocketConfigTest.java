@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.config;
 
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
  */
 public class WebsocketConfigTest {
 
-    private static final String URLS = "ws://localhost:9095/websocket";
+    private static final List<String> URLS = Lists.newArrayList("ws://localhost:9095/websocket");
 
     private static final String ALLOW_ORIGIN = "ws://localhost:9095";
 

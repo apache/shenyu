@@ -81,11 +81,12 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        
+        // this node is not master
         String uri = request.getRequestURI();
         String requestContextPath = request.getContextPath();
         String replaced = uri.replaceAll(requestContextPath, "");
-        boolean anyMatch = clusterProperties.getForwardList().stream().anyMatch(x -> PATH_MATCHER.match(x, replaced));
+        boolean anyMatch = clusterProperties.getForwardList()
+                .stream().anyMatch(x -> PATH_MATCHER.match(x, replaced));
         if (!anyMatch) {
             filterChain.doFilter(request, response);
             return;
@@ -110,6 +111,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         //        if (StringUtils.isNotEmpty(contextPath)) {
         //            uri = contextPath + "/" + uri;
         //        }
+        
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromHttpRequest(new ServletServerHttpRequest(request))
                 .host(host)
@@ -122,9 +124,6 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         copyHeaders(request, headers);
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
         // Send request
-        if (!builder.toUriString().startsWith(clusterMasterService.getMasterUrl())) {
-            throw new IllegalArgumentException("Invalid URL");
-        }
         ResponseEntity<InputStream> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.valueOf(request.getMethod()), requestEntity, InputStream.class);
 
         // Set response status and headers

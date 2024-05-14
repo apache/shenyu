@@ -17,12 +17,15 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
+import com.google.common.collect.Maps;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,17 +87,37 @@ public class WebsocketCollector {
      */
     @OnMessage
     public void onMessage(final String message, final Session session) {
-        if (!Objects.equals(message, DataEventTypeEnum.MYSELF.name())) {
+        if (!Objects.equals(message, DataEventTypeEnum.MYSELF.name())
+                && !Objects.equals(message, DataEventTypeEnum.CLUSTER.name())) {
             return;
         }
         
-        try {
+        if (Objects.equals(message, DataEventTypeEnum.CLUSTER.name())) {
+            LOG.info("websocket fetching master info...");
+            // check if this node is master
+            ClusterMasterService clusterMasterService = SpringBeanUtils.getInstance().getBean(ClusterMasterService.class);
+            String masterUrl = clusterMasterService.getMasterUrl();
+            Map<String, Object> map = Maps.newHashMap();
+            map.put("eventType", DataEventTypeEnum.CLUSTER.name());
+            map.put("masterUrl", masterUrl
+                    .replace("http", "ws")
+                    .replace("https", "ws")
+                    .concat("/websocket"));
             ThreadLocalUtils.put(SESSION_KEY, session);
-            SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAll(DataEventTypeEnum.MYSELF);
-        } finally {
-            ThreadLocalUtils.clear();
+            
+            send(JsonUtils.toJson(map), DataEventTypeEnum.MYSELF);
+            return;
         }
-
+        
+        if (Objects.equals(message, DataEventTypeEnum.MYSELF.name())) {
+            try {
+                ThreadLocalUtils.put(SESSION_KEY, session);
+                SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAll(DataEventTypeEnum.MYSELF);
+            } finally {
+                ThreadLocalUtils.clear();
+            }
+        }
+        
     }
     
     /**
@@ -112,7 +135,7 @@ public class WebsocketCollector {
      * On error.
      *
      * @param session the session
-     * @param error   the error
+     * @param error the error
      */
     @OnError
     public void onError(final Session session, final Throwable error) {
@@ -124,7 +147,7 @@ public class WebsocketCollector {
      * Send.
      *
      * @param message the message
-     * @param type    the type
+     * @param type the type
      */
     public static void send(final String message, final DataEventTypeEnum type) {
         if (StringUtils.isBlank(message)) {
