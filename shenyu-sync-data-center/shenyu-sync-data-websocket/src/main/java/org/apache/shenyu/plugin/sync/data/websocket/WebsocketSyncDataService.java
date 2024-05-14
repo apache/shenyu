@@ -127,7 +127,7 @@ public class WebsocketSyncDataService implements SyncDataService {
                     metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         }
 
-        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(10)) {
+        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(30)) {
             @Override
             public void doRun(final String key, final TimerTask timerTask) {
                 masterCheck();
