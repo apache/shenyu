@@ -140,9 +140,25 @@ public class WebsocketSyncDataService implements SyncDataService {
      * @return master url
      */
     private String getMasterUrl() {
+        List<String> urls = websocketConfig.getUrls();
+        
+        for (String url : urls) {
+            if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
+                Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
+                this.clusterClients.add(new ShenyuClusterWebsocketClient(URI.create(url), headers));
+            } else {
+                this.clusterClients.add(new ShenyuClusterWebsocketClient(URI.create(url)));
+            }
+        }
+        
         String masterUrl = "";
         
         for (ShenyuClusterWebsocketClient clusterClient : clusterClients) {
+            try {
+                clusterClient.connectBlocking(3, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             masterUrl = clusterClient.getMasterUrl();
             if (StringUtils.isNoneBlank(masterUrl)) {
                 break;
@@ -158,6 +174,7 @@ public class WebsocketSyncDataService implements SyncDataService {
         for (ShenyuClusterWebsocketClient clusterClient : clusterClients) {
             clusterClient.nowClose();
         }
+        clusterClients.clear();
         
         return masterUrl;
     }

@@ -18,10 +18,6 @@
 package org.apache.shenyu.plugin.sync.data.websocket.client;
 
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.timer.AbstractRoundTask;
-import org.apache.shenyu.common.timer.Timer;
-import org.apache.shenyu.common.timer.TimerTask;
-import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -44,10 +40,6 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
      */
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClusterWebsocketClient.class);
     
-    private final Timer timer;
-    
-    private TimerTask timerTask;
-    
     private String masterUrl;
     
     private CountDownLatch countDownLatch;
@@ -59,8 +51,6 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
      */
     public ShenyuClusterWebsocketClient(final URI serverUri) {
         super(serverUri);
-        this.timer = WheelTimerFactory.getSharedTimer();
-        this.connection();
         countDownLatch = new CountDownLatch(1);
     }
     
@@ -72,8 +62,6 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
      */
     public ShenyuClusterWebsocketClient(final URI serverUri, final Map<String, String> headers) {
         super(serverUri, headers);
-        this.timer = WheelTimerFactory.getSharedTimer();
-        this.connection();
         countDownLatch = new CountDownLatch(1);
     }
     
@@ -93,14 +81,20 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
         return success;
     }
     
-    private void connection() {
-        this.connectBlocking();
-        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(10)) {
-            @Override
-            public void doRun(final String key, final TimerTask timerTask) {
-                healthCheck();
-            }
-        });
+    @Override
+    public boolean connectBlocking(final long timeout, final TimeUnit timeUnit) throws InterruptedException {
+        boolean success = false;
+        try {
+            success = super.connectBlocking(timeout, timeUnit);
+        } catch (Exception exception) {
+            LOG.error("websocket connection server[{}] is error.....[{}]", this.getURI().toString(), exception.getMessage());
+        }
+        if (success) {
+            LOG.info("websocket connection server[{}] is successful.....", this.getURI().toString());
+        } else {
+            LOG.warn("websocket connection server[{}] is error.....", this.getURI().toString());
+        }
+        return success;
     }
     
     @Override
@@ -134,19 +128,6 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
         }
     }
     
-    private void healthCheck() {
-        try {
-            if (!this.isOpen()) {
-                this.reconnectBlocking();
-            } else {
-                this.sendPing();
-                LOG.debug("websocket send to [{}] ping message successful", this.getURI());
-            }
-        } catch (Exception e) {
-            LOG.error("websocket connect is error :{}", e.getMessage());
-        }
-    }
-    
     /**
      * Now close.
      * now close. will cancel the task execution.
@@ -156,7 +137,6 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
         if (Objects.nonNull(countDownLatch) && countDownLatch.getCount() > 0) {
             countDownLatch.countDown();
         }
-        timerTask.cancel();
     }
     
     /**
