@@ -25,7 +25,7 @@ jobs:
   build:
     strategy:
       matrix:
-        java: [ 8, 11 ]
+        java: [ 8, 11, 17 ]
         os: [ ubuntu-latest, windows-latest ]
         include:
           - java: 12
@@ -79,6 +79,8 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean test -Prelease
       - uses: codecov/codecov-action@v1
+        with:
+          token: 2760af6a-3405-4882-9e61-04c5176fecfa
         if: steps.filter.outputs.changed == 'true'
       - name: Save ShenYu Maven Repos
         if: steps.filter.outputs.changed == 'true' && steps.restore-maven-cache.outputs.cache-hit != 'true'

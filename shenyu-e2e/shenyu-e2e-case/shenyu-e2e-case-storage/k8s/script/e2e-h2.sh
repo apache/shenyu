@@ -31,8 +31,6 @@ kubectl get pod -o wide
 chmod +x "${curPath}"/healthcheck.sh
 sh "${curPath}"/healthcheck.sh h2 http://localhost:31095/actuator/health http://localhost:31195/actuator/health
 
-kubectl get pod -o wide
-
 ## run e2e-test
 
 curl -S "http://localhost:31195/actuator/pluginData"
