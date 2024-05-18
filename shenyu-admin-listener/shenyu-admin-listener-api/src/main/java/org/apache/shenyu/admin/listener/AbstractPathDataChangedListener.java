@@ -26,12 +26,9 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.List;
 
 /**
@@ -64,21 +61,16 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
         for (MetaData data : changed) {
-            try {
-                String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(), "UTF-8"));
-                // delete
-                if (eventType == DataEventTypeEnum.DELETE) {
-                    deleteNode(metaDataPath);
-                    LOG.debug("[DataChangedListener] delete appKey {}", metaDataPath);
-                    continue;
-                }
-                // create or update
-                createOrUpdate(metaDataPath, data);
-                LOG.debug("[DataChangedListener] change metaDataPath {}", metaDataPath);
-            } catch (UnsupportedEncodingException e) {
-                LOG.error("[DataChangedListener] url encode error.", e);
-                throw new ShenyuException(e.getMessage());
+            String metaDataPath = DefaultPathConstants.buildMetaDataPath(data.getPath());
+            // delete
+            if (eventType == DataEventTypeEnum.DELETE) {
+                deleteNode(metaDataPath);
+                LOG.debug("[DataChangedListener] delete appKey {}", metaDataPath);
+                continue;
             }
+            // create or update
+            createOrUpdate(metaDataPath, data);
+            LOG.debug("[DataChangedListener] change metaDataPath {}", metaDataPath);
         }
     }
 
