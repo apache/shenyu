@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.filter;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.config.properties.ClusterProperties;
+import org.apache.shenyu.admin.config.properties.ShenyuClusterProperties;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +65,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     private ClusterMasterService clusterMasterService;
     
     @Resource
-    private ClusterProperties clusterProperties;
+    private ShenyuClusterProperties shenyuClusterProperties;
     
     @Override
     protected void doFilterInternal(@NotNull final HttpServletRequest request,
@@ -85,7 +85,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         String uri = request.getRequestURI();
         String requestContextPath = request.getContextPath();
         String replaced = uri.replaceAll(requestContextPath, "");
-        boolean anyMatch = clusterProperties.getForwardList()
+        boolean anyMatch = shenyuClusterProperties.getForwardList()
                 .stream().anyMatch(x -> PATH_MATCHER.match(x, replaced));
         if (!anyMatch) {
             filterChain.doFilter(request, response);

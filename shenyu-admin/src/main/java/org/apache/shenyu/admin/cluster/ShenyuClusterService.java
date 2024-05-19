@@ -15,33 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.impl;
+package org.apache.shenyu.admin.cluster;
 
 import org.apache.shenyu.admin.service.ClusterMasterService;
+import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
 
 @Service
-public class ClusterSelectMasterService {
+public class ShenyuClusterService {
     
-    private static final Logger LOG = LoggerFactory.getLogger(ClusterSelectMasterService.class);
-    
-    private static final String MASTER_LOCK_KEY = "shenyu:cluster:master";
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuClusterService.class);
     
     private final ClusterMasterService clusterMasterService;
     
-    private final JdbcLockRegistry jdbcLockRegistry;
+    private final ShenyuClusterSelectMasterService shenyuClusterSelectMasterService;
     
     private final UpstreamCheckService upstreamCheckService;
     
@@ -49,11 +45,11 @@ public class ClusterSelectMasterService {
     
     private final ScheduledExecutorService executorService;
     
-    public ClusterSelectMasterService(final JdbcLockRegistry jdbcLockRegistry,
-                                      final ClusterMasterService clusterMasterService,
-                                      final UpstreamCheckService upstreamCheckService,
-                                      final LoadServiceDocEntry loadServiceDocEntry) {
-        this.jdbcLockRegistry = jdbcLockRegistry;
+    public ShenyuClusterService(final ShenyuClusterSelectMasterService shenyuClusterSelectMasterService,
+                                final ClusterMasterService clusterMasterService,
+                                final UpstreamCheckService upstreamCheckService,
+                                final LoadServiceDocEntry loadServiceDocEntry) {
+        this.shenyuClusterSelectMasterService = shenyuClusterSelectMasterService;
         this.clusterMasterService = clusterMasterService;
         this.upstreamCheckService = upstreamCheckService;
         this.loadServiceDocEntry = loadServiceDocEntry;
@@ -70,9 +66,7 @@ public class ClusterSelectMasterService {
      */
     public void startSelectMasterTask(final String host, final String port, final String contextPath) {
         LOG.info("starting select master task");
-        //
-        jdbcLockRegistry.setIdleBetweenTries(Duration.ofMillis(15000));
-        // 15s
+        // schedule task 15s
         executorService.scheduleAtFixedRate(() -> doSelectMaster(host, port, contextPath),
                 0,
                 15,
@@ -80,15 +74,10 @@ public class ClusterSelectMasterService {
     }
     
     private void doSelectMaster(final String host, final String port, final String contextPath) {
-        // expires all locks older than 10 seconds
-        //        jdbcLockRegistry.expireUnusedOlderThan(10 * 1000L);
-        
-        // DEFAULT_TTL = 10000 ms
-        Lock lock = jdbcLockRegistry.obtain(MASTER_LOCK_KEY);
-        // wait for getting lock 5 seconds
-        boolean locked = lock.tryLock();
+        // try getting lock
         try {
-            if (!locked) {
+            boolean selected = shenyuClusterSelectMasterService.selectMaster();
+            if (!selected) {
                 LOG.info("select master fail, wait for next time");
                 clusterMasterService.removeMaster();
                 return;
@@ -110,23 +99,25 @@ public class ClusterSelectMasterService {
                     // sleeps 10s then renew the lock
                     TimeUnit.SECONDS.sleep(14L);
                     
-                    jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
-                    LOG.info("renew master lock success");
+                    shenyuClusterSelectMasterService.renewMaster();
+                    LOG.info("renew master success");
                 } catch (Exception e) {
 //                    LOG.error("renew master lock fail", e);
                     // if renew fail, remove local master flag
                     clusterMasterService.removeMaster();
                     // close the upstream check service
                     upstreamCheckService.close();
-                    String message = String.format("renew master lock fail, %s", e.getMessage());
+                    String message = String.format("renew master fail, %s", e.getMessage());
                     throw new ShenyuException(message);
                 }
             }
         } catch (Exception e) {
             LOG.error("select master error", e);
         } finally {
-            if (locked) {
-                lock.unlock();
+            try {
+                shenyuClusterSelectMasterService.releaseMaster();
+            } catch (Exception e) {
+                LOG.error("release master error", e);
             }
         }
     }

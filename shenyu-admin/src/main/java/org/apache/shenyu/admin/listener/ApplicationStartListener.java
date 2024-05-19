@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.listener;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.service.impl.ClusterSelectMasterService;
+import org.apache.shenyu.admin.cluster.ShenyuClusterService;
 import org.apache.shenyu.admin.utils.ShenyuDomain;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +39,7 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
     private String contextPath;
     
     @Resource
-    private ClusterSelectMasterService clusterSelectMasterService;
+    private ShenyuClusterService clusterSelectMasterService;
 
     @Override
     public void onApplicationEvent(final WebServerInitializedEvent event) {

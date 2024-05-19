@@ -15,40 +15,26 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.config.properties;
+package org.apache.shenyu.admin.cluster;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-/**
- * Cluster properties.
- */
-@Component("clusterProperties")
-@ConfigurationProperties(prefix = "shenyu.cluster")
-public class ClusterProperties {
-
+public interface ShenyuClusterSelectMasterService {
+    
     /**
-     * cluster forward uri list.
+     * Select the cluster master.
+     * @return select result
      */
-    private List<String> forwardList;
-
+    boolean selectMaster();
+    
     /**
-     * Gets the value of forwardList.
-     *
-     * @return the value of forwardList
+     * renew the cluster master.
+     * @return renew result
      */
-    public List<String> getForwardList() {
-        return forwardList;
-    }
-
+    boolean renewMaster();
+    
     /**
-     * Sets the forwardList.
-     *
-     * @param forwardList forwardList
+     * Release the cluster master.
+     * @return release result
      */
-    public void setForwardList(final List<String> forwardList) {
-        this.forwardList = forwardList;
-    }
+    boolean releaseMaster();
+
 }
