@@ -121,6 +121,7 @@ public class AdminClient extends BaseClient {
      */
     public void login() {
         final String url = baseURL + "/platform/login?userName={username}&password={password}";
+        log.info("login, url:{}", url);
         ResponseEntity<ShenYuResult> response = template.getForEntity(
                 url,
                 ShenYuResult.class,
