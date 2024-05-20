@@ -203,7 +203,7 @@
         <module name="SuperClone"/>
         <module name="SuperFinalize"/>
         <module name="OneStatementPerLine"/>
-        <!--<module name="OverloadMethodsDeclarationOrder"/>-->
+        <module name="OverloadMethodsDeclarationOrder"/>
         <module name="PackageDeclaration"/>
         <module name="ParameterAssignment"/>
         <module name="SimplifyBooleanExpression"/>

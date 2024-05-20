@@ -125,6 +125,35 @@ public final class ResourceDO extends BaseDO {
     /**
      * build ResourceDO.
      *
+     * @param createResourceDTO {@linkplain CreateResourceDTO}
+     * @return {@linkplain ResourceDO}
+     */
+    public static ResourceDO buildResourceDO(final CreateResourceDTO createResourceDTO) {
+        return Optional.ofNullable(createResourceDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            ResourceDO resourceDO = ResourceDO.builder()
+                .parentId(item.getParentId())
+                .title(item.getTitle())
+                .name(item.getName())
+                .url(item.getUrl())
+                .component(item.getComponent())
+                .resourceType(item.getResourceType())
+                .sort(item.getSort())
+                .icon(item.getIcon())
+                .isLeaf(item.getIsLeaf())
+                .isRoute(item.getIsRoute())
+                .perms(item.getPerms())
+                .status(item.getStatus())
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .dateCreated(currentTime)
+                .build();
+            return resourceDO;
+        }).orElse(null);
+    }
+
+    /**
+     * build ResourceDO.
+     *
      * @param resourceDTO {@linkplain ResourceDTO}
      * @return {@linkplain ResourceDO}
      */
@@ -162,35 +191,6 @@ public final class ResourceDO extends BaseDO {
      */
     public static ResourceDO.ResourceDOBuilder builder() {
         return new ResourceDO.ResourceDOBuilder();
-    }
-
-    /**
-     * build ResourceDO.
-     *
-     * @param createResourceDTO {@linkplain CreateResourceDTO}
-     * @return {@linkplain ResourceDO}
-     */
-    public static ResourceDO buildResourceDO(final CreateResourceDTO createResourceDTO) {
-        return Optional.ofNullable(createResourceDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            ResourceDO resourceDO = ResourceDO.builder()
-                .parentId(item.getParentId())
-                .title(item.getTitle())
-                .name(item.getName())
-                .url(item.getUrl())
-                .component(item.getComponent())
-                .resourceType(item.getResourceType())
-                .sort(item.getSort())
-                .icon(item.getIcon())
-                .isLeaf(item.getIsLeaf())
-                .isRoute(item.getIsRoute())
-                .perms(item.getPerms())
-                .status(item.getStatus())
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .dateCreated(currentTime)
-                .build();
-            return resourceDO;
-        }).orElse(null);
     }
 
     /**

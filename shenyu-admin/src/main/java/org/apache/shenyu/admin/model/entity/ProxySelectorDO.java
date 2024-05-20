@@ -63,6 +63,39 @@ public class ProxySelectorDO extends BaseDO {
     /**
      * buildProxySelectorDO.
      *
+     * @param proxySelectorData proxySelectorData
+     * @return ProxySelectorDO
+     */
+    public static ProxySelectorDO buildProxySelectorDO(final ProxySelectorData proxySelectorData) {
+
+        return Optional.ofNullable(proxySelectorData).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            ProxySelectorDO proxySelectorDO = ProxySelectorDO.builder()
+                .name(item.getName())
+                .pluginName(PluginEnum.TCP.getName())
+                .forwardPort(item.getForwardPort())
+                .type(item.getType())
+                .props(JsonUtils.toJson(item.getProps()))
+                .dateUpdated(currentTime).build();
+            if (StringUtils.hasLength(item.getId())) {
+                proxySelectorDO.setId(item.getId());
+            } else {
+                proxySelectorDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                proxySelectorDO.setDateCreated(currentTime);
+            }
+            if (Objects.isNull(proxySelectorDO.getDateCreated())) {
+                proxySelectorDO.setDateCreated(currentTime);
+            }
+            if (Objects.isNull(proxySelectorDO.getDateUpdated())) {
+                proxySelectorDO.setDateUpdated(currentTime);
+            }
+            return proxySelectorDO;
+        }).orElse(null);
+    }
+
+    /**
+     * buildProxySelectorDO.
+     *
      * @param proxySelectorDTO proxySelectorDTO
      * @return ProxySelectorDO
      */
@@ -95,39 +128,6 @@ public class ProxySelectorDO extends BaseDO {
     public static ProxySelectorBuilder builder() {
 
         return new ProxySelectorBuilder();
-    }
-
-    /**
-     * buildProxySelectorDO.
-     *
-     * @param proxySelectorData proxySelectorData
-     * @return ProxySelectorDO
-     */
-    public static ProxySelectorDO buildProxySelectorDO(final ProxySelectorData proxySelectorData) {
-
-        return Optional.ofNullable(proxySelectorData).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            ProxySelectorDO proxySelectorDO = ProxySelectorDO.builder()
-                .name(item.getName())
-                .pluginName(PluginEnum.TCP.getName())
-                .forwardPort(item.getForwardPort())
-                .type(item.getType())
-                .props(JsonUtils.toJson(item.getProps()))
-                .dateUpdated(currentTime).build();
-            if (StringUtils.hasLength(item.getId())) {
-                proxySelectorDO.setId(item.getId());
-            } else {
-                proxySelectorDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                proxySelectorDO.setDateCreated(currentTime);
-            }
-            if (Objects.isNull(proxySelectorDO.getDateCreated())) {
-                proxySelectorDO.setDateCreated(currentTime);
-            }
-            if (Objects.isNull(proxySelectorDO.getDateUpdated())) {
-                proxySelectorDO.setDateUpdated(currentTime);
-            }
-            return proxySelectorDO;
-        }).orElse(null);
     }
 
     /**

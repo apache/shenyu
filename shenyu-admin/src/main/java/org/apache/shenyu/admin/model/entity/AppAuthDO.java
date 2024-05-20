@@ -74,6 +74,30 @@ public final class AppAuthDO extends BaseDO {
     }
 
     /**
+     * Build AppAuthDO object with given AuthApplyDTO object.
+     *
+     * @param authApplyDTO {@linkplain AuthApplyDTO}
+     * @return {@linkplain AppAuthDO}
+     */
+    public static AppAuthDO create(final AuthApplyDTO authApplyDTO) {
+        return Optional.ofNullable(authApplyDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            return AppAuthDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .userId(item.getUserId())
+                .phone(item.getPhone())
+                .extInfo(item.getExtInfo())
+                .appKey(SignUtils.generateKey())
+                .appSecret(SignUtils.generateKey())
+                .open(item.getOpen())
+                .enabled(true)
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
+        }).orElse(null);
+    }
+
+    /**
      * Build AppAuthDO object with given AppAuthDTO object.
      *
      * @param appAuthDTO {@linkplain AppAuthDTO}
@@ -106,30 +130,6 @@ public final class AppAuthDO extends BaseDO {
      */
     public static AppAuthDO.AppAuthDOBuilder builder() {
         return new AppAuthDO.AppAuthDOBuilder();
-    }
-
-    /**
-     * Build AppAuthDO object with given AuthApplyDTO object.
-     *
-     * @param authApplyDTO {@linkplain AuthApplyDTO}
-     * @return {@linkplain AppAuthDO}
-     */
-    public static AppAuthDO create(final AuthApplyDTO authApplyDTO) {
-        return Optional.ofNullable(authApplyDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            return AppAuthDO.builder()
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .userId(item.getUserId())
-                .phone(item.getPhone())
-                .extInfo(item.getExtInfo())
-                .appKey(SignUtils.generateKey())
-                .appSecret(SignUtils.generateKey())
-                .open(item.getOpen())
-                .enabled(true)
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .build();
-        }).orElse(null);
     }
 
     /**

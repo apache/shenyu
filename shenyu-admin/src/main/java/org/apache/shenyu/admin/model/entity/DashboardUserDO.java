@@ -73,32 +73,6 @@ public final class DashboardUserDO extends BaseDO {
     /**
      * build dashboardUserDO.
      *
-     * @param dashboardUserModifyPasswordDTO {@linkplain DashboardUserModifyPasswordDTO}
-     * @return {@linkplain DashboardUserDO}
-     */
-    public static DashboardUserDO buildDashboardUserDO(final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
-        return Optional.ofNullable(dashboardUserModifyPasswordDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            return DashboardUserDO.builder()
-                .password(item.getPassword())
-                .dateUpdated(currentTime)
-                .id(item.getId())
-                .build();
-        }).orElse(null);
-    }
-
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static DashboardUserDO.DashboardUserDOBuilder builder() {
-        return new DashboardUserDO.DashboardUserDOBuilder();
-    }
-
-    /**
-     * build dashboardUserDO.
-     *
      * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return {@linkplain DashboardUserDO}
      */
@@ -122,6 +96,32 @@ public final class DashboardUserDO extends BaseDO {
             }
             return dashboardUserDO;
         }).orElse(null);
+    }
+
+    /**
+     * build dashboardUserDO.
+     *
+     * @param dashboardUserModifyPasswordDTO {@linkplain DashboardUserModifyPasswordDTO}
+     * @return {@linkplain DashboardUserDO}
+     */
+    public static DashboardUserDO buildDashboardUserDO(final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
+        return Optional.ofNullable(dashboardUserModifyPasswordDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            return DashboardUserDO.builder()
+                .password(item.getPassword())
+                .dateUpdated(currentTime)
+                .id(item.getId())
+                .build();
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static DashboardUserDO.DashboardUserDOBuilder builder() {
+        return new DashboardUserDO.DashboardUserDOBuilder();
     }
 
     /**
