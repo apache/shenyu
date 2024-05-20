@@ -71,7 +71,7 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
         try {
             success = super.connectBlocking();
         } catch (Exception exception) {
-            LOG.error("websocket connection server[{}] is error.....[{}]", this.getURI().toString(), exception.getMessage());
+            LOG.error("websocket connection server[{}] is error.....", this.getURI().toString(), exception);
         }
         if (success) {
             LOG.info("websocket connection server[{}] is successful.....", this.getURI().toString());
@@ -87,7 +87,7 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
         try {
             success = super.connectBlocking(timeout, timeUnit);
         } catch (Exception exception) {
-            LOG.error("websocket connection server[{}] is error.....[{}]", this.getURI().toString(), exception.getMessage());
+            LOG.error("websocket connection server[{}] is error.....", this.getURI().toString(), exception);
         }
         if (success) {
             LOG.info("websocket connection server[{}] is successful.....", this.getURI().toString());
@@ -172,7 +172,7 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
         if (Objects.nonNull(countDownLatch) && countDownLatch.getCount() > 0) {
             countDownLatch.countDown();
             if (!Objects.equals(this.masterUrl, this.getURI().toString())) {
-                LOG.info("not connected to master, no close, current url:[{}], master url:[{}]", this.getURI().toString(), this.masterUrl);
+                LOG.info("not connected to master, close now, current url:[{}], master url:[{}]", this.getURI().toString(), this.masterUrl);
                 this.nowClose();
             }
         }

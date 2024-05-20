@@ -62,11 +62,13 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
     @Override
     @SuppressWarnings("unchecked")
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
-        if (!clusterMasterService.isMaster()) {
-            LOG.info("received DataChangedEvent, not master, pass");
-            return;
-        }
         for (DataChangedListener listener : listeners) {
+            if (!(listener instanceof AbstractDataChangedListener)) {
+                if (!clusterMasterService.isMaster()) {
+                    LOG.info("received DataChangedEvent, not master, pass");
+                    return;
+                }
+            }
             switch (event.getGroupKey()) {
                 case APP_AUTH:
                     listener.onAppAuthChanged((List<AppAuthData>) event.getSource(), event.getEventType());

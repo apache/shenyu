@@ -155,7 +155,7 @@ public class WebsocketSyncDataService implements SyncDataService {
         
         for (ShenyuClusterWebsocketClient clusterClient : clusterClients) {
             try {
-                clusterClient.connectBlocking(3, TimeUnit.SECONDS);
+                clusterClient.connectBlocking(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
