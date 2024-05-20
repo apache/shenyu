@@ -17,19 +17,21 @@
 
 package org.apache.shenyu.sdk.spring.proxy;
 
-import java.io.IOException;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
+import org.springframework.http.HttpStatus;
+
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import org.springframework.http.HttpStatus;
 
 /**
  * {@link ShenyuClientInvocationHandler} test.

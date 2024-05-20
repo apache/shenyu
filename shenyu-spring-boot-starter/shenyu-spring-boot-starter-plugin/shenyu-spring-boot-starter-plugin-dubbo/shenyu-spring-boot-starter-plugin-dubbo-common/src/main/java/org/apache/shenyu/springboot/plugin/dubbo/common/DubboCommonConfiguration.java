@@ -18,8 +18,8 @@
 package org.apache.shenyu.springboot.plugin.dubbo.common;
 
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
-import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.apache.shenyu.plugin.dubbo.common.context.DubboShenyuContextDecorator;
+import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveServiceImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;

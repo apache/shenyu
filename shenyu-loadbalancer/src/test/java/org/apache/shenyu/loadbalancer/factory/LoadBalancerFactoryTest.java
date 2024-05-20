@@ -17,15 +17,16 @@
 
 package org.apache.shenyu.loadbalancer.factory;
 
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.junit.jupiter.api.Test;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import org.apache.shenyu.common.enums.LoadBalanceEnum;
-import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

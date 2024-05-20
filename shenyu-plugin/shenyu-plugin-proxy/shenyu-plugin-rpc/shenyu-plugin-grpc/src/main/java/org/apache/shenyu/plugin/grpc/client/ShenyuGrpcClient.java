@@ -28,10 +28,10 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.grpc.exception.ShenyuGrpcException;
 import org.apache.shenyu.plugin.grpc.proto.CompleteObserver;
+import org.apache.shenyu.plugin.grpc.proto.CompositeStreamObserver;
 import org.apache.shenyu.plugin.grpc.proto.MessageWriter;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcCallRequest;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
-import org.apache.shenyu.plugin.grpc.proto.CompositeStreamObserver;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +41,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
+import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
-import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
 
 /**
  * The shenyu grpc client.

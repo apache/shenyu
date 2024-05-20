@@ -19,8 +19,8 @@ package org.apache.shenyu.plugin.grpc.loadbalance;
 
 import io.grpc.LoadBalancer;
 import io.grpc.LoadBalancerProvider;
-import org.apache.shenyu.plugin.grpc.loadbalance.picker.RoundRobinPicker;
 import org.apache.shenyu.plugin.grpc.loadbalance.picker.AbstractReadyPicker;
+import org.apache.shenyu.plugin.grpc.loadbalance.picker.RoundRobinPicker;
 
 import java.util.List;
 

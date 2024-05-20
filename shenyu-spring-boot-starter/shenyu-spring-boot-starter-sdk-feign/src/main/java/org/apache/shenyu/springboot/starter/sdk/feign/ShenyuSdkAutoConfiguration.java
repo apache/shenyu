@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.sdk.feign;
 
-import java.util.Objects;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
@@ -28,6 +27,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Objects;
 
 /**
  * The type Shenyu sdk autoConfiguration.

@@ -17,14 +17,15 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
-import java.util.EnumMap;
-import java.util.List;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+
+import java.util.EnumMap;
+import java.util.List;
 
 /**
  * The type Websocket cache handler.

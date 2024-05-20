@@ -28,9 +28,6 @@ import com.tencent.polaris.api.rpc.InstancesResponse;
 import com.tencent.polaris.client.api.SDKContext;
 import com.tencent.polaris.factory.ConfigAPIFactory;
 import com.tencent.polaris.factory.api.DiscoveryAPIFactory;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -38,9 +35,12 @@ import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.spi.Join;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * The type polaris instance register repository.

@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.sync.data.http.config;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Objects;
 

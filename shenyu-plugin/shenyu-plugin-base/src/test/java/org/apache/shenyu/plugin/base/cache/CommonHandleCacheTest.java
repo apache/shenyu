@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.plugin.base.cache;
 
-import java.lang.reflect.Field;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * BaseHandleCache test.

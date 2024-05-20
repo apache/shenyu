@@ -19,8 +19,8 @@ package org.apache.shenyu.client.apache.dubbo.annotation;
 
 import org.apache.dubbo.common.constants.ClusterRules;
 import org.apache.dubbo.common.constants.LoadbalanceRules;
-import org.apache.dubbo.config.annotation.Method;
 import org.apache.dubbo.config.annotation.DubboService;
+import org.apache.dubbo.config.annotation.Method;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.springframework.core.annotation.AliasFor;
 

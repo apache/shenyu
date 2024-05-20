@@ -24,13 +24,12 @@ import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.ReflectUtils;
 
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 
 /**
  * ExistedValidator.

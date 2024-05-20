@@ -17,16 +17,11 @@
 
 package org.apache.shenyu.sdk.spring.proxy;
 
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Map;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import org.apache.shenyu.sdk.spring.EnableShenyuClients;
 import org.apache.shenyu.sdk.spring.ShenyuClient;
 import org.apache.shenyu.sdk.spring.support.SpringMvcContract;
-import static org.mockito.Mockito.spy;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -36,6 +31,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Map;
+
+import static org.mockito.Mockito.spy;
 
 /**
  * AbstractProxyTest.

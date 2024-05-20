@@ -17,16 +17,17 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.support.locks.LockRegistry;
-import java.util.concurrent.locks.Lock;
+
 import javax.annotation.Resource;
 import java.util.Objects;
+import java.util.concurrent.locks.Lock;
 
 /**
  * The type Abstract context path register service.

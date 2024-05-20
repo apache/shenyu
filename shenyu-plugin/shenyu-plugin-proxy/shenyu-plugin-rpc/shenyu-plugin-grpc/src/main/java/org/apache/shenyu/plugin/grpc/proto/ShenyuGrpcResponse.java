@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.grpc.proto;
 
 import java.io.Serializable;
-
 import java.util.ArrayList;
 import java.util.List;
 

@@ -17,11 +17,8 @@
 
 package org.apache.shenyu.common.utils;
 
-import java.io.ByteArrayInputStream;
-import java.lang.reflect.Field;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
+import com.google.common.collect.Lists;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
@@ -31,17 +28,18 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import com.google.common.collect.Lists;
+import java.io.ByteArrayInputStream;
+import java.lang.reflect.Field;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import org.apache.shenyu.common.exception.ShenyuException;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for JarDependencyUtils.

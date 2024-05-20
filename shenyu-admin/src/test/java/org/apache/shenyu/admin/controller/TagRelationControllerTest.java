@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.admin.controller;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.model.dto.TagRelationDTO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
@@ -37,6 +35,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;

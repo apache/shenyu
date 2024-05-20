@@ -22,6 +22,7 @@ import io.grpc.ConnectivityState;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
 import io.grpc.ManagedChannel;
+
 import javax.annotation.Nonnull;
 import java.net.SocketAddress;
 import java.util.Collections;

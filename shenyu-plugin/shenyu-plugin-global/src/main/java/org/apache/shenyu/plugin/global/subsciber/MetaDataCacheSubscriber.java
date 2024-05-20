@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.plugin.global.subsciber;
 
-import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 
 /**

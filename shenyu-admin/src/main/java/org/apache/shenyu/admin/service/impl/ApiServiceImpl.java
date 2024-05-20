@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
@@ -40,18 +39,18 @@ import org.apache.shenyu.admin.model.vo.ApiVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.ApiService;
-import org.apache.shenyu.common.enums.ApiSourceEnum;
-import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.enums.ApiSourceEnum;
 import org.apache.shenyu.common.enums.ApiStateEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -59,6 +58,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;

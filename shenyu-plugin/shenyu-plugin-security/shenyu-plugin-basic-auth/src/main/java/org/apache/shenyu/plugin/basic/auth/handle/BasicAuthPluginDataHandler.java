@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.plugin.basic.auth.handle;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
@@ -34,6 +30,10 @@ import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.basic.auth.config.BasicAuthConfig;
 import org.apache.shenyu.plugin.basic.auth.rule.BasicAuthRuleHandle;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Configuration data of the basic auth plugin.

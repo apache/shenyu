@@ -20,8 +20,8 @@ package org.apache.shenyu.common.utils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class PathUtilsTest {
     private static final String URI_WRAPPER = "springCloud/test/**";

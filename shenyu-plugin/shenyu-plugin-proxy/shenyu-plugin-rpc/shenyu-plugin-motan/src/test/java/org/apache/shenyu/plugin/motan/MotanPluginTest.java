@@ -27,16 +27,14 @@ import org.apache.shenyu.plugin.motan.proxy.MotanProxyService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 /**
  * The Test Case For MotanPlugin.

@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.admin.controller;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.manager.DocManager;
@@ -33,6 +31,9 @@ import org.mockito.quality.Strictness;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;

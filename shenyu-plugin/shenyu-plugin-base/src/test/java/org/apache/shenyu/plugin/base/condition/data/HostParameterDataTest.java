@@ -33,10 +33,9 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * unit test for {@link HostParameterData}.

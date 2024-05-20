@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.utils.ShenyuDomain;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.web.server.LocalServerPort;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**

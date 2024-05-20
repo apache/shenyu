@@ -17,12 +17,14 @@
 
 package org.apache.shenyu.sdk.spring.proxy;
 
-import java.io.IOException;
-import java.util.concurrent.ConcurrentMap;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
+
+import java.io.IOException;
+import java.util.concurrent.ConcurrentMap;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * {@link ShenyuClientProxyFactory} test.

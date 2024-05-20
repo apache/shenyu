@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.admin.service.manager;
 
-import java.util.Set;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
+
+import java.util.Set;
 
 /**
  * pull service api document Manager.

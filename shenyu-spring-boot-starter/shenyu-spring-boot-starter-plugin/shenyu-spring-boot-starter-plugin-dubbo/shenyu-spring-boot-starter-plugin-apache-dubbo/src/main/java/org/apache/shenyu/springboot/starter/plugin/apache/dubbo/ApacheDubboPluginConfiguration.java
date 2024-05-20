@@ -18,13 +18,13 @@
 package org.apache.shenyu.springboot.starter.plugin.apache.dubbo;
 
 import org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin;
+import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboMetaDataHandler;
 import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
 import org.apache.shenyu.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
-import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboMetaDataHandler;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
-import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.apache.shenyu.springboot.plugin.dubbo.common.DubboCommonConfiguration;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;

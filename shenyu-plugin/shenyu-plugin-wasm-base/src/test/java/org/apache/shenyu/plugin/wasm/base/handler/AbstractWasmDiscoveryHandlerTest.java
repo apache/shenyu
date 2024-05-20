@@ -38,9 +38,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.apache.shenyu.plugin.api.ShenyuPlugin.LOG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)

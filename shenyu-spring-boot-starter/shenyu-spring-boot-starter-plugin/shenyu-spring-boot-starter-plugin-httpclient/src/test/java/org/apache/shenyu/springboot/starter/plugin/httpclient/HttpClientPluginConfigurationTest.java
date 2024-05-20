@@ -17,12 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.plugin.httpclient;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import java.time.Duration;
-
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,9 +26,14 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
-
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
+
+import java.time.Duration;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test case for {@link HttpClientPluginConfiguration}.

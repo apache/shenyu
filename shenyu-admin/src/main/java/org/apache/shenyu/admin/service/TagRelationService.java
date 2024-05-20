@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.admin.service;
 
-import java.util.List;
 import org.apache.shenyu.admin.model.dto.TagRelationDTO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
+
+import java.util.List;
 
 /**
  * The interface tag relation service.

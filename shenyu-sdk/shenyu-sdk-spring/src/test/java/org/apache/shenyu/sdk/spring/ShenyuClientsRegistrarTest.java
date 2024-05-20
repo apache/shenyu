@@ -22,18 +22,19 @@ import org.apache.shenyu.sdk.spring.registrar.package1.TopLevelSubLevelTestConfi
 import org.apache.shenyu.sdk.spring.registrar.package1.sub.SubLevelClient;
 import org.apache.shenyu.sdk.spring.registrar.package2.ClientConfig;
 import org.apache.shenyu.sdk.spring.support.SpringMvcContract;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * {@link ShenyuClientsRegistrar} test.

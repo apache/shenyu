@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.controller;
 
-import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
@@ -59,6 +58,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;

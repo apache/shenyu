@@ -22,12 +22,14 @@ import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
+
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Random;
-import static org.hamcrest.Matchers.equalTo;
+
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 /**
  * Test cases for RuleMapper.

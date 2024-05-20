@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.springboot.starter.plugin.logging.tencent.cls;
 
-import org.apache.shenyu.plugin.tencent.cls.LoggingTencentClsPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.tencent.cls.LoggingTencentClsPlugin;
 import org.apache.shenyu.plugin.tencent.cls.handler.LoggingTencentClsPluginDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;

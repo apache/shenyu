@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin;
 
-import java.util.Objects;
 import org.junit.jupiter.api.Test;
 
 import java.beans.IntrospectionException;
@@ -33,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;

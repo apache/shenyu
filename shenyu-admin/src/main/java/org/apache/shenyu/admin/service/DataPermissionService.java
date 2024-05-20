@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
+import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
 
 import java.util.List;
 

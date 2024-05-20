@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.ratelimiter.executor;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
@@ -35,6 +33,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * RedisRateLimiter.

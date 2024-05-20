@@ -18,8 +18,8 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Maps;
-import org.apache.shenyu.admin.service.EnumService;
 import org.apache.shenyu.admin.model.vo.EnumVO;
+import org.apache.shenyu.admin.service.EnumService;
 import org.apache.shenyu.common.enums.HttpMethodEnum;
 import org.apache.shenyu.common.enums.HystrixIsolationModeEnum;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;

@@ -18,8 +18,8 @@
 package org.apache.shenyu.plugin.hystrix.command;
 
 import com.netflix.hystrix.HystrixObservableCommand;
-import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.common.utils.UriUtils;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;

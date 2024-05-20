@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
-import java.util.List;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+
+import java.util.List;
 
 /**
  * The type Auth data handler.

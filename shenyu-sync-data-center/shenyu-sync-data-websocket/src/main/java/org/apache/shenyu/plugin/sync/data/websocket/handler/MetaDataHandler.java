@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
-import java.util.List;
-
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+
+import java.util.List;
 
 /**
  * The type Meta data handler.

@@ -17,12 +17,11 @@
 
 package org.apache.shenyu.admin.utils;
 
+import org.apache.shenyu.common.utils.UUIDUtils;
+import org.springframework.util.ObjectUtils;
+
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
-import org.apache.shenyu.common.utils.UUIDUtils;
-
-import org.springframework.util.ObjectUtils;
 
 /**
  * Trigger Base Utils.

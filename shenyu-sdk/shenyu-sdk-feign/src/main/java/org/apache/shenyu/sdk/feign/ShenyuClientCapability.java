@@ -20,7 +20,6 @@ package org.apache.shenyu.sdk.feign;
 import feign.Capability;
 import feign.Client;
 import feign.Request;
-import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -29,6 +28,8 @@ import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
 import org.springframework.cloud.openfeign.loadbalancer.FeignBlockingLoadBalancerClient;
 import org.springframework.cloud.openfeign.loadbalancer.RetryableFeignBlockingLoadBalancerClient;
 import org.springframework.util.Assert;
+
+import java.net.URI;
 
 /**
  * custom a shenyu client capability to enrich clients.

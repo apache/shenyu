@@ -23,7 +23,6 @@ import javax.servlet.http.HttpSession;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
-
 import java.util.Map;
 
 import static org.mockito.Mockito.mock;

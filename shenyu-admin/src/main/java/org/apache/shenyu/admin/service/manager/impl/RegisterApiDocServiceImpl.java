@@ -17,11 +17,6 @@
 
 package org.apache.shenyu.admin.service.manager.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.dto.TagDTO;
@@ -35,6 +30,12 @@ import org.apache.shenyu.register.common.enums.EventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.manager.RegisterApiDocService}.

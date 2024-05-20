@@ -17,19 +17,17 @@
 
 package org.apache.shenyu.plugin.grpc.proto;
 
-import java.util.HashMap;
-
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.Message;
+import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.Message;
-
-import io.grpc.stub.StreamObserver;
+import java.util.HashMap;
 
 /**
  * MessageWriter.

@@ -18,10 +18,10 @@
 package org.apache.shenyu.plugin.grpc.loadbalance;
 
 import io.grpc.Attributes;
+import io.grpc.ConnectivityState;
 import io.grpc.ConnectivityStateInfo;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
-import io.grpc.ConnectivityState;
 
 import java.util.Objects;
 

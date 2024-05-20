@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
-import java.security.SecureRandom;
-import java.util.List;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
+
+import java.security.SecureRandom;
+import java.util.List;
 
 /**
  * random algorithm impl.

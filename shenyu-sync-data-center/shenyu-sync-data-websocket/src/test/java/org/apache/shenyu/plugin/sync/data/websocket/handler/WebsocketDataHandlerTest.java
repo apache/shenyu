@@ -17,12 +17,6 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -35,6 +29,12 @@ import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public final class WebsocketDataHandlerTest {
 

@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.apache.shenyu.common.constant.Constants;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import org.apache.shenyu.common.constant.Constants;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -29,8 +29,8 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test cases for JsonUtils.

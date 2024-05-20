@@ -27,7 +27,6 @@ import io.grpc.ServerMethodDefinition;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.ServiceDescriptor;
 import io.grpc.protobuf.ProtoUtils;
-
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.protocol.grpc.constant.GrpcConstants;

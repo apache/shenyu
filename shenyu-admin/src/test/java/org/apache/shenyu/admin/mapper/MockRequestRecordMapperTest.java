@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.mapper;
 
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
 import org.apache.shenyu.admin.model.query.MockRequestRecordQuery;
@@ -28,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
