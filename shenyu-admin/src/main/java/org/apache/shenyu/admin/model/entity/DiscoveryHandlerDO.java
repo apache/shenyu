@@ -54,6 +54,15 @@ public class DiscoveryHandlerDO extends BaseDO {
     }
 
     /**
+     * builder.
+     *
+     * @return DiscoveryHandlerBuilder
+     */
+    public static DiscoveryHandlerDO.DiscoveryHandlerBuilder builder() {
+        return new DiscoveryHandlerDO.DiscoveryHandlerBuilder();
+    }
+
+    /**
      * get discovery id.
      *
      * @return discovery id
@@ -126,6 +135,11 @@ public class DiscoveryHandlerDO extends BaseDO {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), discoveryId, handler, listenerNode, props);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -138,23 +152,9 @@ public class DiscoveryHandlerDO extends BaseDO {
         }
         DiscoveryHandlerDO that = (DiscoveryHandlerDO) o;
         return Objects.equals(discoveryId, that.discoveryId)
-                && Objects.equals(handler, that.handler)
-                && Objects.equals(listenerNode, that.listenerNode)
-                && Objects.equals(props, that.props);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), discoveryId, handler, listenerNode, props);
-    }
-
-    /**
-     * builder.
-     *
-     * @return DiscoveryHandlerBuilder
-     */
-    public static DiscoveryHandlerDO.DiscoveryHandlerBuilder builder() {
-        return new DiscoveryHandlerDO.DiscoveryHandlerBuilder();
+            && Objects.equals(handler, that.handler)
+            && Objects.equals(listenerNode, that.listenerNode)
+            && Objects.equals(props, that.props);
     }
 
     public static final class DiscoveryHandlerBuilder {
@@ -256,6 +256,7 @@ public class DiscoveryHandlerDO extends BaseDO {
 
         /**
          * build DiscoveryHandlerDO.
+         *
          * @return DiscoveryHandlerDO
          */
         public DiscoveryHandlerDO build() {

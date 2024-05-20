@@ -58,6 +58,11 @@ public class SelectorConditionQuery implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(selectorId);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -67,10 +72,5 @@ public class SelectorConditionQuery implements Serializable {
         }
         SelectorConditionQuery that = (SelectorConditionQuery) o;
         return Objects.equals(selectorId, that.selectorId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(selectorId);
     }
 }

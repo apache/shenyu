@@ -67,22 +67,26 @@ public class ShenyuAdminResult extends AdminResult<Object> implements Serializab
     /**
      * return success.
      *
-     * @param data this is result data.
-     * @return {@linkplain ShenyuAdminResult}
-     */
-    public static ShenyuAdminResult success(final Object data) {
-        return success(null, data);
-    }
-
-    /**
-     * return success.
-     *
      * @param msg  this ext msg.
      * @param data this is result data.
      * @return {@linkplain ShenyuAdminResult}
      */
     public static ShenyuAdminResult success(final String msg, final Object data) {
         return get(CommonErrorCode.SUCCESSFUL, msg, data);
+    }
+
+    private static ShenyuAdminResult get(final int code, final String msg, final Object data) {
+        return new ShenyuAdminResult(code, msg, data);
+    }
+
+    /**
+     * return success.
+     *
+     * @param data this is result data.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    public static ShenyuAdminResult success(final Object data) {
+        return success(null, data);
     }
 
     /**
@@ -116,8 +120,4 @@ public class ShenyuAdminResult extends AdminResult<Object> implements Serializab
         return error(HttpStatus.REQUEST_TIMEOUT.value(), msg);
     }
 
-    private static ShenyuAdminResult get(final int code, final String msg, final Object data) {
-        return new ShenyuAdminResult(code, msg, data);
-    }
-    
 }

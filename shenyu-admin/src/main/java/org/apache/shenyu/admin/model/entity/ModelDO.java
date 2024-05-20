@@ -36,6 +36,15 @@ public class ModelDO extends BaseDO {
     private String modelDesc;
 
     /**
+     * builder.
+     *
+     * @return ModelDO.ModelDOBuilder
+     */
+    public static ModelDO.ModelDOBuilder builder() {
+        return new ModelDO.ModelDOBuilder();
+    }
+
+    /**
      * getName.
      *
      * @return name
@@ -71,13 +80,9 @@ public class ModelDO extends BaseDO {
         this.modelDesc = modelDesc;
     }
 
-    /**
-     * builder.
-     *
-     * @return ModelDO.ModelDOBuilder
-     */
-    public static ModelDO.ModelDOBuilder builder() {
-        return new ModelDO.ModelDOBuilder();
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), name, modelDesc);
     }
 
     @Override
@@ -93,12 +98,7 @@ public class ModelDO extends BaseDO {
         }
         ModelDO modelDO = (ModelDO) o;
         return Objects.equals(name, modelDO.name)
-                && Objects.equals(modelDesc, modelDO.modelDesc);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), name, modelDesc);
+            && Objects.equals(modelDesc, modelDO.modelDesc);
     }
 
     public static final class ModelDOBuilder {

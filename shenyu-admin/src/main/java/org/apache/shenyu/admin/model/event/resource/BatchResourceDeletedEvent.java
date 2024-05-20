@@ -32,10 +32,9 @@ import java.util.stream.Collectors;
  * BatchResourceDeletedEvent.
  */
 public class BatchResourceDeletedEvent extends BatchChangedEvent {
-    
+
     private final List<String> deletedIds;
-    
-    
+
     /**
      * Create a new {@code BatchChangedEvent}.operator is unknown.
      *
@@ -46,16 +45,16 @@ public class BatchResourceDeletedEvent extends BatchChangedEvent {
         super(source, null, EventTypeEnum.RESOURCE_DELETE, operator);
         this.deletedIds = ListUtil.map(source, BaseDO::getId);
     }
-    
+
     @Override
     public String buildContext() {
         final String selector = ((Collection<?>) getSource())
-                .stream()
-                .map(s -> ((ResourceDO) s).getTitle())
-                .collect(Collectors.joining(","));
+            .stream()
+            .map(s -> ((ResourceDO) s).getTitle())
+            .collect(Collectors.joining(","));
         return String.format("the resource[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
     }
-    
+
     /**
      * get resource.
      *
@@ -63,11 +62,11 @@ public class BatchResourceDeletedEvent extends BatchChangedEvent {
      */
     public List<ResourceDO> getResource() {
         return ((Collection<?>) getSource())
-                .stream()
-                .map(ResourceDO.class::cast)
-                .collect(Collectors.toList());
+            .stream()
+            .map(ResourceDO.class::cast)
+            .collect(Collectors.toList());
     }
-    
+
     /**
      * get deleted ids.
      *

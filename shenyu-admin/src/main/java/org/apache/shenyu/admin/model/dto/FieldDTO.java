@@ -82,6 +82,14 @@ public class FieldDTO implements Serializable {
      */
     private Timestamp dateUpdated;
 
+    /**
+     * builder.
+     *
+     * @return fieldDOBuilder
+     */
+    public static FieldDTO.FieldDTOBuilder builder() {
+        return new FieldDTO.FieldDTOBuilder();
+    }
 
     /**
      * getModelId.
@@ -183,6 +191,15 @@ public class FieldDTO implements Serializable {
     }
 
     /**
+     * set ext.
+     *
+     * @param ext ext
+     */
+    public void setExt(final String ext) {
+        this.ext = ext;
+    }
+
+    /**
      * getId.
      *
      * @return String
@@ -236,13 +253,9 @@ public class FieldDTO implements Serializable {
         this.dateUpdated = dateUpdated;
     }
 
-    /**
-     * set ext.
-     *
-     * @param ext ext
-     */
-    public void setExt(final String ext) {
-        this.ext = ext;
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), modelId, selfModelId, name, fieldDesc, required, ext);
     }
 
     @Override
@@ -258,25 +271,11 @@ public class FieldDTO implements Serializable {
         }
         FieldDTO fieldDO = (FieldDTO) o;
         return Objects.equals(modelId, fieldDO.modelId)
-                && Objects.equals(selfModelId, fieldDO.selfModelId)
-                && Objects.equals(name, fieldDO.name)
-                && Objects.equals(fieldDesc, fieldDO.fieldDesc)
-                && Objects.equals(required, fieldDO.required)
-                && Objects.equals(ext, fieldDO.ext);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), modelId, selfModelId, name, fieldDesc, required, ext);
-    }
-
-    /**
-     * builder.
-     *
-     * @return fieldDOBuilder
-     */
-    public static FieldDTO.FieldDTOBuilder builder() {
-        return new FieldDTO.FieldDTOBuilder();
+            && Objects.equals(selfModelId, fieldDO.selfModelId)
+            && Objects.equals(name, fieldDO.name)
+            && Objects.equals(fieldDesc, fieldDO.fieldDesc)
+            && Objects.equals(required, fieldDO.required)
+            && Objects.equals(ext, fieldDO.ext);
     }
 
     public static final class FieldDTOBuilder {

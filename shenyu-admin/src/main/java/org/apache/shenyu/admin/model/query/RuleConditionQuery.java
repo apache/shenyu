@@ -58,6 +58,11 @@ public class RuleConditionQuery implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(ruleId);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -67,10 +72,5 @@ public class RuleConditionQuery implements Serializable {
         }
         RuleConditionQuery that = (RuleConditionQuery) o;
         return Objects.equals(ruleId, that.ruleId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(ruleId);
     }
 }

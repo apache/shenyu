@@ -24,8 +24,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  * SelectorUpdatedEvent.
  */
 public class SelectorUpdatedEvent extends SelectorChangedEvent {
-    
-    
+
     /**
      * Create a new {@code SelectorChangedEvent}.operator is unknown.
      *
@@ -36,7 +35,7 @@ public class SelectorUpdatedEvent extends SelectorChangedEvent {
     public SelectorUpdatedEvent(final SelectorDO source, final SelectorDO before, final String operator) {
         super(source, before, EventTypeEnum.SELECTOR_UPDATE, operator);
     }
-    
+
     /**
      * the created selector.
      *
@@ -45,5 +44,5 @@ public class SelectorUpdatedEvent extends SelectorChangedEvent {
     public SelectorDO getSelector() {
         return (SelectorDO) getSource();
     }
-    
+
 }

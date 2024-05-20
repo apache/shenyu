@@ -25,12 +25,12 @@ import org.apache.shenyu.sdk.spring.ShenyuClient;
  */
 public class ClientConfig {
 
-    @EnableShenyuClients(basePackageClasses = {NullUrlShenClient.class})
+    @EnableShenyuClients(basePackageClasses = NullUrlShenClient.class)
     public static class NullUrlTestConfig {
 
     }
 
-    @EnableShenyuClients(basePackageClasses = {NotNullUrlShenClient.class})
+    @EnableShenyuClients(basePackageClasses = NotNullUrlShenClient.class)
     public static class NotNullUrlTestConfig {
 
     }

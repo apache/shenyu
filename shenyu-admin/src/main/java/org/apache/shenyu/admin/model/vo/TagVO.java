@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import java.io.Serializable;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.common.utils.DateUtils;
+
+import java.io.Serializable;
 
 /**
  * this is tag view to web front.
@@ -88,7 +89,20 @@ public class TagVO implements Serializable {
     }
 
     /**
+     * build tagVO.
+     *
+     * @param tagDO tagDO
+     * @return tagVO
+     */
+    public static TagVO buildTagVO(final TagDO tagDO) {
+        return new TagVO(tagDO.getId(), tagDO.getName(), tagDO.getTagDesc(), tagDO.getParentTagId(), tagDO.getExt(),
+            DateUtils.localDateTimeToString(tagDO.getDateCreated().toLocalDateTime()),
+            DateUtils.localDateTimeToString(tagDO.getDateUpdated().toLocalDateTime()));
+    }
+
+    /**
      * get primary key.
+     *
      * @return primary key
      */
     public String getId() {
@@ -97,6 +111,7 @@ public class TagVO implements Serializable {
 
     /**
      * set primary key.
+     *
      * @param id id
      */
     public void setId(final String id) {
@@ -105,6 +120,7 @@ public class TagVO implements Serializable {
 
     /**
      * get name.
+     *
      * @return name
      */
     public String getName() {
@@ -113,6 +129,7 @@ public class TagVO implements Serializable {
 
     /**
      * set name.
+     *
      * @param name name
      */
     public void setName(final String name) {
@@ -121,6 +138,7 @@ public class TagVO implements Serializable {
 
     /**
      * getTagDesc.
+     *
      * @return getTagDesc
      */
     public String getTagDesc() {
@@ -129,6 +147,7 @@ public class TagVO implements Serializable {
 
     /**
      * set tagDesc.
+     *
      * @param tagDesc tagDesc
      */
     public void setTagDesc(final String tagDesc) {
@@ -137,6 +156,7 @@ public class TagVO implements Serializable {
 
     /**
      * get parentTagId.
+     *
      * @return parentTagId
      */
     public String getParentTagId() {
@@ -145,6 +165,7 @@ public class TagVO implements Serializable {
 
     /**
      * set parentTagId.
+     *
      * @param parentTagId parentTagId
      */
     public void setParentTagId(final String parentTagId) {
@@ -153,6 +174,7 @@ public class TagVO implements Serializable {
 
     /**
      * get ext info.
+     *
      * @return extinfo
      */
     public String getExt() {
@@ -161,6 +183,7 @@ public class TagVO implements Serializable {
 
     /**
      * set extinfo.
+     *
      * @param ext ext
      */
     public void setExt(final String ext) {
@@ -169,6 +192,7 @@ public class TagVO implements Serializable {
 
     /**
      * get tagExt.
+     *
      * @return tagExt
      */
     public TagDO.TagExt getTagExt() {
@@ -177,6 +201,7 @@ public class TagVO implements Serializable {
 
     /**
      * set tagExt.
+     *
      * @param tagExt tagExt
      */
     public void setTagExt(final TagDO.TagExt tagExt) {
@@ -185,6 +210,7 @@ public class TagVO implements Serializable {
 
     /**
      * get create time.
+     *
      * @return createtime
      */
     public String getDateCreated() {
@@ -193,6 +219,7 @@ public class TagVO implements Serializable {
 
     /**
      * set create time.
+     *
      * @param dateCreated dateCreated
      */
     public void setDateCreated(final String dateCreated) {
@@ -201,6 +228,7 @@ public class TagVO implements Serializable {
 
     /**
      * get update time.
+     *
      * @return updatetime
      */
     public String getDateUpdated() {
@@ -209,6 +237,7 @@ public class TagVO implements Serializable {
 
     /**
      * set update time.
+     *
      * @param dateUpdated dateUpdated
      */
     public void setDateUpdated(final String dateUpdated) {
@@ -217,6 +246,7 @@ public class TagVO implements Serializable {
 
     /**
      * judge tag whether in the bottom.
+     *
      * @return status
      */
     public Boolean getHasChildren() {
@@ -225,20 +255,10 @@ public class TagVO implements Serializable {
 
     /**
      * set status.
+     *
      * @param hasChildren status
      */
     public void setHasChildren(final Boolean hasChildren) {
         this.hasChildren = hasChildren;
-    }
-
-    /**
-     * build tagVO.
-     * @param tagDO tagDO
-     * @return tagVO
-     */
-    public static TagVO buildTagVO(final TagDO tagDO) {
-        return new TagVO(tagDO.getId(), tagDO.getName(), tagDO.getTagDesc(), tagDO.getParentTagId(), tagDO.getExt(),
-                DateUtils.localDateTimeToString(tagDO.getDateCreated().toLocalDateTime()),
-                DateUtils.localDateTimeToString(tagDO.getDateUpdated().toLocalDateTime()));
     }
 }

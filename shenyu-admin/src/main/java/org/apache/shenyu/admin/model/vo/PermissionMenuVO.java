@@ -111,6 +111,11 @@ public class PermissionMenuVO implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(menu, currentAuth, allAuth);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -123,19 +128,14 @@ public class PermissionMenuVO implements Serializable {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(menu, currentAuth, allAuth);
-    }
-
-    @Override
     public String toString() {
         return "PermissionMenuVO{"
-                + "menu=" + menu
-                + ", currentAuth=" + currentAuth
-                + ", allAuth=" + allAuth
-                + '}';
+            + "menu=" + menu
+            + ", currentAuth=" + currentAuth
+            + ", allAuth=" + allAuth
+            + '}';
     }
-    
+
     /**
      * MenuInfo.
      */
@@ -188,6 +188,41 @@ public class PermissionMenuVO implements Serializable {
             this.meta = meta;
             this.children = children;
             this.sort = sort;
+        }
+
+        /**
+         * build MenuInfo.
+         *
+         * @param resourceVO {@linkplain ResourceVO}
+         * @return {@linkplain MenuInfo}
+         */
+        public static MenuInfo buildMenuInfo(final ResourceVO resourceVO) {
+            return Optional.ofNullable(resourceVO).map(item -> {
+                MenuInfo menuInfo = null;
+                if (!resourceVO.getResourceType().equals(ResourceTypeConstants.MENU_TYPE_2)) {
+                    menuInfo = MenuInfo.builder()
+                        .id(item.getId())
+                        .name(item.getName())
+                        .url(item.getUrl())
+                        .component(item.getComponent())
+                        .meta(new Meta(item.getIcon(), item.getTitle()))
+                        .sort(item.getSort())
+                        .build();
+                    if (item.getIsLeaf().equals(Boolean.FALSE)) {
+                        menuInfo.setChildren(new ArrayList<>());
+                    }
+                }
+                return menuInfo;
+            }).orElse(null);
+        }
+
+        /**
+         * builder method.
+         *
+         * @return builder object.
+         */
+        public static MenuInfo.MenuInfoBuilder builder() {
+            return new MenuInfo.MenuInfoBuilder();
         }
 
         /**
@@ -316,39 +351,9 @@ public class PermissionMenuVO implements Serializable {
             this.sort = sort;
         }
 
-        /**
-         * builder method.
-         *
-         * @return builder object.
-         */
-        public static MenuInfo.MenuInfoBuilder builder() {
-            return new MenuInfo.MenuInfoBuilder();
-        }
-
-        /**
-         * build MenuInfo.
-         *
-         * @param resourceVO {@linkplain ResourceVO}
-         * @return {@linkplain MenuInfo}
-         */
-        public static MenuInfo buildMenuInfo(final ResourceVO resourceVO) {
-            return Optional.ofNullable(resourceVO).map(item -> {
-                MenuInfo menuInfo = null;
-                if (!resourceVO.getResourceType().equals(ResourceTypeConstants.MENU_TYPE_2)) {
-                    menuInfo = MenuInfo.builder()
-                            .id(item.getId())
-                            .name(item.getName())
-                            .url(item.getUrl())
-                            .component(item.getComponent())
-                            .meta(new Meta(item.getIcon(), item.getTitle()))
-                            .sort(item.getSort())
-                            .build();
-                    if (item.getIsLeaf().equals(Boolean.FALSE)) {
-                        menuInfo.setChildren(new ArrayList<>());
-                    }
-                }
-                return menuInfo;
-            }).orElse(null);
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, name, url, component, meta, children, sort);
         }
 
         @Override
@@ -361,32 +366,27 @@ public class PermissionMenuVO implements Serializable {
             }
             MenuInfo menuInfo = (MenuInfo) o;
             return Objects.equals(id, menuInfo.id)
-                    && Objects.equals(name, menuInfo.name)
-                    && Objects.equals(url, menuInfo.url)
-                    && Objects.equals(component, menuInfo.component)
-                    && Objects.equals(meta, menuInfo.meta)
-                    && Objects.equals(children, menuInfo.children)
-                    && Objects.equals(sort, menuInfo.sort);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(id, name, url, component, meta, children, sort);
+                && Objects.equals(name, menuInfo.name)
+                && Objects.equals(url, menuInfo.url)
+                && Objects.equals(component, menuInfo.component)
+                && Objects.equals(meta, menuInfo.meta)
+                && Objects.equals(children, menuInfo.children)
+                && Objects.equals(sort, menuInfo.sort);
         }
 
         @Override
         public String toString() {
             return "MenuInfo{"
-                    + "id='" + id + '\''
-                    + ", name='" + name + '\''
-                    + ", url='" + url + '\''
-                    + ", component='" + component + '\''
-                    + ", meta=" + meta
-                    + ", children=" + children
-                    + ", sort=" + sort
-                    + '}';
+                + "id='" + id + '\''
+                + ", name='" + name + '\''
+                + ", url='" + url + '\''
+                + ", component='" + component + '\''
+                + ", meta=" + meta
+                + ", children=" + children
+                + ", sort=" + sort
+                + '}';
         }
-        
+
         /**
          * MenuInfoBuilder.
          */
@@ -519,7 +519,7 @@ public class PermissionMenuVO implements Serializable {
             }
         }
     }
-    
+
     /**
      * AuthPerm.
      */
@@ -547,6 +547,16 @@ public class PermissionMenuVO implements Serializable {
             this.perms = perms;
             this.description = description;
             this.icon = icon;
+        }
+
+        /**
+         * build AuthPerm.
+         *
+         * @param resourceVO {@linkplain ResourceVO}
+         * @return {@linkplain AuthPerm}
+         */
+        public static AuthPerm buildAuthPerm(final ResourceVO resourceVO) {
+            return Optional.ofNullable(resourceVO).map(item -> new AuthPerm(resourceVO.getPerms(), resourceVO.getTitle(), resourceVO.getIcon())).orElse(null);
         }
 
         /**
@@ -603,14 +613,9 @@ public class PermissionMenuVO implements Serializable {
             this.icon = icon;
         }
 
-        /**
-         * build AuthPerm.
-         *
-         * @param resourceVO {@linkplain ResourceVO}
-         * @return {@linkplain AuthPerm}
-         */
-        public static AuthPerm buildAuthPerm(final ResourceVO resourceVO) {
-            return Optional.ofNullable(resourceVO).map(item -> new AuthPerm(resourceVO.getPerms(), resourceVO.getTitle(), resourceVO.getIcon())).orElse(null);
+        @Override
+        public int hashCode() {
+            return Objects.hash(perms, description, icon);
         }
 
         @Override
@@ -626,17 +631,12 @@ public class PermissionMenuVO implements Serializable {
         }
 
         @Override
-        public int hashCode() {
-            return Objects.hash(perms, description, icon);
-        }
-
-        @Override
         public String toString() {
             return "AuthPerm{"
-                    + "perms='" + perms + '\''
-                    + ", description='" + description + '\''
-                    + ", icon='" + icon + '\''
-                    + '}';
+                + "perms='" + perms + '\''
+                + ", description='" + description + '\''
+                + ", icon='" + icon + '\''
+                + '}';
         }
     }
 
@@ -697,6 +697,11 @@ public class PermissionMenuVO implements Serializable {
         }
 
         @Override
+        public int hashCode() {
+            return Objects.hash(icon, title);
+        }
+
+        @Override
         public boolean equals(final Object o) {
             if (this == o) {
                 return true;
@@ -709,16 +714,11 @@ public class PermissionMenuVO implements Serializable {
         }
 
         @Override
-        public int hashCode() {
-            return Objects.hash(icon, title);
-        }
-
-        @Override
         public String toString() {
             return "Meta{"
-                    + "icon='" + icon + '\''
-                    + ", title='" + title + '\''
-                    + '}';
+                + "icon='" + icon + '\''
+                + ", title='" + title + '\''
+                + '}';
         }
     }
 }

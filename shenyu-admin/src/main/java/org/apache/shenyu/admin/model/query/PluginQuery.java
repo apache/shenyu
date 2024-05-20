@@ -108,6 +108,11 @@ public class PluginQuery implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(name, enabled, pageParameter);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -117,10 +122,5 @@ public class PluginQuery implements Serializable {
         }
         PluginQuery that = (PluginQuery) o;
         return Objects.equals(name, that.name) && Objects.equals(enabled, that.enabled) && Objects.equals(pageParameter, that.pageParameter);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, enabled, pageParameter);
     }
 }

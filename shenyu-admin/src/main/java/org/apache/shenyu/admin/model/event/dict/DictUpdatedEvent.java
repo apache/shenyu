@@ -24,8 +24,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  * DictUpdatedEvent.
  */
 public class DictUpdatedEvent extends DictChangedEvent {
-    
-    
+
     /**
      * Create a new {@code DictUpdatedEvent}.operator is unknown.
      *
@@ -36,7 +35,7 @@ public class DictUpdatedEvent extends DictChangedEvent {
     public DictUpdatedEvent(final ShenyuDictDO source, final ShenyuDictDO before, final String operator) {
         super(source, before, EventTypeEnum.DICT_UPDATE, operator);
     }
-    
+
     /**
      * the update dict.
      *
@@ -45,5 +44,5 @@ public class DictUpdatedEvent extends DictChangedEvent {
     public ShenyuDictDO getDict() {
         return (ShenyuDictDO) getSource();
     }
-    
+
 }

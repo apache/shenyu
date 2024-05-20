@@ -38,20 +38,20 @@ public class UserUpdatedEventTest {
     @BeforeEach
     public void setUp() {
         before = DashboardUserDO.builder()
-                .id("1")
-                .userName("adminBeforeTest")
-                .password(DigestUtils.sha512Hex("123456"))
-                .role(1)
-                .enabled(true)
-                .build();
+            .id("1")
+            .userName("adminBeforeTest")
+            .password(DigestUtils.sha512Hex("123456"))
+            .role(1)
+            .enabled(true)
+            .build();
 
         after = DashboardUserDO.builder()
-                .id("1")
-                .userName("adminAfterTest")
-                .password(DigestUtils.sha512Hex("123457"))
-                .role(2)
-                .enabled(false)
-                .build();
+            .id("1")
+            .userName("adminAfterTest")
+            .password(DigestUtils.sha512Hex("123457"))
+            .role(2)
+            .enabled(false)
+            .build();
     }
 
     @Test
@@ -60,7 +60,7 @@ public class UserUpdatedEventTest {
 
         UserUpdatedEvent userUpdatedNothingEvent = new UserUpdatedEvent(after, after, "test-operator");
         String contextNothing = String.format("the selector [%s] is %s : %s",
-                after.getUserName(), typeStr, "it no change");
+            after.getUserName(), typeStr, "it no change");
         assertEquals(contextNothing, userUpdatedNothingEvent.buildContext());
 
         StringBuilder contrast = new StringBuilder();
@@ -70,7 +70,7 @@ public class UserUpdatedEventTest {
         contrast.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));
 
         String context = String.format("the selector [%s] is %s : %s",
-                after.getUserName(), typeStr, contrast);
+            after.getUserName(), typeStr, contrast);
         UserUpdatedEvent userUpdatedEvent = new UserUpdatedEvent(after, before, "test-operator");
         assertEquals(context, userUpdatedEvent.buildContext());
     }

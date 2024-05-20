@@ -92,7 +92,8 @@ public class TarsPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TARS_INVOKE);
             return WebFluxResultUtils.result(exchange, error);
         }
-        return Mono.fromFuture(future.thenApply(ret -> {
+        return Mono.fromFuture(future.thenApply(retstr -> {
+            String ret = (String) retstr;
             if (Objects.isNull(ret)) {
                 ret = Constants.TARS_RPC_RESULT_EMPTY;
             }

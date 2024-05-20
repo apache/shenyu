@@ -427,7 +427,6 @@ public class ShenyuRequestLog {
         this.selectorId = selectorId;
     }
 
-
     /**
      * get request ruleId.
      *
@@ -436,7 +435,6 @@ public class ShenyuRequestLog {
     public String getRuleId() {
         return ruleId;
     }
-
 
     /**
      * request ruleId.
@@ -450,25 +448,25 @@ public class ShenyuRequestLog {
     @Override
     public String toString() {
         return "ShenyuRequestLog{"
-                + "timeLocal='" + timeLocal + '\''
-                + ", clientIp='" + clientIp + '\''
-                + ", method=" + method
-                + ", requestHeader=" + requestHeader
-                + ", responseHeader=" + responseHeader
-                + ", queryParams=" + queryParams
-                + ", requestBody=" + requestBody
-                + ", requestUri=" + requestUri
-                + ", responseBody=" + responseBody
-                + ", responseContentLength=" + responseContentLength
-                + ", rpcType=" + rpcType
-                + ", status=" + status
-                + ", upstreamIp=" + upstreamIp
-                + ", upstreamResponseTime=" + upstreamResponseTime
-                + ", userAgent=" + userAgent
-                + ", host=" + host
-                + ", module=" + module
-                + ", traceId=" + traceId
-                + ", path=" + path
-                + '}';
+            + "timeLocal='" + timeLocal + '\''
+            + ", clientIp='" + clientIp + '\''
+            + ", method=" + method
+            + ", requestHeader=" + requestHeader
+            + ", responseHeader=" + responseHeader
+            + ", queryParams=" + queryParams
+            + ", requestBody=" + requestBody
+            + ", requestUri=" + requestUri
+            + ", responseBody=" + responseBody
+            + ", responseContentLength=" + responseContentLength
+            + ", rpcType=" + rpcType
+            + ", status=" + status
+            + ", upstreamIp=" + upstreamIp
+            + ", upstreamResponseTime=" + upstreamResponseTime
+            + ", userAgent=" + userAgent
+            + ", host=" + host
+            + ", module=" + module
+            + ", traceId=" + traceId
+            + ", path=" + path
+            + '}';
     }
 }

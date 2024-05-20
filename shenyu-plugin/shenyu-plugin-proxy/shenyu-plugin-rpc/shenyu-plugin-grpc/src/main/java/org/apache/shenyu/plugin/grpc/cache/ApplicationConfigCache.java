@@ -51,14 +51,14 @@ public final class ApplicationConfigCache {
     private final Supplier<CommonHandleCache<String, GrpcRuleHandle>> ruleCachedHandle = new BeanHolder<>(CommonHandleCache::new);
 
     private final LoadingCache<String, ShenyuServiceInstanceLists> cache = CacheBuilder.newBuilder()
-            .maximumSize(Constants.CACHE_MAX_COUNT)
-            .build(new CacheLoader<String, ShenyuServiceInstanceLists>() {
-                @Override
-                @NonNull
-                public ShenyuServiceInstanceLists load(@NonNull final String key) {
-                    return new ShenyuServiceInstanceLists(key);
-                }
-            });
+        .maximumSize(Constants.CACHE_MAX_COUNT)
+        .build(new CacheLoader<String, ShenyuServiceInstanceLists>() {
+            @Override
+            @NonNull
+            public ShenyuServiceInstanceLists load(@NonNull final String key) {
+                return new ShenyuServiceInstanceLists(key);
+            }
+        });
 
     private final Map<String, Consumer<Object>> watchUpstreamListener = new ConcurrentHashMap<>();
 
@@ -133,7 +133,7 @@ public final class ApplicationConfigCache {
      * handlerRule.
      *
      * @param ruleDataKey ruleDataKey
-     * @param ruleHandle ruleHandle
+     * @param ruleHandle  ruleHandle
      */
     public void cacheRuleHandle(final String ruleDataKey, final String ruleHandle) {
         final String handler = StringUtils.hasText(ruleHandle) ? ruleHandle : "{}";
@@ -169,11 +169,11 @@ public final class ApplicationConfigCache {
         return grpcUpstreamCachedHandle.get().obtainHandle(selectorId);
     }
 
-
     /**
      * The type Application config cache instance.
      */
     static final class ApplicationConfigCacheInstance {
+
         /**
          * The Instance.
          */

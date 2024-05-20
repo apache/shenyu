@@ -109,6 +109,21 @@ public class PluginVO implements Serializable {
     }
 
     /**
+     * build pluginVO.
+     *
+     * @param pluginDO {@linkplain PluginDO}
+     * @return {@linkplain PluginVO}
+     */
+    public static PluginVO buildPluginVO(final PluginDO pluginDO) {
+        return new PluginVO(pluginDO.getId(), pluginDO.getRole(), pluginDO.getName(),
+            pluginDO.getConfig(), pluginDO.getSort(), pluginDO.getEnabled(),
+            DateUtils.localDateTimeToString(pluginDO.getDateCreated().toLocalDateTime()),
+            DateUtils.localDateTimeToString(pluginDO.getDateUpdated().toLocalDateTime()),
+            Optional.ofNullable(pluginDO.getPluginJar()).map(Base64::encodeToString).orElse(""),
+            Lists.newArrayList());
+    }
+
+    /**
      * Gets the value of id.
      *
      * @return the value of id
@@ -286,20 +301,5 @@ public class PluginVO implements Serializable {
      */
     public void setPluginHandleList(final List<PluginHandleVO> pluginHandleList) {
         this.pluginHandleList = pluginHandleList;
-    }
-
-    /**
-     * build pluginVO.
-     *
-     * @param pluginDO {@linkplain PluginDO}
-     * @return {@linkplain PluginVO}
-     */
-    public static PluginVO buildPluginVO(final PluginDO pluginDO) {
-        return new PluginVO(pluginDO.getId(), pluginDO.getRole(), pluginDO.getName(),
-                pluginDO.getConfig(), pluginDO.getSort(), pluginDO.getEnabled(),
-                DateUtils.localDateTimeToString(pluginDO.getDateCreated().toLocalDateTime()),
-                DateUtils.localDateTimeToString(pluginDO.getDateUpdated().toLocalDateTime()),
-                Optional.ofNullable(pluginDO.getPluginJar()).map(Base64::encodeToString).orElse(""),
-                Lists.newArrayList());
     }
 }

@@ -33,70 +33,70 @@ import java.util.Objects;
  * this is rule from by web front.
  */
 public final class RuleDTO implements Serializable {
-    
+
     private static final long serialVersionUID = 995629439944393704L;
-    
+
     /**
      * primary key.
      */
     @Existed(provider = RuleMapper.class, nullOfIgnore = true, message = "rule is not existed")
     private String id;
-    
+
     /**
      * selector id.
      */
     @NotBlank
     @Existed(provider = SelectorMapper.class, message = "selector is not existed")
     private String selectorId;
-    
+
     /**
      * match mode.
      */
     @NotNull
     private Integer matchMode;
-    
+
     /**
      * rule name.
      */
     @NotBlank
     private String name;
-    
+
     /**
      * whether enabled.
      */
     @NotNull
     private Boolean enabled;
-    
+
     /**
      * whether loged.
      */
     @NotNull
     private Boolean loged;
-    
+
     /**
      * sort type.
      */
     @NotNull
     private Integer sort;
-    
+
     /**
      * process logic.
      */
     private String handle;
-    
+
     /**
      * rule conditions.
      */
     @Valid
     @NotEmpty
     private List<@Valid RuleConditionDTO> ruleConditions;
-    
+
     @NotNull
     private Boolean matchRestful;
-    
+
     public RuleDTO() {
     }
-    
+
     public RuleDTO(final String id,
                    @NotBlank final String selectorId,
                    @NotNull final Integer matchMode,
@@ -118,187 +118,7 @@ public final class RuleDTO implements Serializable {
         this.ruleConditions = ruleConditions;
         this.matchRestful = matchRestful;
     }
-    
-    /**
-     * Gets the value of id.
-     *
-     * @return the value of id
-     */
-    public String getId() {
-        return id;
-    }
-    
-    /**
-     * Sets the id.
-     *
-     * @param id id
-     */
-    public void setId(final String id) {
-        this.id = id;
-    }
-    
-    /**
-     * Gets the value of selectorId.
-     *
-     * @return the value of selectorId
-     */
-    public String getSelectorId() {
-        return selectorId;
-    }
-    
-    /**
-     * Sets the selectorId.
-     *
-     * @param selectorId selectorId
-     */
-    public void setSelectorId(final String selectorId) {
-        this.selectorId = selectorId;
-    }
-    
-    /**
-     * Gets the value of matchMode.
-     *
-     * @return the value of matchMode
-     */
-    public Integer getMatchMode() {
-        return matchMode;
-    }
-    
-    /**
-     * Sets the matchMode.
-     *
-     * @param matchMode matchMode
-     */
-    public void setMatchMode(final Integer matchMode) {
-        this.matchMode = matchMode;
-    }
-    
-    /**
-     * Gets the value of name.
-     *
-     * @return the value of name
-     */
-    public String getName() {
-        return name;
-    }
-    
-    /**
-     * Sets the name.
-     *
-     * @param name name
-     */
-    public void setName(final String name) {
-        this.name = name;
-    }
-    
-    /**
-     * Gets the value of enabled.
-     *
-     * @return the value of enabled
-     */
-    public Boolean getEnabled() {
-        return enabled;
-    }
-    
-    /**
-     * Sets the enabled.
-     *
-     * @param enabled enabled
-     */
-    public void setEnabled(final Boolean enabled) {
-        this.enabled = enabled;
-    }
-    
-    /**
-     * Gets the value of loged.
-     *
-     * @return the value of loged
-     */
-    public Boolean getLoged() {
-        return loged;
-    }
-    
-    /**
-     * Sets the loged.
-     *
-     * @param loged loged
-     */
-    public void setLoged(final Boolean loged) {
-        this.loged = loged;
-    }
-    
-    /**
-     * Gets the value of sort.
-     *
-     * @return the value of sort
-     */
-    public Integer getSort() {
-        return sort;
-    }
-    
-    /**
-     * Sets the sort.
-     *
-     * @param sort sort
-     */
-    public void setSort(final Integer sort) {
-        this.sort = sort;
-    }
-    
-    /**
-     * Gets the value of handle.
-     *
-     * @return the value of handle
-     */
-    public String getHandle() {
-        return handle;
-    }
-    
-    /**
-     * Sets the handle.
-     *
-     * @param handle handle
-     */
-    public void setHandle(final String handle) {
-        this.handle = handle;
-    }
-    
-    /**
-     * Gets the value of ruleConditions.
-     *
-     * @return the value of ruleConditions
-     */
-    public List<RuleConditionDTO> getRuleConditions() {
-        return ruleConditions;
-    }
-    
-    /**
-     * Sets the ruleConditions.
-     *
-     * @param ruleConditions ruleConditions
-     */
-    public void setRuleConditions(final List<RuleConditionDTO> ruleConditions) {
-        this.ruleConditions = ruleConditions;
-    }
-    
-    /**
-     * get match restful.
-     *
-     * @return getMatchRestful
-     */
-    public Boolean getMatchRestful() {
-        return matchRestful;
-    }
-    
-    /**
-     * set match restful.
-     *
-     * @param matchRestful matchRestful
-     */
-    public void setMatchRestful(final Boolean matchRestful) {
-        this.matchRestful = matchRestful;
-    }
-    
+
     /**
      * builder method.
      *
@@ -307,7 +127,174 @@ public final class RuleDTO implements Serializable {
     public static RuleDTO.RuleDTOBuilder builder() {
         return new RuleDTO.RuleDTOBuilder();
     }
-    
+
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets the value of selectorId.
+     *
+     * @return the value of selectorId
+     */
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    /**
+     * Sets the selectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
+    }
+
+    /**
+     * Gets the value of matchMode.
+     *
+     * @return the value of matchMode
+     */
+    public Integer getMatchMode() {
+        return matchMode;
+    }
+
+    /**
+     * Sets the matchMode.
+     *
+     * @param matchMode matchMode
+     */
+    public void setMatchMode(final Integer matchMode) {
+        this.matchMode = matchMode;
+    }
+
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * Gets the value of enabled.
+     *
+     * @return the value of enabled
+     */
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Sets the enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * Gets the value of loged.
+     *
+     * @return the value of loged
+     */
+    public Boolean getLoged() {
+        return loged;
+    }
+
+    /**
+     * Sets the loged.
+     *
+     * @param loged loged
+     */
+    public void setLoged(final Boolean loged) {
+        this.loged = loged;
+    }
+
+    /**
+     * Gets the value of sort.
+     *
+     * @return the value of sort
+     */
+    public Integer getSort() {
+        return sort;
+    }
+
+    /**
+     * Sets the sort.
+     *
+     * @param sort sort
+     */
+    public void setSort(final Integer sort) {
+        this.sort = sort;
+    }
+
+    /**
+     * Gets the value of handle.
+     *
+     * @return the value of handle
+     */
+    public String getHandle() {
+        return handle;
+    }
+
+    /**
+     * Sets the handle.
+     *
+     * @param handle handle
+     */
+    public void setHandle(final String handle) {
+        this.handle = handle;
+    }
+
+    /**
+     * Gets the value of ruleConditions.
+     *
+     * @return the value of ruleConditions
+     */
+    public List<RuleConditionDTO> getRuleConditions() {
+        return ruleConditions;
+    }
+
+    /**
+     * Sets the ruleConditions.
+     *
+     * @param ruleConditions ruleConditions
+     */
+    public void setRuleConditions(final List<RuleConditionDTO> ruleConditions) {
+        this.ruleConditions = ruleConditions;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, selectorId, matchMode, name, enabled, loged, sort, handle, ruleConditions, matchRestful);
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -318,47 +305,60 @@ public final class RuleDTO implements Serializable {
         }
         RuleDTO ruleDTO = (RuleDTO) o;
         return Objects.equals(id, ruleDTO.id)
-                && Objects.equals(selectorId, ruleDTO.selectorId)
-                && Objects.equals(matchMode, ruleDTO.matchMode)
-                && Objects.equals(name, ruleDTO.name)
-                && Objects.equals(enabled, ruleDTO.enabled)
-                && Objects.equals(loged, ruleDTO.loged)
-                && Objects.equals(sort, ruleDTO.sort)
-                && Objects.equals(handle, ruleDTO.handle)
-                && Objects.equals(ruleConditions, ruleDTO.ruleConditions)
-                && Objects.equals(matchRestful, ruleDTO.getMatchRestful());
+            && Objects.equals(selectorId, ruleDTO.selectorId)
+            && Objects.equals(matchMode, ruleDTO.matchMode)
+            && Objects.equals(name, ruleDTO.name)
+            && Objects.equals(enabled, ruleDTO.enabled)
+            && Objects.equals(loged, ruleDTO.loged)
+            && Objects.equals(sort, ruleDTO.sort)
+            && Objects.equals(handle, ruleDTO.handle)
+            && Objects.equals(ruleConditions, ruleDTO.ruleConditions)
+            && Objects.equals(matchRestful, ruleDTO.getMatchRestful());
     }
-    
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, selectorId, matchMode, name, enabled, loged, sort, handle, ruleConditions, matchRestful);
+
+    /**
+     * get match restful.
+     *
+     * @return getMatchRestful
+     */
+    public Boolean getMatchRestful() {
+        return matchRestful;
     }
-    
+
+    /**
+     * set match restful.
+     *
+     * @param matchRestful matchRestful
+     */
+    public void setMatchRestful(final Boolean matchRestful) {
+        this.matchRestful = matchRestful;
+    }
+
     public static final class RuleDTOBuilder {
-        
+
         private String id;
-        
+
         private String selectorId;
-        
+
         private Integer matchMode;
-        
+
         private String name;
-        
+
         private Boolean enabled;
-        
+
         private Boolean loged;
-        
+
         private Integer sort;
-        
+
         private String handle;
-        
+
         private List<RuleConditionDTO> ruleConditions;
-        
+
         private Boolean matchRestful;
-        
+
         private RuleDTOBuilder() {
         }
-        
+
         /**
          * id.
          *
@@ -369,7 +369,7 @@ public final class RuleDTO implements Serializable {
             this.id = id;
             return this;
         }
-        
+
         /**
          * selectorId.
          *
@@ -380,7 +380,7 @@ public final class RuleDTO implements Serializable {
             this.selectorId = selectorId;
             return this;
         }
-        
+
         /**
          * matchMode.
          *
@@ -391,7 +391,7 @@ public final class RuleDTO implements Serializable {
             this.matchMode = matchMode;
             return this;
         }
-        
+
         /**
          * name.
          *
@@ -402,7 +402,7 @@ public final class RuleDTO implements Serializable {
             this.name = name;
             return this;
         }
-        
+
         /**
          * enabled.
          *
@@ -413,7 +413,7 @@ public final class RuleDTO implements Serializable {
             this.enabled = enabled;
             return this;
         }
-        
+
         /**
          * loged.
          *
@@ -424,7 +424,7 @@ public final class RuleDTO implements Serializable {
             this.loged = loged;
             return this;
         }
-        
+
         /**
          * sort.
          *
@@ -435,7 +435,7 @@ public final class RuleDTO implements Serializable {
             this.sort = sort;
             return this;
         }
-        
+
         /**
          * handle.
          *
@@ -446,7 +446,7 @@ public final class RuleDTO implements Serializable {
             this.handle = handle;
             return this;
         }
-        
+
         /**
          * ruleConditions.
          *
@@ -457,7 +457,7 @@ public final class RuleDTO implements Serializable {
             this.ruleConditions = ruleConditions;
             return this;
         }
-    
+
         /**
          * match restful.
          *
@@ -468,7 +468,7 @@ public final class RuleDTO implements Serializable {
             this.matchRestful = matchRestful;
             return this;
         }
-        
+
         /**
          * build method.
          *

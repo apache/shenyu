@@ -51,6 +51,38 @@ public final class UserRoleDO extends BaseDO {
     }
 
     /**
+     * build UserRoleDO.
+     *
+     * @param userRoleDTO {@linkplain UserRoleDTO}
+     * @return {@linkplain UserRoleDO}
+     */
+    public static UserRoleDO buildUserRoleDO(final UserRoleDTO userRoleDTO) {
+        return Optional.ofNullable(userRoleDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            UserRoleDO userRoleDO = UserRoleDO.builder()
+                .roleId(item.getRoleId())
+                .userId(item.getUserId())
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                userRoleDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                userRoleDO.setDateCreated(currentTime);
+            } else {
+                userRoleDO.setId(item.getId());
+            }
+            return userRoleDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static UserRoleDO.UserRoleDOBuilder builder() {
+        return new UserRoleDO.UserRoleDOBuilder();
+    }
+
+    /**
      * Gets the value of userId.
      *
      * @return the value of userId
@@ -86,36 +118,9 @@ public final class UserRoleDO extends BaseDO {
         this.roleId = roleId;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static UserRoleDO.UserRoleDOBuilder builder() {
-        return new UserRoleDO.UserRoleDOBuilder();
-    }
-
-    /**
-     * build UserRoleDO.
-     *
-     * @param userRoleDTO {@linkplain UserRoleDTO}
-     * @return {@linkplain UserRoleDO}
-     */
-    public static UserRoleDO buildUserRoleDO(final UserRoleDTO userRoleDTO) {
-        return Optional.ofNullable(userRoleDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            UserRoleDO userRoleDO = UserRoleDO.builder()
-                    .roleId(item.getRoleId())
-                    .userId(item.getUserId())
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                userRoleDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                userRoleDO.setDateCreated(currentTime);
-            } else {
-                userRoleDO.setId(item.getId());
-            }
-            return userRoleDO;
-        }).orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), userId, roleId);
     }
 
     @Override
@@ -131,11 +136,6 @@ public final class UserRoleDO extends BaseDO {
         }
         UserRoleDO that = (UserRoleDO) o;
         return Objects.equals(userId, that.userId) && Objects.equals(roleId, that.roleId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), userId, roleId);
     }
 
     public static final class UserRoleDOBuilder {

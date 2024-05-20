@@ -32,7 +32,7 @@ import org.springframework.http.codec.ServerCodecConfigurer;
  *  Cryptor plugin.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.plugins.cryptor.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.plugins.cryptor.enabled", havingValue = "true", matchIfMissing = true)
 public class CryptorPluginConfiguration {
 
     /**

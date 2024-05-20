@@ -69,6 +69,42 @@ public final class SelectorConditionDO extends BaseDO {
     }
 
     /**
+     * build selectorConditionDO.
+     *
+     * @param selectorConditionDTO {@linkplain SelectorConditionDTO}
+     * @return {@linkplain SelectorConditionDO}
+     */
+    public static SelectorConditionDO buildSelectorConditionDO(final SelectorConditionDTO selectorConditionDTO) {
+        return Optional.ofNullable(selectorConditionDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            SelectorConditionDO selectorConditionDO = SelectorConditionDO.builder()
+                .paramType(item.getParamType())
+                .selectorId(item.getSelectorId())
+                .operator(item.getOperator())
+                .paramName(item.getParamName())
+                .paramValue(StringUtils.defaultIfBlank(item.getParamValue(), "").trim())
+                .dateUpdated(currentTime)
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                selectorConditionDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                selectorConditionDO.setDateCreated(currentTime);
+            } else {
+                selectorConditionDO.setId(item.getId());
+            }
+            return selectorConditionDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static SelectorConditionDO.SelectorConditionDOBuilder builder() {
+        return new SelectorConditionDO.SelectorConditionDOBuilder();
+    }
+
+    /**
      * Gets the value of selectorId.
      *
      * @return the value of selectorId
@@ -158,40 +194,9 @@ public final class SelectorConditionDO extends BaseDO {
         this.paramValue = paramValue;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static SelectorConditionDO.SelectorConditionDOBuilder builder() {
-        return new SelectorConditionDO.SelectorConditionDOBuilder();
-    }
-
-    /**
-     * build selectorConditionDO.
-     *
-     * @param selectorConditionDTO {@linkplain SelectorConditionDTO}
-     * @return {@linkplain SelectorConditionDO}
-     */
-    public static SelectorConditionDO buildSelectorConditionDO(final SelectorConditionDTO selectorConditionDTO) {
-        return Optional.ofNullable(selectorConditionDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            SelectorConditionDO selectorConditionDO = SelectorConditionDO.builder()
-                    .paramType(item.getParamType())
-                    .selectorId(item.getSelectorId())
-                    .operator(item.getOperator())
-                    .paramName(item.getParamName())
-                    .paramValue(StringUtils.defaultIfBlank(item.getParamValue(), "").trim())
-                    .dateUpdated(currentTime)
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                selectorConditionDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                selectorConditionDO.setDateCreated(currentTime);
-            } else {
-                selectorConditionDO.setId(item.getId());
-            }
-            return selectorConditionDO;
-        }).orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), selectorId, paramType, operator, paramName, paramValue);
     }
 
     @Override
@@ -207,15 +212,10 @@ public final class SelectorConditionDO extends BaseDO {
         }
         SelectorConditionDO that = (SelectorConditionDO) o;
         return Objects.equals(selectorId, that.selectorId)
-                && Objects.equals(paramType, that.paramType)
-                && Objects.equals(operator, that.operator)
-                && Objects.equals(paramName, that.paramName)
-                && Objects.equals(paramValue, that.paramValue);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), selectorId, paramType, operator, paramName, paramValue);
+            && Objects.equals(paramType, that.paramType)
+            && Objects.equals(operator, that.operator)
+            && Objects.equals(paramName, that.paramName)
+            && Objects.equals(paramValue, that.paramValue);
     }
 
     public static final class SelectorConditionDOBuilder {

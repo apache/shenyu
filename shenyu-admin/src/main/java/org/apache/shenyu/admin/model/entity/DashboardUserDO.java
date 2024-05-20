@@ -71,6 +71,60 @@ public final class DashboardUserDO extends BaseDO {
     }
 
     /**
+     * build dashboardUserDO.
+     *
+     * @param dashboardUserModifyPasswordDTO {@linkplain DashboardUserModifyPasswordDTO}
+     * @return {@linkplain DashboardUserDO}
+     */
+    public static DashboardUserDO buildDashboardUserDO(final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
+        return Optional.ofNullable(dashboardUserModifyPasswordDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            return DashboardUserDO.builder()
+                .password(item.getPassword())
+                .dateUpdated(currentTime)
+                .id(item.getId())
+                .build();
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static DashboardUserDO.DashboardUserDOBuilder builder() {
+        return new DashboardUserDO.DashboardUserDOBuilder();
+    }
+
+    /**
+     * build dashboardUserDO.
+     *
+     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
+     * @return {@linkplain DashboardUserDO}
+     */
+    public static DashboardUserDO buildDashboardUserDO(final DashboardUserDTO dashboardUserDTO) {
+        return Optional.ofNullable(dashboardUserDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            DashboardUserDO dashboardUserDO = DashboardUserDO.builder()
+                .userName(item.getUserName())
+                .password(item.getPassword())
+                .role(item.getRole())
+                .roles(item.getRoles())
+                .dateUpdated(currentTime)
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                dashboardUserDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                dashboardUserDO.setEnabled(true);
+                dashboardUserDO.setDateCreated(currentTime);
+            } else {
+                dashboardUserDO.setId(item.getId());
+                dashboardUserDO.setEnabled(item.getEnabled());
+            }
+            return dashboardUserDO;
+        }).orElse(null);
+    }
+
+    /**
      * Gets the value of userName.
      *
      * @return the value of userName
@@ -160,58 +214,9 @@ public final class DashboardUserDO extends BaseDO {
         this.roles = roles;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static DashboardUserDO.DashboardUserDOBuilder builder() {
-        return new DashboardUserDO.DashboardUserDOBuilder();
-    }
-
-    /**
-     * build dashboardUserDO.
-     *
-     * @param dashboardUserModifyPasswordDTO {@linkplain DashboardUserModifyPasswordDTO}
-     * @return {@linkplain DashboardUserDO}
-     */
-    public static DashboardUserDO buildDashboardUserDO(final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
-        return Optional.ofNullable(dashboardUserModifyPasswordDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            return DashboardUserDO.builder()
-                    .password(item.getPassword())
-                    .dateUpdated(currentTime)
-                    .id(item.getId())
-                    .build();
-        }).orElse(null);
-    }
-
-    /**
-     * build dashboardUserDO.
-     *
-     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
-     * @return {@linkplain DashboardUserDO}
-     */
-    public static DashboardUserDO buildDashboardUserDO(final DashboardUserDTO dashboardUserDTO) {
-        return Optional.ofNullable(dashboardUserDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            DashboardUserDO dashboardUserDO = DashboardUserDO.builder()
-                .userName(item.getUserName())
-                .password(item.getPassword())
-                .role(item.getRole())
-                .roles(item.getRoles())
-                .dateUpdated(currentTime)
-                .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                dashboardUserDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                dashboardUserDO.setEnabled(true);
-                dashboardUserDO.setDateCreated(currentTime);
-            } else {
-                dashboardUserDO.setId(item.getId());
-                dashboardUserDO.setEnabled(item.getEnabled());
-            }
-            return dashboardUserDO;
-        }).orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), userName, password, role, enabled, roles);
     }
 
     @Override
@@ -227,15 +232,10 @@ public final class DashboardUserDO extends BaseDO {
         }
         DashboardUserDO that = (DashboardUserDO) o;
         return Objects.equals(userName, that.userName)
-                && Objects.equals(password, that.password)
-                && Objects.equals(role, that.role)
-                && Objects.equals(enabled, that.enabled)
-                && Objects.equals(roles, that.roles);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), userName, password, role, enabled, roles);
+            && Objects.equals(password, that.password)
+            && Objects.equals(role, that.role)
+            && Objects.equals(enabled, that.enabled)
+            && Objects.equals(roles, that.roles);
     }
 
     public static final class DashboardUserDOBuilder {

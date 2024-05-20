@@ -24,9 +24,9 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  * SelectorUpdatedEvent.
  */
 public class RuleUpdatedEvent extends RuleChangedEvent {
-    
+
     private static final long serialVersionUID = 7530493252121753856L;
-    
+
     /**
      * Create a new {@code RuleChangedEvent}.operator is unknown.
      *
@@ -37,7 +37,7 @@ public class RuleUpdatedEvent extends RuleChangedEvent {
     public RuleUpdatedEvent(final RuleDO source, final RuleDO before, final String operator) {
         super(source, before, EventTypeEnum.RULE_UPDATE, operator);
     }
-    
+
     /**
      * the created selector.
      *
@@ -46,5 +46,5 @@ public class RuleUpdatedEvent extends RuleChangedEvent {
     public RuleDO getRule() {
         return (RuleDO) getSource();
     }
-    
+
 }

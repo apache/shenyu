@@ -108,6 +108,11 @@ public class AppAuthQuery implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(appKey, phone, pageParameter);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -117,10 +122,5 @@ public class AppAuthQuery implements Serializable {
         }
         AppAuthQuery that = (AppAuthQuery) o;
         return Objects.equals(appKey, that.appKey) && Objects.equals(phone, that.phone) && Objects.equals(pageParameter, that.pageParameter);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(appKey, phone, pageParameter);
     }
 }

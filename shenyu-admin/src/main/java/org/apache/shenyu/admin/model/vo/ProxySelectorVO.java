@@ -81,7 +81,6 @@ public class ProxySelectorVO implements Serializable {
      */
     private String props;
 
-
     /**
      * discovery.
      */
@@ -101,18 +100,19 @@ public class ProxySelectorVO implements Serializable {
 
     /**
      * ProxySelectorVO.
-     * @param id  id of the id
-     * @param name name of the proxy
-     * @param forwardPort forward port
-     * @param type type of the proxy
-     * @param listenerNode listener
-     * @param handler handler
+     *
+     * @param id                 id of the id
+     * @param name               name of the proxy
+     * @param forwardPort        forward port
+     * @param type               type of the proxy
+     * @param listenerNode       listener
+     * @param handler            handler
      * @param discoveryHandlerId discoveryHandlerId
-     * @param createTime createTime
-     * @param updateTime updateTime
-     * @param discovery discovery
+     * @param createTime         createTime
+     * @param updateTime         updateTime
+     * @param discovery          discovery
      * @param discoveryUpstreams discoveryUpstreams
-     * @param props props
+     * @param props              props
      */
     public ProxySelectorVO(final String id, final String name, final Integer forwardPort, final String type, final String listenerNode,
                            final String handler, final String discoveryHandlerId, final Timestamp createTime, final Timestamp updateTime, final DiscoveryDTO discovery,
@@ -209,6 +209,7 @@ public class ProxySelectorVO implements Serializable {
 
     /**
      * get listener node.
+     *
      * @return listener node
      */
     public String getListenerNode() {
@@ -217,6 +218,7 @@ public class ProxySelectorVO implements Serializable {
 
     /**
      * set listener node.
+     *
      * @param listenerNode listener node
      */
     public void setListenerNode(final String listenerNode) {
@@ -225,10 +227,20 @@ public class ProxySelectorVO implements Serializable {
 
     /**
      * get handler.
+     *
      * @return handler
      */
     public String getHandler() {
         return handler;
+    }
+
+    /**
+     * set handler.
+     *
+     * @param handler handler
+     */
+    public void setHandler(final String handler) {
+        this.handler = handler;
     }
 
     /**
@@ -250,23 +262,8 @@ public class ProxySelectorVO implements Serializable {
     }
 
     /**
-     * set handler.
-     * @param handler handler
-     */
-    public void setHandler(final String handler) {
-        this.handler = handler;
-    }
-
-    /**
-     * set createTime.
-     * @param createTime createTime
-     */
-    public void setCreateTime(final Timestamp createTime) {
-        this.createTime = createTime;
-    }
-
-    /**
      * get createTime.
+     *
      * @return createTime
      */
     public Timestamp getCreateTime() {
@@ -274,19 +271,30 @@ public class ProxySelectorVO implements Serializable {
     }
 
     /**
-     * set updateTime.
-     * @param updateTime updateTime
+     * set createTime.
+     *
+     * @param createTime createTime
      */
-    public void setUpdateTime(final Timestamp updateTime) {
-        this.updateTime = updateTime;
+    public void setCreateTime(final Timestamp createTime) {
+        this.createTime = createTime;
     }
 
     /**
      * get updateTime.
+     *
      * @return updateTime
      */
     public Timestamp getUpdateTime() {
         return updateTime;
+    }
+
+    /**
+     * set updateTime.
+     *
+     * @param updateTime updateTime
+     */
+    public void setUpdateTime(final Timestamp updateTime) {
+        this.updateTime = updateTime;
     }
 
     /**
@@ -309,6 +317,7 @@ public class ProxySelectorVO implements Serializable {
 
     /**
      * get discovery.
+     *
      * @return discovery
      */
     public DiscoveryDTO getDiscovery() {
@@ -317,6 +326,7 @@ public class ProxySelectorVO implements Serializable {
 
     /**
      * set discovery.
+     *
      * @param discovery discovery
      */
     public void setDiscovery(final DiscoveryDTO discovery) {
@@ -325,6 +335,7 @@ public class ProxySelectorVO implements Serializable {
 
     /**
      * get discovery upstream list.
+     *
      * @return upstream list
      */
     public List<DiscoveryUpstreamVO> getDiscoveryUpstreams() {
@@ -333,6 +344,7 @@ public class ProxySelectorVO implements Serializable {
 
     /**
      * set discovery upstream list.
+     *
      * @param discoveryUpstreams discovery upstream list
      */
     public void setDiscoveryUpstreams(final List<DiscoveryUpstreamVO> discoveryUpstreams) {

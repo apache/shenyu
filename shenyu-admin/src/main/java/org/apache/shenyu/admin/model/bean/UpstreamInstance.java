@@ -46,6 +46,7 @@ public class UpstreamInstance {
 
     /**
      * getClusterName.
+     *
      * @return String
      */
     public String getClusterName() {
@@ -129,6 +130,7 @@ public class UpstreamInstance {
 
     /**
      * isHealthy.
+     *
      * @return boolean
      */
     public boolean isHealthy() {
@@ -137,6 +139,7 @@ public class UpstreamInstance {
 
     /**
      * setHealthy.
+     *
      * @param healthy healthy
      */
     public void setHealthy(final boolean healthy) {
@@ -145,6 +148,7 @@ public class UpstreamInstance {
 
     /**
      * isEnabled.
+     *
      * @return boolean
      */
     public boolean isEnabled() {
@@ -153,10 +157,16 @@ public class UpstreamInstance {
 
     /**
      * setEnabled.
+     *
      * @param enabled enabled
      */
     public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(contextPath, ip, port, startupTime, healthy, enabled);
     }
 
     @Override
@@ -169,15 +179,10 @@ public class UpstreamInstance {
         }
         UpstreamInstance that = (UpstreamInstance) o;
         return port == that.port
-                && healthy == that.healthy
-                && enabled == that.enabled
-                && Objects.equals(contextPath, that.contextPath)
-                && Objects.equals(ip, that.ip)
-                && Objects.equals(startupTime, that.startupTime);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(contextPath, ip, port, startupTime, healthy, enabled);
+            && healthy == that.healthy
+            && enabled == that.enabled
+            && Objects.equals(contextPath, that.contextPath)
+            && Objects.equals(ip, that.ip)
+            && Objects.equals(startupTime, that.startupTime);
     }
 }

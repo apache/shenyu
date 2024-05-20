@@ -53,7 +53,7 @@ public final class BaseDataCache {
 
     private BaseDataCache() {
     }
-    
+
     /**
      * Gets instance.
      *
@@ -62,7 +62,7 @@ public final class BaseDataCache {
     public static BaseDataCache getInstance() {
         return INSTANCE;
     }
-    
+
     /**
      * Cache plugin data.
      *
@@ -71,7 +71,7 @@ public final class BaseDataCache {
     public void cachePluginData(final PluginData pluginData) {
         Optional.ofNullable(pluginData).ifPresent(data -> PLUGIN_MAP.put(data.getName(), data));
     }
-    
+
     /**
      * Remove plugin data.
      *
@@ -80,7 +80,7 @@ public final class BaseDataCache {
     public void removePluginData(final PluginData pluginData) {
         Optional.ofNullable(pluginData).ifPresent(data -> PLUGIN_MAP.remove(data.getName()));
     }
-    
+
     /**
      * Remove plugin data by plugin name.
      *
@@ -89,14 +89,14 @@ public final class BaseDataCache {
     public void removePluginDataByPluginName(final String pluginName) {
         PLUGIN_MAP.remove(pluginName);
     }
-    
+
     /**
      * Clean plugin data.
      */
     public void cleanPluginData() {
         PLUGIN_MAP.clear();
     }
-    
+
     /**
      * Clean plugin data self.
      *
@@ -105,7 +105,7 @@ public final class BaseDataCache {
     public void cleanPluginDataSelf(final List<PluginData> pluginDataList) {
         pluginDataList.forEach(this::removePluginData);
     }
-    
+
     /**
      * Obtain plugin data plugin data.
      *
@@ -115,7 +115,7 @@ public final class BaseDataCache {
     public PluginData obtainPluginData(final String pluginName) {
         return PLUGIN_MAP.get(pluginName);
     }
-    
+
     /**
      * Cache select data.
      *
@@ -124,7 +124,7 @@ public final class BaseDataCache {
     public void cacheSelectData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData).ifPresent(this::selectorAccept);
     }
-    
+
     /**
      * Remove select data.
      *
@@ -138,7 +138,7 @@ public final class BaseDataCache {
             }
         });
     }
-    
+
     /**
      * Remove select data by plugin name.
      *
@@ -147,14 +147,14 @@ public final class BaseDataCache {
     public void removeSelectDataByPluginName(final String pluginName) {
         SELECTOR_MAP.remove(pluginName);
     }
-    
+
     /**
      * Clean selector data.
      */
     public void cleanSelectorData() {
         SELECTOR_MAP.clear();
     }
-    
+
     /**
      * Clean selector data self.
      *
@@ -163,7 +163,7 @@ public final class BaseDataCache {
     public void cleanSelectorDataSelf(final List<SelectorData> selectorDataList) {
         selectorDataList.forEach(this::removeSelectData);
     }
-    
+
     /**
      * Obtain selector data list list.
      *
@@ -173,7 +173,7 @@ public final class BaseDataCache {
     public List<SelectorData> obtainSelectorData(final String pluginName) {
         return SELECTOR_MAP.get(pluginName);
     }
-    
+
     /**
      * Cache rule data.
      *
@@ -182,7 +182,7 @@ public final class BaseDataCache {
     public void cacheRuleData(final RuleData ruleData) {
         Optional.ofNullable(ruleData).ifPresent(this::ruleAccept);
     }
-    
+
     /**
      * Remove rule data.
      *
@@ -196,7 +196,7 @@ public final class BaseDataCache {
             }
         });
     }
-    
+
     /**
      * Remove rule data by selector id.
      *
@@ -205,14 +205,14 @@ public final class BaseDataCache {
     public void removeRuleDataBySelectorId(final String selectorId) {
         RULE_MAP.remove(selectorId);
     }
-    
+
     /**
      * Clean rule data.
      */
     public void cleanRuleData() {
         RULE_MAP.clear();
     }
-    
+
     /**
      * Clean rule data self.
      *
@@ -221,7 +221,7 @@ public final class BaseDataCache {
     public void cleanRuleDataSelf(final List<RuleData> ruleDataList) {
         ruleDataList.forEach(this::removeRuleData);
     }
-    
+
     /**
      * Obtain rule data list list.
      *
@@ -231,7 +231,7 @@ public final class BaseDataCache {
     public List<RuleData> obtainRuleData(final String selectorId) {
         return RULE_MAP.get(selectorId);
     }
-    
+
     /**
      * Gets plugin map.
      *
@@ -240,7 +240,7 @@ public final class BaseDataCache {
     public ConcurrentMap<String, PluginData> getPluginMap() {
         return PLUGIN_MAP;
     }
-    
+
     /**
      * Gets selector map.
      *
@@ -249,7 +249,7 @@ public final class BaseDataCache {
     public ConcurrentMap<String, List<SelectorData>> getSelectorMap() {
         return SELECTOR_MAP;
     }
-    
+
     /**
      * Gets rule map.
      *
@@ -258,10 +258,9 @@ public final class BaseDataCache {
     public ConcurrentMap<String, List<RuleData>> getRuleMap() {
         return RULE_MAP;
     }
-    
 
     /**
-     *  cache rule data.
+     * cache rule data.
      *
      * @param data the rule data
      */

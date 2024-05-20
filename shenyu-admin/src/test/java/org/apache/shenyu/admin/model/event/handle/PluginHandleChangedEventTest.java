@@ -39,49 +39,49 @@ public class PluginHandleChangedEventTest {
     @BeforeEach
     public void setUp() {
         pluginHandleDO = PluginHandleDO.builder()
-                .id("1")
-                .pluginId("1")
-                .field("testField")
-                .label("testLabel")
-                .dataType(1)
-                .type(1)
-                .sort(1)
-                .build();
+            .id("1")
+            .pluginId("1")
+            .field("testField")
+            .label("testLabel")
+            .dataType(1)
+            .type(1)
+            .sort(1)
+            .build();
         withoutChangePluginHandleDO = PluginHandleDO.builder()
-                .id("1")
-                .pluginId("1")
-                .field("testField")
-                .label("testLabel")
-                .dataType(1)
-                .type(1)
-                .sort(1)
-                .build();
+            .id("1")
+            .pluginId("1")
+            .field("testField")
+            .label("testLabel")
+            .dataType(1)
+            .type(1)
+            .sort(1)
+            .build();
         changePluginHandleDO = PluginHandleDO.builder()
-                .id("1")
-                .pluginId("1")
-                .field("testField-change")
-                .label("testLabel-change")
-                .dataType(2)
-                .type(2)
-                .sort(2)
-                .build();
+            .id("1")
+            .pluginId("1")
+            .field("testField-change")
+            .label("testLabel-change")
+            .dataType(2)
+            .type(2)
+            .sort(2)
+            .build();
     }
 
     @Test
     public void deletePluginHandleBuildContextTest() {
         PluginHandleChangedEvent pluginChangedEvent = new PluginHandleChangedEvent(pluginHandleDO, null,
-                EventTypeEnum.PLUGIN_HANDLE_DELETE, "test-operator");
+            EventTypeEnum.PLUGIN_HANDLE_DELETE, "test-operator");
         String context = String.format("the plugin-handle [%s] is %s", pluginHandleDO.getField(),
-                StringUtils.lowerCase(EventTypeEnum.PLUGIN_HANDLE_DELETE.getType().toString()));
+            StringUtils.lowerCase(EventTypeEnum.PLUGIN_HANDLE_DELETE.getType().toString()));
         assertEquals(context, pluginChangedEvent.buildContext());
     }
 
     @Test
     public void createPluginHandleBuildContextTest() {
         PluginHandleChangedEvent pluginChangedEvent = new PluginHandleChangedEvent(pluginHandleDO, null,
-                EventTypeEnum.PLUGIN_HANDLE_CREATE, "test-operator");
+            EventTypeEnum.PLUGIN_HANDLE_CREATE, "test-operator");
         String context = String.format("the plugin-handle [%s] is %s", pluginHandleDO.getField(),
-                StringUtils.lowerCase(EventTypeEnum.PLUGIN_HANDLE_CREATE.getType().toString()));
+            StringUtils.lowerCase(EventTypeEnum.PLUGIN_HANDLE_CREATE.getType().toString()));
         assertEquals(context, pluginChangedEvent.buildContext());
     }
 
@@ -89,14 +89,14 @@ public class PluginHandleChangedEventTest {
     public void updatePluginHandleBuildContextTest() {
         String eventTypeStr = StringUtils.lowerCase(EventTypeEnum.PLUGIN_HANDLE_UPDATE.getType().toString());
         PluginHandleChangedEvent pluginHandleUpdateEventWithoutChange =
-                new PluginHandleChangedEvent(pluginHandleDO, pluginHandleDO, EventTypeEnum.PLUGIN_HANDLE_UPDATE, "test-operator");
+            new PluginHandleChangedEvent(pluginHandleDO, pluginHandleDO, EventTypeEnum.PLUGIN_HANDLE_UPDATE, "test-operator");
         String withoutChangeContrast = "it no change";
         String context =
-                String.format("the plugin-handle [%s] is %s : %s", pluginHandleDO.getField(), eventTypeStr, withoutChangeContrast);
+            String.format("the plugin-handle [%s] is %s : %s", pluginHandleDO.getField(), eventTypeStr, withoutChangeContrast);
         assertEquals(context, pluginHandleUpdateEventWithoutChange.buildContext());
 
         PluginHandleChangedEvent pluginHandleUpdateEventNotSameDO =
-                new PluginHandleChangedEvent(withoutChangePluginHandleDO, pluginHandleDO, EventTypeEnum.PLUGIN_HANDLE_UPDATE, "test-operator");
+            new PluginHandleChangedEvent(withoutChangePluginHandleDO, pluginHandleDO, EventTypeEnum.PLUGIN_HANDLE_UPDATE, "test-operator");
         assertEquals(context, pluginHandleUpdateEventNotSameDO.buildContext());
 
         final StringBuilder contrast = new StringBuilder();
@@ -108,7 +108,7 @@ public class PluginHandleChangedEventTest {
         String changeContext = String.format("the plugin-handle [%s] is %s : %s", changePluginHandleDO.getField(), eventTypeStr, contrast);
 
         PluginHandleChangedEvent pluginHandleUpdateEventChange =
-                new PluginHandleChangedEvent(changePluginHandleDO, pluginHandleDO, EventTypeEnum.PLUGIN_HANDLE_UPDATE, "test-operator");
+            new PluginHandleChangedEvent(changePluginHandleDO, pluginHandleDO, EventTypeEnum.PLUGIN_HANDLE_UPDATE, "test-operator");
         assertEquals(changeContext, pluginHandleUpdateEventChange.buildContext());
     }
 

@@ -28,7 +28,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 
-
 /**
  * The match data cache.
  */
@@ -40,7 +39,7 @@ public final class MatchDataCache {
      * pluginName -> LRUMap.
      */
     private static final ConcurrentMap<String, Map<String, SelectorData>> SELECTOR_DATA_MAP = Maps.newConcurrentMap();
-    
+
     /**
      * plugin name -> LRU Map.
      * LRU Map: path -> rule data.
@@ -67,7 +66,7 @@ public final class MatchDataCache {
     public void removeSelectorData(final String pluginName) {
         SELECTOR_DATA_MAP.remove(pluginName);
     }
-    
+
     /**
      * remove selector data.
      *
@@ -81,7 +80,7 @@ public final class MatchDataCache {
         }
         pathSelectorCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getId()));
     }
-    
+
     /**
      * remove empty selector data.
      *
@@ -105,14 +104,14 @@ public final class MatchDataCache {
     /**
      * Cache selector data.
      *
-     * @param path         the path
-     * @param selectorData the selector data
+     * @param path            the path
+     * @param selectorData    the selector data
      * @param initialCapacity initialCapacity
-     * @param maximumSize maximumSize
+     * @param maximumSize     maximumSize
      */
     public void cacheSelectorData(final String path, final SelectorData selectorData, final int initialCapacity, final long maximumSize) {
         MapUtils.computeIfAbsent(SELECTOR_DATA_MAP, selectorData.getPluginName(), map ->
-                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.FALSE)).put(path, selectorData);
+            new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.FALSE)).put(path, selectorData);
     }
 
     /**
@@ -126,20 +125,20 @@ public final class MatchDataCache {
         final Map<String, SelectorData> lruMap = SELECTOR_DATA_MAP.get(pluginName);
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
     }
-    
+
     /**
      * cache rule data.
      *
-     * @param path path
-     * @param ruleData rule data
+     * @param path            path
+     * @param ruleData        rule data
      * @param initialCapacity initial capacity
-     * @param maximumSize maximum size
+     * @param maximumSize     maximum size
      */
     public void cacheRuleData(final String path, final RuleData ruleData, final int initialCapacity, final long maximumSize) {
         MapUtils.computeIfAbsent(RULE_DATA_MAP, ruleData.getPluginName(), map ->
-                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.FALSE)).put(path, ruleData);
+            new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.FALSE)).put(path, ruleData);
     }
-    
+
     /**
      * remove rule data.
      *
@@ -148,12 +147,12 @@ public final class MatchDataCache {
     public void removeRuleData(final String pluginName) {
         RULE_DATA_MAP.remove(pluginName);
     }
-    
+
     /**
      * remove rule data.
      *
      * @param pluginName pluginName
-     * @param ruleId ruleId
+     * @param ruleId     ruleId
      */
     public void removeRuleData(final String pluginName, final String ruleId) {
         Map<String, RuleData> pathRuleDataCache = RULE_DATA_MAP.get(pluginName);
@@ -162,7 +161,7 @@ public final class MatchDataCache {
         }
         pathRuleDataCache.entrySet().removeIf(entry -> ruleId.equals(entry.getValue().getId()));
     }
-    
+
     /**
      * remove rule data by selector.
      *
@@ -176,7 +175,7 @@ public final class MatchDataCache {
         }
         pathRuleDataCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getSelectorId()));
     }
-    
+
     /**
      * remove empty rule data.
      *
@@ -189,26 +188,26 @@ public final class MatchDataCache {
         }
         pathRuleDataCache.entrySet().removeIf(entry -> Objects.isNull(entry.getValue().getId()));
     }
-    
+
     /**
      * clear the cache.
      */
     public void cleanRuleDataData() {
         RULE_DATA_MAP.clear();
     }
-    
+
     /**
      * get rule data.
      *
      * @param pluginName pluginName
-     * @param path path
+     * @param path       path
      * @return ruleData
      */
     public RuleData obtainRuleData(final String pluginName, final String path) {
         final Map<String, RuleData> lruMap = RULE_DATA_MAP.get(pluginName);
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
     }
-    
+
     /**
      * get selector match cache.
      *
@@ -217,7 +216,7 @@ public final class MatchDataCache {
     public ConcurrentMap<String, Map<String, SelectorData>> getSelectorMatchCache() {
         return SELECTOR_DATA_MAP;
     }
-    
+
     /**
      * get rule match cache.
      *
@@ -226,5 +225,5 @@ public final class MatchDataCache {
     public ConcurrentMap<String, Map<String, RuleData>> getRuleMatchCache() {
         return RULE_DATA_MAP;
     }
-    
+
 }

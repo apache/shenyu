@@ -26,13 +26,13 @@ import javax.validation.constraints.NotNull;
  * page condition.
  */
 public class PageCondition<T> {
-    
+
     /**
      * current page num.
      */
     @NotNull
     private Integer pageNum;
-    
+
     /**
      * page size.
      */
@@ -40,23 +40,23 @@ public class PageCondition<T> {
     @Max(value = 1000, message = "size max support is 1000")
     @Min(value = 1, message = "size min support is 1")
     private Integer pageSize;
-    
+
     /**
      * condition.
      */
     @Valid
     @NotNull
     private T condition;
-    
+
     public PageCondition() {
     }
-    
+
     public PageCondition(final Integer pageNum, final Integer pageSize, final T condition) {
         this.pageNum = pageNum;
         this.pageSize = pageSize;
         this.condition = condition;
     }
-    
+
     /**
      * get page num.
      *
@@ -65,7 +65,7 @@ public class PageCondition<T> {
     public Integer getPageNum() {
         return pageNum;
     }
-    
+
     /**
      * set page num.
      *
@@ -74,7 +74,7 @@ public class PageCondition<T> {
     public void setPageNum(final Integer pageNum) {
         this.pageNum = pageNum;
     }
-    
+
     /**
      * get page size.
      *
@@ -83,7 +83,7 @@ public class PageCondition<T> {
     public Integer getPageSize() {
         return pageSize;
     }
-    
+
     /**
      * page size.
      *
@@ -92,7 +92,7 @@ public class PageCondition<T> {
     public void setPageSize(final Integer pageSize) {
         this.pageSize = pageSize;
     }
-    
+
     /**
      * get condition.
      *
@@ -101,7 +101,7 @@ public class PageCondition<T> {
     public T getCondition() {
         return condition;
     }
-    
+
     /**
      * set condition.
      *

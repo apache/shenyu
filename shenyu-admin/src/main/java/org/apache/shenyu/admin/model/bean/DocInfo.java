@@ -90,6 +90,7 @@ public class DocInfo {
 
     /**
      * getDocMd5.
+     *
      * @return docMd5
      */
     public String getDocMd5() {
@@ -98,6 +99,7 @@ public class DocInfo {
 
     /**
      * setDocMd5.
+     *
      * @param docMd5 docMd5
      */
     public void setDocMd5(final String docMd5) {

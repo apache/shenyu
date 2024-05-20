@@ -33,7 +33,7 @@ import java.util.Properties;
  * the mybatis interceptor for update/insert/delete.
  */
 @Intercepts({
-        @Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class})
+    @Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class})
 })
 public class OracleSQLPrepareInterceptor implements Interceptor {
 
@@ -61,24 +61,24 @@ public class OracleSQLPrepareInterceptor implements Interceptor {
         field.setAccessible(true);
         // replace desc and true
         String replaceSql = boundSql.getSql().toLowerCase()
-                .replace("`desc`", "\"desc\"")
-                .replace("true", "'true'");
+            .replace("`desc`", "\"desc\"")
+            .replace("true", "'true'");
         // replace`
         replaceSql = replaceSql.replace("`", "");
         // replace resource
         if (replaceSql.contains("resource")) {
             replaceSql = replaceSql.replace("into resource", "into \"resource\"")
-                    .replace("from resource", "from \"resource\"")
-                    .replace("update resource", "update \"resource\"");
+                .replace("from resource", "from \"resource\"")
+                .replace("update resource", "update \"resource\"");
         }
         // replace batch insert into
         if (replaceSql.contains("insert into") && replaceSql.split("\\(").length > 3) {
             replaceSql = replaceSql.replaceAll("\r|\n|\\s", "")
-                    .replace("insertinto", "insert into ")
-                    .replace("values", " SELECT * FROM (")
-                    .replace("(?", " SELECT ?")
-                    .replace("),", " FROM dual UNION ALL")
-                    .replace("?)", " ? FROM dual)");
+                .replace("insertinto", "insert into ")
+                .replace("values", " SELECT * FROM (")
+                .replace("(?", " SELECT ?")
+                .replace("),", " FROM dual UNION ALL")
+                .replace("?)", " ? FROM dual)");
         }
 
         // replace limit 1

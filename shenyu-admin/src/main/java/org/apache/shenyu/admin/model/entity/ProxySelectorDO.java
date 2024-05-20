@@ -61,16 +61,6 @@ public class ProxySelectorDO extends BaseDO {
     private String props;
 
     /**
-     * builder.
-     *
-     * @return ProxySelectorBuilder
-     */
-    public static ProxySelectorBuilder builder() {
-
-        return new ProxySelectorBuilder();
-    }
-
-    /**
      * buildProxySelectorDO.
      *
      * @param proxySelectorDTO proxySelectorDTO
@@ -81,12 +71,12 @@ public class ProxySelectorDO extends BaseDO {
         return Optional.ofNullable(proxySelectorDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             ProxySelectorDO proxySelectorDO = ProxySelectorDO.builder()
-                    .name(item.getName())
-                    .pluginName(PluginEnum.TCP.getName())
-                    .forwardPort(item.getForwardPort())
-                    .type(item.getType())
-                    .props(item.getProps())
-                    .dateUpdated(currentTime).build();
+                .name(item.getName())
+                .pluginName(PluginEnum.TCP.getName())
+                .forwardPort(item.getForwardPort())
+                .type(item.getType())
+                .props(item.getProps())
+                .dateUpdated(currentTime).build();
             if (StringUtils.hasLength(item.getId())) {
                 proxySelectorDO.setId(item.getId());
             } else {
@@ -95,6 +85,16 @@ public class ProxySelectorDO extends BaseDO {
             }
             return proxySelectorDO;
         }).orElse(null);
+    }
+
+    /**
+     * builder.
+     *
+     * @return ProxySelectorBuilder
+     */
+    public static ProxySelectorBuilder builder() {
+
+        return new ProxySelectorBuilder();
     }
 
     /**
@@ -108,12 +108,12 @@ public class ProxySelectorDO extends BaseDO {
         return Optional.ofNullable(proxySelectorData).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             ProxySelectorDO proxySelectorDO = ProxySelectorDO.builder()
-                    .name(item.getName())
-                    .pluginName(PluginEnum.TCP.getName())
-                    .forwardPort(item.getForwardPort())
-                    .type(item.getType())
-                    .props(JsonUtils.toJson(item.getProps()))
-                    .dateUpdated(currentTime).build();
+                .name(item.getName())
+                .pluginName(PluginEnum.TCP.getName())
+                .forwardPort(item.getForwardPort())
+                .type(item.getType())
+                .props(JsonUtils.toJson(item.getProps()))
+                .dateUpdated(currentTime).build();
             if (StringUtils.hasLength(item.getId())) {
                 proxySelectorDO.setId(item.getId());
             } else {

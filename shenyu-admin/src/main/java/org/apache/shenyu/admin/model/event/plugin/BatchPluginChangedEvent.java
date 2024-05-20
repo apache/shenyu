@@ -29,8 +29,7 @@ import java.util.stream.Collectors;
  * BatchPluginChangedEvent.
  */
 public class BatchPluginChangedEvent extends BatchChangedEvent {
-    
-    
+
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
@@ -42,16 +41,16 @@ public class BatchPluginChangedEvent extends BatchChangedEvent {
     public BatchPluginChangedEvent(final Collection<PluginDO> source, final Collection<PluginDO> before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
-    
+
     @Override
     public String buildContext() {
         final String plugins = ((Collection<?>) getSource())
-                .stream()
-                .map(s -> ((PluginDO) s).getName())
-                .collect(Collectors.joining(","));
+            .stream()
+            .map(s -> ((PluginDO) s).getName())
+            .collect(Collectors.joining(","));
         return String.format("the plugins[%s] is %s", plugins, StringUtils.lowerCase(getType().getType().toString()));
     }
-    
+
     @Override
     public String eventName() {
         return "plugin";

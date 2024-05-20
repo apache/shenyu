@@ -22,10 +22,9 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 
 /**
  * Test Cases for OperatorEnum.
@@ -66,6 +65,6 @@ public final class OperatorEnumTest {
     @Test
     public void testGetSupport() {
         Arrays.stream(OperatorEnum.values())
-                .forEach(operatorEnum -> assertEquals(operatorEnum.getSupport(), OperatorEnum.valueOf(operatorEnum.name()).getSupport()));
+            .forEach(operatorEnum -> assertEquals(operatorEnum.getSupport(), OperatorEnum.valueOf(operatorEnum.name()).getSupport()));
     }
 }

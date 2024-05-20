@@ -70,6 +70,11 @@ public class AuthParamDTO implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(appName, appParam);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -79,10 +84,5 @@ public class AuthParamDTO implements Serializable {
         }
         AuthParamDTO that = (AuthParamDTO) o;
         return Objects.equals(appName, that.appName) && Objects.equals(appParam, that.appParam);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(appName, appParam);
     }
 }

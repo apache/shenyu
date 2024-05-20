@@ -181,9 +181,9 @@ public class PluginServiceImpl implements PluginService {
     @Pageable
     public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
         return PageResultUtils.result(pluginQuery.getPageParameter(), () -> pluginMapper.selectByQuery(pluginQuery)
-                .stream()
-                .map(PluginVO::buildPluginVO)
-                .collect(Collectors.toList()));
+            .stream()
+            .map(PluginVO::buildPluginVO)
+            .collect(Collectors.toList()));
     }
 
     /**
@@ -200,24 +200,24 @@ public class PluginServiceImpl implements PluginService {
     public List<PluginVO> listAllData() {
         // plugin handle
         Map<String, List<PluginHandleVO>> pluginHandleMap = pluginHandleService.listAllData()
-                .stream()
-                .collect(Collectors.groupingBy(PluginHandleVO::getPluginId));
+            .stream()
+            .collect(Collectors.groupingBy(PluginHandleVO::getPluginId));
 
         return pluginMapper.selectAll()
-                .stream()
-                .filter(Objects::nonNull)
-                .map(pluginDO -> {
-                    PluginVO exportVO = PluginVO.buildPluginVO(pluginDO);
-                    List<PluginHandleVO> pluginHandleList = Optional
-                            .ofNullable(pluginHandleMap.get(exportVO.getId()))
-                            .orElse(Lists.newArrayList())
-                            .stream()
-                            // to make less volume of export data
-                            .peek(x -> x.setDictOptions(null))
-                            .collect(Collectors.toList());
-                    exportVO.setPluginHandleList(pluginHandleList);
-                    return exportVO;
-                }).collect(Collectors.toList());
+            .stream()
+            .filter(Objects::nonNull)
+            .map(pluginDO -> {
+                PluginVO exportVO = PluginVO.buildPluginVO(pluginDO);
+                List<PluginHandleVO> pluginHandleList = Optional
+                    .ofNullable(pluginHandleMap.get(exportVO.getId()))
+                    .orElse(Lists.newArrayList())
+                    .stream()
+                    // to make less volume of export data
+                    .peek(x -> x.setDictOptions(null))
+                    .collect(Collectors.toList());
+                exportVO.setPluginHandleList(pluginHandleList);
+                return exportVO;
+            }).collect(Collectors.toList());
     }
 
     @Override
@@ -260,9 +260,9 @@ public class PluginServiceImpl implements PluginService {
             return ConfigImportResult.success();
         }
         Map<String, PluginDO> existPluginMap = pluginMapper.selectAll()
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(PluginDO::getName, x -> x));
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(PluginDO::getName, x -> x));
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
         for (PluginDTO pluginDTO : pluginList) {
@@ -273,8 +273,8 @@ public class PluginServiceImpl implements PluginService {
                 PluginDO existPlugin = existPluginMap.get(pluginName);
                 pluginId = existPlugin.getId();
                 errorMsgBuilder
-                        .append(pluginName)
-                        .append(",");
+                    .append(pluginName)
+                    .append(",");
             } else {
                 PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
                 pluginId = pluginDO.getId();
@@ -287,16 +287,16 @@ public class PluginServiceImpl implements PluginService {
             List<PluginHandleDTO> pluginHandleList = pluginDTO.getPluginHandleList();
             if (CollectionUtils.isNotEmpty(pluginHandleList)) {
                 pluginHandleService
-                        .importData(pluginHandleList
-                                .stream()
-                                .peek(x -> x.setPluginId(pluginId))
-                                .collect(Collectors.toList()));
+                    .importData(pluginHandleList
+                        .stream()
+                        .peek(x -> x.setPluginId(pluginId))
+                        .collect(Collectors.toList()));
             }
         }
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
             errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
             return ConfigImportResult
-                    .fail(successCount, "import fail plugin: " + errorMsgBuilder);
+                .fail(successCount, "import fail plugin: " + errorMsgBuilder);
         }
         return ConfigImportResult.success(successCount);
 
@@ -323,7 +323,6 @@ public class PluginServiceImpl implements PluginService {
         }
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
-
 
     /**
      * update plugin.<br>

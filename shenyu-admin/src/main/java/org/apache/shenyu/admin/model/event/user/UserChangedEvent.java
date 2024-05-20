@@ -28,8 +28,7 @@ import java.util.Objects;
  * UserChangedEvent.
  */
 public class UserChangedEvent extends AdminDataModelChangedEvent {
-    
-    
+
     /**
      * Create a new {@code UserChangedEvent}.operator is unknown.
      *
@@ -41,7 +40,7 @@ public class UserChangedEvent extends AdminDataModelChangedEvent {
     public UserChangedEvent(final DashboardUserDO source, final DashboardUserDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
-    
+
     @Override
     public String buildContext() {
         final DashboardUserDO after = (DashboardUserDO) getAfter();
@@ -49,18 +48,9 @@ public class UserChangedEvent extends AdminDataModelChangedEvent {
             return String.format("the selector [%s] is %s", after.getUserName(), StringUtils.lowerCase(getType().getType().toString()));
         }
         return String.format("the selector [%s] is %s : %s", after.getUserName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
-        
+
     }
-    
-    /**
-     * the changed user.
-     *
-     * @return user
-     */
-    public DashboardUserDO getChangedUser() {
-        return (DashboardUserDO) getSource();
-    }
-    
+
     private String contrast() {
         final DashboardUserDO before = (DashboardUserDO) getBefore();
         Objects.requireNonNull(before);
@@ -82,12 +72,21 @@ public class UserChangedEvent extends AdminDataModelChangedEvent {
         if (!Objects.equals(before.getEnabled(), after.getEnabled())) {
             builder.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));
         }
-        
+
         return builder.toString();
     }
-    
+
     @Override
     public String eventName() {
         return "user";
+    }
+
+    /**
+     * the changed user.
+     *
+     * @return user
+     */
+    public DashboardUserDO getChangedUser() {
+        return (DashboardUserDO) getSource();
     }
 }

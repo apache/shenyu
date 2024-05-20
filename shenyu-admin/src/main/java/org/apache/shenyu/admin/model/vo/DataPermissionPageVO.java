@@ -56,6 +56,32 @@ public class DataPermissionPageVO implements Serializable {
     }
 
     /**
+     * build vo by selector.
+     *
+     * @param selectorDO {@linkplain SelectorDO}
+     * @param isChecked  whether checked
+     * @return {@linkplain DataPermissionPageVO}
+     */
+    public static DataPermissionPageVO buildPageVOBySelector(final SelectorDO selectorDO, final Boolean isChecked) {
+        return Optional.ofNullable(selectorDO)
+            .map(item -> new DataPermissionPageVO(item.getId(), item.getName(), isChecked))
+            .orElse(null);
+    }
+
+    /**
+     * build data permission page vo by rule do.
+     *
+     * @param ruleDO    {@linkplain RuleDO}
+     * @param isChecked whether checked
+     * @return {@linkplain DataPermissionPageVO}
+     */
+    public static DataPermissionPageVO buildPageVOByRule(final RuleDO ruleDO, final Boolean isChecked) {
+        return Optional.of(ruleDO)
+            .map(item -> new DataPermissionPageVO(item.getId(), item.getName(), isChecked))
+            .orElse(null);
+    }
+
+    /**
      * Gets the value of dataId.
      *
      * @return the value of dataId
@@ -109,28 +135,9 @@ public class DataPermissionPageVO implements Serializable {
         this.isChecked = isChecked;
     }
 
-    /**
-     * build vo by selector.
-     * @param selectorDO {@linkplain SelectorDO}
-     * @param isChecked whether checked
-     * @return {@linkplain DataPermissionPageVO}
-     */
-    public static DataPermissionPageVO buildPageVOBySelector(final SelectorDO selectorDO, final Boolean isChecked) {
-        return Optional.ofNullable(selectorDO)
-                .map(item -> new DataPermissionPageVO(item.getId(), item.getName(), isChecked))
-                .orElse(null);
-    }
-
-    /**
-     * build data permission page vo by rule do.
-     * @param ruleDO {@linkplain RuleDO}
-     * @param isChecked whether checked
-     * @return  {@linkplain DataPermissionPageVO}
-     */
-    public static DataPermissionPageVO buildPageVOByRule(final RuleDO ruleDO, final Boolean isChecked) {
-        return Optional.of(ruleDO)
-                .map(item -> new DataPermissionPageVO(item.getId(), item.getName(), isChecked))
-                .orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(dataId, dataName, isChecked);
     }
 
     @Override
@@ -146,16 +153,11 @@ public class DataPermissionPageVO implements Serializable {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(dataId, dataName, isChecked);
-    }
-
-    @Override
     public String toString() {
         return "DataPermissionPageVO{"
-                + "dataId='" + dataId + '\''
-                + ", dataName='" + dataName + '\''
-                + ", isChecked=" + isChecked
-                + '}';
+            + "dataId='" + dataId + '\''
+            + ", dataName='" + dataName + '\''
+            + ", isChecked=" + isChecked
+            + '}';
     }
 }

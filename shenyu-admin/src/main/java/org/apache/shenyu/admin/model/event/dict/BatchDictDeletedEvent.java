@@ -31,9 +31,9 @@ import java.util.stream.Collectors;
  * BatchPluginDeletedEvent.
  */
 public class BatchDictDeletedEvent extends BatchDictChangedEvent {
-    
+
     private final List<String> deletedIds;
-    
+
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
@@ -44,18 +44,16 @@ public class BatchDictDeletedEvent extends BatchDictChangedEvent {
         super(source, null, EventTypeEnum.DICT_DELETE, operator);
         this.deletedIds = ListUtil.map(source, BaseDO::getId);
     }
-    
+
     @Override
     public String buildContext() {
         final String data = ((Collection<?>) getSource())
-                .stream()
-                .map(s -> ((ShenyuDictDO) s).getDictName())
-                .collect(Collectors.joining(","));
+            .stream()
+            .map(s -> ((ShenyuDictDO) s).getDictName())
+            .collect(Collectors.joining(","));
         return String.format("the dict[%s] is %s", data, StringUtils.lowerCase(getType().getType().toString()));
     }
-    
 
-    
     /**
      * get deleted iss.
      *

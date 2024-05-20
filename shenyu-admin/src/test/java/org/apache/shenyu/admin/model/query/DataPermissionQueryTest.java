@@ -23,7 +23,7 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
  * Test cases for {@link DataPermissionQuery}.
  */
 public class DataPermissionQueryTest extends AbstractReflectGetterSetterTest {
-    
+
     @Override
     protected Class<?> getTargetClass() {
         return DataPermissionQuery.class;

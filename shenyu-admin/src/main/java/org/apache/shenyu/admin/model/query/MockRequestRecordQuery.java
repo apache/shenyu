@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.admin.model.query;
 
+import org.apache.shenyu.admin.model.page.PageParameter;
+
 import java.io.Serializable;
 import java.util.Objects;
-import org.apache.shenyu.admin.model.page.PageParameter;
 
 /**
  * this is mock request record query.
@@ -91,6 +92,52 @@ public class MockRequestRecordQuery implements Serializable {
     }
 
     /**
+     * get pageParameter.
+     *
+     * @return pageParameter
+     */
+    public PageParameter getPageParameter() {
+        return pageParameter;
+    }
+
+    /**
+     * set pageParameter.
+     *
+     * @param pageParameter pageParameter
+     */
+    public void setPageParameter(final PageParameter pageParameter) {
+        this.pageParameter = pageParameter;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(apiId, header, host, url, pathVariable);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof MockRequestRecordQuery)) {
+            return false;
+        }
+        MockRequestRecordQuery mockRequestRecordQuery = (MockRequestRecordQuery) o;
+        return apiId.equals(mockRequestRecordQuery.apiId) && header.equals(mockRequestRecordQuery.getHeader())
+            && host.equals(mockRequestRecordQuery.getHost()) && url.equals(mockRequestRecordQuery.getUrl())
+            && pathVariable.equals(mockRequestRecordQuery.getPathVariable());
+    }
+
+    /**
+     * Gets the value of header.
+     *
+     * @return the value of header
+     */
+    public String getHeader() {
+        return header;
+    }
+
+    /**
      * Gets the value of host.
      *
      * @return the value of host
@@ -145,57 +192,11 @@ public class MockRequestRecordQuery implements Serializable {
     }
 
     /**
-     * Gets the value of header.
-     *
-     * @return the value of header
-     */
-    public String getHeader() {
-        return header;
-    }
-
-    /**
      * Sets the header.
      *
      * @param header header
      */
     public void setHeader(final String header) {
         this.header = header;
-    }
-
-    /**
-     * get pageParameter.
-     *
-     * @return pageParameter
-     */
-    public PageParameter getPageParameter() {
-        return pageParameter;
-    }
-
-    /**
-     * set pageParameter.
-     *
-     * @param pageParameter pageParameter
-     */
-    public void setPageParameter(final PageParameter pageParameter) {
-        this.pageParameter = pageParameter;
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof MockRequestRecordQuery)) {
-            return false;
-        }
-        MockRequestRecordQuery mockRequestRecordQuery = (MockRequestRecordQuery) o;
-        return apiId.equals(mockRequestRecordQuery.apiId) && header.equals(mockRequestRecordQuery.getHeader())
-                && host.equals(mockRequestRecordQuery.getHost()) && url.equals(mockRequestRecordQuery.getUrl())
-                && pathVariable.equals(mockRequestRecordQuery.getPathVariable());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(apiId, header, host, url, pathVariable);
     }
 }

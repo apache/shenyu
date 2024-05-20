@@ -28,8 +28,7 @@ import java.util.Objects;
  * AdminDataModelChangedEvent.
  */
 public class PluginChangedEvent extends AdminDataModelChangedEvent {
-    
-    
+
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
@@ -41,7 +40,7 @@ public class PluginChangedEvent extends AdminDataModelChangedEvent {
     public PluginChangedEvent(final PluginDO source, final PluginDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
-    
+
     @Override
     public String buildContext() {
         final PluginDO after = (PluginDO) getAfter();
@@ -49,9 +48,9 @@ public class PluginChangedEvent extends AdminDataModelChangedEvent {
             return String.format("the plugin [%s] is %s", after.getName(), StringUtils.lowerCase(getType().getType().toString()));
         }
         return String.format("the plugin [%s] is %s : %s", after.getName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
-        
+
     }
-    
+
     private String contrast() {
         final PluginDO before = (PluginDO) getBefore();
         Objects.requireNonNull(before);
@@ -78,7 +77,7 @@ public class PluginChangedEvent extends AdminDataModelChangedEvent {
         }
         return builder.toString();
     }
-    
+
     @Override
     public String eventName() {
         return "plugin";

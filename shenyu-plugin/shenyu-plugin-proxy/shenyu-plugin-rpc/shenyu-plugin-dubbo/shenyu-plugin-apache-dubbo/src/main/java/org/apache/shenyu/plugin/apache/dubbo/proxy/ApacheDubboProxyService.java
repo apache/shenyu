@@ -81,7 +81,8 @@ public class ApacheDubboProxyService {
         } else {
             pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());
         }
-        return Mono.fromFuture(invokeAsync(genericService, metaData.getMethodName(), pair.getLeft(), pair.getRight()).thenApply(ret -> {
+        return Mono.fromFuture(invokeAsync(genericService, metaData.getMethodName(), pair.getLeft(), pair.getRight()).thenApply(retobj -> {
+            Object ret = retobj;
             if (Objects.isNull(ret)) {
                 ret = Constants.DUBBO_RPC_RESULT_EMPTY;
             }

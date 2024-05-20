@@ -32,7 +32,7 @@ import java.util.Objects;
 public class AuthPathWarpDTO implements Serializable {
 
     private static final long serialVersionUID = -3167442906221294444L;
-    
+
     @Existed(message = "app key not existed", provider = AppAuthMapper.class)
     private String id;
 
@@ -76,6 +76,11 @@ public class AuthPathWarpDTO implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(id, authPathDTOList);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -85,10 +90,5 @@ public class AuthPathWarpDTO implements Serializable {
         }
         AuthPathWarpDTO that = (AuthPathWarpDTO) o;
         return Objects.equals(id, that.id) && Objects.equals(authPathDTOList, that.authPathDTOList);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, authPathDTOList);
     }
 }

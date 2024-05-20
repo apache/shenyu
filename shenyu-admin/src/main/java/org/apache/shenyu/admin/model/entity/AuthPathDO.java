@@ -48,6 +48,36 @@ public final class AuthPathDO extends BaseDO {
     }
 
     /**
+     * Build AuthPathDO object with given params.
+     *
+     * @param path    {@linkplain String}
+     * @param authId  {@linkplain String}
+     * @param appName {@linkplain String}
+     * @return {@linkplain AuthPathDO}
+     */
+    public static AuthPathDO create(final String path, final String authId, final String appName) {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        return AuthPathDO.builder()
+            .id(UUIDUtils.getInstance().generateShortUuid())
+            .authId(authId)
+            .appName(appName)
+            .path(path)
+            .enabled(true)
+            .dateCreated(currentTime)
+            .dateUpdated(currentTime)
+            .build();
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static AuthPathDO.AuthPathDOBuilder builder() {
+        return new AuthPathDO.AuthPathDOBuilder();
+    }
+
+    /**
      * Gets the value of authId.
      *
      * @return the value of authId
@@ -119,25 +149,9 @@ public final class AuthPathDO extends BaseDO {
         this.enabled = enabled;
     }
 
-    /**
-     * Build AuthPathDO object with given params.
-     *
-     * @param path      {@linkplain String}
-     * @param authId    {@linkplain String}
-     * @param appName   {@linkplain String}
-     * @return          {@linkplain AuthPathDO}
-     */
-    public static AuthPathDO create(final String path, final String authId, final String appName) {
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        return AuthPathDO.builder()
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .authId(authId)
-                .appName(appName)
-                .path(path)
-                .enabled(true)
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .build();
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), authId, appName, path, enabled);
     }
 
     @Override
@@ -153,20 +167,6 @@ public final class AuthPathDO extends BaseDO {
         }
         AuthPathDO that = (AuthPathDO) o;
         return Objects.equals(authId, that.authId) && Objects.equals(appName, that.appName) && Objects.equals(path, that.path) && Objects.equals(enabled, that.enabled);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), authId, appName, path, enabled);
-    }
-
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static AuthPathDO.AuthPathDOBuilder builder() {
-        return new AuthPathDO.AuthPathDOBuilder();
     }
 
     public static final class AuthPathDOBuilder {

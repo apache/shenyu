@@ -25,6 +25,7 @@ import java.util.Objects;
  * this is plugin handle query.
  */
 public class PluginHandleQuery {
+
     /**
      * plugin id.
      */
@@ -36,9 +37,9 @@ public class PluginHandleQuery {
     private String field;
 
     /**
-     *  type.
-     *  1  selector,
-     *  2  rule
+     * type.
+     * 1  selector,
+     * 2  rule
      */
     private Integer type;
 
@@ -55,6 +56,15 @@ public class PluginHandleQuery {
         this.field = field;
         this.type = type;
         this.pageParameter = pageParameter;
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static PluginHandleQuery.PluginHandleQueryBuilder builder() {
+        return new PluginHandleQuery.PluginHandleQueryBuilder();
     }
 
     /**
@@ -129,13 +139,9 @@ public class PluginHandleQuery {
         this.pageParameter = pageParameter;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static PluginHandleQuery.PluginHandleQueryBuilder builder() {
-        return new PluginHandleQuery.PluginHandleQueryBuilder();
+    @Override
+    public int hashCode() {
+        return Objects.hash(pluginId, field, type, pageParameter);
     }
 
     @Override
@@ -148,11 +154,6 @@ public class PluginHandleQuery {
         }
         PluginHandleQuery that = (PluginHandleQuery) o;
         return Objects.equals(pluginId, that.pluginId) && Objects.equals(field, that.field) && Objects.equals(type, that.type) && Objects.equals(pageParameter, that.pageParameter);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(pluginId, field, type, pageParameter);
     }
 
     public static final class PluginHandleQueryBuilder {

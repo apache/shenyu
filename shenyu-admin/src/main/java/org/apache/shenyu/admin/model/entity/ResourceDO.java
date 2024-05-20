@@ -123,6 +123,77 @@ public final class ResourceDO extends BaseDO {
     }
 
     /**
+     * build ResourceDO.
+     *
+     * @param resourceDTO {@linkplain ResourceDTO}
+     * @return {@linkplain ResourceDO}
+     */
+    public static ResourceDO buildResourceDO(final ResourceDTO resourceDTO) {
+        return Optional.ofNullable(resourceDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            ResourceDO resourceDO = ResourceDO.builder()
+                .parentId(item.getParentId())
+                .title(item.getTitle())
+                .name(item.getName())
+                .url(item.getUrl())
+                .component(item.getComponent())
+                .resourceType(item.getResourceType())
+                .sort(item.getSort())
+                .icon(item.getIcon())
+                .isLeaf(item.getIsLeaf())
+                .isRoute(item.getIsRoute())
+                .perms(item.getPerms())
+                .status(item.getStatus())
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                resourceDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                resourceDO.setDateCreated(currentTime);
+            } else {
+                resourceDO.setId(item.getId());
+            }
+            return resourceDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static ResourceDO.ResourceDOBuilder builder() {
+        return new ResourceDO.ResourceDOBuilder();
+    }
+
+    /**
+     * build ResourceDO.
+     *
+     * @param createResourceDTO {@linkplain CreateResourceDTO}
+     * @return {@linkplain ResourceDO}
+     */
+    public static ResourceDO buildResourceDO(final CreateResourceDTO createResourceDTO) {
+        return Optional.ofNullable(createResourceDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            ResourceDO resourceDO = ResourceDO.builder()
+                .parentId(item.getParentId())
+                .title(item.getTitle())
+                .name(item.getName())
+                .url(item.getUrl())
+                .component(item.getComponent())
+                .resourceType(item.getResourceType())
+                .sort(item.getSort())
+                .icon(item.getIcon())
+                .isLeaf(item.getIsLeaf())
+                .isRoute(item.getIsRoute())
+                .perms(item.getPerms())
+                .status(item.getStatus())
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .dateCreated(currentTime)
+                .build();
+            return resourceDO;
+        }).orElse(null);
+    }
+
+    /**
      * Gets the value of parentId.
      *
      * @return the value of parentId
@@ -338,75 +409,9 @@ public final class ResourceDO extends BaseDO {
         this.status = status;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static ResourceDO.ResourceDOBuilder builder() {
-        return new ResourceDO.ResourceDOBuilder();
-    }
-
-    /**
-     * build ResourceDO.
-     *
-     * @param resourceDTO {@linkplain ResourceDTO}
-     * @return {@linkplain ResourceDO}
-     */
-    public static ResourceDO buildResourceDO(final ResourceDTO resourceDTO) {
-        return Optional.ofNullable(resourceDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            ResourceDO resourceDO = ResourceDO.builder()
-                    .parentId(item.getParentId())
-                    .title(item.getTitle())
-                    .name(item.getName())
-                    .url(item.getUrl())
-                    .component(item.getComponent())
-                    .resourceType(item.getResourceType())
-                    .sort(item.getSort())
-                    .icon(item.getIcon())
-                    .isLeaf(item.getIsLeaf())
-                    .isRoute(item.getIsRoute())
-                    .perms(item.getPerms())
-                    .status(item.getStatus())
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                resourceDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                resourceDO.setDateCreated(currentTime);
-            } else {
-                resourceDO.setId(item.getId());
-            }
-            return resourceDO;
-        }).orElse(null);
-    }
-
-    /**
-     * build ResourceDO.
-     *
-     * @param createResourceDTO {@linkplain CreateResourceDTO}
-     * @return {@linkplain ResourceDO}
-     */
-    public static ResourceDO buildResourceDO(final CreateResourceDTO createResourceDTO) {
-        return Optional.ofNullable(createResourceDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            ResourceDO resourceDO = ResourceDO.builder()
-                .parentId(item.getParentId())
-                .title(item.getTitle())
-                .name(item.getName())
-                .url(item.getUrl())
-                .component(item.getComponent())
-                .resourceType(item.getResourceType())
-                .sort(item.getSort())
-                .icon(item.getIcon())
-                .isLeaf(item.getIsLeaf())
-                .isRoute(item.getIsRoute())
-                .perms(item.getPerms())
-                .status(item.getStatus())
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .dateCreated(currentTime)
-                .build();
-            return resourceDO;
-        }).orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), parentId, title, name, url, component, resourceType, sort, icon, isLeaf, isRoute, perms, status);
     }
 
     @Override
@@ -422,22 +427,17 @@ public final class ResourceDO extends BaseDO {
         }
         ResourceDO that = (ResourceDO) o;
         return Objects.equals(parentId, that.parentId)
-                && Objects.equals(title, that.title)
-                && Objects.equals(name, that.name)
-                && Objects.equals(url, that.url)
-                && Objects.equals(component, that.component)
-                && Objects.equals(resourceType, that.resourceType)
-                && Objects.equals(sort, that.sort)
-                && Objects.equals(icon, that.icon)
-                && Objects.equals(isLeaf, that.isLeaf)
-                && Objects.equals(isRoute, that.isRoute)
-                && Objects.equals(perms, that.perms)
-                && Objects.equals(status, that.status);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), parentId, title, name, url, component, resourceType, sort, icon, isLeaf, isRoute, perms, status);
+            && Objects.equals(title, that.title)
+            && Objects.equals(name, that.name)
+            && Objects.equals(url, that.url)
+            && Objects.equals(component, that.component)
+            && Objects.equals(resourceType, that.resourceType)
+            && Objects.equals(sort, that.sort)
+            && Objects.equals(icon, that.icon)
+            && Objects.equals(isLeaf, that.isLeaf)
+            && Objects.equals(isRoute, that.isRoute)
+            && Objects.equals(perms, that.perms)
+            && Objects.equals(status, that.status);
     }
 
     public static final class ResourceDOBuilder {

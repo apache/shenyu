@@ -323,16 +323,19 @@ public class ShenyuTrie {
                 pathVariable[startIndex] = 1;
             } else {
                 // fail to match, reset the node to failToNode
-                ShenyuTrieNode preParentNode = currentNode.getParentNode();
                 ShenyuTrieNode newCurrentNode = currentNode.getFailToNode();
                 // search failToNode's parentNode
                 ShenyuTrieNode parentNode = newCurrentNode.getParentNode();
-                if (Objects.isNull(parentNode) || (Objects.nonNull(parentNode.getFailToNode()) && Objects.nonNull(newCurrentNode.getFailToNode())
-                        && completeResolveConflict(parentNode, wildcard, matchAll, pathVariable, startIndex)
-                        && parentNode.getFailToNode().equals(newCurrentNode.getFailToNode()) && "/".equals(parentNode.getParentNode().getMatchStr()))) {
+                if (Objects.isNull(parentNode)) {
+                    return null;
+                }
+                if (Objects.nonNull(parentNode.getFailToNode()) && Objects.nonNull(newCurrentNode.getFailToNode())
+                    && completeResolveConflict(parentNode, wildcard, matchAll, pathVariable, startIndex)
+                    && parentNode.getFailToNode().equals(newCurrentNode.getFailToNode()) && "/".equals(parentNode.getParentNode().getMatchStr())) {
                     return null;
                 }
                 startIndex--;
+                ShenyuTrieNode preParentNode = currentNode.getParentNode();
                 if (preParentNode.equals(parentNode)) {
                     startIndex--;
                     currentNode = parentNode.getParentNode();
@@ -349,7 +352,9 @@ public class ShenyuTrie {
                 startIndex++;
                 continue;
             }
-            if ((startIndex == pathParts.length - 1 && checkNode(currentNode, bizInfo)) || (Objects.nonNull(currentNode) && isMatchAll(currentNode.getMatchStr()) && checkNode(currentNode, bizInfo))) {
+            boolean checkNode = Objects.nonNull(currentNode) && isMatchAll(currentNode.getMatchStr()) && checkNode(currentNode, bizInfo);
+            boolean checkLength = startIndex == pathParts.length - 1 && checkNode(currentNode, bizInfo);
+            if (checkLength || checkNode) {
                 return currentNode;
             }
         }

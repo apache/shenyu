@@ -40,12 +40,12 @@ public final class RoleCreatedEventTest {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
         roleDO = RoleDO.builder()
-                .id(id)
-                .roleName("test-role")
-                .description("test role")
-                .dateUpdated(now)
-                .dateCreated(now)
-                .build();
+            .id(id)
+            .roleName("test-role")
+            .description("test role")
+            .dateUpdated(now)
+            .dateCreated(now)
+            .build();
         roleCreatedEvent = new RoleCreatedEvent(roleDO, "test-op");
     }
 

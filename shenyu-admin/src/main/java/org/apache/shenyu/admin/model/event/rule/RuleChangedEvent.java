@@ -28,8 +28,7 @@ import java.util.Objects;
  * SelectorChangedEvent.
  */
 public class RuleChangedEvent extends AdminDataModelChangedEvent {
-    
-    
+
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
@@ -41,7 +40,7 @@ public class RuleChangedEvent extends AdminDataModelChangedEvent {
     public RuleChangedEvent(final RuleDO source, final RuleDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
-    
+
     @Override
     public String buildContext() {
         final RuleDO after = (RuleDO) getAfter();
@@ -49,9 +48,9 @@ public class RuleChangedEvent extends AdminDataModelChangedEvent {
             return String.format("the rule [%s] is %s", after.getName(), StringUtils.lowerCase(getType().getType().toString()));
         }
         return String.format("the rule [%s] is %s : %s", after.getName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
-        
+
     }
-    
+
     private String contrast() {
         final RuleDO before = (RuleDO) getBefore();
         Objects.requireNonNull(before);
@@ -81,7 +80,7 @@ public class RuleChangedEvent extends AdminDataModelChangedEvent {
         }
         return builder.toString();
     }
-    
+
     @Override
     public String eventName() {
         return "selector";

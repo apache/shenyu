@@ -72,11 +72,11 @@ public class DiscoveryUpstreamDO extends BaseDO {
      * DiscoveryUpstreamDO.
      *
      * @param discoveryHandlerId discoveryHandlerId
-     * @param protocol    protocol
-     * @param url         url
-     * @param status      status
-     * @param weight      weight
-     * @param props       props
+     * @param protocol           protocol
+     * @param url                url
+     * @param status             status
+     * @param weight             weight
+     * @param props              props
      */
     public DiscoveryUpstreamDO(final String discoveryHandlerId, final String protocol, final String url, final int status,
                                final int weight, final String props) {
@@ -87,6 +87,45 @@ public class DiscoveryUpstreamDO extends BaseDO {
         this.status = status;
         this.weight = weight;
         this.props = props;
+    }
+
+    /**
+     * buildDiscoveryUpstreamDO.
+     *
+     * @param discoveryUpstreamDTO discoveryUpstreamDTO
+     * @return DiscoveryUpstreamDO
+     */
+    public static DiscoveryUpstreamDO buildDiscoveryUpstreamDO(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+
+        return Optional.ofNullable(discoveryUpstreamDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
+                .discoveryHandlerId(item.getDiscoveryHandlerId())
+                .protocol(item.getProtocol())
+                .status(item.getStatus())
+                .weight(item.getWeight())
+                .props(item.getProps())
+                .url(item.getUrl())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime).build();
+            if (StringUtils.hasLength(item.getId())) {
+                discoveryUpstreamDO.setId(item.getId());
+            } else {
+                discoveryUpstreamDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                discoveryUpstreamDO.setDateCreated(currentTime);
+            }
+            return discoveryUpstreamDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder.
+     *
+     * @return DiscoveryUpstreamBuilder
+     */
+    public static DiscoveryUpstreamBuilder builder() {
+
+        return new DiscoveryUpstreamBuilder();
     }
 
     /**
@@ -207,45 +246,6 @@ public class DiscoveryUpstreamDO extends BaseDO {
     public void setProps(final String props) {
 
         this.props = props;
-    }
-
-    /**
-     * builder.
-     *
-     * @return DiscoveryUpstreamBuilder
-     */
-    public static DiscoveryUpstreamBuilder builder() {
-
-        return new DiscoveryUpstreamBuilder();
-    }
-
-    /**
-     * buildDiscoveryUpstreamDO.
-     *
-     * @param discoveryUpstreamDTO discoveryUpstreamDTO
-     * @return DiscoveryUpstreamDO
-     */
-    public static DiscoveryUpstreamDO buildDiscoveryUpstreamDO(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
-
-        return Optional.ofNullable(discoveryUpstreamDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
-                    .discoveryHandlerId(item.getDiscoveryHandlerId())
-                    .protocol(item.getProtocol())
-                    .status(item.getStatus())
-                    .weight(item.getWeight())
-                    .props(item.getProps())
-                    .url(item.getUrl())
-                    .dateCreated(currentTime)
-                    .dateUpdated(currentTime).build();
-            if (StringUtils.hasLength(item.getId())) {
-                discoveryUpstreamDO.setId(item.getId());
-            } else {
-                discoveryUpstreamDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                discoveryUpstreamDO.setDateCreated(currentTime);
-            }
-            return discoveryUpstreamDO;
-        }).orElse(null);
     }
 
     /**

@@ -86,7 +86,6 @@ public class ShenyuDiscoveryConfig extends PropertiesConfig {
         this.serverList = serverList;
     }
 
-
     /**
      * getRegisterPath.
      *

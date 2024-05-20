@@ -28,8 +28,7 @@ import java.util.Objects;
  * DictChangedEvent.
  */
 public class DictChangedEvent extends AdminDataModelChangedEvent {
-    
-    
+
     /**
      * Create a new {@code DictChangedEvent}.operator is unknown.
      *
@@ -41,7 +40,7 @@ public class DictChangedEvent extends AdminDataModelChangedEvent {
     public DictChangedEvent(final ShenyuDictDO source, final ShenyuDictDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
-    
+
     @Override
     public String buildContext() {
         final ShenyuDictDO after = (ShenyuDictDO) getAfter();
@@ -49,9 +48,9 @@ public class DictChangedEvent extends AdminDataModelChangedEvent {
             return String.format("the dict [%s] is %s", after.getDictName(), StringUtils.lowerCase(getType().getType().toString()));
         }
         return String.format("the dict [%s] is %s : %s", after.getDictName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
-        
+
     }
-    
+
     private String contrast() {
         final ShenyuDictDO before = (ShenyuDictDO) getBefore();
         Objects.requireNonNull(before);
@@ -81,7 +80,7 @@ public class DictChangedEvent extends AdminDataModelChangedEvent {
         }
         return builder.toString();
     }
-    
+
     @Override
     public String eventName() {
         return "dict";

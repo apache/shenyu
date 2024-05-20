@@ -25,6 +25,7 @@ import java.util.Objects;
  * data permission dto.
  */
 public class DataPermissionDTO implements Serializable {
+
     private static final long serialVersionUID = -5977862582790251842L;
 
     /**
@@ -145,6 +146,11 @@ public class DataPermissionDTO implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(id, userId, dataId, dataType, isSelected);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -154,14 +160,9 @@ public class DataPermissionDTO implements Serializable {
         }
         DataPermissionDTO that = (DataPermissionDTO) o;
         return Objects.equals(id, that.id)
-                && Objects.equals(userId, that.userId)
-                && Objects.equals(dataId, that.dataId)
-                && Objects.equals(dataType, that.dataType)
-                && Objects.equals(isSelected, that.isSelected);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, userId, dataId, dataType, isSelected);
+            && Objects.equals(userId, that.userId)
+            && Objects.equals(dataId, that.dataId)
+            && Objects.equals(dataType, that.dataType)
+            && Objects.equals(isSelected, that.isSelected);
     }
 }

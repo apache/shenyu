@@ -35,11 +35,11 @@ import org.apache.shenyu.admin.model.vo.PermissionMenuVO.AuthPerm;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.PermissionService;
 import org.apache.shenyu.admin.utils.JwtUtils;
-import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ResourceUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -56,13 +56,13 @@ import java.util.stream.Collectors;
  */
 @Service
 public class PermissionServiceImpl implements PermissionService {
-    
+
     private final PermissionMapper permissionMapper;
-    
+
     private final ResourceMapper resourceMapper;
-    
+
     private final DashboardProperties dashboardProperties;
-    
+
     public PermissionServiceImpl(final PermissionMapper permissionMapper,
                                  final ResourceMapper resourceMapper,
                                  final DashboardProperties dashboardProperties) {
@@ -70,7 +70,7 @@ public class PermissionServiceImpl implements PermissionService {
         this.resourceMapper = resourceMapper;
         this.dashboardProperties = dashboardProperties;
     }
-    
+
     /**
      * get user permission menu by token.
      *
@@ -83,14 +83,14 @@ public class PermissionServiceImpl implements PermissionService {
         if (Objects.isNull(userInfo)) {
             return null;
         }
-        
+
         List<ResourceVO> resourceVOList = getResourceListByUserName(userInfo.getUserName());
         if (CollectionUtils.isEmpty(resourceVOList)) {
             return null;
         }
         return new PermissionMenuVO(ResourceUtil.buildMenu(resourceVOList), getAuthPerm(resourceVOList), getAllAuthPerms());
     }
-    
+
     /**
      * get Auth perm by username for shiro.
      *
@@ -102,13 +102,12 @@ public class PermissionServiceImpl implements PermissionService {
         List<ResourceVO> resourceVOList = getResourceListByUserName(userName);
         if (CollectionUtils.isNotEmpty(resourceVOList)) {
             return getAuthPerm(resourceVOList).stream()
-                    .map(AuthPerm::getPerms)
-                    .collect(Collectors.toSet());
+                .map(AuthPerm::getPerms)
+                .collect(Collectors.toSet());
         }
         return Collections.emptySet();
     }
-    
-    
+
     /**
      * listen {@link ResourceCreatedEvent} add  permission.
      *
@@ -118,7 +117,7 @@ public class PermissionServiceImpl implements PermissionService {
     public void onResourcesCreated(final ResourceCreatedEvent event) {
         permissionMapper.insertSelective(buildPermissionFromResourceId(event.getResource().getId()));
     }
-    
+
     /**
      * listen {@link BatchResourceCreatedEvent} add  permission.
      *
@@ -128,7 +127,7 @@ public class PermissionServiceImpl implements PermissionService {
     public void onResourcesCreated(final BatchResourceCreatedEvent event) {
         permissionMapper.insertBatch(ListUtil.map(event.getDeletedIds(), this::buildPermissionFromResourceId));
     }
-    
+
     /**
      * listen {@link BatchResourceDeletedEvent} delete  permission.
      *
@@ -138,7 +137,7 @@ public class PermissionServiceImpl implements PermissionService {
     public void onResourcesCreated(final BatchResourceDeletedEvent event) {
         permissionMapper.deleteByResourceId(event.getDeletedIds());
     }
-    
+
     /**
      * listen {@link BatchRoleDeletedEvent} delete  permission.
      *
@@ -148,7 +147,7 @@ public class PermissionServiceImpl implements PermissionService {
     public void onRoleDeleted(final BatchRoleDeletedEvent event) {
         permissionMapper.deleteByObjectIds(event.getDeletedIds());
     }
-    
+
     /**
      * listen {@link RoleUpdatedEvent} delete  permission.
      *
@@ -158,7 +157,7 @@ public class PermissionServiceImpl implements PermissionService {
     public void onRoleUpdated(final RoleUpdatedEvent event) {
         manageRolePermission(event.getRole().getId(), event.getNewPermission());
     }
-    
+
     /**
      * get resource by username.
      *
@@ -171,19 +170,19 @@ public class PermissionServiceImpl implements PermissionService {
         }
         // filter [Only the super administrator root user has the privileges]
         return resourceMapper.selectByUserName(userName)
-                .stream()
-                .filter(r -> !dashboardProperties.getOnlySuperAdminPermission().contains(r.getPerms()))
-                .map(ResourceVO::buildResourceVO)
-                .collect(Collectors.toList());
+            .stream()
+            .filter(r -> !dashboardProperties.getOnlySuperAdminPermission().contains(r.getPerms()))
+            .map(ResourceVO::buildResourceVO)
+            .collect(Collectors.toList());
     }
-    
+
     private PermissionDO buildPermissionFromResourceId(final String resourceId) {
         return PermissionDO.buildPermissionDO(PermissionDTO.builder()
-                .objectId(AdminConstants.ROLE_SUPER_ID)
-                .resourceId(resourceId)
-                .build());
+            .objectId(AdminConstants.ROLE_SUPER_ID)
+            .resourceId(resourceId)
+            .build());
     }
-    
+
     /**
      * get AuthPerm by username.
      *
@@ -192,11 +191,11 @@ public class PermissionServiceImpl implements PermissionService {
      */
     private List<AuthPerm> getAuthPerm(final List<ResourceVO> resourceVOList) {
         return resourceVOList.stream()
-                .filter(item -> item.getResourceType().equals(ResourceTypeConstants.MENU_TYPE_2))
-                .map(AuthPerm::buildAuthPerm)
-                .collect(Collectors.toList());
+            .filter(item -> item.getResourceType().equals(ResourceTypeConstants.MENU_TYPE_2))
+            .map(AuthPerm::buildAuthPerm)
+            .collect(Collectors.toList());
     }
-    
+
     /**
      * get All AuthPerm.
      *
@@ -204,12 +203,11 @@ public class PermissionServiceImpl implements PermissionService {
      */
     private List<AuthPerm> getAllAuthPerms() {
         return resourceMapper.selectByResourceType(ResourceTypeConstants.MENU_TYPE_2)
-                .stream()
-                .map(item -> AuthPerm.buildAuthPerm(ResourceVO.buildResourceVO(item)))
-                .collect(Collectors.toList());
+            .stream()
+            .map(item -> AuthPerm.buildAuthPerm(ResourceVO.buildResourceVO(item)))
+            .collect(Collectors.toList());
     }
-    
-    
+
     /**
      * manger role permission.
      *
@@ -218,26 +216,26 @@ public class PermissionServiceImpl implements PermissionService {
      */
     private void manageRolePermission(final String roleId, final List<String> currentPermissionList) {
         List<String> lastPermissionList = permissionMapper.findByObjectId(roleId)
-                .stream()
-                .map(PermissionDO::getResourceId)
-                .collect(Collectors.toList());
+            .stream()
+            .map(PermissionDO::getResourceId)
+            .collect(Collectors.toList());
         List<String> addPermission = getListDiff(lastPermissionList, currentPermissionList);
         if (CollectionUtils.isNotEmpty(addPermission)) {
             batchSavePermission(addPermission.stream()
-                    .map(node -> PermissionDO.buildPermissionDO(PermissionDTO
-                            .builder()
-                            .objectId(roleId)
-                            .resourceId(node)
-                            .build()))
-                    .collect(Collectors.toList()));
+                .map(node -> PermissionDO.buildPermissionDO(PermissionDTO
+                    .builder()
+                    .objectId(roleId)
+                    .resourceId(node)
+                    .build()))
+                .collect(Collectors.toList()));
         }
-        
+
         List<String> deletePermission = getListDiff(currentPermissionList, lastPermissionList);
         if (CollectionUtils.isNotEmpty(deletePermission)) {
             deletePermission.forEach(node -> deleteByObjectIdAndResourceId(new PermissionQuery(roleId, node)));
         }
     }
-    
+
     /**
      * get two list different.
      *
@@ -249,19 +247,19 @@ public class PermissionServiceImpl implements PermissionService {
         if (CollectionUtils.isEmpty(lastList)) {
             return Collections.emptyList();
         }
-        
+
         if (CollectionUtils.isEmpty(preList)) {
             return lastList;
         }
-        
+
         Map<String, Integer> map = preList.stream()
-                .distinct()
-                .collect(Collectors.toMap(Function.identity(), source -> 1));
+            .distinct()
+            .collect(Collectors.toMap(Function.identity(), source -> 1));
         return lastList.stream()
-                .filter(item -> !map.containsKey(item))
-                .collect(Collectors.toList());
+            .filter(item -> !map.containsKey(item))
+            .collect(Collectors.toList());
     }
-    
+
     /**
      * batch save permission.
      *
@@ -270,7 +268,7 @@ public class PermissionServiceImpl implements PermissionService {
     private void batchSavePermission(final List<PermissionDO> permissionDOList) {
         permissionDOList.forEach(permissionMapper::insertSelective);
     }
-    
+
     /**
      * delete by object and resource id.
      *

@@ -108,6 +108,7 @@ public class ProxyGatewayDTO {
 
     /**
      * get header json.
+     *
      * @return header json
      */
     public Object getHeaders() {

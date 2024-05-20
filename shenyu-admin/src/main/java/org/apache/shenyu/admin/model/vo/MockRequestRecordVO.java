@@ -17,13 +17,15 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import java.io.Serializable;
 import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
+
+import java.io.Serializable;
 
 /**
  * MockRequestRecordVO.
  */
 public class MockRequestRecordVO implements Serializable {
+
     private static final long serialVersionUID = -7675972300371815619L;
 
     /**
@@ -98,6 +100,37 @@ public class MockRequestRecordVO implements Serializable {
         this.body = body;
         this.dateCreated = dateCreated;
         this.dateUpdated = dateUpdated;
+    }
+
+    /**
+     * buildMockRequestRecordVO.
+     *
+     * @param mockRequestRecordDO mockRequestRecordDO
+     * @return MockRequestRecordVO
+     */
+    public static MockRequestRecordVO buildMockRequestRecordVO(final MockRequestRecordDO mockRequestRecordDO) {
+        return MockRequestRecordVO.builder()
+            .id(mockRequestRecordDO.getId())
+            .apiId(mockRequestRecordDO.getApiId())
+            .header(mockRequestRecordDO.getHeader())
+            .host(mockRequestRecordDO.getHost())
+            .port(mockRequestRecordDO.getPort())
+            .query(mockRequestRecordDO.getQuery())
+            .pathVariable(mockRequestRecordDO.getPathVariable())
+            .url(mockRequestRecordDO.getUrl())
+            .body(mockRequestRecordDO.getBody())
+            .dateCreated("")
+            .dateUpdated("")
+            .build();
+    }
+
+    /**
+     * builder.
+     *
+     * @return ApiVOBuilder
+     */
+    public static MockRequestRecordVO.MockRequestRecordVOBuilder builder() {
+        return new MockRequestRecordVO.MockRequestRecordVOBuilder();
     }
 
     /**
@@ -299,39 +332,10 @@ public class MockRequestRecordVO implements Serializable {
     }
 
     /**
-     * builder.
-     *
-     * @return ApiVOBuilder
-     */
-    public static MockRequestRecordVO.MockRequestRecordVOBuilder builder() {
-        return new MockRequestRecordVO.MockRequestRecordVOBuilder();
-    }
-
-    /**
-     * buildMockRequestRecordVO.
-     * @param mockRequestRecordDO mockRequestRecordDO
-     * @return MockRequestRecordVO
-     */
-    public static MockRequestRecordVO buildMockRequestRecordVO(final MockRequestRecordDO mockRequestRecordDO) {
-        return MockRequestRecordVO.builder()
-                .id(mockRequestRecordDO.getId())
-                .apiId(mockRequestRecordDO.getApiId())
-                .header(mockRequestRecordDO.getHeader())
-                .host(mockRequestRecordDO.getHost())
-                .port(mockRequestRecordDO.getPort())
-                .query(mockRequestRecordDO.getQuery())
-                .pathVariable(mockRequestRecordDO.getPathVariable())
-                .url(mockRequestRecordDO.getUrl())
-                .body(mockRequestRecordDO.getBody())
-                .dateCreated("")
-                .dateUpdated("")
-                .build();
-    }
-    
-    /**
      * MockRequestRecordVOBuilder.
      */
     public static final class MockRequestRecordVOBuilder {
+
         /**
          * primary key id.
          */
@@ -389,6 +393,7 @@ public class MockRequestRecordVO implements Serializable {
 
         /**
          * set id.
+         *
          * @param id id
          * @return MockRequestRecordVOBuilder
          */
@@ -399,6 +404,7 @@ public class MockRequestRecordVO implements Serializable {
 
         /**
          * set apiId.
+         *
          * @param apiId apiId
          * @return MockRequestRecordVOBuilder
          */
@@ -409,6 +415,7 @@ public class MockRequestRecordVO implements Serializable {
 
         /**
          * set host.
+         *
          * @param host host
          * @return MockRequestRecordVOBuilder
          */
@@ -419,6 +426,7 @@ public class MockRequestRecordVO implements Serializable {
 
         /**
          * set port.
+         *
          * @param port port
          * @return MockRequestRecordVOBuilder
          */
@@ -429,6 +437,7 @@ public class MockRequestRecordVO implements Serializable {
 
         /**
          * set url.
+         *
          * @param url url
          * @return MockRequestRecordVOBuilder
          */
@@ -439,6 +448,7 @@ public class MockRequestRecordVO implements Serializable {
 
         /**
          * set pathVariable.
+         *
          * @param pathVariable pathVariable
          * @return MockRequestRecordVOBuilder
          */
@@ -449,6 +459,7 @@ public class MockRequestRecordVO implements Serializable {
 
         /**
          * set query.
+         *
          * @param query query
          * @return MockRequestRecordVOBuilder
          */
@@ -459,6 +470,7 @@ public class MockRequestRecordVO implements Serializable {
 
         /**
          * set header.
+         *
          * @param header header
          * @return MockRequestRecordVOBuilder
          */
@@ -469,6 +481,7 @@ public class MockRequestRecordVO implements Serializable {
 
         /**
          * set body.
+         *
          * @param body body
          * @return MockRequestRecordVOBuilder
          */
@@ -479,6 +492,7 @@ public class MockRequestRecordVO implements Serializable {
 
         /**
          * set dateCreated.
+         *
          * @param dateCreated dateCreated
          * @return MockRequestRecordVOBuilder
          */
@@ -489,6 +503,7 @@ public class MockRequestRecordVO implements Serializable {
 
         /**
          * set dateUpdated.
+         *
          * @param dateUpdated dateUpdated.
          * @return MockRequestRecordVOBuilder
          */
@@ -499,6 +514,7 @@ public class MockRequestRecordVO implements Serializable {
 
         /**
          * build.
+         *
          * @return MockRequestRecordVO
          */
         public MockRequestRecordVO build() {

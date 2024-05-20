@@ -79,6 +79,15 @@ public final class RuleConditionDTO implements Serializable {
     }
 
     /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static RuleConditionDTO.RuleConditionDTOBuilder builder() {
+        return new RuleConditionDTO.RuleConditionDTOBuilder();
+    }
+
+    /**
      * Gets the value of id.
      *
      * @return the value of id
@@ -186,13 +195,9 @@ public final class RuleConditionDTO implements Serializable {
         this.paramValue = paramValue;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static RuleConditionDTO.RuleConditionDTOBuilder builder() {
-        return new RuleConditionDTO.RuleConditionDTOBuilder();
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, ruleId, paramType, operator, paramName, paramValue);
     }
 
     @Override
@@ -205,16 +210,11 @@ public final class RuleConditionDTO implements Serializable {
         }
         RuleConditionDTO that = (RuleConditionDTO) o;
         return Objects.equals(id, that.id)
-                && Objects.equals(ruleId, that.ruleId)
-                && Objects.equals(paramType, that.paramType)
-                && Objects.equals(operator, that.operator)
-                && Objects.equals(paramName, that.paramName)
-                && Objects.equals(paramValue, that.paramValue);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, ruleId, paramType, operator, paramName, paramValue);
+            && Objects.equals(ruleId, that.ruleId)
+            && Objects.equals(paramType, that.paramType)
+            && Objects.equals(operator, that.operator)
+            && Objects.equals(paramName, that.paramName)
+            && Objects.equals(paramValue, that.paramValue);
     }
 
     public static final class RuleConditionDTOBuilder {

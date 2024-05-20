@@ -44,6 +44,23 @@ public class DashboardUserEditVO extends DashboardUserVO {
     }
 
     /**
+     * get edit user info.
+     *
+     * @param dashboardUserVO {@linkplain DashboardUserVO}
+     * @param roles           {@linkplain List}
+     * @param allRoles        {@linkplain List}
+     * @return {@linkplain DashboardUserEditVO}
+     */
+    public static DashboardUserEditVO buildDashboardUserEditVO(final DashboardUserVO dashboardUserVO, final List<RoleVO> roles, final List<RoleVO> allRoles) {
+        return Optional.ofNullable(dashboardUserVO).map(item -> {
+            DashboardUserEditVO vo = DashboardUserTransfer.INSTANCE.transfer2EditVO(dashboardUserVO);
+            vo.setRoles(roles);
+            vo.setAllRoles(allRoles);
+            return vo;
+        }).orElse(null);
+    }
+
+    /**
      * Gets the value of roles.
      *
      * @return the value of roles
@@ -79,21 +96,9 @@ public class DashboardUserEditVO extends DashboardUserVO {
         this.allRoles = allRoles;
     }
 
-    /**
-     * get edit user info.
-     *
-     * @param dashboardUserVO {@linkplain DashboardUserVO}
-     * @param roles {@linkplain List}
-     * @param allRoles {@linkplain List}
-     * @return {@linkplain DashboardUserEditVO}
-     */
-    public static DashboardUserEditVO buildDashboardUserEditVO(final DashboardUserVO dashboardUserVO, final List<RoleVO> roles, final List<RoleVO> allRoles) {
-        return Optional.ofNullable(dashboardUserVO).map(item -> {
-            DashboardUserEditVO vo = DashboardUserTransfer.INSTANCE.transfer2EditVO(dashboardUserVO);
-            vo.setRoles(roles);
-            vo.setAllRoles(allRoles);
-            return vo;
-        }).orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), roles, allRoles);
     }
 
     @Override
@@ -109,10 +114,5 @@ public class DashboardUserEditVO extends DashboardUserVO {
         }
         DashboardUserEditVO that = (DashboardUserEditVO) o;
         return Objects.equals(roles, that.roles) && Objects.equals(allRoles, that.allRoles);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), roles, allRoles);
     }
 }

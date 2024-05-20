@@ -68,6 +68,19 @@ public class RoleVO implements Serializable {
     }
 
     /**
+     * build roleVO.
+     *
+     * @param roleDO {@linkplain RoleDO}
+     * @return {@linkplain RoleVO}
+     */
+    public static RoleVO buildRoleVO(final RoleDO roleDO) {
+        return Optional.ofNullable(roleDO)
+            .map(item -> new RoleVO(item.getId(), item.getRoleName(),
+                item.getDescription(), DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
+                DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime()))).orElse(null);
+    }
+
+    /**
      * Gets the value of id.
      *
      * @return the value of id
@@ -157,17 +170,9 @@ public class RoleVO implements Serializable {
         this.dateUpdated = dateUpdated;
     }
 
-    /**
-     * build roleVO.
-     *
-     * @param roleDO {@linkplain RoleDO}
-     * @return {@linkplain RoleVO}
-     */
-    public static RoleVO buildRoleVO(final RoleDO roleDO) {
-        return Optional.ofNullable(roleDO)
-                .map(item -> new RoleVO(item.getId(), item.getRoleName(),
-                        item.getDescription(), DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
-                        DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime()))).orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, roleName, description, dateCreated, dateUpdated);
     }
 
     @Override
@@ -180,25 +185,20 @@ public class RoleVO implements Serializable {
         }
         RoleVO roleVO = (RoleVO) o;
         return Objects.equals(id, roleVO.id)
-                && Objects.equals(roleName, roleVO.roleName)
-                && Objects.equals(description, roleVO.description)
-                && Objects.equals(dateCreated, roleVO.dateCreated)
-                && Objects.equals(dateUpdated, roleVO.dateUpdated);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, roleName, description, dateCreated, dateUpdated);
+            && Objects.equals(roleName, roleVO.roleName)
+            && Objects.equals(description, roleVO.description)
+            && Objects.equals(dateCreated, roleVO.dateCreated)
+            && Objects.equals(dateUpdated, roleVO.dateUpdated);
     }
 
     @Override
     public String toString() {
         return "RoleVO{"
-                + "id='" + id + '\''
-                + ", roleName='" + roleName + '\''
-                + ", description='" + description + '\''
-                + ", dateCreated='" + dateCreated + '\''
-                + ", dateUpdated='" + dateUpdated + '\''
-                + '}';
+            + "id='" + id + '\''
+            + ", roleName='" + roleName + '\''
+            + ", description='" + description + '\''
+            + ", dateCreated='" + dateCreated + '\''
+            + ", dateUpdated='" + dateUpdated + '\''
+            + '}';
     }
 }

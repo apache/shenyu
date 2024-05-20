@@ -20,20 +20,20 @@ package org.apache.shenyu.admin.listener;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.ProxySelectorService;
-import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConfigData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -45,7 +45,6 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
 
 /**
  * Abstract class for ConfigEventListener.
@@ -169,7 +168,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updatePluginCache();
         this.afterPluginChanged(changed, eventType);
     }
-    
+
     /**
      * After plugin changed.
      *
@@ -178,7 +177,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
     }
-    
+
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -187,7 +186,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateRuleCache();
         this.afterRuleChanged(changed, eventType);
     }
-    
+
     /**
      * After rule changed.
      *
@@ -196,7 +195,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
     }
-    
+
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -282,7 +281,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
         LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
     }
-    
+
     /**
      * refresh local cache.
      */
@@ -316,14 +315,14 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     protected void updatePluginCache() {
         this.updateCache(ConfigGroupEnum.PLUGIN, pluginService.listAll());
     }
-    
+
     /**
      * Update app auth cache.
      */
     protected void updateAppAuthCache() {
         this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAll());
     }
-    
+
     /**
      * Update meta data cache.
      */

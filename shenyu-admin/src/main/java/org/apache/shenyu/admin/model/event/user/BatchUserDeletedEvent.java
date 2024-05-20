@@ -32,10 +32,9 @@ import java.util.stream.Collectors;
  * BatchPluginDeletedEvent.
  */
 public class BatchUserDeletedEvent extends BatchChangedEvent {
-    
+
     private final List<String> deletedIds;
-    
-    
+
     /**
      * Create a new {@code BatchChangedEvent}.operator is unknown.
      *
@@ -47,16 +46,16 @@ public class BatchUserDeletedEvent extends BatchChangedEvent {
         this.deletedIds = ListUtil.map(source, BaseDO::getId);
 
     }
-    
+
     @Override
     public String buildContext() {
         final String selector = ((Collection<?>) getSource())
-                .stream()
-                .map(s -> ((DashboardUserDO) s).getUserName())
-                .collect(Collectors.joining(","));
+            .stream()
+            .map(s -> ((DashboardUserDO) s).getUserName())
+            .collect(Collectors.joining(","));
         return String.format("the user[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
     }
-    
+
     /**
      * get users.
      *
@@ -64,11 +63,11 @@ public class BatchUserDeletedEvent extends BatchChangedEvent {
      */
     public List<DashboardUserDO> getUsers() {
         return ((Collection<?>) getSource())
-                .stream()
-                .map(DashboardUserDO.class::cast)
-                .collect(Collectors.toList());
+            .stream()
+            .map(DashboardUserDO.class::cast)
+            .collect(Collectors.toList());
     }
-    
+
     /**
      * get deleted ids.
      *

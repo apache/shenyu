@@ -74,6 +74,65 @@ public final class AppAuthDO extends BaseDO {
     }
 
     /**
+     * Build AppAuthDO object with given AppAuthDTO object.
+     *
+     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @return {@linkplain AppAuthDO}
+     */
+    public static AppAuthDO create(final AppAuthDTO appAuthDTO) {
+        return Optional.ofNullable(appAuthDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            AppAuthDO appAuthDO = AppAuthDO.builder()
+                .appKey(item.getAppKey())
+                .appSecret(item.getAppSecret())
+                .open(item.getOpen())
+                .enabled(item.getEnabled())
+                .dateUpdated(currentTime)
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                appAuthDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                appAuthDO.setDateCreated(currentTime);
+            } else {
+                appAuthDO.setId(item.getId());
+            }
+            return appAuthDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static AppAuthDO.AppAuthDOBuilder builder() {
+        return new AppAuthDO.AppAuthDOBuilder();
+    }
+
+    /**
+     * Build AppAuthDO object with given AuthApplyDTO object.
+     *
+     * @param authApplyDTO {@linkplain AuthApplyDTO}
+     * @return {@linkplain AppAuthDO}
+     */
+    public static AppAuthDO create(final AuthApplyDTO authApplyDTO) {
+        return Optional.ofNullable(authApplyDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            return AppAuthDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .userId(item.getUserId())
+                .phone(item.getPhone())
+                .extInfo(item.getExtInfo())
+                .appKey(SignUtils.generateKey())
+                .appSecret(SignUtils.generateKey())
+                .open(item.getOpen())
+                .enabled(true)
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
+        }).orElse(null);
+    }
+
+    /**
      * Gets the value of appKey.
      *
      * @return the value of appKey
@@ -199,63 +258,9 @@ public final class AppAuthDO extends BaseDO {
         this.extInfo = extInfo;
     }
 
-    /**
-     * Build AppAuthDO object with given AppAuthDTO object.
-     *
-     * @param appAuthDTO {@linkplain AppAuthDTO}
-     * @return {@linkplain AppAuthDO}
-     */
-    public static AppAuthDO create(final AppAuthDTO appAuthDTO) {
-        return Optional.ofNullable(appAuthDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            AppAuthDO appAuthDO = AppAuthDO.builder()
-                    .appKey(item.getAppKey())
-                    .appSecret(item.getAppSecret())
-                    .open(item.getOpen())
-                    .enabled(item.getEnabled())
-                    .dateUpdated(currentTime)
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                appAuthDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                appAuthDO.setDateCreated(currentTime);
-            } else {
-                appAuthDO.setId(item.getId());
-            }
-            return appAuthDO;
-        }).orElse(null);
-    }
-
-    /**
-     * Build AppAuthDO object with given AuthApplyDTO object.
-     *
-     * @param authApplyDTO {@linkplain AuthApplyDTO}
-     * @return {@linkplain AppAuthDO}
-     */
-    public static AppAuthDO create(final AuthApplyDTO authApplyDTO) {
-        return Optional.ofNullable(authApplyDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            return AppAuthDO.builder()
-                    .id(UUIDUtils.getInstance().generateShortUuid())
-                    .userId(item.getUserId())
-                    .phone(item.getPhone())
-                    .extInfo(item.getExtInfo())
-                    .appKey(SignUtils.generateKey())
-                    .appSecret(SignUtils.generateKey())
-                    .open(item.getOpen())
-                    .enabled(true)
-                    .dateCreated(currentTime)
-                    .dateUpdated(currentTime)
-                    .build();
-        }).orElse(null);
-    }
-
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static AppAuthDO.AppAuthDOBuilder builder() {
-        return new AppAuthDO.AppAuthDOBuilder();
+    @Override
+    public int hashCode() {
+        return Objects.hash(appKey, appSecret, enabled, open, userId, phone, extInfo);
     }
 
     @Override
@@ -271,17 +276,12 @@ public final class AppAuthDO extends BaseDO {
             return false;
         }
         return appKey.equals(appAuthDO.appKey)
-                && appSecret.equals(appAuthDO.appSecret)
-                && enabled.equals(appAuthDO.enabled)
-                && open.equals(appAuthDO.open)
-                && userId.equals(appAuthDO.userId)
-                && phone.equals(appAuthDO.phone)
-                && extInfo.equals(appAuthDO.extInfo);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(appKey, appSecret, enabled, open, userId, phone, extInfo);
+            && appSecret.equals(appAuthDO.appSecret)
+            && enabled.equals(appAuthDO.enabled)
+            && open.equals(appAuthDO.open)
+            && userId.equals(appAuthDO.userId)
+            && phone.equals(appAuthDO.phone)
+            && extInfo.equals(appAuthDO.extInfo);
     }
 
     public static final class AppAuthDOBuilder {

@@ -17,13 +17,14 @@
 
 package org.apache.shenyu.admin.model.event.user;
 
-import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.common.utils.DigestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -39,20 +40,20 @@ public class BatchUserDeletedEventTest {
     @BeforeEach
     public void setUp() {
         one = DashboardUserDO.builder()
-                .id("1")
-                .userName("adminOneTest")
-                .password(DigestUtils.sha512Hex("123456"))
-                .role(1)
-                .enabled(true)
-                .build();
+            .id("1")
+            .userName("adminOneTest")
+            .password(DigestUtils.sha512Hex("123456"))
+            .role(1)
+            .enabled(true)
+            .build();
 
         two = DashboardUserDO.builder()
-                .id("2")
-                .userName("adminTwoTest")
-                .password(DigestUtils.sha512Hex("123457"))
-                .role(2)
-                .enabled(true)
-                .build();
+            .id("2")
+            .userName("adminTwoTest")
+            .password(DigestUtils.sha512Hex("123457"))
+            .role(2)
+            .enabled(true)
+            .build();
     }
 
     @Test
@@ -60,7 +61,7 @@ public class BatchUserDeletedEventTest {
         BatchUserDeletedEvent batchUserDeletedEvent = new BatchUserDeletedEvent(Arrays.asList(one, two), "test-operator");
 
         String context = String.format("the user[%s] is %s",
-                one.getUserName() + "," + two.getUserName(), StringUtils.lowerCase(EventTypeEnum.USER_DELETE.getType().toString()));
+            one.getUserName() + "," + two.getUserName(), StringUtils.lowerCase(EventTypeEnum.USER_DELETE.getType().toString()));
 
         assertEquals(context, batchUserDeletedEvent.buildContext());
     }

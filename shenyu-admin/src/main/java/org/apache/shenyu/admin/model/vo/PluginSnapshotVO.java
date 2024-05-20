@@ -21,37 +21,37 @@ package org.apache.shenyu.admin.model.vo;
  * PluginSnapshotVO.
  */
 public class PluginSnapshotVO {
-    
+
     /**
      * plugin id.
      */
     private String id;
-    
+
     /**
      * plugin name.
      */
     private String name;
-    
+
     /**
      * plugin config.
      */
     private String config;
-    
+
     /**
      * plugin rule.
      */
     private String role;
-    
+
     /**
      * plugin handle count.
      */
     private Integer handleCount;
-    
+
     /**
      * plugin selector count.
      */
     private Integer selectorCount;
-    
+
     /**
      * get id.
      *
@@ -60,7 +60,7 @@ public class PluginSnapshotVO {
     public String getId() {
         return id;
     }
-    
+
     /**
      * set id.
      *
@@ -69,7 +69,7 @@ public class PluginSnapshotVO {
     public void setId(final String id) {
         this.id = id;
     }
-    
+
     /**
      * get name.
      *
@@ -78,7 +78,7 @@ public class PluginSnapshotVO {
     public String getName() {
         return name;
     }
-    
+
     /**
      * set name.
      *
@@ -87,7 +87,7 @@ public class PluginSnapshotVO {
     public void setName(final String name) {
         this.name = name;
     }
-    
+
     /**
      * get config.
      *
@@ -96,7 +96,7 @@ public class PluginSnapshotVO {
     public String getConfig() {
         return config;
     }
-    
+
     /**
      * set config.
      *
@@ -105,7 +105,7 @@ public class PluginSnapshotVO {
     public void setConfig(final String config) {
         this.config = config;
     }
-    
+
     /**
      * get role.
      *
@@ -114,7 +114,7 @@ public class PluginSnapshotVO {
     public String getRole() {
         return role;
     }
-    
+
     /**
      * set role.
      *
@@ -123,7 +123,7 @@ public class PluginSnapshotVO {
     public void setRole(final String role) {
         this.role = role;
     }
-    
+
     /**
      * get handle count.
      *
@@ -132,7 +132,7 @@ public class PluginSnapshotVO {
     public Integer getHandleCount() {
         return handleCount;
     }
-    
+
     /**
      * set handle count.
      *
@@ -141,7 +141,7 @@ public class PluginSnapshotVO {
     public void setHandleCount(final Integer handleCount) {
         this.handleCount = handleCount;
     }
-    
+
     /**
      * get selector count.
      *
@@ -150,7 +150,7 @@ public class PluginSnapshotVO {
     public Integer getSelectorCount() {
         return selectorCount;
     }
-    
+
     /**
      * set selector count.
      *
@@ -159,16 +159,16 @@ public class PluginSnapshotVO {
     public void setSelectorCount(final Integer selectorCount) {
         this.selectorCount = selectorCount;
     }
-    
+
     @Override
     public String toString() {
         return "PluginSnapshotVO{"
-                + "id='" + id + '\''
-                + ", name='" + name + '\''
-                + ", config='" + config + '\''
-                + ", role='" + role + '\''
-                + ", handleCount=" + handleCount
-                + ", selectorCount=" + selectorCount
-                + '}';
+            + "id='" + id + '\''
+            + ", name='" + name + '\''
+            + ", config='" + config + '\''
+            + ", role='" + role + '\''
+            + ", handleCount=" + handleCount
+            + ", selectorCount=" + selectorCount
+            + '}';
     }
 }

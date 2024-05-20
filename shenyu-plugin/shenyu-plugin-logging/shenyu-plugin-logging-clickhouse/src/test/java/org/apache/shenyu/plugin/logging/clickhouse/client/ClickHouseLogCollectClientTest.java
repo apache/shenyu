@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.logging.clickhouse.client;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.clickhouse.config.ClickHouseLogCollectConfig;
@@ -28,6 +26,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * test cases for ClickHouseLogCollectClient.

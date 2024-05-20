@@ -119,9 +119,9 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
         }
     }
 
-
     /**
      * get endpointsLister.
+     *
      * @return endpointsLister
      */
     public Lister<V1Endpoints> getEndpointsLister() {

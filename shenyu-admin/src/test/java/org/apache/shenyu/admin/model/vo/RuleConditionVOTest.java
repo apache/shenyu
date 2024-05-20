@@ -21,9 +21,10 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
+import org.junit.jupiter.api.Test;
+
 import java.sql.Timestamp;
 
-import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -40,10 +41,10 @@ public final class RuleConditionVOTest extends AbstractReflectGetterSetterTest {
     public void testBuildRuleConditionVO() {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         assertNotNull(RuleConditionVO.buildRuleConditionVO(RuleConditionDO.builder()
-                .paramType(ParamTypeEnum.POST.getName())
-                .operator(OperatorEnum.MATCH.getAlias())
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .build()));
+            .paramType(ParamTypeEnum.POST.getName())
+            .operator(OperatorEnum.MATCH.getAlias())
+            .dateCreated(currentTime)
+            .dateUpdated(currentTime)
+            .build()));
     }
 }

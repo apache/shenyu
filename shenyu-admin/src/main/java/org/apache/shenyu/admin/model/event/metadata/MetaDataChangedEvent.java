@@ -28,8 +28,7 @@ import java.util.Objects;
  * MetaDataChangedEvent.
  */
 public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
-    
-    
+
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
@@ -41,7 +40,7 @@ public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
     public MetaDataChangedEvent(final MetaDataDO source, final MetaDataDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
-    
+
     @Override
     public String buildContext() {
         final MetaDataDO after = (MetaDataDO) getAfter();
@@ -49,9 +48,9 @@ public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
             return String.format("the metadata [%s %s] is %s", after.getAppName(), after.getPath(), StringUtils.lowerCase(getType().getType().toString()));
         }
         return String.format("the metadata [%s %s] is %s : %s", after.getAppName(), after.getPath(), StringUtils.lowerCase(getType().getType().toString()), contrast());
-        
+
     }
-    
+
     private String contrast() {
         final MetaDataDO before = (MetaDataDO) getBefore();
         Objects.requireNonNull(before);
@@ -90,7 +89,7 @@ public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
         }
         return builder.toString();
     }
-    
+
     @Override
     public String eventName() {
         return "meta data";

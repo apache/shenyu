@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Test case for {@linkplain SelectorChangedEvent}.
  */
 public final class SelectorChangedEventTest {
+
     private SelectorDO before;
 
     private SelectorDO after;
@@ -42,69 +43,6 @@ public final class SelectorChangedEventTest {
     public void init() {
         before = buildBeforeSelectorDO();
         after = buildAfterSelectorDO();
-    }
-
-    @Test
-    void buildContextAndBeforeIsNull() {
-        SelectorChangedEvent selectorChangedEvent
-                = new SelectorChangedEvent(before, null, EventTypeEnum.SELECTOR_CREATE, "test-operator");
-
-        SelectorDO after = (SelectorDO) selectorChangedEvent.getAfter();
-        String expectMsg = String.format("the selector [%s] is %s", after.getName(), StringUtils.lowerCase(selectorChangedEvent.getType().getType().toString()));
-
-        String actualMsg = selectorChangedEvent.buildContext();
-
-        assertEquals(expectMsg, actualMsg);
-    }
-
-    @Test
-    void buildContextAndBeforeNotNullAndNoChange() {
-        SelectorChangedEvent selectorChangedEvent
-                = new SelectorChangedEvent(before, before, EventTypeEnum.SELECTOR_CREATE, "test-operator");
-
-        String changeMsg = "it no change";
-        SelectorDO after = (SelectorDO) selectorChangedEvent.getAfter();
-        String expectMsg = String.format("the selector [%s] is %s : %s", after.getName(), StringUtils.lowerCase(selectorChangedEvent.getType().getType().toString()), changeMsg);
-
-        String actualMsg = selectorChangedEvent.buildContext();
-
-        assertEquals(expectMsg, actualMsg);
-    }
-
-    @Test
-    void buildContextAndBeforeNotNullAndAllChange() {
-        SelectorChangedEvent selectorChangedEvent
-                = new SelectorChangedEvent(before, after, EventTypeEnum.SELECTOR_CREATE, "test-operator");
-
-        SelectorDO before = (SelectorDO) selectorChangedEvent.getBefore();
-        SelectorDO after = (SelectorDO) selectorChangedEvent.getAfter();
-
-        final StringBuilder builder = new StringBuilder();
-        builder.append(String.format("name[%s => %s] ", before.getName(), after.getName()));
-        builder.append(String.format("handle[%s => %s] ", before.getHandle(), after.getHandle()));
-        builder.append(String.format("type[%s => %s] ", before.getType(), after.getType()));
-        builder.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));
-        builder.append(String.format("sort[%s => %s] ", before.getSort(), after.getSort()));
-        builder.append(String.format("loged[%s => %s] ", before.getLoged(), after.getLoged()));
-
-        String changeMsg = builder.toString();
-        String expectMsg = String.format("the selector [%s] is %s : %s", after.getName(), StringUtils.lowerCase(selectorChangedEvent.getType().getType().toString()), changeMsg);
-
-        String actualMsg = selectorChangedEvent.buildContext();
-
-        assertEquals(expectMsg, actualMsg);
-    }
-
-    @Test
-    void eventName() {
-        SelectorChangedEvent selectorChangedEvent
-                = new SelectorChangedEvent(before, null, EventTypeEnum.SELECTOR_CREATE, "test-operator");
-
-        String expectName = "selector";
-
-        String actualName = selectorChangedEvent.eventName();
-
-        assertEquals(expectName, actualName);
     }
 
     private SelectorDO buildBeforeSelectorDO() {
@@ -141,5 +79,68 @@ public final class SelectorChangedEventTest {
         selectorDO.setSort(1);
         selectorDO.setLoged(false);
         return selectorDO;
+    }
+
+    @Test
+    void buildContextAndBeforeIsNull() {
+        SelectorChangedEvent selectorChangedEvent
+            = new SelectorChangedEvent(before, null, EventTypeEnum.SELECTOR_CREATE, "test-operator");
+
+        SelectorDO after = (SelectorDO) selectorChangedEvent.getAfter();
+        String expectMsg = String.format("the selector [%s] is %s", after.getName(), StringUtils.lowerCase(selectorChangedEvent.getType().getType().toString()));
+
+        String actualMsg = selectorChangedEvent.buildContext();
+
+        assertEquals(expectMsg, actualMsg);
+    }
+
+    @Test
+    void buildContextAndBeforeNotNullAndNoChange() {
+        SelectorChangedEvent selectorChangedEvent
+            = new SelectorChangedEvent(before, before, EventTypeEnum.SELECTOR_CREATE, "test-operator");
+
+        String changeMsg = "it no change";
+        SelectorDO after = (SelectorDO) selectorChangedEvent.getAfter();
+        String expectMsg = String.format("the selector [%s] is %s : %s", after.getName(), StringUtils.lowerCase(selectorChangedEvent.getType().getType().toString()), changeMsg);
+
+        String actualMsg = selectorChangedEvent.buildContext();
+
+        assertEquals(expectMsg, actualMsg);
+    }
+
+    @Test
+    void buildContextAndBeforeNotNullAndAllChange() {
+        SelectorChangedEvent selectorChangedEvent
+            = new SelectorChangedEvent(before, after, EventTypeEnum.SELECTOR_CREATE, "test-operator");
+
+        SelectorDO before = (SelectorDO) selectorChangedEvent.getBefore();
+        SelectorDO after = (SelectorDO) selectorChangedEvent.getAfter();
+
+        final StringBuilder builder = new StringBuilder();
+        builder.append(String.format("name[%s => %s] ", before.getName(), after.getName()));
+        builder.append(String.format("handle[%s => %s] ", before.getHandle(), after.getHandle()));
+        builder.append(String.format("type[%s => %s] ", before.getType(), after.getType()));
+        builder.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));
+        builder.append(String.format("sort[%s => %s] ", before.getSort(), after.getSort()));
+        builder.append(String.format("loged[%s => %s] ", before.getLoged(), after.getLoged()));
+
+        String changeMsg = builder.toString();
+        String expectMsg = String.format("the selector [%s] is %s : %s", after.getName(), StringUtils.lowerCase(selectorChangedEvent.getType().getType().toString()), changeMsg);
+
+        String actualMsg = selectorChangedEvent.buildContext();
+
+        assertEquals(expectMsg, actualMsg);
+    }
+
+    @Test
+    void eventName() {
+        SelectorChangedEvent selectorChangedEvent
+            = new SelectorChangedEvent(before, null, EventTypeEnum.SELECTOR_CREATE, "test-operator");
+
+        String expectName = "selector";
+
+        String actualName = selectorChangedEvent.eventName();
+
+        assertEquals(expectName, actualName);
     }
 }

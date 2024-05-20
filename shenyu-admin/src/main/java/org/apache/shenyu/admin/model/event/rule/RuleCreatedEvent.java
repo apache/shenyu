@@ -24,8 +24,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  * RuleCreatedEvent.
  */
 public class RuleCreatedEvent extends RuleChangedEvent {
-    
-    
+
     /**
      * Create a new {@code SelectorChangedEvent}.operator is unknown.
      *
@@ -35,7 +34,7 @@ public class RuleCreatedEvent extends RuleChangedEvent {
     public RuleCreatedEvent(final RuleDO source, final String operator) {
         super(source, null, EventTypeEnum.RULE_CREATE, operator);
     }
-    
+
     /**
      * the created selector.
      *
@@ -44,5 +43,5 @@ public class RuleCreatedEvent extends RuleChangedEvent {
     public RuleDO getRule() {
         return (RuleDO) getSource();
     }
-    
+
 }

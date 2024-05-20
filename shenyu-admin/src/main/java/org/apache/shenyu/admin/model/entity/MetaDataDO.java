@@ -73,6 +73,15 @@ public final class MetaDataDO extends BaseDO implements Serializable {
     }
 
     /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static MetaDataDO.MetaDataDOBuilder builder() {
+        return new MetaDataDO.MetaDataDOBuilder();
+    }
+
+    /**
      * Gets the value of appName.
      *
      * @return the value of appName
@@ -234,13 +243,9 @@ public final class MetaDataDO extends BaseDO implements Serializable {
         this.enabled = enabled;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static MetaDataDO.MetaDataDOBuilder builder() {
-        return new MetaDataDO.MetaDataDOBuilder();
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), appName, path, pathDesc, rpcType, serviceName, methodName, parameterTypes, rpcExt, enabled);
     }
 
     @Override
@@ -256,19 +261,14 @@ public final class MetaDataDO extends BaseDO implements Serializable {
         }
         MetaDataDO that = (MetaDataDO) o;
         return Objects.equals(appName, that.appName)
-                && Objects.equals(path, that.path)
-                && Objects.equals(pathDesc, that.pathDesc)
-                && Objects.equals(rpcType, that.rpcType)
-                && Objects.equals(serviceName, that.serviceName)
-                && Objects.equals(methodName, that.methodName)
-                && Objects.equals(parameterTypes, that.parameterTypes)
-                && Objects.equals(rpcExt, that.rpcExt)
-                && Objects.equals(enabled, that.enabled);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), appName, path, pathDesc, rpcType, serviceName, methodName, parameterTypes, rpcExt, enabled);
+            && Objects.equals(path, that.path)
+            && Objects.equals(pathDesc, that.pathDesc)
+            && Objects.equals(rpcType, that.rpcType)
+            && Objects.equals(serviceName, that.serviceName)
+            && Objects.equals(methodName, that.methodName)
+            && Objects.equals(parameterTypes, that.parameterTypes)
+            && Objects.equals(rpcExt, that.rpcExt)
+            && Objects.equals(enabled, that.enabled);
     }
 
     public static final class MetaDataDOBuilder {

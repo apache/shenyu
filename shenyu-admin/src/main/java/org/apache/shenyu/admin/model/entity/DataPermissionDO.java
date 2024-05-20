@@ -57,6 +57,60 @@ public final class DataPermissionDO extends BaseDO {
     }
 
     /**
+     * build Permission DO.
+     *
+     * @param dataPermissionDTO {@linkplain DataPermissionDTO}
+     * @return {@linkplain DataPermissionDO}
+     */
+    public static DataPermissionDO buildPermissionDO(final DataPermissionDTO dataPermissionDTO) {
+        return Optional.ofNullable(dataPermissionDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            DataPermissionDO dataPermissionDo = DataPermissionDO.builder()
+                .userId(item.getUserId())
+                .dataId(item.getDataId())
+                .dataType(item.getDataType())
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                dataPermissionDo.setId(UUIDUtils.getInstance().generateShortUuid());
+                dataPermissionDo.setDateCreated(currentTime);
+            } else {
+                dataPermissionDo.setId(item.getId());
+            }
+            return dataPermissionDo;
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static DataPermissionDO.DataPermissionDOBuilder builder() {
+        return new DataPermissionDO.DataPermissionDOBuilder();
+    }
+
+    /**
+     * build permission do by RuleDO and user id.
+     *
+     * @param dataId   rule id
+     * @param userId   user id
+     * @param dataType data type
+     * @return {@linkplain DataPermissionDO}
+     */
+    public static DataPermissionDO buildCreatePermissionDO(final String dataId, final String userId, final Integer dataType) {
+
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+
+        return DataPermissionDO.builder()
+            .userId(userId)
+            .dataId(dataId)
+            .dataType(dataType)
+            .id(UUIDUtils.getInstance().generateShortUuid())
+            .dateCreated(currentTime)
+            .build();
+    }
+
+    /**
      * Gets the value of userId.
      *
      * @return the value of userId
@@ -110,57 +164,9 @@ public final class DataPermissionDO extends BaseDO {
         this.dataType = dataType;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static DataPermissionDO.DataPermissionDOBuilder builder() {
-        return new DataPermissionDO.DataPermissionDOBuilder();
-    }
-
-    /**
-     * build Permission DO.
-     *
-     * @param dataPermissionDTO {@linkplain DataPermissionDTO}
-     * @return {@linkplain DataPermissionDO}
-     */
-    public static DataPermissionDO buildPermissionDO(final DataPermissionDTO dataPermissionDTO) {
-        return Optional.ofNullable(dataPermissionDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            DataPermissionDO dataPermissionDo = DataPermissionDO.builder()
-                    .userId(item.getUserId())
-                    .dataId(item.getDataId())
-                    .dataType(item.getDataType())
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                dataPermissionDo.setId(UUIDUtils.getInstance().generateShortUuid());
-                dataPermissionDo.setDateCreated(currentTime);
-            } else {
-                dataPermissionDo.setId(item.getId());
-            }
-            return dataPermissionDo;
-        }).orElse(null);
-    }
-
-    /**
-     * build permission do by RuleDO and user id.
-     * @param dataId rule id
-     * @param userId user id
-     * @param dataType data type
-     * @return {@linkplain DataPermissionDO}
-     */
-    public static DataPermissionDO buildCreatePermissionDO(final String dataId, final String userId, final Integer dataType) {
-
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-
-        return DataPermissionDO.builder()
-                .userId(userId)
-                .dataId(dataId)
-                .dataType(dataType)
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .dateCreated(currentTime)
-                .build();
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), userId, dataId, dataType);
     }
 
     @Override
@@ -176,11 +182,6 @@ public final class DataPermissionDO extends BaseDO {
         }
         DataPermissionDO that = (DataPermissionDO) o;
         return Objects.equals(userId, that.userId) && Objects.equals(dataId, that.dataId) && Objects.equals(dataType, that.dataType);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), userId, dataId, dataType);
     }
 
     public static final class DataPermissionDOBuilder {

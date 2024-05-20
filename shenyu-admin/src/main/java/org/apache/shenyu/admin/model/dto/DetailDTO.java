@@ -62,6 +62,15 @@ public class DetailDTO {
     private Timestamp dateUpdated;
 
     /**
+     * builder.
+     *
+     * @return fieldDOBuilder
+     */
+    public static DetailDTO.DetailDTOBuilder builder() {
+        return new DetailDTO.DetailDTOBuilder();
+    }
+
+    /**
      * getId.
      *
      * @return id
@@ -188,6 +197,11 @@ public class DetailDTO {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(id, fieldId, example, fieldValue, valueDesc, dateCreated, dateUpdated);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -197,26 +211,12 @@ public class DetailDTO {
         }
         DetailDTO detailDTO = (DetailDTO) o;
         return Objects.equals(id, detailDTO.id)
-                && Objects.equals(fieldId, detailDTO.fieldId)
-                && Objects.equals(example, detailDTO.example)
-                && Objects.equals(fieldValue, detailDTO.fieldValue)
-                && Objects.equals(valueDesc, detailDTO.valueDesc)
-                && Objects.equals(dateCreated, detailDTO.dateCreated)
-                && Objects.equals(dateUpdated, detailDTO.dateUpdated);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, fieldId, example, fieldValue, valueDesc, dateCreated, dateUpdated);
-    }
-
-    /**
-     * builder.
-     *
-     * @return fieldDOBuilder
-     */
-    public static DetailDTO.DetailDTOBuilder builder() {
-        return new DetailDTO.DetailDTOBuilder();
+            && Objects.equals(fieldId, detailDTO.fieldId)
+            && Objects.equals(example, detailDTO.example)
+            && Objects.equals(fieldValue, detailDTO.fieldValue)
+            && Objects.equals(valueDesc, detailDTO.valueDesc)
+            && Objects.equals(dateCreated, detailDTO.dateCreated)
+            && Objects.equals(dateUpdated, detailDTO.dateUpdated);
     }
 
     public static final class DetailDTOBuilder {

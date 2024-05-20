@@ -75,6 +75,46 @@ public final class PluginDO extends BaseDO {
     }
 
     /**
+     * build pluginDO.
+     *
+     * @param pluginDTO {@linkplain PluginDTO}
+     * @return {@linkplain PluginDO}
+     */
+    public static PluginDO buildPluginDO(final PluginDTO pluginDTO) {
+        return Optional.ofNullable(pluginDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            PluginDO pluginDO = PluginDO.builder()
+                .name(item.getName())
+                .config(item.getConfig())
+                .enabled(item.getEnabled())
+                .role(item.getRole())
+                .sort(item.getSort())
+                .dateUpdated(currentTime)
+                .build();
+
+            if (StringUtils.isEmpty(item.getId())) {
+                pluginDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                pluginDO.setDateCreated(currentTime);
+            } else {
+                pluginDO.setId(item.getId());
+            }
+            if (Objects.nonNull(item.getFile())) {
+                pluginDO.setPluginJar(Base64.decode(item.getFile()));
+            }
+            return pluginDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static PluginDOBuilder builder() {
+        return new PluginDOBuilder();
+    }
+
+    /**
      * Gets the value of pluginJar.
      *
      * @return the value of pluginJar
@@ -182,44 +222,9 @@ public final class PluginDO extends BaseDO {
         this.sort = sort;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static PluginDOBuilder builder() {
-        return new PluginDOBuilder();
-    }
-
-    /**
-     * build pluginDO.
-     *
-     * @param pluginDTO {@linkplain PluginDTO}
-     * @return {@linkplain PluginDO}
-     */
-    public static PluginDO buildPluginDO(final PluginDTO pluginDTO) {
-        return Optional.ofNullable(pluginDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            PluginDO pluginDO = PluginDO.builder()
-                    .name(item.getName())
-                    .config(item.getConfig())
-                    .enabled(item.getEnabled())
-                    .role(item.getRole())
-                    .sort(item.getSort())
-                    .dateUpdated(currentTime)
-                    .build();
-
-            if (StringUtils.isEmpty(item.getId())) {
-                pluginDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                pluginDO.setDateCreated(currentTime);
-            } else {
-                pluginDO.setId(item.getId());
-            }
-            if (Objects.nonNull(item.getFile())) {
-                pluginDO.setPluginJar(Base64.decode(item.getFile()));
-            }
-            return pluginDO;
-        }).orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), name, config, enabled, role, sort);
     }
 
     @Override
@@ -235,16 +240,11 @@ public final class PluginDO extends BaseDO {
         }
         PluginDO pluginDO = (PluginDO) o;
         return Objects.equals(name, pluginDO.name)
-                && Objects.equals(config, pluginDO.config)
-                && Objects.equals(enabled, pluginDO.enabled)
-                && Objects.equals(role, pluginDO.role)
-                && Objects.equals(sort, pluginDO.sort)
-                && Arrays.equals(pluginJar, pluginDO.pluginJar);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), name, config, enabled, role, sort);
+            && Objects.equals(config, pluginDO.config)
+            && Objects.equals(enabled, pluginDO.enabled)
+            && Objects.equals(role, pluginDO.role)
+            && Objects.equals(sort, pluginDO.sort)
+            && Arrays.equals(pluginJar, pluginDO.pluginJar);
     }
 
     public static final class PluginDOBuilder {
@@ -361,15 +361,13 @@ public final class PluginDO extends BaseDO {
         /**
          * pluginJar.
          *
-         * @param pluginJar  the  pluginJar.
+         * @param pluginJar the  pluginJar.
          * @return PluginDOBuilder.
          */
         public PluginDOBuilder pluginJar(final byte[] pluginJar) {
             this.pluginJar = pluginJar;
             return this;
         }
-
-
 
         /**
          * build method.

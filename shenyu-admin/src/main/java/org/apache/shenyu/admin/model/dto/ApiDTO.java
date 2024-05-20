@@ -460,6 +460,12 @@ public class ApiDTO implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(id, contextPath, apiPath, httpMethod, consume, produce, version,
+            rpcType, state, ext, apiOwner, apiDesc, apiSource, document, documentMd5, dateCreated, dateUpdated, tagIds);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -469,16 +475,10 @@ public class ApiDTO implements Serializable {
         }
         ApiDTO apiDTO = (ApiDTO) o;
         return Objects.equals(id, apiDTO.id) && Objects.equals(contextPath, apiDTO.contextPath) && Objects.equals(apiPath, apiDTO.apiPath) && Objects.equals(httpMethod, apiDTO.httpMethod)
-                && Objects.equals(consume, apiDTO.consume) && Objects.equals(produce, apiDTO.produce) && Objects.equals(version, apiDTO.version) && Objects.equals(rpcType, apiDTO.rpcType)
-                && Objects.equals(state, apiDTO.state) && Objects.equals(ext, apiDTO.ext) && Objects.equals(apiOwner, apiDTO.apiOwner) && Objects.equals(apiDesc, apiDTO.apiDesc)
-                && Objects.equals(apiSource, apiDTO.apiSource) && Objects.equals(document, apiDTO.document) && Objects.equals(documentMd5, apiDTO.documentMd5)
-                && Objects.equals(dateCreated, apiDTO.dateCreated) && Objects.equals(dateUpdated, apiDTO.dateUpdated) && Objects.equals(tagIds, apiDTO.tagIds);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, contextPath, apiPath, httpMethod, consume, produce, version,
-                rpcType, state, ext, apiOwner, apiDesc, apiSource, document, documentMd5, dateCreated, dateUpdated, tagIds);
+            && Objects.equals(consume, apiDTO.consume) && Objects.equals(produce, apiDTO.produce) && Objects.equals(version, apiDTO.version) && Objects.equals(rpcType, apiDTO.rpcType)
+            && Objects.equals(state, apiDTO.state) && Objects.equals(ext, apiDTO.ext) && Objects.equals(apiOwner, apiDTO.apiOwner) && Objects.equals(apiDesc, apiDTO.apiDesc)
+            && Objects.equals(apiSource, apiDTO.apiSource) && Objects.equals(document, apiDTO.document) && Objects.equals(documentMd5, apiDTO.documentMd5)
+            && Objects.equals(dateCreated, apiDTO.dateCreated) && Objects.equals(dateUpdated, apiDTO.dateUpdated) && Objects.equals(tagIds, apiDTO.tagIds);
     }
 
 }

@@ -109,7 +109,7 @@ public class ShenyuClientsRegistrarTest {
     }
 
     @Configuration
-    @EnableShenyuClients(basePackageClasses = {ShenyuApiClient.class})
+    @EnableShenyuClients(basePackageClasses = ShenyuApiClient.class)
     public static class ShenyuTestConfig {
 
     }

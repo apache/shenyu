@@ -36,6 +36,7 @@ public class TagQuery {
 
     /**
      * get parent tag id.
+     *
      * @return parentTagId
      */
     public String getParentTagId() {
@@ -44,6 +45,7 @@ public class TagQuery {
 
     /**
      * set parent tag id.
+     *
      * @param parentTagId parenttagid
      */
     public void setParentTagId(final String parentTagId) {
@@ -51,7 +53,8 @@ public class TagQuery {
     }
 
     /**
-     *  get name.
+     * get name.
+     *
      * @return name
      */
     public String getName() {
@@ -60,10 +63,16 @@ public class TagQuery {
 
     /**
      * set name.
+     *
      * @param name name
      */
     public void setName(final String name) {
         this.name = name;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, parentTagId);
     }
 
     @Override
@@ -76,12 +85,7 @@ public class TagQuery {
         }
         TagQuery that = (TagQuery) o;
         return Objects.equals(name, that.name)
-                && Objects.equals(parentTagId, that.parentTagId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, parentTagId);
+            && Objects.equals(parentTagId, that.parentTagId);
     }
 
 }

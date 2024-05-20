@@ -69,6 +69,42 @@ public final class RuleConditionDO extends BaseDO {
     }
 
     /**
+     * build ruleConditionDO.
+     *
+     * @param ruleConditionDTO {@linkplain RuleConditionDTO}
+     * @return {@linkplain RuleConditionDO}
+     */
+    public static RuleConditionDO buildRuleConditionDO(final RuleConditionDTO ruleConditionDTO) {
+        return Optional.ofNullable(ruleConditionDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            RuleConditionDO ruleConditionDO = RuleConditionDO.builder()
+                .paramType(item.getParamType())
+                .ruleId(item.getRuleId())
+                .operator(item.getOperator())
+                .paramName(item.getParamName())
+                .paramValue(StringUtils.defaultIfBlank(item.getParamValue(), "").trim())
+                .dateUpdated(currentTime)
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                ruleConditionDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                ruleConditionDO.setDateCreated(currentTime);
+            } else {
+                ruleConditionDO.setId(item.getId());
+            }
+            return ruleConditionDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static RuleConditionDO.RuleConditionDOBuilder builder() {
+        return new RuleConditionDO.RuleConditionDOBuilder();
+    }
+
+    /**
      * Gets the value of ruleId.
      *
      * @return the value of ruleId
@@ -158,40 +194,9 @@ public final class RuleConditionDO extends BaseDO {
         this.paramValue = paramValue;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static RuleConditionDO.RuleConditionDOBuilder builder() {
-        return new RuleConditionDO.RuleConditionDOBuilder();
-    }
-
-    /**
-     * build ruleConditionDO.
-     *
-     * @param ruleConditionDTO {@linkplain RuleConditionDTO}
-     * @return {@linkplain RuleConditionDO}
-     */
-    public static RuleConditionDO buildRuleConditionDO(final RuleConditionDTO ruleConditionDTO) {
-        return Optional.ofNullable(ruleConditionDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            RuleConditionDO ruleConditionDO = RuleConditionDO.builder()
-                    .paramType(item.getParamType())
-                    .ruleId(item.getRuleId())
-                    .operator(item.getOperator())
-                    .paramName(item.getParamName())
-                    .paramValue(StringUtils.defaultIfBlank(item.getParamValue(), "").trim())
-                    .dateUpdated(currentTime)
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                ruleConditionDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                ruleConditionDO.setDateCreated(currentTime);
-            } else {
-                ruleConditionDO.setId(item.getId());
-            }
-            return ruleConditionDO;
-        }).orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), ruleId, paramType, operator, paramName, paramValue);
     }
 
     @Override
@@ -207,15 +212,10 @@ public final class RuleConditionDO extends BaseDO {
         }
         RuleConditionDO that = (RuleConditionDO) o;
         return Objects.equals(ruleId, that.ruleId)
-                && Objects.equals(paramType, that.paramType)
-                && Objects.equals(operator, that.operator)
-                && Objects.equals(paramName, that.paramName)
-                && Objects.equals(paramValue, that.paramValue);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), ruleId, paramType, operator, paramName, paramValue);
+            && Objects.equals(paramType, that.paramType)
+            && Objects.equals(operator, that.operator)
+            && Objects.equals(paramName, that.paramName)
+            && Objects.equals(paramValue, that.paramValue);
     }
 
     public static final class RuleConditionDOBuilder {

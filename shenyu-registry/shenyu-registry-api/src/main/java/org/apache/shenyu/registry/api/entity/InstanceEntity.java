@@ -29,20 +29,20 @@ public class InstanceEntity {
     private String host;
 
     private Integer port;
-    
+
     /**
      * Instantiates a new Instance register dto.
      *
      * @param appName the app name
-     * @param host the host
-     * @param port the port
+     * @param host    the host
+     * @param port    the port
      */
     public InstanceEntity(final String appName, final String host, final Integer port) {
         this.appName = appName;
         this.host = host;
         this.port = port;
     }
-    
+
     /**
      * Instantiates a new Instance register dto.
      */
@@ -54,8 +54,7 @@ public class InstanceEntity {
         host = builder.host;
         port = builder.port;
     }
-    
-    
+
     /**
      * return builder.
      *
@@ -64,7 +63,7 @@ public class InstanceEntity {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     /**
      * getAppName.
      *
@@ -73,7 +72,7 @@ public class InstanceEntity {
     public String getAppName() {
         return appName;
     }
-    
+
     /**
      * setAppName.
      *
@@ -82,7 +81,7 @@ public class InstanceEntity {
     public void setAppName(final String appName) {
         this.appName = appName;
     }
-    
+
     /**
      * getHost.
      *
@@ -91,7 +90,7 @@ public class InstanceEntity {
     public String getHost() {
         return host;
     }
-    
+
     /**
      * setHost.
      *
@@ -100,7 +99,7 @@ public class InstanceEntity {
     public void setHost(final String host) {
         this.host = host;
     }
-    
+
     /**
      * getPort.
      *
@@ -109,7 +108,7 @@ public class InstanceEntity {
     public Integer getPort() {
         return port;
     }
-    
+
     /**
      * setPort.
      *
@@ -131,8 +130,8 @@ public class InstanceEntity {
 
         InstanceEntity that = (InstanceEntity) o;
         return Objects.equals(getAppName(), that.getAppName())
-                && Objects.equals(getHost(), that.getHost())
-                && Objects.equals(getPort(), that.getPort());
+            && Objects.equals(getHost(), that.getHost())
+            && Objects.equals(getPort(), that.getPort());
     }
 
     @Override
@@ -143,15 +142,15 @@ public class InstanceEntity {
     @Override
     public String toString() {
         return "URIRegisterDTO{"
-                + "appName='"
-                + appName
-                + ", host='"
-                + host
-                + ", port="
-                + port
-                + '}';
+            + "appName='"
+            + appName
+            + ", host='"
+            + host
+            + ", port="
+            + port
+            + '}';
     }
-    
+
     /**
      * The type Builder.
      */
@@ -165,7 +164,7 @@ public class InstanceEntity {
 
         private Builder() {
         }
-    
+
         /**
          * appName.
          *
@@ -176,7 +175,7 @@ public class InstanceEntity {
             this.appName = appName;
             return this;
         }
-    
+
         /**
          * host.
          *
@@ -187,7 +186,7 @@ public class InstanceEntity {
             this.host = host;
             return this;
         }
-    
+
         /**
          * port.
          *
@@ -198,7 +197,7 @@ public class InstanceEntity {
             this.port = port;
             return this;
         }
-    
+
         /**
          * build.
          *

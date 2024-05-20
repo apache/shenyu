@@ -47,6 +47,15 @@ public class CommonPager<T> implements Serializable {
     }
 
     /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static CommonPager.CommonPagerBuilder builder() {
+        return new CommonPager.CommonPagerBuilder();
+    }
+
+    /**
      * Gets the value of page.
      *
      * @return the value of page
@@ -82,13 +91,9 @@ public class CommonPager<T> implements Serializable {
         this.dataList = dataList;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static CommonPager.CommonPagerBuilder builder() {
-        return new CommonPager.CommonPagerBuilder();
+    @Override
+    public int hashCode() {
+        return Objects.hash(page, dataList);
     }
 
     @Override
@@ -104,16 +109,11 @@ public class CommonPager<T> implements Serializable {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(page, dataList);
-    }
-
-    @Override
     public String toString() {
         return "CommonPager{"
-                + "page=" + page
-                + ", dataList=" + dataList
-                + '}';
+            + "page=" + page
+            + ", dataList=" + dataList
+            + '}';
     }
 
     public static final class CommonPagerBuilder<T> {

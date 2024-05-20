@@ -24,9 +24,6 @@ import org.apache.shenyu.springboot.starter.sync.data.polaris.PolarisSyncDataCon
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.polaris.config.PolarisConfig;
 import org.junit.jupiter.api.Assertions;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,17 +31,21 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 /**
  * The test case for {@link PolarisSyncDataConfiguration}.
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
-        classes = PolarisSyncDataConfiguration.class,
-        properties = {
-                "shenyu.sync.polaris.url=" + PolarisSyncDataConfigurationTest.URL,
-                "shenyu.sync.polaris.namespace=default",
-                "shenyu.sync.polaris.fileGroup=fileGroup"
-        })
+    classes = PolarisSyncDataConfiguration.class,
+    properties = {
+        "shenyu.sync.polaris.url=" + PolarisSyncDataConfigurationTest.URL,
+        "shenyu.sync.polaris.namespace=default",
+        "shenyu.sync.polaris.fileGroup=fileGroup"
+    })
 @EnableAutoConfiguration
 public final class PolarisSyncDataConfigurationTest {
 

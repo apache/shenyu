@@ -111,7 +111,6 @@ public final class SyncDataServiceTest {
         assertThat(syncDataService.syncPluginData(pluginVO.getId()), greaterThan(false));
     }
 
-
     /**
      * build mock PluginData.
      *
@@ -187,16 +186,16 @@ public final class SyncDataServiceTest {
     private PluginVO buildPluginVO() {
         String dateTime = DateUtils.localDateTimeToString(LocalDateTime.now());
         return new PluginVO(
-                ID,
-                "1",
-                "divide",
-                null,
-                null,
-                true,
-                dateTime,
-                dateTime,
-                "",
-                null
+            ID,
+            "1",
+            "divide",
+            null,
+            null,
+            true,
+            dateTime,
+            dateTime,
+            "",
+            null
         );
     }
 }

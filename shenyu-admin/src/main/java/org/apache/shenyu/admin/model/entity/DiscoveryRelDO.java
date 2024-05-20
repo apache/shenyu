@@ -54,7 +54,17 @@ public final class DiscoveryRelDO extends BaseDO {
     }
 
     /**
+     * builder.
+     *
+     * @return discoveryRelDOBuilder
+     */
+    public static DiscoveryRelDO.DiscoveryRelDOBuilder builder() {
+        return new DiscoveryRelDO.DiscoveryRelDOBuilder();
+    }
+
+    /**
      * get pluginName value.
+     *
      * @return pluginName value.
      */
     public String getPluginName() {
@@ -63,6 +73,7 @@ public final class DiscoveryRelDO extends BaseDO {
 
     /**
      * set pluginName value.
+     *
      * @param pluginName pluginName value.
      */
     public void setPluginName(final String pluginName) {
@@ -71,6 +82,7 @@ public final class DiscoveryRelDO extends BaseDO {
 
     /**
      * get discovery handler id.
+     *
      * @return discovery handler id.
      */
     public String getDiscoveryHandlerId() {
@@ -79,6 +91,7 @@ public final class DiscoveryRelDO extends BaseDO {
 
     /**
      * set discovery handler id.
+     *
      * @param discoveryHandlerId discovery handler id.
      */
     public void setDiscoveryHandlerId(final String discoveryHandlerId) {
@@ -87,6 +100,7 @@ public final class DiscoveryRelDO extends BaseDO {
 
     /**
      * get selector id.
+     *
      * @return selector id.
      */
     public String getSelectorId() {
@@ -95,6 +109,7 @@ public final class DiscoveryRelDO extends BaseDO {
 
     /**
      * set selector id.
+     *
      * @param selectorId service id.
      */
     public void setSelectorId(final String selectorId) {
@@ -103,6 +118,7 @@ public final class DiscoveryRelDO extends BaseDO {
 
     /**
      * get proxy selector id.
+     *
      * @return proxy selector id.
      */
     public String getProxySelectorId() {
@@ -111,19 +127,16 @@ public final class DiscoveryRelDO extends BaseDO {
 
     /**
      * set proxy selector id.
+     *
      * @param proxySelectorId proxy selector id
      */
     public void setProxySelectorId(final String proxySelectorId) {
         this.proxySelectorId = proxySelectorId;
     }
 
-    /**
-     * builder.
-     *
-     * @return discoveryRelDOBuilder
-     */
-    public static DiscoveryRelDO.DiscoveryRelDOBuilder builder() {
-        return new DiscoveryRelDO.DiscoveryRelDOBuilder();
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), pluginName, discoveryHandlerId, selectorId, proxySelectorId);
     }
 
     @Override
@@ -139,14 +152,9 @@ public final class DiscoveryRelDO extends BaseDO {
         }
         DiscoveryRelDO that = (DiscoveryRelDO) o;
         return Objects.equals(pluginName, that.pluginName)
-                && Objects.equals(discoveryHandlerId, that.discoveryHandlerId)
-                && Objects.equals(selectorId, that.selectorId)
-                && Objects.equals(proxySelectorId, that.proxySelectorId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), pluginName, discoveryHandlerId, selectorId, proxySelectorId);
+            && Objects.equals(discoveryHandlerId, that.discoveryHandlerId)
+            && Objects.equals(selectorId, that.selectorId)
+            && Objects.equals(proxySelectorId, that.proxySelectorId);
     }
 
     public static final class DiscoveryRelDOBuilder {
@@ -237,6 +245,7 @@ public final class DiscoveryRelDO extends BaseDO {
 
         /**
          * proxySelectorId.
+         *
          * @param proxySelectorId the proxySelectorId.
          * @return DiscoveryRelDOBuilder.
          */
@@ -247,6 +256,7 @@ public final class DiscoveryRelDO extends BaseDO {
 
         /**
          * build DiscoveryRelDO.
+         *
          * @return DiscoveryRelDO
          */
         public DiscoveryRelDO build() {

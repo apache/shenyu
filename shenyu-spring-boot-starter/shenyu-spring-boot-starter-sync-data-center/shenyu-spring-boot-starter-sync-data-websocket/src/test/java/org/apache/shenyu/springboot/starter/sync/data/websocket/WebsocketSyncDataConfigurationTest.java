@@ -28,22 +28,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test case for {@link WebsocketSyncDataConfiguration}.
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
-        classes = {
-                WebsocketSyncDataConfiguration.class
-        },
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {
-                "shenyu.sync.websocket.urls=ws://localhost:9095/websocket"
-        })
+    classes = WebsocketSyncDataConfiguration.class,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = "shenyu.sync.websocket.urls=ws://localhost:9095/websocket")
 @EnableAutoConfiguration
 @MockBean(PluginDataSubscriber.class)
 public final class WebsocketSyncDataConfigurationTest {

@@ -28,28 +28,28 @@ import java.util.List;
  * this is rule query condition.
  */
 public class RuleQueryCondition extends BaseExcludedSearchCondition implements SearchCondition, SwitchCondition {
-    
+
     /**
      * search keyword: rule name  name.
      */
     private String keyword;
-    
+
     /**
      * switch status: rule status[close or open].
      */
     private Boolean switchStatus;
-    
+
     /**
      * rule from selector.
      */
     private List<String> selectors;
-    
+
     /**
      * user id.
      */
     @JsonIgnore
     private String userId;
-    
+
     /**
      * Gets the value of userId.
      *
@@ -58,7 +58,7 @@ public class RuleQueryCondition extends BaseExcludedSearchCondition implements S
     public String getUserId() {
         return userId;
     }
-    
+
     /**
      * Sets the userId.
      *
@@ -67,7 +67,7 @@ public class RuleQueryCondition extends BaseExcludedSearchCondition implements S
     public void setUserId(final String userId) {
         this.userId = userId;
     }
-    
+
     /**
      * get switchStatus.
      *
@@ -77,7 +77,7 @@ public class RuleQueryCondition extends BaseExcludedSearchCondition implements S
     public Boolean getSwitchStatus() {
         return switchStatus;
     }
-    
+
     /**
      * set switchStatus.
      *
@@ -86,7 +86,7 @@ public class RuleQueryCondition extends BaseExcludedSearchCondition implements S
     public void setSwitchStatus(final Boolean switchStatus) {
         this.switchStatus = switchStatus;
     }
-    
+
     /**
      * get keyword.
      *
@@ -96,7 +96,7 @@ public class RuleQueryCondition extends BaseExcludedSearchCondition implements S
     public String getKeyword() {
         return keyword;
     }
-    
+
     /**
      * set keyword.
      *
@@ -106,7 +106,7 @@ public class RuleQueryCondition extends BaseExcludedSearchCondition implements S
     public void setKeyword(final String keyword) {
         this.keyword = keyword;
     }
-    
+
     /**
      * get selectors.
      *
@@ -115,7 +115,7 @@ public class RuleQueryCondition extends BaseExcludedSearchCondition implements S
     public List<String> getSelectors() {
         return selectors;
     }
-    
+
     /**
      * set selectors.
      *

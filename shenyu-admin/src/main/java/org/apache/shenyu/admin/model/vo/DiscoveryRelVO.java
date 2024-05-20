@@ -53,6 +53,7 @@ public final class DiscoveryRelVO implements Serializable {
 
     /**
      * Get id.
+     *
      * @return id
      */
     public String getId() {
@@ -61,6 +62,7 @@ public final class DiscoveryRelVO implements Serializable {
 
     /**
      * Set id.
+     *
      * @param id id
      */
     public void setId(final String id) {
@@ -69,6 +71,7 @@ public final class DiscoveryRelVO implements Serializable {
 
     /**
      * get pluginName value.
+     *
      * @return pluginName value.
      */
     public String getPluginName() {
@@ -77,6 +80,7 @@ public final class DiscoveryRelVO implements Serializable {
 
     /**
      * set pluginName value.
+     *
      * @param pluginName pluginName value.
      */
     public void setPluginName(final String pluginName) {
@@ -85,6 +89,7 @@ public final class DiscoveryRelVO implements Serializable {
 
     /**
      * get discovery handler id.
+     *
      * @return discovery handler id.
      */
     public String getDiscoveryHandlerId() {
@@ -93,6 +98,7 @@ public final class DiscoveryRelVO implements Serializable {
 
     /**
      * set discovery handler id.
+     *
      * @param discoveryHandlerId discovery handler id.
      */
     public void setDiscoveryHandlerId(final String discoveryHandlerId) {
@@ -101,6 +107,7 @@ public final class DiscoveryRelVO implements Serializable {
 
     /**
      * get selector id.
+     *
      * @return selector id.
      */
     public String getSelectorId() {
@@ -109,6 +116,7 @@ public final class DiscoveryRelVO implements Serializable {
 
     /**
      * set selector id.
+     *
      * @param selectorId service id.
      */
     public void setSelectorId(final String selectorId) {
@@ -117,6 +125,7 @@ public final class DiscoveryRelVO implements Serializable {
 
     /**
      * get proxy selector id.
+     *
      * @return proxy selector id.
      */
     public String getProxySelectorId() {
@@ -125,6 +134,7 @@ public final class DiscoveryRelVO implements Serializable {
 
     /**
      * set proxy selector id.
+     *
      * @param proxySelectorId proxy selector id
      */
     public void setProxySelectorId(final String proxySelectorId) {

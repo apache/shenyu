@@ -55,8 +55,9 @@ public final class RequestUrlUtils {
             }
         }
         URI uri = exchange.getRequest().getURI();
-        if ((StringUtils.isNotEmpty(uri.getRawQuery()) && uri.getRawQuery().contains("%"))
-                || (StringUtils.isNotEmpty(uri.getRawPath()) && uri.getRawPath().contains("%"))) {
+        boolean queryContain = StringUtils.isNotEmpty(uri.getRawQuery()) && uri.getRawQuery().contains("%");
+        boolean pathContain = StringUtils.isNotEmpty(uri.getRawPath()) && uri.getRawPath().contains("%");
+        if (queryContain || pathContain) {
             path = path + "?" + RequestQueryCodecUtil.getCodecQuery(exchange);
             return UriComponentsBuilder.fromUriString(path).build(true).toUri();
         } else {
@@ -67,7 +68,7 @@ public final class RequestUrlUtils {
             return UriComponentsBuilder.fromUriString(path).build(false).toUri();
         }
     }
-    
+
     /**
      * Get the rewritten raw path.
      *

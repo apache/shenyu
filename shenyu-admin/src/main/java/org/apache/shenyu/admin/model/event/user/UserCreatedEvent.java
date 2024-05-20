@@ -24,8 +24,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  * UserCreatedEvent.
  */
 public class UserCreatedEvent extends UserChangedEvent {
-    
-    
+
     /**
      * Create a new {@code UserCreatedEvent}.operator is unknown.
      *
@@ -35,5 +34,5 @@ public class UserCreatedEvent extends UserChangedEvent {
     public UserCreatedEvent(final DashboardUserDO source, final String operator) {
         super(source, null, EventTypeEnum.USER_CREATE, operator);
     }
-    
+
 }

@@ -26,9 +26,9 @@ import java.util.List;
  * RoleUpdatedEvent.
  */
 public class RoleUpdatedEvent extends RoleChangedEvent {
-    
+
     private final List<String> newPermission;
-    
+
     /**
      * Create a new {@code RoleUpdatedEvent}.operator is unknown.
      *
@@ -41,7 +41,7 @@ public class RoleUpdatedEvent extends RoleChangedEvent {
         super(source, before, EventTypeEnum.ROLE_UPDATE, operator);
         this.newPermission = newPermission;
     }
-    
+
     /**
      * the created role.
      *
@@ -50,7 +50,7 @@ public class RoleUpdatedEvent extends RoleChangedEvent {
     public RoleDO getRole() {
         return (RoleDO) getSource();
     }
-    
+
     /**
      * get new permission.
      *
@@ -59,5 +59,5 @@ public class RoleUpdatedEvent extends RoleChangedEvent {
     public List<String> getNewPermission() {
         return newPermission;
     }
-    
+
 }

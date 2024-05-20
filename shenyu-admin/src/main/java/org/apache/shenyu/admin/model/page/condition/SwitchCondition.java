@@ -21,7 +21,7 @@ package org.apache.shenyu.admin.model.page.condition;
  * search condition. used boolean status condition.
  */
 public interface SwitchCondition {
-    
+
     /**
      * get switch status.<br>
      * <p>the true is open,enable,yes... </p>

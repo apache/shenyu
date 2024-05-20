@@ -64,6 +64,18 @@ public class UserRoleVO {
     }
 
     /**
+     * build roleDO.
+     *
+     * @param userRoleDO {@linkplain UserRoleDO}
+     * @return {@linkplain UserRoleVO}
+     */
+    public static UserRoleVO buildUserRoleVO(final UserRoleDO userRoleDO) {
+        return Optional.ofNullable(userRoleDO).map(item -> new UserRoleVO(item.getId(), item.getUserId(), item.getRoleId(),
+            DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
+            DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime()))).orElse(null);
+    }
+
+    /**
      * Gets the value of id.
      *
      * @return the value of id
@@ -151,17 +163,5 @@ public class UserRoleVO {
      */
     public void setDateUpdated(final String dateUpdated) {
         this.dateUpdated = dateUpdated;
-    }
-
-    /**
-     * build roleDO.
-     *
-     * @param userRoleDO {@linkplain UserRoleDO}
-     * @return {@linkplain UserRoleVO}
-     */
-    public static UserRoleVO buildUserRoleVO(final UserRoleDO userRoleDO) {
-        return Optional.ofNullable(userRoleDO).map(item -> new UserRoleVO(item.getId(), item.getUserId(), item.getRoleId(),
-                DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
-                DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime()))).orElse(null);
     }
 }

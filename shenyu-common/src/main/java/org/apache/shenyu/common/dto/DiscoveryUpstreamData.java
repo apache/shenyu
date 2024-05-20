@@ -41,7 +41,6 @@ public class DiscoveryUpstreamData {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp dateUpdated;
 
-
     /**
      * discoveryHandlerId.
      */
@@ -71,7 +70,6 @@ public class DiscoveryUpstreamData {
      * props.
      */
     private String props;
-
 
     /**
      * getDiscoveryHandlerId.
@@ -245,9 +243,9 @@ public class DiscoveryUpstreamData {
         }
         DiscoveryUpstreamData that = (DiscoveryUpstreamData) o;
         return status == that.status && weight == that.weight && Objects.equals(id, that.id)
-                && Objects.equals(dateCreated, that.dateCreated) && Objects.equals(dateUpdated, that.dateUpdated)
-                && Objects.equals(discoveryHandlerId, that.discoveryHandlerId) && Objects.equals(protocol, that.protocol)
-                && Objects.equals(url, that.url) && Objects.equals(props, that.props);
+            && Objects.equals(dateCreated, that.dateCreated) && Objects.equals(dateUpdated, that.dateUpdated)
+            && Objects.equals(discoveryHandlerId, that.discoveryHandlerId) && Objects.equals(protocol, that.protocol)
+            && Objects.equals(url, that.url) && Objects.equals(props, that.props);
     }
 
     @Override

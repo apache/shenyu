@@ -17,16 +17,18 @@
 
 package org.apache.shenyu.admin.model.event.plugin;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import java.sql.Timestamp;
-import java.util.Arrays;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Timestamp;
+import java.util.Arrays;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 /**
- *  test cast for {@link BatchPluginDeletedEvent}.
+ * test cast for {@link BatchPluginDeletedEvent}.
  */
 public class BatchPluginDeletedEventTest {
 
@@ -40,25 +42,25 @@ public class BatchPluginDeletedEventTest {
     public void setUp() {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         one = PluginDO.builder()
-                .id("1")
-                .name("test-plugin")
-                .config("{\"config\":\"test\"}")
-                .enabled(false)
-                .role("Test")
-                .sort(1)
-                .dateUpdated(now)
-                .dateCreated(now)
-                .build();
+            .id("1")
+            .name("test-plugin")
+            .config("{\"config\":\"test\"}")
+            .enabled(false)
+            .role("Test")
+            .sort(1)
+            .dateUpdated(now)
+            .dateCreated(now)
+            .build();
         two = PluginDO.builder()
-                .id("2")
-                .name("test-plugin-two")
-                .config("{\"config\":\"test\"}")
-                .enabled(false)
-                .role("Test")
-                .sort(2)
-                .dateUpdated(now)
-                .dateCreated(now)
-                .build();
+            .id("2")
+            .name("test-plugin-two")
+            .config("{\"config\":\"test\"}")
+            .enabled(false)
+            .role("Test")
+            .sort(2)
+            .dateUpdated(now)
+            .dateCreated(now)
+            .build();
 
         deletedEvent = new BatchPluginDeletedEvent(Arrays.asList(one, two), "test-operator");
     }

@@ -31,45 +31,44 @@ public class ClickHouseLoggingConstant {
      * The constant CREATE_TABLE_SQL.
      */
     public static final String CREATE_TABLE_SQL = "create table if not exists `%s`.request_log(\n"
-            + "    timeLocal   DateTime64,\n"
-            + "    clientIp String,\n"
-            + "    method  String,\n"
-            + "    requestHeader   String,\n"
-            + "    responseHeader  String,\n"
-            + "    queryParams String,\n"
-            + "    requestBody String,\n"
-            + "    requestUri  String,\n"
-            + "    responseBody    String,\n"
-            + "    responseContentLength UInt64,\n"
-            + "    rpcType String,\n"
-            + "    status  UInt16,\n"
-            + "    upstreamIp  String,\n"
-            + "    upstreamResponseTime UInt128,\n"
-            + "    userAgent String,\n"
-            + "    host    String,\n"
-            + "    module  String,\n"
-            + "    traceId String,\n"
-            + "    path    String\n"
-            + ") ENGINE = %s()\n"
-            + "ORDER BY (timeLocal,clientIp,method,rpcType,upstreamIp,upstreamResponseTime)\n"
-            + " TTL toDateTime(timeLocal) + INTERVAL %s DAY \n"
-            + ";";
-
+        + "    timeLocal   DateTime64,\n"
+        + "    clientIp String,\n"
+        + "    method  String,\n"
+        + "    requestHeader   String,\n"
+        + "    responseHeader  String,\n"
+        + "    queryParams String,\n"
+        + "    requestBody String,\n"
+        + "    requestUri  String,\n"
+        + "    responseBody    String,\n"
+        + "    responseContentLength UInt64,\n"
+        + "    rpcType String,\n"
+        + "    status  UInt16,\n"
+        + "    upstreamIp  String,\n"
+        + "    upstreamResponseTime UInt128,\n"
+        + "    userAgent String,\n"
+        + "    host    String,\n"
+        + "    module  String,\n"
+        + "    traceId String,\n"
+        + "    path    String\n"
+        + ") ENGINE = %s()\n"
+        + "ORDER BY (timeLocal,clientIp,method,rpcType,upstreamIp,upstreamResponseTime)\n"
+        + " TTL toDateTime(timeLocal) + INTERVAL %s DAY \n"
+        + ";";
 
     /**
      * The constant CREATE_DISTRIBUTED_TABLE_SQL.
      */
     public static final String CREATE_DISTRIBUTED_TABLE_SQL = "create table if not exists `%s`.request_log_distributed\n"
-            + " AS `%s`.request_log ENGINE = Distributed('%s', '%s', 'request_log', rand());";
+        + " AS `%s`.request_log ENGINE = Distributed('%s', '%s', 'request_log', rand());";
 
     /**
      * The constant PRE_INSERT_SQL.
      */
     public static final String PRE_INSERT_SQL = "INSERT INTO `%s`.request_log_distributed"
-            + "(timeLocal, clientIp, method, requestHeader, responseHeader, queryParams, "
-            + "requestBody, requestUri, responseBody, responseContentLength, rpcType, status, upstreamIp, upstreamResponseTime, userAgent, host, module, traceId, path) "
-            + "VALUES "
-            + "(:timeLocal, :clientIp,:method, :requestHeader, :responseHeader, :queryParams,"
-            + " :requestBody, :requestUri, :responseBody, :responseContentLength, :rpcType, :status, :upstreamIp, :upstreamResponseTime, :userAgent, :host, :module, :traceId, :path);";
+        + "(timeLocal, clientIp, method, requestHeader, responseHeader, queryParams, "
+        + "requestBody, requestUri, responseBody, responseContentLength, rpcType, status, upstreamIp, upstreamResponseTime, userAgent, host, module, traceId, path) "
+        + "VALUES "
+        + "(:timeLocal, :clientIp,:method, :requestHeader, :responseHeader, :queryParams,"
+        + " :requestBody, :requestUri, :responseBody, :responseContentLength, :rpcType, :status, :upstreamIp, :upstreamResponseTime, :userAgent, :host, :module, :traceId, :path);";
 
 }

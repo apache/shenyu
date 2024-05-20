@@ -194,6 +194,11 @@ public class AuthApplyDTO implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(appKey, userId, phone, appName, appParam, extInfo, open, pathList);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -203,17 +208,12 @@ public class AuthApplyDTO implements Serializable {
         }
         AuthApplyDTO that = (AuthApplyDTO) o;
         return Objects.equals(appKey, that.appKey)
-                && Objects.equals(userId, that.userId)
-                && Objects.equals(phone, that.phone)
-                && Objects.equals(appName, that.appName)
-                && Objects.equals(appParam, that.appParam)
-                && Objects.equals(extInfo, that.extInfo)
-                && Objects.equals(open, that.open)
-                && Objects.equals(pathList, that.pathList);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(appKey, userId, phone, appName, appParam, extInfo, open, pathList);
+            && Objects.equals(userId, that.userId)
+            && Objects.equals(phone, that.phone)
+            && Objects.equals(appName, that.appName)
+            && Objects.equals(appParam, that.appParam)
+            && Objects.equals(extInfo, that.extInfo)
+            && Objects.equals(open, that.open)
+            && Objects.equals(pathList, that.pathList);
     }
 }

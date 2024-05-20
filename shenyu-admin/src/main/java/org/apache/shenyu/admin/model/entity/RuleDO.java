@@ -70,7 +70,7 @@ public final class RuleDO extends BaseDO {
      * process logic.
      */
     private String handle;
-    
+
     /**
      * match restful.
      */
@@ -95,6 +95,92 @@ public final class RuleDO extends BaseDO {
         this.sort = sort;
         this.handle = handle;
         this.matchRestful = matchRestful;
+    }
+
+    /**
+     * build ruleDO.
+     *
+     * @param ruleDTO {@linkplain RuleDTO}
+     * @return {@linkplain RuleDO}
+     */
+    public static RuleDO buildRuleDO(final RuleDTO ruleDTO) {
+        return Optional.ofNullable(ruleDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            RuleDO ruleDO = RuleDO.builder()
+                .selectorId(item.getSelectorId())
+                .matchMode(item.getMatchMode())
+                .name(item.getName())
+                .enabled(item.getEnabled())
+                .loged(item.getLoged())
+                .sort(item.getSort())
+                .handle(item.getHandle())
+                .matchRestful(item.getMatchRestful())
+                .dateUpdated(currentTime)
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                ruleDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                ruleDO.setDateCreated(currentTime);
+            } else {
+                ruleDO.setId(item.getId());
+            }
+            return ruleDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static RuleDO.RuleDOBuilder builder() {
+        return new RuleDO.RuleDOBuilder();
+    }
+
+    /**
+     * Trans from rule data.
+     *
+     * @param ruleDO            the rule do
+     * @param pluginName        the plugin name
+     * @param conditionDataList the condition data list
+     * @return ruleData
+     */
+    public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList) {
+        return transFrom(ruleDO, pluginName, conditionDataList, Collections.emptyList());
+    }
+
+    /**
+     * Trans from rule data.
+     *
+     * @param ruleDO                  the rule do
+     * @param pluginName              the plugin name
+     * @param conditionDataList       the condition data list
+     * @param beforeConditionDataList the before condition data list
+     * @return the rule data
+     */
+    public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList, final List<ConditionData> beforeConditionDataList) {
+        return RuleData.builder()
+            .id(ruleDO.getId())
+            .name(ruleDO.getName())
+            .pluginName(pluginName)
+            .selectorId(ruleDO.getSelectorId())
+            .matchMode(ruleDO.getMatchMode())
+            .sort(ruleDO.getSort())
+            .enabled(ruleDO.getEnabled())
+            .loged(ruleDO.getLoged())
+            .handle(ruleDO.getHandle())
+            .matchRestful(ruleDO.getMatchRestful())
+            .conditionDataList(conditionDataList)
+            .beforeConditionDataList(beforeConditionDataList)
+            .build();
+    }
+
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getName() {
+        return name;
     }
 
     /**
@@ -134,21 +220,12 @@ public final class RuleDO extends BaseDO {
     }
 
     /**
-     * Gets the value of name.
+     * Gets the value of sort.
      *
-     * @return the value of name
+     * @return the value of sort
      */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the name.
-     *
-     * @param name name
-     */
-    public void setName(final String name) {
-        this.name = name;
+    public Integer getSort() {
+        return sort;
     }
 
     /**
@@ -188,24 +265,6 @@ public final class RuleDO extends BaseDO {
     }
 
     /**
-     * Gets the value of sort.
-     *
-     * @return the value of sort
-     */
-    public Integer getSort() {
-        return sort;
-    }
-
-    /**
-     * Sets the sort.
-     *
-     * @param sort sort
-     */
-    public void setSort(final Integer sort) {
-        this.sort = sort;
-    }
-
-    /**
      * Gets the value of handle.
      *
      * @return the value of handle
@@ -222,7 +281,7 @@ public final class RuleDO extends BaseDO {
     public void setHandle(final String handle) {
         this.handle = handle;
     }
-    
+
     /**
      * get match restful uri.
      *
@@ -231,7 +290,7 @@ public final class RuleDO extends BaseDO {
     public Boolean getMatchRestful() {
         return matchRestful;
     }
-    
+
     /**
      * set match restful.
      *
@@ -240,83 +299,28 @@ public final class RuleDO extends BaseDO {
     public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
-    
+
     /**
-     * builder method.
+     * Sets the sort.
      *
-     * @return builder object.
+     * @param sort sort
      */
-    public static RuleDO.RuleDOBuilder builder() {
-        return new RuleDO.RuleDOBuilder();
+    public void setSort(final Integer sort) {
+        this.sort = sort;
     }
 
     /**
-     * build ruleDO.
+     * Sets the name.
      *
-     * @param ruleDTO {@linkplain RuleDTO}
-     * @return {@linkplain RuleDO}
+     * @param name name
      */
-    public static RuleDO buildRuleDO(final RuleDTO ruleDTO) {
-        return Optional.ofNullable(ruleDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            RuleDO ruleDO = RuleDO.builder()
-                    .selectorId(item.getSelectorId())
-                    .matchMode(item.getMatchMode())
-                    .name(item.getName())
-                    .enabled(item.getEnabled())
-                    .loged(item.getLoged())
-                    .sort(item.getSort())
-                    .handle(item.getHandle())
-                    .matchRestful(item.getMatchRestful())
-                    .dateUpdated(currentTime)
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                ruleDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                ruleDO.setDateCreated(currentTime);
-            } else {
-                ruleDO.setId(item.getId());
-            }
-            return ruleDO;
-        }).orElse(null);
+    public void setName(final String name) {
+        this.name = name;
     }
 
-    /**
-     * Trans from rule data.
-     *
-     * @param ruleDO            the rule do
-     * @param pluginName        the plugin name
-     * @param conditionDataList the condition data list
-     * @param beforeConditionDataList the before condition data list
-     * @return the rule data
-     */
-    public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList, final List<ConditionData> beforeConditionDataList) {
-        return RuleData.builder()
-                .id(ruleDO.getId())
-                .name(ruleDO.getName())
-                .pluginName(pluginName)
-                .selectorId(ruleDO.getSelectorId())
-                .matchMode(ruleDO.getMatchMode())
-                .sort(ruleDO.getSort())
-                .enabled(ruleDO.getEnabled())
-                .loged(ruleDO.getLoged())
-                .handle(ruleDO.getHandle())
-                .matchRestful(ruleDO.getMatchRestful())
-                .conditionDataList(conditionDataList)
-                .beforeConditionDataList(beforeConditionDataList)
-                .build();
-    }
-
-    /**
-     * Trans from rule data.
-     *
-     * @param ruleDO            the rule do
-     * @param pluginName        the plugin name
-     * @param conditionDataList the condition data list
-     *
-     * @return ruleData
-     */
-    public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList) {
-        return transFrom(ruleDO, pluginName, conditionDataList, Collections.emptyList());
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), selectorId, matchMode, name, enabled, loged, sort, handle, matchRestful);
     }
 
     @Override
@@ -332,18 +336,13 @@ public final class RuleDO extends BaseDO {
         }
         RuleDO ruleDO = (RuleDO) o;
         return Objects.equals(selectorId, ruleDO.selectorId)
-                && Objects.equals(matchMode, ruleDO.matchMode)
-                && Objects.equals(name, ruleDO.name)
-                && Objects.equals(enabled, ruleDO.enabled)
-                && Objects.equals(loged, ruleDO.loged)
-                && Objects.equals(sort, ruleDO.sort)
-                && Objects.equals(handle, ruleDO.handle)
-                && Objects.equals(matchRestful, ruleDO.matchRestful);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), selectorId, matchMode, name, enabled, loged, sort, handle, matchRestful);
+            && Objects.equals(matchMode, ruleDO.matchMode)
+            && Objects.equals(name, ruleDO.name)
+            && Objects.equals(enabled, ruleDO.enabled)
+            && Objects.equals(loged, ruleDO.loged)
+            && Objects.equals(sort, ruleDO.sort)
+            && Objects.equals(handle, ruleDO.handle)
+            && Objects.equals(matchRestful, ruleDO.matchRestful);
     }
 
     public static final class RuleDOBuilder {
@@ -367,7 +366,7 @@ public final class RuleDO extends BaseDO {
         private Integer sort;
 
         private String handle;
-        
+
         private Boolean matchRestful;
 
         private RuleDOBuilder() {
@@ -482,7 +481,7 @@ public final class RuleDO extends BaseDO {
             this.handle = handle;
             return this;
         }
-    
+
         /**
          * matchRestful.
          *

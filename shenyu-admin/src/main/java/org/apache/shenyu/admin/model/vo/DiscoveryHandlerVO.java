@@ -112,6 +112,7 @@ public class DiscoveryHandlerVO {
 
     /**
      * setProps.
+     *
      * @param props props
      */
     public void setProps(final String props) {

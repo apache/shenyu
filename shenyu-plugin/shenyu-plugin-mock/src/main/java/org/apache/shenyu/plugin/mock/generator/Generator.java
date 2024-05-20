@@ -41,7 +41,7 @@ public interface Generator<T> {
     /**
      * generate mock data.
      *
-     * @param rule rule
+     * @param rule        rule
      * @param mockRequest request
      * @return mock data
      */
@@ -53,8 +53,8 @@ public interface Generator<T> {
     /**
      * generate mock data.
      *
-     * @param params params
-     * @param rule   rule
+     * @param params      params
+     * @param rule        rule
      * @param mockRequest request
      * @return mock data
      */
@@ -67,7 +67,6 @@ public interface Generator<T> {
      */
     int getParamSize();
 
-
     /**
      * Determine whether the rule meets the format requirements.
      *
@@ -75,7 +74,6 @@ public interface Generator<T> {
      * @return if match return true.
      */
     boolean match(String rule);
-
 
     /**
      * return prefix and suffix for generate data.
@@ -97,9 +95,9 @@ public interface Generator<T> {
         String[] split = rule.split("(?<!\\\\)\\|");
         if (split.length >= getParamSize() + 1) {
             params.addAll(Arrays.stream(split)
-                    .map(p -> p.replaceAll("\\\\\\|", "|"))
-                    .skip(1)
-                    .collect(Collectors.toList()));
+                .map(p -> p.replaceAll("\\\\\\|", "|"))
+                .skip(1)
+                .collect(Collectors.toList()));
         }
         return params;
     }

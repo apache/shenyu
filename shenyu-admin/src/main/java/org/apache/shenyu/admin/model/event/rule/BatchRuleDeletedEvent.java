@@ -33,11 +33,11 @@ import java.util.stream.Collectors;
  * BatchRuleDeletedEvent.
  */
 public class BatchRuleDeletedEvent extends BatchChangedEvent {
-    
+
     private final List<String> deletedIds;
-    
+
     private final List<PluginDO> plugins;
-    
+
     /**
      * Create a new {@code BatchChangedEvent}.operator is unknown.
      *
@@ -50,16 +50,16 @@ public class BatchRuleDeletedEvent extends BatchChangedEvent {
         this.deletedIds = ListUtil.map(source, BaseDO::getId);
         this.plugins = plugins;
     }
-    
+
     @Override
     public String buildContext() {
         final String selector = ((Collection<?>) getSource())
-                .stream()
-                .map(s -> ((RuleDO) s).getName())
-                .collect(Collectors.joining(","));
+            .stream()
+            .map(s -> ((RuleDO) s).getName())
+            .collect(Collectors.joining(","));
         return String.format("the rule[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
     }
-    
+
     /**
      * get selectors.
      *
@@ -67,11 +67,11 @@ public class BatchRuleDeletedEvent extends BatchChangedEvent {
      */
     public List<RuleDO> getRules() {
         return ((Collection<?>) getSource())
-                .stream()
-                .map(RuleDO.class::cast)
-                .collect(Collectors.toList());
+            .stream()
+            .map(RuleDO.class::cast)
+            .collect(Collectors.toList());
     }
-    
+
     /**
      * get plugins.
      *
@@ -80,7 +80,7 @@ public class BatchRuleDeletedEvent extends BatchChangedEvent {
     public List<PluginDO> getPlugins() {
         return plugins;
     }
-    
+
     /**
      * get deleted ids.
      *

@@ -41,7 +41,6 @@ public class BodyWriter {
 
     private final AtomicBoolean isClosed = new AtomicBoolean(false);
 
-
     /**
      * write ByteBuffer.
      *

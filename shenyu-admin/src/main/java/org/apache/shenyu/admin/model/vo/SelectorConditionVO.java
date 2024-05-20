@@ -85,7 +85,7 @@ public class SelectorConditionVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
-    
+
     public SelectorConditionVO() {
     }
 
@@ -109,6 +109,38 @@ public class SelectorConditionVO implements Serializable {
         this.paramValue = paramValue;
         this.dateCreated = dateCreated;
         this.dateUpdated = dateUpdated;
+    }
+
+    /**
+     * build selectorConditionVO.
+     *
+     * @param selectorConditionDOList {@linkplain SelectorConditionDO}
+     * @return {@linkplain SelectorConditionVO}
+     */
+    public static List<SelectorConditionVO> buildSelectorConditionVOList(final List<SelectorConditionDO> selectorConditionDOList) {
+        if (CollectionUtils.isEmpty(selectorConditionDOList)) {
+            return Lists.newArrayList();
+        }
+        return selectorConditionDOList.stream()
+            .map(SelectorConditionVO::buildSelectorConditionVO)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * build selectorConditionVO.
+     *
+     * @param selectorConditionDO {@linkplain SelectorConditionDO}
+     * @return {@linkplain SelectorConditionVO}
+     */
+    public static SelectorConditionVO buildSelectorConditionVO(final SelectorConditionDO selectorConditionDO) {
+        ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(selectorConditionDO.getParamType());
+        OperatorEnum operatorEnum = OperatorEnum.getOperatorEnumByAlias(selectorConditionDO.getOperator());
+        return new SelectorConditionVO(selectorConditionDO.getId(), selectorConditionDO.getSelectorId(), selectorConditionDO.getParamType(),
+            Optional.ofNullable(paramTypeEnum).map(ParamTypeEnum::getName).orElse(selectorConditionDO.getParamType()), selectorConditionDO.getOperator(),
+            Optional.ofNullable(operatorEnum).map(OperatorEnum::getAlias).orElse(selectorConditionDO.getOperator()),
+            selectorConditionDO.getParamName(), selectorConditionDO.getParamValue(),
+            DateUtils.localDateTimeToString(selectorConditionDO.getDateCreated().toLocalDateTime()),
+            DateUtils.localDateTimeToString(selectorConditionDO.getDateUpdated().toLocalDateTime()));
     }
 
     /**
@@ -289,37 +321,5 @@ public class SelectorConditionVO implements Serializable {
      */
     public void setDateUpdated(final String dateUpdated) {
         this.dateUpdated = dateUpdated;
-    }
-
-    /**
-     * build selectorConditionVO.
-     *
-     * @param selectorConditionDO {@linkplain SelectorConditionDO}
-     * @return {@linkplain SelectorConditionVO}
-     */
-    public static SelectorConditionVO buildSelectorConditionVO(final SelectorConditionDO selectorConditionDO) {
-        ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(selectorConditionDO.getParamType());
-        OperatorEnum operatorEnum = OperatorEnum.getOperatorEnumByAlias(selectorConditionDO.getOperator());
-        return new SelectorConditionVO(selectorConditionDO.getId(), selectorConditionDO.getSelectorId(), selectorConditionDO.getParamType(),
-                Optional.ofNullable(paramTypeEnum).map(ParamTypeEnum::getName).orElse(selectorConditionDO.getParamType()), selectorConditionDO.getOperator(),
-                Optional.ofNullable(operatorEnum).map(OperatorEnum::getAlias).orElse(selectorConditionDO.getOperator()), 
-                selectorConditionDO.getParamName(), selectorConditionDO.getParamValue(),
-                DateUtils.localDateTimeToString(selectorConditionDO.getDateCreated().toLocalDateTime()),
-                DateUtils.localDateTimeToString(selectorConditionDO.getDateUpdated().toLocalDateTime()));
-    }
-
-    /**
-     * build selectorConditionVO.
-     *
-     * @param selectorConditionDOList {@linkplain SelectorConditionDO}
-     * @return {@linkplain SelectorConditionVO}
-     */
-    public static List<SelectorConditionVO> buildSelectorConditionVOList(final List<SelectorConditionDO> selectorConditionDOList) {
-        if (CollectionUtils.isEmpty(selectorConditionDOList)) {
-            return Lists.newArrayList();
-        }
-        return selectorConditionDOList.stream()
-                .map(SelectorConditionVO::buildSelectorConditionVO)
-                .collect(Collectors.toList());
     }
 }

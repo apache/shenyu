@@ -52,29 +52,29 @@ public final class HystrixCommandOnThreadTest {
         hystrixHandle.setCommandKey("commandKey");
         hystrixHandle.setHystrixThreadPoolConfig(new HystrixThreadPoolConfig());
         HystrixCommandProperties.Setter propertiesSetter =
-                HystrixCommandProperties.Setter()
-                        .withExecutionTimeoutInMilliseconds((int) hystrixHandle.getTimeout())
-                        .withCircuitBreakerEnabled(true)
-                        .withCircuitBreakerErrorThresholdPercentage(hystrixHandle.getErrorThresholdPercentage())
-                        .withCircuitBreakerRequestVolumeThreshold(hystrixHandle.getRequestVolumeThreshold())
-                        .withCircuitBreakerSleepWindowInMilliseconds(hystrixHandle.getSleepWindowInMilliseconds());
+            HystrixCommandProperties.Setter()
+                .withExecutionTimeoutInMilliseconds((int) hystrixHandle.getTimeout())
+                .withCircuitBreakerEnabled(true)
+                .withCircuitBreakerErrorThresholdPercentage(hystrixHandle.getErrorThresholdPercentage())
+                .withCircuitBreakerRequestVolumeThreshold(hystrixHandle.getRequestVolumeThreshold())
+                .withCircuitBreakerSleepWindowInMilliseconds(hystrixHandle.getSleepWindowInMilliseconds());
         HystrixThreadPoolConfig hystrixThreadPoolConfig = hystrixHandle.getHystrixThreadPoolConfig();
         HystrixThreadPoolProperties.Setter threadPoolPropertiesSetter =
-                HystrixThreadPoolProperties.Setter()
-                        .withCoreSize(hystrixThreadPoolConfig.getCoreSize())
-                        .withMaximumSize(hystrixThreadPoolConfig.getMaximumSize())
-                        .withMaxQueueSize(hystrixThreadPoolConfig.getMaxQueueSize())
-                        .withKeepAliveTimeMinutes(hystrixThreadPoolConfig.getKeepAliveTimeMinutes())
-                        .withAllowMaximumSizeToDivergeFromCoreSize(true);
+            HystrixThreadPoolProperties.Setter()
+                .withCoreSize(hystrixThreadPoolConfig.getCoreSize())
+                .withMaximumSize(hystrixThreadPoolConfig.getMaximumSize())
+                .withMaxQueueSize(hystrixThreadPoolConfig.getMaxQueueSize())
+                .withKeepAliveTimeMinutes(hystrixThreadPoolConfig.getKeepAliveTimeMinutes())
+                .withAllowMaximumSizeToDivergeFromCoreSize(true);
         HystrixCommand.Setter setter = HystrixCommand.Setter
-                .withGroupKey(HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey()))
-                .andCommandKey(HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey()))
-                .andCommandPropertiesDefaults(propertiesSetter)
-                .andThreadPoolPropertiesDefaults(threadPoolPropertiesSetter);
+            .withGroupKey(HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey()))
+            .andCommandKey(HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey()))
+            .andCommandPropertiesDefaults(propertiesSetter)
+            .andThreadPoolPropertiesDefaults(threadPoolPropertiesSetter);
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/http")
-                .remoteAddress(new InetSocketAddress(8092))
-                .header("MetaDataCache", "Hello")
-                .build());
+            .remoteAddress(new InetSocketAddress(8092))
+            .header("MetaDataCache", "Hello")
+            .build());
         hystrixCommandOnThread = new HystrixCommandOnThread(setter, exchange, mock(ShenyuPluginChain.class), FallbackHandler.PREFIX + "/test");
     }
 

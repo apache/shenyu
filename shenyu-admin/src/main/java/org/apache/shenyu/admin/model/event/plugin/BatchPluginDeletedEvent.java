@@ -31,9 +31,9 @@ import java.util.stream.Collectors;
  * BatchPluginDeletedEvent.
  */
 public class BatchPluginDeletedEvent extends BatchPluginChangedEvent {
-    
+
     private final List<String> deletedPluginIds;
-    
+
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
@@ -44,16 +44,16 @@ public class BatchPluginDeletedEvent extends BatchPluginChangedEvent {
         super(source, null, EventTypeEnum.PLUGIN_DELETE, operator);
         this.deletedPluginIds = ListUtil.map(source, BaseDO::getId);
     }
-    
+
     @Override
     public String buildContext() {
         final String plugins = ((Collection<?>) getSource())
-                .stream()
-                .map(s -> ((PluginDO) s).getName())
-                .collect(Collectors.joining(","));
+            .stream()
+            .map(s -> ((PluginDO) s).getName())
+            .collect(Collectors.joining(","));
         return String.format("the plugins[%s] is %s", plugins, StringUtils.lowerCase(getType().getType().toString()));
     }
-    
+
     /**
      * get plugins.
      *
@@ -61,11 +61,11 @@ public class BatchPluginDeletedEvent extends BatchPluginChangedEvent {
      */
     public List<PluginDO> getPlugins() {
         return ((Collection<?>) getSource())
-                .stream()
-                .map(PluginDO.class::cast)
-                .collect(Collectors.toList());
+            .stream()
+            .map(PluginDO.class::cast)
+            .collect(Collectors.toList());
     }
-    
+
     /**
      * get deleted iss.
      *

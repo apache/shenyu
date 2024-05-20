@@ -29,7 +29,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-@ContextConfiguration(classes = {ApolloConfig.class})
+@ContextConfiguration(classes = ApolloConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ApolloClientTest {
 

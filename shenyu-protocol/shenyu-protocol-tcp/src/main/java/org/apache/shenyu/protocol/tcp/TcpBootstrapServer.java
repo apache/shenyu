@@ -37,11 +37,11 @@ import reactor.netty.tcp.TcpServer;
 import java.net.SocketAddress;
 import java.util.List;
 
-
 /**
  * BootstrapServer.
  */
 public class TcpBootstrapServer implements BootstrapServer {
+
     private static final Logger LOG = LoggerFactory.getLogger(TcpBootstrapServer.class);
 
     private Bridge bridge;
@@ -68,15 +68,15 @@ public class TcpBootstrapServer implements BootstrapServer {
         connectionContext = new ConnectionContext(connectionConfigProvider);
         connectionContext.init(tcpServerConfiguration.getProps());
         loopResources = LoopResources.create("shenyu-tcp-bootstrap-server-" + tcpServerConfiguration.getPort(), Integer.parseInt(bossGroupThreadCount),
-                Integer.parseInt(workerGroupThreadCount), true);
+            Integer.parseInt(workerGroupThreadCount), true);
         TcpServer tcpServer = TcpServer.create()
-                .doOnChannelInit((connObserver, channel, remoteAddress) -> channel.pipeline().addFirst(new LoggingHandler(LogLevel.INFO)))
-                .wiretap(true)
-                .observe((c, s) -> LOG.info("connection={}|status={}", c, s))
-                //.childObserve(connectionObserver)
-                .doOnConnection(this::bridgeConnections)
-                .port(tcpServerConfiguration.getPort())
-                .runOn(loopResources);
+            .doOnChannelInit((connObserver, channel, remoteAddress) -> channel.pipeline().addFirst(new LoggingHandler(LogLevel.INFO)))
+            .wiretap(true)
+            .observe((c, s) -> LOG.info("connection={}|status={}", c, s))
+            //.childObserve(connectionObserver)
+            .doOnConnection(this::bridgeConnections)
+            .port(tcpServerConfiguration.getPort())
+            .runOn(loopResources);
         server = tcpServer.bindNow();
     }
 
@@ -106,7 +106,6 @@ public class TcpBootstrapServer implements BootstrapServer {
     public void removeCommonUpstream(final List<DiscoveryUpstreamData> removeList) {
         eventBus.post(removeList);
     }
-
 
     /**
      * shutdown.

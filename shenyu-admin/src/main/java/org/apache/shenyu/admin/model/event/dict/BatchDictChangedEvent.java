@@ -29,8 +29,7 @@ import java.util.stream.Collectors;
  * BatchDictChangedEvent.
  */
 public class BatchDictChangedEvent extends BatchChangedEvent {
-    
-    
+
     /**
      * Create a new {@code BatchDictChangedEvent}.operator is unknown.
      *
@@ -42,16 +41,16 @@ public class BatchDictChangedEvent extends BatchChangedEvent {
     public BatchDictChangedEvent(final Collection<ShenyuDictDO> source, final Collection<ShenyuDictDO> before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
-    
+
     @Override
     public String buildContext() {
         final String plugins = ((Collection<?>) getSource())
-                .stream()
-                .map(s -> ((ShenyuDictDO) s).getDictName())
-                .collect(Collectors.joining(","));
+            .stream()
+            .map(s -> ((ShenyuDictDO) s).getDictName())
+            .collect(Collectors.joining(","));
         return String.format("the shenyu dict[%s] is %s", plugins, StringUtils.lowerCase(getType().getType().toString()));
     }
-    
+
     @Override
     public String eventName() {
         return "dict";

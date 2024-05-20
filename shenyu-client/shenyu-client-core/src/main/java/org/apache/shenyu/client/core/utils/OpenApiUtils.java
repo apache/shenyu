@@ -43,7 +43,6 @@ public class OpenApiUtils {
 
     private static final String[] QUERY_CLASSES = new String[]{"org.springframework.web.bind.annotation.RequestParam", "org.springframework.web.bind.annotation.RequestPart"};
 
-
     /**
      * generateDocumentParameters.
      *
@@ -132,22 +131,22 @@ public class OpenApiUtils {
      */
     public static Map<String, Object> generateDocumentResponse(final String path) {
         ImmutableMap<Object, Object> contentMap = ImmutableMap.builder()
-                .put(ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE, ImmutableMap.of("schema", ImmutableMap.of("type", "string")))
-                .build();
+            .put(ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE, ImmutableMap.of("schema", ImmutableMap.of("type", "string")))
+            .build();
         ImmutableMap<Object, Object> successMap = ImmutableMap.builder()
-                .put("description", path)
-                .put("content", contentMap).build();
+            .put("description", path)
+            .put("content", contentMap).build();
         ImmutableMap<Object, Object> notFoundMap = ImmutableMap.builder()
-                .put("description", StringUtils.join("the path [", path, "] not found"))
-                .put("content", contentMap).build();
+            .put("description", StringUtils.join("the path [", path, "] not found"))
+            .put("content", contentMap).build();
         ImmutableMap<Object, Object> conflictMap = ImmutableMap.builder()
-                .put("description", "conflict")
-                .put("content", contentMap).build();
+            .put("description", "conflict")
+            .put("content", contentMap).build();
         return ImmutableMap.<String, Object>builder()
-                .put("200", successMap)
-                .put("404", notFoundMap)
-                .put("409", conflictMap)
-                .build();
+            .put("200", successMap)
+            .put("404", notFoundMap)
+            .put("409", conflictMap)
+            .build();
     }
 
     public static class Parameter {

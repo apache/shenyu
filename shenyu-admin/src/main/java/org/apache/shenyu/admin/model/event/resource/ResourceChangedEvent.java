@@ -28,8 +28,7 @@ import java.util.Objects;
  * ResourceChangedEvent.
  */
 public class ResourceChangedEvent extends AdminDataModelChangedEvent {
-    
-    
+
     /**
      * Create a new {@code ResourceChangedEvent}.operator is unknown.
      *
@@ -41,7 +40,7 @@ public class ResourceChangedEvent extends AdminDataModelChangedEvent {
     public ResourceChangedEvent(final ResourceDO source, final ResourceDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
-    
+
     @Override
     public String buildContext() {
         final ResourceDO after = (ResourceDO) getAfter();
@@ -49,9 +48,9 @@ public class ResourceChangedEvent extends AdminDataModelChangedEvent {
             return String.format("the resource [%s] is %s", after.getTitle(), StringUtils.lowerCase(getType().getType().toString()));
         }
         return String.format("the resource [%s] is %s : %s", after.getTitle(), StringUtils.lowerCase(getType().getType().toString()), contrast());
-        
+
     }
-    
+
     private String contrast() {
         final ResourceDO before = (ResourceDO) getBefore();
         Objects.requireNonNull(before);
@@ -81,7 +80,7 @@ public class ResourceChangedEvent extends AdminDataModelChangedEvent {
         }
         return builder.toString();
     }
-    
+
     @Override
     public String eventName() {
         return "selector";

@@ -35,15 +35,15 @@ public class DictCreatedEventTest {
     @BeforeEach
     public void setUp() {
         dictDO = ShenyuDictDO.builder()
-                .id("1")
-                .type("dictTest")
-                .dictCode("DICT_TEST")
-                .dictName("test")
-                .dictValue("test")
-                .desc("dict test desc")
-                .sort(0)
-                .enabled(true)
-                .build();
+            .id("1")
+            .type("dictTest")
+            .dictCode("DICT_TEST")
+            .dictName("test")
+            .dictValue("test")
+            .desc("dict test desc")
+            .sort(0)
+            .enabled(true)
+            .build();
     }
 
     @Test

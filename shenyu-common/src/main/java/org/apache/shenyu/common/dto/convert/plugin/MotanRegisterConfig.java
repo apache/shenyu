@@ -57,7 +57,6 @@ public class MotanRegisterConfig implements Serializable {
         this.threadpool = threadpool;
     }
 
-
     /**
      * get corethreads.
      *
@@ -158,8 +157,8 @@ public class MotanRegisterConfig implements Serializable {
         }
         MotanRegisterConfig that = (MotanRegisterConfig) o;
         return Objects.equals(registerProtocol, that.registerProtocol) && Objects.equals(registerAddress, that.registerAddress) && Objects.equals(threadpool, that.threadpool)
-                && Objects.equals(corethreads, that.corethreads) && Objects.equals(threads, that.threads)
-                && Objects.equals(queues, that.queues);
+            && Objects.equals(corethreads, that.corethreads) && Objects.equals(threads, that.threads)
+            && Objects.equals(queues, that.queues);
     }
 
     @Override
@@ -170,24 +169,24 @@ public class MotanRegisterConfig implements Serializable {
     @Override
     public String toString() {
         return "MotanRegisterConfig{"
-                + "registerProtocol='"
-                + registerProtocol
-                + '\''
-                + ", registerAddress='"
-                + registerAddress
-                + '\''
-                + ", threadpool='"
-                + threadpool
-                + '\''
-                + ", corethreads='"
-                + corethreads
-                + '\''
-                + ", threads='"
-                + threads
-                + '\''
-                + ", queues='"
-                + queues
-                + '\''
-                + '}';
+            + "registerProtocol='"
+            + registerProtocol
+            + '\''
+            + ", registerAddress='"
+            + registerAddress
+            + '\''
+            + ", threadpool='"
+            + threadpool
+            + '\''
+            + ", corethreads='"
+            + corethreads
+            + '\''
+            + ", threads='"
+            + threads
+            + '\''
+            + ", queues='"
+            + queues
+            + '\''
+            + '}';
     }
 }

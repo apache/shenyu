@@ -29,15 +29,14 @@ import java.util.Objects;
  * Suitable for retrieving user context information from a variety of sources。
  */
 public final class SessionUtil {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(SessionUtil.class);
-    
+
     private static final ThreadLocal<UserInfo> LOCAL_VISITOR = new InheritableThreadLocal<>();
-    
+
     private SessionUtil() {
     }
-    
-    
+
     /**
      * visitor is login user[admin or other] / app /bootstrap.
      *
@@ -46,7 +45,7 @@ public final class SessionUtil {
     public static String visitorName() {
         return visitor().getUserName();
     }
-    
+
     /**
      * visitor is login user[admin or other] / app /bootstrap.
      *
@@ -65,7 +64,7 @@ public final class SessionUtil {
         }
         return defaultUser();
     }
-    
+
     /**
      * set visitor user.
      *
@@ -74,7 +73,7 @@ public final class SessionUtil {
     public static void setLocalVisitor(final UserInfo userInfo) {
         LOCAL_VISITOR.set(userInfo);
     }
-    
+
     /**
      * set visitor user.
      */
@@ -83,14 +82,14 @@ public final class SessionUtil {
         final UserInfo userInfo = JwtUtils.getUserInfo();
         LOCAL_VISITOR.set(Objects.isNull(userInfo) ? defaultUser() : userInfo);
     }
-    
+
     /**
      * clean current session.
      */
     public static void clean() {
         LOCAL_VISITOR.remove();
     }
-    
+
     /**
      * current user is admin.
      *
@@ -99,7 +98,7 @@ public final class SessionUtil {
     public static boolean isAdmin() {
         return AdminConstants.ADMIN_NAME.equals(visitorName());
     }
-    
+
     private static UserInfo defaultUser() {
         return UserInfo.builder().userId("-1").userName("unknown").build();
     }

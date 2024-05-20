@@ -28,8 +28,7 @@ import java.util.Objects;
  * RoleChangedEvent.
  */
 public class RoleChangedEvent extends AdminDataModelChangedEvent {
-    
-    
+
     /**
      * Create a new {@code RoleChangedEvent}.operator is unknown.
      *
@@ -41,7 +40,7 @@ public class RoleChangedEvent extends AdminDataModelChangedEvent {
     public RoleChangedEvent(final RoleDO source, final RoleDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
-    
+
     @Override
     public String buildContext() {
         final RoleDO after = (RoleDO) getAfter();
@@ -49,9 +48,9 @@ public class RoleChangedEvent extends AdminDataModelChangedEvent {
             return String.format("the role [%s] is %s", after.getRoleName(), StringUtils.lowerCase(getType().getType().toString()));
         }
         return String.format("the role [%s] is %s : %s", after.getRoleName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
-        
+
     }
-    
+
     private String contrast() {
         final RoleDO before = (RoleDO) getBefore();
         Objects.requireNonNull(before);
@@ -69,7 +68,7 @@ public class RoleChangedEvent extends AdminDataModelChangedEvent {
         }
         return builder.toString();
     }
-    
+
     @Override
     public String eventName() {
         return "role";

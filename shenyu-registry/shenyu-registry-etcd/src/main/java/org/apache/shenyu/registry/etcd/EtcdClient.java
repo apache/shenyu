@@ -30,6 +30,7 @@ import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -37,7 +38,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-
 
 /**
  * etcd client.
@@ -85,7 +85,6 @@ public class EtcdClient {
         }
     }
 
-
     /**
      * watch key changes.
      *
@@ -98,7 +97,6 @@ public class EtcdClient {
         client.getWatchClient().watch(bytesOf(key), option, listener);
     }
 
-
     /**
      * get keys by prefix.
      *
@@ -107,17 +105,18 @@ public class EtcdClient {
      */
     public Map<String, String> getKeysMapByPrefix(final String prefix) {
         GetOption getOption = GetOption.newBuilder()
-                .isPrefix(true)
-                .build();
+            .isPrefix(true)
+            .build();
 
         return getRange(prefix, getOption).getKvs().stream()
-                .collect(Collectors.toMap(e -> e.getKey().toString(StandardCharsets.UTF_8), e -> e.getValue().toString(StandardCharsets.UTF_8)));
+            .collect(Collectors.toMap(e -> e.getKey().toString(StandardCharsets.UTF_8), e -> e.getValue().toString(StandardCharsets.UTF_8)));
 
     }
 
     /**
      * get keyResponse.
-     * @param key watch key.
+     *
+     * @param key       watch key.
      * @param getOption get option.
      * @return key response.
      */
@@ -132,6 +131,7 @@ public class EtcdClient {
 
     /**
      * bytesOf string.
+     *
      * @param val val.
      * @return bytes val.
      */
@@ -148,7 +148,8 @@ public class EtcdClient {
 
     /**
      * put data as ephemeral.
-     * @param key key
+     *
+     * @param key   key
      * @param value value
      */
     public void putEphemeral(final String key, final String value) {
@@ -156,7 +157,7 @@ public class EtcdClient {
             KV kvClient = client.getKVClient();
             kvClient.put(ByteSequence.from(key, UTF_8), ByteSequence.from(value, UTF_8),
                     PutOption.newBuilder().withLeaseId(globalLeaseId).build())
-                    .get(timeout, TimeUnit.MILLISECONDS);
+                .get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOGGER.error("putEphemeral(key:{},value:{}) error.", key, value, e);
         }

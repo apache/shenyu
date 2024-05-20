@@ -17,12 +17,13 @@
 
 package org.apache.shenyu.admin.model.event.dict;
 
-import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -38,25 +39,25 @@ public class BatchDictDeletedEventTest {
     @BeforeEach
     public void setUp() {
         one = ShenyuDictDO.builder()
-                .id("1")
-                .type("dictOneTest")
-                .dictCode("DICT_TEST")
-                .dictName("one")
-                .dictValue("one")
-                .desc("dict one test desc")
-                .sort(0)
-                .enabled(true)
-                .build();
+            .id("1")
+            .type("dictOneTest")
+            .dictCode("DICT_TEST")
+            .dictName("one")
+            .dictValue("one")
+            .desc("dict one test desc")
+            .sort(0)
+            .enabled(true)
+            .build();
         two = ShenyuDictDO.builder()
-                .id("2")
-                .type("dictTwoTest")
-                .dictCode("DICT_TEST")
-                .dictName("two")
-                .dictValue("two")
-                .desc("dict two test desc")
-                .sort(0)
-                .enabled(true)
-                .build();
+            .id("2")
+            .type("dictTwoTest")
+            .dictCode("DICT_TEST")
+            .dictName("two")
+            .dictValue("two")
+            .desc("dict two test desc")
+            .sort(0)
+            .enabled(true)
+            .build();
     }
 
     @Test

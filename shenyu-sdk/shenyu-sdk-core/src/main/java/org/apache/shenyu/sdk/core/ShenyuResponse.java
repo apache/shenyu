@@ -20,7 +20,6 @@ package org.apache.shenyu.sdk.core;
 import java.util.Collection;
 import java.util.Map;
 
-
 /**
  * ShenyuResponse.
  */
@@ -39,10 +38,10 @@ public final class ShenyuResponse {
     /**
      * ShenyuResponse.
      *
-     * @param status status
-     * @param reason reason
+     * @param status  status
+     * @param reason  reason
      * @param headers headers
-     * @param body body
+     * @param body    body
      * @param request request
      */
     public ShenyuResponse(final int status, final String reason, final Map<String, Collection<String>> headers,

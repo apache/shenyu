@@ -66,22 +66,22 @@ public enum DiscoveryTypeEnum {
     }
 
     /**
-     * get discovery type.
-     *
-     * @return discovery type
-     */
-    public String getType() {
-        return type;
-    }
-
-    /**
      * discovery type enum convert list.
      *
      * @return discovery type list
      */
     public static List<String> types() {
         return Stream.of(DiscoveryTypeEnum.values())
-                .map(DiscoveryTypeEnum::getType)
-                .collect(Collectors.toList());
+            .map(DiscoveryTypeEnum::getType)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * get discovery type.
+     *
+     * @return discovery type
+     */
+    public String getType() {
+        return type;
     }
 }

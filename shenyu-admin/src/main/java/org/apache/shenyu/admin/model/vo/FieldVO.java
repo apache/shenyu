@@ -73,6 +73,33 @@ public class FieldVO {
     private String ext;
 
     /**
+     * buildFieldVO.
+     *
+     * @param fieldDO fieldDO
+     * @return FieldVO
+     */
+    public static FieldVO buildFieldVO(final FieldDO fieldDO) {
+        return FieldVO.builder().id(fieldDO.getId())
+            .ext(fieldDO.getExt())
+            .fieldDesc(fieldDO.getFieldDesc())
+            .name(fieldDO.getName())
+            .modelId(fieldDO.getModelId())
+            .required(fieldDO.getRequired())
+            .selfModelId(fieldDO.getSelfModelId())
+            .dateUpdated(fieldDO.getDateUpdated())
+            .dateCreated(fieldDO.getDateCreated()).build();
+    }
+
+    /**
+     * builder.
+     *
+     * @return fieldDOBuilder
+     */
+    public static FieldVO.FieldVOBuilder builder() {
+        return new FieldVO.FieldVOBuilder();
+    }
+
+    /**
      * getModelId.
      *
      * @return modelId
@@ -180,7 +207,6 @@ public class FieldVO {
         this.ext = ext;
     }
 
-
     /**
      * getId.
      *
@@ -236,6 +262,11 @@ public class FieldVO {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), modelId, selfModelId, name, fieldDesc, required, ext);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -248,45 +279,13 @@ public class FieldVO {
         }
         FieldVO fieldDO = (FieldVO) o;
         return Objects.equals(modelId, fieldDO.modelId)
-                && Objects.equals(selfModelId, fieldDO.selfModelId)
-                && Objects.equals(name, fieldDO.name)
-                && Objects.equals(fieldDesc, fieldDO.fieldDesc)
-                && Objects.equals(required, fieldDO.required)
-                && Objects.equals(ext, fieldDO.ext);
+            && Objects.equals(selfModelId, fieldDO.selfModelId)
+            && Objects.equals(name, fieldDO.name)
+            && Objects.equals(fieldDesc, fieldDO.fieldDesc)
+            && Objects.equals(required, fieldDO.required)
+            && Objects.equals(ext, fieldDO.ext);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), modelId, selfModelId, name, fieldDesc, required, ext);
-    }
-
-    /**
-     * buildFieldVO.
-     *
-     * @param fieldDO fieldDO
-     * @return FieldVO
-     */
-    public static FieldVO buildFieldVO(final FieldDO fieldDO) {
-        return FieldVO.builder().id(fieldDO.getId())
-                .ext(fieldDO.getExt())
-                .fieldDesc(fieldDO.getFieldDesc())
-                .name(fieldDO.getName())
-                .modelId(fieldDO.getModelId())
-                .required(fieldDO.getRequired())
-                .selfModelId(fieldDO.getSelfModelId())
-                .dateUpdated(fieldDO.getDateUpdated())
-                .dateCreated(fieldDO.getDateCreated()).build();
-    }
-
-    /**
-     * builder.
-     *
-     * @return fieldDOBuilder
-     */
-    public static FieldVO.FieldVOBuilder builder() {
-        return new FieldVO.FieldVOBuilder();
-    }
-    
     /**
      * FieldVOBuilder.
      */

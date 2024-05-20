@@ -31,45 +31,45 @@ import java.util.Objects;
  * this is dashboard user from by web front.
  */
 public class DashboardUserDTO implements Serializable {
-    
+
     private static final long serialVersionUID = -7005615329360835626L;
-    
+
     /**
      * primary key.
      */
     private String id;
-    
+
     /**
      * user name.
      */
     @NotBlank
     private String userName;
-    
+
     /**
      * user password.
      */
     @Pattern(regexp = RegConstant.PASSWORD_RULE, message = '{' + FailI18nMessage.PASSWORD_MUST + '}')
     private String password;
-    
+
     /**
      * dashboard role.
      */
     private Integer role;
-    
+
     /**
      * current role list.
      */
     private List<@NotBlank String> roles;
-    
+
     /**
      * whether enabled.
      */
     @NotNull
     private Boolean enabled;
-    
+
     public DashboardUserDTO() {
     }
-    
+
     public DashboardUserDTO(final String id, @NotNull final String userName, final String password, final Integer role, final List<String> roles, final Boolean enabled) {
         this.id = id;
         this.userName = userName;
@@ -78,115 +78,7 @@ public class DashboardUserDTO implements Serializable {
         this.roles = roles;
         this.enabled = enabled;
     }
-    
-    /**
-     * Gets the value of id.
-     *
-     * @return the value of id
-     */
-    public String getId() {
-        return id;
-    }
-    
-    /**
-     * Sets the id.
-     *
-     * @param id id
-     */
-    public void setId(final String id) {
-        this.id = id;
-    }
-    
-    /**
-     * Gets the value of userName.
-     *
-     * @return the value of userName
-     */
-    public String getUserName() {
-        return userName;
-    }
-    
-    /**
-     * Sets the userName.
-     *
-     * @param userName userName
-     */
-    public void setUserName(final String userName) {
-        this.userName = userName;
-    }
-    
-    /**
-     * Gets the value of password.
-     *
-     * @return the value of password
-     */
-    public String getPassword() {
-        return password;
-    }
-    
-    /**
-     * Sets the password.
-     *
-     * @param password password
-     */
-    public void setPassword(final String password) {
-        this.password = password;
-    }
-    
-    /**
-     * Gets the value of role.
-     *
-     * @return the value of role
-     */
-    public Integer getRole() {
-        return role;
-    }
-    
-    /**
-     * Sets the role.
-     *
-     * @param role role
-     */
-    public void setRole(final Integer role) {
-        this.role = role;
-    }
-    
-    /**
-     * Gets the value of roles.
-     *
-     * @return the value of roles
-     */
-    public List<String> getRoles() {
-        return roles;
-    }
-    
-    /**
-     * Sets the roles.
-     *
-     * @param roles roles
-     */
-    public void setRoles(final List<String> roles) {
-        this.roles = roles;
-    }
-    
-    /**
-     * Gets the value of enabled.
-     *
-     * @return the value of enabled
-     */
-    public Boolean getEnabled() {
-        return enabled;
-    }
-    
-    /**
-     * Sets the enabled.
-     *
-     * @param enabled enabled
-     */
-    public void setEnabled(final Boolean enabled) {
-        this.enabled = enabled;
-    }
-    
+
     /**
      * builder method.
      *
@@ -195,7 +87,120 @@ public class DashboardUserDTO implements Serializable {
     public static DashboardUserDTO.DashboardUserDTOBuilder builder() {
         return new DashboardUserDTO.DashboardUserDTOBuilder();
     }
-    
+
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets the value of userName.
+     *
+     * @return the value of userName
+     */
+    public String getUserName() {
+        return userName;
+    }
+
+    /**
+     * Sets the userName.
+     *
+     * @param userName userName
+     */
+    public void setUserName(final String userName) {
+        this.userName = userName;
+    }
+
+    /**
+     * Gets the value of password.
+     *
+     * @return the value of password
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * Sets the password.
+     *
+     * @param password password
+     */
+    public void setPassword(final String password) {
+        this.password = password;
+    }
+
+    /**
+     * Gets the value of role.
+     *
+     * @return the value of role
+     */
+    public Integer getRole() {
+        return role;
+    }
+
+    /**
+     * Sets the role.
+     *
+     * @param role role
+     */
+    public void setRole(final Integer role) {
+        this.role = role;
+    }
+
+    /**
+     * Gets the value of roles.
+     *
+     * @return the value of roles
+     */
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    /**
+     * Sets the roles.
+     *
+     * @param roles roles
+     */
+    public void setRoles(final List<String> roles) {
+        this.roles = roles;
+    }
+
+    /**
+     * Gets the value of enabled.
+     *
+     * @return the value of enabled
+     */
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Sets the enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, userName, password, role, roles, enabled);
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -206,35 +211,30 @@ public class DashboardUserDTO implements Serializable {
         }
         DashboardUserDTO that = (DashboardUserDTO) o;
         return Objects.equals(id, that.id)
-                && Objects.equals(userName, that.userName)
-                && Objects.equals(password, that.password)
-                && Objects.equals(role, that.role)
-                && Objects.equals(roles, that.roles)
-                && Objects.equals(enabled, that.enabled);
+            && Objects.equals(userName, that.userName)
+            && Objects.equals(password, that.password)
+            && Objects.equals(role, that.role)
+            && Objects.equals(roles, that.roles)
+            && Objects.equals(enabled, that.enabled);
     }
-    
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, userName, password, role, roles, enabled);
-    }
-    
+
     public static final class DashboardUserDTOBuilder {
-        
+
         private String id;
-        
+
         private String userName;
-        
+
         private String password;
-        
+
         private Integer role;
-        
+
         private List<String> roles;
-        
+
         private Boolean enabled;
-        
+
         private DashboardUserDTOBuilder() {
         }
-        
+
         /**
          * id.
          *
@@ -245,7 +245,7 @@ public class DashboardUserDTO implements Serializable {
             this.id = id;
             return this;
         }
-        
+
         /**
          * userName.
          *
@@ -256,7 +256,7 @@ public class DashboardUserDTO implements Serializable {
             this.userName = userName;
             return this;
         }
-        
+
         /**
          * password.
          *
@@ -267,7 +267,7 @@ public class DashboardUserDTO implements Serializable {
             this.password = password;
             return this;
         }
-        
+
         /**
          * role.
          *
@@ -278,7 +278,7 @@ public class DashboardUserDTO implements Serializable {
             this.role = role;
             return this;
         }
-        
+
         /**
          * roles.
          *
@@ -289,7 +289,7 @@ public class DashboardUserDTO implements Serializable {
             this.roles = roles;
             return this;
         }
-        
+
         /**
          * enabled.
          *
@@ -300,7 +300,7 @@ public class DashboardUserDTO implements Serializable {
             this.enabled = enabled;
             return this;
         }
-        
+
         /**
          * build method.
          *

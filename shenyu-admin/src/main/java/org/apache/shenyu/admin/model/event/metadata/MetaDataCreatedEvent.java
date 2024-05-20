@@ -24,8 +24,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  * MetaDataCreatedEvent.
  */
 public class MetaDataCreatedEvent extends MetaDataChangedEvent {
-    
-    
+
     /**
      * Create a new {@code MetaDataChangedEvent}.operator is unknown.
      *
@@ -35,7 +34,7 @@ public class MetaDataCreatedEvent extends MetaDataChangedEvent {
     public MetaDataCreatedEvent(final MetaDataDO source, final String operator) {
         super(source, null, EventTypeEnum.META_DATA_CREATE, operator);
     }
-    
+
     /**
      * the created metadata.
      *
@@ -44,5 +43,5 @@ public class MetaDataCreatedEvent extends MetaDataChangedEvent {
     public MetaDataDO getMetaData() {
         return (MetaDataDO) getSource();
     }
-    
+
 }

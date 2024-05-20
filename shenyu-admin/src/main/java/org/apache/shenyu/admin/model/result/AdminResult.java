@@ -24,22 +24,22 @@ import java.util.Objects;
  * AdminResult.
  */
 public class AdminResult<T> implements Serializable {
-    
+
     private static final long serialVersionUID = -2792556188993845048L;
-    
+
     private Integer code;
-    
+
     private String message;
-    
+
     private T data;
-    
+
     /**
      * Instantiates a new shenyu result.
      */
     public AdminResult() {
-    
+
     }
-    
+
     /**
      * Instantiates a new shenyu result.
      *
@@ -52,8 +52,7 @@ public class AdminResult<T> implements Serializable {
         this.message = message;
         this.data = data;
     }
-    
-    
+
     /**
      * Gets the value of code.
      *
@@ -62,7 +61,7 @@ public class AdminResult<T> implements Serializable {
     public Integer getCode() {
         return code;
     }
-    
+
     /**
      * Sets the code.
      *
@@ -71,7 +70,7 @@ public class AdminResult<T> implements Serializable {
     public void setCode(final Integer code) {
         this.code = code;
     }
-    
+
     /**
      * Gets the value of message.
      *
@@ -80,7 +79,7 @@ public class AdminResult<T> implements Serializable {
     public String getMessage() {
         return message;
     }
-    
+
     /**
      * Sets the message.
      *
@@ -89,7 +88,7 @@ public class AdminResult<T> implements Serializable {
     public void setMessage(final String message) {
         this.message = message;
     }
-    
+
     /**
      * Gets the value of data.
      *
@@ -98,7 +97,7 @@ public class AdminResult<T> implements Serializable {
     public Object getData() {
         return data;
     }
-    
+
     /**
      * Sets the data.
      *
@@ -107,16 +106,12 @@ public class AdminResult<T> implements Serializable {
     public void setData(final T data) {
         this.data = data;
     }
-    
+
     @Override
-    public String toString() {
-        return "ShenyuAdminResult{"
-                + "code=" + code
-                + ", message='" + message
-                + '\'' + ", data=" + data
-                + '}';
+    public int hashCode() {
+        return Objects.hash(code, message, data);
     }
-    
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -129,9 +124,13 @@ public class AdminResult<T> implements Serializable {
         AdminResult<T> that = (AdminResult<T>) o;
         return Objects.equals(code, that.code) && Objects.equals(message, that.message) && Objects.equals(data, that.data);
     }
-    
+
     @Override
-    public int hashCode() {
-        return Objects.hash(code, message, data);
+    public String toString() {
+        return "ShenyuAdminResult{"
+            + "code=" + code
+            + ", message='" + message
+            + '\'' + ", data=" + data
+            + '}';
     }
 }

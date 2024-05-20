@@ -75,6 +75,11 @@ public class BatchCommonDTO implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(ids, enabled);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -84,10 +89,5 @@ public class BatchCommonDTO implements Serializable {
         }
         BatchCommonDTO that = (BatchCommonDTO) o;
         return Objects.equals(ids, that.ids) && Objects.equals(enabled, that.enabled);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(ids, enabled);
     }
 }

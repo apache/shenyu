@@ -35,7 +35,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
  * The type oauth2 plugin configuration.
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(value = {"shenyu.plugins.oauth2.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.plugins.oauth2.enabled", havingValue = "true", matchIfMissing = true)
 @ConditionalOnClass({ OAuth2AuthorizedClient.class, SecurityWebFilterChain.class, SecurityProperties.class })
 @AutoConfigureAfter(ReactiveSecurityAutoConfiguration.class)
 public class OAuth2PluginConfiguration {

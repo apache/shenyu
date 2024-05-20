@@ -40,7 +40,7 @@ public class RoleEditVO implements Serializable {
     private RoleVO sysRole;
 
     /**
-     *  all permission info.
+     * all permission info.
      */
     private PermissionInfo allPermissionInfo;
 
@@ -106,7 +106,7 @@ public class RoleEditVO implements Serializable {
     public void setAllPermissionInfo(final PermissionInfo allPermissionInfo) {
         this.allPermissionInfo = allPermissionInfo;
     }
-    
+
     /**
      * PermissionInfo.
      */
@@ -128,6 +128,15 @@ public class RoleEditVO implements Serializable {
         public PermissionInfo(final List<ResourceInfo> treeList, final List<String> permissionIds) {
             this.treeList = treeList;
             this.permissionIds = permissionIds;
+        }
+
+        /**
+         * builder method.
+         *
+         * @return builder object.
+         */
+        public static PermissionInfo.PermissionInfoBuilder builder() {
+            return new PermissionInfo.PermissionInfoBuilder();
         }
 
         /**
@@ -166,15 +175,6 @@ public class RoleEditVO implements Serializable {
             this.permissionIds = permissionIds;
         }
 
-        /**
-         * builder method.
-         *
-         * @return builder object.
-         */
-        public static PermissionInfo.PermissionInfoBuilder builder() {
-            return new PermissionInfo.PermissionInfoBuilder();
-        }
-        
         /**
          * PermissionInfoBuilder.
          */
@@ -225,7 +225,7 @@ public class RoleEditVO implements Serializable {
             }
         }
     }
-    
+
     /**
      * ResourceInfo.
      */
@@ -271,6 +271,37 @@ public class RoleEditVO implements Serializable {
             this.children = children;
             this.isLeaf = isLeaf;
             this.parentId = parentId;
+        }
+
+        /**
+         * build resource info.
+         *
+         * @param resourceVO {@linkplain ResourceVO}
+         * @return {@linkplain ResourceInfo}
+         */
+        public static ResourceInfo buildResourceInfo(final ResourceVO resourceVO) {
+            return Optional.ofNullable(resourceVO).map(item -> {
+                ResourceInfo resourceInfo = ResourceInfo.builder()
+                    .id(item.getId())
+                    .title(item.getTitle())
+                    .name(item.getName())
+                    .parentId(item.getParentId())
+                    .isLeaf(item.getIsLeaf())
+                    .build();
+                if (item.getIsLeaf().equals(Boolean.FALSE)) {
+                    resourceInfo.setChildren(new ArrayList<>());
+                }
+                return resourceInfo;
+            }).orElse(null);
+        }
+
+        /**
+         * builder method.
+         *
+         * @return builder object.
+         */
+        public static ResourceInfo.ResourceInfoBuilder builder() {
+            return new ResourceInfo.ResourceInfoBuilder();
         }
 
         /**
@@ -381,37 +412,6 @@ public class RoleEditVO implements Serializable {
             this.parentId = parentId;
         }
 
-        /**
-         * build resource info.
-         *
-         * @param resourceVO {@linkplain ResourceVO}
-         * @return {@linkplain ResourceInfo}
-         */
-        public static ResourceInfo buildResourceInfo(final ResourceVO resourceVO) {
-            return Optional.ofNullable(resourceVO).map(item -> {
-                ResourceInfo resourceInfo = ResourceInfo.builder()
-                        .id(item.getId())
-                        .title(item.getTitle())
-                        .name(item.getName())
-                        .parentId(item.getParentId())
-                        .isLeaf(item.getIsLeaf())
-                        .build();
-                if (item.getIsLeaf().equals(Boolean.FALSE)) {
-                    resourceInfo.setChildren(new ArrayList<>());
-                }
-                return resourceInfo;
-            }).orElse(null);
-        }
-
-        /**
-         * builder method.
-         *
-         * @return builder object.
-         */
-        public static ResourceInfo.ResourceInfoBuilder builder() {
-            return new ResourceInfo.ResourceInfoBuilder();
-        }
-        
         /**
          * ResourceInfoBuilder.
          */

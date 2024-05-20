@@ -24,8 +24,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  * RuleCreatedEvent.
  */
 public class ResourceCreatedEvent extends ResourceChangedEvent {
-    
-    
+
     /**
      * Create a new {@code SelectorChangedEvent}.operator is unknown.
      *
@@ -35,7 +34,7 @@ public class ResourceCreatedEvent extends ResourceChangedEvent {
     public ResourceCreatedEvent(final ResourceDO source, final String operator) {
         super(source, null, EventTypeEnum.RESOURCE_CREATE, operator);
     }
-    
+
     /**
      * the created resource.
      *
@@ -44,5 +43,5 @@ public class ResourceCreatedEvent extends ResourceChangedEvent {
     public ResourceDO getResource() {
         return (ResourceDO) getSource();
     }
-    
+
 }

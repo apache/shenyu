@@ -67,6 +67,15 @@ public class MockRequestRecordDO extends BaseDO {
     private String body;
 
     /**
+     * builder.
+     *
+     * @return {@linkplain MockRequestRecordDOBuilder}
+     */
+    public static MockRequestRecordDOBuilder builder() {
+        return new MockRequestRecordDOBuilder();
+    }
+
+    /**
      * Gets the value of apiId.
      *
      * @return the value of apiId
@@ -210,33 +219,24 @@ public class MockRequestRecordDO extends BaseDO {
         this.body = body;
     }
 
-    /**
-     * builder.
-     *
-     * @return {@linkplain MockRequestRecordDOBuilder}
-     */
-    public static MockRequestRecordDOBuilder builder() {
-        return new MockRequestRecordDOBuilder();
-    }
-
     public static final class MockRequestRecordDOBuilder {
 
         private String id;
-        
+
         private String apiId;
-        
+
         private String host;
-        
+
         private Integer port;
 
         private String url;
-        
+
         private String pathVariable;
-        
+
         private String query;
-        
+
         private String header;
-        
+
         private String body;
 
         private Timestamp dateCreated;
@@ -245,7 +245,7 @@ public class MockRequestRecordDO extends BaseDO {
 
         public MockRequestRecordDOBuilder() {
         }
-        
+
         /**
          * id.
          *
@@ -278,7 +278,7 @@ public class MockRequestRecordDO extends BaseDO {
             this.dateUpdated = dateUpdated;
             return this;
         }
-        
+
         /**
          * Sets the apiId.
          *

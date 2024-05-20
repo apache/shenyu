@@ -88,6 +88,21 @@ public class DashboardUserVO implements Serializable {
     }
 
     /**
+     * build dashboardUserVO.
+     *
+     * @param dashboardUserDO {@linkplain DashboardUserDO}
+     * @return {@linkplain DashboardUserVO}
+     */
+    public static DashboardUserVO buildDashboardUserVO(final DashboardUserDO dashboardUserDO) {
+        return Optional.ofNullable(dashboardUserDO)
+            .map(item -> new DashboardUserVO(item.getId(), item.getUserName(),
+                item.getPassword(), item.getRole(), item.getEnabled(),
+                DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
+                DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime())))
+            .orElse(null);
+    }
+
+    /**
      * Gets the value of id.
      *
      * @return the value of id
@@ -213,19 +228,9 @@ public class DashboardUserVO implements Serializable {
         this.dateUpdated = dateUpdated;
     }
 
-    /**
-     * build dashboardUserVO.
-     *
-     * @param dashboardUserDO {@linkplain DashboardUserDO}
-     * @return {@linkplain DashboardUserVO}
-     */
-    public static DashboardUserVO buildDashboardUserVO(final DashboardUserDO dashboardUserDO) {
-        return Optional.ofNullable(dashboardUserDO)
-                .map(item -> new DashboardUserVO(item.getId(), item.getUserName(),
-                        item.getPassword(), item.getRole(), item.getEnabled(),
-                        DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
-                        DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime())))
-                .orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, userName, password, role, enabled, dateCreated, dateUpdated);
     }
 
     @Override
@@ -238,16 +243,11 @@ public class DashboardUserVO implements Serializable {
         }
         DashboardUserVO that = (DashboardUserVO) o;
         return Objects.equals(id, that.id)
-                && Objects.equals(userName, that.userName)
-                && Objects.equals(password, that.password)
-                && Objects.equals(role, that.role)
-                && Objects.equals(enabled, that.enabled)
-                && Objects.equals(dateCreated, that.dateCreated)
-                && Objects.equals(dateUpdated, that.dateUpdated);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, userName, password, role, enabled, dateCreated, dateUpdated);
+            && Objects.equals(userName, that.userName)
+            && Objects.equals(password, that.password)
+            && Objects.equals(role, that.role)
+            && Objects.equals(enabled, that.enabled)
+            && Objects.equals(dateCreated, that.dateCreated)
+            && Objects.equals(dateUpdated, that.dateUpdated);
     }
 }

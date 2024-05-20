@@ -55,6 +55,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -133,9 +134,9 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         StringBuilder logInfo = new StringBuilder();
         if (!params.isEmpty()) {
             logInfo.append("[Query Params Start]").append(System.lineSeparator());
-            params.forEach((key, value) -> {
+            params.forEach((key, values) -> {
                 // desensitized query parameters
-                value = Lists.newArrayList(value);
+                ArrayList<String> value = Lists.newArrayList(values);
                 DataDesensitizeUtils.desensitizeList(desensitized, key, value, keyWordMatch, dataDesensitizeAlg);
                 logInfo.append(key).append(": ")
                         .append(StringUtils.join(value, ",")).append(System.lineSeparator());

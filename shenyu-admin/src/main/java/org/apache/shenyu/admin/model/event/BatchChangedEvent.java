@@ -26,8 +26,7 @@ import java.util.Objects;
  * BatchChangedEvent.
  */
 public class BatchChangedEvent extends AdminDataModelChangedEvent {
-    
-    
+
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
@@ -39,7 +38,7 @@ public class BatchChangedEvent extends AdminDataModelChangedEvent {
     public BatchChangedEvent(final Collection<?> source, final Collection<?> before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
-    
+
     /**
      * before plugin snapshot.
      *
@@ -50,7 +49,7 @@ public class BatchChangedEvent extends AdminDataModelChangedEvent {
         // format plugin data
         return Objects.toString(getBefore(), "before plugin unknown");
     }
-    
+
     /**
      * after plugin snapshot.
      *
@@ -61,7 +60,7 @@ public class BatchChangedEvent extends AdminDataModelChangedEvent {
         // format plugin data
         return Objects.toString(getAfter(), "after plugin unknown");
     }
-    
+
     @Override
     public String eventName() {
         return "plugin";

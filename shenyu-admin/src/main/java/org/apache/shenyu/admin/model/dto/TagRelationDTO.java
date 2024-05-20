@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import java.io.Serializable;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+
+import java.io.Serializable;
 
 /**
  * this tag relation from web front.
@@ -56,6 +57,7 @@ public class TagRelationDTO implements Serializable {
 
     /**
      * get primary key.
+     *
      * @return primary key
      */
     public String getId() {
@@ -64,6 +66,7 @@ public class TagRelationDTO implements Serializable {
 
     /**
      * set primary key.
+     *
      * @param id id
      */
     public void setId(final String id) {
@@ -72,6 +75,7 @@ public class TagRelationDTO implements Serializable {
 
     /**
      * get api id.
+     *
      * @return apiId
      */
     public String getApiId() {
@@ -80,6 +84,7 @@ public class TagRelationDTO implements Serializable {
 
     /**
      * set apiId.
+     *
      * @param apiId apiid
      */
     public void setApiId(final String apiId) {
@@ -88,6 +93,7 @@ public class TagRelationDTO implements Serializable {
 
     /**
      * get tag id.
+     *
      * @return tagId
      */
     public String getTagId() {
@@ -95,7 +101,8 @@ public class TagRelationDTO implements Serializable {
     }
 
     /**
-     *  set tag id.
+     * set tag id.
+     *
      * @param tagId tagId
      */
     public void setTagId(final String tagId) {

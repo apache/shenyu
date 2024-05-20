@@ -56,9 +56,9 @@ public final class PluginHandleDO extends BaseDO {
     private Integer dataType;
 
     /**
-     *  the attribute type.
-     *  1  selector,
-     *  2  rule.
+     * the attribute type.
+     * 1  selector,
+     * 2  rule.
      */
     private Integer type;
 
@@ -83,6 +83,40 @@ public final class PluginHandleDO extends BaseDO {
         this.type = type;
         this.sort = sort;
         this.extObj = extObj;
+    }
+
+    /**
+     * build {@linkplain PluginHandleDO} instance.
+     *
+     * @param pluginHandleDTO {@linkplain PluginHandleDTO}
+     * @return {@linkplain PluginHandleDO}
+     */
+    public static PluginHandleDO buildPluginHandleDO(final PluginHandleDTO pluginHandleDTO) {
+        return Optional.ofNullable(pluginHandleDTO).map(item -> {
+            PluginHandleDO pluginHandleDO = PluginHandleDO.builder()
+                .id(item.getId())
+                .pluginId(item.getPluginId())
+                .field(item.getField())
+                .label(item.getLabel())
+                .dataType(item.getDataType())
+                .type(item.getType())
+                .sort(item.getSort())
+                .extObj(item.getExtObj())
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                pluginHandleDO.setId(UUIDUtils.getInstance().generateShortUuid());
+            }
+            return pluginHandleDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static PluginHandleDO.PluginHandleDOBuilder builder() {
+        return new PluginHandleDO.PluginHandleDOBuilder();
     }
 
     /**
@@ -211,37 +245,9 @@ public final class PluginHandleDO extends BaseDO {
         this.extObj = extObj;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static PluginHandleDO.PluginHandleDOBuilder builder() {
-        return new PluginHandleDO.PluginHandleDOBuilder();
-    }
-
-    /**
-     * build {@linkplain PluginHandleDO} instance.
-     * @param pluginHandleDTO {@linkplain PluginHandleDTO}
-     * @return {@linkplain PluginHandleDO}
-     */
-    public static PluginHandleDO buildPluginHandleDO(final PluginHandleDTO pluginHandleDTO) {
-        return Optional.ofNullable(pluginHandleDTO).map(item -> {
-            PluginHandleDO pluginHandleDO = PluginHandleDO.builder()
-                    .id(item.getId())
-                    .pluginId(item.getPluginId())
-                    .field(item.getField())
-                    .label(item.getLabel())
-                    .dataType(item.getDataType())
-                    .type(item.getType())
-                    .sort(item.getSort())
-                    .extObj(item.getExtObj())
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                pluginHandleDO.setId(UUIDUtils.getInstance().generateShortUuid());
-            }
-            return pluginHandleDO;
-        }).orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), pluginId, field, label, dataType, type, sort, extObj);
     }
 
     @Override
@@ -257,17 +263,12 @@ public final class PluginHandleDO extends BaseDO {
         }
         PluginHandleDO that = (PluginHandleDO) o;
         return Objects.equals(pluginId, that.pluginId)
-                && Objects.equals(field, that.field)
-                && Objects.equals(label, that.label)
-                && Objects.equals(dataType, that.dataType)
-                && Objects.equals(type, that.type)
-                && Objects.equals(sort, that.sort)
-                && Objects.equals(extObj, that.extObj);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), pluginId, field, label, dataType, type, sort, extObj);
+            && Objects.equals(field, that.field)
+            && Objects.equals(label, that.label)
+            && Objects.equals(dataType, that.dataType)
+            && Objects.equals(type, that.type)
+            && Objects.equals(sort, that.sort)
+            && Objects.equals(extObj, that.extObj);
     }
 
     public static final class PluginHandleDOBuilder {

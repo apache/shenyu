@@ -45,20 +45,20 @@ public final class RoleUpdatedEventTest {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
         roleDO = RoleDO.builder()
-                .id(id)
-                .roleName("test-role")
-                .description("test role")
-                .dateUpdated(now)
-                .dateCreated(now)
-                .build();
+            .id(id)
+            .roleName("test-role")
+            .description("test role")
+            .dateUpdated(now)
+            .dateCreated(now)
+            .build();
         RoleDO roleBefore;
         roleBefore = RoleDO.builder()
-                .id(id)
-                .roleName("test-role-before")
-                .description("test role")
-                .dateUpdated(now)
-                .dateCreated(now)
-                .build();
+            .id(id)
+            .roleName("test-role-before")
+            .description("test role")
+            .dateUpdated(now)
+            .dateCreated(now)
+            .build();
         permissionList = new ArrayList<>();
         permissionList.add("test-permission1");
         permissionList.add("test-permission2");

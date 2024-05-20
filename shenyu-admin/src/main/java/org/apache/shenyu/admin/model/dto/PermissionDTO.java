@@ -49,6 +49,15 @@ public class PermissionDTO {
     }
 
     /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static PermissionDTO.PermissionDTOBuilder builder() {
+        return new PermissionDTO.PermissionDTOBuilder();
+    }
+
+    /**
      * Gets the value of id.
      *
      * @return the value of id
@@ -102,13 +111,9 @@ public class PermissionDTO {
         this.resourceId = resourceId;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static PermissionDTO.PermissionDTOBuilder builder() {
-        return new PermissionDTO.PermissionDTOBuilder();
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, objectId, resourceId);
     }
 
     @Override
@@ -121,11 +126,6 @@ public class PermissionDTO {
         }
         PermissionDTO that = (PermissionDTO) o;
         return Objects.equals(id, that.id) && Objects.equals(objectId, that.objectId) && Objects.equals(resourceId, that.resourceId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, objectId, resourceId);
     }
 
     public static final class PermissionDTOBuilder {

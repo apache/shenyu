@@ -89,8 +89,9 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
         }
         AbstractReadyPicker other = (AbstractReadyPicker) picker;
         // the lists cannot contain duplicate subchannels
-        return other == this || (list.size() == other.list.size()
-                && new HashSet<>(list).containsAll(other.list));
+        boolean checkSize = list.size() == other.list.size()
+            && new HashSet<>(list).containsAll(other.list);
+        return other == this || checkSize;
     }
 
     @Override

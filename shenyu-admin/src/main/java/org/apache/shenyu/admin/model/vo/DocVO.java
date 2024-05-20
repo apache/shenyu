@@ -53,9 +53,9 @@ public class DocVO {
         this.gatewayUrl = gatewayUrl;
     }
 
-
     /**
      * getEnvProps.
+     *
      * @return List
      */
     public List<EnvConfig> getEnvProps() {
@@ -64,6 +64,7 @@ public class DocVO {
 
     /**
      * setEnvProps.
+     *
      * @param envProps envProps
      */
     public void setEnvProps(final List<EnvConfig> envProps) {
@@ -137,6 +138,7 @@ public class DocVO {
 
         /**
          * getEnvLabel.
+         *
          * @return String
          */
         public String getEnvLabel() {
@@ -145,6 +147,7 @@ public class DocVO {
 
         /**
          * setEnvLabel.
+         *
          * @param envLabel envLabel
          */
         public void setEnvLabel(final String envLabel) {
@@ -153,6 +156,7 @@ public class DocVO {
 
         /**
          * get environment description.
+         *
          * @return String
          */
         public String getEnvDesc() {
@@ -161,6 +165,7 @@ public class DocVO {
 
         /**
          * set environment description.
+         *
          * @param envDesc envDesc
          */
         public void setEnvDesc(final String envDesc) {
@@ -169,6 +174,7 @@ public class DocVO {
 
         /**
          * getAddressUrl.
+         *
          * @return String
          */
         public String getAddressUrl() {
@@ -177,6 +183,7 @@ public class DocVO {
 
         /**
          * setAddressUrl.
+         *
          * @param addressUrl addressUrl
          */
         public void setAddressUrl(final String addressUrl) {

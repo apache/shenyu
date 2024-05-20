@@ -51,6 +51,7 @@ public class ApiRuleRelationDO {
 
     /**
      * getId.
+     *
      * @return id
      */
     public String getId() {
@@ -59,6 +60,7 @@ public class ApiRuleRelationDO {
 
     /**
      * set id.
+     *
      * @param id id
      */
     public void setId(final String id) {
@@ -67,6 +69,7 @@ public class ApiRuleRelationDO {
 
     /**
      * getApiId.
+     *
      * @return apiId.
      */
     public String getApiId() {
@@ -75,6 +78,7 @@ public class ApiRuleRelationDO {
 
     /**
      * set apiId.
+     *
      * @param apiId apiId
      */
     public void setApiId(final String apiId) {
@@ -83,6 +87,7 @@ public class ApiRuleRelationDO {
 
     /**
      * getRuleId.
+     *
      * @return ruleId
      */
     public String getRuleId() {
@@ -91,6 +96,7 @@ public class ApiRuleRelationDO {
 
     /**
      * setRuleId.
+     *
      * @param ruleId ruleId
      */
     public void setRuleId(final String ruleId) {
@@ -99,6 +105,7 @@ public class ApiRuleRelationDO {
 
     /**
      * getDateCreated.
+     *
      * @return dateCreated.
      */
     public Date getDateCreated() {
@@ -107,6 +114,7 @@ public class ApiRuleRelationDO {
 
     /**
      * setDateCreated.
+     *
      * @param dateCreated dateCreated
      */
     public void setDateCreated(final Date dateCreated) {
@@ -115,6 +123,7 @@ public class ApiRuleRelationDO {
 
     /**
      * getDateUpdated.
+     *
      * @return dateUpdated
      */
     public Date getDateUpdated() {
@@ -123,6 +132,7 @@ public class ApiRuleRelationDO {
 
     /**
      * setDateUpdated.
+     *
      * @param dateUpdated dateUpdated
      */
     public void setDateUpdated(final Date dateUpdated) {

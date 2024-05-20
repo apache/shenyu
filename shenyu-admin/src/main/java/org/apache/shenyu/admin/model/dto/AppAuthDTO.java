@@ -31,40 +31,40 @@ import java.util.Objects;
  * this is application authority from by web front.
  */
 public class AppAuthDTO implements Serializable {
-    
+
     private static final long serialVersionUID = 3906547569699874743L;
-    
+
     /**
      * primary key.
      */
     @NotBlank(message = "app auth id not null")
     @Existed(message = "app auth is not existed", provider = AppAuthMapper.class)
     private String id;
-    
+
     /**
      * application key.
      */
     @NotBlank(message = "app auth appKey not null")
     private String appKey;
-    
+
     /**
      * encryption secret.
      */
     @NotBlank(message = "app auth appSecret not null")
     private String appSecret;
-    
+
     private String userId;
 
     @Pattern(regexp = "\\+?\\d{7,11}", message = "number is illegal, length 7 to 11! e.g. +1234567 or 1234567")
     private String phone;
-    
+
     private String extInfo;
-    
+
     /**
      * whether open authPath.
      */
     private Boolean open;
-    
+
     /**
      * whether enabled.
      */
@@ -75,7 +75,7 @@ public class AppAuthDTO implements Serializable {
 
     @Valid
     private List<AuthPathDTO> authPathList;
-    
+
     /**
      * Gets the value of id.
      *
@@ -84,7 +84,7 @@ public class AppAuthDTO implements Serializable {
     public String getId() {
         return id;
     }
-    
+
     /**
      * Sets the id.
      *
@@ -93,7 +93,7 @@ public class AppAuthDTO implements Serializable {
     public void setId(final String id) {
         this.id = id;
     }
-    
+
     /**
      * Gets the value of appKey.
      *
@@ -102,7 +102,7 @@ public class AppAuthDTO implements Serializable {
     public String getAppKey() {
         return appKey;
     }
-    
+
     /**
      * Sets the appKey.
      *
@@ -111,7 +111,7 @@ public class AppAuthDTO implements Serializable {
     public void setAppKey(final String appKey) {
         this.appKey = appKey;
     }
-    
+
     /**
      * Gets the value of appSecret.
      *
@@ -120,7 +120,7 @@ public class AppAuthDTO implements Serializable {
     public String getAppSecret() {
         return appSecret;
     }
-    
+
     /**
      * Sets the appSecret.
      *
@@ -129,7 +129,7 @@ public class AppAuthDTO implements Serializable {
     public void setAppSecret(final String appSecret) {
         this.appSecret = appSecret;
     }
-    
+
     /**
      * Gets the value of userId.
      *
@@ -138,7 +138,7 @@ public class AppAuthDTO implements Serializable {
     public String getUserId() {
         return userId;
     }
-    
+
     /**
      * Sets the userId.
      *
@@ -147,7 +147,7 @@ public class AppAuthDTO implements Serializable {
     public void setUserId(final String userId) {
         this.userId = userId;
     }
-    
+
     /**
      * Gets the value of phone.
      *
@@ -156,7 +156,7 @@ public class AppAuthDTO implements Serializable {
     public String getPhone() {
         return phone;
     }
-    
+
     /**
      * Sets the phone.
      *
@@ -165,7 +165,7 @@ public class AppAuthDTO implements Serializable {
     public void setPhone(final String phone) {
         this.phone = phone;
     }
-    
+
     /**
      * Gets the value of extInfo.
      *
@@ -174,7 +174,7 @@ public class AppAuthDTO implements Serializable {
     public String getExtInfo() {
         return extInfo;
     }
-    
+
     /**
      * Sets the extInfo.
      *
@@ -183,7 +183,7 @@ public class AppAuthDTO implements Serializable {
     public void setExtInfo(final String extInfo) {
         this.extInfo = extInfo;
     }
-    
+
     /**
      * Gets the value of open.
      *
@@ -192,7 +192,7 @@ public class AppAuthDTO implements Serializable {
     public Boolean getOpen() {
         return open;
     }
-    
+
     /**
      * Sets the open.
      *
@@ -201,7 +201,7 @@ public class AppAuthDTO implements Serializable {
     public void setOpen(final Boolean open) {
         this.open = open;
     }
-    
+
     /**
      * Gets the value of enabled.
      *
@@ -210,7 +210,7 @@ public class AppAuthDTO implements Serializable {
     public Boolean getEnabled() {
         return enabled;
     }
-    
+
     /**
      * Sets the enabled.
      *
@@ -219,7 +219,7 @@ public class AppAuthDTO implements Serializable {
     public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
     }
-    
+
     /**
      * Gets the value of authParamDTOList.
      *
@@ -228,7 +228,7 @@ public class AppAuthDTO implements Serializable {
     public List<AuthParamDTO> getAuthParamList() {
         return authParamList;
     }
-    
+
     /**
      * Sets the authParamDTOList.
      *
@@ -237,7 +237,7 @@ public class AppAuthDTO implements Serializable {
     public void setAuthParamList(final List<AuthParamDTO> authParamList) {
         this.authParamList = authParamList;
     }
-    
+
     /**
      * Gets the value of authPathDTOList.
      *
@@ -246,7 +246,7 @@ public class AppAuthDTO implements Serializable {
     public List<AuthPathDTO> getAuthPathList() {
         return authPathList;
     }
-    
+
     /**
      * Sets the authPathDTOList.
      *
@@ -255,7 +255,12 @@ public class AppAuthDTO implements Serializable {
     public void setAuthPathList(final List<AuthPathDTO> authPathList) {
         this.authPathList = authPathList;
     }
-    
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, appKey, appSecret, userId, phone, extInfo, open, enabled, authParamList, authPathList);
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -266,19 +271,14 @@ public class AppAuthDTO implements Serializable {
         }
         AppAuthDTO that = (AppAuthDTO) o;
         return Objects.equals(id, that.id)
-                && Objects.equals(appKey, that.appKey)
-                && Objects.equals(appSecret, that.appSecret)
-                && Objects.equals(userId, that.userId)
-                && Objects.equals(phone, that.phone)
-                && Objects.equals(extInfo, that.extInfo)
-                && Objects.equals(open, that.open)
-                && Objects.equals(enabled, that.enabled)
-                && Objects.equals(authParamList, that.authParamList)
-                && Objects.equals(authPathList, that.authPathList);
-    }
-    
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, appKey, appSecret, userId, phone, extInfo, open, enabled, authParamList, authPathList);
+            && Objects.equals(appKey, that.appKey)
+            && Objects.equals(appSecret, that.appSecret)
+            && Objects.equals(userId, that.userId)
+            && Objects.equals(phone, that.phone)
+            && Objects.equals(extInfo, that.extInfo)
+            && Objects.equals(open, that.open)
+            && Objects.equals(enabled, that.enabled)
+            && Objects.equals(authParamList, that.authParamList)
+            && Objects.equals(authPathList, that.authPathList);
     }
 }

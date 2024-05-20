@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Test case for {@linkplain SelectorUpdatedEvent}.
  */
 public final class SelectorUpdatedEventTest {
+
     private SelectorDO selectorDO;
 
     private SelectorUpdatedEvent selectorUpdatedEvent;
@@ -43,13 +44,6 @@ public final class SelectorUpdatedEventTest {
         selectorDO = buildSelectorDO();
 
         selectorUpdatedEvent = new SelectorUpdatedEvent(selectorDO, selectorDO, "test-operator");
-    }
-
-    @Test
-    void getSelector() {
-        SelectorDO selector = selectorUpdatedEvent.getSelector();
-
-        assertEquals(selectorDO, selector);
     }
 
     private SelectorDO buildSelectorDO() {
@@ -71,5 +65,12 @@ public final class SelectorUpdatedEventTest {
         selectorDO.setDateCreated(now);
         selectorDO.setDateUpdated(now);
         return selectorDO;
+    }
+
+    @Test
+    void getSelector() {
+        SelectorDO selector = selectorUpdatedEvent.getSelector();
+
+        assertEquals(selectorDO, selector);
     }
 }

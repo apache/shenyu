@@ -52,6 +52,15 @@ public class UserRoleDTO {
     }
 
     /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static UserRoleDTO.UserRoleDTOBuilder builder() {
+        return new UserRoleDTO.UserRoleDTOBuilder();
+    }
+
+    /**
      * Gets the value of id.
      *
      * @return the value of id
@@ -105,13 +114,9 @@ public class UserRoleDTO {
         this.roleId = roleId;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static UserRoleDTO.UserRoleDTOBuilder builder() {
-        return new UserRoleDTO.UserRoleDTOBuilder();
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, userId, roleId);
     }
 
     @Override
@@ -124,11 +129,6 @@ public class UserRoleDTO {
         }
         UserRoleDTO that = (UserRoleDTO) o;
         return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(roleId, that.roleId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, userId, roleId);
     }
 
     public static final class UserRoleDTOBuilder {
