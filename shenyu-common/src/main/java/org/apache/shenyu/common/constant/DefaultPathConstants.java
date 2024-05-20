@@ -78,7 +78,8 @@ public final class DefaultPathConstants implements Constants {
      * @return the string
      */
     public static String buildMetaDataPath(final String path) {
-        return String.join(PATH_SEPARATOR, META_DATA, path);
+        String join = String.join(PATH_SEPARATOR, META_DATA, path);
+        return join.replaceAll("//",PATH_SEPARATOR);
     }
 
     /**
