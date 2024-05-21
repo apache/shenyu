@@ -121,7 +121,6 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <scope>compile</scope>
         </dependency>
 
         <dependency>
