@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterRepository;
+import org.apache.shenyu.admin.register.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
