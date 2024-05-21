@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.sql.Timestamp;
 import java.util.Objects;
 
@@ -30,11 +32,13 @@ public class DiscoveryUpstreamData {
     /**
      * created time.
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp dateCreated;
 
     /**
      * updated time.
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp dateUpdated;
 
 
