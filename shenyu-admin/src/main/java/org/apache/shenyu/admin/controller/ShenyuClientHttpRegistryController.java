@@ -17,9 +17,8 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterPublisher;
-import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterRepository;
-import org.apache.shenyu.admin.service.DiscoveryService;
+import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
+import org.apache.shenyu.admin.register.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
@@ -42,9 +41,6 @@ import javax.annotation.Resource;
 public class ShenyuClientHttpRegistryController implements ShenyuClientServerRegisterRepository {
 
     private ShenyuClientServerRegisterPublisher publisher;
-
-    @Resource
-    private DiscoveryService discoveryService;
 
     @Override
     public void init(final ShenyuClientServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {

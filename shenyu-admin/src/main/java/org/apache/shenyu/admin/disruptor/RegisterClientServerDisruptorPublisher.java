@@ -22,7 +22,7 @@ import org.apache.shenyu.admin.disruptor.subscriber.ApiDocExecutorSubscriber;
 import org.apache.shenyu.admin.disruptor.subscriber.DiscoveryConfigRegisterExecutorSubscriber;
 import org.apache.shenyu.admin.disruptor.subscriber.MetadataExecutorSubscriber;
 import org.apache.shenyu.admin.disruptor.subscriber.URIRegisterExecutorSubscriber;
-import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterPublisher;
+import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
