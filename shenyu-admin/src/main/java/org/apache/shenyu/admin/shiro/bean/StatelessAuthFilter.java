@@ -102,8 +102,8 @@ public class StatelessAuthFilter extends AccessControlFilter {
         Cookie[] cookies = httpServletRequest.getCookies();
         return Arrays.stream(cookies)
                 .filter(cookie -> StringUtils.equals(tokenName, cookie.getName()))
-                .findFirst()
-                .orElse(new Cookie("", ""))
+                .findAny()
+                .orElse(new Cookie(tokenName, ""))
                 .getValue();
     }
     
