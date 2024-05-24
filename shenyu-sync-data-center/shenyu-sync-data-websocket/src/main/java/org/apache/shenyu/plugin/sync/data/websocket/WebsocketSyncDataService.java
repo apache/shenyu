@@ -106,12 +106,12 @@ public class WebsocketSyncDataService implements SyncDataService {
         List<String> urls = websocketConfig.getUrls();
         try {
             for (String url : urls) {
-                if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
-                    Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
-                    this.clusterClients.add(new ShenyuClusterWebsocketClient(new URI(url), headers));
-                } else {
-                    this.clusterClients.add(new ShenyuClusterWebsocketClient(new URI(url)));
-                }
+//                if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
+//                    Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
+//                    this.clusterClients.add(new ShenyuClusterWebsocketClient(new URI(url), headers));
+//                } else {
+//                    this.clusterClients.add(new ShenyuClusterWebsocketClient(new URI(url)));
+//                }
                 if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
                     Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
                     clients.add(new ShenyuWebsocketClient(new URI(url), headers, Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers,
