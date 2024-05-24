@@ -112,14 +112,14 @@ public class WebsocketSyncDataService implements SyncDataService {
                 } else {
                     this.clusterClients.add(new ShenyuClusterWebsocketClient(new URI(url)));
                 }
-//                if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
-//                    Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
-//                    clients.add(new ShenyuWebsocketClient(new URI(url), headers, Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers,
-//                            authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers));
-//                } else {
-//                    clients.add(new ShenyuWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber),
-//                            metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers));
-//                }
+                if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
+                    Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
+                    clients.add(new ShenyuWebsocketClient(new URI(url), headers, Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers,
+                            authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers));
+                } else {
+                    clients.add(new ShenyuWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber),
+                            metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers));
+                }
             }
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
