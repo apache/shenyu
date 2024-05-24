@@ -18,6 +18,10 @@
 package org.apache.shenyu.plugin.sync.data.websocket.client;
 
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.timer.AbstractRoundTask;
+import org.apache.shenyu.common.timer.Timer;
+import org.apache.shenyu.common.timer.TimerTask;
+import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -44,6 +48,10 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
     
     private CountDownLatch countDownLatch;
     
+    private final Timer timer;
+    
+    private TimerTask timerTask;
+    
     /**
      * Instantiates a new shenyu websocket client.
      *
@@ -52,6 +60,7 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
     public ShenyuClusterWebsocketClient(final URI serverUri) {
         super(serverUri);
         countDownLatch = new CountDownLatch(1);
+        this.timer = WheelTimerFactory.getSharedTimer();
     }
     
     /**
@@ -63,6 +72,30 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
     public ShenyuClusterWebsocketClient(final URI serverUri, final Map<String, String> headers) {
         super(serverUri, headers);
         countDownLatch = new CountDownLatch(1);
+        this.timer = WheelTimerFactory.getSharedTimer();
+    }
+    
+    private void connection() {
+        this.connectBlocking();
+        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(10)) {
+            @Override
+            public void doRun(final String key, final TimerTask timerTask) {
+                healthCheck();
+            }
+        });
+    }
+    
+    private void healthCheck() {
+        try {
+            if (!this.isOpen()) {
+                this.reconnectBlocking();
+            } else {
+                this.sendPing();
+                LOG.debug("websocket send to [{}] ping message successful", this.getURI());
+            }
+        } catch (Exception e) {
+            LOG.error("websocket connect is error :{}", e.getMessage());
+        }
     }
     
     @Override
@@ -94,6 +127,12 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
         } else {
             LOG.warn("websocket connection server[{}] is error.....", this.getURI().toString());
         }
+//        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(10)) {
+//            @Override
+//            public void doRun(final String key, final TimerTask timerTask) {
+//                healthCheck();
+//            }
+//        });
         return success;
     }
     
@@ -126,6 +165,9 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
         if (this.isOpen()) {
             super.close();
         }
+        if (Objects.nonNull(countDownLatch) && countDownLatch.getCount() > 0) {
+            countDownLatch.countDown();
+        }
     }
     
     /**
@@ -134,13 +176,14 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
      */
     public void nowClose() {
         this.close();
-        if (Objects.nonNull(countDownLatch) && countDownLatch.getCount() > 0) {
-            countDownLatch.countDown();
+        if (Objects.nonNull(timerTask)) {
+            timerTask.cancel();
         }
     }
     
     /**
      * get cluster master url.
+     *
      * @return cluster master websocket url
      */
     public String getMasterUrl() {
@@ -173,7 +216,7 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
             countDownLatch.countDown();
             if (!Objects.equals(this.masterUrl, this.getURI().toString())) {
                 LOG.info("not connected to master, close now, current url:[{}], master url:[{}]", this.getURI().toString(), this.masterUrl);
-                this.nowClose();
+                this.close();
             }
         }
     }

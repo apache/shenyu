@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -167,7 +168,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      */
     public void nowClose() {
         this.close();
-        timerTask.cancel();
+        if (Objects.nonNull(timerTask)) {
+            timerTask.cancel();
+        }
     }
 
     private void healthCheck() {

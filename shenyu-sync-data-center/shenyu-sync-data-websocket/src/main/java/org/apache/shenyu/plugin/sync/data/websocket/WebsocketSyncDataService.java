@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -73,6 +74,8 @@ public class WebsocketSyncDataService implements SyncDataService {
     
     private final List<ShenyuClusterWebsocketClient> clusterClients = Lists.newArrayList();
     
+    private final List<ShenyuWebsocketClient> clients = Lists.newArrayList();
+    
     private final Timer timer;
     
     private TimerTask timerTask;
@@ -101,14 +104,25 @@ public class WebsocketSyncDataService implements SyncDataService {
         this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
         
         List<String> urls = websocketConfig.getUrls();
-
-        for (String url : urls) {
-            if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
-                Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
-                this.clusterClients.add(new ShenyuClusterWebsocketClient(URI.create(url), headers));
-            } else {
-                this.clusterClients.add(new ShenyuClusterWebsocketClient(URI.create(url)));
+        try {
+            for (String url : urls) {
+                if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
+                    Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
+                    this.clusterClients.add(new ShenyuClusterWebsocketClient(new URI(url), headers));
+                } else {
+                    this.clusterClients.add(new ShenyuClusterWebsocketClient(new URI(url)));
+                }
+//                if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
+//                    Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
+//                    clients.add(new ShenyuWebsocketClient(new URI(url), headers, Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers,
+//                            authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers));
+//                } else {
+//                    clients.add(new ShenyuWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber),
+//                            metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers));
+//                }
             }
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
         
         String masterUrl = getMasterUrl();
@@ -117,16 +131,19 @@ public class WebsocketSyncDataService implements SyncDataService {
             LOG.error("get websocket master({}) is error", masterUrl);
             return;
         }
-
-        if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
-            Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
-            client = new ShenyuWebsocketClient(URI.create(masterUrl), headers, Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers,
-                    authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
-        } else {
-            client = new ShenyuWebsocketClient(URI.create(masterUrl), Objects.requireNonNull(pluginDataSubscriber),
-                    metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+        try {
+            if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
+                Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
+                client = new ShenyuWebsocketClient(new URI(masterUrl), headers, Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers,
+                        authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+            } else {
+                client = new ShenyuWebsocketClient(new URI(masterUrl), Objects.requireNonNull(pluginDataSubscriber),
+                        metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+            }
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
-
+        
         this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(30)) {
             @Override
             public void doRun(final String key, final TimerTask timerTask) {
@@ -137,6 +154,7 @@ public class WebsocketSyncDataService implements SyncDataService {
     
     /**
      * Get master url.
+     *
      * @return master url
      */
     private String getMasterUrl() {
@@ -157,7 +175,7 @@ public class WebsocketSyncDataService implements SyncDataService {
             try {
                 clusterClient.connectBlocking(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                //                throw new RuntimeException(e);
             }
             masterUrl = clusterClient.getMasterUrl();
             if (StringUtils.isNoneBlank(masterUrl)) {
@@ -228,6 +246,7 @@ public class WebsocketSyncDataService implements SyncDataService {
     
     /**
      * get websocket config.
+     *
      * @return websocket config
      */
     public WebsocketConfig getWebsocketConfig() {
@@ -236,6 +255,7 @@ public class WebsocketSyncDataService implements SyncDataService {
     
     /**
      * get plugin data subscriber.
+     *
      * @return plugin data subscriber
      */
     public PluginDataSubscriber getPluginDataSubscriber() {
@@ -244,6 +264,7 @@ public class WebsocketSyncDataService implements SyncDataService {
     
     /**
      * get meta data subscriber.
+     *
      * @return meta data subscriber
      */
     public List<MetaDataSubscriber> getMetaDataSubscribers() {
@@ -252,6 +273,7 @@ public class WebsocketSyncDataService implements SyncDataService {
     
     /**
      * get auth data subscriber.
+     *
      * @return auth data subscriber
      */
     public List<AuthDataSubscriber> getAuthDataSubscribers() {
@@ -260,6 +282,7 @@ public class WebsocketSyncDataService implements SyncDataService {
     
     /**
      * get proxy selector data subscriber.
+     *
      * @return proxy selector data subscriber
      */
     public List<ProxySelectorDataSubscriber> getProxySelectorDataSubscribers() {
@@ -268,6 +291,7 @@ public class WebsocketSyncDataService implements SyncDataService {
     
     /**
      * get discovery upstream data subscriber.
+     *
      * @return discovery upstream data subscriber
      */
     public List<DiscoveryUpstreamDataSubscriber> getDiscoveryUpstreamDataSubscribers() {
@@ -276,6 +300,7 @@ public class WebsocketSyncDataService implements SyncDataService {
     
     /**
      * get cluster websocket clients.
+     *
      * @return cluster websocket clients
      */
     public List<ShenyuClusterWebsocketClient> getClusterClients() {
