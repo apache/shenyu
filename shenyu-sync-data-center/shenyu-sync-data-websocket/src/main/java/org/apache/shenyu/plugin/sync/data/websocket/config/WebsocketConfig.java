@@ -26,7 +26,7 @@ public class WebsocketConfig {
      * if have more shenyu admin url,please config like this.
      * 127.0.0.1:8888,127.0.0.1:8889
      */
-    private List<String> urls;
+    private String urls;
 
     /**
      * allowOrigin.
@@ -38,7 +38,7 @@ public class WebsocketConfig {
      *
      * @return urls
      */
-    public List<String> getUrls() {
+    public String getUrls() {
         return urls;
     }
 
@@ -47,7 +47,7 @@ public class WebsocketConfig {
      *
      * @param urls urls
      */
-    public void setUrls(final List<String> urls) {
+    public void setUrls(final String urls) {
         this.urls = urls;
     }
 
