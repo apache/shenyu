@@ -116,12 +116,14 @@ public final class ShenyuClusterWebsocketClient extends WebSocketClient {
     
     @Override
     public boolean connectBlocking(final long timeout, final TimeUnit timeUnit) throws InterruptedException {
+        LOG.info("websocket connectBlocking server[{}] .....", this.getURI().toString());
         boolean success = false;
         try {
             success = super.connectBlocking(timeout, timeUnit);
         } catch (Exception exception) {
             LOG.error("websocket connection server[{}] is error.....", this.getURI().toString(), exception);
         }
+        LOG.info("websocket connectBlocking server[{}] success: {}.....", this.getURI().toString(), success);
         if (success) {
             LOG.info("websocket connection server[{}] is successful.....", this.getURI().toString());
         } else {

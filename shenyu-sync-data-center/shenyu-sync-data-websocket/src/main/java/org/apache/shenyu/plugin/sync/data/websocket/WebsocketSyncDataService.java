@@ -158,16 +158,16 @@ public class WebsocketSyncDataService implements SyncDataService {
      * @return master url
      */
     private String getMasterUrl() {
-        List<String> urls = websocketConfig.getUrls();
+//        List<String> urls = websocketConfig.getUrls();
         
-        for (String url : urls) {
-            if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
-                Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
-                this.clusterClients.add(new ShenyuClusterWebsocketClient(URI.create(url), headers));
-            } else {
-                this.clusterClients.add(new ShenyuClusterWebsocketClient(URI.create(url)));
-            }
-        }
+//        for (String url : urls) {
+//            if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
+//                Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
+//                this.clusterClients.add(new ShenyuClusterWebsocketClient(URI.create(url), headers));
+//            } else {
+//                this.clusterClients.add(new ShenyuClusterWebsocketClient(URI.create(url)));
+//            }
+//        }
         
         String masterUrl = "";
         
@@ -189,10 +189,10 @@ public class WebsocketSyncDataService implements SyncDataService {
         }
         
         // if got the master url, shutdown all clients
-        for (ShenyuClusterWebsocketClient clusterClient : clusterClients) {
-            clusterClient.nowClose();
-        }
-        clusterClients.clear();
+//        for (ShenyuClusterWebsocketClient clusterClient : clusterClients) {
+//            clusterClient.close();
+//        }
+//        clusterClients.clear();
         
         return masterUrl;
     }
