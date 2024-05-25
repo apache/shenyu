@@ -25,6 +25,7 @@ import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.sync.data.websocket.handler.WebsocketDataHandler;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
@@ -46,28 +47,28 @@ import java.util.concurrent.TimeUnit;
  * The type shenyu websocket client.
  */
 public final class ShenyuWebsocketClient extends WebSocketClient {
-
+    
     /**
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebsocketClient.class);
-
+    
     private volatile boolean alreadySync = Boolean.FALSE;
-
+    
     private final WebsocketDataHandler websocketDataHandler;
-
+    
     private final Timer timer;
-
+    
     private TimerTask timerTask;
-
+    
     /**
      * Instantiates a new shenyu websocket client.
      *
-     * @param serverUri                        the server uri
-     * @param pluginDataSubscriber             the plugin data subscriber
-     * @param metaDataSubscribers              the meta data subscribers
-     * @param authDataSubscribers              the auth data subscribers
-     * @param proxySelectorDataSubscribers     proxySelectorDataSubscribers,
+     * @param serverUri the server uri
+     * @param pluginDataSubscriber the plugin data subscriber
+     * @param metaDataSubscribers the meta data subscribers
+     * @param authDataSubscribers the auth data subscribers
+     * @param proxySelectorDataSubscribers proxySelectorDataSubscribers,
      * @param discoveryUpstreamDataSubscribers discoveryUpstreamDataSubscribers,
      */
     public ShenyuWebsocketClient(final URI serverUri, final PluginDataSubscriber pluginDataSubscriber,
@@ -81,16 +82,16 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
     }
-
+    
     /**
      * Instantiates a new shenyu websocket client.
      *
-     * @param serverUri                        the server uri
-     * @param headers                          the headers
-     * @param pluginDataSubscriber             the plugin data subscriber
-     * @param metaDataSubscribers              the meta data subscribers
-     * @param authDataSubscribers              the auth data subscribers
-     * @param proxySelectorDataSubscribers     proxySelectorDataSubscribers,
+     * @param serverUri the server uri
+     * @param headers the headers
+     * @param pluginDataSubscriber the plugin data subscriber
+     * @param metaDataSubscribers the meta data subscribers
+     * @param authDataSubscribers the auth data subscribers
+     * @param proxySelectorDataSubscribers proxySelectorDataSubscribers,
      * @param discoveryUpstreamDataSubscribers discoveryUpstreamDataSubscribers,
      */
     public ShenyuWebsocketClient(final URI serverUri, final Map<String, String> headers,
@@ -104,7 +105,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
     }
-
+    
     private void connection() {
         this.connectBlocking();
         this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(10)) {
@@ -130,31 +131,47 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         }
         return success;
     }
-
+    
     @Override
     public void onOpen(final ServerHandshake serverHandshake) {
         LOG.info("websocket connection server[{}] is opened, sending sync msg", this.getURI().toString());
-        if (!alreadySync) {
-            send(DataEventTypeEnum.MYSELF.name());
-            alreadySync = true;
-        }
+        send(DataEventTypeEnum.CLUSTER.name());
+//        if (connectMaster && !alreadySync) {
+//            send(DataEventTypeEnum.MYSELF.name());
+//            alreadySync = true;
+//        }
     }
-
+    
     @Override
     public void onMessage(final String result) {
-        handleResult(result);
+        Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
+        Object eventType = jsonToMap.get("eventType");
+        if (Objects.equals("CLUSTER", eventType)) {
+            String masterUrl = String.valueOf(jsonToMap.get("masterUrl"));
+            if (!Objects.equals(masterUrl, this.getURI().toString())) {
+                LOG.info("not connected to master, close now, master url:[{}], current url:[{}]", masterUrl, this.getURI().toString());
+                this.close();
+            } else {
+                if (!alreadySync) {
+                    send(DataEventTypeEnum.MYSELF.name());
+                    alreadySync = true;
+                }
+            }
+        } else {
+            handleResult(result);
+        }
     }
-
+    
     @Override
     public void onClose(final int i, final String s, final boolean b) {
         this.close();
     }
-
+    
     @Override
     public void onError(final Exception e) {
         LOG.error("websocket server[{}] is error.....", getURI(), e);
     }
-
+    
     @Override
     public void close() {
         alreadySync = false;
@@ -162,7 +179,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             super.close();
         }
     }
-
+    
     /**
      * Now close.
      * now close. will cancel the task execution.
@@ -173,7 +190,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             timerTask.cancel();
         }
     }
-
+    
     private void healthCheck() {
         try {
             if (!this.isOpen()) {
@@ -186,7 +203,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             LOG.error("websocket connect is error :{}", e.getMessage());
         }
     }
-
+    
     /**
      * handle admin message.
      *

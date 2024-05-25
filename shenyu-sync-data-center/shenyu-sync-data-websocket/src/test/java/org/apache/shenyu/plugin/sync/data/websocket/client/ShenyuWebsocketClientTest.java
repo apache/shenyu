@@ -88,9 +88,9 @@ public class ShenyuWebsocketClientTest {
     public void testOnOpen() {
         shenyuWebsocketClient = spy(shenyuWebsocketClient);
         ServerHandshake serverHandshake = mock(ServerHandshake.class);
-        doNothing().when(shenyuWebsocketClient).send(DataEventTypeEnum.MYSELF.name());
+        doNothing().when(shenyuWebsocketClient).send(DataEventTypeEnum.CLUSTER.name());
         shenyuWebsocketClient.onOpen(serverHandshake);
-        verify(shenyuWebsocketClient).send(DataEventTypeEnum.MYSELF.name());
+        verify(shenyuWebsocketClient).send(DataEventTypeEnum.CLUSTER.name());
     }
     
     @Test
