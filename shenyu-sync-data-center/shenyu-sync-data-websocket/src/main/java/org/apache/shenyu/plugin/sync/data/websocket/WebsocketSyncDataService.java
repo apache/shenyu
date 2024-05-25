@@ -102,8 +102,8 @@ public class WebsocketSyncDataService implements SyncDataService {
         this.proxySelectorDataSubscribers = proxySelectorDataSubscribers;
         this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
         
-//        List<String> urls = websocketConfig.getUrls();
-        String[] urls = StringUtils.split(websocketConfig.getUrls(), ",");
+        List<String> urls = websocketConfig.getUrls();
+//        String[] urls = StringUtils.split(websocketConfig.getUrls(), ",");
         try {
             for (String url : urls) {
 //                if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
