@@ -133,6 +133,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
 
     @Override
     public void onOpen(final ServerHandshake serverHandshake) {
+        LOG.info("websocket connection server[{}] is opened, sending sync msg", this.getURI().toString());
         if (!alreadySync) {
             send(DataEventTypeEnum.MYSELF.name());
             alreadySync = true;
