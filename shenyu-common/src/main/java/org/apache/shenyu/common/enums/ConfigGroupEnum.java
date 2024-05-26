@@ -60,7 +60,12 @@ public enum ConfigGroupEnum {
     /**
      * discoveryUpstream data group enum.
      */
-    DISCOVER_UPSTREAM;
+    DISCOVER_UPSTREAM,
+    
+    /**
+     * CLUSTER data group enum.
+     */
+    CLUSTER;
 
     /**
      * Acquire by name config group enum.
