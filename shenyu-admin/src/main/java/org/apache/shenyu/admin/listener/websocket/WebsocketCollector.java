@@ -117,7 +117,8 @@ public class WebsocketCollector {
                 ThreadLocalUtils.put(SESSION_KEY, session);
             }
 
-            send(JsonUtils.toJson(map), DataEventTypeEnum.MYSELF);
+//            send(JsonUtils.toJson(map), DataEventTypeEnum.MYSELF);
+            sendMessageBySession(session, JsonUtils.toJson(map));
             return;
         }
         

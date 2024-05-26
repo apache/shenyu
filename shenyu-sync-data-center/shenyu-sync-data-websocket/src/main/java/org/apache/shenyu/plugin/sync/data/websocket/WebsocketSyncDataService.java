@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.sync.data.websocket;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.timer.AbstractRoundTask;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
@@ -142,12 +143,12 @@ public class WebsocketSyncDataService implements SyncDataService {
 //            throw new RuntimeException(e);
 //        }
 //
-//        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(30)) {
-//            @Override
-//            public void doRun(final String key, final TimerTask timerTask) {
-//                masterCheck();
-//            }
-//        });
+        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(30)) {
+            @Override
+            public void doRun(final String key, final TimerTask timerTask) {
+                masterCheck();
+            }
+        });
     }
     
     /**
@@ -197,34 +198,57 @@ public class WebsocketSyncDataService implements SyncDataService {
     
     private void masterCheck() {
         LOG.info("master checking task...");
-        String masterUrl = getMasterUrl();
-        
-        if (StringUtils.isBlank(masterUrl)) {
-            LOG.error("get websocket master({}) is error", masterUrl);
-            return;
+//        String masterUrl = getMasterUrl();
+//
+//        if (StringUtils.isBlank(masterUrl)) {
+//            LOG.error("get websocket master({}) is error", masterUrl);
+//            return;
+//        }
+//
+//        LOG.info("master url:{}", masterUrl);
+//
+//        // check if master has changed
+//        if (Objects.nonNull(client)
+//                && client.isOpen()
+//                && Objects.equals(client.getURI().toString(), masterUrl)) {
+//            return;
+//        }
+//
+//        LOG.info("master url has changed previous: [{}] latest: [{}]", client.getURI().toString(), masterUrl);
+//
+//        // close the old session and connect to the new master
+//        client.nowClose();
+//
+//        if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
+//            Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
+//            client = new ShenyuWebsocketClient(URI.create(masterUrl), headers, Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers,
+//                    authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+//        } else {
+//            client = new ShenyuWebsocketClient(URI.create(masterUrl), Objects.requireNonNull(pluginDataSubscriber),
+//                    metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+//        }
+        for (ShenyuWebsocketClient websocketClient : clients) {
+            websocketClient.nowClose();
         }
+        clients.clear();
         
-        LOG.info("master url:{}", masterUrl);
-        
-        // check if master has changed
-        if (Objects.nonNull(client)
-                && client.isOpen()
-                && Objects.equals(client.getURI().toString(), masterUrl)) {
-            return;
-        }
-        
-        LOG.info("master url has changed previous: [{}] latest: [{}]", client.getURI().toString(), masterUrl);
-        
-        // close the old session and connect to the new master
-        client.nowClose();
-        
-        if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
-            Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
-            client = new ShenyuWebsocketClient(URI.create(masterUrl), headers, Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers,
-                    authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
-        } else {
-            client = new ShenyuWebsocketClient(URI.create(masterUrl), Objects.requireNonNull(pluginDataSubscriber),
-                    metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+        List<String> urls = websocketConfig.getUrls();
+        //        try {
+        for (String url : urls) {
+            //                if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
+            //                    Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
+            //                    this.clusterClients.add(new ShenyuClusterWebsocketClient(new URI(url), headers));
+            //                } else {
+            //                    this.clusterClients.add(new ShenyuClusterWebsocketClient(new URI(url)));
+            //                }
+            if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
+                Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
+                clients.add(new ShenyuWebsocketClient(URI.create(url), headers, Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers,
+                        authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers));
+            } else {
+                clients.add(new ShenyuWebsocketClient(URI.create(url), Objects.requireNonNull(pluginDataSubscriber),
+                        metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers));
+            }
         }
     }
     

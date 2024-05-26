@@ -146,7 +146,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     @Override
     public void onMessage(final String result) {
-        LOG.info("onMessage({})", result);
+        LOG.info("onMessage server[{}] result({})", this.getURI().toString(), result);
         Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
         Object eventType = jsonToMap.get("eventType");
         if (Objects.equals("CLUSTER", eventType)) {
@@ -158,7 +158,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                 this.nowClose();
             }
         } else {
-            handleResult(result);
+            if (connectToMaster) {
+                handleResult(result);
+            }
         }
     }
     
@@ -210,7 +212,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * @param result result
      */
     private void handleResult(final String result) {
-        LOG.info("handleResult({})", result);
+        LOG.info("server [{}] handleResult({})", this.getURI().toString(), result);
         WebsocketData<?> websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
         ConfigGroupEnum groupEnum = ConfigGroupEnum.acquireByName(websocketData.getGroupType());
         String eventType = websocketData.getEventType();

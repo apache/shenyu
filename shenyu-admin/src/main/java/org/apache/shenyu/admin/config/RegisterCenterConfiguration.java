@@ -99,7 +99,9 @@ public class RegisterCenterConfiguration {
     @Bean
     @ConfigurationProperties(prefix = "shenyu.distributed-lock")
     public DefaultLockRepository defaultLockRepository(final DataSource dataSource) {
-        return new DefaultLockRepository(dataSource);
+        DefaultLockRepository defaultLockRepository = new DefaultLockRepository(dataSource);
+        defaultLockRepository.setPrefix("SHENYU_");
+        return defaultLockRepository;
     }
 
     /**

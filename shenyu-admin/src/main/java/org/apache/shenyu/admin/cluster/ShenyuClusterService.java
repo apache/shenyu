@@ -69,7 +69,7 @@ public class ShenyuClusterService {
         // schedule task 15s
         executorService.scheduleAtFixedRate(() -> doSelectMaster(host, port, contextPath),
                 0,
-                15,
+                14,
                 TimeUnit.SECONDS);
     }
     

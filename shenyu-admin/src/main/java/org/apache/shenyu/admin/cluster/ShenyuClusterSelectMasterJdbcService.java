@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
 
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 public class ShenyuClusterSelectMasterJdbcService implements ShenyuClusterSelectMasterService {
@@ -39,13 +40,18 @@ public class ShenyuClusterSelectMasterJdbcService implements ShenyuClusterSelect
     public ShenyuClusterSelectMasterJdbcService(final JdbcLockRegistry jdbcLockRegistry) {
         this.jdbcLockRegistry = jdbcLockRegistry;
         // the lock duration 15s
-        this.jdbcLockRegistry.setIdleBetweenTries(Duration.ofMillis(15000));
+        this.jdbcLockRegistry.setIdleBetweenTries(Duration.ofSeconds(15));
         this.clusterMasterLock = jdbcLockRegistry.obtain(MASTER_LOCK_KEY);
     }
     
     @Override
     public boolean selectMaster() {
-        locked = clusterMasterLock.tryLock();
+        try {
+            locked = clusterMasterLock.tryLock(5L, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            LOG.error("select master error",e);
+            locked = false;
+        }
         return locked;
     }
     
