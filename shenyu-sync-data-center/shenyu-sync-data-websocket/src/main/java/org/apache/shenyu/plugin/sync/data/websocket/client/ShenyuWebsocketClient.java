@@ -158,9 +158,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                 this.nowClose();
             }
         } else {
-            if (connectToMaster) {
-                handleResult(result);
-            }
+            handleResult(result);
         }
     }
     

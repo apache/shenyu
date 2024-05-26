@@ -49,7 +49,7 @@ public class ShenyuClusterSelectMasterJdbcService implements ShenyuClusterSelect
         try {
             locked = clusterMasterLock.tryLock(5L, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            LOG.error("select master error",e);
+            LOG.error("select master error", e);
             locked = false;
         }
         return locked;
