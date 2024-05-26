@@ -136,26 +136,23 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     public void onOpen(final ServerHandshake serverHandshake) {
         LOG.info("websocket connection server[{}] is opened, sending sync msg", this.getURI().toString());
         send(DataEventTypeEnum.CLUSTER.name());
-//        if (connectMaster && !alreadySync) {
-//            send(DataEventTypeEnum.MYSELF.name());
-//            alreadySync = true;
-//        }
+        if (!alreadySync) {
+            send(DataEventTypeEnum.MYSELF.name());
+            alreadySync = true;
+        }
     }
     
     @Override
     public void onMessage(final String result) {
+        LOG.info("onMessage({})", result);
         Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
         Object eventType = jsonToMap.get("eventType");
         if (Objects.equals("CLUSTER", eventType)) {
+            LOG.info("handle CLUSTER Result({})", result);
             String masterUrl = String.valueOf(jsonToMap.get("masterUrl"));
             if (!Objects.equals(masterUrl, this.getURI().toString())) {
                 LOG.info("not connected to master, close now, master url:[{}], current url:[{}]", masterUrl, this.getURI().toString());
                 this.close();
-            } else {
-                if (!alreadySync) {
-                    send(DataEventTypeEnum.MYSELF.name());
-                    alreadySync = true;
-                }
             }
         } else {
             handleResult(result);
