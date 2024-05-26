@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
-import com.google.common.collect.Maps;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.ClusterMasterService;
@@ -25,7 +24,6 @@ import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,17 +94,25 @@ public class WebsocketCollector {
             LOG.info("websocket fetching master info...");
             // check if this node is master
             ClusterMasterService clusterMasterService = SpringBeanUtils.getInstance().getBean(ClusterMasterService.class);
-            String masterUrl = clusterMasterService.getMasterUrl();
-            Map<String, Object> map = Maps.newHashMap();
-            map.put("eventType", DataEventTypeEnum.CLUSTER.name());
-            map.put("masterUrl", masterUrl
-                    .replace("http", "ws")
-                    .replace("https", "ws")
-                    .concat("/websocket"));
-            ThreadLocalUtils.put(SESSION_KEY, session);
-            
-            send(JsonUtils.toJson(map), DataEventTypeEnum.MYSELF);
-            return;
+            if (!clusterMasterService.isMaster()) {
+                try {
+                    session.close();
+                    return;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+//            String masterUrl = clusterMasterService.getMasterUrl();
+//            Map<String, Object> map = Maps.newHashMap();
+//            map.put("eventType", DataEventTypeEnum.CLUSTER.name());
+//            map.put("masterUrl", masterUrl
+//                    .replace("http", "ws")
+//                    .replace("https", "ws")
+//                    .concat("/websocket"));
+//            ThreadLocalUtils.put(SESSION_KEY, session);
+//
+//            send(JsonUtils.toJson(map), DataEventTypeEnum.MYSELF);
+//            return;
         }
         
         if (Objects.equals(message, DataEventTypeEnum.MYSELF.name())) {

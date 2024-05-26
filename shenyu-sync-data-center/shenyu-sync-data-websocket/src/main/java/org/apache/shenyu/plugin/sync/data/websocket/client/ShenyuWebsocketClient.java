@@ -25,7 +25,6 @@ import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.sync.data.websocket.handler.WebsocketDataHandler;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
@@ -144,19 +143,19 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     @Override
     public void onMessage(final String result) {
-        LOG.info("onMessage({})", result);
-        Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
-        Object eventType = jsonToMap.get("eventType");
-        if (Objects.equals("CLUSTER", eventType)) {
-            LOG.info("handle CLUSTER Result({})", result);
-            String masterUrl = String.valueOf(jsonToMap.get("masterUrl"));
-            if (!Objects.equals(masterUrl, this.getURI().toString())) {
-                LOG.info("not connected to master, close now, master url:[{}], current url:[{}]", masterUrl, this.getURI().toString());
-                this.close();
-            }
-        } else {
-            handleResult(result);
-        }
+//        LOG.info("onMessage({})", result);
+//        Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
+//        Object eventType = jsonToMap.get("eventType");
+//        if (Objects.equals("CLUSTER", eventType)) {
+//            LOG.info("handle CLUSTER Result({})", result);
+//            String masterUrl = String.valueOf(jsonToMap.get("masterUrl"));
+//            if (!Objects.equals(masterUrl, this.getURI().toString())) {
+//                LOG.info("not connected to master, close now, master url:[{}], current url:[{}]", masterUrl, this.getURI().toString());
+//                this.close();
+//            }
+//        } else {
+        handleResult(result);
+//        }
     }
     
     @Override
