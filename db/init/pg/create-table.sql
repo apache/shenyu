@@ -2635,18 +2635,18 @@ COMMENT ON COLUMN "public"."alert_receiver"."match_all" IS 'match all or not';
 COMMENT ON COLUMN "public"."alert_receiver"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."alert_receiver"."date_updated" IS 'update time';
 
-DROP TABLE IF EXISTS "public"."SHENYU_LOCK";
-CREATE TABLE "public"."SHENYU_LOCK" (
+DROP TABLE IF EXISTS "public"."shenyu_lock";
+CREATE TABLE "public"."shenyu_lock" (
     "LOCK_KEY" CHAR(36) NOT NULL,
     "REGION" VARCHAR(100) NOT NULL,
     "CLIENT_ID" CHAR(36),
     "CREATED_DATE" TIMESTAMP WITH TIME ZONE NOT NULL,
-    CONSTRAINT SHENYU_LOCK_PK PRIMARY KEY ("LOCK_KEY", "REGION")
+    CONSTRAINT shenyu_lock_pk PRIMARY KEY ("LOCK_KEY", "REGION")
 );
-COMMENT ON COLUMN "public"."SHENYU_LOCK"."LOCK_KEY" IS 'LOCK_KEY';
-COMMENT ON COLUMN "public"."SHENYU_LOCK"."REGION" IS 'REGION';
-COMMENT ON COLUMN "public"."SHENYU_LOCK"."CLIENT_ID" IS 'CLIENT_ID';
-COMMENT ON COLUMN "public"."SHENYU_LOCK"."CREATED_DATE" IS 'CREATED_DATE';
+COMMENT ON COLUMN "public"."shenyu_lock"."LOCK_KEY" IS 'LOCK_KEY';
+COMMENT ON COLUMN "public"."shenyu_lock"."REGION" IS 'REGION';
+COMMENT ON COLUMN "public"."shenyu_lock"."CLIENT_ID" IS 'CLIENT_ID';
+COMMENT ON COLUMN "public"."shenyu_lock"."CREATED_DATE" IS 'CREATED_DATE';
 
 -- ----------------------------
 -- Table structure for cluster_master
