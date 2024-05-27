@@ -2234,15 +2234,15 @@ CREATE TABLE IF NOT EXISTS `alert_receiver`
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for INT_LOCK
+-- Table structure for sheny_lock
 -- ----------------------------
-DROP TABLE IF EXISTS `INT_LOCK`;
-CREATE TABLE IF NOT EXISTS INT_LOCK  (
-    `LOCK_KEY` CHAR(36) NOT NULL,
-    `REGION` VARCHAR(100) NOT NULL,
-    `CLIENT_ID` CHAR(36),
-    `CREATED_DATE` TIMESTAMP NOT NULL,
-    constraint INT_LOCK_PK primary key (LOCK_KEY, REGION)
+DROP TABLE IF EXISTS `shenyu_lock`;
+CREATE TABLE IF NOT EXISTS shenyu_lock  (
+    `lock_key` CHAR(36) NOT NULL,
+    `region` VARCHAR(100) NOT NULL,
+    `client_id` CHAR(36),
+    `created_date` TIMESTAMP NOT NULL,
+    constraint shenyu_lock_pk primary key (lock_key, region)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------

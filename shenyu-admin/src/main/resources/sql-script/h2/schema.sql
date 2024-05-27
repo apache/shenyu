@@ -1204,14 +1204,14 @@ CREATE TABLE IF NOT EXISTS `alert_receiver`
 );
 
 -- ----------------------------
--- Table structure for INT_LOCK
+-- Table structure for shenyu_lock
 -- ----------------------------
-CREATE TABLE IF NOT EXISTS `INT_LOCK`  (
+CREATE TABLE IF NOT EXISTS `SHENYU_LOCK`  (
    `LOCK_KEY` CHAR(36),
    `REGION` VARCHAR(100),
    `CLIENT_ID` CHAR(36),
    `CREATED_DATE` TIMESTAMP NOT NULL,
-   constraint INT_LOCK_PK primary key (LOCK_KEY, REGION)
+   constraint SHENYU_LOCK primary key (LOCK_KEY, REGION)
 );
 
 -- ----------------------------

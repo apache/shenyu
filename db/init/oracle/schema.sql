@@ -2680,21 +2680,21 @@ comment
 on column alert_receiver.date_updated
   is 'update time';
 
-CREATE TABLE INT_LOCK  (
+CREATE TABLE SHENYU_LOCK  (
    LOCK_KEY CHAR(36),
    REGION VARCHAR(100),
    CLIENT_ID CHAR(36),
    CREATED_DATE TIMESTAMP NOT NULL,
-   constraint INT_LOCK_PK primary key (LOCK_KEY, REGION)
+   constraint SHENYU_LOCK_PK primary key (LOCK_KEY, REGION)
 );
 -- Add comments to the columns
-comment on column INT_LOCK.LOCK_KEY
+comment on column SHENYU_LOCK.LOCK_KEY
   is 'LOCK_KEY';
-comment on column INT_LOCK.REGION
+comment on column SHENYU_LOCK.REGION
   is 'REGION';
-comment on column INT_LOCK.CLIENT_ID
+comment on column SHENYU_LOCK.CLIENT_ID
   is 'CLIENT_ID';
-comment on column INT_LOCK.CREATED_DATE
+comment on column SHENYU_LOCK.CREATED_DATE
   is 'CREATED_DATE';
 
 -- ----------------------------

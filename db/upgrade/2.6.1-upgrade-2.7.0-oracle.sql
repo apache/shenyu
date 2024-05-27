@@ -30,21 +30,21 @@ values ('1722804548510507021', '14', 'percentage', 'percentage', 1, 2, 3, '{"req
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1722804548510507022', '3', 'rewriteMetaData', 'rewriteMetaData', 3, 2, 3, '{"required":"1","defaultValue":"false"}');
 
-CREATE TABLE INT_LOCK  (
+CREATE TABLE SHENYU_LOCK  (
     LOCK_KEY CHAR(36),
     REGION VARCHAR(100),
     CLIENT_ID CHAR(36),
     CREATED_DATE TIMESTAMP NOT NULL,
-    constraint INT_LOCK_PK primary key (LOCK_KEY, REGION)
+    constraint SHENYU_LOCK_PK primary key (LOCK_KEY, REGION)
 );
 -- Add comments to the columns
-comment on column INT_LOCK.LOCK_KEY
+comment on column SHENYU_LOCK.LOCK_KEY
   is 'LOCK_KEY';
-comment on column INT_LOCK.REGION
+comment on column SHENYU_LOCK.REGION
   is 'REGION';
-comment on column INT_LOCK.CLIENT_ID
+comment on column SHENYU_LOCK.CLIENT_ID
   is 'CLIENT_ID';
-comment on column INT_LOCK.CREATED_DATE
+comment on column SHENYU_LOCK.CREATED_DATE
   is 'CREATED_DATE';
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES('1347048240677269503','1346777766301888512','SHENYU.PLUGIN.BATCH.OPENED','','','','2','3','','1','0','system:authen:open','1');
