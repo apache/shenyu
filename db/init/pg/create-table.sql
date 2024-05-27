@@ -2637,16 +2637,16 @@ COMMENT ON COLUMN "public"."alert_receiver"."date_updated" IS 'update time';
 
 DROP TABLE IF EXISTS "public"."shenyu_lock";
 CREATE TABLE "public"."shenyu_lock" (
-    "LOCK_KEY" CHAR(36) NOT NULL,
-    "REGION" VARCHAR(100) NOT NULL,
-    "CLIENT_ID" CHAR(36),
-    "CREATED_DATE" TIMESTAMP WITH TIME ZONE NOT NULL,
-    CONSTRAINT shenyu_lock_pk PRIMARY KEY ("LOCK_KEY", "REGION")
+    "lock_key" CHAR(36) NOT NULL,
+    "region" VARCHAR(100) NOT NULL,
+    "client_id" CHAR(36),
+    "created_date" TIMESTAMP WITH TIME ZONE NOT NULL,
+    CONSTRAINT shenyu_lock_pk PRIMARY KEY ("lock_key", "region")
 );
-COMMENT ON COLUMN "public"."shenyu_lock"."LOCK_KEY" IS 'LOCK_KEY';
-COMMENT ON COLUMN "public"."shenyu_lock"."REGION" IS 'REGION';
-COMMENT ON COLUMN "public"."shenyu_lock"."CLIENT_ID" IS 'CLIENT_ID';
-COMMENT ON COLUMN "public"."shenyu_lock"."CREATED_DATE" IS 'CREATED_DATE';
+COMMENT ON COLUMN "public"."shenyu_lock"."lock_key" IS 'lock_key';
+COMMENT ON COLUMN "public"."shenyu_lock"."region" IS 'region';
+COMMENT ON COLUMN "public"."shenyu_lock"."client_id" IS 'client_id';
+COMMENT ON COLUMN "public"."shenyu_lock"."created_date" IS 'created_date';
 
 -- ----------------------------
 -- Table structure for cluster_master
