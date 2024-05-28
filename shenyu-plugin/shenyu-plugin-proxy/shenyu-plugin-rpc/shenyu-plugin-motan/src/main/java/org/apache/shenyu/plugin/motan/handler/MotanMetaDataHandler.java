@@ -45,6 +45,8 @@ public class MotanMetaDataHandler implements MetaDataHandler {
     @Override
     public void handle(final MetaData metaData) {
         try {
+            LOG.info("META_DATA:{}", JsonUtils.toJson(META_DATA));
+            LOG.info("metaData.getPath():{}", metaData.getPath());
             MetaData exist = META_DATA.get(metaData.getPath());
             RefererConfig<Object> refererConfig = ApplicationConfigCache.getInstance().get(exist.getPath());
             LOG.info("refererConfig:{}", JsonUtils.toJson(refererConfig));

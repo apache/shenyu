@@ -103,12 +103,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-apache-dubbo</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- shenyu kubernetes controller begin -->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
