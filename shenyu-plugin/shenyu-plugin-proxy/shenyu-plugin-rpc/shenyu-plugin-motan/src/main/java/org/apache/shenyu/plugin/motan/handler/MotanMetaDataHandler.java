@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.motan.handler;
 
 import com.google.common.collect.Maps;
-import com.weibo.api.motan.config.RefererConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
