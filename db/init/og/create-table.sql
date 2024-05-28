@@ -2512,13 +2512,17 @@ COMMENT ON COLUMN "public"."alert_receiver"."type" IS 'notice type 0-SMS 1-Email
 COMMENT ON COLUMN "public"."alert_receiver"."match_all" IS 'match all or not';
 COMMENT ON COLUMN "public"."alert_receiver"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."alert_receiver"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for shenyu_lock
+-- ----------------------------
 DROP TABLE IF EXISTS "public"."shenyu_lock";
 CREATE TABLE "public"."shenyu_lock" (
     "lock_key" CHAR(36) NOT NULL,
     "region" VARCHAR(100) NOT NULL,
     "client_id" CHAR(36),
     "created_date" TIMESTAMP WITH TIME ZONE NOT NULL,
-    CONSTRAINT shenyu_lock_pk PRIMARY KEY ("LOCK_KEY", "REGION")
+    CONSTRAINT shenyu_lock_pk PRIMARY KEY ("lock_key", "region")
 );
 COMMENT ON COLUMN "public"."shenyu_lock"."lock_key" IS 'lock_key';
 COMMENT ON COLUMN "public"."shenyu_lock"."region" IS 'region';

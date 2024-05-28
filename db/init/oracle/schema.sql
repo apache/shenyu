@@ -2680,6 +2680,10 @@ comment
 on column alert_receiver.date_updated
   is 'update time';
 
+
+-- ----------------------------
+-- Table structure for SHENYU_LOCK
+-- ----------------------------
 CREATE TABLE SHENYU_LOCK  (
    LOCK_KEY CHAR(36),
    REGION VARCHAR(100),

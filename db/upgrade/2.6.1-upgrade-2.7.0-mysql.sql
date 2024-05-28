@@ -21,8 +21,9 @@ INSERT INTO `plugin_handle` VALUES ('1722804548510507023', '3', 'rewriteMetaData
 
 INSERT INTO `shenyu_dict` VALUES ('1679002911061737478', 'rewriteMetaData', 'REWRITE_META_DATA', 'true', 'true', '', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO `shenyu_dict` VALUES ('1679002911061737479', 'rewriteMetaData', 'REWRITE_META_DATA', 'false', 'false', '', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+
 -- ----------------------------
--- Table structure for shenyu_lock
+-- Table structure for sheny_lock
 -- ----------------------------
 DROP TABLE IF EXISTS `SHENYU_LOCK`;
 CREATE TABLE IF NOT EXISTS SHENYU_LOCK  (

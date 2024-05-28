@@ -2635,6 +2635,9 @@ COMMENT ON COLUMN "public"."alert_receiver"."match_all" IS 'match all or not';
 COMMENT ON COLUMN "public"."alert_receiver"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."alert_receiver"."date_updated" IS 'update time';
 
+-- ----------------------------
+-- Table structure for shenyu_lock
+-- ----------------------------
 DROP TABLE IF EXISTS "public"."shenyu_lock";
 CREATE TABLE "public"."shenyu_lock" (
     "lock_key" CHAR(36) NOT NULL,
