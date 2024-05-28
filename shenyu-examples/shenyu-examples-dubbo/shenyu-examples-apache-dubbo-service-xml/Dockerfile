@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM eclipse-temurin:17-centos7
+FROM amazoncorretto:17.0.11-alpine3.19
 
 ENV APP_NAME shenyu-examples-apache-dubbo-service-xml
 ENV LOCAL_PATH /opt/${APP_NAME}
