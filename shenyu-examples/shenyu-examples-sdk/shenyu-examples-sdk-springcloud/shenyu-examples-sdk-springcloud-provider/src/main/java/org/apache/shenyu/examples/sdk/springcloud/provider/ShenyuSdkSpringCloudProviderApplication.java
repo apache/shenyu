@@ -24,7 +24,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 /**
  * Please see the shenyu-examples-springcloud for the detailed information.
  */
-@SpringBootApplication(scanBasePackages = {"org.apache.shenyu.examples.*"})
+@SpringBootApplication(scanBasePackages = "org.apache.shenyu.examples.*")
 @EnableDiscoveryClient
 public class ShenyuSdkSpringCloudProviderApplication {
 

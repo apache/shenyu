@@ -25,7 +25,7 @@ import org.springframework.context.annotation.ImportResource;
  * Sofa service starter.
  */
 @SpringBootApplication
-@ImportResource(locations = { "classpath*:invoke-server-example.xml"})
+@ImportResource(locations = "classpath*:invoke-server-example.xml")
 public class TestSofaApplication {
 
     /**

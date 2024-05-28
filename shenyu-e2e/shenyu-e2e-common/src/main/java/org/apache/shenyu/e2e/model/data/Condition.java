@@ -107,6 +107,15 @@ public final class Condition {
     }
 
     /**
+     * class builder.
+     *
+     * @return Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
      * get paramType.
      *
      * @return paramType
@@ -117,6 +126,7 @@ public final class Condition {
 
     /**
      * set paramType.
+     *
      * @param dateCreated dateCreated
      */
     public void setDateCreated(final Date dateCreated) {
@@ -125,6 +135,7 @@ public final class Condition {
 
     /**
      * get paramType.
+     *
      * @return paramType
      */
     public Date getDateUpdated() {
@@ -133,10 +144,155 @@ public final class Condition {
 
     /**
      * set paramType.
+     *
      * @param dateUpdated dateUpdated
      */
     public void setDateUpdated(final Date dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+
+    /**
+     * get paramType.
+     *
+     * @return paramType
+     */
+    public @NotNull ParamType getParamType() {
+        return paramType;
+    }
+
+    /**
+     * set paramType.
+     *
+     * @param paramType paramType
+     */
+    public void setParamType(final @NotNull ParamType paramType) {
+        this.paramType = paramType;
+    }
+
+    /**
+     * get operator.
+     *
+     * @return operator
+     */
+    public @NotNull Operator getOperator() {
+        return operator;
+    }
+
+    /**
+     * set operator.
+     *
+     * @param operator operator
+     */
+    public void setOperator(final @NotNull Operator operator) {
+        this.operator = operator;
+    }
+
+    /**
+     * get paramName.
+     *
+     * @return paramName
+     */
+    public String getParamName() {
+        return paramName;
+    }
+
+    /**
+     * set paramName.
+     *
+     * @param paramName paramName
+     */
+    public void setParamName(final String paramName) {
+        this.paramName = paramName;
+    }
+
+    /**
+     * get paramValue.
+     *
+     * @return paramValue
+     */
+    public String getParamValue() {
+        return paramValue;
+    }
+
+    /**
+     * set paramValue.
+     *
+     * @param paramValue paramValue
+     */
+    public void setParamValue(final String paramValue) {
+        this.paramValue = paramValue;
+    }
+
+    /**
+     * get id.
+     *
+     * @return id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * set id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * get selectorId.
+     *
+     * @return selectorId
+     */
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    /**
+     * set selectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
+    }
+
+    /**
+     * get paramTypeName.
+     *
+     * @return paramTypeName
+     */
+    public String getParamTypeName() {
+        return paramTypeName;
+    }
+
+    /**
+     * set paramTypeName.
+     *
+     * @param paramTypeName paramTypeName
+     */
+    public void setParamTypeName(final String paramTypeName) {
+        this.paramTypeName = paramTypeName;
+    }
+
+    /**
+     * get operatorName.
+     *
+     * @return operatorName
+     */
+    public String getOperatorName() {
+        return operatorName;
+    }
+
+    /**
+     * set operatorName.
+     *
+     * @param operatorName operatorName
+     */
+    public void setOperatorName(final String operatorName) {
+        this.operatorName = operatorName;
     }
 
     /**
@@ -231,158 +387,10 @@ public final class Condition {
         }
     }
 
-
-
-    /**
-     * class builder.
-     *
-     * @return Builder
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    /**
-     * set paramType.
-     *
-     * @param paramType paramType
-     */
-    public void setParamType(final @NotNull ParamType paramType) {
-        this.paramType = paramType;
-    }
-
-    /**
-     * get paramType.
-     *
-     * @return paramType
-     */
-    public @NotNull ParamType getParamType() {
-        return paramType;
-    }
-
-    /**
-     * set operator.
-     *
-     * @param operator operator
-     */
-    public void setOperator(final @NotNull Operator operator) {
-        this.operator = operator;
-    }
-
-    /**
-     * get operator.
-     *
-     * @return operator
-     */
-    public @NotNull Operator getOperator() {
-        return operator;
-    }
-
-    /**
-     * set paramName.
-     *
-     * @param paramName paramName
-     */
-    public void setParamName(final String paramName) {
-        this.paramName = paramName;
-    }
-
-    /**
-     * get paramName.
-     *
-     * @return paramName
-     */
-    public String getParamName() {
-        return paramName;
-    }
-
-    /**
-     * set paramValue.
-     *
-     * @param paramValue paramValue
-     */
-    public void setParamValue(final String paramValue) {
-        this.paramValue = paramValue;
-    }
-
-    /**
-     * get paramValue.
-     *
-     * @return paramValue
-     */
-    public String getParamValue() {
-        return paramValue;
-    }
-
-    /**
-     * get id.
-     * @return id
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * set id.
-     * @param id id
-     */
-    public void setId(final String id) {
-        this.id = id;
-    }
-
-    /**
-     * get selectorId.
-     * @return selectorId
-     */
-    public String getSelectorId() {
-        return selectorId;
-    }
-
-    /**
-     * set selectorId.
-     * @param selectorId selectorId
-     */
-    public void setSelectorId(final String selectorId) {
-        this.selectorId = selectorId;
-    }
-
-    /**
-     * get paramTypeName.
-     * @return paramTypeName
-     */
-    public String getParamTypeName() {
-        return paramTypeName;
-    }
-
-    /**
-     * set paramTypeName.
-     * @param paramTypeName paramTypeName
-     */
-    public void setParamTypeName(final String paramTypeName) {
-        this.paramTypeName = paramTypeName;
-    }
-
-    /**
-     * get operatorName.
-     * @return operatorName
-     */
-    public String getOperatorName() {
-        return operatorName;
-    }
-
-    /**
-     * set operatorName.
-     * @param operatorName operatorName
-     */
-    public void setOperatorName(final String operatorName) {
-        this.operatorName = operatorName;
-    }
-
     /**
      * class builder.
      */
     public static final class Builder {
-
 
         /**
          * primary key.

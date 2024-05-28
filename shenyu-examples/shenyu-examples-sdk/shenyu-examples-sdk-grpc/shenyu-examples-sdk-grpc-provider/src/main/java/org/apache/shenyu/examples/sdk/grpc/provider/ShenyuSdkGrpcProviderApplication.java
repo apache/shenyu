@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * Please see the shenyu-examples-Grpc for the detailed information.
  */
-@SpringBootApplication(scanBasePackages = {"org.apache.shenyu.examples.*"})
+@SpringBootApplication(scanBasePackages = "org.apache.shenyu.examples.*")
 public class ShenyuSdkGrpcProviderApplication {
 
     /**
