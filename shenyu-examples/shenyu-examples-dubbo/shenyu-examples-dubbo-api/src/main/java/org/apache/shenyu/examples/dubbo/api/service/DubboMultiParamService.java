@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.examples.dubbo.api.service;
 
-import java.util.List;
 import org.apache.shenyu.examples.dubbo.api.entity.ComplexBeanTest;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
+
+import java.util.List;
 
 /**
  * The interface Dubbo multi param service.

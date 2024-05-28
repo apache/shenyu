@@ -17,18 +17,18 @@
 
 package org.apache.shenyu.e2e.engine.scenario.specification;
 
+import io.restassured.http.Method;
+import io.restassured.specification.ResponseSpecification;
+import org.apache.shenyu.e2e.engine.scenario.function.Checker;
 import org.apache.shenyu.e2e.engine.scenario.function.HttpChecker;
 import org.apache.shenyu.e2e.engine.scenario.function.HttpWaiting;
 import org.apache.shenyu.e2e.engine.scenario.function.WaitForHelper;
-import io.restassured.http.Method;
-import io.restassured.specification.ResponseSpecification;
+import org.apache.shenyu.e2e.engine.scenario.function.Waiting;
 import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.ResourcesData.ResourcesDataBuilder;
 import org.apache.shenyu.e2e.model.data.BindingData;
 import org.apache.shenyu.e2e.model.data.RuleData;
 import org.apache.shenyu.e2e.model.data.SelectorData;
-import org.apache.shenyu.e2e.engine.scenario.function.Checker;
-import org.apache.shenyu.e2e.engine.scenario.function.Waiting;
 import org.jetbrains.annotations.NotNull;
 
 /**

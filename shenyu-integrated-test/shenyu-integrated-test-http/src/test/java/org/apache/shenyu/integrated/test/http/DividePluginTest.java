@@ -26,9 +26,6 @@ import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -36,6 +33,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DividePluginTest extends AbstractPluginDataInit {
 

@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.examples.http.router;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.shenyu.examples.http.result.ResultBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +26,8 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;

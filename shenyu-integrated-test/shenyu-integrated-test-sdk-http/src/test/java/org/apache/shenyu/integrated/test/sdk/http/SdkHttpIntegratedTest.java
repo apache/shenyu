@@ -17,17 +17,17 @@
 
 package org.apache.shenyu.integrated.test.sdk.http;
 
-import java.util.stream.Stream;
 import org.apache.shenyu.integrated.test.sdk.http.dto.SdkTestDto;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-
-import java.io.IOException;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import java.io.IOException;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SdkHttpIntegratedTest extends AbstractPluginDataInit {
 

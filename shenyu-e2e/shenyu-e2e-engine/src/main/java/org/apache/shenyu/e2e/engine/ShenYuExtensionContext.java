@@ -24,8 +24,8 @@ import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.common.IdGenerator;
 import org.apache.shenyu.e2e.config.ServiceConfigure;
-import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
+import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 
 import java.util.HashMap;
 import java.util.Map;

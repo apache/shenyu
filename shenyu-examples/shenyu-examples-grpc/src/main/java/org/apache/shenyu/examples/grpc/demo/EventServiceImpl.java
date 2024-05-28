@@ -20,7 +20,6 @@ package org.apache.shenyu.examples.grpc.demo;
 import event.EventRequest;
 import event.EventResponse;
 import event.EventServiceGrpc;
-
 import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.apidocs.annotations.ApiModule;

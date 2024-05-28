@@ -18,10 +18,6 @@
 package org.apache.shenyu.examples.http.config;
 
 import io.swagger.annotations.ApiOperation;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.springframework.beans.BeansException;
@@ -42,6 +38,11 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.spring.web.plugins.WebMvcRequestHandlerProvider;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Configuration class for Swagger API document.

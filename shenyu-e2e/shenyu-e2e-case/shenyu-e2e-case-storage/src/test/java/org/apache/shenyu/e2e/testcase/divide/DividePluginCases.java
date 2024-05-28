@@ -18,28 +18,28 @@
 package org.apache.shenyu.e2e.testcase.divide;
 
 import com.google.common.collect.Lists;
+import io.restassured.http.Method;
+import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
+import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuAfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuCaseSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
-import io.restassured.http.Method;
 import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.data.Condition.Operator;
 import org.apache.shenyu.e2e.model.data.Condition.ParamType;
-import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
-import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 
 import java.util.List;
 
+import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
+import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExists;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newBindingData;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newCondition;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newDivideRuleHandle;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newUpstreamsBuilder;
-import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
-import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExists;
-import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newBindingData;
 import static org.hamcrest.text.IsEmptyString.isEmptyOrNullString;
 
 public class DividePluginCases implements ShenYuScenarioProvider {

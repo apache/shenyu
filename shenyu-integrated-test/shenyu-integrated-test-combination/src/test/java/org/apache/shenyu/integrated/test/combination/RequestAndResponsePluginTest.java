@@ -38,8 +38,8 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 /**
  * The integrated test for combination plugins about request and response.

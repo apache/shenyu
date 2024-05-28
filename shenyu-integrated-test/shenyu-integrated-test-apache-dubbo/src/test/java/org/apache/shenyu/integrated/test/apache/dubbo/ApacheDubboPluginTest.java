@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.integrated.test.apache.dubbo;
 
-import java.io.IOException;
-import java.util.List;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.DubboTest;
@@ -27,9 +25,12 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ApacheDubboPluginTest extends AbstractPluginDataInit {
     

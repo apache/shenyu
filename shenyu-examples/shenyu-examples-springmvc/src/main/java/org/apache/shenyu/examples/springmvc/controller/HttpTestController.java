@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.examples.springmvc.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.common.aop.Log;
 import org.apache.shenyu.examples.springmvc.dto.UserDTO;
@@ -34,6 +31,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * TestController.

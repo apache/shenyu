@@ -17,18 +17,10 @@
 
 package org.apache.shenyu.integrated.test.combination;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.reflect.TypeToken;
+import com.google.gson.JsonObject;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -51,11 +43,17 @@ import org.apache.shenyu.web.controller.LocalPluginController;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.JsonObject;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 /**
  * The integrated test for combination plugins about request.

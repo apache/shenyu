@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.examples.websocket.config;
 
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**

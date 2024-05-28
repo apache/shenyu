@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.e2e.engine.annotation;
 
+import org.apache.shenyu.e2e.engine.ShenYuExtension;
 import org.apache.shenyu.e2e.engine.ShenYuLogExtension;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
-import org.apache.shenyu.e2e.engine.ShenYuExtension;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;

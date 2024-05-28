@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.examples.springmvc.controller;
 
-import java.util.Objects;
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
@@ -32,6 +29,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Objects;
 
 /**
  * TestController.
