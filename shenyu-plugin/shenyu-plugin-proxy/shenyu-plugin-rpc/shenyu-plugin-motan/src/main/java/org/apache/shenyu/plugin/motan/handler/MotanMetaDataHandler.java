@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.motan.handler;
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.motan.cache.ApplicationConfigCache;
 import org.slf4j.Logger;
@@ -44,14 +43,7 @@ public class MotanMetaDataHandler implements MetaDataHandler {
     @Override
     public void handle(final MetaData metaData) {
         try {
-            LOG.info("META_DATA:{}", JsonUtils.toJson(META_DATA));
-            LOG.info("metaData.getPath():{}", metaData.getPath());
             MetaData exist = META_DATA.get(metaData.getPath());
-//            if (Objects.nonNull(exist)) {
-//                RefererConfig<Object> refererConfig = ApplicationConfigCache.getInstance().get(exist.getPath());
-//                LOG.info("refererConfig:{}", JsonUtils.toJson(refererConfig));
-//                LOG.info("refererConfig.getRef():{}", JsonUtils.toJson(refererConfig.getRef()));
-//            }
             if (Objects.isNull(exist) || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getPath()))
                     || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getPath()).getRef())) {
                 // The first initialization
