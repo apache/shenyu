@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.mode.cluster;
 
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
@@ -44,14 +45,18 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     
     private final ScheduledExecutorService executorService;
     
+    private final ClusterProperties clusterProperties;
+    
     public ShenyuClusterService(final ShenyuClusterSelectMasterService shenyuClusterSelectMasterService,
                                 final ClusterMasterService clusterMasterService,
                                 final UpstreamCheckService upstreamCheckService,
-                                final LoadServiceDocEntry loadServiceDocEntry) {
+                                final LoadServiceDocEntry loadServiceDocEntry,
+                                final ClusterProperties clusterProperties) {
         this.shenyuClusterSelectMasterService = shenyuClusterSelectMasterService;
         this.clusterMasterService = clusterMasterService;
         this.upstreamCheckService = upstreamCheckService;
         this.loadServiceDocEntry = loadServiceDocEntry;
+        this.clusterProperties = clusterProperties;
         this.executorService = new ScheduledThreadPoolExecutor(1,
                 ShenyuThreadFactory.create("master-selector", true));
     }
@@ -68,7 +73,7 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
         // schedule task 15s
         executorService.scheduleAtFixedRate(() -> doSelectMaster(host, port, contextPath),
                 0,
-                14,
+                clusterProperties.getSelectPeriod(),
                 TimeUnit.SECONDS);
     }
     

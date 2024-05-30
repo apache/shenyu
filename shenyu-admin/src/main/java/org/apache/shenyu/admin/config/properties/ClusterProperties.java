@@ -27,7 +27,7 @@ import java.util.List;
  */
 @Component
 @ConfigurationProperties(prefix = "shenyu.cluster")
-public class ShenyuClusterProperties {
+public class ClusterProperties {
     
     /**
      * Whether enabled cluster mode, default: true.
@@ -43,6 +43,11 @@ public class ShenyuClusterProperties {
      * cluster forward uri list.
      */
     private List<String> forwardList;
+    
+    /**
+     * cluster select master task period.
+     */
+    private Long selectPeriod = 15L;
     
     /**
      * Gets the value of enabled.
@@ -96,5 +101,21 @@ public class ShenyuClusterProperties {
      */
     public void setForwardList(final List<String> forwardList) {
         this.forwardList = forwardList;
+    }
+    
+    /**
+     * Gets the select master task period.
+     * @return select master task period
+     */
+    public Long getSelectPeriod() {
+        return selectPeriod;
+    }
+    
+    /**
+     * Sets select master task period.
+     * @param selectPeriod select master task period
+     */
+    public void setSelectPeriod(final Long selectPeriod) {
+        this.selectPeriod = selectPeriod;
     }
 }

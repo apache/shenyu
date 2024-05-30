@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.filter.ClusterForwardFilter;
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
 import org.apache.shenyu.admin.mode.cluster.ShenyuClusterSelectMasterJdbcService;
@@ -48,20 +49,23 @@ public class ClusterConfiguration {
      * @param clusterMasterService cluster master service
      * @param upstreamCheckService upstream check service
      * @param loadServiceDocEntry load service doc entry
+     * @param clusterProperties cluster properties
      * @return Shenyu cluster service
      */
     @Bean(destroyMethod = "shutdown")
     @ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "true", matchIfMissing = false)
     @ConditionalOnMissingBean
     public ShenyuRunningModeService shenyuRunningModeService(final ShenyuClusterSelectMasterService shenyuClusterSelectMasterService,
-                                                         final ClusterMasterService clusterMasterService,
-                                                         final UpstreamCheckService upstreamCheckService,
-                                                         final LoadServiceDocEntry loadServiceDocEntry) {
+                                                             final ClusterMasterService clusterMasterService,
+                                                             final UpstreamCheckService upstreamCheckService,
+                                                             final LoadServiceDocEntry loadServiceDocEntry,
+                                                             final ClusterProperties clusterProperties) {
         LOGGER.info("starting in cluster mode ...");
         return new ShenyuClusterService(shenyuClusterSelectMasterService,
                 clusterMasterService,
                 upstreamCheckService,
-                loadServiceDocEntry
+                loadServiceDocEntry,
+                clusterProperties
         );
     }
     

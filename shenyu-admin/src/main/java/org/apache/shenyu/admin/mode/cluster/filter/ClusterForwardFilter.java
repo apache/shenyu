@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.mode.cluster.filter;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.config.properties.ShenyuClusterProperties;
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +63,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     private ClusterMasterService clusterMasterService;
     
     @Resource
-    private ShenyuClusterProperties shenyuClusterProperties;
+    private ClusterProperties shenyuClusterProperties;
     
     @Override
     protected void doFilterInternal(@NotNull final HttpServletRequest request,
