@@ -55,8 +55,6 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     private volatile boolean alreadySync = Boolean.FALSE;
     
-    private volatile boolean connectToMaster = Boolean.FALSE;
-    
     private final WebsocketDataHandler websocketDataHandler;
     
     private final Timer timer;
@@ -152,7 +150,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         if (Objects.equals("CLUSTER", eventType)) {
             LOG.info("handle CLUSTER Result({})", result);
             String masterUrl = String.valueOf(jsonToMap.get("masterUrl"));
-            connectToMaster = Boolean.TRUE.equals(jsonToMap.get("isMaster"));
+            boolean connectToMaster = Boolean.TRUE.equals(jsonToMap.get("isMaster"));
             if (!connectToMaster) {
                 LOG.info("not connected to master, close now, master url:[{}], current url:[{}]", masterUrl, this.getURI().toString());
                 this.nowClose();
