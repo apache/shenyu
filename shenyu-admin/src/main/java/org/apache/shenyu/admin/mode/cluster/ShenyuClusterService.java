@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.cluster;
+package org.apache.shenyu.admin.mode.cluster;
 
+import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
@@ -24,14 +25,12 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-@Service
-public class ShenyuClusterService {
+public class ShenyuClusterService implements ShenyuRunningModeService {
     
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClusterService.class);
     
@@ -120,5 +119,15 @@ public class ShenyuClusterService {
                 LOG.error("release master error", e);
             }
         }
+    }
+    
+    @Override
+    public void start(final String host, final int port, final String contextPath) {
+        startSelectMasterTask(host, String.valueOf(port), contextPath);
+    }
+    
+    @Override
+    public void shutdown() {
+    
     }
 }

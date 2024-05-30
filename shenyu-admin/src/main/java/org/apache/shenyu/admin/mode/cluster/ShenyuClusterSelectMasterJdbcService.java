@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.cluster;
+package org.apache.shenyu.admin.mode.cluster;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

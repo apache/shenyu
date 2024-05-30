@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.filter;
+package org.apache.shenyu.admin.mode.cluster.filter;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +30,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.client.RestTemplate;
@@ -51,7 +50,6 @@ import java.util.Objects;
 /**
  * Cluster forward filter.
  */
-@Component
 public class ClusterForwardFilter extends OncePerRequestFilter {
     
     private static final Logger LOG = LoggerFactory.getLogger(ClusterForwardFilter.class);
@@ -93,12 +91,11 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         }
         
         // cluster forward request to master
-        forwardRequest(request, response, filterChain);
+        forwardRequest(request, response);
     }
     
     private void forwardRequest(final HttpServletRequest request,
-                                final HttpServletResponse response,
-                                final FilterChain filterChain) throws IOException, ServletException {
+                                final HttpServletResponse response) throws IOException, ServletException {
         ClusterMasterDTO master = clusterMasterService.getMaster();
         String host = master.getMasterHost();
         String port = master.getMasterPort();

@@ -17,8 +17,17 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.apache.shenyu.admin.cluster.ShenyuClusterSelectMasterJdbcService;
-import org.apache.shenyu.admin.cluster.ShenyuClusterSelectMasterService;
+import org.apache.shenyu.admin.mode.cluster.filter.ClusterForwardFilter;
+import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
+import org.apache.shenyu.admin.mode.cluster.ShenyuClusterSelectMasterJdbcService;
+import org.apache.shenyu.admin.mode.cluster.ShenyuClusterSelectMasterService;
+import org.apache.shenyu.admin.mode.cluster.ShenyuClusterService;
+import org.apache.shenyu.admin.service.ClusterMasterService;
+import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,9 +38,47 @@ import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
  */
 @Configuration(proxyBeanMethods = false)
 public class ClusterConfiguration {
-
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClusterConfiguration.class);
+    
+    /**
+     * Shenyu running mode cluster service.
+     *
+     * @param shenyuClusterSelectMasterService shenyu cluster select master service
+     * @param clusterMasterService cluster master service
+     * @param upstreamCheckService upstream check service
+     * @param loadServiceDocEntry load service doc entry
+     * @return Shenyu cluster service
+     */
+    @Bean(destroyMethod = "shutdown")
+    @ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "true", matchIfMissing = false)
+    @ConditionalOnMissingBean
+    public ShenyuRunningModeService shenyuRunningModeService(final ShenyuClusterSelectMasterService shenyuClusterSelectMasterService,
+                                                         final ClusterMasterService clusterMasterService,
+                                                         final UpstreamCheckService upstreamCheckService,
+                                                         final LoadServiceDocEntry loadServiceDocEntry) {
+        LOGGER.info("starting in cluster mode ...");
+        return new ShenyuClusterService(shenyuClusterSelectMasterService,
+                clusterMasterService,
+                upstreamCheckService,
+                loadServiceDocEntry
+        );
+    }
+    
+    /**
+     * Shenyu cluster forward filter.
+     *
+     * @return the Shenyu cluster forward filter
+     */
+    @Bean
+    @ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "true", matchIfMissing = false)
+    public ClusterForwardFilter clusterForwardFilter() {
+        return new ClusterForwardFilter();
+    }
+    
     /**
      * Shenyu select master service.
+     *
      * @param jdbcLockRegistry the jdbc lock registry
      * @return the shenyu select master service
      */
@@ -40,5 +87,5 @@ public class ClusterConfiguration {
     public ShenyuClusterSelectMasterService shenyuClusterSelectMasterService(final JdbcLockRegistry jdbcLockRegistry) {
         return new ShenyuClusterSelectMasterJdbcService(jdbcLockRegistry);
     }
-
+    
 }

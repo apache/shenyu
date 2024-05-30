@@ -15,26 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.cluster;
+package org.apache.shenyu.admin.mode;
 
-public interface ShenyuClusterSelectMasterService {
+/**
+ * The Shenyu Running Mode service.
+ */
+public interface ShenyuRunningModeService {
     
     /**
-     * Select the cluster master.
-     * @return select result
+     * server satrt method.
+     *
+     * @param host server host
+     * @param port server port
+     * @param contextPath server contextPath
      */
-    boolean selectMaster();
+    void start(String host, int port, String contextPath);
     
     /**
-     * renew the cluster master.
-     * @return renew result
+     * server shutdown method.
      */
-    boolean renewMaster();
+    void shutdown();
     
-    /**
-     * Release the cluster master.
-     * @return release result
-     */
-    boolean releaseMaster();
-
 }

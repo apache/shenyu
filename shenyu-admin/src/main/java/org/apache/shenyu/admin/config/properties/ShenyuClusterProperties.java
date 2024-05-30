@@ -25,9 +25,15 @@ import java.util.List;
 /**
  * Cluster properties.
  */
-@Component("shenyuClusterProperties")
+@Component
 @ConfigurationProperties(prefix = "shenyu.cluster")
 public class ShenyuClusterProperties {
+    
+    /**
+     * Whether enabled cluster mode, default: true.
+     */
+    private boolean enabled = true;
+    
     /**
      * the master select method type.
      */
@@ -37,6 +43,24 @@ public class ShenyuClusterProperties {
      * cluster forward uri list.
      */
     private List<String> forwardList;
+    
+    /**
+     * Gets the value of enabled.
+     *
+     * @return the value of enabled
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+    
+    /**
+     * Sets the enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final boolean enabled) {
+        this.enabled = enabled;
+    }
     
     /**
      * Get the select type.

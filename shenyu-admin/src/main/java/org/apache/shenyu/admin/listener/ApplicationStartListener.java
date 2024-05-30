@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.listener;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.cluster.ShenyuClusterService;
+import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
 import org.apache.shenyu.admin.utils.ShenyuDomain;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,13 +34,13 @@ import javax.annotation.Resource;
  */
 @Component
 public class ApplicationStartListener implements ApplicationListener<WebServerInitializedEvent> {
-
+    
     @Value("${server.servlet.context-path:}")
     private String contextPath;
     
     @Resource
-    private ShenyuClusterService clusterSelectMasterService;
-
+    private ShenyuRunningModeService shenyuRunningModeService;
+    
     @Override
     public void onApplicationEvent(final WebServerInitializedEvent event) {
         int port = event.getWebServer().getPort();
@@ -52,6 +52,6 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
             ShenyuDomain.getInstance().setHttpPath(domain);
         }
         
-        clusterSelectMasterService.startSelectMasterTask(host, String.valueOf(port), contextPath);
+        shenyuRunningModeService.start(host, port, contextPath);
     }
 }
