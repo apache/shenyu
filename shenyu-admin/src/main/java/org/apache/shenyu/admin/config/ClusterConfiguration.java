@@ -53,7 +53,7 @@ public class ClusterConfiguration {
      * @return Shenyu cluster service
      */
     @Bean(destroyMethod = "shutdown")
-    @ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "true", matchIfMissing = false)
+    @ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "true", matchIfMissing = true)
     @ConditionalOnMissingBean
     public ShenyuRunningModeService shenyuRunningModeService(final ShenyuClusterSelectMasterService shenyuClusterSelectMasterService,
                                                              final ClusterMasterService clusterMasterService,

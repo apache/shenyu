@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.listener.websocket;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
@@ -95,17 +96,14 @@ public class WebsocketCollector {
         if (Objects.equals(message, DataEventTypeEnum.CLUSTER.name())) {
             LOG.info("websocket fetching master info...");
             // check if this node is master
-            ClusterMasterService clusterMasterService = SpringBeanUtils.getInstance().getBean(ClusterMasterService.class);
-//            if (!clusterMasterService.isMaster()) {
-//                try {
-//                    session.close();
-//                    return;
-//                } catch (IOException e) {
-//                    throw new RuntimeException(e);
-//                }
-//            }
-            String masterUrl = clusterMasterService.getMasterUrl();
-            boolean isMaster = clusterMasterService.isMaster();
+            boolean isMaster = true;
+            String masterUrl = "";
+            ClusterProperties clusterProperties = SpringBeanUtils.getInstance().getBean(ClusterProperties.class);
+            if (clusterProperties.isEnabled()) {
+                ClusterMasterService clusterMasterService = SpringBeanUtils.getInstance().getBean(ClusterMasterService.class);
+                masterUrl = clusterMasterService.getMasterUrl();
+                isMaster = clusterMasterService.isMaster();
+            }
             Map<String, Object> map = Maps.newHashMap();
             map.put("eventType", DataEventTypeEnum.CLUSTER.name());
             map.put("isMaster", isMaster);
