@@ -61,6 +61,12 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     private TimerTask timerTask;
     
+    private String runningMode;
+    
+    private String masterUrl;
+    
+    private volatile boolean isConnectedToMaster;
+    
     /**
      * Instantiates a new shenyu websocket client.
      *
@@ -144,14 +150,18 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     @Override
     public void onMessage(final String result) {
-        LOG.info("onMessage server[{}] result({})", this.getURI().toString(), result);
+//        LOG.info("onMessage server[{}] result({})", this.getURI().toString(), result);
         Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
         Object eventType = jsonToMap.get("eventType");
         if (Objects.equals("CLUSTER", eventType)) {
-            LOG.info("handle CLUSTER Result({})", result);
-            String masterUrl = String.valueOf(jsonToMap.get("masterUrl"));
-            boolean connectToMaster = Boolean.TRUE.equals(jsonToMap.get("isMaster"));
-            if (!connectToMaster) {
+            LOG.info("server[{}] handle CLUSTER Result({})", this.getURI().toString(), result);
+            this.runningMode = String.valueOf(jsonToMap.get("runningMode"));
+            if (Objects.equals("standalone", runningMode)) {
+                return;
+            }
+            this.masterUrl = String.valueOf(jsonToMap.get("masterUrl"));
+            this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get("isMaster"));
+            if (!isConnectedToMaster) {
                 LOG.info("not connected to master, close now, master url:[{}], current url:[{}]", masterUrl, this.getURI().toString());
                 this.nowClose();
             }
@@ -195,6 +205,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                 this.reconnectBlocking();
             } else {
                 this.sendPing();
+                send(DataEventTypeEnum.CLUSTER.name());
                 LOG.debug("websocket send to [{}] ping message successful", this.getURI());
             }
         } catch (Exception e) {
@@ -215,4 +226,29 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         String json = GsonUtils.getInstance().toJson(websocketData.getData());
         websocketDataHandler.executor(groupEnum, json, eventType);
     }
+    
+    /**
+     * Gets the master url.
+     * @return the master url
+     */
+    public String getMasterUrl() {
+        return masterUrl;
+    }
+    
+    /**
+     * Gets the running mode.
+     * @return the running mode
+     */
+    public String getRunningMode() {
+        return runningMode;
+    }
+    
+    /**
+     * whether connect to master.
+     * @return whether connect to master
+     */
+    public boolean isConnectedToMaster() {
+        return isConnectedToMaster;
+    }
+    
 }

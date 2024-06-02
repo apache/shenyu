@@ -81,10 +81,10 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
         // try getting lock
         try {
             boolean selected = shenyuClusterSelectMasterService.selectMaster();
-            if (!selected) {
-                LOG.info("select master fail, wait for next time");
-                clusterMasterService.removeMaster();
-                return;
+            while (!selected) {
+                LOG.info("select master fail, wait for next period");
+                TimeUnit.SECONDS.sleep(clusterProperties.getSelectPeriod());
+                selected = shenyuClusterSelectMasterService.selectMaster();
             }
             
             LOG.info("select master success");
@@ -97,16 +97,20 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
             
             // load api
             loadServiceDocEntry.loadApiDocument();
+            boolean renewed = shenyuClusterSelectMasterService.renewMaster();
             
-            while (true) {
+            while (renewed) {
                 try {
                     // sleeps 10s then renew the lock
-                    TimeUnit.SECONDS.sleep(14L);
+                    TimeUnit.SECONDS.sleep(clusterProperties.getSelectPeriod());
                     
-                    shenyuClusterSelectMasterService.renewMaster();
-                    LOG.info("renew master success");
+                    renewed = shenyuClusterSelectMasterService.renewMaster();
+                    if (renewed) {
+                        LOG.info("renew master success");
+                    }
                 } catch (Exception e) {
-//                    LOG.error("renew master lock fail", e);
+                    //                    LOG.error("renew master lock fail", e);
+                    shenyuClusterSelectMasterService.releaseMaster();
                     // if renew fail, remove local master flag
                     clusterMasterService.removeMaster();
                     // close the upstream check service

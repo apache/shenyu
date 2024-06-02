@@ -83,13 +83,15 @@ public class ClusterConfiguration {
     /**
      * Shenyu select master service.
      *
+     * @param clusterProperties the cluster properties
      * @param jdbcLockRegistry the jdbc lock registry
      * @return the shenyu select master service
      */
     @Bean
     @ConditionalOnProperty(value = {"shenyu.cluster.select-type"}, havingValue = "jdbc", matchIfMissing = true)
-    public ShenyuClusterSelectMasterService shenyuClusterSelectMasterService(final JdbcLockRegistry jdbcLockRegistry) {
-        return new ShenyuClusterSelectMasterJdbcService(jdbcLockRegistry);
+    public ShenyuClusterSelectMasterService shenyuClusterSelectMasterService(final ClusterProperties clusterProperties,
+                                                                             final JdbcLockRegistry jdbcLockRegistry) {
+        return new ShenyuClusterSelectMasterJdbcService(clusterProperties, jdbcLockRegistry);
     }
     
 }

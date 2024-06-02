@@ -94,19 +94,22 @@ public class WebsocketCollector {
         }
         
         if (Objects.equals(message, DataEventTypeEnum.CLUSTER.name())) {
-            LOG.info("websocket fetching master info...");
+            LOG.info("websocket fetching cluster info...");
             // check if this node is master
             boolean isMaster = true;
+            String runningMode = "standalone";
             String masterUrl = "";
             ClusterProperties clusterProperties = SpringBeanUtils.getInstance().getBean(ClusterProperties.class);
             if (clusterProperties.isEnabled()) {
                 ClusterMasterService clusterMasterService = SpringBeanUtils.getInstance().getBean(ClusterMasterService.class);
                 masterUrl = clusterMasterService.getMasterUrl();
                 isMaster = clusterMasterService.isMaster();
+                runningMode = "cluster";
             }
             Map<String, Object> map = Maps.newHashMap();
             map.put("eventType", DataEventTypeEnum.CLUSTER.name());
             map.put("isMaster", isMaster);
+            map.put("runningMode", runningMode);
             map.put("masterUrl", masterUrl
                     .replace("http", "ws")
                     .replace("https", "ws")
@@ -168,7 +171,11 @@ public class WebsocketCollector {
         if (DataEventTypeEnum.MYSELF == type) {
             Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
             if (Objects.nonNull(session)) {
-                sendMessageBySession(session, message);
+                if (session.isOpen()) {
+                    sendMessageBySession(session, message);
+                } else {
+                    SESSION_SET.remove(session);
+                }
             }
         } else {
             SESSION_SET.forEach(session -> sendMessageBySession(session, message));

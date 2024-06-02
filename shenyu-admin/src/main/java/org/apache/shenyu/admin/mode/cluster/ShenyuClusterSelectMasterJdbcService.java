@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.admin.mode.cluster;
 
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 public class ShenyuClusterSelectMasterJdbcService implements ShenyuClusterSelectMasterService {
@@ -31,27 +31,26 @@ public class ShenyuClusterSelectMasterJdbcService implements ShenyuClusterSelect
     
     private static final String MASTER_LOCK_KEY = "shenyu:cluster:master";
     
+    private final ClusterProperties clusterProperties;
+    
     private final JdbcLockRegistry jdbcLockRegistry;
     
     private final Lock clusterMasterLock;
     
     private volatile boolean locked;
     
-    public ShenyuClusterSelectMasterJdbcService(final JdbcLockRegistry jdbcLockRegistry) {
+    public ShenyuClusterSelectMasterJdbcService(final ClusterProperties clusterProperties,
+                                                final JdbcLockRegistry jdbcLockRegistry) {
+        this.clusterProperties = clusterProperties;
         this.jdbcLockRegistry = jdbcLockRegistry;
-        // the lock duration 15s
-        this.jdbcLockRegistry.setIdleBetweenTries(Duration.ofSeconds(15));
+        // set the lock duration
+        this.jdbcLockRegistry.setIdleBetweenTries(Duration.ofSeconds(clusterProperties.getLockDuration()));
         this.clusterMasterLock = jdbcLockRegistry.obtain(MASTER_LOCK_KEY);
     }
     
     @Override
     public boolean selectMaster() {
-        try {
-            locked = clusterMasterLock.tryLock(5L, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            LOG.error("select master error", e);
-            locked = false;
-        }
+        locked = clusterMasterLock.tryLock();
         return locked;
     }
     
@@ -62,10 +61,7 @@ public class ShenyuClusterSelectMasterJdbcService implements ShenyuClusterSelect
                 jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
             } catch (Exception e) {
                 LOG.error("jdbc renew master error", e);
-                if (locked) {
-                    locked = false;
-                    clusterMasterLock.unlock();
-                }
+                releaseMaster();
             }
         }
         return locked;
@@ -75,6 +71,7 @@ public class ShenyuClusterSelectMasterJdbcService implements ShenyuClusterSelect
     public boolean releaseMaster() {
         if (locked) {
             clusterMasterLock.unlock();
+            locked = false;
         }
         return true;
     }
