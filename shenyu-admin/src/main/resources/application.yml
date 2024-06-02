@@ -113,6 +113,7 @@ shenyu:
   jwt:
     expired-seconds: 86400000
   cluster:
+    enabled: true
     select-type: jdbc
     forward-list:
       - /shenyu-client/**

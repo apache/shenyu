@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mapper.ClusterMasterMapper;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.model.entity.ClusterMasterDO;
@@ -35,10 +36,14 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
     private static final String MASTER_ID = "1";
     
     private volatile boolean isMaster;
+    
+    private final ClusterProperties clusterProperties;
 
     private final ClusterMasterMapper clusterMasterMapper;
 
-    public ClusterMasterServiceImpl(final ClusterMasterMapper clusterMasterMapper) {
+    public ClusterMasterServiceImpl(final ClusterProperties clusterProperties,
+                                    final ClusterMasterMapper clusterMasterMapper) {
+        this.clusterProperties = clusterProperties;
         this.clusterMasterMapper = clusterMasterMapper;
     }
 
@@ -73,6 +78,9 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
     
     @Override
     public boolean isMaster() {
+        if (!clusterProperties.isEnabled()) {
+            return true;
+        }
         return isMaster;
     }
     
