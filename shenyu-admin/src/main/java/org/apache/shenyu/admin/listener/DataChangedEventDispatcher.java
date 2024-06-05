@@ -17,7 +17,8 @@
 
 package org.apache.shenyu.admin.listener;
 
-import org.apache.shenyu.admin.service.ClusterMasterService;
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
+import org.apache.shenyu.admin.mode.cluster.ShenyuClusterSelectMasterService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
@@ -34,11 +35,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nullable;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Event forwarders, which forward the changed events to each ConfigEventListener.
@@ -53,7 +56,11 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
     private List<DataChangedListener> listeners;
     
     @Resource
-    private ClusterMasterService clusterMasterService;
+    private ClusterProperties clusterProperties;
+    
+    @Resource
+    @Nullable
+    private ShenyuClusterSelectMasterService shenyuClusterSelectMasterService;
 
     public DataChangedEventDispatcher(final ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
@@ -64,7 +71,9 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
         for (DataChangedListener listener : listeners) {
             if (!(listener instanceof AbstractDataChangedListener)) {
-                if (!clusterMasterService.isMaster()) {
+                if (clusterProperties.isEnabled()
+                        && Objects.nonNull(shenyuClusterSelectMasterService)
+                        && !shenyuClusterSelectMasterService.isMaster()) {
                     LOG.info("received DataChangedEvent, not master, pass");
                     return;
                 }

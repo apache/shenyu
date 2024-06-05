@@ -42,17 +42,6 @@ public interface ClusterMasterService {
     boolean isMaster(String myHost, String myPort, String contextPath);
 
     /**
-     * check master.
-     * @return is this node master
-     */
-    boolean isMaster();
-
-    /**
-     * remove master.
-     */
-    void removeMaster();
-
-    /**
      * Get master.
      * @return ClusterMasterDTO
      */

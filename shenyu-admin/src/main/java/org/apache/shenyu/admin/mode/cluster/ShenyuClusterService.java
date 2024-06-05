@@ -109,10 +109,8 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
                         LOG.info("renew master success");
                     }
                 } catch (Exception e) {
-                    //                    LOG.error("renew master lock fail", e);
-                    shenyuClusterSelectMasterService.releaseMaster();
                     // if renew fail, remove local master flag
-                    clusterMasterService.removeMaster();
+                    shenyuClusterSelectMasterService.releaseMaster();
                     // close the upstream check service
                     upstreamCheckService.close();
                     String message = String.format("renew master fail, %s", e.getMessage());

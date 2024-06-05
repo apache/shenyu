@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mapper.ClusterMasterMapper;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.model.entity.ClusterMasterDO;
@@ -34,22 +33,15 @@ import java.util.Objects;
 public class ClusterMasterServiceImpl implements ClusterMasterService {
 
     private static final String MASTER_ID = "1";
-    
-    private volatile boolean isMaster;
-    
-    private final ClusterProperties clusterProperties;
 
     private final ClusterMasterMapper clusterMasterMapper;
 
-    public ClusterMasterServiceImpl(final ClusterProperties clusterProperties,
-                                    final ClusterMasterMapper clusterMasterMapper) {
-        this.clusterProperties = clusterProperties;
+    public ClusterMasterServiceImpl(final ClusterMasterMapper clusterMasterMapper) {
         this.clusterMasterMapper = clusterMasterMapper;
     }
 
     @Override
     public synchronized void setMaster(final String masterHost, final String masterPort, final String contextPath) {
-        this.isMaster = true;
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         ClusterMasterDO masterDO = ClusterMasterDO.builder()
                 .id(MASTER_ID)
@@ -74,19 +66,6 @@ public class ClusterMasterServiceImpl implements ClusterMasterService {
                 .contextPath(contextPath)
                 .build();
         return clusterMasterMapper.count(masterDO) > 0;
-    }
-    
-    @Override
-    public boolean isMaster() {
-        if (!clusterProperties.isEnabled()) {
-            return true;
-        }
-        return isMaster;
-    }
-    
-    @Override
-    public synchronized void removeMaster() {
-        this.isMaster = false;
     }
     
     @Override

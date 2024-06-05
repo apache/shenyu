@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mapper.ClusterMasterMapper;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.model.entity.ClusterMasterDO;
@@ -56,14 +55,11 @@ public final class ClusterMasterServiceTest {
     private ClusterMasterServiceImpl clusterMasterService;
     
     @Mock
-    private ClusterProperties clusterProperties;
-    
-    @Mock
     private ClusterMasterMapper clusterMasterMapper;
     
     @BeforeEach
     public void setUp() {
-        clusterMasterService = new ClusterMasterServiceImpl(clusterProperties, clusterMasterMapper);
+        clusterMasterService = new ClusterMasterServiceImpl(clusterMasterMapper);
     }
     
     @Test

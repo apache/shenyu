@@ -36,5 +36,11 @@ public interface ShenyuClusterSelectMasterService {
      * @return release result
      */
     boolean releaseMaster();
+    
+    /**
+     * Whether this node is the cluster master.
+     * @return is master
+     */
+    boolean isMaster();
 
 }

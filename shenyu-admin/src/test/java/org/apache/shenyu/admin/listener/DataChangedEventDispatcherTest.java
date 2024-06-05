@@ -21,7 +21,7 @@ import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedListener;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
-import org.apache.shenyu.admin.service.ClusterMasterService;
+import org.apache.shenyu.admin.mode.cluster.ShenyuClusterSelectMasterJdbcService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,9 +74,9 @@ public final class DataChangedEventDispatcherTest {
 
     @Mock
     private LoadServiceDocEntry loadServiceDocEntry;
-
+    
     @Mock
-    private ClusterMasterService clusterMasterService;
+    private ShenyuClusterSelectMasterJdbcService shenyuClusterSelectMasterJdbcService;
 
     @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
@@ -90,9 +90,9 @@ public final class DataChangedEventDispatcherTest {
         when(applicationContext.getBean(LoadServiceDocEntry.class)).thenReturn(loadServiceDocEntry);
         applicationContext.getBean(LoadServiceDocEntry.class);
         
-        Field field = DataChangedEventDispatcher.class.getDeclaredField("clusterMasterService");
+        Field field = DataChangedEventDispatcher.class.getDeclaredField("shenyuClusterSelectMasterJdbcService");
         field.setAccessible(true);
-        field.set(dataChangedEventDispatcher, clusterMasterService);
+        field.set(dataChangedEventDispatcher, shenyuClusterSelectMasterJdbcService);
         field.setAccessible(false);
         
         dataChangedEventDispatcher.afterPropertiesSet();
@@ -103,7 +103,7 @@ public final class DataChangedEventDispatcherTest {
      */
     @Test
     public void onApplicationEventWithAppAuthConfigGroupTest() {
-        when(clusterMasterService.isMaster()).thenReturn(true);
+        when(shenyuClusterSelectMasterJdbcService.isMaster()).thenReturn(true);
         ConfigGroupEnum configGroupEnum = ConfigGroupEnum.APP_AUTH;
         DataChangedEvent dataChangedEvent = new DataChangedEvent(configGroupEnum, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
@@ -118,7 +118,7 @@ public final class DataChangedEventDispatcherTest {
      */
     @Test
     public void onApplicationEventWithPluginConfigGroupTest() {
-        when(clusterMasterService.isMaster()).thenReturn(true);
+        when(shenyuClusterSelectMasterJdbcService.isMaster()).thenReturn(true);
         ConfigGroupEnum configGroupEnum = ConfigGroupEnum.PLUGIN;
         DataChangedEvent dataChangedEvent = new DataChangedEvent(configGroupEnum, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
@@ -133,7 +133,7 @@ public final class DataChangedEventDispatcherTest {
      */
     @Test
     public void onApplicationEventWithRuleConfigGroupTest() {
-        when(clusterMasterService.isMaster()).thenReturn(true);
+        when(shenyuClusterSelectMasterJdbcService.isMaster()).thenReturn(true);
         ConfigGroupEnum configGroupEnum = ConfigGroupEnum.RULE;
         DataChangedEvent dataChangedEvent = new DataChangedEvent(configGroupEnum, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
@@ -148,7 +148,7 @@ public final class DataChangedEventDispatcherTest {
      */
     @Test
     public void onApplicationEventWithSelectorConfigGroupTest() {
-        when(clusterMasterService.isMaster()).thenReturn(true);
+        when(shenyuClusterSelectMasterJdbcService.isMaster()).thenReturn(true);
         ConfigGroupEnum configGroupEnum = ConfigGroupEnum.SELECTOR;
         DataChangedEvent dataChangedEvent = new DataChangedEvent(configGroupEnum, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
@@ -163,7 +163,7 @@ public final class DataChangedEventDispatcherTest {
      */
     @Test
     public void onApplicationEventWithMetaDataConfigGroupTest() {
-        when(clusterMasterService.isMaster()).thenReturn(true);
+        when(shenyuClusterSelectMasterJdbcService.isMaster()).thenReturn(true);
         ConfigGroupEnum configGroupEnum = ConfigGroupEnum.META_DATA;
         DataChangedEvent dataChangedEvent = new DataChangedEvent(configGroupEnum, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
@@ -178,7 +178,7 @@ public final class DataChangedEventDispatcherTest {
      */
     @Test
     public void onApplicationEventWithNullTest() {
-        when(clusterMasterService.isMaster()).thenReturn(true);
+        when(shenyuClusterSelectMasterJdbcService.isMaster()).thenReturn(true);
         NullPointerException exception = assertThrows(NullPointerException.class, () -> {
             DataChangedEvent dataChangedEvent = new DataChangedEvent(null, null, new ArrayList<>());
             dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);

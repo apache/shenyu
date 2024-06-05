@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.mode.cluster.filter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
+import org.apache.shenyu.admin.mode.cluster.ShenyuClusterSelectMasterService;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.jetbrains.annotations.NotNull;
@@ -63,6 +64,9 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     private ClusterMasterService clusterMasterService;
     
     @Resource
+    private ShenyuClusterSelectMasterService shenyuClusterSelectMasterService;
+    
+    @Resource
     private ClusterProperties shenyuClusterProperties;
     
     @Override
@@ -75,7 +79,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             return;
         }
         
-        if (clusterMasterService.isMaster()) {
+        if (shenyuClusterSelectMasterService.isMaster()) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -99,29 +103,23 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         ClusterMasterDTO master = clusterMasterService.getMaster();
         String host = master.getMasterHost();
         String port = master.getMasterPort();
-        //        String contextPath = master.getContextPath();
-        
-        // new URL
-        //        String uri = request.getRequestURI();
-        //        String requestContextPath = request.getContextPath();
-        //        uri = uri.replaceAll(requestContextPath, "");
-        //        if (StringUtils.isNotEmpty(contextPath)) {
-        //            uri = contextPath + "/" + uri;
-        //        }
+        String contextPath = master.getContextPath();
         
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromHttpRequest(new ServletServerHttpRequest(request))
                 .host(host)
                 .port(port);
-        
-        LOG.info("forwarding request to url: {}", builder.toUriString());
+        String targetUri = builder.toUriString();
+        String currentContextPath = request.getContextPath();
+        targetUri = targetUri.replaceAll(currentContextPath, contextPath);
+        LOG.info("forwarding current: {} request to target url: {}", builder.toUriString(), targetUri);
         // Create request entity
         HttpHeaders headers = new HttpHeaders();
         
         copyHeaders(request, headers);
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
         // Send request
-        ResponseEntity<InputStream> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.valueOf(request.getMethod()), requestEntity, InputStream.class);
+        ResponseEntity<InputStream> responseEntity = restTemplate.exchange(targetUri, HttpMethod.valueOf(request.getMethod()), requestEntity, InputStream.class);
 
         // Set response status and headers
         response.setStatus(responseEntity.getStatusCodeValue());

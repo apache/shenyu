@@ -75,4 +75,12 @@ public class ShenyuClusterSelectMasterJdbcService implements ShenyuClusterSelect
         }
         return true;
     }
+    
+    @Override
+    public boolean isMaster() {
+        if (!clusterProperties.isEnabled()) {
+            return true;
+        }
+        return locked;
+    }
 }
