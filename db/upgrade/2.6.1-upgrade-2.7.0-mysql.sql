@@ -41,3 +41,18 @@ INSERT INTO `resource` VALUES ('1386680049203195915', '1346777157943259136', 'SH
 INSERT INTO `resource` VALUES ('1386680049203195916', '1346777157943259136', 'SHENYU.COMMON.IMPORT', '', '', '', 2, 0, '', 1, 0, 'system:manager:importConfig', 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `permission` VALUES ('1386680049203195906', '1346358560427216896', '1386680049203195915', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `permission` VALUES ('1386680049203195907', '1346358560427216896', '1386680049203195916', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+
+-- ----------------------------
+-- Table structure for cluster_master
+-- ----------------------------
+DROP TABLE IF EXISTS `cluster_master`;
+CREATE TABLE IF NOT EXISTS cluster_master  (
+    `id`           varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
+    `master_host`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'master host',
+    `master_port`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'master port',
+    `context_path`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'master context_path',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;

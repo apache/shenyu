@@ -46,3 +46,25 @@ INSERT INTO "public"."resource" VALUES ('1386680049203195915', '1346777157943259
 INSERT INTO "public"."resource" VALUES ('1386680049203195916', '1346777157943259136', 'SHENYU.COMMON.IMPORT', '', '', '', 2, 0, '', 1, 0, 'system:manager:importConfig', 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."permission" VALUES ('1386680049203195906', '1346358560427216896', '1386680049203195915', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."permission" VALUES ('1386680049203195907', '1346358560427216896', '1386680049203195916', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+
+
+-- ----------------------------
+-- Table structure for cluster_master
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."cluster_master";
+CREATE TABLE "public"."cluster_master"
+(
+    "id"                   varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "master_host"                 varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "master_port"                 varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "context_path"                 varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."cluster_master"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."cluster_master"."master_host" IS 'master host';
+COMMENT ON COLUMN "public"."cluster_master"."master_port" IS 'master port';
+COMMENT ON COLUMN "public"."cluster_master"."context_path" IS 'master context_path';
+COMMENT ON COLUMN "public"."cluster_master"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."cluster_master"."date_updated" IS 'update time';

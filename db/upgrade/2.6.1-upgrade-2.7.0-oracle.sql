@@ -58,3 +58,38 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES('1386680049203195916','1346777157943259136','SHENYU.COMMON.IMPORT', '', '', '', 2, 0, '', 1, 0, 'system:manager:importConfig', 1);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1386680049203195906', '1346358560427216896', '1386680049203195915');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1386680049203195907', '1346358560427216896', '1386680049203195916');
+
+
+-- ----------------------------
+-- Table structure for cluster_master
+-- ----------------------------
+create table cluster_master
+(
+    id                   varchar(128)   not null,
+    master_host          varchar(255)   not null,
+    master_port          varchar(255)   not null,
+    context_path          varchar(255)   not null,
+    date_created      timestamp(3) default SYSDATE not null,
+    date_updated      timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+)
+;
+-- Add comments to the columns
+comment
+on column alert_receiver.id
+  is 'primary key id';
+comment
+on column alert_receiver.master_host
+  is 'master host';
+comment
+on column alert_receiver.master_port
+  is 'master port';
+comment
+on column alert_receiver.context_path
+  is 'master context_path';
+comment
+on column alert_receiver.date_created
+  is 'create time';
+comment
+on column alert_receiver.date_updated
+  is 'update time';
