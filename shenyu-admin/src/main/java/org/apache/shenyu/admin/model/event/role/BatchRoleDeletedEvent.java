@@ -32,9 +32,9 @@ import java.util.stream.Collectors;
  * BatchRuleDeletedEvent.
  */
 public class BatchRoleDeletedEvent extends BatchChangedEvent {
-    
+
     private final List<String> deletedIds;
-    
+
     /**
      * Create a new {@code BatchChangedEvent}.operator is unknown.
      *
@@ -45,16 +45,16 @@ public class BatchRoleDeletedEvent extends BatchChangedEvent {
         super(source, null, EventTypeEnum.ROLE_DELETE, operator);
         this.deletedIds = ListUtil.map(source, BaseDO::getId);
     }
-    
+
     @Override
     public String buildContext() {
         final String selector = ((Collection<?>) getSource())
-                .stream()
-                .map(s -> ((RoleDO) s).getRoleName())
-                .collect(Collectors.joining(","));
+            .stream()
+            .map(s -> ((RoleDO) s).getRoleName())
+            .collect(Collectors.joining(","));
         return String.format("the role[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
     }
-    
+
     /**
      * get roles.
      *
@@ -62,13 +62,11 @@ public class BatchRoleDeletedEvent extends BatchChangedEvent {
      */
     public List<RoleDO> getRoles() {
         return ((Collection<?>) getSource())
-                .stream()
-                .map(RoleDO.class::cast)
-                .collect(Collectors.toList());
+            .stream()
+            .map(RoleDO.class::cast)
+            .collect(Collectors.toList());
     }
-    
 
-    
     /**
      * get deleted ids.
      *

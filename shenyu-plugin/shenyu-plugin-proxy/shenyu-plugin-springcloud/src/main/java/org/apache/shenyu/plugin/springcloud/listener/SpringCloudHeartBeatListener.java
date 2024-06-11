@@ -22,7 +22,6 @@ import org.apache.shenyu.common.config.ShenyuConfig.SpringCloudCacheConfig;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
-import static org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler.SELECTOR_CACHED;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.ServiceInstance;
@@ -32,6 +31,8 @@ import org.springframework.context.ApplicationListener;
 
 import java.util.List;
 import java.util.Map;
+
+import static org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler.SELECTOR_CACHED;
 
 public class SpringCloudHeartBeatListener implements ApplicationListener<HeartbeatEvent> {
     

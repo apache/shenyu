@@ -59,7 +59,7 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
 
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
-        if ((bean instanceof DataSourceProperties) && Boolean.TRUE.equals(dataBaseProperties.getInitEnable())) {
+        if (bean instanceof DataSourceProperties && Boolean.TRUE.equals(dataBaseProperties.getInitEnable())) {
             this.init((DataSourceProperties) bean);
         }
         return bean;

@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Logging plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.metrics.enabled"}, havingValue = "true")
+@ConditionalOnProperty(value = "shenyu.metrics.enabled", havingValue = "true")
 public class MetricsPluginConfiguration {
     
     /**

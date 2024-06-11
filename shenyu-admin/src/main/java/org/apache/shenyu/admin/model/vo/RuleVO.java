@@ -75,12 +75,12 @@ public class RuleVO implements Serializable {
      * process logic.
      */
     private String handle;
-    
+
     /**
      * match restful.
      */
     private Boolean matchRestful;
-    
+
     /**
      * rule conditions.
      */
@@ -125,6 +125,31 @@ public class RuleVO implements Serializable {
         this.ruleConditions = ruleConditions;
         this.dateCreated = dateCreated;
         this.dateUpdated = dateUpdated;
+    }
+
+    /**
+     * build ruleVO.
+     *
+     * @param ruleDO {@linkplain RuleDO}
+     * @return {@linkplain RuleVO}
+     */
+    public static RuleVO buildRuleVO(final RuleDO ruleDO) {
+        return buildRuleVO(ruleDO, null);
+    }
+
+    /**
+     * build ruleVO.
+     *
+     * @param ruleDO         {@linkplain RuleDO}
+     * @param ruleConditions {@linkplain List}
+     * @return {@linkplain RuleVO}
+     */
+    public static RuleVO buildRuleVO(final RuleDO ruleDO, final List<RuleConditionVO> ruleConditions) {
+        return new RuleVO(ruleDO.getId(), ruleDO.getSelectorId(), ruleDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(ruleDO.getMatchMode()),
+            ruleDO.getName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getSort(), ruleDO.getHandle(),
+            ruleDO.getMatchRestful(), ruleConditions,
+            DateUtils.localDateTimeToString(ruleDO.getDateCreated().toLocalDateTime()),
+            DateUtils.localDateTimeToString(ruleDO.getDateUpdated().toLocalDateTime()));
     }
 
     /**
@@ -288,7 +313,7 @@ public class RuleVO implements Serializable {
     public void setHandle(final String handle) {
         this.handle = handle;
     }
-    
+
     /**
      * get match restful.
      *
@@ -297,7 +322,7 @@ public class RuleVO implements Serializable {
     public Boolean getMatchRestful() {
         return matchRestful;
     }
-    
+
     /**
      * set match restful.
      *
@@ -306,7 +331,7 @@ public class RuleVO implements Serializable {
     public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
-    
+
     /**
      * Gets the value of ruleConditions.
      *
@@ -359,30 +384,5 @@ public class RuleVO implements Serializable {
      */
     public void setDateUpdated(final String dateUpdated) {
         this.dateUpdated = dateUpdated;
-    }
-
-    /**
-     * build ruleVO.
-     *
-     * @param ruleDO {@linkplain RuleDO}
-     * @return {@linkplain RuleVO}
-     */
-    public static RuleVO buildRuleVO(final RuleDO ruleDO) {
-        return buildRuleVO(ruleDO, null);
-    }
-
-    /**
-     * build ruleVO.
-     *
-     * @param ruleDO         {@linkplain RuleDO}
-     * @param ruleConditions {@linkplain List}
-     * @return {@linkplain RuleVO}
-     */
-    public static RuleVO buildRuleVO(final RuleDO ruleDO, final List<RuleConditionVO> ruleConditions) {
-        return new RuleVO(ruleDO.getId(), ruleDO.getSelectorId(), ruleDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(ruleDO.getMatchMode()),
-                ruleDO.getName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getSort(), ruleDO.getHandle(),
-                ruleDO.getMatchRestful(), ruleConditions,
-                DateUtils.localDateTimeToString(ruleDO.getDateCreated().toLocalDateTime()),
-                DateUtils.localDateTimeToString(ruleDO.getDateUpdated().toLocalDateTime()));
     }
 }

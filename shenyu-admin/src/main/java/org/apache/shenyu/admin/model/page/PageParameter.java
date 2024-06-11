@@ -203,6 +203,11 @@ public class PageParameter implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(currentPage, prePage, nextPage, pageSize, offset, totalPage, totalCount);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -212,29 +217,24 @@ public class PageParameter implements Serializable {
         }
         PageParameter that = (PageParameter) o;
         return currentPage == that.currentPage
-                && prePage == that.prePage
-                && nextPage == that.nextPage
-                && pageSize == that.pageSize
-                && offset == that.offset
-                && totalPage == that.totalPage
-                && totalCount == that.totalCount;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(currentPage, prePage, nextPage, pageSize, offset, totalPage, totalCount);
+            && prePage == that.prePage
+            && nextPage == that.nextPage
+            && pageSize == that.pageSize
+            && offset == that.offset
+            && totalPage == that.totalPage
+            && totalCount == that.totalCount;
     }
 
     @Override
     public String toString() {
         return "PageParameter{"
-                + "currentPage=" + currentPage
-                + ", prePage=" + prePage
-                + ", nextPage=" + nextPage
-                + ", pageSize=" + pageSize
-                + ", offset=" + offset
-                + ", totalPage=" + totalPage
-                + ", totalCount=" + totalCount
-                + '}';
+            + "currentPage=" + currentPage
+            + ", prePage=" + prePage
+            + ", nextPage=" + nextPage
+            + ", pageSize=" + pageSize
+            + ", offset=" + offset
+            + ", totalPage=" + totalPage
+            + ", totalCount=" + totalCount
+            + '}';
     }
 }

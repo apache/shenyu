@@ -20,10 +20,10 @@ package org.apache.shenyu.admin.model.vo;
 import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 
-import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -40,9 +40,9 @@ public final class PluginVOTest extends AbstractReflectGetterSetterTest {
     public void testBuildPluginVO() {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         assertNotNull(PluginVO.buildPluginVO(PluginDO.builder()
-                .name(PluginEnum.GLOBAL.getName())
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .build()));
+            .name(PluginEnum.GLOBAL.getName())
+            .dateCreated(currentTime)
+            .dateUpdated(currentTime)
+            .build()));
     }
 }

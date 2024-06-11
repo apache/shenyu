@@ -33,7 +33,7 @@ import static org.apache.shenyu.common.constant.ApolloPathConstants.PROXY_SELECT
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
-@ContextConfiguration(classes = {ApolloDataChangedInit.class})
+@ContextConfiguration(classes = ApolloDataChangedInit.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ApolloDataChangedInitTest {
 

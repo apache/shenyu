@@ -18,8 +18,8 @@
 package org.apache.shenyu.client.core.disruptor.subcriber;
 
 import com.google.common.base.Stopwatch;
-import org.apache.shenyu.client.core.shutdown.ShutdownHookManager;
 import org.apache.shenyu.client.core.shutdown.ShenyuClientShutdownHook;
+import org.apache.shenyu.client.core.shutdown.ShutdownHookManager;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;

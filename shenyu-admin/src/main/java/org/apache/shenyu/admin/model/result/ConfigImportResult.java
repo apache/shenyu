@@ -30,7 +30,6 @@ public class ConfigImportResult implements Serializable {
 
     private final String failMessage;
 
-
     /**
      * Instantiates a new config import result.
      *
@@ -53,6 +52,7 @@ public class ConfigImportResult implements Serializable {
 
     /**
      * return success.
+     *
      * @param successCount success count
      * @return {@linkplain ConfigImportResult}
      */
@@ -64,7 +64,7 @@ public class ConfigImportResult implements Serializable {
      * return success.
      *
      * @param successCount success count
-     * @param failMessage fail message
+     * @param failMessage  fail message
      * @return {@linkplain ConfigImportResult}
      */
     public static ConfigImportResult fail(final Integer successCount, final String failMessage) {

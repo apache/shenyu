@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-
 /**
  * ClientConnectionConfigProviderFactory.
  */
@@ -52,13 +51,13 @@ public class DefaultConnectionConfigProvider implements ClientConnectionConfigPr
     @Override
     public URI getProxiedService(final String ip) {
         List<Upstream> upstreamList = UpstreamProvider.getSingleton().provide(this.pluginSelectorName).stream().map(dp -> Upstream.builder()
-                .url(dp.getUrl())
-                .status(open(dp.getStatus()))
-                .weight(dp.getWeight())
-                .protocol(dp.getProtocol())
-                .warmup(JsonUtils.jsonToMap(dp.getProps(), Integer.class).get("warmupTime"))
-                .timestamp(dp.getDateCreated().getTime())
-                .build()).collect(Collectors.toList());
+            .url(dp.getUrl())
+            .status(open(dp.getStatus()))
+            .weight(dp.getWeight())
+            .protocol(dp.getProtocol())
+            .warmup(JsonUtils.jsonToMap(dp.getProps(), Integer.class).get("warmupTime"))
+            .timestamp(dp.getDateCreated().getTime())
+            .build()).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(upstreamList)) {
             throw new ShenyuException("shenyu TcpProxy don't have any upstream");
         }
@@ -77,6 +76,7 @@ public class DefaultConnectionConfigProvider implements ClientConnectionConfigPr
 
     /**
      * false close, true open.
+     *
      * @param status status  (0, healthy, 1 unhealthy)
      * @return openStatus false close, true open.
      */

@@ -37,16 +37,13 @@ public final class Util {
     /**
      * checkArgument.
      *
-     * @param expression expression
+     * @param expression           expression
      * @param errorMessageTemplate errorMessageTemplate
-     * @param errorMessageArgs errorMessageArgs
+     * @param errorMessageArgs     errorMessageArgs
      */
-    public static void checkArgument(final boolean expression,
-                                     final String errorMessageTemplate,
-                                     final Object... errorMessageArgs) {
+    public static void checkArgument(final boolean expression, final String errorMessageTemplate, final Object... errorMessageArgs) {
         if (!expression) {
-            throw new IllegalArgumentException(
-                    format(errorMessageTemplate, errorMessageArgs));
+            throw new IllegalArgumentException(format(errorMessageTemplate, errorMessageArgs));
         }
     }
 
@@ -73,19 +70,16 @@ public final class Util {
     /**
      * checkNotNull.
      *
-     * @param reference reference
+     * @param reference            reference
      * @param errorMessageTemplate errorMessageTemplate
-     * @param errorMessageArgs errorMessageArgs
-     * @param <T> t
+     * @param errorMessageArgs     errorMessageArgs
+     * @param <T>                  t
      * @return {@link T}
      */
-    public static <T> T checkNotNull(final T reference,
-                                     final String errorMessageTemplate,
-                                     final Object... errorMessageArgs) {
+    public static <T> T checkNotNull(final T reference, final String errorMessageTemplate, final Object... errorMessageArgs) {
         if (reference == null) {
             // If either of these parameters is null, the right thing happens anyway
-            throw new NullPointerException(
-                    format(errorMessageTemplate, errorMessageArgs));
+            throw new NullPointerException(format(errorMessageTemplate, errorMessageArgs));
         }
         return reference;
     }
@@ -93,21 +87,19 @@ public final class Util {
     /**
      * checkState.
      *
-     * @param expression expression
+     * @param expression           expression
      * @param errorMessageTemplate errorMessageTemplate
-     * @param errorMessageArgs errorMessageArgs
+     * @param errorMessageArgs     errorMessageArgs
      */
-    public static void checkState(final boolean expression,
-                                  final String errorMessageTemplate,
-                                  final Object... errorMessageArgs) {
+    public static void checkState(final boolean expression, final String errorMessageTemplate, final Object... errorMessageArgs) {
         if (!expression) {
-            throw new IllegalStateException(
-                    format(errorMessageTemplate, errorMessageArgs));
+            throw new IllegalStateException(format(errorMessageTemplate, errorMessageArgs));
         }
     }
 
     /**
      * Identifies a method as a default instance method.
+     *
      * @param method method
      * @return bool
      */
@@ -117,9 +109,8 @@ public final class Util {
         // method.isDefault() is not sufficient for our usage as it does not check
         // for synthetic methods. As a result, it picks up overridden methods as well as actual default
         // methods.
-        return ((method.getModifiers()
-                & (Modifier.ABSTRACT | Modifier.PUBLIC | Modifier.STATIC | 0x00001000)) == Modifier.PUBLIC)
-                && method.getDeclaringClass().isInterface();
+        int modifier = method.getModifiers() & (Modifier.ABSTRACT | Modifier.PUBLIC | Modifier.STATIC | 0x00001000);
+        return modifier == Modifier.PUBLIC && method.getDeclaringClass().isInterface();
     }
 
 }

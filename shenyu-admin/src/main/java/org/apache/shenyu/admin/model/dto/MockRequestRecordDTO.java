@@ -106,42 +106,6 @@ public class MockRequestRecordDTO implements Serializable {
     }
 
     /**
-     * Gets the value of apiId.
-     *
-     * @return the value of apiId
-     */
-    public String getApiId() {
-        return apiId;
-    }
-
-    /**
-     * Sets the apiId.
-     *
-     * @param apiId apiId
-     */
-    public void setApiId(final String apiId) {
-        this.apiId = apiId;
-    }
-
-    /**
-     * Gets the value of host.
-     *
-     * @return the value of host
-     */
-    public String getHost() {
-        return host;
-    }
-
-    /**
-     * Sets the host.
-     *
-     * @param host host
-     */
-    public void setHost(final String host) {
-        this.host = host;
-    }
-
-    /**
      * Gets the value of port.
      *
      * @return the value of port
@@ -175,6 +139,99 @@ public class MockRequestRecordDTO implements Serializable {
      */
     public void setUrl(final String url) {
         this.url = url;
+    }
+
+    /**
+     * getDateCreated.
+     *
+     * @return dateCreated
+     */
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+    /**
+     * setDateCreated.
+     *
+     * @param dateCreated dateCreated
+     */
+    public void setDateCreated(final Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    /**
+     * getDateUpdated.
+     *
+     * @return dateUpdated
+     */
+    public Date getDateUpdated() {
+        return dateUpdated;
+    }
+
+    /**
+     * setDateUpdated.
+     *
+     * @param dateUpdated dateUpdated
+     */
+    public void setDateUpdated(final Date dateUpdated) {
+        this.dateUpdated = dateUpdated;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, apiId, host, pathVariable, query, header, body, dateCreated, dateUpdated);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof MockRequestRecordDTO)) {
+            return false;
+        }
+        MockRequestRecordDTO dto = (MockRequestRecordDTO) o;
+        return Objects.equals(id, dto.id) && Objects.equals(apiId, dto.getApiId())
+            && Objects.equals(host, dto.getHost()) && Objects.equals(pathVariable, dto.getPathVariable())
+            && Objects.equals(query, dto.getQuery()) && Objects.equals(header, dto.getHeader())
+            && Objects.equals(body, dto.getBody()) && Objects.equals(dateCreated, dto.dateCreated)
+            && Objects.equals(dateUpdated, dto.dateUpdated);
+    }
+
+    /**
+     * Gets the value of apiId.
+     *
+     * @return the value of apiId
+     */
+    public String getApiId() {
+        return apiId;
+    }
+
+    /**
+     * Sets the apiId.
+     *
+     * @param apiId apiId
+     */
+    public void setApiId(final String apiId) {
+        this.apiId = apiId;
+    }
+
+    /**
+     * Gets the value of host.
+     *
+     * @return the value of host
+     */
+    public String getHost() {
+        return host;
+    }
+
+    /**
+     * Sets the host.
+     *
+     * @param host host
+     */
+    public void setHost(final String host) {
+        this.host = host;
     }
 
     /**
@@ -247,63 +304,6 @@ public class MockRequestRecordDTO implements Serializable {
      */
     public void setBody(final String body) {
         this.body = body;
-    }
-
-    /**
-     * getDateCreated.
-     *
-     * @return dateCreated
-     */
-    public Date getDateCreated() {
-        return dateCreated;
-    }
-
-    /**
-     * setDateCreated.
-     *
-     * @param dateCreated dateCreated
-     */
-    public void setDateCreated(final Date dateCreated) {
-        this.dateCreated = dateCreated;
-    }
-
-    /**
-     * getDateUpdated.
-     *
-     * @return dateUpdated
-     */
-    public Date getDateUpdated() {
-        return dateUpdated;
-    }
-
-    /**
-     * setDateUpdated.
-     *
-     * @param dateUpdated dateUpdated
-     */
-    public void setDateUpdated(final Date dateUpdated) {
-        this.dateUpdated = dateUpdated;
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof MockRequestRecordDTO)) {
-            return false;
-        }
-        MockRequestRecordDTO dto = (MockRequestRecordDTO) o;
-        return Objects.equals(id, dto.id) && Objects.equals(apiId, dto.getApiId())
-                && Objects.equals(host, dto.getHost()) && Objects.equals(pathVariable, dto.getPathVariable())
-                && Objects.equals(query, dto.getQuery()) && Objects.equals(header, dto.getHeader())
-                && Objects.equals(body, dto.getBody()) && Objects.equals(dateCreated, dto.dateCreated)
-                && Objects.equals(dateUpdated, dto.dateUpdated);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, apiId, host, pathVariable, query, header, body, dateCreated, dateUpdated);
     }
 
 }

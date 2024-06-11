@@ -27,37 +27,37 @@ import java.util.Objects;
  * AdminDataModelChangedEvent.
  */
 public class AdminDataModelChangedEvent extends ApplicationEvent {
-    
+
     /**
      * action type.
      */
     private final EventTypeEnum type;
-    
+
     /**
      * before data.
      */
     private final Object before;
-    
+
     /**
      * after data.
      */
     private final Object after;
-    
+
     /**
      * operator:is user or app.
      */
     private final String operator;
-    
-    /**
-     * consumed.
-     */
-    private boolean consumed;
-    
+
     /**
      * event date.
      */
     private final Date date;
-    
+
+    /**
+     * consumed.
+     */
+    private boolean consumed;
+
     /**
      * Create a new {@code ApplicationEvent}.operator is unknown.
      *
@@ -68,7 +68,7 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
     public AdminDataModelChangedEvent(final Object source, final Object before, final EventTypeEnum type) {
         this(source, before, type, null);
     }
-    
+
     /**
      * Create a new {@code ApplicationEvent}.
      *
@@ -86,8 +86,7 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
         this.consumed = false;
         this.date = new Date();
     }
-    
-    
+
     /**
      * get type.
      *
@@ -96,7 +95,7 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
     public EventTypeEnum getType() {
         return type;
     }
-    
+
     /**
      * get before.
      *
@@ -105,7 +104,7 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
     public Object getBefore() {
         return before;
     }
-    
+
     /**
      * get after.
      *
@@ -114,7 +113,7 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
     public Object getAfter() {
         return after;
     }
-    
+
     /**
      * get operator.
      *
@@ -123,14 +122,14 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
     public String getOperator() {
         return operator;
     }
-    
+
     /**
      * consumed.
      */
     public void consumed() {
         this.consumed = true;
     }
-    
+
     /**
      * is consumed.
      *
@@ -139,8 +138,7 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
     public boolean isConsumed() {
         return consumed;
     }
-    
-    
+
     /**
      * get date.
      *
@@ -149,25 +147,7 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
     public Date getDate() {
         return date;
     }
-    
-    /**
-     * before data snapshot.
-     *
-     * @return snapshot
-     */
-    public String beforeSnapshot() {
-        return Objects.toString(before, "before unknown");
-    }
-    
-    /**
-     * after data snapshot.
-     *
-     * @return snapshot
-     */
-    public String afterSnapshot() {
-        return Objects.toString(after, "after unknown");
-    }
-    
+
     /**
      * build event context.
      *
@@ -176,7 +156,7 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
     public String buildContext() {
         return String.format("%s changed(%s)[%s = > %s]", eventName(), type.getTypeName(), beforeSnapshot(), afterSnapshot());
     }
-    
+
     /**
      * event name.
      *
@@ -184,5 +164,23 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
      */
     public String eventName() {
         return "data";
+    }
+
+    /**
+     * before data snapshot.
+     *
+     * @return snapshot
+     */
+    public String beforeSnapshot() {
+        return Objects.toString(before, "before unknown");
+    }
+
+    /**
+     * after data snapshot.
+     *
+     * @return snapshot
+     */
+    public String afterSnapshot() {
+        return Objects.toString(after, "after unknown");
     }
 }

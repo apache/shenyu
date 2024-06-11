@@ -52,6 +52,11 @@ public class FilterQuery implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(filterIds);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -61,10 +66,5 @@ public class FilterQuery implements Serializable {
         }
         FilterQuery that = (FilterQuery) o;
         return Objects.equals(filterIds, that.filterIds);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(filterIds);
     }
 }

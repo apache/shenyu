@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.service.impl.EnumServiceImpl;
 import org.apache.shenyu.admin.model.vo.EnumVO;
+import org.apache.shenyu.admin.service.impl.EnumServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,9 +30,9 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 
 /**

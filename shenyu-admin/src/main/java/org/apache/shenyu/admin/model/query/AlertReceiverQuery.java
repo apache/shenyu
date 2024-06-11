@@ -36,11 +36,11 @@ public class AlertReceiverQuery implements Serializable {
 
     public AlertReceiverQuery() {
     }
-    
+
     public AlertReceiverQuery(final PageParameter pageParameter) {
         this.pageParameter = pageParameter;
     }
-    
+
     /**
      * Gets the value of pageParameter.
      *
@@ -60,6 +60,11 @@ public class AlertReceiverQuery implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(pageParameter);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -69,10 +74,5 @@ public class AlertReceiverQuery implements Serializable {
         }
         AlertReceiverQuery that = (AlertReceiverQuery) o;
         return Objects.equals(pageParameter, that.pageParameter);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(pageParameter);
     }
 }

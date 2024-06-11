@@ -17,13 +17,14 @@
 
 package org.apache.shenyu.admin.mapper;
 
-import java.io.Serializable;
-import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.query.TagRelationQuery;
 import org.apache.shenyu.admin.validation.ExistProvider;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * this is User Tag Mapper.

@@ -26,7 +26,6 @@ import java.util.Arrays;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-
 /**
  * Test Cases for DataEventTypeEnum.
  */
@@ -35,7 +34,7 @@ public final class DataEventTypeEnumTest {
     @Test
     public void testGetDataEventTypeByName() {
         Arrays.stream(DataEventTypeEnum.values())
-                .forEach(e -> assertThat(e, Matchers.equalTo(DataEventTypeEnum.acquireByName(e.name()))));
+            .forEach(e -> assertThat(e, Matchers.equalTo(DataEventTypeEnum.acquireByName(e.name()))));
     }
 
     @Test

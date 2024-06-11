@@ -45,6 +45,35 @@ public final class AuthParamDO extends BaseDO {
     }
 
     /**
+     * Build AuthParamDO object with given params.
+     *
+     * @param authId   {@linkplain String}
+     * @param appName  {@linkplain String}
+     * @param appParam {@linkplain String}
+     * @return {@linkplain AuthParamDO}
+     */
+    public static AuthParamDO create(final String authId, final String appName, final String appParam) {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        return AuthParamDO.builder()
+            .id(UUIDUtils.getInstance().generateShortUuid())
+            .authId(authId)
+            .appName(appName)
+            .appParam(appParam)
+            .dateUpdated(currentTime)
+            .dateCreated(currentTime)
+            .build();
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static AuthParamDO.AuthParamDOBuilder builder() {
+        return new AuthParamDO.AuthParamDOBuilder();
+    }
+
+    /**
      * Gets the value of authId.
      *
      * @return the value of authId
@@ -98,33 +127,9 @@ public final class AuthParamDO extends BaseDO {
         this.appParam = appParam;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static AuthParamDO.AuthParamDOBuilder builder() {
-        return new AuthParamDO.AuthParamDOBuilder();
-    }
-
-    /**
-     * Build AuthParamDO object with given params.
-     *
-     * @param authId    {@linkplain String}
-     * @param appName   {@linkplain String}
-     * @param appParam  {@linkplain String}
-     * @return          {@linkplain AuthParamDO}
-     */
-    public static AuthParamDO create(final String authId, final String appName, final String appParam) {
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        return AuthParamDO.builder()
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .authId(authId)
-                .appName(appName)
-                .appParam(appParam)
-                .dateUpdated(currentTime)
-                .dateCreated(currentTime)
-                .build();
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), authId, appName, appParam);
     }
 
     @Override
@@ -140,11 +145,6 @@ public final class AuthParamDO extends BaseDO {
         }
         AuthParamDO that = (AuthParamDO) o;
         return Objects.equals(authId, that.authId) && Objects.equals(appName, that.appName) && Objects.equals(appParam, that.appParam);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), authId, appName, appParam);
     }
 
     public static final class AuthParamDOBuilder {

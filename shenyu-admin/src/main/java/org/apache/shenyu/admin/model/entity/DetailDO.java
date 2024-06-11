@@ -46,7 +46,16 @@ public class DetailDO extends BaseDO {
     private String valueDesc;
 
     /**
-     *  getFieldId.
+     * builder.
+     *
+     * @return fieldDOBuilder
+     */
+    public static DetailDOBuilder builder() {
+        return new DetailDOBuilder();
+    }
+
+    /**
+     * getFieldId.
      *
      * @return fieldId
      */
@@ -118,6 +127,11 @@ public class DetailDO extends BaseDO {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), fieldId, example, fieldValue, valueDesc);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -130,24 +144,9 @@ public class DetailDO extends BaseDO {
         }
         DetailDO detailDO = (DetailDO) o;
         return Objects.equals(fieldId, detailDO.fieldId)
-                && Objects.equals(example, detailDO.example)
-                && Objects.equals(fieldValue, detailDO.fieldValue)
-                && Objects.equals(valueDesc, detailDO.valueDesc);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), fieldId, example, fieldValue, valueDesc);
-    }
-
-
-    /**
-     * builder.
-     *
-     * @return fieldDOBuilder
-     */
-    public static DetailDOBuilder builder() {
-        return new DetailDOBuilder();
+            && Objects.equals(example, detailDO.example)
+            && Objects.equals(fieldValue, detailDO.fieldValue)
+            && Objects.equals(valueDesc, detailDO.valueDesc);
     }
 
     public static final class DetailDOBuilder {

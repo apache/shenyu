@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.admin.service.manager;
 
-import java.util.Collection;
-import java.util.function.Consumer;
 import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
+
+import java.util.Collection;
+import java.util.function.Consumer;
 
 /**
  * Doc Manager.

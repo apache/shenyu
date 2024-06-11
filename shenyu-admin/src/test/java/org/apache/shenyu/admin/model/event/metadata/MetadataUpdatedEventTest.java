@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * test case for {@link MetadataUpdatedEvent}.
  */
 public class MetadataUpdatedEventTest {
+
     private MetaDataDO updateBeforeDO;
 
     private MetaDataDO updateAfterDO;
@@ -36,29 +37,29 @@ public class MetadataUpdatedEventTest {
     @BeforeEach
     public void setUp() {
         updateBeforeDO = MetaDataDO.builder()
-                .id("1")
-                .appName("testUpdateBefore")
-                .path("/testUpdateBefore")
-                .pathDesc("testUpdateBefore")
-                .rpcType("http")
-                .serviceName("org.apache.shenyu.examples.http.controller.TestBeforeController")
-                .methodName("before")
-                .parameterTypes("java.lang.String")
-                .enabled(true)
-                .rpcExt("rpcExtBefore")
-                .build();
+            .id("1")
+            .appName("testUpdateBefore")
+            .path("/testUpdateBefore")
+            .pathDesc("testUpdateBefore")
+            .rpcType("http")
+            .serviceName("org.apache.shenyu.examples.http.controller.TestBeforeController")
+            .methodName("before")
+            .parameterTypes("java.lang.String")
+            .enabled(true)
+            .rpcExt("rpcExtBefore")
+            .build();
         updateAfterDO = MetaDataDO.builder()
-                .id("1")
-                .appName("testUpdateAfter")
-                .path("/testUpdateAfter")
-                .pathDesc("testUpdateAfter")
-                .rpcType("dubbo")
-                .serviceName("org.apache.shenyu.examples.http.controller.TestAfterController")
-                .methodName("after")
-                .parameterTypes("java.lang.Integer")
-                .enabled(false)
-                .rpcExt("rpcExtAfter")
-                .build();
+            .id("1")
+            .appName("testUpdateAfter")
+            .path("/testUpdateAfter")
+            .pathDesc("testUpdateAfter")
+            .rpcType("dubbo")
+            .serviceName("org.apache.shenyu.examples.http.controller.TestAfterController")
+            .methodName("after")
+            .parameterTypes("java.lang.Integer")
+            .enabled(false)
+            .rpcExt("rpcExtAfter")
+            .build();
     }
 
     @Test
@@ -66,9 +67,9 @@ public class MetadataUpdatedEventTest {
         String eventTypeStr = StringUtils.lowerCase(EventTypeEnum.META_DATA_UPDATE.getType().toString());
 
         MetaDataChangedEvent updateNothingEvent =
-                new MetaDataChangedEvent(updateBeforeDO, updateBeforeDO, EventTypeEnum.META_DATA_UPDATE, "test-operator");
+            new MetaDataChangedEvent(updateBeforeDO, updateBeforeDO, EventTypeEnum.META_DATA_UPDATE, "test-operator");
         String baseContext = String.format("the metadata [%s %s] is %s : %s",
-                updateBeforeDO.getAppName(), updateBeforeDO.getPath(), eventTypeStr, "it no change");
+            updateBeforeDO.getAppName(), updateBeforeDO.getPath(), eventTypeStr, "it no change");
         assertEquals(baseContext, updateNothingEvent.buildContext());
 
         final StringBuilder contrast = new StringBuilder();
@@ -83,10 +84,10 @@ public class MetadataUpdatedEventTest {
         contrast.append(String.format("rpc ext[%s => %s] ", updateBeforeDO.getRpcExt(), updateAfterDO.getRpcExt()));
 
         String context = String.format("the metadata [%s %s] is %s : %s",
-                updateAfterDO.getAppName(), updateAfterDO.getPath(), eventTypeStr, contrast);
+            updateAfterDO.getAppName(), updateAfterDO.getPath(), eventTypeStr, contrast);
 
         MetaDataChangedEvent updateEvent =
-                new MetaDataChangedEvent(updateAfterDO, updateBeforeDO, EventTypeEnum.META_DATA_UPDATE, "test-operator");
+            new MetaDataChangedEvent(updateAfterDO, updateBeforeDO, EventTypeEnum.META_DATA_UPDATE, "test-operator");
         assertEquals(context, updateEvent.buildContext());
     }
 

@@ -17,11 +17,6 @@
 
 package org.apache.shenyu.admin.listener.apollo;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import org.apache.shenyu.admin.config.properties.ApolloProperties;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +25,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-@ContextConfiguration(classes = {ApolloProperties.class})
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ContextConfiguration(classes = ApolloProperties.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ApolloClientTest {
 
@@ -76,7 +76,7 @@ public class ApolloClientTest {
     @Test
     public void testCreateOrUpdateItem() {
         doNothing().when(apolloClient)
-                .createOrUpdateItem(Mockito.any(), Mockito.<Object>any(), Mockito.any());
+            .createOrUpdateItem(Mockito.any(), Mockito.<Object>any(), Mockito.any());
         apolloClient.createOrUpdateItem("Key", (Object) "Value", "Comment");
         verify(apolloClient).createOrUpdateItem(Mockito.any(), Mockito.<Object>any(), Mockito.any());
     }

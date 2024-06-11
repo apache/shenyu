@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@ShenyuRequestMapping(method = {RequestMethod.DELETE})
+@ShenyuRequestMapping(method = RequestMethod.DELETE)
 public @interface ShenyuDeleteMapping {
 
     /**

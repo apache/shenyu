@@ -21,11 +21,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.vo.TagVO;
-import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.ApiService;
-import org.apache.shenyu.admin.service.TagService;
 import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.RuleService;
+import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.TagService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -49,11 +49,11 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for AbstractShenyuClientRegisterServiceImpl.

@@ -23,6 +23,7 @@ import java.io.Serializable;
  * basic-auth Plugin.
  */
 public class BasicAuthConfig implements Serializable {
+
     /**
      * defaultHandleJson.
      */
@@ -45,5 +46,4 @@ public class BasicAuthConfig implements Serializable {
     public void setDefaultHandleJson(final String defaultHandleJson) {
         this.defaultHandleJson = defaultHandleJson;
     }
-
 }

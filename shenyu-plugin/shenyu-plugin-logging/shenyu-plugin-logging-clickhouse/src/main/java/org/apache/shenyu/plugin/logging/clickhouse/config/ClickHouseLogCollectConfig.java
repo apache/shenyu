@@ -52,6 +52,7 @@ public class ClickHouseLogCollectConfig {
      * click house log config.
      */
     public static class ClickHouseLogConfig extends GenericGlobalConfig {
+
         private String host;
 
         private String port;
@@ -70,6 +71,7 @@ public class ClickHouseLogCollectConfig {
 
         /**
          * get ttl.
+         *
          * @return ttl
          */
         public String getTtl() {
@@ -78,6 +80,7 @@ public class ClickHouseLogCollectConfig {
 
         /**
          * set ttl.
+         *
          * @param ttl ttl
          */
         public void setTtl(final String ttl) {
@@ -86,15 +89,16 @@ public class ClickHouseLogCollectConfig {
 
         /**
          * get clusterName.
+         *
          * @return clusterName
          */
         public String getClusterName() {
             return clusterName;
         }
-
-
+        
         /**
          * set clusterName.
+         *
          * @param clusterName clusterName
          */
         public void setClusterName(final String clusterName) {
@@ -103,6 +107,7 @@ public class ClickHouseLogCollectConfig {
 
         /**
          * get Engine.
+         *
          * @return Engine
          */
         public String getEngine() {
@@ -111,6 +116,7 @@ public class ClickHouseLogCollectConfig {
 
         /**
          * set engine.
+         *
          * @param engine engine
          */
         public void setEngine(final String engine) {

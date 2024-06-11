@@ -35,9 +35,9 @@ import java.util.stream.Collectors;
  * BatchPluginDeletedEvent.
  */
 public class BatchSelectorDeletedEvent extends BatchChangedEvent {
-    
+
     private final List<String> deletedIds;
-    
+
     private final List<PluginDO> plugins;
 
     private final Map<String, PluginDO> pluginMap;
@@ -59,16 +59,16 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
         this.pluginMap = ListUtil.toMap(plugins, PluginDO::getId);
         this.selectorDataMap = ListUtil.toMap(source, SelectorDO::getId);
     }
-    
+
     @Override
     public String buildContext() {
         final String selector = ((Collection<?>) getSource())
-                .stream()
-                .map(s -> ((SelectorDO) s).getName())
-                .collect(Collectors.joining(","));
+            .stream()
+            .map(s -> ((SelectorDO) s).getName())
+            .collect(Collectors.joining(","));
         return String.format("the selector[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
     }
-    
+
     /**
      * get selectors.
      *
@@ -76,22 +76,22 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
      */
     public List<SelectorDO> getSelectors() {
         return ((Collection<?>) getSource())
-                .stream()
-                .map(SelectorDO.class::cast)
-                .collect(Collectors.toList());
+            .stream()
+            .map(SelectorDO.class::cast)
+            .collect(Collectors.toList());
     }
 
     /**
      * find plugin by selector id.
      *
-     * @param selectorId  selectorId
+     * @param selectorId selectorId
      * @return PluginDO
      */
     public PluginDO findPluginBySelectorId(final String selectorId) {
         return Optional.ofNullable(selectorDataMap.get(selectorId))
-                .flatMap(selectorDO -> Optional.ofNullable(pluginMap.get(selectorDO.getPluginId()))).orElse(null);
+            .flatMap(selectorDO -> Optional.ofNullable(pluginMap.get(selectorDO.getPluginId()))).orElse(null);
     }
-    
+
     /**
      * get plugins.
      *
@@ -100,7 +100,7 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
     public List<PluginDO> getPlugins() {
         return plugins;
     }
-    
+
     /**
      * get deleted ids.
      *

@@ -25,18 +25,17 @@ import org.apache.shenyu.admin.model.page.condition.SwitchCondition;
  * this is plugin query condition.
  */
 public class PluginQueryCondition extends BaseExcludedSearchCondition implements SearchCondition, SwitchCondition {
-    
+
     /**
      * search keyword: plugin name or role name.
      */
     private String keyword;
-    
+
     /**
      * switch status: plugin status[close or open].
      */
     private Boolean switchStatus;
-    
-    
+
     /**
      * get switchStatus.
      *
@@ -46,7 +45,7 @@ public class PluginQueryCondition extends BaseExcludedSearchCondition implements
     public Boolean getSwitchStatus() {
         return switchStatus;
     }
-    
+
     /**
      * set switchStatus.
      *
@@ -55,7 +54,7 @@ public class PluginQueryCondition extends BaseExcludedSearchCondition implements
     public void setSwitchStatus(final Boolean switchStatus) {
         this.switchStatus = switchStatus;
     }
-    
+
     /**
      * get keyword.
      *
@@ -65,7 +64,7 @@ public class PluginQueryCondition extends BaseExcludedSearchCondition implements
     public String getKeyword() {
         return keyword;
     }
-    
+
     /**
      * set keyword.
      *

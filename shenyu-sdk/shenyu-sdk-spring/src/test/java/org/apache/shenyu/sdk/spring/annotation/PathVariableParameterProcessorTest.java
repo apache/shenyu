@@ -18,21 +18,23 @@
 package org.apache.shenyu.sdk.spring.annotation;
 
 import com.google.common.collect.Maps;
-import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.stream.Stream;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.junit.Assert;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import org.springframework.web.bind.annotation.PathVariable;
 
 /**
  * {@link PathVariable} process test.

@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.config.properties;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 

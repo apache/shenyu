@@ -51,6 +51,38 @@ public final class PermissionDO extends BaseDO {
     }
 
     /**
+     * build Permission DO.
+     *
+     * @param permissionDTO {@linkplain PermissionDTO}
+     * @return {@linkplain PermissionDO}
+     */
+    public static PermissionDO buildPermissionDO(final PermissionDTO permissionDTO) {
+        return Optional.ofNullable(permissionDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            PermissionDO permissionDO = PermissionDO.builder()
+                .objectId(item.getObjectId())
+                .resourceId(item.getResourceId())
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                permissionDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                permissionDO.setDateCreated(currentTime);
+            } else {
+                permissionDO.setId(item.getId());
+            }
+            return permissionDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static PermissionDO.PermissionDOBuilder builder() {
+        return new PermissionDO.PermissionDOBuilder();
+    }
+
+    /**
      * Gets the value of objectId.
      *
      * @return the value of objectId
@@ -86,36 +118,9 @@ public final class PermissionDO extends BaseDO {
         this.resourceId = resourceId;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static PermissionDO.PermissionDOBuilder builder() {
-        return new PermissionDO.PermissionDOBuilder();
-    }
-
-    /**
-     * build Permission DO.
-     *
-     * @param permissionDTO {@linkplain PermissionDTO}
-     * @return {@linkplain PermissionDO}
-     */
-    public static PermissionDO buildPermissionDO(final PermissionDTO permissionDTO) {
-        return Optional.ofNullable(permissionDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            PermissionDO permissionDO = PermissionDO.builder()
-                    .objectId(item.getObjectId())
-                    .resourceId(item.getResourceId())
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                permissionDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                permissionDO.setDateCreated(currentTime);
-            } else {
-                permissionDO.setId(item.getId());
-            }
-            return permissionDO;
-        }).orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), objectId, resourceId);
     }
 
     @Override
@@ -131,11 +136,6 @@ public final class PermissionDO extends BaseDO {
         }
         PermissionDO that = (PermissionDO) o;
         return Objects.equals(objectId, that.objectId) && Objects.equals(resourceId, that.resourceId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), objectId, resourceId);
     }
 
     public static final class PermissionDOBuilder {

@@ -34,12 +34,10 @@ public class ApiQuery implements Serializable {
      */
     private String apiPath;
 
-
     /**
      * state.
      */
     private Integer state;
-
 
     /**
      * tagId.
@@ -134,6 +132,11 @@ public class ApiQuery implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(apiPath, state, tagId, pageParameter);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -143,10 +146,5 @@ public class ApiQuery implements Serializable {
         }
         ApiQuery apiQuery = (ApiQuery) o;
         return apiPath.equals(apiQuery.apiPath) && state.equals(apiQuery.state) && tagId.equals(apiQuery.tagId) && pageParameter.equals(apiQuery.pageParameter);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(apiPath, state, tagId, pageParameter);
     }
 }

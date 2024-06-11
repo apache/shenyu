@@ -51,25 +51,25 @@ public final class HystrixCommandTest {
     @BeforeEach
     public void setUp() {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/http")
-                .remoteAddress(new InetSocketAddress(8092))
-                .header("MetaDataCache", "Hello")
-                .build());
+            .remoteAddress(new InetSocketAddress(8092))
+            .header("MetaDataCache", "Hello")
+            .build());
         HystrixHandle hystrixHandle = new HystrixHandle();
         hystrixHandle.setGroupKey("groupKey");
         hystrixHandle.setCommandKey("commandKey");
         final HystrixCommandProperties.Setter propertiesSetter =
-                HystrixCommandProperties.Setter()
-                        .withExecutionTimeoutInMilliseconds((int) hystrixHandle.getTimeout())
-                        .withCircuitBreakerEnabled(true)
-                        .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE)
-                        .withExecutionIsolationSemaphoreMaxConcurrentRequests(hystrixHandle.getMaxConcurrentRequests())
-                        .withCircuitBreakerErrorThresholdPercentage(hystrixHandle.getErrorThresholdPercentage())
-                        .withCircuitBreakerRequestVolumeThreshold(hystrixHandle.getRequestVolumeThreshold())
-                        .withCircuitBreakerSleepWindowInMilliseconds(hystrixHandle.getSleepWindowInMilliseconds());
+            HystrixCommandProperties.Setter()
+                .withExecutionTimeoutInMilliseconds((int) hystrixHandle.getTimeout())
+                .withCircuitBreakerEnabled(true)
+                .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE)
+                .withExecutionIsolationSemaphoreMaxConcurrentRequests(hystrixHandle.getMaxConcurrentRequests())
+                .withCircuitBreakerErrorThresholdPercentage(hystrixHandle.getErrorThresholdPercentage())
+                .withCircuitBreakerRequestVolumeThreshold(hystrixHandle.getRequestVolumeThreshold())
+                .withCircuitBreakerSleepWindowInMilliseconds(hystrixHandle.getSleepWindowInMilliseconds());
         HystrixObservableCommand.Setter setter = HystrixObservableCommand.Setter
-                .withGroupKey(HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey()))
-                .andCommandKey(HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey()))
-                .andCommandPropertiesDefaults(propertiesSetter);
+            .withGroupKey(HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey()))
+            .andCommandKey(HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey()))
+            .andCommandPropertiesDefaults(propertiesSetter);
         hystrixCommand = new HystrixCommand(setter, exchange, mock(ShenyuPluginChain.class), "http://callback:8093/test");
     }
 
@@ -91,25 +91,25 @@ public final class HystrixCommandTest {
     @Test
     public void testResumeWithFallback() {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/http")
-                .remoteAddress(new InetSocketAddress(8092))
-                .header("MetaDataCache", "Hello")
-                .build());
+            .remoteAddress(new InetSocketAddress(8092))
+            .header("MetaDataCache", "Hello")
+            .build());
         HystrixHandle hystrixHandle = new HystrixHandle();
         hystrixHandle.setGroupKey("groupKey");
         hystrixHandle.setCommandKey("commandKey");
         final HystrixCommandProperties.Setter propertiesSetter =
-                HystrixCommandProperties.Setter()
-                        .withExecutionTimeoutInMilliseconds((int) hystrixHandle.getTimeout())
-                        .withCircuitBreakerEnabled(true)
-                        .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE)
-                        .withExecutionIsolationSemaphoreMaxConcurrentRequests(hystrixHandle.getMaxConcurrentRequests())
-                        .withCircuitBreakerErrorThresholdPercentage(hystrixHandle.getErrorThresholdPercentage())
-                        .withCircuitBreakerRequestVolumeThreshold(hystrixHandle.getRequestVolumeThreshold())
-                        .withCircuitBreakerSleepWindowInMilliseconds(hystrixHandle.getSleepWindowInMilliseconds());
+            HystrixCommandProperties.Setter()
+                .withExecutionTimeoutInMilliseconds((int) hystrixHandle.getTimeout())
+                .withCircuitBreakerEnabled(true)
+                .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE)
+                .withExecutionIsolationSemaphoreMaxConcurrentRequests(hystrixHandle.getMaxConcurrentRequests())
+                .withCircuitBreakerErrorThresholdPercentage(hystrixHandle.getErrorThresholdPercentage())
+                .withCircuitBreakerRequestVolumeThreshold(hystrixHandle.getRequestVolumeThreshold())
+                .withCircuitBreakerSleepWindowInMilliseconds(hystrixHandle.getSleepWindowInMilliseconds());
         HystrixObservableCommand.Setter setter = HystrixObservableCommand.Setter
-                .withGroupKey(HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey()))
-                .andCommandKey(HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey()))
-                .andCommandPropertiesDefaults(propertiesSetter);
+            .withGroupKey(HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey()))
+            .andCommandKey(HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey()))
+            .andCommandPropertiesDefaults(propertiesSetter);
         assertThrows(NullPointerException.class, () -> {
             HystrixCommand hystrixCommand = new HystrixCommand(setter, exchange, mock(ShenyuPluginChain.class), null);
             TestSubscriber<Void> testSubscriberWithNull = new TestSubscriber<>();

@@ -84,6 +84,11 @@ public class DataPermissionQuery implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(userId, pageParameter);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -93,10 +98,5 @@ public class DataPermissionQuery implements Serializable {
         }
         DataPermissionQuery that = (DataPermissionQuery) o;
         return Objects.equals(userId, that.userId) && Objects.equals(pageParameter, that.pageParameter);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(userId, pageParameter);
     }
 }

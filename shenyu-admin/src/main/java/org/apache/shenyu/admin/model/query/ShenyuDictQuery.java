@@ -25,6 +25,7 @@ import java.util.Objects;
  * this is shenyu dict query.
  */
 public class ShenyuDictQuery {
+
     /**
      * dict type.
      */
@@ -128,6 +129,11 @@ public class ShenyuDictQuery {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(type, dictCode, dictName, pageParameter);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -137,13 +143,8 @@ public class ShenyuDictQuery {
         }
         ShenyuDictQuery that = (ShenyuDictQuery) o;
         return Objects.equals(type, that.type)
-                && Objects.equals(dictCode, that.dictCode)
-                && Objects.equals(dictName, that.dictName)
-                && Objects.equals(pageParameter, that.pageParameter);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(type, dictCode, dictName, pageParameter);
+            && Objects.equals(dictCode, that.dictCode)
+            && Objects.equals(dictName, that.dictName)
+            && Objects.equals(pageParameter, that.pageParameter);
     }
 }

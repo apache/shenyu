@@ -45,15 +45,15 @@ import java.util.stream.Collectors;
  * ResourceUtil.
  */
 public final class ResourceUtil {
-    
+
     /**
      * new plugin init data permission.
      */
     private static final List<DataPermission> NEW_PLUGIN_DATA_PERMISSION = new ArrayList<>();
-    
+
     private ResourceUtil() {
     }
-    
+
     static {
         // selector.
         NEW_PLUGIN_DATA_PERMISSION.add(new DataPermission(ConfigGroupEnum.SELECTOR, AdminPluginOperateEnum.ADD));
@@ -68,7 +68,7 @@ public final class ResourceUtil {
         // plugin synchronize data
         NEW_PLUGIN_DATA_PERMISSION.add(new DataPermission(ConfigGroupEnum.PLUGIN, AdminPluginOperateEnum.SYNCHRONIZE));
     }
-    
+
     /**
      * build plugin resource.
      *
@@ -77,21 +77,21 @@ public final class ResourceUtil {
      */
     public static ResourceDO buildPluginResource(final String pluginName) {
         return ResourceDO.buildResourceDO(ResourceDTO.builder()
-                .parentId(AdminConstants.RESOURCE_PLUGIN_ID)
-                .title(pluginName)
-                .name(pluginName)
-                .url(AdminConstants.RESOURCE_PLUGIN_URL_PREFIX + pluginName)
-                .component(pluginName)
-                .resourceType(AdminResourceEnum.SECOND_MENU.getCode())
-                .sort(0)
-                .icon(AdminConstants.RESOURCE_PLUGIN_DEFAULT_ICON)
-                .isLeaf(Boolean.FALSE)
-                .isRoute(0)
-                .status(1)
-                .perms(StringUtils.EMPTY)
-                .build());
+            .parentId(AdminConstants.RESOURCE_PLUGIN_ID)
+            .title(pluginName)
+            .name(pluginName)
+            .url(AdminConstants.RESOURCE_PLUGIN_URL_PREFIX + pluginName)
+            .component(pluginName)
+            .resourceType(AdminResourceEnum.SECOND_MENU.getCode())
+            .sort(0)
+            .icon(AdminConstants.RESOURCE_PLUGIN_DEFAULT_ICON)
+            .isLeaf(Boolean.FALSE)
+            .isRoute(0)
+            .status(1)
+            .perms(StringUtils.EMPTY)
+            .build());
     }
-    
+
     /**
      * build new plugin data permission resource.
      *
@@ -101,11 +101,11 @@ public final class ResourceUtil {
      */
     public static List<ResourceDO> buildPluginDataPermissionResource(final String pluginResourceId, final String pluginName) {
         return NEW_PLUGIN_DATA_PERMISSION.stream()
-                .map(p -> buildPluginButtonResource(pluginResourceId, pluginName, p.dataType, p.operate))
-                .collect(Collectors.toList());
-        
+            .map(p -> buildPluginButtonResource(pluginResourceId, pluginName, p.dataType, p.operate))
+            .collect(Collectors.toList());
+
     }
-    
+
     /**
      * build Plugin Selector Button Resource.
      *
@@ -117,15 +117,15 @@ public final class ResourceUtil {
     private static ResourceDO buildPluginButtonResource(final String parentId, final String pluginName,
                                                         final ConfigGroupEnum configGroupEnum, final AdminPluginOperateEnum adminPluginOperateEnum) {
         ResourceDO resourceDO = ResourceDO.buildResourceDO(ResourceDTO.builder()
-                .parentId(parentId)
-                .name(StringUtils.EMPTY).url(StringUtils.EMPTY).component(StringUtils.EMPTY)
-                .resourceType(AdminResourceEnum.THREE_MENU.getCode())
-                .isLeaf(Boolean.TRUE)
-                .status(1)
-                .sort(0)
-                .icon(StringUtils.EMPTY)
-                .isRoute(0)
-                .build());
+            .parentId(parentId)
+            .name(StringUtils.EMPTY).url(StringUtils.EMPTY).component(StringUtils.EMPTY)
+            .resourceType(AdminResourceEnum.THREE_MENU.getCode())
+            .isLeaf(Boolean.TRUE)
+            .status(1)
+            .sort(0)
+            .icon(StringUtils.EMPTY)
+            .isRoute(0)
+            .build());
         switch (configGroupEnum) {
             case SELECTOR:
                 resourceDO.setTitle("SHENYU.BUTTON.PLUGIN." + ConfigGroupEnum.SELECTOR.name() + "." + adminPluginOperateEnum.name());
@@ -142,11 +142,10 @@ public final class ResourceUtil {
             default:
                 break;
         }
-        
+
         return resourceDO;
     }
-    
-    
+
     /**
      * get Menu Info.
      *
@@ -154,31 +153,30 @@ public final class ResourceUtil {
      * @return {@linkplain List} menu infos.
      */
     public static List<PermissionMenuVO.MenuInfo> buildMenu(final List<ResourceVO> metaList) {
-        
+
         List<PermissionMenuVO.MenuInfo> retList = new ArrayList<>();
         if (CollectionUtils.isEmpty(metaList)) {
             return retList;
         }
         Map<String, PermissionMenuVO.MenuInfo> menuInfoMap = metaList.stream()
-                .map(PermissionMenuVO.MenuInfo::buildMenuInfo)
-                .filter(menuInfo -> Objects.nonNull(menuInfo) && StringUtils.isNotEmpty(menuInfo.getId()))
-                .collect(Collectors.toMap(PermissionMenuVO.MenuInfo::getId, Function.identity(), (value1, value2) -> value1));
-        
+            .map(PermissionMenuVO.MenuInfo::buildMenuInfo)
+            .filter(menuInfo -> Objects.nonNull(menuInfo) && StringUtils.isNotEmpty(menuInfo.getId()))
+            .collect(Collectors.toMap(PermissionMenuVO.MenuInfo::getId, Function.identity(), (value1, value2) -> value1));
+
         metaList.stream()
-                .filter(meta -> Objects.nonNull(meta) && StringUtils.isNotEmpty(meta.getId()))
-                .collect(Collectors.toMap(ResourceVO::getParentId, ResourceUtil::convertIds, ListUtil::mergeSet))
-                .forEach((parent, children) -> {
-                    PermissionMenuVO.MenuInfo menuInfo = menuInfoMap.get(parent);
-                    if (CollectionUtils.isNotEmpty(children)) {
-                        List<PermissionMenuVO.MenuInfo> targetList = Objects.isNull(menuInfo) ? retList : menuInfo.getChildren();
-                        children.stream().map(menuInfoMap::get).filter(Objects::nonNull).forEach(targetList::add);
-                    }
-                });
-        
+            .filter(meta -> Objects.nonNull(meta) && StringUtils.isNotEmpty(meta.getId()))
+            .collect(Collectors.toMap(ResourceVO::getParentId, ResourceUtil::convertIds, ListUtil::mergeSet))
+            .forEach((parent, children) -> {
+                PermissionMenuVO.MenuInfo menuInfo = menuInfoMap.get(parent);
+                if (CollectionUtils.isNotEmpty(children)) {
+                    List<PermissionMenuVO.MenuInfo> targetList = Objects.isNull(menuInfo) ? retList : menuInfo.getChildren();
+                    children.stream().map(menuInfoMap::get).filter(Objects::nonNull).forEach(targetList::add);
+                }
+            });
+
         return retList;
     }
-    
-    
+
     /**
      * get delete resource ids.
      *
@@ -193,7 +191,7 @@ public final class ResourceUtil {
         final List<ResourceDO> deleteResourceIds = new ArrayList<>();
         final Map<String, ResourceDO> metaMap = ListUtil.toMap(allMetaDataResources, ResourceDO::getId);
         final Map<String, Set<String>> metaChildrenMap = dealChildrenMap(allMetaDataResources);
-        
+
         final Deque<String> cacheDatas = new ArrayDeque<>(resourceIds);
         while (!cacheDatas.isEmpty()) {
             String resourceId = cacheDatas.pollFirst();
@@ -210,7 +208,7 @@ public final class ResourceUtil {
         }
         return deleteResourceIds;
     }
-    
+
     /**
      * convert the list to a map, the key is the parent id, and the value is the set of child ids.
      *
@@ -219,32 +217,32 @@ public final class ResourceUtil {
      */
     private static Map<String, Set<String>> dealChildrenMap(final List<ResourceDO> metaList) {
         return metaList.stream()
-                .filter(meta -> Objects.nonNull(meta) && StringUtils.isNotEmpty(meta.getId()))
-                .collect(Collectors.toMap(ResourceDO::getParentId, ResourceUtil::convertIds, ListUtil::mergeSet));
+            .filter(meta -> Objects.nonNull(meta) && StringUtils.isNotEmpty(meta.getId()))
+            .collect(Collectors.toMap(ResourceDO::getParentId, ResourceUtil::convertIds, ListUtil::mergeSet));
     }
-    
+
     private static Set<String> convertIds(final ResourceDO resourceDO) {
         Set<String> idSet = new HashSet<>();
         idSet.add(resourceDO.getId());
         return idSet;
     }
-    
+
     private static Set<String> convertIds(final ResourceVO resourceVO) {
         Set<String> idSet = new HashSet<>();
         idSet.add(resourceVO.getId());
         return idSet;
     }
-    
+
     public static class DataPermission {
-        
+
         private final ConfigGroupEnum dataType;
-        
+
         private final AdminPluginOperateEnum operate;
-        
+
         public DataPermission(final ConfigGroupEnum dataType, final AdminPluginOperateEnum operate) {
             this.dataType = dataType;
             this.operate = operate;
         }
     }
-    
+
 }

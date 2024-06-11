@@ -35,13 +35,13 @@ public class ResourceCreatedEventTest {
     @BeforeEach
     public void setUp() {
         resourceDO = ResourceDO.builder()
-                .title("SHENYU.MENU.PLUGIN.LIST")
-                .name("plug")
-                .component("PluginList")
-                .sort(0)
-                .icon("dashboard")
-                .perms("system:plugin:list")
-                .build();
+            .title("SHENYU.MENU.PLUGIN.LIST")
+            .name("plug")
+            .component("PluginList")
+            .sort(0)
+            .icon("dashboard")
+            .perms("system:plugin:list")
+            .build();
     }
 
     @Test
@@ -49,7 +49,7 @@ public class ResourceCreatedEventTest {
         ResourceCreatedEvent resourceCreatedEvent = new ResourceCreatedEvent(resourceDO, "test-operator");
 
         String context = String.format("the resource [%s] is %s",
-                resourceDO.getTitle(), StringUtils.lowerCase(EventTypeEnum.RESOURCE_CREATE.getType().toString()));
+            resourceDO.getTitle(), StringUtils.lowerCase(EventTypeEnum.RESOURCE_CREATE.getType().toString()));
 
         assertEquals(context, resourceCreatedEvent.buildContext());
     }

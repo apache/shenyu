@@ -35,7 +35,17 @@ public class TagRelationQuery {
     private String tagId;
 
     /**
+     * builder.
+     *
+     * @return TagRelationQueryBuilder
+     */
+    public static TagRelationQueryBuilder builder() {
+        return new TagRelationQueryBuilder();
+    }
+
+    /**
      * get api id.
+     *
      * @return get api id
      */
     public String getApiId() {
@@ -44,6 +54,7 @@ public class TagRelationQuery {
 
     /**
      * set api id.
+     *
      * @param apiId api id
      */
     public void setApiId(final String apiId) {
@@ -52,6 +63,7 @@ public class TagRelationQuery {
 
     /**
      * get tag id.
+     *
      * @return tagid
      */
     public String getTagId() {
@@ -60,10 +72,16 @@ public class TagRelationQuery {
 
     /**
      * set tag id.
+     *
      * @param tagId tagid
      */
     public void setTagId(final String tagId) {
         this.tagId = tagId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(apiId, tagId);
     }
 
     @Override
@@ -76,20 +94,7 @@ public class TagRelationQuery {
         }
         TagRelationQuery that = (TagRelationQuery) o;
         return Objects.equals(apiId, that.apiId)
-                && Objects.equals(tagId, that.tagId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(apiId, tagId);
-    }
-
-    /**
-     * builder.
-     * @return TagRelationQueryBuilder
-     */
-    public static TagRelationQueryBuilder builder() {
-        return new TagRelationQueryBuilder();
+            && Objects.equals(tagId, that.tagId);
     }
 
     public static final class TagRelationQueryBuilder {
@@ -109,6 +114,7 @@ public class TagRelationQuery {
 
         /**
          * build apiId.
+         *
          * @param apiId apiId
          * @return TagRelationQueryBuilder
          */
@@ -119,6 +125,7 @@ public class TagRelationQuery {
 
         /**
          * build tagId.
+         *
          * @param tagId tagId
          * @return TagRelationQueryBuilder
          */
@@ -129,6 +136,7 @@ public class TagRelationQuery {
 
         /**
          * build.
+         *
          * @return TagRelationQuery
          */
         public TagRelationQuery build() {

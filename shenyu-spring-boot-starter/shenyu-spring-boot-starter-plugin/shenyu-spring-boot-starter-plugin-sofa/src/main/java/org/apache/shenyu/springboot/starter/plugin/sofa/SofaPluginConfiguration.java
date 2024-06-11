@@ -23,11 +23,11 @@ import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.sofa.SofaPlugin;
 import org.apache.shenyu.plugin.sofa.context.SofaShenyuContextDecorator;
+import org.apache.shenyu.plugin.sofa.handler.SofaMetaDataHandler;
 import org.apache.shenyu.plugin.sofa.handler.SofaPluginDataHandler;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveServiceImpl;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
-import org.apache.shenyu.plugin.sofa.handler.SofaMetaDataHandler;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -41,7 +41,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnClass(SofaPlugin.class)
-@ConditionalOnProperty(value = {"shenyu.plugins.sofa.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.plugins.sofa.enabled", havingValue = "true", matchIfMissing = true)
 public class SofaPluginConfiguration {
     
     /**

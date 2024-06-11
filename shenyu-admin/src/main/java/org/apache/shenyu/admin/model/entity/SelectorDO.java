@@ -82,7 +82,7 @@ public final class SelectorDO extends BaseDO {
      * handle.
      */
     private String handle;
-    
+
     /**
      * match restful.
      */
@@ -111,6 +111,92 @@ public final class SelectorDO extends BaseDO {
         this.continued = continued;
         this.handle = handle;
         this.matchRestful = matchRestful;
+    }
+
+    /**
+     * build selectorDO.
+     *
+     * @param selectorDTO {@linkplain SelectorDTO}
+     * @return {@linkplain SelectorDO}
+     */
+    public static SelectorDO buildSelectorDO(final SelectorDTO selectorDTO) {
+        return Optional.ofNullable(selectorDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            SelectorDO selectorDO = SelectorDO.builder()
+                .type(item.getType())
+                .sort(item.getSort())
+                .enabled(item.getEnabled())
+                .loged(item.getLoged())
+                .continued(item.getContinued())
+                .dateUpdated(currentTime)
+                .handle(item.getHandle())
+                .pluginId(item.getPluginId())
+                .name(item.getName())
+                .matchRestful(item.getMatchRestful())
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                selectorDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                selectorDO.setDateCreated(currentTime);
+            } else {
+                selectorDO.setId(item.getId());
+            }
+            if (SelectorTypeEnum.FULL_FLOW.getCode() == item.getType()) {
+                selectorDO.setMatchMode(MatchModeEnum.AND.getCode());
+            } else {
+                selectorDO.setMatchMode(item.getMatchMode());
+            }
+            return selectorDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static SelectorDO.SelectorDOBuilder builder() {
+        return new SelectorDO.SelectorDOBuilder();
+    }
+
+    /**
+     * selector data transform.
+     *
+     * @param selectorDO        selector entity
+     * @param pluginName        plugin name
+     * @param conditionDataList condition data list
+     * @return the selector data
+     */
+    public static SelectorData transFrom(final SelectorDO selectorDO, final String pluginName, final List<ConditionData> conditionDataList) {
+        return transFrom(selectorDO, pluginName, conditionDataList, Collections.emptyList());
+    }
+
+    /**
+     * Trans from selector data.
+     *
+     * @param selectorDO              the selector do
+     * @param pluginName              the plugin name
+     * @param conditionDataList       the condition data list
+     * @param beforeConditionDataList before condition data list
+     * @return the selector data
+     */
+    public static SelectorData transFrom(final SelectorDO selectorDO, final String pluginName,
+                                         final List<ConditionData> conditionDataList, final List<ConditionData> beforeConditionDataList) {
+        return SelectorData.builder()
+            .id(selectorDO.getId())
+            .pluginId(selectorDO.getPluginId())
+            .pluginName(pluginName)
+            .name(selectorDO.getName())
+            .matchMode(selectorDO.getMatchMode())
+            .type(selectorDO.getType())
+            .sort(selectorDO.getSort())
+            .enabled(selectorDO.getEnabled())
+            .logged(selectorDO.getLoged())
+            .continued(selectorDO.getContinued())
+            .handle(selectorDO.getHandle())
+            .conditionList(conditionDataList)
+            .matchRestful(selectorDO.getMatchRestful())
+            .beforeConditionList(beforeConditionDataList)
+            .build();
     }
 
     /**
@@ -274,7 +360,7 @@ public final class SelectorDO extends BaseDO {
     public void setHandle(final String handle) {
         this.handle = handle;
     }
-    
+
     /**
      * get match restful.
      *
@@ -283,7 +369,7 @@ public final class SelectorDO extends BaseDO {
     public Boolean getMatchRestful() {
         return matchRestful;
     }
-    
+
     /**
      * set match restful.
      *
@@ -292,14 +378,10 @@ public final class SelectorDO extends BaseDO {
     public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
-    
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static SelectorDO.SelectorDOBuilder builder() {
-        return new SelectorDO.SelectorDOBuilder();
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), pluginId, name, matchMode, type, sort, enabled, loged, continued, handle, matchRestful);
     }
 
     @Override
@@ -315,97 +397,15 @@ public final class SelectorDO extends BaseDO {
         }
         SelectorDO that = (SelectorDO) o;
         return Objects.equals(pluginId, that.pluginId)
-                && Objects.equals(name, that.name)
-                && Objects.equals(matchMode, that.matchMode)
-                && Objects.equals(type, that.type)
-                && Objects.equals(sort, that.sort)
-                && Objects.equals(enabled, that.enabled)
-                && Objects.equals(loged, that.loged)
-                && Objects.equals(continued, that.continued)
-                && Objects.equals(handle, that.handle)
-                && Objects.equals(matchRestful, that.matchRestful);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), pluginId, name, matchMode, type, sort, enabled, loged, continued, handle, matchRestful);
-    }
-
-    /**
-     * build selectorDO.
-     *
-     * @param selectorDTO {@linkplain SelectorDTO}
-     * @return {@linkplain SelectorDO}
-     */
-    public static SelectorDO buildSelectorDO(final SelectorDTO selectorDTO) {
-        return Optional.ofNullable(selectorDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            SelectorDO selectorDO = SelectorDO.builder()
-                    .type(item.getType())
-                    .sort(item.getSort())
-                    .enabled(item.getEnabled())
-                    .loged(item.getLoged())
-                    .continued(item.getContinued())
-                    .dateUpdated(currentTime)
-                    .handle(item.getHandle())
-                    .pluginId(item.getPluginId())
-                    .name(item.getName())
-                    .matchRestful(item.getMatchRestful())
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                selectorDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                selectorDO.setDateCreated(currentTime);
-            } else {
-                selectorDO.setId(item.getId());
-            }
-            if (SelectorTypeEnum.FULL_FLOW.getCode() == item.getType()) {
-                selectorDO.setMatchMode(MatchModeEnum.AND.getCode());
-            } else {
-                selectorDO.setMatchMode(item.getMatchMode());
-            }
-            return selectorDO;
-        }).orElse(null);
-    }
-
-    /**
-     * Trans from selector data.
-     *
-     * @param selectorDO        the selector do
-     * @param pluginName        the plugin name
-     * @param conditionDataList the condition data list
-     * @param beforeConditionDataList before condition data list
-     * @return the selector data
-     */
-    public static SelectorData transFrom(final SelectorDO selectorDO, final String pluginName,
-                                         final List<ConditionData> conditionDataList, final List<ConditionData> beforeConditionDataList) {
-        return SelectorData.builder()
-                .id(selectorDO.getId())
-                .pluginId(selectorDO.getPluginId())
-                .pluginName(pluginName)
-                .name(selectorDO.getName())
-                .matchMode(selectorDO.getMatchMode())
-                .type(selectorDO.getType())
-                .sort(selectorDO.getSort())
-                .enabled(selectorDO.getEnabled())
-                .logged(selectorDO.getLoged())
-                .continued(selectorDO.getContinued())
-                .handle(selectorDO.getHandle())
-                .conditionList(conditionDataList)
-                .matchRestful(selectorDO.getMatchRestful())
-                .beforeConditionList(beforeConditionDataList)
-                .build();
-    }
-    
-    /**
-     * selector data transform.
-     *
-     * @param selectorDO selector entity
-     * @param pluginName plugin name
-     * @param conditionDataList condition data list
-     * @return the selector data
-     */
-    public static SelectorData transFrom(final SelectorDO selectorDO, final String pluginName, final List<ConditionData> conditionDataList) {
-        return transFrom(selectorDO, pluginName, conditionDataList, Collections.emptyList());
+            && Objects.equals(name, that.name)
+            && Objects.equals(matchMode, that.matchMode)
+            && Objects.equals(type, that.type)
+            && Objects.equals(sort, that.sort)
+            && Objects.equals(enabled, that.enabled)
+            && Objects.equals(loged, that.loged)
+            && Objects.equals(continued, that.continued)
+            && Objects.equals(handle, that.handle)
+            && Objects.equals(matchRestful, that.matchRestful);
     }
 
     public static final class SelectorDOBuilder {
@@ -433,7 +433,7 @@ public final class SelectorDO extends BaseDO {
         private Boolean continued;
 
         private String handle;
-        
+
         private Boolean matchRestful;
 
         private SelectorDOBuilder() {
@@ -570,7 +570,7 @@ public final class SelectorDO extends BaseDO {
             this.handle = handle;
             return this;
         }
-    
+
         /**
          * match restful.
          *

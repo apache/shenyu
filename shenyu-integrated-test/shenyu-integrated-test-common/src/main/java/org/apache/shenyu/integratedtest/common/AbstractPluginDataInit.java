@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.integratedtest.common;
 
+import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
-import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;

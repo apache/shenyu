@@ -29,8 +29,7 @@ import java.util.stream.Collectors;
  * BatchMetaDataChangedEvent.
  */
 public class BatchMetaDataChangedEvent extends BatchChangedEvent {
-    
-    
+
     /**
      * Create a new {@code BatchMetaDataChangedEvent}.operator is unknown.
      *
@@ -42,16 +41,16 @@ public class BatchMetaDataChangedEvent extends BatchChangedEvent {
     public BatchMetaDataChangedEvent(final Collection<MetaDataDO> source, final Collection<MetaDataDO> before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
-    
+
     @Override
     public String buildContext() {
         final String metadata = ((Collection<?>) getSource())
-                .stream()
-                .map(s -> ((MetaDataDO) s).getAppName())
-                .collect(Collectors.joining(","));
+            .stream()
+            .map(s -> ((MetaDataDO) s).getAppName())
+            .collect(Collectors.joining(","));
         return String.format("the meta data [%s] is %s", metadata, StringUtils.lowerCase(getType().getType().toString()));
     }
-    
+
     @Override
     public String eventName() {
         return "meta data";

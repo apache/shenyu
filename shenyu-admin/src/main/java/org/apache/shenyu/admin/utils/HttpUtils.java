@@ -31,10 +31,10 @@ import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 import okhttp3.logging.HttpLoggingInterceptor.Level;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.http.HttpStatus;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.http.HttpStatus;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

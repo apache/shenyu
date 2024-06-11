@@ -70,6 +70,11 @@ public class AuthPathApplyDTO implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(appName, path);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -82,15 +87,10 @@ public class AuthPathApplyDTO implements Serializable {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(appName, path);
-    }
-
-    @Override
     public String toString() {
         return "AuthPathApplyDTO{"
-                + "appName='" + appName + '\''
-                + ", path='" + path + '\''
-                + '}';
+            + "appName='" + appName + '\''
+            + ", path='" + path + '\''
+            + '}';
     }
 }

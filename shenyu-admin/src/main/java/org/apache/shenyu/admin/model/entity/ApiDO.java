@@ -30,6 +30,7 @@ import java.util.Optional;
  * api.
  */
 public class ApiDO {
+
     /**
      * primary key id.
      */
@@ -116,287 +117,8 @@ public class ApiDO {
     private Date dateUpdated;
 
     /**
-     * getId.
-     * @return id
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * set id.
-     * @param id id
-     */
-    public void setId(final String id) {
-        this.id = id;
-    }
-
-    /**
-     * getContextPath.
-     * @return context path
-     */
-    public String getContextPath() {
-        return contextPath;
-    }
-
-    /**
-     * set context path.
-     * @param contextPath context path
-     */
-    public void setContextPath(final String contextPath) {
-        this.contextPath = contextPath;
-    }
-
-    /**
-     * getApiPath.
-     * @return apiPath
-     */
-    public String getApiPath() {
-        return apiPath;
-    }
-
-    /**
-     * setApiPath.
-     * @param apiPath apiPath
-     */
-    public void setApiPath(final String apiPath) {
-        this.apiPath = apiPath;
-    }
-
-    /**
-     * getHttpMethod.
-     * @return http method
-     */
-    public Integer getHttpMethod() {
-        return httpMethod;
-    }
-
-    /**
-     * setHttpMethod.
-     * @param httpMethod http method
-     */
-    public void setHttpMethod(final Integer httpMethod) {
-        this.httpMethod = httpMethod;
-    }
-
-    /**
-     * getConsume.
-     * @return consume
-     */
-    public String getConsume() {
-        return consume;
-    }
-
-    /**
-     * setConsume.
-     * @param consume consume
-     */
-    public void setConsume(final String consume) {
-        this.consume = consume;
-    }
-
-    /**
-     * getProduce.
-     * @return produce
-     */
-    public String getProduce() {
-        return produce;
-    }
-
-    /**
-     * setProduce.
-     * @param produce the produce
-     */
-    public void setProduce(final String produce) {
-        this.produce = produce;
-    }
-
-    /**
-     * getVersion.
-     * @return version
-     */
-    public String getVersion() {
-        return version;
-    }
-
-    /**
-     * setVersion.
-     * @param version the version
-     */
-    public void setVersion(final String version) {
-        this.version = version;
-    }
-
-    /**
-     * getRpcType.
-     * @return rpc type
-     */
-    public String getRpcType() {
-        return rpcType;
-    }
-
-    /**
-     * setRpcType.
-     * @param rpcType the rpc type
-     */
-    public void setRpcType(final String rpcType) {
-        this.rpcType = rpcType;
-    }
-
-    /**
-     * getState.
-     * @return state
-     */
-    public Integer getState() {
-        return state;
-    }
-
-    /**
-     * setState.
-     * @param state state
-     */
-    public void setState(final Integer state) {
-        this.state = state;
-    }
-
-    /**
-     * getExt.
-     * @return  extension.
-     */
-    public String getExt() {
-        return ext;
-    }
-
-    /**
-     * setExt.
-     * @param ext extension
-     */
-    public void setExt(final String ext) {
-        this.ext = ext;
-    }
-
-    /**
-     * getApiOwner.
-     * @return apiOwner
-     */
-    public String getApiOwner() {
-        return apiOwner;
-    }
-
-    /**
-     * setApiOwner.
-     * @param apiOwner apiOwner
-     */
-    public void setApiOwner(final String apiOwner) {
-        this.apiOwner = apiOwner;
-    }
-
-    /**
-     * getApiDesc.
-     * @return apiDesc
-     */
-    public String getApiDesc() {
-        return apiDesc;
-    }
-
-    /**
-     * setApiDesc.
-     * @param apiDesc apiDesc
-     */
-    public void setApiDesc(final String apiDesc) {
-        this.apiDesc = apiDesc;
-    }
-
-    /**
-     * getApiSource.
-     * @return apiSource
-     */
-    public Integer getApiSource() {
-        return apiSource;
-    }
-
-    /**
-     * setSource.
-     * @param apiSource apiSource
-     */
-    public void setApiSource(final Integer apiSource) {
-        this.apiSource = apiSource;
-    }
-
-    /**
-     * getDocument.
-     * @return document
-     */
-    public String getDocument() {
-        return document;
-    }
-
-    /**
-     * setDocument.
-     * @param document document
-     */
-    public void setDocument(final String document) {
-        this.document = document;
-    }
-
-    /**
-     * getDocumentMd5.
-     * @return document md5
-     */
-    public String getDocumentMd5() {
-        return documentMd5;
-    }
-
-    /**
-     * setDocumentMd5.
-     * @param documentMd5 documentMd5
-     */
-    public void setDocumentMd5(final String documentMd5) {
-        this.documentMd5 = documentMd5;
-    }
-
-    /**
-     * getDateCreated.
-     * @return dateCreated
-     */
-    public Date getDateCreated() {
-        return dateCreated;
-    }
-
-    /**
-     * setDateCreated.
-     * @param dateCreated dateCreated
-     */
-    public void setDateCreated(final Date dateCreated) {
-        this.dateCreated = dateCreated;
-    }
-
-    /**
-     * getDateUpdated.
-     * @return dateUpdated
-     */
-    public Date getDateUpdated() {
-        return dateUpdated;
-    }
-
-    /**
-     * setDateUpdated.
-     * @param dateUpdated dateUpdated
-     */
-    public void setDateUpdated(final Date dateUpdated) {
-        this.dateUpdated = dateUpdated;
-    }
-
-    /**
-     * builder.
-     * @return ApiDOBuilder
-     */
-    public static ApiDOBuilder builder() {
-        return new ApiDOBuilder();
-    }
-
-    /**
      * buildApiDO.
+     *
      * @param apiDTO apiDTO
      * @return ApiDO
      */
@@ -405,21 +127,21 @@ public class ApiDO {
         return Optional.ofNullable(apiDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             ApiDO apiDO = ApiDO.builder()
-                    .contextPath(item.getContextPath())
-                    .apiPath(item.getApiPath())
-                    .httpMethod(item.getHttpMethod())
-                    .consume(item.getConsume())
-                    .produce(item.getProduce())
-                    .version(item.getVersion())
-                    .rpcType(item.getRpcType())
-                    .state(item.getState())
-                    .ext(item.getExt())
-                    .apiOwner(item.getApiOwner())
-                    .apiDesc(item.getApiDesc())
-                    .apiSource(item.getApiSource())
-                    .document(item.getDocument())
-                    .documentMd5(DigestUtils.md5Hex(item.getDocument()))
-                    .build();
+                .contextPath(item.getContextPath())
+                .apiPath(item.getApiPath())
+                .httpMethod(item.getHttpMethod())
+                .consume(item.getConsume())
+                .produce(item.getProduce())
+                .version(item.getVersion())
+                .rpcType(item.getRpcType())
+                .state(item.getState())
+                .ext(item.getExt())
+                .apiOwner(item.getApiOwner())
+                .apiDesc(item.getApiDesc())
+                .apiSource(item.getApiSource())
+                .document(item.getDocument())
+                .documentMd5(DigestUtils.md5Hex(item.getDocument()))
+                .build();
             if (StringUtils.isEmpty(item.getId())) {
                 apiDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 apiDO.setDateCreated(currentTime);
@@ -428,6 +150,321 @@ public class ApiDO {
             }
             return apiDO;
         }).orElse(null);
+    }
+
+    /**
+     * builder.
+     *
+     * @return ApiDOBuilder
+     */
+    public static ApiDOBuilder builder() {
+        return new ApiDOBuilder();
+    }
+
+    /**
+     * getId.
+     *
+     * @return id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * set id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * getContextPath.
+     *
+     * @return context path
+     */
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    /**
+     * set context path.
+     *
+     * @param contextPath context path
+     */
+    public void setContextPath(final String contextPath) {
+        this.contextPath = contextPath;
+    }
+
+    /**
+     * getApiPath.
+     *
+     * @return apiPath
+     */
+    public String getApiPath() {
+        return apiPath;
+    }
+
+    /**
+     * setApiPath.
+     *
+     * @param apiPath apiPath
+     */
+    public void setApiPath(final String apiPath) {
+        this.apiPath = apiPath;
+    }
+
+    /**
+     * getHttpMethod.
+     *
+     * @return http method
+     */
+    public Integer getHttpMethod() {
+        return httpMethod;
+    }
+
+    /**
+     * setHttpMethod.
+     *
+     * @param httpMethod http method
+     */
+    public void setHttpMethod(final Integer httpMethod) {
+        this.httpMethod = httpMethod;
+    }
+
+    /**
+     * getConsume.
+     *
+     * @return consume
+     */
+    public String getConsume() {
+        return consume;
+    }
+
+    /**
+     * setConsume.
+     *
+     * @param consume consume
+     */
+    public void setConsume(final String consume) {
+        this.consume = consume;
+    }
+
+    /**
+     * getProduce.
+     *
+     * @return produce
+     */
+    public String getProduce() {
+        return produce;
+    }
+
+    /**
+     * setProduce.
+     *
+     * @param produce the produce
+     */
+    public void setProduce(final String produce) {
+        this.produce = produce;
+    }
+
+    /**
+     * getVersion.
+     *
+     * @return version
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * setVersion.
+     *
+     * @param version the version
+     */
+    public void setVersion(final String version) {
+        this.version = version;
+    }
+
+    /**
+     * getRpcType.
+     *
+     * @return rpc type
+     */
+    public String getRpcType() {
+        return rpcType;
+    }
+
+    /**
+     * setRpcType.
+     *
+     * @param rpcType the rpc type
+     */
+    public void setRpcType(final String rpcType) {
+        this.rpcType = rpcType;
+    }
+
+    /**
+     * getState.
+     *
+     * @return state
+     */
+    public Integer getState() {
+        return state;
+    }
+
+    /**
+     * setState.
+     *
+     * @param state state
+     */
+    public void setState(final Integer state) {
+        this.state = state;
+    }
+
+    /**
+     * getExt.
+     *
+     * @return extension.
+     */
+    public String getExt() {
+        return ext;
+    }
+
+    /**
+     * setExt.
+     *
+     * @param ext extension
+     */
+    public void setExt(final String ext) {
+        this.ext = ext;
+    }
+
+    /**
+     * getApiOwner.
+     *
+     * @return apiOwner
+     */
+    public String getApiOwner() {
+        return apiOwner;
+    }
+
+    /**
+     * setApiOwner.
+     *
+     * @param apiOwner apiOwner
+     */
+    public void setApiOwner(final String apiOwner) {
+        this.apiOwner = apiOwner;
+    }
+
+    /**
+     * getApiDesc.
+     *
+     * @return apiDesc
+     */
+    public String getApiDesc() {
+        return apiDesc;
+    }
+
+    /**
+     * setApiDesc.
+     *
+     * @param apiDesc apiDesc
+     */
+    public void setApiDesc(final String apiDesc) {
+        this.apiDesc = apiDesc;
+    }
+
+    /**
+     * getApiSource.
+     *
+     * @return apiSource
+     */
+    public Integer getApiSource() {
+        return apiSource;
+    }
+
+    /**
+     * setSource.
+     *
+     * @param apiSource apiSource
+     */
+    public void setApiSource(final Integer apiSource) {
+        this.apiSource = apiSource;
+    }
+
+    /**
+     * getDocument.
+     *
+     * @return document
+     */
+    public String getDocument() {
+        return document;
+    }
+
+    /**
+     * setDocument.
+     *
+     * @param document document
+     */
+    public void setDocument(final String document) {
+        this.document = document;
+    }
+
+    /**
+     * getDocumentMd5.
+     *
+     * @return document md5
+     */
+    public String getDocumentMd5() {
+        return documentMd5;
+    }
+
+    /**
+     * setDocumentMd5.
+     *
+     * @param documentMd5 documentMd5
+     */
+    public void setDocumentMd5(final String documentMd5) {
+        this.documentMd5 = documentMd5;
+    }
+
+    /**
+     * getDateCreated.
+     *
+     * @return dateCreated
+     */
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+    /**
+     * setDateCreated.
+     *
+     * @param dateCreated dateCreated
+     */
+    public void setDateCreated(final Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    /**
+     * getDateUpdated.
+     *
+     * @return dateUpdated
+     */
+    public Date getDateUpdated() {
+        return dateUpdated;
+    }
+
+    /**
+     * setDateUpdated.
+     *
+     * @param dateUpdated dateUpdated
+     */
+    public void setDateUpdated(final Date dateUpdated) {
+        this.dateUpdated = dateUpdated;
     }
 
     public static final class ApiDOBuilder {
@@ -474,6 +511,7 @@ public class ApiDO {
 
         /**
          * builder id.
+         *
          * @param id id
          * @return ApiDOBuilder
          */
@@ -484,6 +522,7 @@ public class ApiDO {
 
         /**
          * builder contextPath.
+         *
          * @param contextPath contextPath
          * @return ApiDOBuilder
          */
@@ -494,6 +533,7 @@ public class ApiDO {
 
         /**
          * builder apiPath.
+         *
          * @param apiPath apiPath
          * @return ApiDOBuilder
          */
@@ -504,6 +544,7 @@ public class ApiDO {
 
         /**
          * builder httpMethod.
+         *
          * @param httpMethod httpMethod
          * @return ApiDOBuilder
          */
@@ -514,6 +555,7 @@ public class ApiDO {
 
         /**
          * builder httpMethod.
+         *
          * @param consume consume
          * @return ApiDOBuilder
          */
@@ -524,6 +566,7 @@ public class ApiDO {
 
         /**
          * builder produce.
+         *
          * @param produce produce
          * @return ApiDOBuilder
          */
@@ -534,6 +577,7 @@ public class ApiDO {
 
         /**
          * builder version.
+         *
          * @param version version
          * @return ApiDOBuilder
          */
@@ -544,6 +588,7 @@ public class ApiDO {
 
         /**
          * builder rpcType.
+         *
          * @param rpcType rpcType
          * @return ApiDOBuilder
          */
@@ -554,6 +599,7 @@ public class ApiDO {
 
         /**
          * builder state.
+         *
          * @param state state
          * @return ApiDOBuilder
          */
@@ -564,6 +610,7 @@ public class ApiDO {
 
         /**
          * builder ext.
+         *
          * @param ext ext
          * @return ApiDOBuilder
          */
@@ -574,6 +621,7 @@ public class ApiDO {
 
         /**
          * builder apiOwner.
+         *
          * @param apiOwner apiOwner
          * @return ApiDOBuilder
          */
@@ -584,6 +632,7 @@ public class ApiDO {
 
         /**
          * builder apiDesc.
+         *
          * @param apiDesc apiDesc
          * @return ApiDOBuilder
          */
@@ -594,6 +643,7 @@ public class ApiDO {
 
         /**
          * builder apiSource.
+         *
          * @param apiSource apiSource
          * @return ApiDOBuilder
          */
@@ -604,6 +654,7 @@ public class ApiDO {
 
         /**
          * builder document.
+         *
          * @param document document
          * @return ApiDOBuilder
          */
@@ -614,6 +665,7 @@ public class ApiDO {
 
         /**
          * builder documentMd5.
+         *
          * @param documentMd5 documentMd5
          * @return ApiDOBuilder
          */
@@ -624,6 +676,7 @@ public class ApiDO {
 
         /**
          * builder dateCreated.
+         *
          * @param dateCreated dateCreated
          * @return ApiDOBuilder
          */
@@ -634,6 +687,7 @@ public class ApiDO {
 
         /**
          * builder dateUpdated.
+         *
          * @param dateUpdated dateUpdated
          * @return ApiDOBuilder
          */
@@ -644,6 +698,7 @@ public class ApiDO {
 
         /**
          * builder.
+         *
          * @return ApiDO
          */
         public ApiDO build() {

@@ -42,7 +42,7 @@ public class UploadController {
      * @param file file
      * @return filename
      */
-    @PostMapping(value = "/file", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ShenyuSpringCloudClient(path = "/file")
     @ApiDoc(desc = "file")
     public String post(@RequestPart("file")final MultipartFile file) {

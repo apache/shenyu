@@ -34,6 +34,7 @@ public class AlertTemplateVO {
 
     /**
      * get id.
+     *
      * @return id
      */
     public Long getId() {
@@ -42,6 +43,7 @@ public class AlertTemplateVO {
 
     /**
      * set id.
+     *
      * @param id id
      */
     public void setId(final Long id) {
@@ -50,6 +52,7 @@ public class AlertTemplateVO {
 
     /**
      * get alert template name.
+     *
      * @return name
      */
     public String getName() {
@@ -58,6 +61,7 @@ public class AlertTemplateVO {
 
     /**
      * set name.
+     *
      * @param name alert template name.
      */
     public void setName(final String name) {
@@ -66,6 +70,7 @@ public class AlertTemplateVO {
 
     /**
      * get alert template strategy name.
+     *
      * @return strategyName
      */
     public String getStrategyName() {
@@ -74,6 +79,7 @@ public class AlertTemplateVO {
 
     /**
      * set alert template strategy name.
+     *
      * @param strategyName strategyName
      */
     public void setStrategyName(final String strategyName) {
@@ -82,6 +88,7 @@ public class AlertTemplateVO {
 
     /**
      * get create time.
+     *
      * @return dateCreated
      */
     public String getDateCreated() {
@@ -90,6 +97,7 @@ public class AlertTemplateVO {
 
     /**
      * set create time.
+     *
      * @param dateCreated dateCreated
      */
     public void setDateCreated(final String dateCreated) {
@@ -98,6 +106,7 @@ public class AlertTemplateVO {
 
     /**
      * get update time.
+     *
      * @return dateUpdated
      */
     public String getDateUpdated() {
@@ -106,6 +115,7 @@ public class AlertTemplateVO {
 
     /**
      * set update time.
+     *
      * @param dateUpdated dateUpdated
      */
     public void setDateUpdated(final String dateUpdated) {

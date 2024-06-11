@@ -30,8 +30,7 @@ import java.util.List;
  * PageService.
  */
 public interface PageService<Q, R> {
-    
-    
+
     /**
      * search by page condition.
      *
@@ -43,8 +42,7 @@ public interface PageService<Q, R> {
         PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         return new PageInfo<>(searchByCondition(pageCondition.getCondition()));
     }
-    
-    
+
     /**
      * search by page condition.
      *
@@ -55,7 +53,7 @@ public interface PageService<Q, R> {
         final PageInfo<R> pageInfo = searchByPage(pageCondition);
         return new CommonPager<>(new PageParameter(pageCondition.getPageNum(), pageCondition.getPageSize(), (int) pageInfo.getTotal()), pageInfo.getList());
     }
-    
+
     /**
      * search by condition.
      *
@@ -66,7 +64,7 @@ public interface PageService<Q, R> {
         // default is empty list, if paged used DB query.
         return new ArrayList<>();
     }
-    
+
     /**
      * condition preprocessing.
      *
@@ -75,5 +73,5 @@ public interface PageService<Q, R> {
     default void doConditionPreProcessing(final Q condition) {
         // default is nothing, override condition.
     }
-    
+
 }

@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.e2e.engine.scenario.specification;
 
-import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenarioParameter;
 import org.apache.shenyu.e2e.engine.scenario.function.Checker;
 import org.apache.shenyu.e2e.engine.scenario.function.Waiting;
+import org.apache.shenyu.e2e.model.ResourcesData;
 
 @ShenYuScenarioParameter
 public interface BeforeEachSpec {

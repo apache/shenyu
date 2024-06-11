@@ -40,6 +40,16 @@ public class LoginDashboardUserVO extends DashboardUserVO {
     }
 
     /**
+     * build loginDashboardUserVO.
+     *
+     * @param dashboardUserVO {@linkplain DashboardUserVO}
+     * @return {@linkplain LoginDashboardUserVO}
+     */
+    public static LoginDashboardUserVO buildLoginDashboardUserVO(final DashboardUserVO dashboardUserVO) {
+        return DashboardUserTransfer.INSTANCE.transferVO2LoginVO(dashboardUserVO);
+    }
+
+    /**
      * Gets the value of token.
      *
      * @return the value of token
@@ -77,15 +87,5 @@ public class LoginDashboardUserVO extends DashboardUserVO {
     public LoginDashboardUserVO setExpiredTime(final Long expiredTime) {
         this.expiredTime = expiredTime;
         return this;
-    }
-
-    /**
-     * build loginDashboardUserVO.
-     *
-     * @param dashboardUserVO {@linkplain DashboardUserVO}
-     * @return {@linkplain LoginDashboardUserVO}
-     */
-    public static LoginDashboardUserVO buildLoginDashboardUserVO(final DashboardUserVO dashboardUserVO) {
-        return DashboardUserTransfer.INSTANCE.transferVO2LoginVO(dashboardUserVO);
     }
 }

@@ -19,8 +19,10 @@ package org.apache.shenyu.admin.model.query;
 
 import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 import org.junit.jupiter.api.Test;
+
 import java.util.HashSet;
 import java.util.Set;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 
@@ -28,6 +30,7 @@ import static org.hamcrest.Matchers.hasSize;
  * Test case for TagRelationQuery.
  */
 public class TagRelationQueryTest extends AbstractReflectGetterSetterTest {
+
     @Override
     protected Class<?> getTargetClass() {
         return TagRelationQuery.class;

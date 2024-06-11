@@ -106,6 +106,22 @@ public class ShenyuDictVO implements Serializable {
     }
 
     /**
+     * build {@linkplain ShenyuDictVO}.
+     *
+     * @param shenyuDictDO {@linkplain ShenyuDictDO}
+     * @return {@linkplain ShenyuDictVO}
+     */
+    public static ShenyuDictVO buildShenyuDictVO(final ShenyuDictDO shenyuDictDO) {
+        return Optional.ofNullable(shenyuDictDO)
+            .map(it -> new ShenyuDictVO(shenyuDictDO.getId(), shenyuDictDO.getType(),
+                shenyuDictDO.getDictCode(), shenyuDictDO.getDictName(),
+                shenyuDictDO.getDictValue(), shenyuDictDO.getDesc(), shenyuDictDO.getSort(), shenyuDictDO.getEnabled(),
+                DateUtils.localDateTimeToString(shenyuDictDO.getDateCreated().toLocalDateTime()),
+                DateUtils.localDateTimeToString(shenyuDictDO.getDateUpdated().toLocalDateTime())))
+            .orElse(null);
+    }
+
+    /**
      * Gets the value of id.
      *
      * @return the value of id
@@ -283,21 +299,5 @@ public class ShenyuDictVO implements Serializable {
      */
     public void setDateUpdated(final String dateUpdated) {
         this.dateUpdated = dateUpdated;
-    }
-
-    /**
-     * build {@linkplain ShenyuDictVO}.
-     *
-     * @param shenyuDictDO {@linkplain ShenyuDictDO}
-     * @return {@linkplain ShenyuDictVO}
-     */
-    public static ShenyuDictVO buildShenyuDictVO(final ShenyuDictDO shenyuDictDO) {
-        return Optional.ofNullable(shenyuDictDO)
-                .map(it -> new ShenyuDictVO(shenyuDictDO.getId(), shenyuDictDO.getType(),
-                        shenyuDictDO.getDictCode(), shenyuDictDO.getDictName(),
-                        shenyuDictDO.getDictValue(), shenyuDictDO.getDesc(), shenyuDictDO.getSort(), shenyuDictDO.getEnabled(),
-                        DateUtils.localDateTimeToString(shenyuDictDO.getDateCreated().toLocalDateTime()),
-                        DateUtils.localDateTimeToString(shenyuDictDO.getDateUpdated().toLocalDateTime())))
-                .orElse(null);
     }
 }

@@ -24,17 +24,17 @@ import java.util.Map;
  * AlertContent.
  */
 public final class AlarmContent {
-    
+
     /**
      * primary key id.
      */
     private Long id;
-    
+
     /**
      * alert title.
      */
     private String title;
-    
+
     /**
      * Alarm level.
      * 0: high-emergency-critical alarm-red.
@@ -42,22 +42,22 @@ public final class AlarmContent {
      * 2: low-warning-warning alarm-yellow
      */
     private byte level;
-    
+
     /**
      * alert labels.
      */
     private Map<String, String> labels;
-    
+
     /**
      * The actual content of the alarm notification.
      */
     private String content;
-    
+
     /**
      * create time.
      */
     private Date dateCreated;
-    
+
     /**
      * update time.
      */
@@ -65,7 +65,7 @@ public final class AlarmContent {
 
     private AlarmContent() {
     }
-    
+
     private AlarmContent(final Builder builder) {
         setTitle(builder.title);
         setLevel(builder.level);
@@ -74,7 +74,7 @@ public final class AlarmContent {
         setDateCreated(builder.dateCreated);
         setDateUpdated(builder.dateUpdated);
     }
-    
+
     /**
      * get id.
      *
@@ -83,7 +83,7 @@ public final class AlarmContent {
     public Long getId() {
         return id;
     }
-    
+
     /**
      * set id.
      *
@@ -92,55 +92,61 @@ public final class AlarmContent {
     public void setId(final Long id) {
         this.id = id;
     }
-    
+
     /**
      * get title.
+     *
      * @return title
      */
     public String getTitle() {
         return title;
     }
-    
+
     /**
      * set title.
+     *
      * @param title title
      */
     public void setTitle(final String title) {
         this.title = title;
     }
-    
+
     /**
      * get level.
+     *
      * @return level
      */
     public byte getLevel() {
         return level;
     }
-    
+
     /**
      * set level.
+     *
      * @param level level
      */
     public void setLevel(final byte level) {
         this.level = level;
     }
-    
+
     /**
      * get labels.
+     *
      * @return labels
      */
     public Map<String, String> getLabels() {
         return labels;
     }
-    
+
     /**
      * set labels.
+     *
      * @param labels labels
      */
     public void setLabels(final Map<String, String> labels) {
         this.labels = labels;
     }
-    
+
     /**
      * get content.
      *
@@ -149,7 +155,7 @@ public final class AlarmContent {
     public String getContent() {
         return content;
     }
-    
+
     /**
      * set content.
      *
@@ -158,7 +164,7 @@ public final class AlarmContent {
     public void setContent(final String content) {
         this.content = content;
     }
-    
+
     /**
      * get dateCreated.
      *
@@ -167,7 +173,7 @@ public final class AlarmContent {
     public Date getDateCreated() {
         return dateCreated;
     }
-    
+
     /**
      * set dateCreated.
      *
@@ -176,7 +182,7 @@ public final class AlarmContent {
     public void setDateCreated(final Date dateCreated) {
         this.dateCreated = dateCreated;
     }
-    
+
     /**
      * get dateUpdated.
      *
@@ -185,7 +191,7 @@ public final class AlarmContent {
     public Date getDateUpdated() {
         return dateUpdated;
     }
-    
+
     /**
      * set dateUpdated.
      *
@@ -194,17 +200,17 @@ public final class AlarmContent {
     public void setDateUpdated(final Date dateUpdated) {
         this.dateUpdated = dateUpdated;
     }
-    
-    
+
     /**
      * builder.
      */
     public static final class Builder {
+
         /**
          * alert title.
          */
         private String title;
-        
+
         /**
          * Alarm level.
          * 0: high-emergency-critical alarm-red.
@@ -212,35 +218,36 @@ public final class AlarmContent {
          * 2: low-warning-warning alarm-yellow
          */
         private byte level;
-        
+
         /**
          * alert labels.
          */
         private Map<String, String> labels;
-        
+
         /**
          * The actual content of the alarm notification.
          */
         private String content;
-        
+
         /**
          * create time.
          */
         private Date dateCreated;
-        
+
         /**
          * update time.
          */
         private Date dateUpdated;
-        
+
         /**
          * builder constructor.
          */
         public Builder() {
         }
-        
+
         /**
          * builder constructor.
+         *
          * @param val title
          * @return builder
          */
@@ -248,9 +255,10 @@ public final class AlarmContent {
             title = val;
             return this;
         }
-        
+
         /**
          * builder constructor.
+         *
          * @param val level
          * @return level
          */
@@ -258,9 +266,10 @@ public final class AlarmContent {
             level = val;
             return this;
         }
-        
+
         /**
          * builder constructor.
+         *
          * @param val labels
          * @return builder
          */
@@ -268,9 +277,10 @@ public final class AlarmContent {
             labels = val;
             return this;
         }
-        
+
         /**
          * builder constructor.
+         *
          * @param val content
          * @return builder
          */
@@ -278,9 +288,10 @@ public final class AlarmContent {
             content = val;
             return this;
         }
-        
+
         /**
          * builder constructor.
+         *
          * @param val date created
          * @return builder
          */
@@ -288,9 +299,10 @@ public final class AlarmContent {
             dateCreated = val;
             return this;
         }
-        
+
         /**
          * builder constructor.
+         *
          * @param val date updated
          * @return builder
          */
@@ -298,9 +310,10 @@ public final class AlarmContent {
             dateUpdated = val;
             return this;
         }
-        
+
         /**
          * build content.
+         *
          * @return alarm content
          */
         public AlarmContent build() {

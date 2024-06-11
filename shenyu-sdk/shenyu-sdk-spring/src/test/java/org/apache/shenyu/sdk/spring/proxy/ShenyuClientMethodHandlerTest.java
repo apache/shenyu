@@ -17,14 +17,16 @@
 
 package org.apache.shenyu.sdk.spring.proxy;
 
-import java.io.IOException;
-import java.util.Arrays;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
+
+import java.io.IOException;
+import java.util.Arrays;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 /**
  * {@link ShenyuClientMethodHandler} test.

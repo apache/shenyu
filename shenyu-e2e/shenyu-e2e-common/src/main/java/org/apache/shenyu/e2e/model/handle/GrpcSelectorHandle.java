@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.e2e.model.handle;
 
-
 /**
  * SpringCLoud selector handle.
  */
@@ -66,6 +65,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
     /**
      * get upstreamUrl.
+     *
      * @return upstreamUrl
      */
     public String getUpstreamUrl() {
@@ -74,6 +74,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
     /**
      * set upstreamUrl.
+     *
      * @param upstreamUrl upstreamUrl
      */
     public void setUpstreamUrl(final String upstreamUrl) {
@@ -82,6 +83,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
     /**
      * get weight.
+     *
      * @return weight
      */
     public Integer getWeight() {
@@ -90,6 +92,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
     /**
      * set weight.
+     *
      * @param weight weight
      */
     public void setWeight(final Integer weight) {
@@ -98,6 +101,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
     /**
      * get status.
+     *
      * @return status
      */
     public Boolean getStatus() {
@@ -106,6 +110,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
     /**
      * set status.
+     *
      * @param status status
      */
     public void setStatus(final Boolean status) {
@@ -116,6 +121,7 @@ public class GrpcSelectorHandle implements PluginHandle {
      * builder class.
      */
     public static final class Builder {
+
         private String upstreamUrl;
 
         private Integer weight;
@@ -139,6 +145,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
         /**
          * get upstreamUrl.
+         *
          * @return upstreamUrl
          */
         public String getUpstreamUrl() {
@@ -147,6 +154,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
         /**
          * set upstreamUrl.
+         *
          * @param upstreamUrl upstreamUrl
          */
         public void setUpstreamUrl(final String upstreamUrl) {
@@ -155,6 +163,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
         /**
          * get weight.
+         *
          * @return weight
          */
         public Integer getWeight() {
@@ -162,7 +171,8 @@ public class GrpcSelectorHandle implements PluginHandle {
         }
 
         /**
-         *set weight.
+         * set weight.
+         *
          * @param weight weight
          */
         public void setWeight(final Integer weight) {
@@ -171,6 +181,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
         /**
          * get status.
+         *
          * @return status
          */
         public Boolean getStatus() {
@@ -179,6 +190,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
         /**
          * set status.
+         *
          * @param status status
          */
         public void setStatus(final Boolean status) {
@@ -187,6 +199,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
         /**
          * upstreamUrl.
+         *
          * @param upstreamUrl upstreamUrl
          * @return Builder
          */
@@ -197,6 +210,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
         /**
          * status.
+         *
          * @param status status
          * @return Builder
          */
@@ -207,6 +221,7 @@ public class GrpcSelectorHandle implements PluginHandle {
 
         /**
          * weight.
+         *
          * @param weight weight
          * @return Builder
          */

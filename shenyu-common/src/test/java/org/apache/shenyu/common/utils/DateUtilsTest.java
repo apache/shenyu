@@ -26,31 +26,30 @@ import java.time.ZonedDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 /**
  * Test Cases for DateUtils.
  */
 public final class DateUtilsTest {
-    
+
     @Test
     public void testLocalDateTimeToString() {
         LocalDateTime localDateTime = LocalDateTime.of(2020, 1, 1, 23, 50, 0, 0);
         assertEquals("2020-01-01 23:50:00", DateUtils.localDateTimeToString(localDateTime));
     }
-    
+
     @Test
     public void testLocalDateTimeToStringWithPattern() {
         LocalDateTime localDateTime = LocalDateTime.of(2020, 1, 1, 23, 50, 0, 0);
         assertEquals("2020-01-01", DateUtils.localDateTimeToString(localDateTime, "yyyy-MM-dd"));
     }
-    
+
     @Test
     public void testAcquireMinutesBetween() {
         LocalDateTime start = LocalDateTime.now();
         LocalDateTime end = start.plusMinutes(3);
         assertEquals(3, DateUtils.acquireMinutesBetween(start, end));
     }
-    
+
     @Test
     public void testFormatLocalDateTimeFromTimestamp() {
         LocalDateTime localDateTime1 = LocalDateTime.now(ZoneOffset.ofHours(8));
@@ -62,7 +61,7 @@ public final class DateUtilsTest {
         assertEquals(localDateTime1.getMinute(), localDateTime2.getMinute());
         assertEquals(localDateTime1.getSecond(), localDateTime2.getSecond());
     }
-    
+
     @Test
     public void testFormatLocalDateTimeFromTimestampBySystemTimezone() {
         LocalDateTime localDateTime1 = LocalDateTime.now();
@@ -74,7 +73,7 @@ public final class DateUtilsTest {
         assertEquals(localDateTime1.getMinute(), localDateTime2.getMinute());
         assertEquals(localDateTime1.getSecond(), localDateTime2.getSecond());
     }
-    
+
     @Test
     public void testParseLocalDateTime() {
         LocalDateTime localDateTime1 = LocalDateTime.of(2020, 1, 1, 0, 0, 1, 0);

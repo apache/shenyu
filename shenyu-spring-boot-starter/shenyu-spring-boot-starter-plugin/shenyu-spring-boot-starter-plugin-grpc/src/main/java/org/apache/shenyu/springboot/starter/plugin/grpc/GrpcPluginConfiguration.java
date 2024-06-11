@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
  * The type grpc plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.plugins.grpc.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.plugins.grpc.enabled", havingValue = "true", matchIfMissing = true)
 public class GrpcPluginConfiguration {
 
     /**

@@ -27,9 +27,9 @@ import org.springframework.context.annotation.Configuration;
  * The type Uri plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.plugins.uri.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.plugins.uri.enabled", havingValue = "true", matchIfMissing = true)
 public class URIPluginConfiguration {
-    
+
     /**
      * Uri plugin.
      *

@@ -28,28 +28,28 @@ import java.util.List;
  * this is rule query condition.
  */
 public class SelectorQueryCondition extends BaseExcludedSearchCondition implements SearchCondition, SwitchCondition {
-    
+
     /**
      * search keyword: selector name.
      */
     private String keyword;
-    
+
     /**
      * switch status: selector status[close or open].
      */
     private Boolean switchStatus;
-    
+
     /**
      * selector from plugin.
      */
     private List<String> plugin;
-    
+
     /**
      * user id.
      */
     @JsonIgnore
     private String userId;
-    
+
     /**
      * Gets the value of userId.
      *
@@ -58,7 +58,7 @@ public class SelectorQueryCondition extends BaseExcludedSearchCondition implemen
     public String getUserId() {
         return userId;
     }
-    
+
     /**
      * Sets the userId.
      *
@@ -67,8 +67,7 @@ public class SelectorQueryCondition extends BaseExcludedSearchCondition implemen
     public void setUserId(final String userId) {
         this.userId = userId;
     }
-    
-    
+
     /**
      * get switchStatus.
      *
@@ -78,7 +77,7 @@ public class SelectorQueryCondition extends BaseExcludedSearchCondition implemen
     public Boolean getSwitchStatus() {
         return switchStatus;
     }
-    
+
     /**
      * set switchStatus.
      *
@@ -87,7 +86,7 @@ public class SelectorQueryCondition extends BaseExcludedSearchCondition implemen
     public void setSwitchStatus(final Boolean switchStatus) {
         this.switchStatus = switchStatus;
     }
-    
+
     /**
      * get keyword.
      *
@@ -97,7 +96,7 @@ public class SelectorQueryCondition extends BaseExcludedSearchCondition implemen
     public String getKeyword() {
         return keyword;
     }
-    
+
     /**
      * set keyword.
      *
@@ -107,7 +106,7 @@ public class SelectorQueryCondition extends BaseExcludedSearchCondition implemen
     public void setKeyword(final String keyword) {
         this.keyword = keyword;
     }
-    
+
     /**
      * get plugin.
      *
@@ -116,7 +115,7 @@ public class SelectorQueryCondition extends BaseExcludedSearchCondition implemen
     public List<String> getPlugin() {
         return plugin;
     }
-    
+
     /**
      * set plugin.
      *

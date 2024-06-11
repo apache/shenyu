@@ -17,12 +17,13 @@
 
 package org.apache.shenyu.admin.model.entity;
 
-import java.sql.Timestamp;
-import java.util.Objects;
-import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.TagRelationDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
+
+import java.sql.Timestamp;
+import java.util.Objects;
+import java.util.Optional;
 
 public final class TagRelationDO extends BaseDO {
 
@@ -37,6 +38,39 @@ public final class TagRelationDO extends BaseDO {
      * tagId.
      */
     private String tagId;
+
+    /**
+     * build tagRelationDO.
+     *
+     * @param tagRelationDTO {@linkplain TagRelationDTO}
+     * @return {@linkplain TagRelationDO}
+     */
+    public static TagRelationDO buildTagRelationDO(final TagRelationDTO tagRelationDTO) {
+        return Optional.ofNullable(tagRelationDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            TagRelationDO tagRelationDO = TagRelationDO.builder()
+                .apiId(tagRelationDTO.getApiId())
+                .tagId(tagRelationDTO.getTagId())
+                .dateUpdated(currentTime)
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                tagRelationDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                tagRelationDO.setDateCreated(currentTime);
+            } else {
+                tagRelationDO.setId(item.getId());
+            }
+            return tagRelationDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder .
+     *
+     * @return tagRelationDO
+     */
+    public static TagRelationDO.TagRelationDOBuilder builder() {
+        return new TagRelationDO.TagRelationDOBuilder();
+    }
 
     /**
      * getApiId.
@@ -75,6 +109,11 @@ public final class TagRelationDO extends BaseDO {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), apiId, tagId);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -87,45 +126,7 @@ public final class TagRelationDO extends BaseDO {
         }
         TagRelationDO tagRelationDO = (TagRelationDO) o;
         return Objects.equals(apiId, tagRelationDO.apiId)
-                && Objects.equals(tagId, tagRelationDO.tagId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), apiId, tagId);
-    }
-
-    /**
-     * build tagRelationDO.
-     *
-     * @param tagRelationDTO {@linkplain TagRelationDTO}
-     * @return {@linkplain TagRelationDO}
-     */
-    public static TagRelationDO buildTagRelationDO(final TagRelationDTO tagRelationDTO) {
-        return Optional.ofNullable(tagRelationDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            TagRelationDO tagRelationDO = TagRelationDO.builder()
-                    .apiId(tagRelationDTO.getApiId())
-                    .tagId(tagRelationDTO.getTagId())
-                    .dateUpdated(currentTime)
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                tagRelationDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                tagRelationDO.setDateCreated(currentTime);
-            } else {
-                tagRelationDO.setId(item.getId());
-            }
-            return tagRelationDO;
-        }).orElse(null);
-    }
-
-    /**
-     * builder .
-     *
-     * @return tagRelationDO
-     */
-    public static TagRelationDO.TagRelationDOBuilder builder() {
-        return new TagRelationDO.TagRelationDOBuilder();
+            && Objects.equals(tagId, tagRelationDO.tagId);
     }
 
     public static final class TagRelationDOBuilder {

@@ -21,6 +21,12 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import okhttp3.Headers;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
@@ -30,11 +36,11 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ThreadUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
-import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
+import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.apache.shenyu.sync.data.http.refresh.DataRefreshFactory;
 import org.slf4j.Logger;
@@ -53,12 +59,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import okhttp3.Headers;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 /**
  * HTTP long polling implementation.
@@ -79,7 +79,7 @@ public class HttpSyncDataService implements SyncDataService {
     private final DataRefreshFactory factory;
 
     private final AccessTokenManager accessTokenManager;
-    
+
     private final OkHttpClient okHttpClient;
 
     public HttpSyncDataService(final HttpConfig httpConfig,
@@ -104,8 +104,8 @@ public class HttpSyncDataService implements SyncDataService {
             this.fetchGroupConfig(ConfigGroupEnum.values());
             int threadSize = serverList.size();
             this.executor = new ThreadPoolExecutor(threadSize, threadSize, 60L, TimeUnit.SECONDS,
-                    new LinkedBlockingQueue<>(),
-                    ShenyuThreadFactory.create("http-long-polling", true));
+                new LinkedBlockingQueue<>(),
+                ShenyuThreadFactory.create("http-long-polling", true));
             // start long polling, each server creates a thread to listen for changes.
             this.serverList.forEach(server -> this.executor.execute(new HttpLongPollingTask(server)));
         } else {
@@ -138,9 +138,9 @@ public class HttpSyncDataService implements SyncDataService {
         LOG.info("request configs: [{}]", url);
         String json;
         Request request = new Request.Builder().url(url)
-                .addHeader(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
-                .get()
-                .build();
+            .addHeader(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
+            .get()
+            .build();
         try (Response response = okHttpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 String message = String.format("fetch config fail from server[%s], http status code[%s]", url, response.code());
@@ -166,7 +166,6 @@ public class HttpSyncDataService implements SyncDataService {
         ThreadUtils.sleep(TimeUnit.SECONDS, 5);
     }
 
-
     /**
      * update local cache.
      *
@@ -190,16 +189,16 @@ public class HttpSyncDataService implements SyncDataService {
         }
         LOG.debug("listener params: [{}]", params);
         Headers headers = new Headers.Builder()
-                .add(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
-                .add("Content-Type", "application/x-www-form-urlencoded")
-                .build();
+            .add(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
+            .add("Content-Type", "application/x-www-form-urlencoded")
+            .build();
         String listenerUrl = server + Constants.SHENYU_ADMIN_PATH_CONFIGS_LISTENER;
         String uri = UriComponentsBuilder.fromHttpUrl(listenerUrl).queryParams(params).build(true).toUriString();
         Request request = new Request.Builder()
-                .url(uri)
-                .headers(headers)
-                .post(RequestBody.create("", null))
-                .build();
+            .url(uri)
+            .headers(headers)
+            .post(RequestBody.create("", null))
+            .build();
 
         JsonArray groupJson;
         try (Response response = okHttpClient.newCall(request).execute()) {
@@ -217,7 +216,7 @@ public class HttpSyncDataService implements SyncDataService {
             String message = String.format("listener configs fail, server:[%s], %s", server, e.getMessage());
             throw new ShenyuException(message, e);
         }
-        
+
         if (Objects.nonNull(groupJson) && !groupJson.isEmpty()) {
             // fetch group configuration async.
             ConfigGroupEnum[] changedGroups = GsonUtils.getGson().fromJson(groupJson, ConfigGroupEnum[].class);
@@ -256,7 +255,7 @@ public class HttpSyncDataService implements SyncDataService {
                         // print warnning LOG.
                         if (time < retryTimes) {
                             LOG.warn("Long polling failed, tried {} times, {} times left, will be suspended for a while! {}",
-                                    time, retryTimes - time, e.getMessage());
+                                time, retryTimes - time, e.getMessage());
                             ThreadUtils.sleep(TimeUnit.SECONDS, 5);
                             continue;
                         }

@@ -44,22 +44,22 @@ public final class SelectorConditionVOTest extends AbstractReflectGetterSetterTe
     public void testBuildSelectorConditionVO() {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         assertNotNull(SelectorConditionVO.buildSelectorConditionVO(SelectorConditionDO.builder()
-                .paramType(ParamTypeEnum.POST.getName())
-                .operator(OperatorEnum.MATCH.getAlias())
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .build()));
+            .paramType(ParamTypeEnum.POST.getName())
+            .operator(OperatorEnum.MATCH.getAlias())
+            .dateCreated(currentTime)
+            .dateUpdated(currentTime)
+            .build()));
     }
 
     @Test
     public void testBuildSelectorConditionVOList() {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         SelectorConditionDO selectorConditionDO = SelectorConditionDO.builder()
-                .paramType(ParamTypeEnum.POST.getName())
-                .operator(OperatorEnum.MATCH.getAlias())
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .build();
+            .paramType(ParamTypeEnum.POST.getName())
+            .operator(OperatorEnum.MATCH.getAlias())
+            .dateCreated(currentTime)
+            .dateUpdated(currentTime)
+            .build();
         List<SelectorConditionDO> doList = Lists.newArrayList(selectorConditionDO);
         List<SelectorConditionVO> voList = SelectorConditionVO.buildSelectorConditionVOList(doList);
         assertNotNull(voList);

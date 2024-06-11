@@ -33,9 +33,10 @@ import java.util.Properties;
  * the mybatis interceptor for update/insert/delete.
  */
 @Intercepts({
-        @Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class})
+    @Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class})
 })
 public class PostgreSQLPrepareInterceptor implements Interceptor {
+
     @Override
     public Object intercept(final Invocation invocation) throws Throwable {
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();

@@ -49,11 +49,10 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
 
     private final Map<String, String> conversion;
 
-
     /**
      * CustomDiscoveryUpstreamParser.
      *
-     * @param conversion          conversion
+     * @param conversion conversion
      */
     public CustomDiscoveryUpstreamParser(final Map<String, String> conversion) {
         this.conversion = conversion;

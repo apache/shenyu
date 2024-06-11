@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import java.util.Base64;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.service.SecretService;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.Base64;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SecretService}.

@@ -46,25 +46,26 @@ public class ApolloClient {
         this.apolloConfig = apolloConfig;
 
         this.apolloOpenApiClient = ApolloOpenApiClient
-                .newBuilder()
-                .withPortalUrl(apolloConfig.getPortalUrl())
-                .withToken(apolloConfig.getToken())
-                .build();
+            .newBuilder()
+            .withPortalUrl(apolloConfig.getPortalUrl())
+            .withToken(apolloConfig.getToken())
+            .build();
         operatorUser = Optional.ofNullable(apolloConfig.getOperatorUser()).orElse("apollo");
     }
 
     /**
      * get item value.
+     *
      * @param key item key
      * @return item value
      */
     public String getItemValue(final String key) {
         OpenItemDTO openItemDTO = this.apolloOpenApiClient.getItem(
-                apolloConfig.getAppId(),
-                apolloConfig.getEnv(),
-                apolloConfig.getClusterName(),
-                apolloConfig.getNamespace(),
-                key);
+            apolloConfig.getAppId(),
+            apolloConfig.getEnv(),
+            apolloConfig.getClusterName(),
+            apolloConfig.getNamespace(),
+            key);
         if (openItemDTO == null) {
             return null;
         }
@@ -75,7 +76,6 @@ public class ApolloClient {
         return openItemDTO.getValue();
     }
 
-
     /**
      * removeItemKey.
      *
@@ -83,17 +83,18 @@ public class ApolloClient {
      */
     public void removeItemKey(final String key) {
         this.apolloOpenApiClient.removeItem(
-                apolloConfig.getAppId(),
-                apolloConfig.getEnv(),
-                apolloConfig.getClusterName(),
-                apolloConfig.getNamespace(),
-                key, operatorUser);
+            apolloConfig.getAppId(),
+            apolloConfig.getEnv(),
+            apolloConfig.getClusterName(),
+            apolloConfig.getNamespace(),
+            key, operatorUser);
     }
 
     /**
      * create or update item into namespace.
-     * @param key item key
-     * @param value item value
+     *
+     * @param key     item key
+     * @param value   item value
      * @param comment item comment
      */
     public void createOrUpdateItem(final String key, final Object value, final String comment) {
@@ -102,8 +103,9 @@ public class ApolloClient {
 
     /**
      * create or update item into namespace.
-     * @param key item key
-     * @param value item value
+     *
+     * @param key     item key
+     * @param value   item value
      * @param comment item comment
      */
     public void createOrUpdateItem(final String key, final String value, final String comment) {
@@ -118,17 +120,18 @@ public class ApolloClient {
         openItemDTO.setDataChangeLastModifiedTime(now);
 
         this.apolloOpenApiClient.createOrUpdateItem(
-                apolloConfig.getAppId(),
-                apolloConfig.getEnv(),
-                apolloConfig.getClusterName(),
-                apolloConfig.getNamespace(),
-                openItemDTO
+            apolloConfig.getAppId(),
+            apolloConfig.getEnv(),
+            apolloConfig.getClusterName(),
+            apolloConfig.getNamespace(),
+            openItemDTO
         );
     }
 
     /**
      * publish item list in namespace.
-     * @param releaseTitle publish release title
+     *
+     * @param releaseTitle   publish release title
      * @param releaseComment publish release comment
      */
     public void publishNamespace(final String releaseTitle, final String releaseComment) {
@@ -138,11 +141,11 @@ public class ApolloClient {
         namespaceReleaseDTO.setReleasedBy(operatorUser);
 
         this.apolloOpenApiClient.publishNamespace(
-                apolloConfig.getAppId(),
-                apolloConfig.getEnv(),
-                apolloConfig.getClusterName(),
-                apolloConfig.getNamespace(),
-                namespaceReleaseDTO
+            apolloConfig.getAppId(),
+            apolloConfig.getEnv(),
+            apolloConfig.getClusterName(),
+            apolloConfig.getNamespace(),
+            namespaceReleaseDTO
         );
     }
 }

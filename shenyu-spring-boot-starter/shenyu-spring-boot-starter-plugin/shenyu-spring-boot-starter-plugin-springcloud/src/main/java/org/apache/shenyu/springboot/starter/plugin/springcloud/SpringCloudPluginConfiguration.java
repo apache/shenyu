@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Spring cloud plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.plugins.spring-cloud.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.plugins.spring-cloud.enabled", havingValue = "true", matchIfMissing = true)
 public class SpringCloudPluginConfiguration {
 
     /**

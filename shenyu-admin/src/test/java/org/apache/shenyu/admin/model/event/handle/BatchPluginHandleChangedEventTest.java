@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.admin.model.event.handle;
 
-import java.util.Arrays;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -37,31 +38,31 @@ public class BatchPluginHandleChangedEventTest {
     @BeforeEach
     public void setUp() {
         one = PluginHandleDO.builder()
-                .id("1")
-                .pluginId("1")
-                .field("testFieldOne")
-                .label("testLabelOne")
-                .dataType(1)
-                .type(1)
-                .sort(1)
-                .build();
+            .id("1")
+            .pluginId("1")
+            .field("testFieldOne")
+            .label("testLabelOne")
+            .dataType(1)
+            .type(1)
+            .sort(1)
+            .build();
         two = PluginHandleDO.builder()
-                .id("2")
-                .pluginId("2")
-                .field("testFieldTwo")
-                .label("testLabelTwo")
-                .dataType(2)
-                .type(2)
-                .sort(2)
-                .build();
+            .id("2")
+            .pluginId("2")
+            .field("testFieldTwo")
+            .label("testLabelTwo")
+            .dataType(2)
+            .type(2)
+            .sort(2)
+            .build();
     }
 
     @Test
     public void batchChangePluginHandleContextTest() {
         BatchPluginHandleChangedEvent batchPluginHandleChangedEvent =
-                new BatchPluginHandleChangedEvent(Arrays.asList(one, two), null, EventTypeEnum.PLUGIN_HANDLE_DELETE, "test-operator");
+            new BatchPluginHandleChangedEvent(Arrays.asList(one, two), null, EventTypeEnum.PLUGIN_HANDLE_DELETE, "test-operator");
         String context =
-                String.format("the plugin handle[%s] is %s", "testFieldOne,testFieldTwo", EventTypeEnum.PLUGIN_HANDLE_DELETE.getType().toString().toLowerCase());
+            String.format("the plugin handle[%s] is %s", "testFieldOne,testFieldTwo", EventTypeEnum.PLUGIN_HANDLE_DELETE.getType().toString().toLowerCase());
         assertEquals(context, batchPluginHandleChangedEvent.buildContext());
     }
 }

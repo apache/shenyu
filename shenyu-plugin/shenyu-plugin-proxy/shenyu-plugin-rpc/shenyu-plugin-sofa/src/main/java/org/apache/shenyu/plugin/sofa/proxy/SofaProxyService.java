@@ -44,9 +44,9 @@ import java.util.concurrent.CompletableFuture;
  * sofa proxy service is use GenericService.
  */
 public class SofaProxyService {
-    
+
     private final SofaParamResolveService sofaParamResolveService;
-    
+
     /**
      * Instantiates a new Sofa proxy service.
      *
@@ -55,7 +55,7 @@ public class SofaProxyService {
     public SofaProxyService(final SofaParamResolveService sofaParamResolveService) {
         this.sofaParamResolveService = sofaParamResolveService;
     }
-    
+
     /**
      * Generic invoker object.
      *
@@ -71,7 +71,7 @@ public class SofaProxyService {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
         }
-        
+
         Pair<String[], Object[]> pair;
         if (StringUtils.isBlank(metaData.getParameterTypes()) || ParamCheckUtils.bodyIsEmpty(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
@@ -84,12 +84,12 @@ public class SofaProxyService {
             public void onAppResponse(final Object o, final String s, final RequestBase requestBase) {
                 future.complete(o);
             }
-            
+
             @Override
             public void onAppException(final Throwable throwable, final String s, final RequestBase requestBase) {
                 future.completeExceptionally(throwable);
             }
-            
+
             @Override
             public void onSofaException(final SofaRpcException e, final String s, final RequestBase requestBase) {
                 future.completeExceptionally(e);
@@ -97,14 +97,15 @@ public class SofaProxyService {
         });
         GenericService genericService = reference.refer();
         genericService.$genericInvoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
-        return Mono.fromFuture(future.thenApply(ret -> {
+        return Mono.fromFuture(future.thenApply(retstr -> {
+            Object ret = retstr;
             if (Objects.isNull(ret)) {
                 ret = Constants.SOFA_RPC_RESULT_EMPTY;
+            } else {
+                GenericObject genericObject = (GenericObject) ret;
+                exchange.getAttributes().put(Constants.RPC_RESULT, genericObject.getFields());
+                exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             }
-            
-            GenericObject genericObject = (GenericObject) ret;
-            exchange.getAttributes().put(Constants.RPC_RESULT, genericObject.getFields());
-            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(ShenyuException::new);
     }

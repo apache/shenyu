@@ -36,12 +36,12 @@ public class UserCreatedEventTest {
     @BeforeEach
     public void setUp() {
         dashboardUserDO = DashboardUserDO.builder()
-                .id("1")
-                .userName("adminTest")
-                .password(DigestUtils.sha512Hex("123456"))
-                .role(1)
-                .enabled(true)
-                .build();
+            .id("1")
+            .userName("adminTest")
+            .password(DigestUtils.sha512Hex("123456"))
+            .role(1)
+            .enabled(true)
+            .build();
     }
 
     @Test
@@ -49,7 +49,7 @@ public class UserCreatedEventTest {
         UserCreatedEvent userCreatedEvent = new UserCreatedEvent(dashboardUserDO, "admin");
 
         String context = String.format("the selector [%s] is %s",
-                dashboardUserDO.getUserName(), StringUtils.lowerCase(EventTypeEnum.USER_CREATE.getType().toString()));
+            dashboardUserDO.getUserName(), StringUtils.lowerCase(EventTypeEnum.USER_CREATE.getType().toString()));
 
         assertEquals(context, userCreatedEvent.buildContext());
     }

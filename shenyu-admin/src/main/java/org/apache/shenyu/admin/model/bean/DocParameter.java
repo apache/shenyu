@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.bean;
 
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -52,6 +53,27 @@ public class DocParameter {
     private List<DocParameter> refs;
 
     /**
+     * copy DocParameter from source.
+     *
+     * @param source DocParameter
+     * @return DocParameter
+     */
+    public static DocParameter copy(final DocParameter source) {
+        DocParameter target = new DocParameter();
+        target.setId(source.getId());
+        target.setExample(source.getExample());
+        target.setDescription(source.getDescription());
+        target.setName(source.getName());
+        target.setModule(source.getModule());
+        target.setMaxLength(source.getMaxLength());
+        target.setRefs(source.getRefs());
+        target.setRequired(source.isRequired());
+        target.setType(source.getType());
+        target.setXExample(source.getXExample());
+        return target;
+    }
+
+    /**
      * getId.
      *
      * @return Integer
@@ -62,10 +84,38 @@ public class DocParameter {
 
     /**
      * setId.
+     *
      * @param id id
      */
     public void setId(final Integer id) {
         this.id = id;
+    }
+
+    /**
+     * getExample.
+     *
+     * @return String
+     */
+    public String getExample() {
+        return ObjectUtils.isEmpty(example) ? xExample : example.toString();
+    }
+
+    /**
+     * getDescription.
+     *
+     * @return String
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * getName.
+     *
+     * @return String
+     */
+    public String getName() {
+        return name;
     }
 
     /**
@@ -87,21 +137,39 @@ public class DocParameter {
     }
 
     /**
-     * getName.
+     * getMaxLength.
      *
      * @return String
      */
-    public String getName() {
-        return name;
+    public String getMaxLength() {
+        return maxLength;
     }
 
     /**
-     * setName.
+     * setMaxLength.
      *
-     * @param name name
+     * @param maxLength maxLength
      */
-    public void setName(final String name) {
-        this.name = name;
+    public void setMaxLength(final String maxLength) {
+        this.maxLength = maxLength;
+    }
+
+    /**
+     * getRefs.
+     *
+     * @return List
+     */
+    public List<DocParameter> getRefs() {
+        return refs;
+    }
+
+    /**
+     * isRequired.
+     *
+     * @return boolean
+     */
+    public boolean isRequired() {
+        return required;
     }
 
     /**
@@ -123,30 +191,21 @@ public class DocParameter {
     }
 
     /**
-     * getMaxLength.
+     * get xExample.
      *
      * @return String
      */
-    public String getMaxLength() {
-        return maxLength;
+    public String getXExample() {
+        return xExample;
     }
 
     /**
-     * setMaxLength.
+     * set xExample.
      *
-     * @param maxLength maxLength
+     * @param xExample xExample
      */
-    public void setMaxLength(final String maxLength) {
-        this.maxLength = maxLength;
-    }
-
-    /**
-     * isRequired.
-     *
-     * @return boolean
-     */
-    public boolean isRequired() {
-        return required;
+    public void setXExample(final String xExample) {
+        this.xExample = xExample;
     }
 
     /**
@@ -159,12 +218,21 @@ public class DocParameter {
     }
 
     /**
-     * getDescription.
+     * setRefs.
      *
-     * @return String
+     * @param refs refs
      */
-    public String getDescription() {
-        return description;
+    public void setRefs(final List<DocParameter> refs) {
+        this.refs = refs;
+    }
+
+    /**
+     * setName.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
     }
 
     /**
@@ -177,75 +245,11 @@ public class DocParameter {
     }
 
     /**
-     * get xExample.
-     *
-     * @return String
-     */
-    public String getXExample() {
-        return xExample;
-    }
-
-    /**
-     * set xExample.
-     * @param xExample xExample
-     */
-    public void setXExample(final String xExample) {
-        this.xExample = xExample;
-    }
-
-    /**
-     * getExample.
-     *
-     * @return String
-     */
-    public String getExample() {
-        return ObjectUtils.isEmpty(example) ? xExample : example.toString();
-    }
-
-    /**
      * setExample.
      *
      * @param example example
      */
     public void setExample(final Object example) {
         this.example = example;
-    }
-
-    /**
-     * getRefs.
-     *
-     * @return List
-     */
-    public List<DocParameter> getRefs() {
-        return refs;
-    }
-
-    /**
-     *  setRefs.
-     *
-     * @param refs refs
-     */
-    public void setRefs(final List<DocParameter> refs) {
-        this.refs = refs;
-    }
-
-    /**
-     * copy DocParameter from source.
-     * @param source DocParameter
-     * @return DocParameter
-     */
-    public static DocParameter copy(final DocParameter source) {
-        DocParameter target = new DocParameter();
-        target.setId(source.getId());
-        target.setExample(source.getExample());
-        target.setDescription(source.getDescription());
-        target.setName(source.getName());
-        target.setModule(source.getModule());
-        target.setMaxLength(source.getMaxLength());
-        target.setRefs(source.getRefs());
-        target.setRequired(source.isRequired());
-        target.setType(source.getType());
-        target.setXExample(source.getXExample());
-        return target;
     }
 }

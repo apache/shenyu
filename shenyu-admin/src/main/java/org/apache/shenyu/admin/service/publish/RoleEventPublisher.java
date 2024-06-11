@@ -34,13 +34,13 @@ import java.util.List;
  */
 @Component
 public class RoleEventPublisher implements AdminDataModelChangedEventPublisher<RoleDO> {
-    
+
     private final ApplicationEventPublisher publisher;
-    
+
     public RoleEventPublisher(final ApplicationEventPublisher publisher) {
         this.publisher = publisher;
     }
-    
+
     /**
      * on rule created.
      *
@@ -50,8 +50,7 @@ public class RoleEventPublisher implements AdminDataModelChangedEventPublisher<R
     public void onCreated(final RoleDO rule) {
         publish(new RoleCreatedEvent(rule, SessionUtil.visitorName()));
     }
-    
-    
+
     /**
      * on rule updated.
      *
@@ -62,8 +61,7 @@ public class RoleEventPublisher implements AdminDataModelChangedEventPublisher<R
     public void onUpdated(final RoleDO rule, final RoleDO before, final List<String> permission) {
         publish(new RoleUpdatedEvent(rule, before, SessionUtil.visitorName(), permission));
     }
-    
-    
+
     /**
      * role delete.
      *
@@ -73,8 +71,7 @@ public class RoleEventPublisher implements AdminDataModelChangedEventPublisher<R
     public void onDeleted(final Collection<RoleDO> roles) {
         publish(new BatchRoleDeletedEvent(roles, SessionUtil.visitorName()));
     }
-    
-    
+
     /**
      * event.
      *
@@ -84,5 +81,5 @@ public class RoleEventPublisher implements AdminDataModelChangedEventPublisher<R
     public void publish(final AdminDataModelChangedEvent event) {
         publisher.publishEvent(event);
     }
-    
+
 }

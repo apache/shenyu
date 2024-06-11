@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.client.core.exception;
 
-import static org.junit.Assert.assertThrows;
-
 import org.junit.Test;
+
+import static org.junit.Assert.assertThrows;
 
 public class ShenyuClientIllegalArgumentExceptionTest {
 

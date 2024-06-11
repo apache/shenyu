@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@ShenyuRequestMapping(method = {RequestMethod.PUT})
+@ShenyuRequestMapping(method = RequestMethod.PUT)
 public @interface ShenyuPutMapping {
 
     /**

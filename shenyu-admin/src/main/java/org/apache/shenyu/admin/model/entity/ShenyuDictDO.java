@@ -81,6 +81,40 @@ public final class ShenyuDictDO extends BaseDO {
     }
 
     /**
+     * build {@linkplain ShenyuDictDO} instance.
+     *
+     * @param shenyuDictDTO {@linkplain ShenyuDictDTO}
+     * @return {@linkplain ShenyuDictDO}
+     */
+    public static ShenyuDictDO buildShenyuDictDO(final ShenyuDictDTO shenyuDictDTO) {
+        return Optional.ofNullable(shenyuDictDTO).map(item -> {
+            ShenyuDictDO shenyuDictDO = ShenyuDictDO.builder()
+                .id(item.getId())
+                .dictCode(item.getDictCode())
+                .dictName(item.getDictName())
+                .dictValue(item.getDictValue())
+                .desc(item.getDesc())
+                .enabled(item.getEnabled())
+                .sort(item.getSort())
+                .type(item.getType())
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                shenyuDictDO.setId(UUIDUtils.getInstance().generateShortUuid());
+            }
+            return shenyuDictDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static ShenyuDictDO.ShenyuDictDOBuilder builder() {
+        return new ShenyuDictDO.ShenyuDictDOBuilder();
+    }
+
+    /**
      * Gets the value of type.
      *
      * @return the value of type
@@ -206,38 +240,9 @@ public final class ShenyuDictDO extends BaseDO {
         this.enabled = enabled;
     }
 
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static ShenyuDictDO.ShenyuDictDOBuilder builder() {
-        return new ShenyuDictDO.ShenyuDictDOBuilder();
-    }
-
-    /**
-     * build {@linkplain ShenyuDictDO} instance.
-     *
-     * @param shenyuDictDTO {@linkplain ShenyuDictDTO}
-     * @return {@linkplain ShenyuDictDO}
-     */
-    public static ShenyuDictDO buildShenyuDictDO(final ShenyuDictDTO shenyuDictDTO) {
-        return Optional.ofNullable(shenyuDictDTO).map(item -> {
-            ShenyuDictDO shenyuDictDO = ShenyuDictDO.builder()
-                    .id(item.getId())
-                    .dictCode(item.getDictCode())
-                    .dictName(item.getDictName())
-                    .dictValue(item.getDictValue())
-                    .desc(item.getDesc())
-                    .enabled(item.getEnabled())
-                    .sort(item.getSort())
-                    .type(item.getType())
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                shenyuDictDO.setId(UUIDUtils.getInstance().generateShortUuid());
-            }
-            return shenyuDictDO;
-        }).orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), type, dictCode, dictName, dictValue, desc, sort, enabled);
     }
 
     @Override
@@ -253,17 +258,12 @@ public final class ShenyuDictDO extends BaseDO {
         }
         ShenyuDictDO that = (ShenyuDictDO) o;
         return Objects.equals(type, that.type)
-                && Objects.equals(dictCode, that.dictCode)
-                && Objects.equals(dictName, that.dictName)
-                && Objects.equals(dictValue, that.dictValue)
-                && Objects.equals(desc, that.desc)
-                && Objects.equals(sort, that.sort)
-                && Objects.equals(enabled, that.enabled);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), type, dictCode, dictName, dictValue, desc, sort, enabled);
+            && Objects.equals(dictCode, that.dictCode)
+            && Objects.equals(dictName, that.dictName)
+            && Objects.equals(dictValue, that.dictValue)
+            && Objects.equals(desc, that.desc)
+            && Objects.equals(sort, that.sort)
+            && Objects.equals(enabled, that.enabled);
     }
 
     public static final class ShenyuDictDOBuilder {

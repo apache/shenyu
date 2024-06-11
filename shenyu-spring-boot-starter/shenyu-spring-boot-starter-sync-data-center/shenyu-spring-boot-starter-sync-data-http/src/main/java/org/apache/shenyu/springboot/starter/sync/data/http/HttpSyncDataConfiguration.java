@@ -17,12 +17,13 @@
 
 package org.apache.shenyu.springboot.starter.sync.data.http;
 
+import okhttp3.OkHttpClient;
 import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
-import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.http.AccessTokenManager;
 import org.apache.shenyu.sync.data.http.HttpSyncDataService;
@@ -41,7 +42,6 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import okhttp3.OkHttpClient;
 
 /**
  * Http sync data configuration for spring boot.

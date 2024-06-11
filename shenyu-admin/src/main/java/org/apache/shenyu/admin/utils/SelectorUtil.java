@@ -39,11 +39,10 @@ import java.util.Objects;
  * ResourceUtil.
  */
 public final class SelectorUtil {
-    
+
     private SelectorUtil() {
     }
-    
-    
+
     /**
      * build divide upstream<br>.
      * if plugin is spring-cloud used {@link SpringCloudSelectorHandle}.<br>
@@ -56,16 +55,16 @@ public final class SelectorUtil {
     public static List<DivideUpstream> buildDivideUpstream(final SelectorDO selectorDO, final String pluginName) {
         if (PluginEnum.SPRING_CLOUD.getName().equals(pluginName) && Objects.nonNull(selectorDO.getHandle())) {
             return GsonUtils.getInstance()
-                    .fromJson(selectorDO.getHandle(), SpringCloudSelectorHandle.class)
-                    .getDivideUpstreams();
+                .fromJson(selectorDO.getHandle(), SpringCloudSelectorHandle.class)
+                .getDivideUpstreams();
         }
         if (PluginEnum.DIVIDE.getName().equals(pluginName) && StringUtils.isNotBlank(selectorDO.getHandle())) {
             return GsonUtils.getInstance()
-                    .fromList(selectorDO.getHandle(), DivideUpstream.class);
+                .fromList(selectorDO.getHandle(), DivideUpstream.class);
         }
         return Collections.emptyList();
     }
-    
+
     /**
      * build selector.
      *
@@ -79,7 +78,7 @@ public final class SelectorUtil {
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorDTO;
     }
-    
+
     /**
      * build default selector.
      *
@@ -88,17 +87,17 @@ public final class SelectorUtil {
      */
     public static SelectorDTO buildDefaultSelectorDTO(final String name) {
         return SelectorDTO.builder()
-                .name(name)
-                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
-                .matchMode(MatchModeEnum.AND.getCode())
-                .enabled(Boolean.TRUE)
-                .loged(Boolean.TRUE)
-                .continued(Boolean.TRUE)
-                .matchRestful(Boolean.FALSE)
-                .sort(1)
-                .build();
+            .name(name)
+            .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+            .matchMode(MatchModeEnum.AND.getCode())
+            .enabled(Boolean.TRUE)
+            .loged(Boolean.TRUE)
+            .continued(Boolean.TRUE)
+            .matchRestful(Boolean.FALSE)
+            .sort(1)
+            .build();
     }
-    
+
     /**
      * build default selector condition list.
      *

@@ -17,12 +17,13 @@
 
 package org.apache.shenyu.admin.model.event.resource;
 
-import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -38,22 +39,22 @@ public class BatchResourceCreatedEventTest {
     @BeforeEach
     public void setUp() {
         one = ResourceDO.builder()
-                .name("plug")
-                .component("PluginList")
-                .icon("dashboard")
-                .title("SHENYU.MENU.PLUGIN.LIST")
-                .sort(1)
-                .perms("system:plugin:list")
-                .build();
+            .name("plug")
+            .component("PluginList")
+            .icon("dashboard")
+            .title("SHENYU.MENU.PLUGIN.LIST")
+            .sort(1)
+            .perms("system:plugin:list")
+            .build();
 
         two = ResourceDO.builder()
-                .name("system")
-                .component("system")
-                .icon("setting")
-                .title("SHENYU.MENU.SYSTEM.MANAGMENT")
-                .sort(2)
-                .perms("system:manager:list")
-                .build();
+            .name("system")
+            .component("system")
+            .icon("setting")
+            .title("SHENYU.MENU.SYSTEM.MANAGMENT")
+            .sort(2)
+            .perms("system:manager:list")
+            .build();
     }
 
     @Test
@@ -61,7 +62,7 @@ public class BatchResourceCreatedEventTest {
         BatchResourceCreatedEvent createdEvent = new BatchResourceCreatedEvent(Arrays.asList(one, two), "test-operator");
 
         String context = String.format("the resource [%s] is %s",
-                one.getTitle() + "," + two.getTitle(), StringUtils.lowerCase(EventTypeEnum.RESOURCE_CREATE.getType().toString()));
+            one.getTitle() + "," + two.getTitle(), StringUtils.lowerCase(EventTypeEnum.RESOURCE_CREATE.getType().toString()));
 
         assertEquals(context, createdEvent.buildContext());
     }

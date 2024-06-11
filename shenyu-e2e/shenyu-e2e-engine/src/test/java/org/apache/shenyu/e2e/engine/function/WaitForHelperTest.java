@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.e2e.engine.function;
 
-import org.apache.shenyu.e2e.engine.scenario.function.WaitForHelper;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.Method;
+import org.apache.shenyu.e2e.engine.scenario.function.WaitForHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

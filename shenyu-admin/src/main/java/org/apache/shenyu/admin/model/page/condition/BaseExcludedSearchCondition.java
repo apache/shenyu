@@ -23,17 +23,17 @@ import org.apache.commons.lang3.StringUtils;
  * ExcludedSearchCondition.
  */
 public abstract class BaseExcludedSearchCondition implements SearchCondition {
-    
+
     /**
      * excluded code.
      */
     public static final String EXCLUDED_CODE = "!";
-    
+
     /**
      * excluded keyword.
      */
     private String excluded;
-    
+
     /**
      * build keyword contains excluded.
      */
@@ -43,15 +43,14 @@ public abstract class BaseExcludedSearchCondition implements SearchCondition {
             setKeyword(StringUtils.substringBefore(getKeyword(), EXCLUDED_CODE));
         }
     }
-    
-    
+
     /**
      * set keyword.
      *
      * @param keyword keyword
      */
     public abstract void setKeyword(String keyword);
-    
+
     /**
      * get excluded.
      *
@@ -60,7 +59,7 @@ public abstract class BaseExcludedSearchCondition implements SearchCondition {
     public String getExcluded() {
         return excluded;
     }
-    
+
     /**
      * set excluded.
      *

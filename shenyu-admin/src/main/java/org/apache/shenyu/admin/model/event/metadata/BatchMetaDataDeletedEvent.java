@@ -31,9 +31,9 @@ import java.util.stream.Collectors;
  * BatchMetaDataDeletedEvent.
  */
 public class BatchMetaDataDeletedEvent extends BatchMetaDataChangedEvent {
-    
+
     private final List<String> deletedIds;
-    
+
     /**
      * Create a new {@code BatchMetaDataDeletedEvent}.operator is unknown.
      *
@@ -44,16 +44,16 @@ public class BatchMetaDataDeletedEvent extends BatchMetaDataChangedEvent {
         super(source, null, EventTypeEnum.META_DATA_DELETE, operator);
         this.deletedIds = ListUtil.map(source, BaseDO::getId);
     }
-    
+
     @Override
     public String buildContext() {
         final String metaData = ((Collection<?>) getSource())
-                .stream()
-                .map(s -> ((MetaDataDO) s).getAppName())
-                .collect(Collectors.joining(","));
+            .stream()
+            .map(s -> ((MetaDataDO) s).getAppName())
+            .collect(Collectors.joining(","));
         return String.format("the meta data [%s] is %s", metaData, StringUtils.lowerCase(getType().getType().toString()));
     }
-    
+
     /**
      * get deleted iss.
      *

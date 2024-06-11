@@ -131,6 +131,45 @@ public class ApiVO implements Serializable {
     private List<TagVO> tags;
 
     /**
+     * buildApiVO.
+     *
+     * @param apiDO apiDO.
+     * @param tags  tags.
+     * @return ApiVO.
+     */
+    public static ApiVO buildApiVO(final ApiDO apiDO, final List<TagVO> tags) {
+        return ApiVO.builder()
+            .id(apiDO.getId())
+            .contextPath(apiDO.getContextPath())
+            .apiPath(apiDO.getApiPath())
+            .httpMethod(apiDO.getHttpMethod())
+            .consume(apiDO.getConsume())
+            .produce(apiDO.getProduce())
+            .version(apiDO.getVersion())
+            .rpcType(apiDO.getRpcType())
+            .state(apiDO.getState())
+            .ext(apiDO.getExt())
+            .apiOwner(apiDO.getApiOwner())
+            .apiDesc(apiDO.getApiDesc())
+            .apiSource(apiDO.getApiSource())
+            .document(apiDO.getDocument())
+            .documentMd5(apiDO.getDocumentMd5())
+            .dateCreated(apiDO.getDateCreated())
+            .dateUpdated(apiDO.getDateUpdated())
+            .tags(tags)
+            .build();
+    }
+
+    /**
+     * builder.
+     *
+     * @return ApiVOBuilder
+     */
+    public static ApiVOBuilder builder() {
+        return new ApiVOBuilder();
+    }
+
+    /**
      * getId.
      *
      * @return id
@@ -456,6 +495,7 @@ public class ApiVO implements Serializable {
 
     /**
      * get bizCustomCodeList.
+     *
      * @return List
      */
     public List<CustomCode> getBizCustomCodeList() {
@@ -464,6 +504,7 @@ public class ApiVO implements Serializable {
 
     /**
      * set bizCustomCodeList.
+     *
      * @param bizCustomCodeList bizCustomCodeList
      */
     public void setBizCustomCodeList(final List<CustomCode> bizCustomCodeList) {
@@ -524,45 +565,6 @@ public class ApiVO implements Serializable {
         this.tags = tags;
     }
 
-    /**
-     * builder.
-     *
-     * @return ApiVOBuilder
-     */
-    public static ApiVOBuilder builder() {
-        return new ApiVOBuilder();
-    }
-
-    /**
-     * buildApiVO.
-     *
-     * @param apiDO apiDO.
-     * @param tags  tags.
-     * @return ApiVO.
-     */
-    public static ApiVO buildApiVO(final ApiDO apiDO, final List<TagVO> tags) {
-        return ApiVO.builder()
-                .id(apiDO.getId())
-                .contextPath(apiDO.getContextPath())
-                .apiPath(apiDO.getApiPath())
-                .httpMethod(apiDO.getHttpMethod())
-                .consume(apiDO.getConsume())
-                .produce(apiDO.getProduce())
-                .version(apiDO.getVersion())
-                .rpcType(apiDO.getRpcType())
-                .state(apiDO.getState())
-                .ext(apiDO.getExt())
-                .apiOwner(apiDO.getApiOwner())
-                .apiDesc(apiDO.getApiDesc())
-                .apiSource(apiDO.getApiSource())
-                .document(apiDO.getDocument())
-                .documentMd5(apiDO.getDocumentMd5())
-                .dateCreated(apiDO.getDateCreated())
-                .dateUpdated(apiDO.getDateUpdated())
-                .tags(tags)
-                .build();
-    }
-    
     /**
      * ApiVOBuilder.
      */
@@ -664,6 +666,7 @@ public class ApiVO implements Serializable {
 
         /**
          * builder id.
+         *
          * @param id id
          * @return ApiVOBuilder
          */
@@ -674,6 +677,7 @@ public class ApiVO implements Serializable {
 
         /**
          * builder contextPath.
+         *
          * @param contextPath contextPath
          * @return ApiVOBuilder
          */
@@ -684,6 +688,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build apiPath.
+         *
          * @param apiPath apiPath
          * @return ApiVOBuilder
          */
@@ -694,6 +699,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build httpMethod.
+         *
          * @param httpMethod httpMethod
          * @return ApiVOBuilder
          */
@@ -704,6 +710,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build consume.
+         *
          * @param consume consume
          * @return ApiVOBuilder
          */
@@ -714,6 +721,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build produce.
+         *
          * @param produce produce
          * @return ApiVOBuilder
          */
@@ -724,6 +732,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build version.
+         *
          * @param version version
          * @return ApiVOBuilder
          */
@@ -734,6 +743,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build rpcType.
+         *
          * @param rpcType rpcType
          * @return ApiVOBuilder
          */
@@ -744,6 +754,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build state.
+         *
          * @param state state
          * @return ApiVOBuilder
          */
@@ -754,6 +765,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build ext.
+         *
          * @param ext ext
          * @return ApiVOBuilder
          */
@@ -764,6 +776,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build apiOwner.
+         *
          * @param apiOwner apiOwner
          * @return ApiVOBuilder
          */
@@ -774,6 +787,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build apiDesc.
+         *
          * @param apiDesc apiDesc
          * @return ApiVOBuilder
          */
@@ -784,6 +798,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build apiSource.
+         *
          * @param apiSource apiSource
          * @return ApiVOBuilder
          */
@@ -794,6 +809,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build document.
+         *
          * @param document document
          * @return ApiVOBuilder
          */
@@ -804,6 +820,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build documentMd5.
+         *
          * @param documentMd5 documentMd5
          * @return ApiVOBuilder
          */
@@ -814,6 +831,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build dateCreated.
+         *
          * @param dateCreated dateCreated
          * @return ApiVOBuilder
          */
@@ -824,6 +842,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build dateUpdated.
+         *
          * @param dateUpdated dateUpdated
          * @return ApiVOBuilder
          */
@@ -834,6 +853,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build tags.
+         *
          * @param tags tags
          * @return ApiVOBuilder
          */
@@ -844,6 +864,7 @@ public class ApiVO implements Serializable {
 
         /**
          * build.
+         *
          * @return ApiVO
          */
         public ApiVO build() {

@@ -82,6 +82,11 @@ public class PermissionQuery implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(objectId, resourceId);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -91,10 +96,5 @@ public class PermissionQuery implements Serializable {
         }
         PermissionQuery that = (PermissionQuery) o;
         return Objects.equals(objectId, that.objectId) && Objects.equals(resourceId, that.resourceId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(objectId, resourceId);
     }
 }

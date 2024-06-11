@@ -24,8 +24,8 @@ import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.common.IdGenerator;
 import org.apache.shenyu.e2e.config.ServiceConfigure;
-import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure;
+import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +33,7 @@ import java.util.Map;
 public class ShenYuExtensionContext {
 
     private final String scenarioId;
-    
+
     private final EnvironmentClient environmentClient = new EnvironmentClient();
 
     private Map<String, AdminClient> adminClientMap;
@@ -68,12 +68,12 @@ public class ShenYuExtensionContext {
                     externalServiceClientMap = new HashMap<>();
                 }
                 ExternalServiceClient client = new ExternalServiceClient(scenarioId, serviceName,
-                        serviceConfigure.getBaseUrl(), serviceConfigure.getParameters());
+                    serviceConfigure.getBaseUrl(), serviceConfigure.getParameters());
                 externalServiceClientMap.put(serviceName, client);
                 environmentClient.add(client);
             }
         });
-        
+
     }
 
     /**
@@ -93,8 +93,6 @@ public class ShenYuExtensionContext {
     public Map<String, GatewayClient> getGatewayClientMap() {
         return gatewayClientMap;
     }
-    
-
 
     /**
      * Gets external service client map.
@@ -105,7 +103,6 @@ public class ShenYuExtensionContext {
         return externalServiceClientMap;
     }
 
-    
     /**
      * Gets environment client.
      *

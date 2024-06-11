@@ -37,26 +37,26 @@ public class DictUpdatedEventTest {
     @BeforeEach
     public void setUp() {
         before = ShenyuDictDO.builder()
-                .id("1")
-                .type("dictTest")
-                .dictCode("DICT_TEST")
-                .dictName("test")
-                .dictValue("test")
-                .desc("dict test desc")
-                .sort(0)
-                .enabled(true)
-                .build();
+            .id("1")
+            .type("dictTest")
+            .dictCode("DICT_TEST")
+            .dictName("test")
+            .dictValue("test")
+            .desc("dict test desc")
+            .sort(0)
+            .enabled(true)
+            .build();
 
         after = ShenyuDictDO.builder()
-                .id("1")
-                .type("dictTestAfter")
-                .dictCode("DICT_TEST_AFTER")
-                .dictName("testAfter")
-                .dictValue("testAfter")
-                .desc("dict test desc after")
-                .sort(1)
-                .enabled(false)
-                .build();
+            .id("1")
+            .type("dictTestAfter")
+            .dictCode("DICT_TEST_AFTER")
+            .dictName("testAfter")
+            .dictValue("testAfter")
+            .desc("dict test desc after")
+            .sort(1)
+            .enabled(false)
+            .build();
     }
 
     @Test

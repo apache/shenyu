@@ -142,6 +142,20 @@ public class ResourceVO implements Serializable {
     }
 
     /**
+     * build ResourceVO.
+     *
+     * @param resourceDO {@linkplain ResourceDO}
+     * @return {@linkplain ResourceVO}
+     */
+    public static ResourceVO buildResourceVO(final ResourceDO resourceDO) {
+        return Optional.ofNullable(resourceDO).map(item -> new ResourceVO(item.getId(), item.getParentId(),
+            item.getTitle(), item.getName(), item.getUrl(), item.getComponent(), item.getResourceType(),
+            item.getSort(), item.getIcon(), item.getIsLeaf(), item.getIsRoute(), item.getPerms(), item.getStatus(),
+            DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
+            DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime()))).orElse(null);
+    }
+
+    /**
      * Gets the value of id.
      *
      * @return the value of id
@@ -411,18 +425,9 @@ public class ResourceVO implements Serializable {
         this.dateUpdated = dateUpdated;
     }
 
-    /**
-     * build ResourceVO.
-     *
-     * @param resourceDO {@linkplain ResourceDO}
-     * @return {@linkplain ResourceVO}
-     */
-    public static ResourceVO buildResourceVO(final ResourceDO resourceDO) {
-        return Optional.ofNullable(resourceDO).map(item -> new ResourceVO(item.getId(), item.getParentId(),
-                item.getTitle(), item.getName(), item.getUrl(), item.getComponent(), item.getResourceType(),
-                item.getSort(), item.getIcon(), item.getIsLeaf(), item.getIsRoute(), item.getPerms(), item.getStatus(),
-                DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
-                DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime()))).orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, parentId, title, name, url, component, resourceType, sort, icon, isLeaf, isRoute, perms, status, dateCreated, dateUpdated);
     }
 
     @Override
@@ -435,45 +440,40 @@ public class ResourceVO implements Serializable {
         }
         ResourceVO that = (ResourceVO) o;
         return Objects.equals(id, that.id)
-                && Objects.equals(parentId, that.parentId)
-                && Objects.equals(title, that.title)
-                && Objects.equals(name, that.name)
-                && Objects.equals(url, that.url)
-                && Objects.equals(component, that.component)
-                && Objects.equals(resourceType, that.resourceType)
-                && Objects.equals(sort, that.sort)
-                && Objects.equals(icon, that.icon)
-                && Objects.equals(isLeaf, that.isLeaf)
-                && Objects.equals(isRoute, that.isRoute)
-                && Objects.equals(perms, that.perms)
-                && Objects.equals(status, that.status)
-                && Objects.equals(dateCreated, that.dateCreated)
-                && Objects.equals(dateUpdated, that.dateUpdated);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, parentId, title, name, url, component, resourceType, sort, icon, isLeaf, isRoute, perms, status, dateCreated, dateUpdated);
+            && Objects.equals(parentId, that.parentId)
+            && Objects.equals(title, that.title)
+            && Objects.equals(name, that.name)
+            && Objects.equals(url, that.url)
+            && Objects.equals(component, that.component)
+            && Objects.equals(resourceType, that.resourceType)
+            && Objects.equals(sort, that.sort)
+            && Objects.equals(icon, that.icon)
+            && Objects.equals(isLeaf, that.isLeaf)
+            && Objects.equals(isRoute, that.isRoute)
+            && Objects.equals(perms, that.perms)
+            && Objects.equals(status, that.status)
+            && Objects.equals(dateCreated, that.dateCreated)
+            && Objects.equals(dateUpdated, that.dateUpdated);
     }
 
     @Override
     public String toString() {
         return "ResourceVO{"
-                + "id='" + id + '\''
-                + ", parentId='" + parentId + '\''
-                + ", title='" + title + '\''
-                + ", name='" + name + '\''
-                + ", url='" + url + '\''
-                + ", component='" + component + '\''
-                + ", resourceType=" + resourceType
-                + ", sort=" + sort
-                + ", icon='" + icon + '\''
-                + ", isLeaf=" + isLeaf
-                + ", isRoute=" + isRoute
-                + ", perms='" + perms + '\''
-                + ", status=" + status
-                + ", dateCreated='" + dateCreated + '\''
-                + ", dateUpdated='" + dateUpdated + '\''
-                + '}';
+            + "id='" + id + '\''
+            + ", parentId='" + parentId + '\''
+            + ", title='" + title + '\''
+            + ", name='" + name + '\''
+            + ", url='" + url + '\''
+            + ", component='" + component + '\''
+            + ", resourceType=" + resourceType
+            + ", sort=" + sort
+            + ", icon='" + icon + '\''
+            + ", isLeaf=" + isLeaf
+            + ", isRoute=" + isRoute
+            + ", perms='" + perms + '\''
+            + ", status=" + status
+            + ", dateCreated='" + dateCreated + '\''
+            + ", dateUpdated='" + dateUpdated + '\''
+            + '}';
     }
 }

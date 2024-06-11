@@ -60,9 +60,9 @@ public class PluginHandleVO implements Serializable {
     private Integer dataType;
 
     /**
-     *  the attribute type.
-     *  1  selector,
-     *  2  rule.
+     * the attribute type.
+     * 1  selector,
+     * 2  rule.
      */
     private Integer type;
 
@@ -113,6 +113,23 @@ public class PluginHandleVO implements Serializable {
         this.dateCreated = dateCreated;
         this.dateUpdated = dateUpdated;
         this.dictOptions = dictOptions;
+    }
+
+    /**
+     * build {@linkplain PluginHandleVO}.
+     *
+     * @param pluginHandleDO {@linkplain PluginHandleDO}
+     * @param dictOptions    dictOptions
+     * @return {@linkplain PluginHandleVO}
+     */
+    public static PluginHandleVO buildPluginHandleVO(final PluginHandleDO pluginHandleDO, final List<ShenyuDictVO> dictOptions) {
+        return Optional.ofNullable(pluginHandleDO)
+            .map(it -> new PluginHandleVO(pluginHandleDO.getId(), pluginHandleDO.getPluginId(),
+                pluginHandleDO.getField(), pluginHandleDO.getLabel(),
+                pluginHandleDO.getDataType(), pluginHandleDO.getType(), pluginHandleDO.getSort(), pluginHandleDO.getExtObj(),
+                DateUtils.localDateTimeToString(pluginHandleDO.getDateCreated().toLocalDateTime()),
+                DateUtils.localDateTimeToString(pluginHandleDO.getDateUpdated().toLocalDateTime()), dictOptions))
+            .orElse(null);
     }
 
     /**
@@ -311,22 +328,5 @@ public class PluginHandleVO implements Serializable {
      */
     public void setDictOptions(final List<ShenyuDictVO> dictOptions) {
         this.dictOptions = dictOptions;
-    }
-
-    /**
-     * build {@linkplain PluginHandleVO}.
-     *
-     * @param pluginHandleDO {@linkplain PluginHandleDO}
-     * @param dictOptions dictOptions
-     * @return {@linkplain PluginHandleVO}
-     */
-    public static PluginHandleVO buildPluginHandleVO(final PluginHandleDO pluginHandleDO, final List<ShenyuDictVO> dictOptions) {
-        return Optional.ofNullable(pluginHandleDO)
-                .map(it -> new PluginHandleVO(pluginHandleDO.getId(), pluginHandleDO.getPluginId(),
-                        pluginHandleDO.getField(), pluginHandleDO.getLabel(),
-                        pluginHandleDO.getDataType(), pluginHandleDO.getType(), pluginHandleDO.getSort(), pluginHandleDO.getExtObj(),
-                        DateUtils.localDateTimeToString(pluginHandleDO.getDateCreated().toLocalDateTime()),
-                        DateUtils.localDateTimeToString(pluginHandleDO.getDateUpdated().toLocalDateTime()), dictOptions))
-                .orElse(null);
     }
 }

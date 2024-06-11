@@ -33,6 +33,15 @@ public class UserInfo {
     private String userId;
 
     /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static UserInfo.UserInfoBuilder builder() {
+        return new UserInfo.UserInfoBuilder();
+    }
+
+    /**
      * Gets the value of userName.
      *
      * @return the value of userName
@@ -66,15 +75,6 @@ public class UserInfo {
      */
     public void setUserId(final String userId) {
         this.userId = userId;
-    }
-
-    /**
-     * builder method.
-     *
-     * @return builder object.
-     */
-    public static UserInfo.UserInfoBuilder builder() {
-        return new UserInfo.UserInfoBuilder();
     }
 
     public static final class UserInfoBuilder {

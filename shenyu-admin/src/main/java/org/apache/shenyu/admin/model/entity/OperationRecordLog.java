@@ -27,39 +27,39 @@ import java.util.Date;
  * operation_record_log.
  */
 public class OperationRecordLog {
-    
+
     /**
      * id.
      */
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
-    
+
     /**
      * color.
      */
     private String color;
-    
+
     /**
      * context.
      */
     private String context;
-    
+
     /**
      * operator.
      */
     private String operator;
-    
+
     /**
      * operation time.
      */
     @JsonFormat(pattern = "MM-dd HH:mm:ss")
     private Date operationTime;
-    
+
     /**
      * operation type.
      */
     private String operationType;
-    
+
     /**
      * get id.
      *
@@ -68,7 +68,7 @@ public class OperationRecordLog {
     public Long getId() {
         return id;
     }
-    
+
     /**
      * set id.
      *
@@ -77,7 +77,7 @@ public class OperationRecordLog {
     public void setId(final Long id) {
         this.id = id;
     }
-    
+
     /**
      * get color.
      *
@@ -86,7 +86,7 @@ public class OperationRecordLog {
     public String getColor() {
         return color;
     }
-    
+
     /**
      * set color.
      *
@@ -95,7 +95,7 @@ public class OperationRecordLog {
     public void setColor(final String color) {
         this.color = color;
     }
-    
+
     /**
      * get context.
      *
@@ -104,7 +104,7 @@ public class OperationRecordLog {
     public String getContext() {
         return context;
     }
-    
+
     /**
      * set context.
      *
@@ -113,7 +113,7 @@ public class OperationRecordLog {
     public void setContext(final String context) {
         this.context = context;
     }
-    
+
     /**
      * get operator.
      *
@@ -122,7 +122,7 @@ public class OperationRecordLog {
     public String getOperator() {
         return operator;
     }
-    
+
     /**
      * set operator.
      *
@@ -131,7 +131,7 @@ public class OperationRecordLog {
     public void setOperator(final String operator) {
         this.operator = operator;
     }
-    
+
     /**
      * get operationTime.
      *
@@ -140,7 +140,7 @@ public class OperationRecordLog {
     public Date getOperationTime() {
         return operationTime;
     }
-    
+
     /**
      * set operationTime.
      *
@@ -149,7 +149,7 @@ public class OperationRecordLog {
     public void setOperationTime(final Date operationTime) {
         this.operationTime = operationTime;
     }
-    
+
     /**
      * get operationType.
      *
@@ -158,7 +158,7 @@ public class OperationRecordLog {
     public String getOperationType() {
         return operationType;
     }
-    
+
     /**
      * set operationType.
      *
@@ -167,16 +167,16 @@ public class OperationRecordLog {
     public void setOperationType(final String operationType) {
         this.operationType = operationType;
     }
-    
+
     @Override
     public String toString() {
         return "OperationRecordLog{"
-                + "id=" + id
-                + ", color='" + color + '\''
-                + ", context='" + context + '\''
-                + ", operator='" + operator + '\''
-                + ", operationTime=" + operationTime
-                + ", operationType='" + operationType + '\''
-                + '}';
+            + "id=" + id
+            + ", color='" + color + '\''
+            + ", context='" + context + '\''
+            + ", operator='" + operator + '\''
+            + ", operationTime=" + operationTime
+            + ", operationType='" + operationType + '\''
+            + '}';
     }
 }

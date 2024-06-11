@@ -17,13 +17,14 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.dto.TagDTO;
+import org.apache.shenyu.common.utils.UUIDUtils;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.model.dto.TagDTO;
-import org.apache.shenyu.common.utils.UUIDUtils;
 
 public final class TagDO extends BaseDO {
 
@@ -48,6 +49,42 @@ public final class TagDO extends BaseDO {
      * ext.
      */
     private String ext;
+
+    /**
+     * build tagDO.
+     *
+     * @param tagDTO {@linkplain TagDTO}
+     * @return {@linkplain TagDO}
+     */
+    public static TagDO buildTagDO(final TagDTO tagDTO) {
+        return Optional.ofNullable(tagDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            TagDO tagDO = TagDO.builder()
+                .parentTagId(tagDTO.getParentTagId())
+                .tagDesc(tagDTO.getTagDesc())
+                .name(tagDTO.getName())
+                .dateUpdated(currentTime)
+                .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                tagDO.setId(UUIDUtils.getInstance().generateShortUuid());
+            } else {
+                tagDO.setId(item.getId());
+            }
+            if (Objects.isNull(tagDO.getDateCreated())) {
+                tagDO.setDateCreated(currentTime);
+            }
+            return tagDO;
+        }).orElse(null);
+    }
+
+    /**
+     * builder.
+     *
+     * @return TagDO.TagDOBuilder
+     */
+    public static TagDO.TagDOBuilder builder() {
+        return new TagDO.TagDOBuilder();
+    }
 
     /**
      * getName.
@@ -121,15 +158,6 @@ public final class TagDO extends BaseDO {
         this.ext = ext;
     }
 
-    /**
-     * builder.
-     *
-     * @return TagDO.TagDOBuilder
-     */
-    public static TagDO.TagDOBuilder builder() {
-        return new TagDO.TagDOBuilder();
-    }
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -143,36 +171,9 @@ public final class TagDO extends BaseDO {
         }
         TagDO tagDO = (TagDO) o;
         return Objects.equals(name, tagDO.name)
-                && Objects.equals(tagDesc, tagDO.tagDesc)
-                && Objects.equals(ext, tagDO.ext)
-                && Objects.equals(parentTagId, tagDO.parentTagId);
-    }
-
-    /**
-     * build tagDO.
-     *
-     * @param tagDTO {@linkplain TagDTO}
-     * @return {@linkplain TagDO}
-     */
-    public static TagDO buildTagDO(final TagDTO tagDTO) {
-        return Optional.ofNullable(tagDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            TagDO tagDO = TagDO.builder()
-                    .parentTagId(tagDTO.getParentTagId())
-                    .tagDesc(tagDTO.getTagDesc())
-                    .name(tagDTO.getName())
-                    .dateUpdated(currentTime)
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                tagDO.setId(UUIDUtils.getInstance().generateShortUuid());
-            } else {
-                tagDO.setId(item.getId());
-            }
-            if (Objects.isNull(tagDO.getDateCreated())) {
-                tagDO.setDateCreated(currentTime);
-            }
-            return tagDO;
-        }).orElse(null);
+            && Objects.equals(tagDesc, tagDO.tagDesc)
+            && Objects.equals(ext, tagDO.ext)
+            && Objects.equals(parentTagId, tagDO.parentTagId);
     }
 
     @Override

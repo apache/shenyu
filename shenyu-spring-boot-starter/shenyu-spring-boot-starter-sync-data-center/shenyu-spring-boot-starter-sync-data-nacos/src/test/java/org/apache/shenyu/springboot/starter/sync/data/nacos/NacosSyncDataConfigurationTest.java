@@ -34,8 +34,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Properties;
 
-import static org.mockito.Answers.CALLS_REAL_METHODS;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Answers.CALLS_REAL_METHODS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -45,11 +45,11 @@ import static org.mockito.Mockito.mockStatic;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
-        classes = NacosSyncDataConfiguration.class,
-        properties = {
-                "shenyu.sync.nacos.url=localhost:8848",
-                "shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c"
-        })
+    classes = NacosSyncDataConfiguration.class,
+    properties = {
+        "shenyu.sync.nacos.url=localhost:8848",
+        "shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c"
+    })
 @EnableAutoConfiguration
 @MockBean(name = "nacosConfigService", value = NacosMockConfigService.class, answer = CALLS_REAL_METHODS)
 public final class NacosSyncDataConfigurationTest {

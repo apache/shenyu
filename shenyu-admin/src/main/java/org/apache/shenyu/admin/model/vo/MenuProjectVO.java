@@ -21,7 +21,6 @@ import java.util.List;
 
 /**
  * MenuProjectVO.
- *
  */
 public class MenuProjectVO {
 

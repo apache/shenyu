@@ -19,10 +19,10 @@ package org.apache.shenyu.plugin.logging.clickhouse.client;
 
 import com.clickhouse.client.ClickHouseClient;
 import com.clickhouse.client.ClickHouseCredentials;
-import com.clickhouse.client.ClickHouseNode;
-import com.clickhouse.client.ClickHouseRequest;
 import com.clickhouse.client.ClickHouseFormat;
+import com.clickhouse.client.ClickHouseNode;
 import com.clickhouse.client.ClickHouseProtocol;
+import com.clickhouse.client.ClickHouseRequest;
 import com.clickhouse.client.ClickHouseValue;
 import com.clickhouse.client.data.ClickHouseIntegerValue;
 import com.clickhouse.client.data.ClickHouseLongValue;

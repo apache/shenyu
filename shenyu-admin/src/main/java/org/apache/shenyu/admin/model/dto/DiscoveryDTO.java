@@ -204,6 +204,7 @@ public class DiscoveryDTO implements Serializable {
 
     /**
      * Get discovery handler.
+     *
      * @return discovery handler
      */
     public DiscoveryHandlerDTO getDiscoveryHandler() {
@@ -212,6 +213,7 @@ public class DiscoveryDTO implements Serializable {
 
     /**
      * Set discovery handler.
+     *
      * @param discoveryHandler discovery handler
      */
     public void setDiscoveryHandler(final DiscoveryHandlerDTO discoveryHandler) {
@@ -220,6 +222,7 @@ public class DiscoveryDTO implements Serializable {
 
     /**
      * Get discovery rel.
+     *
      * @return discovery rel
      */
     public DiscoveryRelDTO getDiscoveryRel() {
@@ -228,10 +231,16 @@ public class DiscoveryDTO implements Serializable {
 
     /**
      * Set discovery rel.
+     *
      * @param discoveryRel discovery rel
      */
     public void setDiscoveryRel(final DiscoveryRelDTO discoveryRel) {
         this.discoveryRel = discoveryRel;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, type, serverList, props, level, pluginName, discoveryHandler, discoveryRel);
     }
 
     @Override
@@ -245,14 +254,9 @@ public class DiscoveryDTO implements Serializable {
 
         DiscoveryDTO that = (DiscoveryDTO) o;
         return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(type, that.type)
-                && Objects.equals(serverList, that.serverList) && Objects.equals(props, that.props)
-                && Objects.equals(level, that.level) && Objects.equals(pluginName, that.pluginName)
-                && Objects.equals(discoveryHandler, that.discoveryHandler)
-                && Objects.equals(discoveryRel, that.discoveryRel);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, type, serverList, props, level, pluginName, discoveryHandler, discoveryRel);
+            && Objects.equals(serverList, that.serverList) && Objects.equals(props, that.props)
+            && Objects.equals(level, that.level) && Objects.equals(pluginName, that.pluginName)
+            && Objects.equals(discoveryHandler, that.discoveryHandler)
+            && Objects.equals(discoveryRel, that.discoveryRel);
     }
 }

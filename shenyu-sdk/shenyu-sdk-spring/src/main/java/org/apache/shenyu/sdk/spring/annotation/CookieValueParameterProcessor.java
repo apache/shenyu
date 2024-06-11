@@ -17,19 +17,20 @@
 
 package org.apache.shenyu.sdk.spring.annotation;
 
-import static com.google.common.base.Strings.emptyToNull;
 import com.google.common.collect.Lists;
-import java.lang.annotation.Annotation;
-import java.util.Collection;
-import java.util.Map;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
-import static org.apache.shenyu.sdk.core.util.Util.checkState;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.CookieValue;
 
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.Map;
+
+import static com.google.common.base.Strings.emptyToNull;
+import static org.apache.shenyu.sdk.core.util.Util.checkState;
 
 /**
  * annotation processor.

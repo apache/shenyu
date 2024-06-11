@@ -84,6 +84,11 @@ public class DashboardUserQuery implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(userName, pageParameter);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -93,10 +98,5 @@ public class DashboardUserQuery implements Serializable {
         }
         DashboardUserQuery that = (DashboardUserQuery) o;
         return Objects.equals(userName, that.userName) && Objects.equals(pageParameter, that.pageParameter);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(userName, pageParameter);
     }
 }

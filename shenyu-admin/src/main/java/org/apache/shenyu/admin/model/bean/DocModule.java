@@ -21,7 +21,6 @@ import java.util.List;
 
 /**
  * DocModule.
- *
  */
 public class DocModule {
 

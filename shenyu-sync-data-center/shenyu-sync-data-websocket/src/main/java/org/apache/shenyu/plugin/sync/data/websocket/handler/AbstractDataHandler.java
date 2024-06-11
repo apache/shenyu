@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
-import java.util.List;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+
+import java.util.List;
 
 /**
  * The type Abstract data handler.

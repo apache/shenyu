@@ -17,11 +17,6 @@
 
 package org.apache.shenyu.springboot.sync.data.zookeeper;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.zookeeper.ZookeeperClient;
@@ -34,20 +29,23 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 /**
  * test case for {@link ZookeeperSyncDataConfiguration}.
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
-        classes = {
-                ZookeeperSyncDataConfiguration.class
-        },
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {
-                "shenyu.sync.zookeeper.url=localhost:2181",
-                "shenyu.sync.zookeeper.sessionTimeout=30000",
-                "shenyu.sync.zookeeper.connectionTimeout=500"
-        })
+    classes = ZookeeperSyncDataConfiguration.class,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = {
+        "shenyu.sync.zookeeper.url=localhost:2181",
+        "shenyu.sync.zookeeper.sessionTimeout=30000",
+        "shenyu.sync.zookeeper.connectionTimeout=500"
+    })
 @EnableAutoConfiguration
 @MockBean({PluginDataSubscriber.class, ZookeeperClient.class})
 public final class ZookeeperSyncDataConfigurationTest {

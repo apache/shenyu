@@ -84,6 +84,11 @@ public class ResourceQuery implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(title, pageParameter);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -93,10 +98,5 @@ public class ResourceQuery implements Serializable {
         }
         ResourceQuery that = (ResourceQuery) o;
         return Objects.equals(title, that.title) && Objects.equals(pageParameter, that.pageParameter);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(title, pageParameter);
     }
 }

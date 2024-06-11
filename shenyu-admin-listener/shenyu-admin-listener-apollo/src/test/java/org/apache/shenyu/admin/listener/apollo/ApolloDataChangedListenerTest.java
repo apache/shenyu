@@ -31,7 +31,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ContextConfiguration(classes = {ApolloDataChangedListener.class})
+@ContextConfiguration(classes = ApolloDataChangedListener.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ApolloDataChangedListenerTest {
 
@@ -63,7 +63,7 @@ public class ApolloDataChangedListenerTest {
     @Test
     public void testPublishConfig() {
         doNothing().when(apolloClient)
-                .createOrUpdateItem(Mockito.any(), Mockito.<Object>any(), Mockito.any());
+            .createOrUpdateItem(Mockito.any(), Mockito.<Object>any(), Mockito.any());
         doNothing().when(apolloClient).publishNamespace(Mockito.any(), Mockito.any());
         apolloDataChangedListener.doPublishConfig("42", "Data");
         verify(apolloClient).createOrUpdateItem(Mockito.any(), Mockito.<Object>any(), Mockito.any());

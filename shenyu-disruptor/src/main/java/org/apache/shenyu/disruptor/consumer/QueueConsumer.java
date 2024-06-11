@@ -18,11 +18,11 @@
 package org.apache.shenyu.disruptor.consumer;
 
 import com.lmax.disruptor.WorkHandler;
-import java.util.Objects;
 import org.apache.shenyu.disruptor.event.DataEvent;
 import org.apache.shenyu.disruptor.event.OrderlyDataEvent;
 import org.apache.shenyu.disruptor.thread.OrderlyExecutor;
 
+import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**

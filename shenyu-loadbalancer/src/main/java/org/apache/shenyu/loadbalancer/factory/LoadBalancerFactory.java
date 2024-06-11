@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.loadbalancer.factory;
 
-import java.util.List;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
 import org.apache.shenyu.spi.ExtensionLoader;
+
+import java.util.List;
 
 /**
  * The type Load balance Factory.

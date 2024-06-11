@@ -102,8 +102,8 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult applyCreate(final AuthApplyDTO authApplyDTO) {
-        if (StringUtils.isBlank(authApplyDTO.getAppName())
-                || (authApplyDTO.getOpen() && CollectionUtils.isEmpty(authApplyDTO.getPathList()))) {
+        boolean emptyPath = authApplyDTO.getOpen() && CollectionUtils.isEmpty(authApplyDTO.getPathList());
+        if (StringUtils.isBlank(authApplyDTO.getAppName()) || emptyPath) {
             return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
         }
         AppAuthDO appAuthDO = AppAuthDO.create(authApplyDTO);
@@ -140,8 +140,8 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     public ShenyuAdminResult applyUpdate(final AuthApplyDTO authApplyDTO) {
-        if (StringUtils.isAnyBlank(authApplyDTO.getAppKey(), authApplyDTO.getAppName())
-                || (authApplyDTO.getOpen() && CollectionUtils.isEmpty(authApplyDTO.getPathList()))) {
+        boolean emptyPath = authApplyDTO.getOpen() && CollectionUtils.isEmpty(authApplyDTO.getPathList());
+        if (StringUtils.isAnyBlank(authApplyDTO.getAppKey(), authApplyDTO.getAppName()) || emptyPath) {
             return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
         }
         AppAuthDO appAuthDO = appAuthMapper.findByAppKey(authApplyDTO.getAppKey());

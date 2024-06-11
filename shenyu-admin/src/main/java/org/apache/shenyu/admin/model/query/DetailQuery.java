@@ -23,7 +23,6 @@ import java.util.Objects;
 
 public class DetailQuery {
 
-
     /**
      * field value.
      */
@@ -81,7 +80,6 @@ public class DetailQuery {
         this.valueDesc = valueDesc;
     }
 
-
     /**
      * getPageParameter.
      *
@@ -101,6 +99,11 @@ public class DetailQuery {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(fieldValue, valueDesc, pageParameter);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -110,12 +113,7 @@ public class DetailQuery {
         }
         DetailQuery that = (DetailQuery) o;
         return Objects.equals(fieldValue, that.fieldValue)
-                && Objects.equals(valueDesc, that.valueDesc)
-                && Objects.equals(pageParameter, that.pageParameter);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(fieldValue, valueDesc, pageParameter);
+            && Objects.equals(valueDesc, that.valueDesc)
+            && Objects.equals(pageParameter, that.pageParameter);
     }
 }

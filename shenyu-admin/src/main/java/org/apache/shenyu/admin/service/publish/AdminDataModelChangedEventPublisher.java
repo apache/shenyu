@@ -28,7 +28,7 @@ import java.util.Collection;
  * ModelDataEventPublisher.
  */
 public interface AdminDataModelChangedEventPublisher<T> {
-    
+
     /**
      * on  created.
      *
@@ -37,7 +37,7 @@ public interface AdminDataModelChangedEventPublisher<T> {
     default void onCreated(final T data) {
         publish(new AdminDataModelChangedEvent(data, null, EventTypeEnum.CREATE, SessionUtil.visitorName()));
     }
-    
+
     /**
      * on  created.
      *
@@ -46,7 +46,7 @@ public interface AdminDataModelChangedEventPublisher<T> {
     default void onCreated(final Collection<T> data) {
         publish(new BatchChangedEvent(data, null, EventTypeEnum.CREATE, SessionUtil.visitorName()));
     }
-    
+
     /**
      * on data updated.
      *
@@ -56,7 +56,7 @@ public interface AdminDataModelChangedEventPublisher<T> {
     default void onUpdated(final T data, final T before) {
         publish(new AdminDataModelChangedEvent(data, before, EventTypeEnum.UPDATE, SessionUtil.visitorName()));
     }
-    
+
     /**
      * on data updated.
      *
@@ -66,7 +66,7 @@ public interface AdminDataModelChangedEventPublisher<T> {
     default void onUpdated(final Collection<T> data, final Collection<T> before) {
         publish(new BatchChangedEvent(data, before, EventTypeEnum.UPDATE, SessionUtil.visitorName()));
     }
-    
+
     /**
      * on data deleted.
      *
@@ -75,8 +75,7 @@ public interface AdminDataModelChangedEventPublisher<T> {
     default void onDeleted(final T data) {
         publish(new AdminDataModelChangedEvent(data, null, EventTypeEnum.DELETE, SessionUtil.visitorName()));
     }
-    
-    
+
     /**
      * on data deleted.
      *
@@ -85,7 +84,7 @@ public interface AdminDataModelChangedEventPublisher<T> {
     default void onDeleted(final Collection<T> data) {
         publish(new BatchChangedEvent(data, null, EventTypeEnum.DELETE, SessionUtil.visitorName()));
     }
-    
+
     /**
      * event.
      *

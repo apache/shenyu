@@ -67,7 +67,6 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 /**
  * The test for  {@link EtcdDiscoveryService } .
  */
@@ -146,13 +145,13 @@ public class EtcdDiscoveryServiceTest {
 
         final Watch watch = mock(Watch.class);
         when(watch.watch(any(ByteSequence.class), any(WatchOption.class), any(Watch.Listener.class)))
-                .thenReturn(mock(Watch.Watcher.class));
+            .thenReturn(mock(Watch.Watcher.class));
         final KV kvClient = mock(KV.class);
         when(etcdClient.getKVClient()).thenReturn(kvClient);
         final GetResponse getResponse = mock(GetResponse.class);
         final CompletableFuture<GetResponse> completableFuture = mock(CompletableFuture.class);
         when(completableFuture.get())
-                .thenReturn(getResponse);
+            .thenReturn(getResponse);
         when(kvClient.get(any(ByteSequence.class), any(GetOption.class))).thenReturn(completableFuture);
         when(etcdClient.getWatchClient()).thenReturn(watch);
 
@@ -211,9 +210,9 @@ public class EtcdDiscoveryServiceTest {
         final PutResponse putResponse = mock(PutResponse.class);
         final CompletableFuture<PutResponse> completableFuture = mock(CompletableFuture.class);
         when(completableFuture.get(anyLong(), any(TimeUnit.class)))
-                .thenReturn(putResponse);
+            .thenReturn(putResponse);
         when(kvClient.put(any(ByteSequence.class), any(ByteSequence.class), any(PutOption.class)))
-                .thenReturn(completableFuture);
+            .thenReturn(completableFuture);
         etcdDiscoveryServiceUnderTest.register(key, value);
 
         doThrow(new InterruptedException()).when(completableFuture).get(anyLong(), any(TimeUnit.class));

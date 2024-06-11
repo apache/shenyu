@@ -55,18 +55,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
-        classes = {
-                HttpSyncDataConfiguration.class
-        },
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {
-                "shenyu.sync.http.url=http://localhost:18848",
-                "shenyu.sync.http.delayTime=3",
-                "shenyu.sync.http.username=admin",
-                "shenyu.sync.http.password=123456",
-                "shenyu.sync.http.connectionTimeout=5",
-                "spring.main.web-application-type=none"
-        })
+    classes = HttpSyncDataConfiguration.class,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = {
+        "shenyu.sync.http.url=http://localhost:18848",
+        "shenyu.sync.http.delayTime=3",
+        "shenyu.sync.http.username=admin",
+        "shenyu.sync.http.password=123456",
+        "shenyu.sync.http.connectionTimeout=5",
+        "spring.main.web-application-type=none"
+    })
 @EnableAutoConfiguration
 @MockBean({PluginDataSubscriber.class, ServletWebServerFactory.class})
 public final class HttpClientPluginConfigurationTest {
@@ -82,23 +80,23 @@ public final class HttpClientPluginConfigurationTest {
         WireMockServer wireMockServer = new WireMockServer(options().port(18848));
 
         wireMockServer.stubFor(get(urlPathEqualTo("/platform/login"))
-                .willReturn(aResponse()
-                        .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
-                        .withBody(mockLoginResponseJson())
-                        .withStatus(200))
+            .willReturn(aResponse()
+                .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                .withBody(mockLoginResponseJson())
+                .withStatus(200))
         );
 
         wireMockServer.stubFor(get(urlPathEqualTo("/configs/fetch"))
-                .willReturn(aResponse()
-                        .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
-                        .withBody(mockConfigsFetchResponseJson())
-                        .withStatus(200))
+            .willReturn(aResponse()
+                .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                .withBody(mockConfigsFetchResponseJson())
+                .withStatus(200))
         );
         wireMockServer.stubFor(post(urlPathEqualTo("/configs/listener"))
-                .willReturn(aResponse()
-                        .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
-                        .withBody(mockConfigsListenResponseJson())
-                        .withStatus(200))
+            .willReturn(aResponse()
+                .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                .withBody(mockConfigsListenResponseJson())
+                .withStatus(200))
         );
 
         wireMockServer.start();
@@ -124,8 +122,8 @@ public final class HttpClientPluginConfigurationTest {
     // mock configs fetch api response
     private static String mockConfigsFetchResponseJson() throws Exception {
         return new String(Files.readAllBytes(
-                Paths.get(Objects.requireNonNull(HttpClientPluginConfigurationTest.class.getClassLoader()
-                        .getResource("mock_configs_fetch_response.json")).toURI())));
+            Paths.get(Objects.requireNonNull(HttpClientPluginConfigurationTest.class.getClassLoader()
+                .getResource("mock_configs_fetch_response.json")).toURI())));
     }
 
     // mock configs fetch api response

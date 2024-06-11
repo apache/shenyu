@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.springboot.starter.plugin.logging.tencent.cls;
 
-import org.apache.shenyu.plugin.tencent.cls.LoggingTencentClsPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.tencent.cls.LoggingTencentClsPlugin;
 import org.apache.shenyu.plugin.tencent.cls.handler.LoggingTencentClsPluginDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Logging Tencent cls plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.plugins.logging-tencent-cls.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.plugins.logging-tencent-cls.enabled", havingValue = "true", matchIfMissing = true)
 public class LoggingTencentClsPluginConfiguration {
 
     /**

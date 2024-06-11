@@ -62,6 +62,15 @@ public final class ParameterDO extends BaseDO {
     private String ext;
 
     /**
+     * return ParameterDOBuilder.
+     *
+     * @return ParameterDOBuilder
+     */
+    public static ParameterDOBuilder builder() {
+        return new ParameterDOBuilder();
+    }
+
+    /**
      * get api_id.
      *
      * @return api_Id
@@ -188,6 +197,11 @@ public final class ParameterDO extends BaseDO {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), apiId, modelId, type, name, paramDesc, required, ext);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -200,26 +214,12 @@ public final class ParameterDO extends BaseDO {
         }
         ParameterDO parameterDO = (ParameterDO) o;
         return Objects.equals(apiId, parameterDO.apiId)
-                && Objects.equals(modelId, parameterDO.modelId)
-                && Objects.equals(type, parameterDO.type)
-                && Objects.equals(name, parameterDO.name)
-                && Objects.equals(paramDesc, parameterDO.paramDesc)
-                && Objects.equals(required, parameterDO.required)
-                && Objects.equals(ext, parameterDO.ext);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), apiId, modelId, type, name, paramDesc, required, ext);
-    }
-
-    /**
-     * return ParameterDOBuilder.
-     *
-     * @return ParameterDOBuilder
-     */
-    public static ParameterDOBuilder builder() {
-        return new ParameterDOBuilder();
+            && Objects.equals(modelId, parameterDO.modelId)
+            && Objects.equals(type, parameterDO.type)
+            && Objects.equals(name, parameterDO.name)
+            && Objects.equals(paramDesc, parameterDO.paramDesc)
+            && Objects.equals(required, parameterDO.required)
+            && Objects.equals(ext, parameterDO.ext);
     }
 
     public static final class ParameterDOBuilder {

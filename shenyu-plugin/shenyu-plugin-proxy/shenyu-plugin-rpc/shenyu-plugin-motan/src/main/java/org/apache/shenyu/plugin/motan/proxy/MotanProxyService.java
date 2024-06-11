@@ -50,12 +50,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.LinkedBlockingQueue;
-
 
 /**
  * Motan proxy service.
@@ -99,7 +98,7 @@ public class MotanProxyService {
         //CHECKSTYLE:OFF IllegalCatch
         try {
             Request request = MotanClientUtil.buildRequest(reference.getServiceInterface(), metaData.getMethodName(), metaData.getParameterTypes(), pair.getRight(), null);
-            responseFuture = (ResponseFuture)commonClient.asyncCall(request, Object.class);
+            responseFuture = (ResponseFuture) commonClient.asyncCall(request, Object.class);
         } catch (Throwable e) {
             LOG.error("Exception caught in MotanProxyService#genericInvoker.", e);
             return null;
@@ -107,7 +106,8 @@ public class MotanProxyService {
         //CHECKSTYLE:ON IllegalCatch
         initThreadPool();
         CompletableFuture<Object> future = CompletableFuture.supplyAsync(responseFuture::getValue, threadPool);
-        return Mono.fromFuture(future.thenApply(ret -> {
+        return Mono.fromFuture(future.thenApply(retstr -> {
+            Object ret = retstr;
             if (Objects.isNull(ret)) {
                 ret = Constants.MOTAN_RPC_RESULT_EMPTY;
             }
@@ -125,9 +125,9 @@ public class MotanProxyService {
         if (Objects.isNull(config)) {
             // should not execute to here
             threadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
-                    60L, TimeUnit.SECONDS,
-                    new SynchronousQueue<Runnable>(),
-                    factory);
+                60L, TimeUnit.SECONDS,
+                new SynchronousQueue<Runnable>(),
+                factory);
             return;
         }
         final String threadpool = Optional.ofNullable(config.getThreadpool()).orElse(Constants.CACHED);
@@ -149,7 +149,7 @@ public class MotanProxyService {
                 int maximumPoolSize = Optional.ofNullable(config.getThreads()).orElse(Integer.MAX_VALUE);
                 int queueSize = Optional.ofNullable(config.getQueues()).orElse(0);
                 threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 60L, TimeUnit.SECONDS,
-                        queueSize > 0 ? new LinkedBlockingQueue<>(queueSize) : new SynchronousQueue<>(), factory);
+                    queueSize > 0 ? new LinkedBlockingQueue<>(queueSize) : new SynchronousQueue<>(), factory);
         }
     }
 

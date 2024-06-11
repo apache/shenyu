@@ -38,7 +38,7 @@ public class RateLimiterResponse implements Serializable {
      *
      * @param allowed         the allowed
      * @param tokensRemaining the tokens remaining
-     * @param keys the redis keys
+     * @param keys            the redis keys
      */
     public RateLimiterResponse(final boolean allowed, final long tokensRemaining, final List<String> keys) {
         this.allowed = allowed;
@@ -63,7 +63,6 @@ public class RateLimiterResponse implements Serializable {
     public long getTokensRemaining() {
         return tokensRemaining;
     }
-
 
     /**
      * get redis keys.

@@ -17,14 +17,6 @@
 
 package org.apache.shenyu.admin.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
 import org.apache.shenyu.admin.mapper.FieldMapper;
 import org.apache.shenyu.admin.model.dto.FieldDTO;
 import org.apache.shenyu.admin.model.entity.FieldDO;
@@ -33,7 +25,6 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.FieldQuery;
 import org.apache.shenyu.admin.model.vo.FieldVO;
 import org.apache.shenyu.admin.service.impl.FieldServiceImpl;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,6 +35,14 @@ import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 /**
  * test for {@linkplain FieldServiceImpl}.

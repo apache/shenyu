@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import java.io.Serializable;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+
+import java.io.Serializable;
 
 /**
  * this tag from web front.
@@ -71,6 +72,7 @@ public class TagDTO implements Serializable {
 
     /**
      * set primary key.
+     *
      * @param id id
      */
     public void setId(final String id) {
@@ -88,6 +90,7 @@ public class TagDTO implements Serializable {
 
     /**
      * set name.
+     *
      * @param name name
      */
     public void setName(final String name) {

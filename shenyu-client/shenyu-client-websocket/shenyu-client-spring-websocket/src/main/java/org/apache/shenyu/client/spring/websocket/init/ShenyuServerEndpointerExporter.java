@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.spring.websocket.init;
 
-import java.util.Objects;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuServerEndpoint;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
@@ -32,6 +31,7 @@ import javax.websocket.DeploymentException;
 import javax.websocket.server.ServerContainer;
 import javax.websocket.server.ServerEndpointConfig;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class ShenyuServerEndpointerExporter extends WebApplicationObjectSupport {
 

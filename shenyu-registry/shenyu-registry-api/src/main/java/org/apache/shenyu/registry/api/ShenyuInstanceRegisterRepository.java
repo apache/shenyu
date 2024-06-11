@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.registry.api;
 
-import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.spi.SPI;
 
 import java.util.Collections;

@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Logging Huawei lts plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.plugins.logging-huawei-lts.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.plugins.logging-huawei-lts.enabled", havingValue = "true", matchIfMissing = true)
 public class LoggingHuaweiLtsPluginConfiguration {
     /**
      * logging Huawei lts plugin data handler.

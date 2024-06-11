@@ -22,15 +22,14 @@ import echo.EchoResponse;
 import echo.EchoServiceGrpc;
 import echo.Trace;
 import io.grpc.stub.StreamObserver;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.apache.shenyu.examples.common.aop.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 @Service
 public class EchoServiceImpl extends EchoServiceGrpc.EchoServiceImplBase {

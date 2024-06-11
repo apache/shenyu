@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.apache.dubbo.validation;
 
-import java.util.Objects;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtField;
@@ -64,6 +63,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 

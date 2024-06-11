@@ -20,9 +20,9 @@ package org.apache.shenyu.springboot.starter.netty;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.WriteBufferWaterMark;
 import org.apache.shenyu.common.config.NettyHttpProperties;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyFile;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -89,7 +89,8 @@ public class ShenyuNettyWebServerConfiguration {
                                                                        final ObjectProvider<TcpSslContextSpec> tcpSslContextSpecs) {
         NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
         NettyHttpProperties nettyHttpProperties = Optional.ofNullable(properties.getIfAvailable()).orElse(new NettyHttpProperties());
-        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyHttpProperties, httpServer -> {
+        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyHttpProperties, httpServers -> {
+            HttpServer httpServer = httpServers;
             // Configure sni certificates
             NettyHttpProperties.SniProperties sniProperties = nettyHttpProperties.getSni();
             if (sniProperties.getEnabled()) {

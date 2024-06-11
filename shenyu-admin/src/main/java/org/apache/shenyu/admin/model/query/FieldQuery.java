@@ -83,7 +83,6 @@ public class FieldQuery {
         this.fieldDesc = fieldDesc;
     }
 
-
     /**
      * getPageParameter.
      *
@@ -103,6 +102,11 @@ public class FieldQuery {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), name, fieldDesc);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -115,12 +119,7 @@ public class FieldQuery {
         }
         FieldQuery fieldDO = (FieldQuery) o;
         return Objects.equals(name, fieldDO.name)
-                && Objects.equals(fieldDesc, fieldDO.fieldDesc);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), name, fieldDesc);
+            && Objects.equals(fieldDesc, fieldDO.fieldDesc);
     }
 
 }

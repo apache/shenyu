@@ -141,7 +141,7 @@ public final class WebSocketUpstream extends CommonUpstream {
     public void setWarmup(final int warmup) {
         this.warmup = warmup;
     }
-    
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -162,26 +162,25 @@ public final class WebSocketUpstream extends CommonUpstream {
     @Override
     public String toString() {
         return "DivideUpstream{"
-                + "host='"
-                + host
-                + '\''
-                + ", protocol='"
-                + getProtocol()
-                + '\''
-                + ", url='"
-                + url
-                + '\''
-                + ", weight="
-                + weight
-                + ", status="
-                + isStatus()
-                + ", timestamp="
-                + getTimestamp()
-                + ", warmup="
-                + warmup
-                + '}';
+            + "host='"
+            + host
+            + '\''
+            + ", protocol='"
+            + getProtocol()
+            + '\''
+            + ", url='"
+            + url
+            + '\''
+            + ", weight="
+            + weight
+            + ", status="
+            + isStatus()
+            + ", timestamp="
+            + getTimestamp()
+            + ", warmup="
+            + warmup
+            + '}';
     }
-    
 
     /**
      * class builder.
@@ -212,7 +211,6 @@ public final class WebSocketUpstream extends CommonUpstream {
          * status.
          */
         private boolean status;
-        
 
         /**
          * timestamp.

@@ -17,12 +17,13 @@
 
 package org.apache.shenyu.admin.model.event.plugin;
 
-import java.sql.Timestamp;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.sql.Timestamp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -41,42 +42,42 @@ public class PluginChangedEventTest {
     public void setUp() {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         pluginDO = PluginDO.builder()
-                .id("1")
-                .name("test-plugin")
-                .config("{\"config\":\"test\"}")
-                .enabled(false)
-                .role("Test")
-                .sort(1)
-                .dateUpdated(now)
-                .dateCreated(now)
-                .build();
+            .id("1")
+            .name("test-plugin")
+            .config("{\"config\":\"test\"}")
+            .enabled(false)
+            .role("Test")
+            .sort(1)
+            .dateUpdated(now)
+            .dateCreated(now)
+            .build();
         withoutChangePluginDO = PluginDO.builder()
-                .id("1")
-                .name("test-plugin")
-                .config("{\"config\":\"test\"}")
-                .enabled(false)
-                .role("Test")
-                .sort(1)
-                .dateUpdated(now)
-                .dateCreated(now)
-                .build();
+            .id("1")
+            .name("test-plugin")
+            .config("{\"config\":\"test\"}")
+            .enabled(false)
+            .role("Test")
+            .sort(1)
+            .dateUpdated(now)
+            .dateCreated(now)
+            .build();
         changePluginDO = PluginDO.builder()
-                .id("1")
-                .name("test-plugin-change")
-                .config("{\"config\":\"test-change\"}")
-                .enabled(true)
-                .role("TestChange")
-                .sort(2)
-                .dateUpdated(now)
-                .dateCreated(now)
-                .build();
+            .id("1")
+            .name("test-plugin-change")
+            .config("{\"config\":\"test-change\"}")
+            .enabled(true)
+            .role("TestChange")
+            .sort(2)
+            .dateUpdated(now)
+            .dateCreated(now)
+            .build();
     }
 
     @Test
     public void deletePluginBuildContextTest() {
         PluginChangedEvent pluginDeleteEvent = new PluginChangedEvent(pluginDO, null, EventTypeEnum.PLUGIN_DELETE, "test-operator");
         String context =
-                String.format("the plugin [%s] is %s", pluginDO.getName(), StringUtils.lowerCase(EventTypeEnum.PLUGIN_DELETE.getType().toString()));
+            String.format("the plugin [%s] is %s", pluginDO.getName(), StringUtils.lowerCase(EventTypeEnum.PLUGIN_DELETE.getType().toString()));
         assertEquals(context, pluginDeleteEvent.buildContext());
     }
 
@@ -86,7 +87,7 @@ public class PluginChangedEventTest {
         PluginChangedEvent pluginUpdateEventWithoutChange = new PluginChangedEvent(pluginDO, pluginDO, EventTypeEnum.PLUGIN_UPDATE, "test-operator");
         String withoutChangeContrast = "it no change";
         String context =
-                String.format("the plugin [%s] is %s : %s", pluginDO.getName(), eventTypeStr, withoutChangeContrast);
+            String.format("the plugin [%s] is %s : %s", pluginDO.getName(), eventTypeStr, withoutChangeContrast);
         assertEquals(context, pluginUpdateEventWithoutChange.buildContext());
 
         PluginChangedEvent pluginUpdateEventNotSameDO = new PluginChangedEvent(withoutChangePluginDO, pluginDO, EventTypeEnum.PLUGIN_UPDATE, "test-operator");

@@ -56,43 +56,43 @@ public final class RoleChangedEventTest {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
         roleDO = RoleDO.builder()
-                .id(id)
-                .roleName("test-role")
-                .description("test role")
-                .dateUpdated(now)
-                .dateCreated(now)
-                .build();
+            .id(id)
+            .roleName("test-role")
+            .description("test role")
+            .dateUpdated(now)
+            .dateCreated(now)
+            .build();
         roleDORoleNameChange = RoleDO.builder()
-                .id(id)
-                .roleName("test-role-name-chang")
-                .description("test role")
-                .dateUpdated(now)
-                .dateCreated(now)
-                .build();
+            .id(id)
+            .roleName("test-role-name-chang")
+            .description("test role")
+            .dateUpdated(now)
+            .dateCreated(now)
+            .build();
         roleDODescriptionChange = RoleDO.builder()
-                .id(id)
-                .roleName("test-role")
-                .description("test role description change")
-                .dateUpdated(now)
-                .dateCreated(now)
-                .build();
+            .id(id)
+            .roleName("test-role")
+            .description("test role description change")
+            .dateUpdated(now)
+            .dateCreated(now)
+            .build();
         roleDOChange = RoleDO.builder()
-                .id(id)
-                .roleName("test-role-name-change")
-                .description("test role description change")
-                .dateUpdated(now)
-                .dateCreated(now)
-                .build();
+            .id(id)
+            .roleName("test-role-name-change")
+            .description("test role description change")
+            .dateUpdated(now)
+            .dateCreated(now)
+            .build();
         roleChangedEventRoleNameChangeTest =
-                new RoleChangedEvent(roleDORoleNameChange, roleDO, EventTypeEnum.ROLE_UPDATE, "test-op");
+            new RoleChangedEvent(roleDORoleNameChange, roleDO, EventTypeEnum.ROLE_UPDATE, "test-op");
         roleChangedEventDescriptionChangeTest =
-                new RoleChangedEvent(roleDODescriptionChange, roleDO, EventTypeEnum.ROLE_UPDATE, "test-op");
+            new RoleChangedEvent(roleDODescriptionChange, roleDO, EventTypeEnum.ROLE_UPDATE, "test-op");
         roleChangedEventTest =
-                new RoleChangedEvent(roleDOChange, roleDO, EventTypeEnum.ROLE_UPDATE, "test-op");
+            new RoleChangedEvent(roleDOChange, roleDO, EventTypeEnum.ROLE_UPDATE, "test-op");
         roleChangedEventBeforeNullTest =
-                new RoleChangedEvent(roleDO, null, EventTypeEnum.ROLE_UPDATE, "test-op");
+            new RoleChangedEvent(roleDO, null, EventTypeEnum.ROLE_UPDATE, "test-op");
         roleChangedEventWithoutChangeTest =
-                new RoleChangedEvent(roleDO, roleDO, EventTypeEnum.ROLE_UPDATE, "test-op");
+            new RoleChangedEvent(roleDO, roleDO, EventTypeEnum.ROLE_UPDATE, "test-op");
     }
 
     @Test
@@ -100,29 +100,29 @@ public final class RoleChangedEventTest {
         String roleUpdateStr = StringUtils.lowerCase(EventTypeEnum.ROLE_UPDATE.getType().toString());
 
         String roleNameChangeStr =
-                String.format("name[%s => %s] ", roleDO.getRoleName(), roleDORoleNameChange.getRoleName());
+            String.format("name[%s => %s] ", roleDO.getRoleName(), roleDORoleNameChange.getRoleName());
         String roleNameChangeExpectedStr = String.format("the role [%s] is %s : %s",
-                roleDORoleNameChange.getRoleName(), roleUpdateStr, roleNameChangeStr);
+            roleDORoleNameChange.getRoleName(), roleUpdateStr, roleNameChangeStr);
         assertEquals(roleNameChangeExpectedStr, roleChangedEventRoleNameChangeTest.buildContext());
 
         String descriptionChangeStr =
-                String.format("disc[%s => %s] ", roleDO.getDescription(), roleDODescriptionChange.getDescription());
+            String.format("disc[%s => %s] ", roleDO.getDescription(), roleDODescriptionChange.getDescription());
         String descriptionChangeExpectedStr = String.format("the role [%s] is %s : %s",
-                roleDODescriptionChange.getRoleName(), roleUpdateStr, descriptionChangeStr);
+            roleDODescriptionChange.getRoleName(), roleUpdateStr, descriptionChangeStr);
         assertEquals(descriptionChangeExpectedStr, roleChangedEventDescriptionChangeTest.buildContext());
 
         String changeStr = String.format("name[%s => %s] disc[%s => %s] ",
-                roleDO.getRoleName(), roleDOChange.getRoleName(),
-                roleDO.getDescription(), roleDOChange.getDescription());
+            roleDO.getRoleName(), roleDOChange.getRoleName(),
+            roleDO.getDescription(), roleDOChange.getDescription());
         String changeExpectedStr = String.format("the role [%s] is %s : %s",
-                roleDOChange.getRoleName(), roleUpdateStr, changeStr);
+            roleDOChange.getRoleName(), roleUpdateStr, changeStr);
         assertEquals(changeExpectedStr, roleChangedEventTest.buildContext());
 
         String beforeNullExpectedStr = String.format("the role [%s] is %s", roleDO.getRoleName(), roleUpdateStr);
         assertEquals(beforeNullExpectedStr, roleChangedEventBeforeNullTest.buildContext());
 
         String withoutChangeExpectedStr = String.format("the role [%s] is %s : it no change",
-                roleDO.getRoleName(), roleUpdateStr);
+            roleDO.getRoleName(), roleUpdateStr);
         assertEquals(withoutChangeExpectedStr, roleChangedEventWithoutChangeTest.buildContext());
     }
 

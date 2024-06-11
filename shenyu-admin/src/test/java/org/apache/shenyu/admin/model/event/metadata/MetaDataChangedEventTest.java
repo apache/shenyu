@@ -29,31 +29,32 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * test case for {@link MetaDataChangedEvent}.
  */
 public class MetaDataChangedEventTest {
+
     private MetaDataDO createDO;
 
     @BeforeEach
     public void setUp() {
         createDO = MetaDataDO.builder()
-                .id("1")
-                .appName("test-app")
-                .path("/test")
-                .pathDesc("test")
-                .rpcType("http")
-                .serviceName("org.apache.shenyu.examples.http.controller.TestController")
-                .methodName("post")
-                .parameterTypes("java.lang.String")
-                .rpcExt("test")
-                .enabled(true)
-                .build();
+            .id("1")
+            .appName("test-app")
+            .path("/test")
+            .pathDesc("test")
+            .rpcType("http")
+            .serviceName("org.apache.shenyu.examples.http.controller.TestController")
+            .methodName("post")
+            .parameterTypes("java.lang.String")
+            .rpcExt("test")
+            .enabled(true)
+            .build();
     }
 
     @Test
     public void metaDataDeleteContextTest() {
         MetaDataChangedEvent deleteEvent =
-                new MetaDataChangedEvent(createDO, null, EventTypeEnum.META_DATA_DELETE, "test-operator");
+            new MetaDataChangedEvent(createDO, null, EventTypeEnum.META_DATA_DELETE, "test-operator");
 
         String context = String.format("the metadata [%s %s] is %s",
-                createDO.getAppName(), createDO.getPath(), StringUtils.lowerCase(EventTypeEnum.META_DATA_DELETE.getType().toString()));
+            createDO.getAppName(), createDO.getPath(), StringUtils.lowerCase(EventTypeEnum.META_DATA_DELETE.getType().toString()));
 
         assertEquals(context, deleteEvent.buildContext());
     }

@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.model.entity;
 
-import java.util.Objects;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * field.
@@ -54,6 +54,15 @@ public class FieldDO extends BaseDO {
      * the ext.
      */
     private String ext;
+
+    /**
+     * builder.
+     *
+     * @return fieldDOBuilder
+     */
+    public static FieldDOBuilder builder() {
+        return new FieldDOBuilder();
+    }
 
     /**
      * getModelId.
@@ -164,6 +173,11 @@ public class FieldDO extends BaseDO {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), modelId, selfModelId, name, fieldDesc, required, ext);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -176,25 +190,11 @@ public class FieldDO extends BaseDO {
         }
         FieldDO fieldDO = (FieldDO) o;
         return Objects.equals(modelId, fieldDO.modelId)
-                && Objects.equals(selfModelId, fieldDO.selfModelId)
-                && Objects.equals(name, fieldDO.name)
-                && Objects.equals(fieldDesc, fieldDO.fieldDesc)
-                && Objects.equals(required, fieldDO.required)
-                && Objects.equals(ext, fieldDO.ext);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), modelId, selfModelId, name, fieldDesc, required, ext);
-    }
-
-    /**
-     * builder.
-     *
-     * @return fieldDOBuilder
-     */
-    public static FieldDOBuilder builder() {
-        return new FieldDOBuilder();
+            && Objects.equals(selfModelId, fieldDO.selfModelId)
+            && Objects.equals(name, fieldDO.name)
+            && Objects.equals(fieldDesc, fieldDO.fieldDesc)
+            && Objects.equals(required, fieldDO.required)
+            && Objects.equals(ext, fieldDO.ext);
     }
 
     public static final class FieldDOBuilder {

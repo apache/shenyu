@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.listener;
 
-import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.admin.utils.ShenyuDomain;
@@ -26,6 +25,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
 
 
 /**

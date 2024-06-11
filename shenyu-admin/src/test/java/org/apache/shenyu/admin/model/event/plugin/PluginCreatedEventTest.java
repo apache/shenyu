@@ -37,20 +37,20 @@ public class PluginCreatedEventTest {
     @BeforeEach
     public void setUp() {
         pluginDO = PluginDO.builder()
-                .id("1")
-                .name("test-plugin")
-                .config("{\"config\":\"test\"}")
-                .enabled(false)
-                .role("Test")
-                .sort(1)
-                .build();
+            .id("1")
+            .name("test-plugin")
+            .config("{\"config\":\"test\"}")
+            .enabled(false)
+            .role("Test")
+            .sort(1)
+            .build();
         pluginCreateEvent = new PluginCreatedEvent(pluginDO, "test-operator");
     }
 
     @Test
     public void createPluginBuildContextTest() {
         String context =
-                String.format("the plugin [%s] is %s", pluginDO.getName(), StringUtils.lowerCase(EventTypeEnum.PLUGIN_CREATE.getType().toString()));
+            String.format("the plugin [%s] is %s", pluginDO.getName(), StringUtils.lowerCase(EventTypeEnum.PLUGIN_CREATE.getType().toString()));
         assertEquals(context, pluginCreateEvent.buildContext());
     }
 

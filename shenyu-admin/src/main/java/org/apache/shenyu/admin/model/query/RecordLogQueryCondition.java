@@ -30,49 +30,47 @@ import java.util.Date;
  * RecordLogQueryCondition.
  */
 public class RecordLogQueryCondition extends BaseExcludedSearchCondition implements SearchCondition {
-    
+
     /**
      * search keyword: log context.
      */
     private String keyword;
-    
-    
+
     /**
      * log type.
      */
     private String type;
-    
+
     /**
      * start time.
      */
     @NotNull
     @JsonFormat(pattern = DateUtils.DATE_FORMAT_DATETIME)
     private Date startTime;
-    
+
     /**
      * end time.
      */
     @NotNull
     @JsonFormat(pattern = DateUtils.DATE_FORMAT_DATETIME)
     private Date endTime;
-    
+
     /**
      * username.
      */
     @JsonIgnore
     private String username;
-    
-    @Override
-    public void setKeyword(final String keyword) {
-        this.keyword = keyword;
-    }
-    
+
     @Override
     public String getKeyword() {
         return keyword;
     }
-    
-    
+
+    @Override
+    public void setKeyword(final String keyword) {
+        this.keyword = keyword;
+    }
+
     /**
      * get startTime.
      *
@@ -81,7 +79,7 @@ public class RecordLogQueryCondition extends BaseExcludedSearchCondition impleme
     public Date getStartTime() {
         return startTime;
     }
-    
+
     /**
      * set startTime.
      *
@@ -90,7 +88,7 @@ public class RecordLogQueryCondition extends BaseExcludedSearchCondition impleme
     public void setStartTime(final Date startTime) {
         this.startTime = startTime;
     }
-    
+
     /**
      * get endTime.
      *
@@ -99,7 +97,7 @@ public class RecordLogQueryCondition extends BaseExcludedSearchCondition impleme
     public Date getEndTime() {
         return endTime;
     }
-    
+
     /**
      * set endTime.
      *
@@ -108,7 +106,7 @@ public class RecordLogQueryCondition extends BaseExcludedSearchCondition impleme
     public void setEndTime(final Date endTime) {
         this.endTime = endTime;
     }
-    
+
     /**
      * get type.
      *
@@ -117,7 +115,7 @@ public class RecordLogQueryCondition extends BaseExcludedSearchCondition impleme
     public String getType() {
         return type;
     }
-    
+
     /**
      * set type.
      *
@@ -126,7 +124,7 @@ public class RecordLogQueryCondition extends BaseExcludedSearchCondition impleme
     public void setType(final String type) {
         this.type = type;
     }
-    
+
     /**
      * get username.
      *
@@ -135,7 +133,7 @@ public class RecordLogQueryCondition extends BaseExcludedSearchCondition impleme
     public String getUsername() {
         return username;
     }
-    
+
     /**
      * set username.
      *

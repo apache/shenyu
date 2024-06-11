@@ -84,6 +84,11 @@ public class MetaDataQuery implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(path, pageParameter);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -93,10 +98,5 @@ public class MetaDataQuery implements Serializable {
         }
         MetaDataQuery that = (MetaDataQuery) o;
         return Objects.equals(path, that.path) && Objects.equals(pageParameter, that.pageParameter);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(path, pageParameter);
     }
 }

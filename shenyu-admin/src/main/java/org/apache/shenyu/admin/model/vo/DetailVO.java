@@ -63,6 +63,32 @@ public class DetailVO {
     private Timestamp dateUpdated;
 
     /**
+     * buildDetailVO.
+     *
+     * @param detailDO detailDO
+     * @return DetailVO
+     */
+    public static DetailVO buildDetailVO(final DetailDO detailDO) {
+        return DetailVO.builder().id(detailDO.getId())
+            .example(detailDO.getExample())
+            .valueDesc(detailDO.getValueDesc())
+            .fieldValue(detailDO.getFieldValue())
+            .fieldId(detailDO.getFieldId())
+            .dateUpdated(detailDO.getDateUpdated())
+            .dateCreated(detailDO.getDateCreated())
+            .build();
+    }
+
+    /**
+     * builder.
+     *
+     * @return fieldDOBuilder
+     */
+    public static DetailVO.DetailVOBuilder builder() {
+        return new DetailVO.DetailVOBuilder();
+    }
+
+    /**
      * getId.
      *
      * @return id
@@ -189,6 +215,11 @@ public class DetailVO {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(id, fieldId, example, fieldValue, valueDesc, dateCreated, dateUpdated);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -198,45 +229,14 @@ public class DetailVO {
         }
         DetailVO detailDTO = (DetailVO) o;
         return Objects.equals(id, detailDTO.id)
-                && Objects.equals(fieldId, detailDTO.fieldId)
-                && Objects.equals(example, detailDTO.example)
-                && Objects.equals(fieldValue, detailDTO.fieldValue)
-                && Objects.equals(valueDesc, detailDTO.valueDesc)
-                && Objects.equals(dateCreated, detailDTO.dateCreated)
-                && Objects.equals(dateUpdated, detailDTO.dateUpdated);
+            && Objects.equals(fieldId, detailDTO.fieldId)
+            && Objects.equals(example, detailDTO.example)
+            && Objects.equals(fieldValue, detailDTO.fieldValue)
+            && Objects.equals(valueDesc, detailDTO.valueDesc)
+            && Objects.equals(dateCreated, detailDTO.dateCreated)
+            && Objects.equals(dateUpdated, detailDTO.dateUpdated);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, fieldId, example, fieldValue, valueDesc, dateCreated, dateUpdated);
-    }
-
-    /**
-     * builder.
-     *
-     * @return fieldDOBuilder
-     */
-    public static DetailVO.DetailVOBuilder builder() {
-        return new DetailVO.DetailVOBuilder();
-    }
-
-    /**
-     * buildDetailVO.
-     *
-     * @param detailDO detailDO
-     * @return DetailVO
-     */
-    public static DetailVO buildDetailVO(final DetailDO detailDO) {
-        return DetailVO.builder().id(detailDO.getId())
-                .example(detailDO.getExample())
-                .valueDesc(detailDO.getValueDesc())
-                .fieldValue(detailDO.getFieldValue())
-                .fieldId(detailDO.getFieldId())
-                .dateUpdated(detailDO.getDateUpdated())
-                .dateCreated(detailDO.getDateCreated())
-                .build();
-    }
-    
     /**
      * DetailVOBuilder.
      */

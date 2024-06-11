@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 /**
  * test case for {@link MetaDataCreatedEvent}.
  */
@@ -36,26 +35,26 @@ public class MetaDataCreatedEventTest {
     @BeforeEach
     public void setUp() {
         createDO = MetaDataDO.builder()
-                .id("1")
-                .appName("test-app")
-                .path("/test")
-                .pathDesc("test")
-                .rpcType("http")
-                .serviceName("org.apache.shenyu.examples.http.controller.TestController")
-                .methodName("post")
-                .parameterTypes("java.lang.String")
-                .rpcExt("test")
-                .enabled(true)
-                .build();
+            .id("1")
+            .appName("test-app")
+            .path("/test")
+            .pathDesc("test")
+            .rpcType("http")
+            .serviceName("org.apache.shenyu.examples.http.controller.TestController")
+            .methodName("post")
+            .parameterTypes("java.lang.String")
+            .rpcExt("test")
+            .enabled(true)
+            .build();
     }
 
     @Test
     public void metaDataCreateContextTest() {
         MetaDataChangedEvent createdEvent =
-                new MetaDataChangedEvent(createDO, null, EventTypeEnum.META_DATA_CREATE, "test-operator");
+            new MetaDataChangedEvent(createDO, null, EventTypeEnum.META_DATA_CREATE, "test-operator");
 
         String context = String.format("the metadata [%s %s] is %s",
-                createDO.getAppName(), createDO.getPath(), StringUtils.lowerCase(EventTypeEnum.META_DATA_CREATE.getType().toString()));
+            createDO.getAppName(), createDO.getPath(), StringUtils.lowerCase(EventTypeEnum.META_DATA_CREATE.getType().toString()));
 
         assertEquals(context, createdEvent.buildContext());
     }

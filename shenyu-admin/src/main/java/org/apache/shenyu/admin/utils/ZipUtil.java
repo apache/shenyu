@@ -40,7 +40,6 @@ public final class ZipUtil {
     private ZipUtil() {
     }
 
-
     /**
      * zip method.
      *
@@ -50,7 +49,7 @@ public final class ZipUtil {
     public static byte[] zip(final List<ZipItem> source) {
         byte[] result = null;
         try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream(); ZipOutputStream zipOut = new ZipOutputStream(
-                byteOut)) {
+            byteOut)) {
             for (ZipItem item : source) {
                 zipOut.putNextEntry(new ZipEntry(item.getItemName()));
                 zipOut.write(item.getItemData().getBytes(StandardCharsets.UTF_8));
@@ -128,6 +127,7 @@ public final class ZipUtil {
     }
 
     public static class UnZipResult {
+
         /**
          * zip item list.
          */

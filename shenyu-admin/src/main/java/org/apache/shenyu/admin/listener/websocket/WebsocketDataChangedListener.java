@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
-import java.util.List;
-
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
@@ -31,6 +29,8 @@ import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+
+import java.util.List;
 
 /**
  * The type Websocket data changed listener.

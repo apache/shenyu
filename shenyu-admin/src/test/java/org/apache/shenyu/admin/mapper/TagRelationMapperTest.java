@@ -18,15 +18,16 @@
 package org.apache.shenyu.admin.mapper;
 
 import com.google.common.collect.Lists;
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.Objects;
-import javax.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.query.TagRelationQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
+
+import javax.annotation.Resource;
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Objects;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;

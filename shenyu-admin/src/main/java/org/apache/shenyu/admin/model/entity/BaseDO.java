@@ -107,6 +107,11 @@ public class BaseDO implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(id, dateCreated, dateUpdated);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -116,10 +121,5 @@ public class BaseDO implements Serializable {
         }
         BaseDO baseDO = (BaseDO) o;
         return Objects.equals(id, baseDO.id) && Objects.equals(dateCreated, baseDO.dateCreated) && Objects.equals(dateUpdated, baseDO.dateUpdated);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, dateCreated, dateUpdated);
     }
 }

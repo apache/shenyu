@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.admin.model.bean;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * DocItem.

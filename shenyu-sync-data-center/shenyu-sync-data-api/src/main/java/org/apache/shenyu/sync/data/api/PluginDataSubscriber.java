@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.sync.data.api;
 
-import java.util.List;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+
+import java.util.List;
 
 /**
  * The interface Plugin data subscriber.

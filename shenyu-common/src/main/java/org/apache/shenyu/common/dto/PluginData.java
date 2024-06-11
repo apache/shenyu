@@ -67,12 +67,12 @@ public class PluginData {
     /**
      * all args constructor.
      *
-     * @param id id
-     * @param name name
-     * @param config config
-     * @param role role
+     * @param id      id
+     * @param name    name
+     * @param config  config
+     * @param role    role
      * @param enabled enabled
-     * @param sort sort
+     * @param sort    sort
      */
     public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled,
                       final Integer sort, final String pluginJar) {
@@ -192,6 +192,7 @@ public class PluginData {
 
     /**
      * get pluginJar.
+     *
      * @return pluginJar
      */
     public String getPluginJar() {
@@ -200,6 +201,7 @@ public class PluginData {
 
     /**
      * set pluginJar.
+     *
      * @param pluginJar pluginJar
      */
     public void setPluginJar(final String pluginJar) {
@@ -214,7 +216,6 @@ public class PluginData {
     public Integer getSort() {
         return sort;
     }
-
 
     /**
      * set sort.
@@ -244,7 +245,7 @@ public class PluginData {
         }
         PluginData that = (PluginData) o;
         return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(config, that.config)
-                && Objects.equals(role, that.role) && Objects.equals(enabled, that.enabled);
+            && Objects.equals(role, that.role) && Objects.equals(enabled, that.enabled);
     }
 
     @Override
@@ -255,14 +256,14 @@ public class PluginData {
     @Override
     public String toString() {
         return "PluginData{"
-                + "id='" + id + '\''
-                + ", name='" + name + '\''
-                + ", config='" + config + '\''
-                + ", role='" + role + '\''
-                + ", enabled=" + enabled
-                + ", sort=" + sort
-                + ", pluginJar=" + pluginJar
-                + '}';
+            + "id='" + id + '\''
+            + ", name='" + name + '\''
+            + ", config='" + config + '\''
+            + ", role='" + role + '\''
+            + ", enabled=" + enabled
+            + ", sort=" + sort
+            + ", pluginJar=" + pluginJar
+            + '}';
     }
 
     /**
@@ -304,7 +305,6 @@ public class PluginData {
          * sort.
          */
         private String pluginJar;
-
 
         /**
          * no args constructor.
@@ -387,11 +387,10 @@ public class PluginData {
             return this;
         }
 
-
         /**
          * build pluginJar.
          *
-         * @param  pluginJar pluginJar
+         * @param pluginJar pluginJar
          * @return this
          */
         public Builder pluginJar(final String pluginJar) {

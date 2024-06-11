@@ -35,30 +35,29 @@ import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.service.publish.ResourceEventPublisher;
 import org.apache.shenyu.admin.utils.Assert;
-import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ResourceUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
+import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.ResourceService}.
  */
 @Service
 public class ResourceServiceImpl implements ResourceService {
-    
+
     private final ResourceMapper resourceMapper;
-    
+
     private final ResourceEventPublisher publisher;
-    
+
     private final DashboardProperties properties;
-    
+
     public ResourceServiceImpl(final ResourceMapper resourceMapper,
                                final ResourceEventPublisher publisher,
                                final DashboardProperties properties) {
@@ -66,7 +65,7 @@ public class ResourceServiceImpl implements ResourceService {
         this.publisher = publisher;
         this.properties = properties;
     }
-    
+
     /**
      * create Resources.
      *
@@ -105,7 +104,7 @@ public class ResourceServiceImpl implements ResourceService {
         }
         return updateCount;
     }
-    
+
     /**
      * delete resource info.
      *
@@ -123,7 +122,7 @@ public class ResourceServiceImpl implements ResourceService {
         }
         return deleteCount;
     }
-    
+
     /**
      * find resource info by id.
      *
@@ -134,7 +133,7 @@ public class ResourceServiceImpl implements ResourceService {
     public ResourceVO findById(final String id) {
         return ResourceVO.buildResourceVO(resourceMapper.selectById(id));
     }
-    
+
     /**
      * find resource info by title.
      *
@@ -145,7 +144,7 @@ public class ResourceServiceImpl implements ResourceService {
     public ResourceVO findByTitle(final String title) {
         return ResourceVO.buildResourceVO(resourceMapper.selectByTitle(title));
     }
-    
+
     /**
      * find by title.
      *
@@ -156,7 +155,7 @@ public class ResourceServiceImpl implements ResourceService {
     public List<ResourceVO> listByTitles(final List<String> titles) {
         return ListUtil.map(resourceMapper.selectByTitles(titles), ResourceVO::buildResourceVO);
     }
-    
+
     /**
      * find page of role by query.
      *
@@ -167,11 +166,11 @@ public class ResourceServiceImpl implements ResourceService {
     @Pageable
     public CommonPager<ResourceVO> listByPage(final ResourceQuery resourceQuery) {
         return PageResultUtils.result(resourceQuery.getPageParameter(), () -> resourceMapper.selectByQuery(resourceQuery)
-                .stream()
-                .map(ResourceVO::buildResourceVO)
-                .collect(Collectors.toList()));
+            .stream()
+            .map(ResourceVO::buildResourceVO)
+            .collect(Collectors.toList()));
     }
-    
+
     /**
      * get menu info.
      *
@@ -181,13 +180,13 @@ public class ResourceServiceImpl implements ResourceService {
     public List<MenuInfo> getMenuTree() {
         // Hide super administrator special privileges
         List<ResourceVO> resourceVOList = resourceMapper.selectAll()
-                .stream()
-                .filter(r -> !properties.getOnlySuperAdminPermission().contains(r.getPerms()))
-                .map(ResourceVO::buildResourceVO)
-                .collect(Collectors.toList());
+            .stream()
+            .filter(r -> !properties.getOnlySuperAdminPermission().contains(r.getPerms()))
+            .map(ResourceVO::buildResourceVO)
+            .collect(Collectors.toList());
         return CollectionUtils.isEmpty(resourceVOList) ? null : ResourceUtil.buildMenu(resourceVOList);
     }
-    
+
     /**
      * get button by parent id.
      *
@@ -197,12 +196,12 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     public List<ResourceVO> findByParentId(final String id) {
         return resourceMapper.selectByParentId(id)
-                .stream()
-                .filter(item -> item.getResourceType().equals(AdminResourceEnum.THREE_MENU.getCode()))
-                .map(ResourceVO::buildResourceVO)
-                .collect(Collectors.toList());
+            .stream()
+            .filter(item -> item.getResourceType().equals(AdminResourceEnum.THREE_MENU.getCode()))
+            .map(ResourceVO::buildResourceVO)
+            .collect(Collectors.toList());
     }
-    
+
     /**
      * The associated Handle needs to be created synchronously.
      * add plugin and add plugin resource.
@@ -216,7 +215,7 @@ public class ResourceServiceImpl implements ResourceService {
         this.createOne(resourceDO);
         insertResourceBatch(ResourceUtil.buildPluginDataPermissionResource(resourceDO.getId(), event.getPlugin().getName()));
     }
-    
+
     /**
      * The associated Handle needs to be deleted synchronously.
      *
@@ -231,7 +230,7 @@ public class ResourceServiceImpl implements ResourceService {
             delete(ListUtil.map(resources, ResourceVO::getId));
         }
     }
-    
+
     private int createOne(final ResourceDO resource) {
         final int insertCount = resourceMapper.insertSelective(resource);
         if (insertCount > 0) {
@@ -239,7 +238,6 @@ public class ResourceServiceImpl implements ResourceService {
         }
         return insertCount;
     }
-    
 
     /**
      * insert Resources.

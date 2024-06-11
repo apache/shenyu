@@ -42,7 +42,6 @@ public class BigObject {
         this.id = id;
     }
 
-
     /**
      * get obj.
      *

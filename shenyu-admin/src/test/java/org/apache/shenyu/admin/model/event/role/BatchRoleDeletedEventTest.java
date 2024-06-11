@@ -52,22 +52,40 @@ public final class BatchRoleDeletedEventTest {
         batchRoleDeletedEventEmptySourceTest = new BatchRoleDeletedEvent(emptyRoleDOList, "test-op");
     }
 
+    private List<RoleDO> batchInitRoleDOList() {
+        int defaultInsertNum = 10;
+        List<RoleDO> roleDOList = new ArrayList<>();
+        for (int i = 0; i < defaultInsertNum; i++) {
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+            String id = UUIDUtils.getInstance().generateShortUuid();
+            RoleDO roleDO = RoleDO.builder()
+                .id(id)
+                .roleName("test-" + i)
+                .description("role-test-description")
+                .dateCreated(now)
+                .dateUpdated(now)
+                .build();
+            roleDOList.add(roleDO);
+        }
+        return roleDOList;
+    }
+
     @Test
     public void testBuildContext() {
         String expectedSelector = roleDOList
-                .stream()
-                .map(RoleDO::getRoleName)
-                .collect(Collectors.joining(","));
+            .stream()
+            .map(RoleDO::getRoleName)
+            .collect(Collectors.joining(","));
         String expectedStr = String.format("the role[%s] is %s", expectedSelector,
-                StringUtils.lowerCase(batchRoleDeletedEventTest.getType().getType().toString()));
+            StringUtils.lowerCase(batchRoleDeletedEventTest.getType().getType().toString()));
         assertEquals(expectedStr, batchRoleDeletedEventTest.buildContext());
 
         String expectedEmptySelector = emptyRoleDOList
-                .stream()
-                .map(RoleDO::getRoleName)
-                .collect(Collectors.joining(","));
+            .stream()
+            .map(RoleDO::getRoleName)
+            .collect(Collectors.joining(","));
         String expectedEmptyStr = String.format("the role[%s] is %s", expectedEmptySelector,
-                StringUtils.lowerCase(batchRoleDeletedEventEmptySourceTest.getType().getType().toString()));
+            StringUtils.lowerCase(batchRoleDeletedEventEmptySourceTest.getType().getType().toString()));
         assertEquals(expectedEmptyStr, batchRoleDeletedEventEmptySourceTest.buildContext());
     }
 
@@ -83,33 +101,15 @@ public final class BatchRoleDeletedEventTest {
     @Test
     public void testGetDeletedIds() {
         List<String> ids = roleDOList
-                .stream()
-                .map(BaseDO::getId)
-                .collect(Collectors.toList());
+            .stream()
+            .map(BaseDO::getId)
+            .collect(Collectors.toList());
         assertEquals(ids, batchRoleDeletedEventTest.getDeletedIds());
 
         List<String> emptyIds = emptyRoleDOList
-                .stream()
-                .map(BaseDO::getId)
-                .collect(Collectors.toList());
+            .stream()
+            .map(BaseDO::getId)
+            .collect(Collectors.toList());
         assertEquals(emptyIds, batchRoleDeletedEventEmptySourceTest.getDeletedIds());
-    }
-
-    private List<RoleDO> batchInitRoleDOList() {
-        int defaultInsertNum = 10;
-        List<RoleDO> roleDOList = new ArrayList<>();
-        for (int i = 0; i < defaultInsertNum; i++) {
-            Timestamp now = new Timestamp(System.currentTimeMillis());
-            String id = UUIDUtils.getInstance().generateShortUuid();
-            RoleDO roleDO = RoleDO.builder()
-                    .id(id)
-                    .roleName("test-" + i)
-                    .description("role-test-description")
-                    .dateCreated(now)
-                    .dateUpdated(now)
-                    .build();
-            roleDOList.add(roleDO);
-        }
-        return roleDOList;
     }
 }

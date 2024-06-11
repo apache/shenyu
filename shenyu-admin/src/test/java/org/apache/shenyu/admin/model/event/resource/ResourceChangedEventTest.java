@@ -37,22 +37,22 @@ public class ResourceChangedEventTest {
     @BeforeEach
     public void setUp() {
         before = ResourceDO.builder()
-                .name("plug")
-                .component("PluginList")
-                .icon("dashboard")
-                .title("SHENYU.MENU.PLUGIN.LIST")
-                .sort(1)
-                .perms("system:plugin:list")
-                .build();
+            .name("plug")
+            .component("PluginList")
+            .icon("dashboard")
+            .title("SHENYU.MENU.PLUGIN.LIST")
+            .sort(1)
+            .perms("system:plugin:list")
+            .build();
 
         after = ResourceDO.builder()
-                .name("system")
-                .component("system")
-                .icon("setting")
-                .title("SHENYU.MENU.SYSTEM.MANAGMENT")
-                .sort(2)
-                .perms("system:manager:list")
-                .build();
+            .name("system")
+            .component("system")
+            .icon("setting")
+            .title("SHENYU.MENU.SYSTEM.MANAGMENT")
+            .sort(2)
+            .perms("system:manager:list")
+            .build();
     }
 
     @Test

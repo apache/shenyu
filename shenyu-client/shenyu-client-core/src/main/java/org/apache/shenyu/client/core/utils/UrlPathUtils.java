@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.core.utils;
 
 import org.apache.commons.lang3.StringUtils;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

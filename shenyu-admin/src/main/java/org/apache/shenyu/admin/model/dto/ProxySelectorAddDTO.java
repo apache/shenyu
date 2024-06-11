@@ -49,7 +49,6 @@ public class ProxySelectorAddDTO implements Serializable {
     @NotBlank
     private String name;
 
-
     /**
      * pluginName.
      */
@@ -544,6 +543,7 @@ public class ProxySelectorAddDTO implements Serializable {
 
         /**
          * get startupTime.
+         *
          * @return startupTime
          */
         public String getStartupTime() {

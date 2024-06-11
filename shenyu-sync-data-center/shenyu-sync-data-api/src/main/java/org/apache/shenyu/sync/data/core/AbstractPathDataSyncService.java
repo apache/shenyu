@@ -70,14 +70,13 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
         this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
     }
 
-
     /**
      * event.
      *
-     * @param updatePath updatePath
-     * @param updateData updateData
+     * @param updatePath   updatePath
+     * @param updateData   updateData
      * @param registerPath registerPath
-     * @param eventType eventType
+     * @param eventType    eventType
      */
     public void event(final String updatePath, final String updateData, final String registerPath, final EventType eventType) {
         switch (registerPath) {
@@ -125,7 +124,7 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
         proxySelectorData.setName(proxySelectorName);
         proxySelectorData.setPluginName(pluginName);
         Optional.ofNullable(updateData)
-                .ifPresent(e -> cacheProxySelectorData(proxySelectorData));
+            .ifPresent(e -> cacheProxySelectorData(proxySelectorData));
     }
 
     private void discoveryUpstreamHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
@@ -135,7 +134,7 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
         }
         if (!EventType.DELETE.equals(eventType)) {
             Optional.ofNullable(updateData)
-                    .ifPresent(e -> cacheDiscoveryUpstreamData(GsonUtils.getInstance().fromJson(updateData, DiscoverySyncData.class)));
+                .ifPresent(e -> cacheDiscoveryUpstreamData(GsonUtils.getInstance().fromJson(updateData, DiscoverySyncData.class)));
         }
     }
 
@@ -145,7 +144,7 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
             return;
         }
         Optional.ofNullable(updateData)
-                .ifPresent(e -> cacheRuleData(GsonUtils.getInstance().fromJson(updateData, RuleData.class)));
+            .ifPresent(e -> cacheRuleData(GsonUtils.getInstance().fromJson(updateData, RuleData.class)));
     }
 
     private void appAuthHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
@@ -154,7 +153,7 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
             return;
         }
         Optional.ofNullable(updateData)
-                .ifPresent(e -> cacheAuthData(GsonUtils.getInstance().fromJson(updateData, AppAuthData.class)));
+            .ifPresent(e -> cacheAuthData(GsonUtils.getInstance().fromJson(updateData, AppAuthData.class)));
     }
 
     private void metaDataHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
@@ -170,7 +169,7 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
             return;
         }
         Optional.ofNullable(updateData)
-                .ifPresent(e -> cacheMetaData(GsonUtils.getInstance().fromJson(updateData, MetaData.class)));
+            .ifPresent(e -> cacheMetaData(GsonUtils.getInstance().fromJson(updateData, MetaData.class)));
     }
 
     private void selectorHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
@@ -179,7 +178,7 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
             return;
         }
         Optional.ofNullable(updateData)
-                .ifPresent(e -> cacheSelectorData(GsonUtils.getInstance().fromJson(updateData, SelectorData.class)));
+            .ifPresent(e -> cacheSelectorData(GsonUtils.getInstance().fromJson(updateData, SelectorData.class)));
     }
 
     private void pluginHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
@@ -189,7 +188,7 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
             return;
         }
         Optional.ofNullable(updateData)
-                .ifPresent(e -> cachePluginData(GsonUtils.getInstance().fromJson(updateData, PluginData.class)));
+            .ifPresent(e -> cachePluginData(GsonUtils.getInstance().fromJson(updateData, PluginData.class)));
     }
 
     public enum EventType {
@@ -199,14 +198,14 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
 
     protected void cachePluginData(final PluginData pluginData) {
         Optional.ofNullable(pluginData)
-                .flatMap(data -> Optional.ofNullable(pluginDataSubscriber))
-                .ifPresent(e -> e.onSubscribe(pluginData));
+            .flatMap(data -> Optional.ofNullable(pluginDataSubscriber))
+            .ifPresent(e -> e.onSubscribe(pluginData));
     }
 
     protected void cacheSelectorData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData)
-                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber)
-                        .ifPresent(e -> e.onSelectorSubscribe(data)));
+            .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber)
+                .ifPresent(e -> e.onSelectorSubscribe(data)));
     }
 
     protected void unCacheSelectorData(final String dataPath) {
@@ -222,7 +221,7 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
         selectorData.setId(selectorId);
 
         Optional.ofNullable(pluginDataSubscriber)
-                .ifPresent(e -> e.unSelectorSubscribe(selectorData));
+            .ifPresent(e -> e.unSelectorSubscribe(selectorData));
     }
 
     protected void unCachePluginName(final String pluginName) {
@@ -233,8 +232,8 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
 
     protected void cacheRuleData(final RuleData ruleData) {
         Optional.ofNullable(ruleData)
-                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber)
-                        .ifPresent(e -> e.onRuleSubscribe(data)));
+            .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber)
+                .ifPresent(e -> e.onRuleSubscribe(data)));
     }
 
     protected void unCacheRuleData(final String dataPath) {
@@ -253,12 +252,12 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
         ruleData.setId(list.get(1));
 
         Optional.ofNullable(pluginDataSubscriber)
-                .ifPresent(e -> e.unRuleSubscribe(ruleData));
+            .ifPresent(e -> e.unRuleSubscribe(ruleData));
     }
 
     protected void cacheAuthData(final AppAuthData appAuthData) {
         Optional.ofNullable(appAuthData)
-                .ifPresent(data -> authDataSubscribers.forEach(e -> e.onSubscribe(data)));
+            .ifPresent(data -> authDataSubscribers.forEach(e -> e.onSubscribe(data)));
     }
 
     protected void unCacheAuthData(final String dataPath) {
@@ -270,26 +269,26 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
 
     protected void cacheMetaData(final MetaData metaData) {
         Optional.ofNullable(metaData)
-                .ifPresent(data -> metaDataSubscribers.forEach(e -> e.onSubscribe(metaData)));
+            .ifPresent(data -> metaDataSubscribers.forEach(e -> e.onSubscribe(metaData)));
     }
 
     protected void cacheProxySelectorData(final ProxySelectorData proxySelectorData) {
         Optional.ofNullable(proxySelectorData)
-                .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.onSubscribe(proxySelectorData)));
+            .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.onSubscribe(proxySelectorData)));
     }
 
     protected void cacheDiscoveryUpstreamData(final DiscoverySyncData upstreamDataList) {
         Optional.ofNullable(discoveryUpstreamDataSubscribers)
-                .ifPresent(data -> discoveryUpstreamDataSubscribers.forEach(e -> e.onSubscribe(upstreamDataList)));
+            .ifPresent(data -> discoveryUpstreamDataSubscribers.forEach(e -> e.onSubscribe(upstreamDataList)));
     }
 
     protected void unCacheMetaData(final MetaData metaData) {
         Optional.ofNullable(metaData)
-                .ifPresent(data -> metaDataSubscribers.forEach(e -> e.unSubscribe(metaData)));
+            .ifPresent(data -> metaDataSubscribers.forEach(e -> e.unSubscribe(metaData)));
     }
 
     protected void unCacheProxySelectorData(final ProxySelectorData proxySelectorData) {
         Optional.ofNullable(proxySelectorData)
-                .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData)));
+            .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData)));
     }
 }

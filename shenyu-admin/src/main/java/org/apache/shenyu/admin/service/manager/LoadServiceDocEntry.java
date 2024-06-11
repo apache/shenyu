@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.admin.service.manager;
 
-import java.util.List;
-
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+
+import java.util.List;
 
 /**
  * Load Service Doc Entry.

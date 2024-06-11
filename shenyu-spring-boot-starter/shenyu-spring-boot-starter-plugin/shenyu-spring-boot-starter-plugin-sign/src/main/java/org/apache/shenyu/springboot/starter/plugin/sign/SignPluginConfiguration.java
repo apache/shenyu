@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.springboot.starter.plugin.sign;
 
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.sign.SignPlugin;
 import org.apache.shenyu.plugin.sign.extractor.DefaultExtractor;
 import org.apache.shenyu.plugin.sign.handler.SignPluginDataHandler;
@@ -38,7 +38,7 @@ import org.springframework.http.codec.ServerCodecConfigurer;
  * The type Sign plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.plugins.sign.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.plugins.sign.enabled", havingValue = "true", matchIfMissing = true)
 public class SignPluginConfiguration {
 
     /**

@@ -18,8 +18,6 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import java.util.List;
-import java.util.Optional;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.TagRelationDTO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
@@ -27,6 +25,9 @@ import org.apache.shenyu.admin.model.query.TagRelationQuery;
 import org.apache.shenyu.admin.service.TagRelationService;
 import org.apache.shenyu.admin.utils.Assert;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.TagRelationService}.

@@ -32,46 +32,42 @@ import java.util.List;
 @Configuration
 @ConfigurationProperties(prefix = "shenyu.dashboard.core")
 public class DashboardProperties implements InitializingBean {
-    
+
     /**
      * record log limit.
      */
     private Integer recordLogLimit = 12;
-    
-    
+
     /**
      * Only supports deleting logs older than a certain day.
      * default is 3.
      */
     private Integer onlyCleanDays = 3;
-    
-    
+
     /**
      * enable print api log..
      * default is false.
      */
     private Boolean enablePrintApiLog = false;
-    
+
     /**
      * enable OnlySuperAdminPermission.
      * default is true
      */
     private Boolean enableOnlySuperAdminPermission = true;
-    
+
     /**
      * enable SuperAdminPasswordSafe.
      * default is true
      */
     private Boolean enableSuperAdminPasswordSafe = true;
-    
-    
+
     /**
      * enable SuperAdminPassword valid duration.
      * default is 30 day
      */
     private Long superAdminPasswordValidDuration = 30 * AdminConstants.THE_ONE_DAY_MILLIS_TIME;
-    
-    
+
     /**
      * Only the super administrator root user has the privileges.
      * default is 3.
@@ -79,7 +75,7 @@ public class DashboardProperties implements InitializingBean {
      * @see #afterPropertiesSet()
      */
     private List<String> onlySuperAdminPermission;
-    
+
     /**
      * get recordLogLimit.
      *
@@ -88,7 +84,7 @@ public class DashboardProperties implements InitializingBean {
     public Integer getRecordLogLimit() {
         return recordLogLimit;
     }
-    
+
     /**
      * set recordLogLimit.
      *
@@ -97,7 +93,7 @@ public class DashboardProperties implements InitializingBean {
     public void setRecordLogLimit(final Integer recordLogLimit) {
         this.recordLogLimit = recordLogLimit;
     }
-    
+
     /**
      * get onlyCleanDays.
      *
@@ -106,7 +102,7 @@ public class DashboardProperties implements InitializingBean {
     public Integer getOnlyCleanDays() {
         return onlyCleanDays;
     }
-    
+
     /**
      * set onlyCleanDays.
      *
@@ -115,7 +111,7 @@ public class DashboardProperties implements InitializingBean {
     public void setOnlyCleanDays(final Integer onlyCleanDays) {
         this.onlyCleanDays = onlyCleanDays;
     }
-    
+
     /**
      * get enablePrintApiLog.
      *
@@ -124,7 +120,7 @@ public class DashboardProperties implements InitializingBean {
     public Boolean getEnablePrintApiLog() {
         return enablePrintApiLog;
     }
-    
+
     /**
      * set enablePrintApiLog.
      *
@@ -133,7 +129,7 @@ public class DashboardProperties implements InitializingBean {
     public void setEnablePrintApiLog(final Boolean enablePrintApiLog) {
         this.enablePrintApiLog = enablePrintApiLog;
     }
-    
+
     /**
      * get enableOnlySuperAdminPermission.
      *
@@ -142,7 +138,7 @@ public class DashboardProperties implements InitializingBean {
     public Boolean getEnableOnlySuperAdminPermission() {
         return enableOnlySuperAdminPermission;
     }
-    
+
     /**
      * set enableOnlySuperAdminPermission.
      *
@@ -151,7 +147,7 @@ public class DashboardProperties implements InitializingBean {
     public void setEnableOnlySuperAdminPermission(final Boolean enableOnlySuperAdminPermission) {
         this.enableOnlySuperAdminPermission = enableOnlySuperAdminPermission;
     }
-    
+
     /**
      * get onlySuperAdminPermission.
      *
@@ -160,7 +156,7 @@ public class DashboardProperties implements InitializingBean {
     public List<String> getOnlySuperAdminPermission() {
         return onlySuperAdminPermission;
     }
-    
+
     /**
      * set onlySuperAdminPermission.
      *
@@ -169,7 +165,7 @@ public class DashboardProperties implements InitializingBean {
     public void setOnlySuperAdminPermission(final List<String> onlySuperAdminPermission) {
         this.onlySuperAdminPermission = onlySuperAdminPermission;
     }
-    
+
     /**
      * get enableSuperAdminPasswordSafe.
      *
@@ -178,7 +174,7 @@ public class DashboardProperties implements InitializingBean {
     public Boolean getEnableSuperAdminPasswordSafe() {
         return enableSuperAdminPasswordSafe;
     }
-    
+
     /**
      * set enableSuperAdminPasswordSafe.
      *
@@ -187,7 +183,7 @@ public class DashboardProperties implements InitializingBean {
     public void setEnableSuperAdminPasswordSafe(final Boolean enableSuperAdminPasswordSafe) {
         this.enableSuperAdminPasswordSafe = enableSuperAdminPasswordSafe;
     }
-    
+
     /**
      * get superAdminPasswordValidDuration.
      *
@@ -196,7 +192,7 @@ public class DashboardProperties implements InitializingBean {
     public Long getSuperAdminPasswordValidDuration() {
         return superAdminPasswordValidDuration;
     }
-    
+
     /**
      * set superAdminPasswordValidDuration.
      *
@@ -205,7 +201,7 @@ public class DashboardProperties implements InitializingBean {
     public void setSuperAdminPasswordValidDuration(final Long superAdminPasswordValidDuration) {
         this.superAdminPasswordValidDuration = superAdminPasswordValidDuration;
     }
-    
+
     @Override
     public void afterPropertiesSet() {
         if (!Boolean.TRUE.equals(enableOnlySuperAdminPermission)) {

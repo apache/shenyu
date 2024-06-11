@@ -108,6 +108,23 @@ public class RuleConditionVO implements Serializable {
     }
 
     /**
+     * build ruleConditionVO.
+     *
+     * @param ruleConditionDO {@linkplain RuleConditionDO}
+     * @return {@linkplain RuleConditionVO}
+     */
+    public static RuleConditionVO buildRuleConditionVO(final RuleConditionDO ruleConditionDO) {
+        ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(ruleConditionDO.getParamType());
+        OperatorEnum operatorEnum = OperatorEnum.getOperatorEnumByAlias(ruleConditionDO.getOperator());
+        return new RuleConditionVO(ruleConditionDO.getId(), ruleConditionDO.getRuleId(), ruleConditionDO.getParamType(),
+            Optional.ofNullable(paramTypeEnum).map(ParamTypeEnum::getName).orElse(ruleConditionDO.getParamType()),
+            ruleConditionDO.getOperator(), Optional.ofNullable(operatorEnum).map(OperatorEnum::getAlias).orElse(ruleConditionDO.getOperator()),
+            ruleConditionDO.getParamName(), ruleConditionDO.getParamValue(),
+            DateUtils.localDateTimeToString(ruleConditionDO.getDateCreated().toLocalDateTime()),
+            DateUtils.localDateTimeToString(ruleConditionDO.getDateUpdated().toLocalDateTime()));
+    }
+
+    /**
      * Gets the value of id.
      *
      * @return the value of id
@@ -285,22 +302,5 @@ public class RuleConditionVO implements Serializable {
      */
     public void setDateUpdated(final String dateUpdated) {
         this.dateUpdated = dateUpdated;
-    }
-
-    /**
-     * build ruleConditionVO.
-     *
-     * @param ruleConditionDO {@linkplain RuleConditionDO}
-     * @return {@linkplain RuleConditionVO}
-     */
-    public static RuleConditionVO buildRuleConditionVO(final RuleConditionDO ruleConditionDO) {
-        ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(ruleConditionDO.getParamType());
-        OperatorEnum operatorEnum = OperatorEnum.getOperatorEnumByAlias(ruleConditionDO.getOperator());
-        return new RuleConditionVO(ruleConditionDO.getId(), ruleConditionDO.getRuleId(), ruleConditionDO.getParamType(), 
-                Optional.ofNullable(paramTypeEnum).map(ParamTypeEnum::getName).orElse(ruleConditionDO.getParamType()),
-                ruleConditionDO.getOperator(), Optional.ofNullable(operatorEnum).map(OperatorEnum::getAlias).orElse(ruleConditionDO.getOperator()), 
-                ruleConditionDO.getParamName(), ruleConditionDO.getParamValue(),
-                DateUtils.localDateTimeToString(ruleConditionDO.getDateCreated().toLocalDateTime()),
-                DateUtils.localDateTimeToString(ruleConditionDO.getDateUpdated().toLocalDateTime()));
     }
 }

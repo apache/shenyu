@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
-import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+
+import java.util.List;
 
 /**
  * The type Abstract load balancer.

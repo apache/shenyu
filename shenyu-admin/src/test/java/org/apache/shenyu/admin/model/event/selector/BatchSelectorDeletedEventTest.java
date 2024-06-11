@@ -34,14 +34,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 /**
  * Test case for {@linkplain BatchSelectorDeletedEvent}.
  */
 public final class BatchSelectorDeletedEventTest {
+
     private SelectorDO selectorDO;
 
     private List<SelectorDO> selectorDOList;
@@ -61,6 +62,34 @@ public final class BatchSelectorDeletedEventTest {
         pluginDOList = Collections.singletonList(pluginDO);
 
         batchSelectorDeletedEvent = new BatchSelectorDeletedEvent(selectorDOList, "test-operator", pluginDOList);
+    }
+
+    private SelectorDO buildSelectorDO() {
+        SelectorDTO selectorDTO = new SelectorDTO();
+        selectorDTO.setId("456");
+        selectorDTO.setPluginId("789");
+        selectorDTO.setName("kuan");
+        selectorDTO.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        selectorDTO.setHandle("[{\"upstreamHost\": \"127.0.0.1\", \"protocol\": \"http://\", \"upstreamUrl\": \"anotherUrl\"}]");
+        SelectorConditionDTO selectorConditionDTO1 = new SelectorConditionDTO();
+        selectorConditionDTO1.setId("111");
+        selectorConditionDTO1.setSelectorId("456");
+        SelectorConditionDTO selectorConditionDTO2 = new SelectorConditionDTO();
+        selectorConditionDTO2.setId("222");
+        selectorConditionDTO2.setSelectorId("456");
+        selectorDTO.setSelectorConditions(Arrays.asList(selectorConditionDTO1, selectorConditionDTO2));
+        SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        selectorDO.setDateCreated(now);
+        selectorDO.setDateUpdated(now);
+        return selectorDO;
+    }
+
+    private PluginDO buildPluginDO() {
+        PluginDO pluginDO = new PluginDO();
+        pluginDO.setName("test");
+        pluginDO.setId("789");
+        return pluginDO;
     }
 
     @Test
@@ -101,33 +130,5 @@ public final class BatchSelectorDeletedEventTest {
         List<String> actualDeleteIds = batchSelectorDeletedEvent.getDeletedIds();
 
         assertArrayEquals(expectDeleteIds.toArray(new String[0]), actualDeleteIds.toArray(new String[0]));
-    }
-
-    private SelectorDO buildSelectorDO() {
-        SelectorDTO selectorDTO = new SelectorDTO();
-        selectorDTO.setId("456");
-        selectorDTO.setPluginId("789");
-        selectorDTO.setName("kuan");
-        selectorDTO.setType(SelectorTypeEnum.FULL_FLOW.getCode());
-        selectorDTO.setHandle("[{\"upstreamHost\": \"127.0.0.1\", \"protocol\": \"http://\", \"upstreamUrl\": \"anotherUrl\"}]");
-        SelectorConditionDTO selectorConditionDTO1 = new SelectorConditionDTO();
-        selectorConditionDTO1.setId("111");
-        selectorConditionDTO1.setSelectorId("456");
-        SelectorConditionDTO selectorConditionDTO2 = new SelectorConditionDTO();
-        selectorConditionDTO2.setId("222");
-        selectorConditionDTO2.setSelectorId("456");
-        selectorDTO.setSelectorConditions(Arrays.asList(selectorConditionDTO1, selectorConditionDTO2));
-        SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        selectorDO.setDateCreated(now);
-        selectorDO.setDateUpdated(now);
-        return selectorDO;
-    }
-
-    private PluginDO buildPluginDO() {
-        PluginDO pluginDO = new PluginDO();
-        pluginDO.setName("test");
-        pluginDO.setId("789");
-        return pluginDO;
     }
 }

@@ -17,12 +17,13 @@
 
 package org.apache.shenyu.admin.model.event.metadata;
 
-import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -38,37 +39,37 @@ public class BatchMetaDataChangedEventTest {
     @BeforeEach
     public void setUp() {
         one = MetaDataDO.builder()
-                .id("1")
-                .appName("testAppNameOne")
-                .path("/testPathOne")
-                .pathDesc("testPathDescOne")
-                .rpcType("http")
-                .serviceName("org.apache.shenyu.examples.http.controller.TestOneController")
-                .methodName("post")
-                .parameterTypes("java.lang.String")
-                .enabled(true)
-                .build();
+            .id("1")
+            .appName("testAppNameOne")
+            .path("/testPathOne")
+            .pathDesc("testPathDescOne")
+            .rpcType("http")
+            .serviceName("org.apache.shenyu.examples.http.controller.TestOneController")
+            .methodName("post")
+            .parameterTypes("java.lang.String")
+            .enabled(true)
+            .build();
 
         two = MetaDataDO.builder()
-                .id("2")
-                .appName("testAppNameTwo")
-                .path("/testPathTwo")
-                .pathDesc("testPathDescTwo")
-                .rpcType("http")
-                .serviceName("org.apache.shenyu.examples.http.controller.TestTwoController")
-                .methodName("post")
-                .parameterTypes("java.lang.String")
-                .enabled(true)
-                .build();
+            .id("2")
+            .appName("testAppNameTwo")
+            .path("/testPathTwo")
+            .pathDesc("testPathDescTwo")
+            .rpcType("http")
+            .serviceName("org.apache.shenyu.examples.http.controller.TestTwoController")
+            .methodName("post")
+            .parameterTypes("java.lang.String")
+            .enabled(true)
+            .build();
     }
 
     @Test
     public void batchMetaDataChangedContextTest() {
         BatchMetaDataChangedEvent batchMetaDataChangedEvent =
-                new BatchMetaDataChangedEvent(Arrays.asList(one, two), null, EventTypeEnum.META_DATA_UPDATE, "test-operator");
+            new BatchMetaDataChangedEvent(Arrays.asList(one, two), null, EventTypeEnum.META_DATA_UPDATE, "test-operator");
 
         String context = String.format("the meta data [%s] is %s",
-                "testAppNameOne,testAppNameTwo", StringUtils.lowerCase(EventTypeEnum.META_DATA_UPDATE.getType().toString()));
+            "testAppNameOne,testAppNameTwo", StringUtils.lowerCase(EventTypeEnum.META_DATA_UPDATE.getType().toString()));
 
         assertEquals(context, batchMetaDataChangedEvent.buildContext());
     }

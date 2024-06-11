@@ -204,6 +204,7 @@ public class DiscoveryVO implements Serializable {
 
     /**
      * Get discoveryHandler.
+     *
      * @return discoveryHandler
      */
     public DiscoveryHandlerVO getDiscoveryHandler() {
@@ -212,6 +213,7 @@ public class DiscoveryVO implements Serializable {
 
     /**
      * Set discoveryHandler.
+     *
      * @param discoveryHandler discoveryHandler
      */
     public void setDiscoveryHandler(final DiscoveryHandlerVO discoveryHandler) {
@@ -220,6 +222,7 @@ public class DiscoveryVO implements Serializable {
 
     /**
      * Get discoveryRel.
+     *
      * @return discoveryRel
      */
     public DiscoveryRelVO getDiscoveryRel() {
@@ -228,10 +231,16 @@ public class DiscoveryVO implements Serializable {
 
     /**
      * Set discoveryRel.
+     *
      * @param discoveryRel discoveryRel
      */
     public void setDiscoveryRel(final DiscoveryRelVO discoveryRel) {
         this.discoveryRel = discoveryRel;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, type, level, serverList, pluginName, props, discoveryHandler, discoveryRel);
     }
 
     @Override
@@ -245,14 +254,9 @@ public class DiscoveryVO implements Serializable {
 
         DiscoveryVO that = (DiscoveryVO) o;
         return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(type, that.type)
-                && Objects.equals(level, that.level) && Objects.equals(serverList, that.serverList)
-                && Objects.equals(pluginName, that.pluginName) && Objects.equals(props, that.props)
-                && Objects.equals(discoveryHandler, that.discoveryHandler)
-                && Objects.equals(discoveryRel, that.discoveryRel);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, type, level, serverList, pluginName, props, discoveryHandler, discoveryRel);
+            && Objects.equals(level, that.level) && Objects.equals(serverList, that.serverList)
+            && Objects.equals(pluginName, that.pluginName) && Objects.equals(props, that.props)
+            && Objects.equals(discoveryHandler, that.discoveryHandler)
+            && Objects.equals(discoveryRel, that.discoveryRel);
     }
 }

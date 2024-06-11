@@ -84,6 +84,11 @@ public class RoleQuery implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(roleName, pageParameter);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -93,10 +98,5 @@ public class RoleQuery implements Serializable {
         }
         RoleQuery roleQuery = (RoleQuery) o;
         return Objects.equals(roleName, roleQuery.roleName) && Objects.equals(pageParameter, roleQuery.pageParameter);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(roleName, pageParameter);
     }
 }

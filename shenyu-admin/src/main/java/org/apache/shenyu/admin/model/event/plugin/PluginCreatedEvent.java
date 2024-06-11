@@ -24,8 +24,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  * PluginCreatedEvent.
  */
 public class PluginCreatedEvent extends PluginChangedEvent {
-    
-    
+
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
@@ -35,7 +34,7 @@ public class PluginCreatedEvent extends PluginChangedEvent {
     public PluginCreatedEvent(final PluginDO source, final String operator) {
         super(source, null, EventTypeEnum.PLUGIN_CREATE, operator);
     }
-    
+
     /**
      * the created plugin.
      *
@@ -44,5 +43,5 @@ public class PluginCreatedEvent extends PluginChangedEvent {
     public PluginDO getPlugin() {
         return (PluginDO) getSource();
     }
-    
+
 }

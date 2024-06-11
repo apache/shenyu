@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.examples.websocket.config;
 
+import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
 import org.apache.shenyu.examples.websocket.handler.HttpAuthHandler;
 import org.apache.shenyu.examples.websocket.interceptor.WebSocketInterceptor;
-import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;

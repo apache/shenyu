@@ -36,7 +36,6 @@ import java.util.Map;
 
 import static org.apache.shenyu.sdk.core.util.Util.checkState;
 
-
 /**
  * Defines what annotations and values are valid on interfaces.
  */
@@ -59,14 +58,14 @@ public interface Contract extends ResourceLoaderAware {
         @Override
         public List<RequestTemplate> parseAndValidateRequestTemplate(final Class<?> targetType, final ShenyuClientFactoryBean shenyuClientFactoryBean) {
             checkState(targetType.getTypeParameters().length == 0, "Parameterized types unsupported: %s",
-                    targetType.getSimpleName());
+                targetType.getSimpleName());
             checkState(targetType.getInterfaces().length <= 1, "Only single inheritance supported: %s",
-                    targetType.getSimpleName());
+                targetType.getSimpleName());
             final Map<Method, RequestTemplate> result = new LinkedHashMap<>();
             for (final Method method : targetType.getMethods()) {
                 if (method.getDeclaringClass() == Object.class
-                        || (method.getModifiers() & Modifier.STATIC) != 0
-                        || Util.isDefault(method)) {
+                    || (method.getModifiers() & Modifier.STATIC) != 0
+                    || Util.isDefault(method)) {
                     continue;
                 }
                 final RequestTemplate parseRequestTemplate = parseRequestTemplate(method, shenyuClientFactoryBean);
