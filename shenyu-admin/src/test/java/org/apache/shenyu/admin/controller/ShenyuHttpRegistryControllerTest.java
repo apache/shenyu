@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterPublisher;
+import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;

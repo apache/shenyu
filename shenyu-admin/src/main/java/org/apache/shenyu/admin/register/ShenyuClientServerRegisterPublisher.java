@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.register.client.server.api;
+package org.apache.shenyu.admin.register;
 
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
