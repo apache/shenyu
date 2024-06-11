@@ -21,7 +21,7 @@ import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
 import org.apache.shenyu.admin.lock.RegisterExecutionRepository;
 import org.apache.shenyu.admin.lock.impl.PlatformTransactionRegisterExecutionRepository;
 import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterRepository;
+import org.apache.shenyu.admin.register.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.spi.ExtensionLoader;
