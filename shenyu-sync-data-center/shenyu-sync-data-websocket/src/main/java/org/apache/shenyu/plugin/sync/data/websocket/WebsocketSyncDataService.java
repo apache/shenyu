@@ -25,7 +25,6 @@ import org.apache.shenyu.common.timer.AbstractRoundTask;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
-import org.apache.shenyu.plugin.sync.data.websocket.client.ShenyuClusterWebsocketClient;
 import org.apache.shenyu.plugin.sync.data.websocket.client.ShenyuWebsocketClient;
 import org.apache.shenyu.plugin.sync.data.websocket.config.WebsocketConfig;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -72,8 +71,6 @@ public class WebsocketSyncDataService implements SyncDataService {
     private final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers;
     
     private final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers;
-    
-    private final List<ShenyuClusterWebsocketClient> clusterClients = Lists.newArrayList();
     
     private final List<ShenyuWebsocketClient> clients = Lists.newArrayList();
     
@@ -167,9 +164,6 @@ public class WebsocketSyncDataService implements SyncDataService {
         if (Objects.nonNull(client)) {
             client.nowClose();
         }
-        for (ShenyuClusterWebsocketClient clusterClient : clusterClients) {
-            clusterClient.nowClose();
-        }
         if (Objects.nonNull(timerTask)) {
             timerTask.cancel();
         }
@@ -230,12 +224,4 @@ public class WebsocketSyncDataService implements SyncDataService {
         return discoveryUpstreamDataSubscribers;
     }
     
-    /**
-     * get cluster websocket clients.
-     *
-     * @return cluster websocket clients
-     */
-    public List<ShenyuClusterWebsocketClient> getClusterClients() {
-        return clusterClients;
-    }
 }

@@ -48,9 +48,9 @@ public class ClusterProperties {
     private Long selectPeriod = 15L;
     
     /**
-     * cluster master lock duration.
+     * cluster master lock time to live.
      */
-    private Long lockDuration = 20L;
+    private Long lockTtl = 15L;
     
     /**
      * Gets the value of enabled.
@@ -123,18 +123,18 @@ public class ClusterProperties {
     }
     
     /**
-     * Gets the select master lock duration.
-     * @return lock duration
+     * Gets the select master lock ttl.
+     * @return lock ttl
      */
-    public Long getLockDuration() {
-        return lockDuration;
+    public Long getLockTtl() {
+        return lockTtl;
     }
     
     /**
-     * Sets select master lock duration.
-     * @param lockDuration lock duration
+     * Sets select master lock ttl.
+     * @param lockTtl lock ttl
      */
-    public void setLockDuration(final Long lockDuration) {
-        this.lockDuration = lockDuration;
+    public void setLockTtl(final Long lockTtl) {
+        this.lockTtl = lockTtl;
     }
 }

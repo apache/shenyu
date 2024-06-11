@@ -17,27 +17,20 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
 import org.apache.shenyu.admin.lock.RegisterExecutionRepository;
 import org.apache.shenyu.admin.lock.impl.PlatformTransactionRegisterExecutionRepository;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.spi.ExtensionLoader;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.jdbc.lock.DefaultLockRepository;
-import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
-import org.springframework.integration.jdbc.lock.LockRepository;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import javax.sql.DataSource;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -48,12 +41,6 @@ import java.util.stream.Collectors;
  */
 @Configuration
 public class RegisterCenterConfiguration {
-    
-    @Value("${server.servlet.context-path:}")
-    private String contextPath;
-    
-    @Value("${server.port:}")
-    private String port;
 
     /**
      * Shenyu register center config shenyu register center config.
@@ -98,34 +85,4 @@ public class RegisterCenterConfiguration {
         return new PlatformTransactionRegisterExecutionRepository(platformTransactionManager, pluginMapper);
     }
 
-
-    /**
-     * Shenyu Admin distributed lock by spring-integration-jdbc.
-     *
-     * @param dataSource the dataSource
-     * @return  defaultLockRepository
-     */
-    @Bean
-    @ConfigurationProperties(prefix = "shenyu.distributed-lock")
-    public DefaultLockRepository defaultLockRepository(final DataSource dataSource) {
-        final String host = IpUtils.getHost();
-        String fullPath = host + ":" + port;
-        if (StringUtils.isNoneBlank(contextPath)) {
-            fullPath += contextPath;
-        }
-        DefaultLockRepository defaultLockRepository = new DefaultLockRepository(dataSource, fullPath);
-        defaultLockRepository.setPrefix("SHENYU_");
-        return defaultLockRepository;
-    }
-
-    /**
-     * Shenyu Admin distributed lock by spring-integration-jdbc.
-     *
-     * @param lockRepository the lockRepository
-     * @return the shenyu Admin register repository
-     */
-    @Bean
-    public JdbcLockRegistry jdbcLockRegistry(final LockRepository lockRepository) {
-        return new JdbcLockRegistry(lockRepository);
-    }
 }

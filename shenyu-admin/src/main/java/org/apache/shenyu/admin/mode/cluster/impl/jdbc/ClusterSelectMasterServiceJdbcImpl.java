@@ -24,11 +24,14 @@ import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.model.entity.ClusterMasterDO;
 import org.apache.shenyu.admin.transfer.ClusterMasterTransfer;
+import org.apache.shenyu.common.timer.Timer;
+import org.apache.shenyu.common.timer.TimerTask;
+import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
+
 import java.sql.Timestamp;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
@@ -49,6 +52,10 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
     
     private final Lock clusterMasterLock;
     
+    private final Timer timer;
+    
+    private TimerTask timerTask;
+    
     private volatile boolean locked;
     
     public ClusterSelectMasterServiceJdbcImpl(final ClusterProperties clusterProperties,
@@ -57,14 +64,14 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
         this.clusterProperties = clusterProperties;
         this.jdbcLockRegistry = jdbcLockRegistry;
         this.clusterMasterMapper = clusterMasterMapper;
-        // set the lock duration
-        this.jdbcLockRegistry.setIdleBetweenTries(Duration.ofSeconds(clusterProperties.getLockDuration()));
         this.clusterMasterLock = jdbcLockRegistry.obtain(MASTER_LOCK_KEY);
+        this.timer = WheelTimerFactory.getSharedTimer();
     }
     
     @Override
     public boolean selectMaster() {
         locked = clusterMasterLock.tryLock();
+        LOG.info("select master result: {}", locked);
         return locked;
     }
     
@@ -90,6 +97,22 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
         return locked;
     }
     
+    private void healthCheck() {
+        try {
+            if (!locked) {
+                //                this.reconnectBlocking();
+                locked = this.selectMaster();
+            } else {
+                //                this.sendPing();
+                //                send(DataEventTypeEnum.CLUSTER.name());
+                jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
+                LOG.info("renew master");
+            }
+        } catch (Exception e) {
+            LOG.error("master health check error", e);
+        }
+    }
+    
     @Override
     public boolean checkMasterStatus() throws IllegalStateException {
         if (locked) {
@@ -103,6 +126,7 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
         if (locked) {
             clusterMasterLock.unlock();
             locked = false;
+            timerTask.cancel();
         }
         return true;
     }

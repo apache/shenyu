@@ -76,10 +76,11 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
         // try getting lock
         try {
             boolean selected = shenyuClusterSelectMasterService.selectMaster(host, port, contextPath);
-            while (!selected) {
+            if (!selected) {
                 LOG.info("select master fail, wait for next period");
-                TimeUnit.SECONDS.sleep(clusterProperties.getSelectPeriod());
-                selected = shenyuClusterSelectMasterService.selectMaster(host, port, contextPath);
+//                TimeUnit.SECONDS.sleep(clusterProperties.getSelectPeriod());
+//                selected = shenyuClusterSelectMasterService.selectMaster(host, port, contextPath);
+                return;
             }
             
             LOG.info("select master success");
@@ -89,6 +90,7 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
             
             // load api
             loadServiceDocEntry.loadApiDocument();
+            
             boolean renewed = shenyuClusterSelectMasterService.checkMasterStatus();
             
             while (renewed) {
