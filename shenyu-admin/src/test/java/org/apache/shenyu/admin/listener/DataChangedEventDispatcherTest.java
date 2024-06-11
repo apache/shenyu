@@ -22,7 +22,7 @@ import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedListener;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
-import org.apache.shenyu.admin.mode.cluster.ShenyuClusterSelectMasterService;
+import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.junit.jupiter.api.BeforeEach;
@@ -80,7 +80,7 @@ public final class DataChangedEventDispatcherTest {
     private ClusterProperties clusterProperties;
     
     @Mock
-    private ShenyuClusterSelectMasterService shenyuClusterSelectMasterService;
+    private ClusterSelectMasterService shenyuClusterSelectMasterService;
 
     @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException {

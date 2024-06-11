@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.mapper.ClusterMasterMapper;
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
+import org.apache.shenyu.admin.mode.cluster.impl.jdbc.ClusterSelectMasterServiceJdbcImpl;
+import org.apache.shenyu.admin.mode.cluster.mapper.ClusterMasterMapper;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.model.entity.ClusterMasterDO;
-import org.apache.shenyu.admin.service.impl.ClusterMasterServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,21 +30,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
+
+import java.lang.reflect.Field;
+import java.util.concurrent.locks.Lock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
- * Test cases for ClusterMasterService.
+ * Test cases for ClusterSelectMasterServiceJdbcImpl.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public final class ClusterMasterServiceTest {
+public final class ClusterSelectMasterServiceJdbcImplTest {
     
     private static final String CONTEXT_PATH = "/test";
     
@@ -52,41 +55,37 @@ public final class ClusterMasterServiceTest {
     private static final String HOST = "127.0.0.1";
     
     @InjectMocks
-    private ClusterMasterServiceImpl clusterMasterService;
+    private ClusterSelectMasterServiceJdbcImpl clusterSelectMasterServiceJdbc;
+    
+    @Mock
+    private ClusterProperties clusterProperties;
+    
+    @Mock
+    private JdbcLockRegistry jdbcLockRegistry;
+    
+    @Mock
+    private Lock clusterMasterLock;
     
     @Mock
     private ClusterMasterMapper clusterMasterMapper;
     
     @BeforeEach
-    public void setUp() {
-        clusterMasterService = new ClusterMasterServiceImpl(clusterMasterMapper);
+    public void setUp() throws NoSuchFieldException, IllegalAccessException {
+        clusterSelectMasterServiceJdbc = new ClusterSelectMasterServiceJdbcImpl(clusterProperties, jdbcLockRegistry, clusterMasterMapper);
+        given(clusterMasterLock.tryLock()).willReturn(true);
+        Field clusterMasterLockField = ClusterSelectMasterServiceJdbcImpl.class.getDeclaredField("clusterMasterLock");
+        clusterMasterLockField.setAccessible(true);
+        clusterMasterLockField.set(clusterSelectMasterServiceJdbc, clusterMasterLock);
     }
     
     @Test
     void testSetMaster() {
+        
         given(clusterMasterMapper.insert(any())).willReturn(1);
         
-        clusterMasterService.setMaster(HOST, PORT, CONTEXT_PATH);
+        clusterSelectMasterServiceJdbc.selectMaster(HOST, PORT, CONTEXT_PATH);
         
         verify(clusterMasterMapper, times(1)).insert(any());
-    }
-    
-    @Test
-    void testCheckMasterSuccess() {
-        given(clusterMasterMapper.count(any())).willReturn(1L);
-        
-        boolean isMaster = clusterMasterService.isMaster(HOST, PORT, CONTEXT_PATH);
-        
-        assertTrue(isMaster);
-    }
-    
-    @Test
-    void testCheckMasterFail() {
-        given(clusterMasterMapper.count(any())).willReturn(0L);
-        
-        boolean isMaster = clusterMasterService.isMaster(HOST, PORT, CONTEXT_PATH);
-        
-        assertFalse(isMaster);
     }
     
     @Test
@@ -96,7 +95,7 @@ public final class ClusterMasterServiceTest {
         
         given(clusterMasterMapper.selectById(any())).willReturn(clusterMasterDO);
         
-        ClusterMasterDTO actual = clusterMasterService.getMaster();
+        ClusterMasterDTO actual = clusterSelectMasterServiceJdbc.getMaster();
         
         assertEquals(HOST, actual.getMasterHost());
         assertEquals(PORT, actual.getMasterPort());

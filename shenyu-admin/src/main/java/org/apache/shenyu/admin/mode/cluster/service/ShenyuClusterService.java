@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.mode.cluster;
+package org.apache.shenyu.admin.mode.cluster.service;
 
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
-import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
@@ -35,9 +34,7 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClusterService.class);
     
-    private final ClusterMasterService clusterMasterService;
-    
-    private final ShenyuClusterSelectMasterService shenyuClusterSelectMasterService;
+    private final ClusterSelectMasterService shenyuClusterSelectMasterService;
     
     private final UpstreamCheckService upstreamCheckService;
     
@@ -47,13 +44,11 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     
     private final ClusterProperties clusterProperties;
     
-    public ShenyuClusterService(final ShenyuClusterSelectMasterService shenyuClusterSelectMasterService,
-                                final ClusterMasterService clusterMasterService,
+    public ShenyuClusterService(final ClusterSelectMasterService shenyuClusterSelectMasterService,
                                 final UpstreamCheckService upstreamCheckService,
                                 final LoadServiceDocEntry loadServiceDocEntry,
                                 final ClusterProperties clusterProperties) {
         this.shenyuClusterSelectMasterService = shenyuClusterSelectMasterService;
-        this.clusterMasterService = clusterMasterService;
         this.upstreamCheckService = upstreamCheckService;
         this.loadServiceDocEntry = loadServiceDocEntry;
         this.clusterProperties = clusterProperties;
@@ -80,45 +75,43 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     private void doSelectMaster(final String host, final String port, final String contextPath) {
         // try getting lock
         try {
-            boolean selected = shenyuClusterSelectMasterService.selectMaster();
+            boolean selected = shenyuClusterSelectMasterService.selectMaster(host, port, contextPath);
             while (!selected) {
                 LOG.info("select master fail, wait for next period");
                 TimeUnit.SECONDS.sleep(clusterProperties.getSelectPeriod());
-                selected = shenyuClusterSelectMasterService.selectMaster();
+                selected = shenyuClusterSelectMasterService.selectMaster(host, port, contextPath);
             }
             
             LOG.info("select master success");
-            
-            // set master info (db and local flag)
-            clusterMasterService.setMaster(host, port, contextPath);
             
             // start upstream check task
             upstreamCheckService.setup();
             
             // load api
             loadServiceDocEntry.loadApiDocument();
-            boolean renewed = shenyuClusterSelectMasterService.renewMaster();
+            boolean renewed = shenyuClusterSelectMasterService.checkMasterStatus();
             
             while (renewed) {
-                try {
+//                try {
                     // sleeps 10s then renew the lock
-                    TimeUnit.SECONDS.sleep(clusterProperties.getSelectPeriod());
-                    
-                    renewed = shenyuClusterSelectMasterService.renewMaster();
-                    if (renewed) {
-                        LOG.info("renew master success");
-                    }
-                } catch (Exception e) {
-                    // if renew fail, remove local master flag
-                    shenyuClusterSelectMasterService.releaseMaster();
-                    // close the upstream check service
-                    upstreamCheckService.close();
-                    String message = String.format("renew master fail, %s", e.getMessage());
-                    throw new ShenyuException(message);
+                TimeUnit.SECONDS.sleep(clusterProperties.getSelectPeriod());
+                
+                renewed = shenyuClusterSelectMasterService.checkMasterStatus();
+                if (renewed) {
+                    LOG.info("renew master success");
                 }
+//                } catch (Exception e) {
+//                    // if renew fail, remove local master flag
+//                    shenyuClusterSelectMasterService.releaseMaster();
+//                }
             }
         } catch (Exception e) {
             LOG.error("select master error", e);
+            // close the upstream check service
+            upstreamCheckService.close();
+            
+            String message = String.format("renew master fail, %s", e.getMessage());
+            throw new ShenyuException(message);
         } finally {
             try {
                 shenyuClusterSelectMasterService.releaseMaster();

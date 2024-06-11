@@ -20,9 +20,8 @@ package org.apache.shenyu.admin.mode.cluster.filter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
-import org.apache.shenyu.admin.mode.cluster.ShenyuClusterSelectMasterService;
+import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
-import org.apache.shenyu.admin.service.ClusterMasterService;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,13 +60,10 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     private RestTemplate restTemplate;
     
     @Resource
-    private ClusterMasterService clusterMasterService;
+    private ClusterSelectMasterService clusterSelectMasterService;
     
     @Resource
-    private ShenyuClusterSelectMasterService shenyuClusterSelectMasterService;
-    
-    @Resource
-    private ClusterProperties shenyuClusterProperties;
+    private ClusterProperties clusterProperties;
     
     @Override
     protected void doFilterInternal(@NotNull final HttpServletRequest request,
@@ -79,7 +75,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             return;
         }
         
-        if (shenyuClusterSelectMasterService.isMaster()) {
+        if (clusterSelectMasterService.isMaster()) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -87,7 +83,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         String uri = request.getRequestURI();
         String requestContextPath = request.getContextPath();
         String replaced = uri.replaceAll(requestContextPath, "");
-        boolean anyMatch = shenyuClusterProperties.getForwardList()
+        boolean anyMatch = clusterProperties.getForwardList()
                 .stream().anyMatch(x -> PATH_MATCHER.match(x, replaced));
         if (!anyMatch) {
             filterChain.doFilter(request, response);
@@ -99,8 +95,8 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     }
     
     private void forwardRequest(final HttpServletRequest request,
-                                final HttpServletResponse response) throws IOException, ServletException {
-        ClusterMasterDTO master = clusterMasterService.getMaster();
+                                final HttpServletResponse response) throws IOException {
+        ClusterMasterDTO master = clusterSelectMasterService.getMaster();
         String host = master.getMasterHost();
         String port = master.getMasterPort();
         String contextPath = master.getContextPath();

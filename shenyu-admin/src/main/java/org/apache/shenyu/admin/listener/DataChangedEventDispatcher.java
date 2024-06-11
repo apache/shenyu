@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.listener;
 
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
-import org.apache.shenyu.admin.mode.cluster.ShenyuClusterSelectMasterService;
+import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
@@ -60,7 +60,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
     
     @Resource
     @Nullable
-    private ShenyuClusterSelectMasterService shenyuClusterSelectMasterService;
+    private ClusterSelectMasterService shenyuClusterSelectMasterService;
 
     public DataChangedEventDispatcher(final ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;

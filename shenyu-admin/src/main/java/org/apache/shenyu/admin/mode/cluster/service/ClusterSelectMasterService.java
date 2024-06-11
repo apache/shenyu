@@ -15,41 +15,56 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service;
+package org.apache.shenyu.admin.mode.cluster.service;
 
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 
-/**
- * Cluster Master service.
- */
-public interface ClusterMasterService {
-
+public interface ClusterSelectMasterService {
+    
     /**
-     * set master.
+     * Select the cluster master.
+     * @return select result
+     */
+    boolean selectMaster();
+    
+    /**
+     * Select the cluster master.
      * @param masterHost master host
-     * @param masterPort master host
-     * @param contextPath master contextPath
+     * @param masterPort master port
+     * @param contextPath  context path
+     * @return select result
      */
-    void setMaster(String masterHost, String masterPort, String contextPath);
-
+    boolean selectMaster(String masterHost, String masterPort, String contextPath);
+    
     /**
-     * check master.
-     * @param myHost my host
-     * @param myPort my port
-     * @param contextPath my contextPath
-     * @return am i master
+     * check the cluster master status.
+     * @return check result
+     * @throws IllegalStateException Illegal State Exception
      */
-    boolean isMaster(String myHost, String myPort, String contextPath);
-
+    boolean checkMasterStatus() throws IllegalStateException;
+    
+    /**
+     * Release the cluster master.
+     * @return release result
+     */
+    boolean releaseMaster();
+    
+    /**
+     * Whether this node is the cluster master.
+     * @return is master
+     */
+    boolean isMaster();
+    
     /**
      * Get master.
      * @return ClusterMasterDTO
      */
     ClusterMasterDTO getMaster();
-
+    
     /**
      * Get master url.
      * @return master url
      */
     String getMasterUrl();
+
 }

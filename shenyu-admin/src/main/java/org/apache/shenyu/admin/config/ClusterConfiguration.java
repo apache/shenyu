@@ -18,26 +18,35 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
+import org.apache.shenyu.admin.config.properties.ClusterZookeeperProperties;
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
-import org.apache.shenyu.admin.mode.cluster.ShenyuClusterSelectMasterJdbcService;
-import org.apache.shenyu.admin.mode.cluster.ShenyuClusterSelectMasterService;
-import org.apache.shenyu.admin.mode.cluster.ShenyuClusterService;
 import org.apache.shenyu.admin.mode.cluster.filter.ClusterForwardFilter;
-import org.apache.shenyu.admin.service.ClusterMasterService;
+import org.apache.shenyu.admin.mode.cluster.impl.jdbc.ClusterSelectMasterServiceJdbcImpl;
+import org.apache.shenyu.admin.mode.cluster.impl.zookeeper.ClusterSelectMasterServiceZookeeperImpl;
+import org.apache.shenyu.admin.mode.cluster.impl.zookeeper.ClusterZookeeperClient;
+import org.apache.shenyu.admin.mode.cluster.impl.zookeeper.ClusterZookeeperConfig;
+import org.apache.shenyu.admin.mode.cluster.mapper.ClusterMasterMapper;
+import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
+import org.apache.shenyu.admin.mode.cluster.service.ShenyuClusterService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
+import org.springframework.integration.zookeeper.lock.ZookeeperLockRegistry;
+
+import java.util.Objects;
 
 /**
  * The type Cluster configuration.
  */
 @Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties({ClusterProperties.class, ClusterZookeeperProperties.class})
 public class ClusterConfiguration {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterConfiguration.class);
@@ -46,7 +55,6 @@ public class ClusterConfiguration {
      * Shenyu running mode cluster service.
      *
      * @param shenyuClusterSelectMasterService shenyu cluster select master service
-     * @param clusterMasterService cluster master service
      * @param upstreamCheckService upstream check service
      * @param loadServiceDocEntry load service doc entry
      * @param clusterProperties cluster properties
@@ -55,14 +63,12 @@ public class ClusterConfiguration {
     @Bean(destroyMethod = "shutdown")
     @ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "true", matchIfMissing = true)
     @ConditionalOnMissingBean
-    public ShenyuRunningModeService shenyuRunningModeService(final ShenyuClusterSelectMasterService shenyuClusterSelectMasterService,
-                                                             final ClusterMasterService clusterMasterService,
+    public ShenyuRunningModeService shenyuRunningModeService(final ClusterSelectMasterService shenyuClusterSelectMasterService,
                                                              final UpstreamCheckService upstreamCheckService,
                                                              final LoadServiceDocEntry loadServiceDocEntry,
                                                              final ClusterProperties clusterProperties) {
         LOGGER.info("starting in cluster mode ...");
         return new ShenyuClusterService(shenyuClusterSelectMasterService,
-                clusterMasterService,
                 upstreamCheckService,
                 loadServiceDocEntry,
                 clusterProperties
@@ -85,13 +91,48 @@ public class ClusterConfiguration {
      *
      * @param clusterProperties the cluster properties
      * @param jdbcLockRegistry the jdbc lock registry
+     * @param clusterMasterMapper the cluster master mapper
      * @return the shenyu select master service
      */
     @Bean
     @ConditionalOnProperty(value = {"shenyu.cluster.select-type"}, havingValue = "jdbc", matchIfMissing = true)
-    public ShenyuClusterSelectMasterService shenyuClusterSelectMasterService(final ClusterProperties clusterProperties,
-                                                                             final JdbcLockRegistry jdbcLockRegistry) {
-        return new ShenyuClusterSelectMasterJdbcService(clusterProperties, jdbcLockRegistry);
+    public ClusterSelectMasterService clusterSelectMasterJdbcService(final ClusterProperties clusterProperties,
+                                                                     final JdbcLockRegistry jdbcLockRegistry,
+                                                                     final ClusterMasterMapper clusterMasterMapper) {
+        return new ClusterSelectMasterServiceJdbcImpl(clusterProperties, jdbcLockRegistry, clusterMasterMapper);
+    }
+    
+    /**
+     * Shenyu cluster select master service.
+     *
+     * @param clusterProperties the cluster properties
+     * @param zookeeperLockRegistry the zookeeper lock registry
+     * @return the shenyu cluster select master service
+     */
+    @Bean
+    @ConditionalOnProperty(value = {"shenyu.cluster.select-type"}, havingValue = "zookeeper", matchIfMissing = false)
+    public ClusterSelectMasterService clusterSelectMasterZookeeperService(final ClusterProperties clusterProperties,
+                                                                          final ZookeeperLockRegistry zookeeperLockRegistry) {
+        return new ClusterSelectMasterServiceZookeeperImpl(clusterProperties, zookeeperLockRegistry);
+    }
+    
+    /**
+     * register zkClient in spring ioc.
+     *
+     * @param clusterZookeeperProperties the zookeeper configuration
+     * @return ClusterZookeeperClient {@linkplain ClusterZookeeperClient}
+     */
+    @Bean
+    @ConditionalOnProperty(value = {"shenyu.cluster.select-type"}, havingValue = "zookeeper", matchIfMissing = false)
+    public ClusterZookeeperClient clusterZookeeperClient(final ClusterZookeeperProperties clusterZookeeperProperties) {
+        int sessionTimeout = Objects.isNull(clusterZookeeperProperties.getSessionTimeout()) ? 3000 : clusterZookeeperProperties.getSessionTimeout();
+        int connectionTimeout = Objects.isNull(clusterZookeeperProperties.getConnectionTimeout()) ? 3000 : clusterZookeeperProperties.getConnectionTimeout();
+        ClusterZookeeperConfig zkConfig = new ClusterZookeeperConfig(clusterZookeeperProperties.getUrl());
+        zkConfig.setSessionTimeoutMilliseconds(sessionTimeout)
+                .setConnectionTimeoutMilliseconds(connectionTimeout);
+        ClusterZookeeperClient client = new ClusterZookeeperClient(zkConfig);
+        client.start();
+        return client;
     }
     
 }
