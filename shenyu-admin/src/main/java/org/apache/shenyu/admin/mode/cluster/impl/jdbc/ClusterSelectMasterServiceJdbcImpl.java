@@ -19,14 +19,11 @@ package org.apache.shenyu.admin.mode.cluster.impl.jdbc;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
-import org.apache.shenyu.admin.mode.cluster.mapper.ClusterMasterMapper;
+import org.apache.shenyu.admin.mode.cluster.impl.jdbc.mapper.ClusterMasterMapper;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.model.entity.ClusterMasterDO;
 import org.apache.shenyu.admin.transfer.ClusterMasterTransfer;
-import org.apache.shenyu.common.timer.Timer;
-import org.apache.shenyu.common.timer.TimerTask;
-import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
@@ -52,10 +49,6 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
     
     private final Lock clusterMasterLock;
     
-    private final Timer timer;
-    
-    private TimerTask timerTask;
-    
     private volatile boolean locked;
     
     public ClusterSelectMasterServiceJdbcImpl(final ClusterProperties clusterProperties,
@@ -65,7 +58,6 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
         this.jdbcLockRegistry = jdbcLockRegistry;
         this.clusterMasterMapper = clusterMasterMapper;
         this.clusterMasterLock = jdbcLockRegistry.obtain(MASTER_LOCK_KEY);
-        this.timer = WheelTimerFactory.getSharedTimer();
     }
     
     @Override
@@ -126,7 +118,6 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
         if (locked) {
             clusterMasterLock.unlock();
             locked = false;
-            timerTask.cancel();
         }
         return true;
     }

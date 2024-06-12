@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.mode.cluster.mapper;
+package org.apache.shenyu.admin.mode.cluster.impl.jdbc.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.shenyu.admin.model.entity.ClusterMasterDO;

@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.config.properties.ClusterZookeeperProperties;
 import org.apache.shenyu.admin.mode.cluster.impl.jdbc.ClusterSelectMasterServiceJdbcImpl;
-import org.apache.shenyu.admin.mode.cluster.mapper.ClusterMasterMapper;
+import org.apache.shenyu.admin.mode.cluster.impl.jdbc.mapper.ClusterMasterMapper;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.slf4j.Logger;
@@ -62,7 +62,6 @@ public class ClusterJdbcConfiguration {
      * @return  defaultLockRepository
      */
     @Bean
-//    @ConditionalOnProperty(value = {"shenyu.cluster.select-type"}, havingValue = "jdbc", matchIfMissing = true)
     public DefaultLockRepository defaultLockRepository(final DataSource dataSource,
                                                        final ClusterProperties clusterProperties) {
         final String host = IpUtils.getHost();
@@ -84,7 +83,6 @@ public class ClusterJdbcConfiguration {
      * @return the shenyu Admin register repository
      */
     @Bean
-//    @ConditionalOnProperty(value = {"shenyu.cluster.select-type"}, havingValue = "jdbc", matchIfMissing = true)
     public JdbcLockRegistry jdbcLockRegistry(final LockRepository lockRepository) {
         return new JdbcLockRegistry(lockRepository);
     }
@@ -98,7 +96,6 @@ public class ClusterJdbcConfiguration {
      * @return the shenyu select master service
      */
     @Bean
-//    @ConditionalOnProperty(value = {"shenyu.cluster.select-type"}, havingValue = "jdbc", matchIfMissing = true)
     public ClusterSelectMasterService clusterSelectMasterJdbcService(final ClusterProperties clusterProperties,
                                                                      final JdbcLockRegistry jdbcLockRegistry,
                                                                      final ClusterMasterMapper clusterMasterMapper) {

@@ -17,7 +17,7 @@
   -->
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.apache.shenyu.admin.mode.cluster.mapper.ClusterMasterMapper">
+<mapper namespace="org.apache.shenyu.admin.mode.cluster.impl.jdbc.mapper.ClusterMasterMapper">
     <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.ClusterMasterDO">
         <!--@mbg.generated-->
         <!--@Table alert_receiver-->

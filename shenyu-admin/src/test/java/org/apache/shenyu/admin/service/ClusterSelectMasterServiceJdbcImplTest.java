@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.impl.jdbc.ClusterSelectMasterServiceJdbcImpl;
-import org.apache.shenyu.admin.mode.cluster.mapper.ClusterMasterMapper;
+import org.apache.shenyu.admin.mode.cluster.impl.jdbc.mapper.ClusterMasterMapper;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.model.entity.ClusterMasterDO;
 import org.junit.jupiter.api.BeforeEach;
