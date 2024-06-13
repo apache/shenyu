@@ -70,7 +70,6 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
         this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
     }
 
-
     /**
      * event.
      *

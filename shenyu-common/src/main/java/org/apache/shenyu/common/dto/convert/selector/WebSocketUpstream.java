@@ -182,7 +182,6 @@ public final class WebSocketUpstream extends CommonUpstream {
                 + '}';
     }
     
-
     /**
      * class builder.
      */
@@ -213,7 +212,6 @@ public final class WebSocketUpstream extends CommonUpstream {
          */
         private boolean status;
         
-
         /**
          * timestamp.
          */

@@ -20,12 +20,18 @@ package org.apache.shenyu.web.handler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
+import org.apache.shenyu.common.isolation.ReverseClassLoader;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.PluginHandlerEvent;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.isolation.ExtendDataBase;
+import org.apache.shenyu.web.loader.ShenyuLoaderResult;
 import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +43,11 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
+import java.io.File;
+import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +61,8 @@ import java.util.stream.Collectors;
 public final class ShenyuWebHandler implements WebHandler, ApplicationListener<PluginHandlerEvent> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebHandler.class);
+
+    private static final String PLUGIN_PATH = "./plugins/%s";
 
     /**
      * this filed can not set to be final, because we should copyOnWrite to update plugins.
@@ -211,6 +223,9 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     private synchronized void onPluginEnabled(final PluginData pluginData) {
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
+        // load plugin from the specified path
+        loadPluginByURL(pluginData);
+
         if (StringUtils.isNoneBlank(pluginData.getPluginJar())) {
             LOG.info("shenyu start load plugin [{}] from upload plugin jar", pluginData.getName());
             shenyuLoaderService.loadExtOrUploadPlugins(pluginData);
@@ -224,6 +239,57 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         this.plugins = sortPlugins(newPluginList);
     }
 
+    private void loadPluginByURL(final PluginData pluginData) {
+        String pluginName = pluginData.getName();
+        final Object pluginBean = SpringBeanUtils.getInstance().getBeanByClassName(pluginName + "Plugin");
+        if (Objects.nonNull(pluginBean) && pluginBean instanceof ShenyuPlugin) {
+            this.putExtPlugins(Collections.singletonList((ShenyuPlugin) pluginBean));
+            return;
+        }
+        try {
+            // load plugin
+            String pluginJarDir = String.format(PLUGIN_PATH, pluginName);
+            final File pluginJarFiles = new File(pluginJarDir);
+            if (pluginJarFiles.mkdirs()) {
+                return;
+            }
+            File[] jars = pluginJarFiles.listFiles((dir1, name) -> name.endsWith(".jar"));
+            if (Objects.isNull(jars) || jars.length == 0) {
+                return;
+            }
+
+            URL[] classPath = new URL[jars.length + 1];
+            classPath[0] = pluginJarFiles.toURI().toURL();
+            List<File> pluginJarFileList = new ArrayList<>(2);
+            for (int i = 1; i < classPath.length; i++) {
+                final File jarFile = jars[i - 1];
+                classPath[i] = jarFile.toURI().toURL();
+                if (jarFile.getName().contains(Constants.SHENYU) && jarFile.getName().contains(Constants.PLUGIN)) {
+                    pluginJarFileList.add(jarFile);
+                }
+            }
+            final ReverseClassLoader urlClassLoader = new ReverseClassLoader(classPath, this.getClass().getClassLoader());
+            if (!CollectionUtils.isEmpty(pluginJarFileList)) {
+                pluginJarFileList.stream().sorted(Comparator.reverseOrder()).forEach(pluginJarFile -> {
+                    try {
+                        final List<ShenyuLoaderResult> shenyuLoaderResults = shenyuLoaderService.loadJarPlugins(Files.newInputStream(pluginJarFile.toPath()), urlClassLoader);
+                        List<ExtendDataBase> handlers = shenyuLoaderResults.stream().map(ShenyuLoaderResult::getExtendDataBase).filter(Objects::nonNull).collect(Collectors.toList());
+                        handlers.forEach(extendDataBase -> {
+                            if (extendDataBase instanceof PluginDataHandler) {
+                                ((PluginDataHandler) extendDataBase).handlerPlugin(pluginData);
+                            }
+                        });
+                    } catch (Exception e) {
+                        LOG.error("load {} plugin classloader failed. ex ", pluginJarFile.getAbsolutePath(), e);
+                    }
+                });
+            }
+            LOG.info("load {} plugin success, path: {}", pluginName, pluginJarDir);
+        } catch (Throwable e) {
+            LOG.error("load {} plugin classloader failed. ex ", pluginName, e);
+        }
+    }
+
     /**
      * handle removed or disabled plugin.
      *
@@ -233,6 +299,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         // copy a new plugin list.
         List<ShenyuPlugin> newPluginList = new ArrayList<>(this.plugins);
         newPluginList.removeIf(plugin -> plugin.named().equals(pluginData.getName()));
+
         this.plugins = newPluginList;
     }
 

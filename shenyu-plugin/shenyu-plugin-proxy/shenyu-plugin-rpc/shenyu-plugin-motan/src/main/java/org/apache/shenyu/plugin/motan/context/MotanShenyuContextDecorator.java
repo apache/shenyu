@@ -21,11 +21,12 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.isolation.ExtendDataBase;
 
 /**
  * The type motan shenyu context decorator.
  */
-public class MotanShenyuContextDecorator implements ShenyuContextDecorator {
+public class MotanShenyuContextDecorator implements ShenyuContextDecorator, ExtendDataBase {
 
     @Override
     public ShenyuContext decorator(final ShenyuContext shenyuContext, final MetaData metaData) {
@@ -35,7 +36,7 @@ public class MotanShenyuContextDecorator implements ShenyuContextDecorator {
         shenyuContext.setRpcType(RpcTypeEnum.MOTAN.getName());
         return shenyuContext;
     }
-    
+
     @Override
     public String rpcType() {
         return RpcTypeEnum.MOTAN.getName();

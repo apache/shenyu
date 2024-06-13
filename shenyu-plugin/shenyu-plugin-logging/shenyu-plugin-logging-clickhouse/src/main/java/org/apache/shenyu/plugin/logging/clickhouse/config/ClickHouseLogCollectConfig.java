@@ -92,7 +92,6 @@ public class ClickHouseLogCollectConfig {
             return clusterName;
         }
 
-
         /**
          * set clusterName.
          * @param clusterName clusterName

@@ -215,7 +215,6 @@ public class PluginData {
         return sort;
     }
 
-
     /**
      * set sort.
      *
@@ -305,7 +304,6 @@ public class PluginData {
          */
         private String pluginJar;
 
-
         /**
          * no args constructor.
          */
@@ -386,7 +384,6 @@ public class PluginData {
             this.sort = sort;
             return this;
         }
-
 
         /**
          * build pluginJar.

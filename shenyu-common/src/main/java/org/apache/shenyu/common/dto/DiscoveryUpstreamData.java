@@ -41,7 +41,6 @@ public class DiscoveryUpstreamData {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp dateUpdated;
 
-
     /**
      * discoveryHandlerId.
      */
@@ -71,7 +70,6 @@ public class DiscoveryUpstreamData {
      * props.
      */
     private String props;
-
 
     /**
      * getDiscoveryHandlerId.

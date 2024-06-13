@@ -35,8 +35,6 @@ public class ShenyuLoaderResultTest {
     public void shenyuLoaderResultTest() {
         ShenyuLoaderResult shenyuLoaderResult = new ShenyuLoaderResult();
         shenyuLoaderResult.setShenyuPlugin(null);
-        shenyuLoaderResult.setPluginDataHandler(null);
         Assert.assertNull(shenyuLoaderResult.getShenyuPlugin());
-        Assert.assertNull(shenyuLoaderResult.getPluginDataHandler());
     }
 }

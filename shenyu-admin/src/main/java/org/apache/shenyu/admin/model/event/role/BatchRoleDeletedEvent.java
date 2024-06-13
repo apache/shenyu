@@ -66,9 +66,7 @@ public class BatchRoleDeletedEvent extends BatchChangedEvent {
                 .map(RoleDO.class::cast)
                 .collect(Collectors.toList());
     }
-    
 
-    
     /**
      * get deleted ids.
      *

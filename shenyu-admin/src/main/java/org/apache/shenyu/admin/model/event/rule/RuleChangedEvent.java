@@ -28,8 +28,7 @@ import java.util.Objects;
  * SelectorChangedEvent.
  */
 public class RuleChangedEvent extends AdminDataModelChangedEvent {
-    
-    
+
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *

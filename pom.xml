@@ -218,30 +218,6 @@
             </dependency>
 
             <dependency>
-                <groupId>com.weibo</groupId>
-                <artifactId>motan-core</artifactId>
-                <version>${motan.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.weibo</groupId>
-                <artifactId>motan-transport-netty4</artifactId>
-                <version>${motan.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.weibo</groupId>
-                <artifactId>motan-registry-zookeeper</artifactId>
-                <version>${motan.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.weibo</groupId>
-                <artifactId>motan-springsupport</artifactId>
-                <version>${motan.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>${gson.version}</version>
@@ -275,39 +251,6 @@
                 <artifactId>dubbo</artifactId>
                 <version>${apache.dubbo.version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>com.alipay.sofa</groupId>
-                <artifactId>sofa-rpc-all</artifactId>
-                <version>${sofa.rpc.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>net.jcip</groupId>
-                        <artifactId>jcip-annotations</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>io.grpc</groupId>
-                        <artifactId>grpc-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>grpc-api</artifactId>
-                        <groupId>io.grpc</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>grpc-protobuf</artifactId>
-                        <groupId>io.grpc</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>grpc-stub</artifactId>
-                        <groupId>io.grpc</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>grpc-netty-shaded</artifactId>
-                        <groupId>io.grpc</groupId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
             <dependency>
                 <groupId>com.lmax</groupId>
                 <artifactId>disruptor</artifactId>
@@ -821,6 +764,39 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.commonjava.maven.plugins</groupId>
+                <artifactId>directory-maven-plugin</artifactId>
+                <version>0.1</version>
+                <executions>
+                    <execution>
+                        <id>directories</id>
+                        <goals>
+                            <goal>highest-basedir</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <property>main.basedir</property>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>plugins</directory>
+                            <includes>
+                                <include>**/*</include>
+                            </includes>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
+                </configuration>
             </plugin>
         </plugins>
     </build>

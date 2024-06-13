@@ -36,6 +36,7 @@
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>
+            <version>${sofa.rpc.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>net.jcip</groupId>
@@ -68,7 +69,7 @@
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-sofa</artifactId>
+            <artifactId>shenyu-spring-boot-starter-isolation-plugin-sofa</artifactId>
             <version>${project.version}</version>
         </dependency>
 

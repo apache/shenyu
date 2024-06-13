@@ -73,6 +73,13 @@
                 <exclude>**/*</exclude>
             </excludes>
         </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../plugins</directory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <outputDirectory>plugins</outputDirectory>
+        </fileSet>
     </fileSets>
     
     <dependencySets>

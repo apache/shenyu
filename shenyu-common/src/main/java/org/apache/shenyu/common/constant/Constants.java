@@ -21,6 +21,21 @@ package org.apache.shenyu.common.constant;
  * Constants.
  */
 public interface Constants {
+
+    /**
+     * The constant SHENYU.
+     */
+    String SHENYU = "shenyu";
+
+    /**
+     * The constant PLUGIN.
+     */
+    String PLUGIN = "plugin";
+
+    /**
+     * The constant DELIMITER.
+     */
+    String DELIMITER = "-";
     
     /**
      * The constant SUCCESS.

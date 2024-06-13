@@ -63,12 +63,12 @@ public class RequestPlugin extends AbstractShenyuPlugin {
         ServerHttpRequest request = exchange.getRequest();
         ServerWebExchange modifiedExchange = exchange.mutate()
                 .request(originalRequest -> originalRequest.uri(
-                        UriComponentsBuilder.fromUri(exchange.getRequest()
-                                .getURI())
-                                .replaceQueryParams(getQueryParams(request, requestHandle))
-                                .build()
-                                .encode()
-                                .toUri()
+                                UriComponentsBuilder.fromUri(exchange.getRequest()
+                                                .getURI())
+                                        .replaceQueryParams(getQueryParams(request, requestHandle))
+                                        .build()
+                                        .encode()
+                                        .toUri()
                         ).headers(httpHeaders -> setHeaders(httpHeaders, request, requestHandle))
                 ).build();
         return chain.execute(modifiedExchange);
@@ -213,4 +213,5 @@ public class RequestPlugin extends AbstractShenyuPlugin {
     private void fillHeader(final Map.Entry<String, String> shenyuHeader, final HttpHeaders headers) {
         headers.set(shenyuHeader.getKey(), shenyuHeader.getValue());
     }
+
 }

@@ -55,7 +55,6 @@ public class InstanceEntity {
         port = builder.port;
     }
     
-    
     /**
      * return builder.
      *

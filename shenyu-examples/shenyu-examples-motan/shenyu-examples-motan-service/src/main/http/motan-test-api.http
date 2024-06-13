@@ -15,6 +15,10 @@
 # limitations under the License.
 #
 
+### shengyu getway proxy hello
+GET http://localhost:9195/motan/demo/hi
+Accept: application/json
+Content-Type: application/json
 
 ### shengyu getway proxy hello
 GET http://localhost:9195/motan/demo/hello
@@ -26,10 +30,10 @@ Content-Type: application/json
 }
 
 ### shengyu getway proxy timeout
-GET http://localhost:9195/motan/demo/testTimeOut
+GET http://localhost:9195/motan/demo/timeout
 Accept: application/json
 Content-Type: application/json
 
 {
-  "timeout": "1"
+  "timeout": 1
 }

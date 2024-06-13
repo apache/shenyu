@@ -50,8 +50,7 @@ public class RoleEventPublisher implements AdminDataModelChangedEventPublisher<R
     public void onCreated(final RoleDO rule) {
         publish(new RoleCreatedEvent(rule, SessionUtil.visitorName()));
     }
-    
-    
+
     /**
      * on rule updated.
      *

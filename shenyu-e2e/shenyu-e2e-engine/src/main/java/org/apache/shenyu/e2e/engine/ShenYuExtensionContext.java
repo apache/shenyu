@@ -94,8 +94,6 @@ public class ShenYuExtensionContext {
         return gatewayClientMap;
     }
     
-
-
     /**
      * Gets external service client map.
      *
@@ -105,7 +103,6 @@ public class ShenYuExtensionContext {
         return externalServiceClientMap;
     }
 
-    
     /**
      * Gets environment client.
      *

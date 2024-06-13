@@ -16,21 +16,21 @@
 # limitations under the License.
 #
 
-PRGDIR=`dirname "$0"`
-for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
-do
-    for loop in `seq 1 30`
-    do
-        status=`curl -o /dev/null -s -w %{http_code} $service`
-        echo -e "curl $service response $status"
-
-        if [ $status -eq 200  ]; then
-            break
-        fi
-
-        sleep 2
-    done
-done
+#PRGDIR=`dirname "$0"`
+#for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
+#do
+#    for loop in `seq 1 30`
+#    do
+#        status=`curl -o /dev/null -s -w %{http_code} $service`
+#        echo -e "curl $service response $status"
+#
+#        if [ $status -eq 200  ]; then
+#            break
+#        fi
+#
+#        sleep 2
+#    done
+#done
 
 sleep 3
 echo -e "\n-------------------"
