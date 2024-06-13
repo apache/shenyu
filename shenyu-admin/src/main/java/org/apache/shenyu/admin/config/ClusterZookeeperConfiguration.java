@@ -44,6 +44,8 @@ public class ClusterZookeeperConfiguration {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterZookeeperConfiguration.class);
     
+    private static final String LOCK_PATH = "/shenyu-lock";
+    
     @Value("${server.servlet.context-path:}")
     private String contextPath;
     
@@ -51,17 +53,29 @@ public class ClusterZookeeperConfiguration {
     private String port;
     
     /**
+     * Shenyu Admin distributed lock by spring-integration-zookeeper.
+     *
+     * @param clusterZookeeperClient the cluster zookeeper client
+     * @return the shenyu Admin zookeeper lock registry
+     */
+    @Bean
+    public ZookeeperLockRegistry zookeeperLockRegistry(final ClusterZookeeperClient clusterZookeeperClient) {
+        return new ZookeeperLockRegistry(clusterZookeeperClient.getClient(), LOCK_PATH);
+    }
+    
+    /**
      * Shenyu cluster select master service.
      *
      * @param clusterProperties the cluster properties
      * @param zookeeperLockRegistry the zookeeper lock registry
+     * @param clusterZookeeperClient cluster zookeeper client
      * @return the shenyu cluster select master service
      */
     @Bean
-    @ConditionalOnProperty(value = {"shenyu.cluster.select-type"}, havingValue = "zookeeper", matchIfMissing = false)
     public ClusterSelectMasterService clusterSelectMasterZookeeperService(final ClusterProperties clusterProperties,
-                                                                          final ZookeeperLockRegistry zookeeperLockRegistry) {
-        return new ClusterSelectMasterServiceZookeeperImpl(clusterProperties, zookeeperLockRegistry);
+                                                                          final ZookeeperLockRegistry zookeeperLockRegistry,
+                                                                          final ClusterZookeeperClient clusterZookeeperClient) {
+        return new ClusterSelectMasterServiceZookeeperImpl(clusterProperties, zookeeperLockRegistry, clusterZookeeperClient);
     }
     
     /**
@@ -71,7 +85,6 @@ public class ClusterZookeeperConfiguration {
      * @return ClusterZookeeperClient {@linkplain ClusterZookeeperClient}
      */
     @Bean
-    @ConditionalOnProperty(value = {"shenyu.cluster.select-type"}, havingValue = "zookeeper", matchIfMissing = false)
     public ClusterZookeeperClient clusterZookeeperClient(final ClusterZookeeperProperties clusterZookeeperProperties) {
         int sessionTimeout = Objects.isNull(clusterZookeeperProperties.getSessionTimeout()) ? 3000 : clusterZookeeperProperties.getSessionTimeout();
         int connectionTimeout = Objects.isNull(clusterZookeeperProperties.getConnectionTimeout()) ? 3000 : clusterZookeeperProperties.getConnectionTimeout();

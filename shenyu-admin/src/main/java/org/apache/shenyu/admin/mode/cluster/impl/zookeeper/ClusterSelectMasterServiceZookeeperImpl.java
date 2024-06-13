@@ -17,54 +17,73 @@
 
 package org.apache.shenyu.admin.mode.cluster.impl.zookeeper;
 
+import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.zookeeper.lock.ZookeeperLockRegistry;
 
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
 public class ClusterSelectMasterServiceZookeeperImpl implements ClusterSelectMasterService {
     
     private static final Logger LOG = LoggerFactory.getLogger(ClusterSelectMasterServiceZookeeperImpl.class);
     
-    private static final String MASTER_LOCK_KEY = "/shenyu/cluster/master";
+    private static final String MASTER_LOCK_KEY = "cluster/master";
+    
+    private static final String MASTER_INFO = "/cluster/master/info";
     
     private final ClusterProperties clusterProperties;
     
+    private final ClusterZookeeperClient clusterZookeeperClient;
+    
     private final Lock clusterMasterLock;
     
-    private volatile boolean locked;
+    private volatile boolean masterFlag;
     
     public ClusterSelectMasterServiceZookeeperImpl(final ClusterProperties clusterProperties,
-                                                   final ZookeeperLockRegistry zookeeperLockRegistry) {
+                                                   final ZookeeperLockRegistry zookeeperLockRegistry,
+                                                   final ClusterZookeeperClient clusterZookeeperClient) {
         this.clusterProperties = clusterProperties;
+        this.clusterZookeeperClient = clusterZookeeperClient;
         this.clusterMasterLock = zookeeperLockRegistry.obtain(MASTER_LOCK_KEY);
     }
     
     @Override
     public boolean selectMaster() {
-        locked = clusterMasterLock.tryLock();
-        return locked;
+        masterFlag = clusterMasterLock.tryLock();
+        return masterFlag;
     }
     
     @Override
     public boolean selectMaster(final String masterHost, final String masterPort, final String contextPath) {
-        return false;
+        masterFlag = clusterMasterLock.tryLock();
+        if (masterFlag) {
+            Map<String, String> masterInfo = Maps.newHashMap();
+            masterInfo.put("masterHost", masterHost);
+            masterInfo.put("masterPort", masterPort);
+            masterInfo.put("contextPath", contextPath);
+            clusterZookeeperClient.createOrUpdate(MASTER_INFO, JsonUtils.toJson(masterInfo), CreateMode.PERSISTENT);
+        }
+        return masterFlag;
     }
     
     @Override
     public boolean checkMasterStatus() {
-        return locked;
+        return masterFlag;
     }
     
     @Override
     public boolean releaseMaster() {
-        if (locked) {
+        if (masterFlag) {
             clusterMasterLock.unlock();
-            locked = false;
+            masterFlag = false;
         }
         return true;
     }
@@ -74,23 +93,22 @@ public class ClusterSelectMasterServiceZookeeperImpl implements ClusterSelectMas
         if (!clusterProperties.isEnabled()) {
             return true;
         }
-        return locked;
+        return masterFlag;
     }
     
     @Override
     public ClusterMasterDTO getMaster() {
-//        ClusterMasterDO masterDO = clusterMasterMapper.selectById(MASTER_ID);
-//        return Objects.isNull(masterDO) ? new ClusterMasterDTO() : ClusterMasterTransfer.INSTANCE.mapToDTO(masterDO);
-        return null;
+        String masterInfoJson = clusterZookeeperClient.getDirectly(MASTER_INFO);
+        return JsonUtils.jsonToObject(masterInfoJson, ClusterMasterDTO.class);
     }
     
     @Override
     public String getMasterUrl() {
-//        ClusterMasterDO master = clusterMasterMapper.selectById(MASTER_ID);
-//        if (StringUtils.isEmpty(master.getContextPath())) {
-//            return "http://" + master.getMasterHost() + ":" + master.getMasterPort();
-//        }
-//        return "http://" + master.getMasterHost() + ":" + master.getMasterPort() + "/" + master.getContextPath();
-        return null;
+        String masterInfoJson = clusterZookeeperClient.getDirectly(MASTER_INFO);
+        ClusterMasterDTO master = JsonUtils.jsonToObject(masterInfoJson, ClusterMasterDTO.class);
+        if (StringUtils.isEmpty(master.getContextPath())) {
+            return "http://" + master.getMasterHost() + ":" + master.getMasterPort();
+        }
+        return "http://" + master.getMasterHost() + ":" + master.getMasterPort() + "/" + master.getContextPath();
     }
 }

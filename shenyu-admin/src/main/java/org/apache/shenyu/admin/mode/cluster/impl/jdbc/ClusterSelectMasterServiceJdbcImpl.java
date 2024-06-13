@@ -49,7 +49,7 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
     
     private final Lock clusterMasterLock;
     
-    private volatile boolean locked;
+    private volatile boolean masterFlag;
     
     public ClusterSelectMasterServiceJdbcImpl(final ClusterProperties clusterProperties,
                                               final JdbcLockRegistry jdbcLockRegistry,
@@ -62,15 +62,15 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
     
     @Override
     public boolean selectMaster() {
-        locked = clusterMasterLock.tryLock();
-        LOG.info("select master result: {}", locked);
-        return locked;
+        masterFlag = clusterMasterLock.tryLock();
+        LOG.info("select master result: {}", masterFlag);
+        return masterFlag;
     }
     
     @Override
     public boolean selectMaster(final String masterHost, final String masterPort, final String contextPath) {
-        locked = clusterMasterLock.tryLock();
-        if (locked) {
+        masterFlag = clusterMasterLock.tryLock();
+        if (masterFlag) {
             Timestamp now = Timestamp.valueOf(LocalDateTime.now());
             ClusterMasterDO masterDO = ClusterMasterDO.builder()
                     .id(MASTER_ID)
@@ -86,38 +86,22 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
                 clusterMasterMapper.updateSelective(masterDO);
             }
         }
-        return locked;
-    }
-    
-    private void healthCheck() {
-        try {
-            if (!locked) {
-                //                this.reconnectBlocking();
-                locked = this.selectMaster();
-            } else {
-                //                this.sendPing();
-                //                send(DataEventTypeEnum.CLUSTER.name());
-                jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
-                LOG.info("renew master");
-            }
-        } catch (Exception e) {
-            LOG.error("master health check error", e);
-        }
+        return masterFlag;
     }
     
     @Override
     public boolean checkMasterStatus() throws IllegalStateException {
-        if (locked) {
+        if (masterFlag) {
             jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
         }
-        return locked;
+        return masterFlag;
     }
     
     @Override
     public boolean releaseMaster() {
-        if (locked) {
+        if (masterFlag) {
             clusterMasterLock.unlock();
-            locked = false;
+            masterFlag = false;
         }
         return true;
     }
@@ -127,7 +111,7 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
         if (!clusterProperties.isEnabled()) {
             return true;
         }
-        return locked;
+        return masterFlag;
     }
     
     @Override
