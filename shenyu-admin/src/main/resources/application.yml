@@ -122,6 +122,7 @@ shenyu:
       - /selector/batch
       - /rule/batchEnabled
       - /rule/batch
+      - /plugin/syncPluginData/**
     zookeeper:
       url: localhost:2181
       sessionTimeout: 5000

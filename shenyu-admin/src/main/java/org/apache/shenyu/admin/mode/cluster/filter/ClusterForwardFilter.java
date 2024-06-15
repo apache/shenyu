@@ -41,6 +41,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -99,23 +100,36 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         ClusterMasterDTO master = clusterSelectMasterService.getMaster();
         String host = master.getMasterHost();
         String port = master.getMasterPort();
-        String contextPath = master.getContextPath();
+        String masterContextPath = master.getContextPath();
         
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromHttpRequest(new ServletServerHttpRequest(request))
                 .host(host)
                 .port(port);
-        String targetUri = builder.toUriString();
-        String currentContextPath = request.getContextPath();
-        targetUri = targetUri.replaceAll(currentContextPath, contextPath);
-        LOG.info("forwarding current: {} request to target url: {}", builder.toUriString(), targetUri);
+        String originalPath = builder.build().getPath();
+        
+        if (StringUtils.isNotEmpty(originalPath)) {
+            // remove current context path
+            String currentContextPath = request.getContextPath();
+            if (StringUtils.isNotEmpty(currentContextPath) && originalPath.startsWith(currentContextPath)) {
+                originalPath = originalPath.substring(originalPath.indexOf(currentContextPath) + currentContextPath.length());
+            }
+        }
+        if (StringUtils.isNoneBlank(masterContextPath)) {
+            originalPath = masterContextPath + originalPath;
+        }
+        builder.replacePath(originalPath);
+        
+        String targetUrl = builder.toUriString();
+        
+        LOG.info("forwarding current uri: {} request to target url: {}", request.getRequestURI(), targetUrl);
         // Create request entity
         HttpHeaders headers = new HttpHeaders();
         
         copyHeaders(request, headers);
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
         // Send request
-        ResponseEntity<InputStream> responseEntity = restTemplate.exchange(targetUri, HttpMethod.valueOf(request.getMethod()), requestEntity, InputStream.class);
+        ResponseEntity<byte[]> responseEntity = restTemplate.exchange(targetUrl, HttpMethod.valueOf(request.getMethod()), requestEntity, byte[].class);
 
         // Set response status and headers
         response.setStatus(responseEntity.getStatusCodeValue());
@@ -124,7 +138,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         response.addHeader("Access-Control-Allow-Origin", "*");
         response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
 
-        IOUtils.copy(Objects.requireNonNull(responseEntity.getBody()), response.getOutputStream());
+        IOUtils.copy(new ByteArrayInputStream(Objects.requireNonNull(responseEntity.getBody())), response.getOutputStream());
         response.getOutputStream().flush();
     }
     

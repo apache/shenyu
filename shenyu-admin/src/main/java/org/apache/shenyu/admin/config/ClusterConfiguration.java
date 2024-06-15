@@ -38,6 +38,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ClusterProperties.class, ClusterZookeeperProperties.class})
+@ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "true", matchIfMissing = false)
 public class ClusterConfiguration {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterConfiguration.class);

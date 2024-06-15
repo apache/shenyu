@@ -29,7 +29,7 @@
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
     </resultMap>
     <sql id="Base_Column_List">
-        id, master_host, master_port, date_created, date_updated
+        id, master_host, master_port, context_path, date_created, date_updated
     </sql>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ClusterMasterDO">
