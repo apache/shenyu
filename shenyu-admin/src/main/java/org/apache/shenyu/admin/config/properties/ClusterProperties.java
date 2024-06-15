@@ -30,7 +30,7 @@ public class ClusterProperties {
     /**
      * Whether enabled cluster mode, default: false.
      */
-    private boolean enabled = false;
+    private boolean enabled;
     
     /**
      * the master select method type.
