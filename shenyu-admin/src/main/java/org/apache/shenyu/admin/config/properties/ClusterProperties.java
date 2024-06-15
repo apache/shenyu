@@ -28,9 +28,9 @@ import java.util.List;
 public class ClusterProperties {
     
     /**
-     * Whether enabled cluster mode, default: true.
+     * Whether enabled cluster mode, default: false.
      */
-    private boolean enabled = true;
+    private boolean enabled = false;
     
     /**
      * the master select method type.
