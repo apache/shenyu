@@ -25,7 +25,6 @@ import org.apache.shenyu.admin.mode.cluster.impl.zookeeper.ClusterZookeeperConfi
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -39,18 +38,12 @@ import java.util.Objects;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ClusterProperties.class, ClusterZookeeperProperties.class})
-@ConditionalOnProperty(value = {"shenyu.cluster.select-type"}, havingValue = "zookeeper", matchIfMissing = false)
+@ConditionalOnProperty(value = {"shenyu.cluster.type"}, havingValue = "zookeeper", matchIfMissing = false)
 public class ClusterZookeeperConfiguration {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterZookeeperConfiguration.class);
     
     private static final String LOCK_PATH = "/shenyu-lock";
-    
-    @Value("${server.servlet.context-path:}")
-    private String contextPath;
-    
-    @Value("${server.port:}")
-    private String port;
     
     /**
      * Shenyu Admin distributed lock by spring-integration-zookeeper.

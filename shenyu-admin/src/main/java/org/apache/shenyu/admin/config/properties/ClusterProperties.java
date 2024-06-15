@@ -35,7 +35,7 @@ public class ClusterProperties {
     /**
      * the master select method type.
      */
-    private String selectType;
+    private String type;
     
     /**
      * cluster forward uri list.
@@ -75,17 +75,17 @@ public class ClusterProperties {
      *
      * @return the select type
      */
-    public String getSelectType() {
-        return selectType;
+    public String getType() {
+        return type;
     }
     
     /**
      * Set the select type.
      *
-     * @param selectType the select type
+     * @param type the select type
      */
-    public void setSelectType(final String selectType) {
-        this.selectType = selectType;
+    public void setType(final String type) {
+        this.type = type;
     }
     
     /**

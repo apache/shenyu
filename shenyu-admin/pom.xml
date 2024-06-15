@@ -87,6 +87,7 @@
         <dependency>
             <groupId>org.springframework.integration</groupId>
             <artifactId>spring-integration-zookeeper</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

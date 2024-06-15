@@ -113,8 +113,8 @@ shenyu:
   jwt:
     expired-seconds: 86400000
   cluster:
-    enabled: true
-    select-type: jdbc
+    enabled: false
+    type: jdbc
     forward-list:
       - /shenyu-client/**
       - /configs/**
@@ -122,6 +122,10 @@ shenyu:
       - /selector/batch
       - /rule/batchEnabled
       - /rule/batch
+    zookeeper:
+      url: localhost:2181
+      sessionTimeout: 5000
+      connectionTimeout: 2000
   shiro:
     white-list:
       - /

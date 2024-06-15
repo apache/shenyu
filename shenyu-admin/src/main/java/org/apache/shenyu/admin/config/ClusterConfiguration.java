@@ -27,7 +27,6 @@ import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -42,24 +41,7 @@ import org.springframework.context.annotation.Configuration;
 public class ClusterConfiguration {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterConfiguration.class);
-    
-    @Value("${server.servlet.context-path:}")
-    private String contextPath;
-    
-    @Value("${server.port:}")
-    private String port;
-    
-//    /**
-//     * Shenyu Admin distributed lock by spring-integration-zookeeper.
-//     *
-//     * @param lockRepository the lockRepository
-//     * @return the shenyu Admin register repository
-//     */
-//    @Bean
-//    public ZookeeperLockRegistry zookeeperLockRegistry(final LockRepository lockRepository) {
-//        return new ZookeeperLockRegistry(lockRepository);
-//    }
-    
+ 
     /**
      * Shenyu running mode cluster service.
      *
@@ -70,7 +52,7 @@ public class ClusterConfiguration {
      * @return Shenyu cluster service
      */
     @Bean(destroyMethod = "shutdown")
-    @ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "true", matchIfMissing = false)
     @ConditionalOnMissingBean
     public ShenyuRunningModeService shenyuRunningModeService(final ClusterSelectMasterService shenyuClusterSelectMasterService,
                                                              final UpstreamCheckService upstreamCheckService,
