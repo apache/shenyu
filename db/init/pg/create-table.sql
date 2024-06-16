@@ -2651,23 +2651,3 @@ COMMENT ON COLUMN "public"."shenyu_lock"."region" IS 'region';
 COMMENT ON COLUMN "public"."shenyu_lock"."client_id" IS 'client_id';
 COMMENT ON COLUMN "public"."shenyu_lock"."created_date" IS 'created_date';
 
--- ----------------------------
--- Table structure for cluster_master
--- ----------------------------
-DROP TABLE IF EXISTS "public"."cluster_master";
-CREATE TABLE "public"."cluster_master"
-(
-    "id"                   varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-    "master_host"                 varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    "master_port"                 varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    "context_path"                 varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    "date_created"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-    "date_updated"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
-)
-;
-COMMENT ON COLUMN "public"."cluster_master"."id" IS 'primary key id';
-COMMENT ON COLUMN "public"."cluster_master"."master_host" IS 'master host';
-COMMENT ON COLUMN "public"."cluster_master"."master_port" IS 'master port';
-COMMENT ON COLUMN "public"."cluster_master"."context_path" IS 'master context_path';
-COMMENT ON COLUMN "public"."cluster_master"."date_created" IS 'create time';
-COMMENT ON COLUMN "public"."cluster_master"."date_updated" IS 'update time';
