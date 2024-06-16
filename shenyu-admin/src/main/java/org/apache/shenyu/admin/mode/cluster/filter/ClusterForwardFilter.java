@@ -90,13 +90,37 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        
         // cluster forward request to master
         forwardRequest(request, response);
     }
     
     private void forwardRequest(final HttpServletRequest request,
                                 final HttpServletResponse response) throws IOException {
+        String targetUrl = getForwardingUrl(request);
+        
+        LOG.info("forwarding current uri: {} request to target url: {}", request.getRequestURI(), targetUrl);
+        // Create request entity
+        HttpHeaders headers = new HttpHeaders();
+        // Copy request headers
+        copyHeaders(request, headers);
+        HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
+        // Send request
+        ResponseEntity<byte[]> responseEntity = restTemplate.exchange(targetUrl, HttpMethod.valueOf(request.getMethod()), requestEntity, byte[].class);
+
+        // Set response status and headers
+        response.setStatus(responseEntity.getStatusCodeValue());
+        // Copy response headers
+        copyHeaders(responseEntity.getHeaders(), response);
+        // fix cors error
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+        // write response back
+        IOUtils.copy(new ByteArrayInputStream(Objects.requireNonNull(responseEntity.getBody())), response.getOutputStream());
+        response.getOutputStream().flush();
+    }
+    
+    @NotNull
+    private String getForwardingUrl(final HttpServletRequest request) {
         ClusterMasterDTO master = clusterSelectMasterService.getMaster();
         String host = master.getMasterHost();
         String port = master.getMasterPort();
@@ -120,26 +144,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         }
         builder.replacePath(originalPath);
         
-        String targetUrl = builder.toUriString();
-        
-        LOG.info("forwarding current uri: {} request to target url: {}", request.getRequestURI(), targetUrl);
-        // Create request entity
-        HttpHeaders headers = new HttpHeaders();
-        
-        copyHeaders(request, headers);
-        HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
-        // Send request
-        ResponseEntity<byte[]> responseEntity = restTemplate.exchange(targetUrl, HttpMethod.valueOf(request.getMethod()), requestEntity, byte[].class);
-
-        // Set response status and headers
-        response.setStatus(responseEntity.getStatusCodeValue());
-        copyHeaders(responseEntity.getHeaders(), response);
-        // fix cors error
-        response.addHeader("Access-Control-Allow-Origin", "*");
-        response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-
-        IOUtils.copy(new ByteArrayInputStream(Objects.requireNonNull(responseEntity.getBody())), response.getOutputStream());
-        response.getOutputStream().flush();
+        return builder.toUriString();
     }
     
     private void copyHeaders(final HttpServletRequest request, final HttpHeaders headers) {
