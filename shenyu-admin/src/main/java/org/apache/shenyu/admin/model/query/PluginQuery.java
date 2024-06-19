@@ -44,13 +44,20 @@ public class PluginQuery implements Serializable {
      */
     private PageParameter pageParameter;
 
+    /**
+     * namespace id.
+     */
+    private String namespaceId;
+
     public PluginQuery() {
     }
 
-    public PluginQuery(final String name, final Integer enabled, final PageParameter pageParameter) {
+
+    public PluginQuery(String name, Integer enabled, PageParameter pageParameter, String namespaceId) {
         this.name = name;
         this.enabled = enabled;
         this.pageParameter = pageParameter;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -107,20 +114,34 @@ public class PluginQuery implements Serializable {
         this.pageParameter = pageParameter;
     }
 
+    /**
+     * Gets the namespaceId.
+     *
+     * @return the value of  namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the pageParameter.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof PluginQuery)) {
-            return false;
-        }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         PluginQuery that = (PluginQuery) o;
-        return Objects.equals(name, that.name) && Objects.equals(enabled, that.enabled) && Objects.equals(pageParameter, that.pageParameter);
+        return Objects.equals(name, that.name) && Objects.equals(enabled, that.enabled) && Objects.equals(pageParameter, that.pageParameter) && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, enabled, pageParameter);
+        return Objects.hash(name, enabled, pageParameter, namespaceId);
     }
 }

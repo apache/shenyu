@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.PluginNsRelMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.PluginNsRelDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
+        <result column="plugin_id" jdbcType="VARCHAR" property="pluginId"/>
+        <result column="config" jdbcType="VARCHAR" property="config"/>
+        <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="enable" jdbcType="BOOLEAN" property="sort"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        namespace_id,
+        plugin_id,
+        config,
+        sort,
+        enable,
+        date_created,
+        date_updated
+    </sql>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+        FROM plugin_ns_rel
+        WHERE id = #{id} limit 1
+    </select>
+
+
+    <insert id="batchSave">
+        INSERT INTO plugin_ns_rel
+        (id,
+        namespace_id,
+        plugin_id,
+        config,
+        sort,
+        enabled,
+        date_created,
+        date_updated)
+        VALUES
+        <foreach collection="pluginNsRelDOList" item="pluginNsRelDO" separator=",">
+            (
+            #{pluginNsRelDO.id, jdbcType=VARCHAR},
+            #{pluginNsRelDO.namespaceId, jdbcType=VARCHAR},
+            #{pluginNsRelDO.pluginId, jdbcType=VARCHAR},
+            #{pluginNsRelDO.config, jdbcType=VARCHAR},
+            #{pluginNsRelDO.sort, jdbcType=INTEGER},
+            #{pluginNsRelDO.enabled, jdbcType=BOOLEAN},
+            #{pluginNsRelDO.dateCreated, jdbcType=TIMESTAMP},
+            #{pluginNsRelDO.dateUpdated, jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery"
+            resultType="org.apache.shenyu.admin.model.vo.PluginVO">
+        SELECT
+        pnr.id as id,
+        pnr.namespace_id AS namespace_id,
+        pnr.config AS config,
+        pnr.sort AS sort,
+        pnr.date_created AS date_created,
+        pnr.date_updated AS date_updated,
+        p.role AS role,
+        p.name AS name,
+        p.plugin_jar AS plugin_jar
+        FROM
+        ( SELECT
+        <include refid="Base_Column_List"/>
+        FROM plugin_ns_rel
+        <where>
+            <if test="name != null and name != ''">
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                AND name LIKE #{nameLike, jdbcType=VARCHAR}
+            </if>
+            <if test="enabled != null">
+                AND enabled = #{enabled, jdbcType=TINYINT}
+            </if>
+            <if test="namespaceId != null">
+                AND namespace_id = #{namespaceId, jdbcType=TINYINT}
+            </if>
+        </where>
+        ) pnr
+        LEFT JOIN PLUGIN p ON p.id = pnr.plugin_id
+        ORDER BY
+        sort,
+        pnr.id ASC
+    </select>
+
+    <select id="selectById" parameterType="java.lang.String"
+            resultType="org.apache.shenyu.admin.model.vo.PluginVO">
+        SELECT
+        pnr.namespace_id AS namespace_id,
+        pnr.config AS config,
+        pnr.sort AS sort,
+        pnr.date_created AS date_created,
+        pnr.date_updated AS date_updated,
+        p.role AS role,
+        p.NAME AS NAME,
+        p.plugin_jar AS plugin_jar
+        FROM
+        ( SELECT
+        <include refid="Base_Column_List"/>
+        FROM plugin_ns_rel
+        WHERE id = #{id, jdbcType=VARCHAR} ) pnr
+        LEFT JOIN PLUGIN p ON pnr.plugin_id = p.id
+    </select>
+
+    <select id="searchByCondition" resultType="org.apache.shenyu.admin.model.vo.PluginVO">
+        SELECT
+        pnr.namespace_id AS namespace_id,
+        pnr.config AS config,
+        pnr.sort AS sort,
+        pnr.date_created AS date_created,
+        pnr.date_updated AS date_updated,
+        p.role AS role,
+        p.NAME AS NAME,
+        p.plugin_jar AS plugin_jar
+        FROM plugin_ns_rel pnr LEFT JOIN plugin p ON pnr.plugin_id = p.id
+        <where>
+            <if test="condition.keyword != null and condition.keyword != ''">
+                <bind name="keyword" value="('%' + condition.keyword + '%')"/>
+                AND (
+                p.name LIKE #{keyword, jdbcType=VARCHAR}
+                OR  p.role LIKE #{keyword, jdbcType=VARCHAR}
+                )
+            </if>
+            <if test="condition.excluded != null and condition.excluded != ''">
+                <bind name="excluded" value="('%' + condition.excluded + '%')"/>
+                AND (
+                p.name NOT LIKE #{excluded, jdbcType=VARCHAR}
+                OR  p.role NOT LIKE #{excluded, jdbcType=VARCHAR}
+                )
+            </if>
+            <if test="condition.switchStatus != null">
+                AND  pnr.enabled = #{condition.switchStatus, jdbcType=BOOLEAN}
+            </if>
+        </where>
+        ORDER BY pnr.sort, pnr.date_created
+    </select>
+
+</mapper>

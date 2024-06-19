@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.mapper.PluginNsRelMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
@@ -76,6 +77,9 @@ public final class PluginServiceTest {
     private PluginMapper pluginMapper;
 
     @Mock
+    private PluginNsRelMapper pluginNsRelMapper;
+
+    @Mock
     private SelectorMapper selectorMapper;
 
     @Mock
@@ -86,7 +90,7 @@ public final class PluginServiceTest {
 
     @BeforeEach
     public void setUp() {
-        pluginService = new PluginServiceImpl(pluginMapper, modelDataEventPublisher, pluginHandleService);
+        pluginService = new PluginServiceImpl(pluginMapper, pluginNsRelMapper, modelDataEventPublisher, pluginHandleService);
     }
 
     @Test
@@ -157,7 +161,7 @@ public final class PluginServiceTest {
         pageParameter.setPageSize(5);
         pageParameter.setTotalCount(10);
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
-        PluginQuery pluginQuery = new PluginQuery("sofa", 1, pageParameter);
+        PluginQuery pluginQuery = new PluginQuery("sofa", 1, pageParameter,"namespaceId");
         List<PluginDO> pluginDOList = IntStream.range(0, 10).mapToObj(i -> buildPluginDO(String.valueOf(i))).collect(Collectors.toList());
         given(this.pluginMapper.selectByQuery(pluginQuery)).willReturn(pluginDOList);
         final CommonPager<PluginVO> pluginDOCommonPager = this.pluginService.listByPage(pluginQuery);

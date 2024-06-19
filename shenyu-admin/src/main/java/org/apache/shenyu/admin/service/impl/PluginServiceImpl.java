@@ -22,6 +22,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.mapper.PluginNsRelMapper;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
@@ -75,14 +76,17 @@ public class PluginServiceImpl implements PluginService {
 
     private final PluginMapper pluginMapper;
 
+    private final PluginNsRelMapper pluginNsRelMapper;
+
     private final PluginEventPublisher pluginEventPublisher;
 
     private final PluginHandleService pluginHandleService;
 
     public PluginServiceImpl(final PluginMapper pluginMapper,
-                             final PluginEventPublisher pluginEventPublisher,
+                             PluginNsRelMapper pluginNsRelMapper, final PluginEventPublisher pluginEventPublisher,
                              final PluginHandleService pluginHandleService) {
         this.pluginMapper = pluginMapper;
+        this.pluginNsRelMapper = pluginNsRelMapper;
         this.pluginEventPublisher = pluginEventPublisher;
         this.pluginHandleService = pluginHandleService;
     }
@@ -90,7 +94,7 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public List<PluginVO> searchByCondition(final PluginQueryCondition condition) {
         condition.init();
-        return pluginMapper.searchByCondition(condition);
+        return pluginNsRelMapper.searchByCondition(condition);
     }
 
     /**
@@ -168,7 +172,7 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public PluginVO findById(final String id) {
-        return PluginVO.buildPluginVO(pluginMapper.selectById(id));
+        return pluginNsRelMapper.selectById(id);
     }
 
     /**
@@ -180,10 +184,7 @@ public class PluginServiceImpl implements PluginService {
     @Override
     @Pageable
     public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
-        return PageResultUtils.result(pluginQuery.getPageParameter(), () -> pluginMapper.selectByQuery(pluginQuery)
-                .stream()
-                .map(PluginVO::buildPluginVO)
-                .collect(Collectors.toList()));
+        return PageResultUtils.result(pluginQuery.getPageParameter(), () -> pluginNsRelMapper.selectByQuery(pluginQuery));
     }
 
     /**

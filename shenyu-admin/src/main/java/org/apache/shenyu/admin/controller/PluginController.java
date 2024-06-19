@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -55,16 +56,16 @@ import java.util.List;
  */
 @RestApi("/plugin")
 public class PluginController implements PagedController<PluginQueryCondition, PluginVO> {
-    
+
     private final PluginService pluginService;
-    
+
     private final SyncDataService syncDataService;
-    
+
     public PluginController(final PluginService pluginService, final SyncDataService syncDataService) {
         this.pluginService = pluginService;
         this.syncDataService = syncDataService;
     }
-    
+
     /**
      * query plugins.
      *
@@ -76,12 +77,13 @@ public class PluginController implements PagedController<PluginQueryCondition, P
      */
     @GetMapping("")
     public ShenyuAdminResult queryPlugins(final String name, final Integer enabled,
+                                          @RequestParam("namespaceId") final String namespaceId,
                                           @NotNull final Integer currentPage,
                                           @NotNull final Integer pageSize) {
-        CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, enabled, new PageParameter(currentPage, pageSize)));
+        CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, enabled, new PageParameter(currentPage, pageSize), namespaceId));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
-    
+
     /**
      * query All plugins.
      *
@@ -92,7 +94,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
         List<PluginData> pluginDataList = pluginService.listAll();
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
     }
-    
+
     /**
      * detail plugin.
      *
@@ -120,7 +122,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
         return ShenyuAdminResult.success(pluginService.createOrUpdate(pluginDTO));
     }
 
-    
+
     /**
      * update plugin.
      *
@@ -140,7 +142,8 @@ public class PluginController implements PagedController<PluginQueryCondition, P
 
     /**
      * create plugin resource.
-     * @param id primary key
+     *
+     * @param id        primary key
      * @param pluginDTO plugin
      * @return {@linkplain ShenyuAdminResult}
      */
@@ -169,7 +172,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS);
     }
-    
+
     /**
      * Enable plugins.
      *
@@ -185,7 +188,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
     }
-    
+
     /**
      * sync plugins.
      *
@@ -201,7 +204,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
             return ShenyuAdminResult.error(ShenyuResultMessage.SYNC_FAIL);
         }
     }
-    
+
     /**
      * Sync plugin data.
      *
@@ -214,7 +217,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
                                                     provider = PluginMapper.class) final String id) {
         return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
     }
-    
+
     /**
      * active plugin snapshot.
      *
@@ -224,7 +227,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     public ShenyuAdminResult activePluginSnapshot() {
         return ShenyuAdminResult.success(pluginService.activePluginSnapshot());
     }
-    
+
     @Override
     public PageService<PluginQueryCondition, PluginVO> pageService() {
         return pluginService;

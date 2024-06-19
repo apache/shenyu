@@ -17,21 +17,14 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import com.google.common.collect.Lists;
-import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.common.utils.DateUtils;
-import org.apache.shiro.codec.Base64;
-
 import java.io.Serializable;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * this is plugin view to web front.
  */
-public class PluginVO implements Serializable {
+public class PluginNamespaceVO implements Serializable {
 
-    private static final long serialVersionUID = 7537793180460522887L;
 
     /**
      * primary key.
@@ -79,29 +72,28 @@ public class PluginVO implements Serializable {
     private String file;
 
     /**
-     * plugin handle List.
-     */
-    private List<PluginHandleVO> pluginHandleList;
-
-    /**
      * namespace id.
      */
     private String namespaceId;
 
-    public PluginVO() {
+    /**
+     * plugin handle List.
+     */
+    private List<PluginHandleVO> pluginHandleList;
+
+    public PluginNamespaceVO() {
     }
 
-    public PluginVO(final String id,
-                    final String role,
-                    final String name,
-                    final String config,
-                    final Integer sort,
-                    final Boolean enabled,
-                    final String dateCreated,
-                    final String dateUpdated,
-                    final String file,
-                    final List<PluginHandleVO> pluginHandleList,
-                    final String namespaceId) {
+    public PluginNamespaceVO(final String id,
+                             final String role,
+                             final String name,
+                             final String config,
+                             final Integer sort,
+                             final Boolean enabled,
+                             final String dateCreated,
+                             final String dateUpdated,
+                             final String file,
+                             String namespaceId, final List<PluginHandleVO> pluginHandleList) {
         this.id = id;
         this.role = role;
         this.name = name;
@@ -111,8 +103,8 @@ public class PluginVO implements Serializable {
         this.dateCreated = dateCreated;
         this.dateUpdated = dateUpdated;
         this.file = file;
-        this.pluginHandleList = pluginHandleList;
         this.namespaceId = namespaceId;
+        this.pluginHandleList = pluginHandleList;
     }
 
     /**
@@ -287,7 +279,7 @@ public class PluginVO implements Serializable {
     }
 
     /**
-     * Sets the the plugin handle list.
+     * Sets the plugin handle list.
      *
      * @param pluginHandleList the plugin handle list
      */
@@ -311,20 +303,5 @@ public class PluginVO implements Serializable {
      */
     public void setNamespaceId(String namespaceId) {
         this.namespaceId = namespaceId;
-    }
-
-    /**
-     * build pluginVO.
-     *
-     * @param pluginDO {@linkplain PluginDO}
-     * @return {@linkplain PluginVO}
-     */
-    public static PluginVO buildPluginVO(final PluginDO pluginDO, final String namespaceId) {
-        return new PluginVO(pluginDO.getId(), pluginDO.getRole(), pluginDO.getName(),
-                pluginDO.getConfig(), pluginDO.getSort(), pluginDO.getEnabled(),
-                DateUtils.localDateTimeToString(pluginDO.getDateCreated().toLocalDateTime()),
-                DateUtils.localDateTimeToString(pluginDO.getDateUpdated().toLocalDateTime()),
-                Optional.ofNullable(pluginDO.getPluginJar()).map(Base64::encodeToString).orElse(""),
-                Lists.newArrayList(), namespaceId);
     }
 }
