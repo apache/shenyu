@@ -20,6 +20,7 @@ package org.apache.shenyu.web.handler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
@@ -91,6 +92,28 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     }
 
     /**
+     * Chain before operation.
+     *
+     * @param exchange context
+     */
+    public void before(final ServerWebExchange exchange) {
+        exchange.getAttributes().put(Constants.CHAIN_START_TIME, System.currentTimeMillis());
+    }
+
+    /**
+     * Plugin after operation.
+     *
+     * @param exchange context
+     */
+    public void after(final ServerWebExchange exchange) {
+        Map<String, Object> attributes = exchange.getAttributes();
+        long currentTimeMillis = System.currentTimeMillis();
+        long startTime = (long) attributes.get(Constants.CHAIN_START_TIME);
+        LOG.debug("shenyu chain handle uri:{}, traceId:{}, cost:{}", exchange.getRequest().getPath(), exchange.getLogPrefix(), currentTimeMillis - startTime);
+        attributes.remove(Constants.CHAIN_START_TIME);
+    }
+
+    /**
      * Handle the web server exchange.
      *
      * @param exchange the current server exchange
@@ -98,11 +121,16 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     @Override
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange) {
-        Mono<Void> execute = new DefaultShenyuPluginChain(plugins).execute(exchange);
-        if (scheduled) {
-            return execute.subscribeOn(scheduler);
+        try {
+            before(exchange);
+            Mono<Void> execute = new DefaultShenyuPluginChain(plugins).execute(exchange);
+            if (scheduled) {
+                return execute.subscribeOn(scheduler);
+            }
+            return execute;
+        } finally {
+            after(exchange);
         }
-        return execute;
     }
     
     /**
