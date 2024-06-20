@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
@@ -227,15 +228,15 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
      * @param throwable Exception occurred。
      */
     public void logError(final Throwable throwable) {
-        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatusCode httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         if (throwable instanceof ResponseStatusException) {
-            httpStatus = ((ResponseStatusException) throwable).getStatus();
+            httpStatus = ((ResponseStatusException) throwable).getStatusCode();
         }
         logInfo.setStatus(httpStatus.value());
         logInfo.setTraceId(getTraceId());
         // Do not collect stack
         Object result = ShenyuResultWrap.error(exchange, httpStatus.value(),
-                httpStatus.getReasonPhrase(), throwable.getMessage());
+                ((HttpStatus)httpStatus).getReasonPhrase(), throwable.getMessage());
         final ShenyuResult<?> shenyuResult = ShenyuResultWrap.shenyuResult();
         Object resultData = shenyuResult.format(exchange, result);
         final Object responseData = shenyuResult.result(exchange, resultData);

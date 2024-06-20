@@ -106,7 +106,7 @@
 
         <!-- dependency version start -->
         <jasypt.version>1.9.2</jasypt.version>
-        <mybatis.starter.version>2.2.2</mybatis.starter.version>
+        <mybatis.starter.version>3.0.3</mybatis.starter.version>
         <mysql.version>8.0.29</mysql.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <guava.version>32.0.0-jre</guava.version>
@@ -133,7 +133,7 @@
         <shiro.version>1.13.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
         <motan.version>1.2.1</motan.version>
-        <spring-boot.version>2.7.17</spring-boot.version>
+        <spring-boot.version>3.2.0</spring-boot.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
         <jetcd-core.version>0.7.3</jetcd-core.version>

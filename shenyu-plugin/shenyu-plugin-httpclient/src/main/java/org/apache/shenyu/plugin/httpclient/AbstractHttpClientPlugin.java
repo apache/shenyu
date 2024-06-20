@@ -82,7 +82,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         final int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(RetryEnum.CURRENT::getName);
         LogUtils.debug(LOG, () -> String.format("The request urlPath is: %s, retryTimes is : %s, retryStrategy is : %s", uri, retryTimes, retryStrategy));
-        final Mono<R> response = doRequest(exchange, exchange.getRequest().getMethodValue(), uri, exchange.getRequest().getBody())
+        final Mono<R> response = doRequest(exchange, exchange.getRequest().getMethod().name(), uri, exchange.getRequest().getBody())
                 .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
         if (RetryEnum.CURRENT.getName().equals(retryStrategy)) {
@@ -154,7 +154,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
             // in order not to affect the next retry call, newUri needs to be excluded
             exclude.add(newUri);
-            return doRequest(exchange, exchange.getRequest().getMethodValue(), newUri, exchange.getRequest().getBody())
+            return doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, exchange.getRequest().getBody())
                     .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                     .doOnError(e -> LOG.error(e.getMessage(), e));
         });
