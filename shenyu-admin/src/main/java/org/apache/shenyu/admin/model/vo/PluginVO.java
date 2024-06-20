@@ -83,11 +83,6 @@ public class PluginVO implements Serializable {
      */
     private List<PluginHandleVO> pluginHandleList;
 
-    /**
-     * namespace id.
-     */
-    private String namespaceId;
-
     public PluginVO() {
     }
 
@@ -100,8 +95,7 @@ public class PluginVO implements Serializable {
                     final String dateCreated,
                     final String dateUpdated,
                     final String file,
-                    final List<PluginHandleVO> pluginHandleList,
-                    final String namespaceId) {
+                    final List<PluginHandleVO> pluginHandleList) {
         this.id = id;
         this.role = role;
         this.name = name;
@@ -112,7 +106,6 @@ public class PluginVO implements Serializable {
         this.dateUpdated = dateUpdated;
         this.file = file;
         this.pluginHandleList = pluginHandleList;
-        this.namespaceId = namespaceId;
     }
 
     /**
@@ -296,35 +289,17 @@ public class PluginVO implements Serializable {
     }
 
     /**
-     * Gets the namespace Id.
-     *
-     * @return the plugin handle list
-     */
-    public String getNamespaceId() {
-        return namespaceId;
-    }
-
-    /**
-     * set namespace Id.
-     *
-     * @param namespaceId namespaceId
-     */
-    public void setNamespaceId(String namespaceId) {
-        this.namespaceId = namespaceId;
-    }
-
-    /**
      * build pluginVO.
      *
      * @param pluginDO {@linkplain PluginDO}
      * @return {@linkplain PluginVO}
      */
-    public static PluginVO buildPluginVO(final PluginDO pluginDO, final String namespaceId) {
+    public static PluginVO buildPluginVO(final PluginDO pluginDO) {
         return new PluginVO(pluginDO.getId(), pluginDO.getRole(), pluginDO.getName(),
                 pluginDO.getConfig(), pluginDO.getSort(), pluginDO.getEnabled(),
                 DateUtils.localDateTimeToString(pluginDO.getDateCreated().toLocalDateTime()),
                 DateUtils.localDateTimeToString(pluginDO.getDateUpdated().toLocalDateTime()),
                 Optional.ofNullable(pluginDO.getPluginJar()).map(Base64::encodeToString).orElse(""),
-                Lists.newArrayList(), namespaceId);
+                Lists.newArrayList());
     }
 }
