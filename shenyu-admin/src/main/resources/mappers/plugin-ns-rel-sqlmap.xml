@@ -71,18 +71,19 @@
         </foreach>
     </insert>
 
-    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery"
-            resultType="org.apache.shenyu.admin.model.vo.PluginVO">
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginNamespaceQuery"
+            resultType="org.apache.shenyu.admin.model.vo.PluginNamespaceVO">
         SELECT
         pnr.id as id,
-        pnr.namespace_id AS namespace_id,
+        pnr.namespace_id AS namespaceId,
+        pnr.plugin_id AS pluginId,
         pnr.config AS config,
         pnr.sort AS sort,
-        pnr.date_created AS date_created,
-        pnr.date_updated AS date_updated,
+        pnr.date_created AS dateCreated,
+        pnr.date_updated AS dateUpdated,
         p.role AS role,
-        p.name AS name,
-        p.plugin_jar AS plugin_jar
+        p.NAME AS NAME,
+        p.plugin_jar AS pluginJar
         FROM
         ( SELECT
         <include refid="Base_Column_List"/>
@@ -107,34 +108,39 @@
     </select>
 
     <select id="selectById" parameterType="java.lang.String"
-            resultType="org.apache.shenyu.admin.model.vo.PluginVO">
+            resultType="org.apache.shenyu.admin.model.vo.PluginNamespaceVO">
         SELECT
-        pnr.namespace_id AS namespace_id,
+        pnr.namespace_id AS namespaceId,
+        pnr.plugin_id AS pluginId,
         pnr.config AS config,
         pnr.sort AS sort,
-        pnr.date_created AS date_created,
-        pnr.date_updated AS date_updated,
+        pnr.date_created AS dateCreated,
+        pnr.date_updated AS dateUpdated,
         p.role AS role,
         p.NAME AS NAME,
-        p.plugin_jar AS plugin_jar
+        p.plugin_jar AS pluginJar
         FROM
         ( SELECT
         <include refid="Base_Column_List"/>
         FROM plugin_ns_rel
-        WHERE id = #{id, jdbcType=VARCHAR} ) pnr
+        WHERE pnr.plugin_id = #{pluginId, jdbcType=VARCHAR}
+        and pnr.namespace_id =  #{namespaceId, jdbcType=VARCHAR}
+        )
+        pnr
         LEFT JOIN PLUGIN p ON pnr.plugin_id = p.id
     </select>
 
-    <select id="searchByCondition" resultType="org.apache.shenyu.admin.model.vo.PluginVO">
+    <select id="searchByCondition" resultType="org.apache.shenyu.admin.model.vo.PluginNamespaceVO">
         SELECT
-        pnr.namespace_id AS namespace_id,
+        pnr.namespace_id AS namespaceId,
+        pnr.plugin_id AS pluginId,
         pnr.config AS config,
         pnr.sort AS sort,
-        pnr.date_created AS date_created,
-        pnr.date_updated AS date_updated,
+        pnr.date_created AS dateCreated,
+        pnr.date_updated AS dateUpdated,
         p.role AS role,
         p.NAME AS NAME,
-        p.plugin_jar AS plugin_jar
+        p.plugin_jar AS pluginJar
         FROM plugin_ns_rel pnr LEFT JOIN plugin p ON pnr.plugin_id = p.id
         <where>
             <if test="condition.keyword != null and condition.keyword != ''">
@@ -157,5 +163,105 @@
         </where>
         ORDER BY pnr.sort, pnr.date_created
     </select>
+
+    <select id="nameExistedExclude" resultType="java.lang.Boolean">
+        SELECT true
+        FROM plugin_ns_rel
+        WHERE name = #{name}
+        AND plugin_id NOT IN
+        <foreach collection="exclude" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        where namespace_id=#{namespaceId}
+        LIMIT 1
+    </select>
+
+    <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginNsRelDO">
+        UPDATE plugin_ns_rel
+        <set>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="config != null">
+                config = #{config, jdbcType=VARCHAR},
+            </if>
+            <if test="sort != null">
+                sort = #{sort, jdbcType=INTEGER},
+            </if>
+            <if test="enabled != null">
+                enabled = #{enabled, jdbcType=TINYINT},
+            </if>
+        </set>
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <select id="selectByIds" parameterType="java.util.List" resultType="org.apache.shenyu.admin.model.vo.PluginNamespaceVO">
+        SELECT
+        pnr.namespace_id AS namespaceId,
+        pnr.plugin_id AS pluginId,
+        pnr.config AS config,
+        pnr.sort AS sort,
+        pnr.date_created AS dateCreated,
+        pnr.date_updated AS dateUpdated,
+        p.role AS role,
+        p.NAME AS NAME,
+        p.plugin_jar AS pluginJar
+        FROM plugin_ns_rel pnr LEFT JOIN plugin p ON pnr.plugin_id = p.id
+        WHERE pnr.plugin_id IN
+        <foreach item="pluginId" collection="pluginIds" open="(" separator="," close=")">
+            #{pluginId, jdbcType=VARCHAR}
+        </foreach>
+        and pnr.namespace_id= #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
+
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM plugin_ns_rel
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+        where namespace_id=#{namespaceId}
+    </delete>
+
+    <select id="selectAll" resultType="org.apache.shenyu.admin.model.vo.PluginNamespaceVO" resultMap="BaseResultMap">
+        SELECT
+        pnr.id as id,
+        pnr.namespace_id AS namespaceId,
+        pnr.plugin_id AS pluginId,
+        pnr.config AS config,
+        pnr.sort AS sort,
+        pnr.date_created AS dateCreated,
+        pnr.date_updated AS dateUpdated,
+        p.role AS role,
+        p.name AS name,
+        p.plugin_jar AS pluginJar
+        FROM
+        ( SELECT
+        <include refid="Base_Column_List"/>
+        FROM plugin_ns_rel
+        <where>
+            <if test="namespaceId != null">
+                AND  pnr.namespace_id = #{namespaceId, jdbcType=BOOLEAN}
+            </if>
+        </where>
+        ) pnr
+        LEFT JOIN PLUGIN p ON p.id = pnr.plugin_id
+        ORDER BY
+        sort,
+        pnr.id ASC
+    </select>
+
+
+    <update id="updateEnableByIdList">
+        UPDATE plugin_ns_rel
+        SET enabled = #{enabled, jdbcType=TINYINT}
+        WHERE plugin_id IN
+        <foreach collection="idList" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </update>
 
 </mapper>

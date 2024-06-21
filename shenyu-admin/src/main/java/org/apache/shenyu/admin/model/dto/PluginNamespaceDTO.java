@@ -32,15 +32,20 @@ import java.util.Objects;
 /**
  * this is plugin from by web front.
  */
-public class PluginDTO implements Serializable {
+public class PluginNamespaceDTO implements Serializable {
 
-    private static final long serialVersionUID = 789913506331671329L;
+    /**
+     * primary key.
+     */
+    @Existed(provider = PluginNsRelMapper.class, nullOfIgnore = true, message = "the pluginNamespace is not exited")
+    private String id;
 
     /**
      * primary key.
      */
     @Existed(provider = PluginMapper.class, nullOfIgnore = true, message = "the plugin is not exited")
-    private String id;
+    private String pluginId;
+
 
     /**
      * plugin name.
@@ -53,11 +58,6 @@ public class PluginDTO implements Serializable {
      */
     private String config;
 
-    /**
-     * plugin role.
-     */
-    @NotBlank
-    private String role;
 
     /**
      * plugin sort.
@@ -72,10 +72,6 @@ public class PluginDTO implements Serializable {
     @NotNull
     private Boolean enabled;
 
-    /**
-     * plugin jar.
-     */
-    private String file;
 
     /**
      * plugin Handle List.
@@ -87,23 +83,7 @@ public class PluginDTO implements Serializable {
      */
     private String namespaceId;
 
-    /**
-     * Gets the value of file.
-     *
-     * @return the value of file
-     */
-    public String getFile() {
-        return file;
-    }
 
-    /**
-     * Sets the file.
-     *
-     * @param file file
-     */
-    public void setFile(final String file) {
-        this.file = file;
-    }
 
     /**
      * Gets the value of id.
@@ -162,23 +142,6 @@ public class PluginDTO implements Serializable {
         this.config = config;
     }
 
-    /**
-     * Gets the value of role.
-     *
-     * @return the value of role
-     */
-    public String getRole() {
-        return role;
-    }
-
-    /**
-     * Sets the role.
-     *
-     * @param role role
-     */
-    public void setRole(final String role) {
-        this.role = role;
-    }
 
     /**
      * Gets the value of sort.
@@ -235,9 +198,9 @@ public class PluginDTO implements Serializable {
     }
 
     /**
-     * Sets the namespaceId.
+     * Gets the namespace id.
      *
-     * @return the namespaceId
+     * @return the namespace id
      */
     public String getNamespaceId() {
         return namespaceId;
@@ -252,16 +215,35 @@ public class PluginDTO implements Serializable {
         this.namespaceId = namespaceId;
     }
 
+
+    /**
+     * Gets the plugin id.
+     *
+     * @return the plugin id
+     */
+    public String getPluginId() {
+        return pluginId;
+    }
+
+    /**
+     * set plugin id.
+     *
+     * @param pluginId pluginId
+     */
+    public void setPluginId(String pluginId) {
+        this.pluginId = pluginId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PluginDTO pluginDTO = (PluginDTO) o;
-        return Objects.equals(id, pluginDTO.id) && Objects.equals(name, pluginDTO.name) && Objects.equals(config, pluginDTO.config) && Objects.equals(role, pluginDTO.role) && Objects.equals(sort, pluginDTO.sort) && Objects.equals(enabled, pluginDTO.enabled) && Objects.equals(file, pluginDTO.file) && Objects.equals(pluginHandleList, pluginDTO.pluginHandleList) && Objects.equals(namespaceId, pluginDTO.namespaceId);
+        PluginNamespaceDTO that = (PluginNamespaceDTO) o;
+        return Objects.equals(id, that.id) && Objects.equals(pluginId, that.pluginId) && Objects.equals(name, that.name) && Objects.equals(config, that.config) && Objects.equals(sort, that.sort) && Objects.equals(enabled, that.enabled) && Objects.equals(pluginHandleList, that.pluginHandleList) && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, config, role, sort, enabled, file, pluginHandleList, namespaceId);
+        return Objects.hash(id, pluginId, name, config, sort, enabled, pluginHandleList, namespaceId);
     }
 }

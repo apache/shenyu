@@ -19,11 +19,13 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.PluginNamespaceService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
@@ -55,6 +57,11 @@ public class SyncDataServiceImpl implements SyncDataService {
     private final PluginService pluginService;
 
     /**
+     * The Plugin Namespace service.
+     */
+    private final PluginNamespaceService pluginNamespaceService;
+
+    /**
      * The Selector service.
      */
     private final SelectorService selectorService;
@@ -74,7 +81,7 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     public SyncDataServiceImpl(final AppAuthService appAuthService,
                                final PluginService pluginService,
-                               final SelectorService selectorService,
+                               PluginNamespaceService pluginNamespaceService, final SelectorService selectorService,
                                final RuleService ruleService,
                                final ApplicationEventPublisher eventPublisher,
                                final MetaDataService metaDataService,
@@ -82,6 +89,7 @@ public class SyncDataServiceImpl implements SyncDataService {
                                final DiscoveryService discoveryService) {
         this.appAuthService = appAuthService;
         this.pluginService = pluginService;
+        this.pluginNamespaceService = pluginNamespaceService;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
         this.eventPublisher = eventPublisher;
@@ -90,11 +98,12 @@ public class SyncDataServiceImpl implements SyncDataService {
         this.discoveryService = discoveryService;
     }
 
+    //todo:根据命名空间做同步
     @Override
     public boolean syncAll(final DataEventTypeEnum type) {
         appAuthService.syncData();
 
-        List<PluginData> pluginDataList = pluginService.listAll();
+        List<PluginData> pluginDataList = pluginNamespaceService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, pluginDataList));
 
         List<SelectorData> selectorDataList = selectorService.listAll();
@@ -109,10 +118,10 @@ public class SyncDataServiceImpl implements SyncDataService {
     }
 
     @Override
-    public boolean syncPluginData(final String pluginId) {
-        PluginVO pluginVO = pluginService.findById(pluginId);
+    public boolean syncPluginData(final String pluginId,String namespaceId) {
+        PluginNamespaceVO pluginNamespaceVO = pluginNamespaceService.findById(pluginId, namespaceId);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(PluginTransfer.INSTANCE.mapDataTOVO(pluginVO))));
+                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginNamespaceVO))));
 
         List<SelectorData> selectorDataList = selectorService.findByPluginId(pluginId);
 

@@ -25,7 +25,7 @@ import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
-import org.apache.shenyu.admin.model.query.PluginQueryCondition;
+import org.apache.shenyu.admin.model.query.PluginNamespaceQueryCondition;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PageService;
@@ -54,7 +54,7 @@ import java.util.List;
  * this is plugin controller.
  */
 @RestApi("/plugin")
-public class PluginController implements PagedController<PluginQueryCondition, PluginVO> {
+public class PluginController implements PagedController<PluginNamespaceQueryCondition, PluginVO> {
     
     private final PluginService pluginService;
     
@@ -138,6 +138,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
         return createPlugin(pluginDTO);
     }
 
+
     /**
      * create plugin resource.
      * @param id primary key
@@ -185,36 +186,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
     }
-    
-    /**
-     * sync plugins.
-     *
-     * @return {@linkplain ShenyuAdminResult}
-     */
-    @PostMapping("/syncPluginAll")
-    @RequiresPermissions("system:plugin:modify")
-    public ShenyuAdminResult syncPluginAll() {
-        boolean success = syncDataService.syncAll(DataEventTypeEnum.REFRESH);
-        if (success) {
-            return ShenyuAdminResult.success(ShenyuResultMessage.SYNC_SUCCESS);
-        } else {
-            return ShenyuAdminResult.error(ShenyuResultMessage.SYNC_FAIL);
-        }
-    }
-    
-    /**
-     * Sync plugin data.
-     *
-     * @param id the id
-     * @return the mono
-     */
-    @PutMapping("/syncPluginData/{id}")
-    public ShenyuAdminResult syncPluginData(@PathVariable("id")
-                                            @Existed(message = "plugin is not existed",
-                                                    provider = PluginMapper.class) final String id) {
-        return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
-    }
-    
+
     /**
      * active plugin snapshot.
      *
@@ -226,7 +198,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     }
     
     @Override
-    public PageService<PluginQueryCondition, PluginVO> pageService() {
+    public PageService<PluginNamespaceQueryCondition, PluginVO> pageService() {
         return pluginService;
     }
 }

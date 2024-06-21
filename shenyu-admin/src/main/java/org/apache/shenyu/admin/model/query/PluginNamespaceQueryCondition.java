@@ -24,7 +24,7 @@ import org.apache.shenyu.admin.model.page.condition.SwitchCondition;
 /**
  * this is plugin query condition.
  */
-public class PluginQueryCondition extends BaseExcludedSearchCondition implements SearchCondition, SwitchCondition {
+public class PluginNamespaceQueryCondition extends BaseExcludedSearchCondition implements SearchCondition, SwitchCondition {
     
     /**
      * search keyword: plugin name or role name.

@@ -40,6 +40,8 @@ public class PluginData {
 
     private String pluginJar;
 
+    private String namespaceId;
+
     /**
      * no args constructor.
      */
@@ -98,6 +100,26 @@ public class PluginData {
         this.enabled = builder.enabled;
         this.sort = builder.sort;
         this.pluginJar = builder.pluginJar;
+    }
+    /**
+     * all args constructor.
+     *
+     * @param id id
+     * @param name name
+     * @param config config
+     * @param role role
+     * @param enabled enabled
+     * @param sort sort
+     */
+    public PluginData(String id, String name, String config, String role, Boolean enabled, Integer sort, String pluginJar, String namespaceId) {
+        this.id = id;
+        this.name = name;
+        this.config = config;
+        this.role = role;
+        this.enabled = enabled;
+        this.sort = sort;
+        this.pluginJar = pluginJar;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -234,169 +256,106 @@ public class PluginData {
         this.enabled = enabled;
     }
 
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         PluginData that = (PluginData) o;
-        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(config, that.config)
-                && Objects.equals(role, that.role) && Objects.equals(enabled, that.enabled);
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(config, that.config) && Objects.equals(role, that.role) && Objects.equals(enabled, that.enabled) && Objects.equals(sort, that.sort) && Objects.equals(pluginJar, that.pluginJar) && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, config, role, enabled);
+        return Objects.hash(id, name, config, role, enabled, sort, pluginJar, namespaceId);
     }
 
-    @Override
-    public String toString() {
-        return "PluginData{"
-                + "id='" + id + '\''
-                + ", name='" + name + '\''
-                + ", config='" + config + '\''
-                + ", role='" + role + '\''
-                + ", enabled=" + enabled
-                + ", sort=" + sort
-                + ", pluginJar=" + pluginJar
-                + '}';
-    }
 
-    /**
-     * class builder.
-     */
     public static final class Builder {
-
-        /**
-         * id.
-         */
         private String id;
-
-        /**
-         * name.
-         */
         private String name;
-
-        /**
-         * config.
-         */
         private String config;
-
-        /**
-         * role.
-         */
         private String role;
-
-        /**
-         * enabled.
-         */
         private Boolean enabled;
-
-        /**
-         * sort.
-         */
         private Integer sort;
-
-        /**
-         * sort.
-         */
         private String pluginJar;
+        private String namespaceId;
 
-
-        /**
-         * no args constructor.
-         */
         private Builder() {
         }
 
-        /**
-         * build new Object.
-         *
-         * @return PluginData
-         */
-        public PluginData build() {
-            return new PluginData(this);
+        public static Builder aPluginData() {
+            return new Builder();
         }
 
-        /**
-         * build id.
-         *
-         * @param id id
-         * @return this
-         */
-        public Builder id(final String id) {
+        public Builder id(String id) {
             this.id = id;
             return this;
         }
 
-        /**
-         * build name.
-         *
-         * @param name name
-         * @return this
-         */
-        public Builder name(final String name) {
+        public Builder name(String name) {
             this.name = name;
             return this;
         }
 
-        /**
-         * build config.
-         *
-         * @param config config
-         * @return this
-         */
-        public Builder config(final String config) {
+        public Builder config(String config) {
             this.config = config;
             return this;
         }
 
-        /**
-         * build role.
-         *
-         * @param role role
-         * @return this
-         */
-        public Builder role(final String role) {
+        public Builder role(String role) {
             this.role = role;
             return this;
         }
 
-        /**
-         * build enabled.
-         *
-         * @param enabled enabled
-         * @return this
-         */
-        public Builder enabled(final Boolean enabled) {
+        public Builder enabled(Boolean enabled) {
             this.enabled = enabled;
             return this;
         }
 
-        /**
-         * build sort.
-         *
-         * @param sort sort
-         * @return this
-         */
-        public Builder sort(final Integer sort) {
+        public Builder sort(Integer sort) {
             this.sort = sort;
             return this;
         }
 
-
-        /**
-         * build pluginJar.
-         *
-         * @param  pluginJar pluginJar
-         * @return this
-         */
-        public Builder pluginJar(final String pluginJar) {
+        public Builder pluginJar(String pluginJar) {
             this.pluginJar = pluginJar;
             return this;
+        }
+
+        public Builder namespaceId(String namespaceId) {
+            this.namespaceId = namespaceId;
+            return this;
+        }
+
+        public PluginData build() {
+            PluginData pluginData = new PluginData();
+            pluginData.setId(id);
+            pluginData.setName(name);
+            pluginData.setConfig(config);
+            pluginData.setRole(role);
+            pluginData.setEnabled(enabled);
+            pluginData.setSort(sort);
+            pluginData.setPluginJar(pluginJar);
+            pluginData.setNamespaceId(namespaceId);
+            return pluginData;
         }
     }
 }

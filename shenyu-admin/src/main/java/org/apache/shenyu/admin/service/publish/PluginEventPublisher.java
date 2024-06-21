@@ -56,8 +56,8 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
      */
     @Override
     public void onCreated(final PluginDO plugin) {
-        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.CREATE,
-                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(plugin))));
+//        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.CREATE,
+//                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(plugin))));
         publish(new PluginCreatedEvent(plugin, SessionUtil.visitorName()));
     }
     
@@ -69,8 +69,8 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
      */
     @Override
     public void onUpdated(final PluginDO plugin, final PluginDO before) {
-        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(plugin))));
+//        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
+//                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(plugin))));
         publish(new PluginChangedEvent(plugin, before, EventTypeEnum.PLUGIN_UPDATE, SessionUtil.visitorName()));
     }
     
@@ -82,8 +82,8 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
     @Override
     public void onDeleted(final PluginDO plugin) {
         publish(new PluginChangedEvent(plugin, null, EventTypeEnum.PLUGIN_DELETE, SessionUtil.visitorName()));
-        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
-                Stream.of(plugin).map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
+//        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
+//                Stream.of(plugin).map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
     }
     
     /**
@@ -94,8 +94,8 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
     @Override
     public void onDeleted(final Collection<PluginDO> plugins) {
         publish(new BatchPluginDeletedEvent(plugins, SessionUtil.visitorName()));
-        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
-                plugins.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
+//        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
+//                plugins.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
     }
     
     /**
@@ -105,8 +105,8 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
      */
     public void onEnabled(final Collection<PluginDO> plugins) {
         publish(new BatchPluginChangedEvent(plugins, null, EventTypeEnum.PLUGIN_UPDATE, SessionUtil.visitorName()));
-        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                plugins.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
+//        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
+//                plugins.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
     }
     
     /**

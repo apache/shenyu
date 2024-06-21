@@ -17,8 +17,15 @@
 
 package org.apache.shenyu.admin.model.vo;
 
+import com.google.common.collect.Lists;
+import org.apache.shenyu.admin.model.dto.PluginNamespaceDTO;
+import org.apache.shenyu.admin.model.entity.PluginDO;
+import org.apache.shenyu.common.utils.DateUtils;
+import org.apache.shiro.codec.Base64;
+
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * this is plugin view to web front.
@@ -30,6 +37,11 @@ public class PluginNamespaceVO implements Serializable {
      * primary key.
      */
     private String id;
+
+    /**
+     * plugin id.
+     */
+    private String pluginId;
 
     /**
      * plugin role.
@@ -71,6 +83,7 @@ public class PluginNamespaceVO implements Serializable {
      */
     private String file;
 
+
     /**
      * namespace id.
      */
@@ -81,10 +94,16 @@ public class PluginNamespaceVO implements Serializable {
      */
     private List<PluginHandleVO> pluginHandleList;
 
+    /**
+     * plugin jar byte.
+     */
+    private byte[] pluginJar;
+
     public PluginNamespaceVO() {
     }
 
     public PluginNamespaceVO(final String id,
+                             final String pluginId,
                              final String role,
                              final String name,
                              final String config,
@@ -93,8 +112,11 @@ public class PluginNamespaceVO implements Serializable {
                              final String dateCreated,
                              final String dateUpdated,
                              final String file,
-                             String namespaceId, final List<PluginHandleVO> pluginHandleList) {
+                             String namespaceId,
+                             final List<PluginHandleVO> pluginHandleList,
+                             final byte[] pluginJar) {
         this.id = id;
+        this.pluginId = pluginId;
         this.role = role;
         this.name = name;
         this.config = config;
@@ -105,6 +127,7 @@ public class PluginNamespaceVO implements Serializable {
         this.file = file;
         this.namespaceId = namespaceId;
         this.pluginHandleList = pluginHandleList;
+        this.pluginJar = pluginJar;
     }
 
     /**
@@ -252,12 +275,12 @@ public class PluginNamespaceVO implements Serializable {
     }
 
     /**
-     * Gets the value of plugin jar.
+     * Gets the value of file.
      *
-     * @return the value of plugin
+     * @return the value of file
      */
     public String getFile() {
-        return file;
+        return Optional.ofNullable(pluginJar).map(Base64::encodeToString).orElse("");
     }
 
     /**
@@ -288,7 +311,7 @@ public class PluginNamespaceVO implements Serializable {
     }
 
     /**
-     * Gets the namespace Id.
+     * Gets the namespace id.
      *
      * @return the plugin handle list
      */
@@ -297,11 +320,47 @@ public class PluginNamespaceVO implements Serializable {
     }
 
     /**
-     * set namespace Id.
+     * set namespace id.
      *
      * @param namespaceId namespaceId
      */
     public void setNamespaceId(String namespaceId) {
         this.namespaceId = namespaceId;
     }
+
+    /**
+     * Gets the plugin jar.
+     *
+     * @return the plugin jar
+     */
+    public byte[] getPluginJar() {
+        return pluginJar;
+    }
+    /**
+     * set pluginJar.
+     *
+     * @param pluginJar pluginJar
+     */
+    public void setPluginJar(byte[] pluginJar) {
+        this.pluginJar = pluginJar;
+    }
+
+    /**
+     * Gets the plugin id.
+     *
+     * @return the plugin id
+     */
+    public String getPluginId() {
+        return pluginId;
+    }
+
+    /**
+     * set pluginId.
+     *
+     * @param pluginId pluginId
+     */
+    public void setPluginId(String pluginId) {
+        this.pluginId = pluginId;
+    }
+
 }

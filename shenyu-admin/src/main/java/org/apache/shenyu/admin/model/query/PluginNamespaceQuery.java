@@ -15,48 +15,63 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.dto;
+package org.apache.shenyu.admin.model.query;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import org.apache.shenyu.admin.model.page.PageParameter;
+
 import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
 /**
- * The type Batch common dto.
+ * this is plugin query.
  */
-public class BatchCommonDTO implements Serializable {
+public class PluginNamespaceQuery implements Serializable {
 
-    private static final long serialVersionUID = 7154784370528669046L;
-
-    @NotEmpty
-    @NotNull
-    private List<@NotBlank String> ids;
-
-    @NotNull
-    private Boolean enabled;
-
-    @NotNull
-    private String namespaceId;
 
     /**
-     * Gets the value of ids.
-     *
-     * @return the value of ids
+     * plugin name.
      */
-    public List<String> getIds() {
-        return ids;
+    private String name;
+
+    /**
+     * plugin enabled.
+     */
+    private Integer enabled;
+
+    /**
+     * page parameter.
+     */
+    private PageParameter pageParameter;
+
+    /**
+     * namespace id.
+     */
+    private String namespaceId;
+
+
+    public PluginNamespaceQuery(final String name, final Integer enabled, final PageParameter pageParameter, String namespaceId) {
+        this.name = name;
+        this.enabled = enabled;
+        this.pageParameter = pageParameter;
+        this.namespaceId = namespaceId;
     }
 
     /**
-     * Sets the ids.
+     * Gets the value of name.
      *
-     * @param ids ids
+     * @return the value of name
      */
-    public void setIds(final List<String> ids) {
-        this.ids = ids;
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
     }
 
     /**
@@ -64,7 +79,7 @@ public class BatchCommonDTO implements Serializable {
      *
      * @return the value of enabled
      */
-    public Boolean getEnabled() {
+    public Integer getEnabled() {
         return enabled;
     }
 
@@ -73,8 +88,26 @@ public class BatchCommonDTO implements Serializable {
      *
      * @param enabled enabled
      */
-    public void setEnabled(final Boolean enabled) {
+    public void setEnabled(final Integer enabled) {
         this.enabled = enabled;
+    }
+
+    /**
+     * Gets the value of pageParameter.
+     *
+     * @return the value of pageParameter
+     */
+    public PageParameter getPageParameter() {
+        return pageParameter;
+    }
+
+    /**
+     * Sets the pageParameter.
+     *
+     * @param pageParameter pageParameter
+     */
+    public void setPageParameter(final PageParameter pageParameter) {
+        this.pageParameter = pageParameter;
     }
 
     /**
@@ -95,16 +128,17 @@ public class BatchCommonDTO implements Serializable {
         this.namespaceId = namespaceId;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        BatchCommonDTO that = (BatchCommonDTO) o;
-        return Objects.equals(ids, that.ids) && Objects.equals(enabled, that.enabled) && Objects.equals(namespaceId, that.namespaceId);
+        PluginNamespaceQuery that = (PluginNamespaceQuery) o;
+        return Objects.equals(name, that.name) && Objects.equals(enabled, that.enabled) && Objects.equals(pageParameter, that.pageParameter) && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ids, enabled, namespaceId);
+        return Objects.hash(name, enabled, pageParameter, namespaceId);
     }
 }

@@ -18,11 +18,14 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.PluginDTO;
+import org.apache.shenyu.admin.model.dto.PluginNamespaceDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.query.PluginNamespaceQuery;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.query.PluginNamespaceQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
+import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.PluginData;
@@ -32,47 +35,47 @@ import java.util.List;
 /**
  * this is plugin service.
  */
-public interface PluginService extends PageService<PluginNamespaceQueryCondition, PluginVO> {
+public interface PluginNamespaceService extends PageService<PluginNamespaceQueryCondition, PluginNamespaceVO> {
 
     /**
      * Create or update string.
      *
-     * @param pluginDTO the plugin dto
+     * @param pluginNamespaceDTO the plugin namespace dto
      * @return the string
      */
-    String createOrUpdate(PluginDTO pluginDTO);
+    String update(PluginNamespaceDTO pluginNamespaceDTO);
 
-    /**
-     * create plugin resource.
-     * @param pluginDTO the plugin dto
-     * @return the string
-     */
-    String createPluginResource(PluginDTO pluginDTO);
-    
     /**
      * Delete string.
      *
      * @param ids the ids
      * @return the string
      */
-    String delete(List<String> ids);
-    
+    String delete(List<String> ids, String namespaceId);
+
     /**
-     * find plugin by id.
+     * find plugin namespace by id.
      *
-     * @param id pk.
+     * @param pluginId pk.
      * @return {@linkplain PluginVO}
      */
-    PluginVO findById(String id);
-    
+    PluginNamespaceVO findById(String pluginId,String namespaceId);
+
     /**
-     * find page of plugin by query.
+     * find page of plugin namespace by query.
      *
-     * @param pluginQuery {@linkplain PluginQuery}
+     * @param pluginNamespaceQuery {@linkplain PluginNamespaceQuery}
      * @return {@linkplain CommonPager}
      */
-    CommonPager<PluginVO> listByPage(PluginQuery pluginQuery);
-    
+    CommonPager<PluginNamespaceVO> listByPage(PluginNamespaceQuery pluginNamespaceQuery);
+
+    /**
+     * List all list.
+     *
+     * @return the list
+     */
+    List<PluginData> listAll(String namespaceId);
+
     /**
      * List all list.
      *
@@ -85,40 +88,18 @@ public interface PluginService extends PageService<PluginNamespaceQueryCondition
      *
      * @return the vo list
      */
-    List<PluginVO> listAllData();
-    
-    /**
-     * list all not in resource.
-     *
-     * @return the list
-     */
-    List<PluginData> listAllNotInResource();
-    
+    List<PluginNamespaceVO> listAllData(String namespaceId);
+
     /**
      * Enabled string.
      *
      * @param ids     the ids
-     * @param enabled the enable
+     * @param enabled the enabled
      * @return the string
      */
-    String enabled(List<String> ids, Boolean enabled);
-    
-    /**
-     * select Plugin's id by name.
-     *
-     * @param name the plugin's name.
-     * @return the id of Plugin.
-     */
-    String selectIdByName(String name);
-    
-    /**
-     * Find by name plugin do.
-     *
-     * @param name the name
-     * @return the plugin do
-     */
-    PluginDO findByName(String name);
-    
+    String enabled(List<String> ids, Boolean enabled, String namespaceId);
+
+
     /**
      * active plugin snapshot.
      *
@@ -128,6 +109,7 @@ public interface PluginService extends PageService<PluginNamespaceQueryCondition
 
     /**
      * import plugin data.
+     *
      * @param pluginList the plugin data
      * @return config import result
      */

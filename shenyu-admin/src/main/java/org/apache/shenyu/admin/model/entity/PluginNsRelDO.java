@@ -1,7 +1,15 @@
 package org.apache.shenyu.admin.model.entity;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.dto.PluginDTO;
+import org.apache.shenyu.admin.model.dto.PluginNamespaceDTO;
+import org.apache.shenyu.common.utils.UUIDUtils;
+import org.opengauss.util.Base64;
+
 import java.sql.Timestamp;
 import java.util.Objects;
+import java.util.Optional;
+
 /**
  * PluginNsRel do.
  */
@@ -80,6 +88,25 @@ public final class PluginNsRelDO extends BaseDO {
         if (!super.equals(o)) return false;
         PluginNsRelDO that = (PluginNsRelDO) o;
         return Objects.equals(namespaceId, that.namespaceId) && Objects.equals(pluginId, that.pluginId) && Objects.equals(config, that.config) && Objects.equals(enabled, that.enabled) && Objects.equals(sort, that.sort);
+    }
+
+    /**
+     * build pluginDO.
+     *
+     * @param pluginNamespaceDTO {@linkplain PluginNamespaceDTO}
+     * @return {@linkplain PluginNsRelDO}
+     */
+    public static PluginNsRelDO buildPluginNsRelDO(final PluginNamespaceDTO pluginNamespaceDTO) {
+        return Optional.ofNullable(pluginNamespaceDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            PluginNsRelDO pluginNsRelDO = PluginNsRelDO.builder()
+                    .config(item.getConfig())
+                    .enabled(item.getEnabled())
+                    .sort(item.getSort())
+                    .dateUpdated(currentTime)
+                    .build();
+            return pluginNsRelDO;
+        }).orElse(null);
     }
 
     @Override

@@ -93,7 +93,7 @@ public final class PluginControllerTest {
                 .setControllerAdvice(new ExceptionHandlers(null))
                 .build();
         this.pluginVO = new PluginVO("123", "1", "t_n", "1", 1, true,
-                DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()), "", Lists.newArrayList(), namespaceId);
+                DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()), "", Lists.newArrayList());
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
 
     }
@@ -297,13 +297,13 @@ public final class PluginControllerTest {
     
     @Test
     public void testSyncPluginData() throws Exception {
-        given(this.syncDataService.syncPluginData("123")).willReturn(true);
+        given(this.syncDataService.syncPluginData("123","test1")).willReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/syncPluginData/{id}", "123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_SUCCESS)))
                 .andReturn();
         
-        given(this.syncDataService.syncPluginData("123")).willReturn(false);
+        given(this.syncDataService.syncPluginData("123","test1")).willReturn(false);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/syncPluginData/{id}", "123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_FAIL)))
