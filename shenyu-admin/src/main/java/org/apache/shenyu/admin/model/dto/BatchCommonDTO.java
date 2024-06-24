@@ -91,14 +91,18 @@ public class BatchCommonDTO implements Serializable {
      *
      * @param namespaceId namespaceId
      */
-    public void setNamespaceId(String namespaceId) {
+    public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         BatchCommonDTO that = (BatchCommonDTO) o;
         return Objects.equals(ids, that.ids) && Objects.equals(enabled, that.enabled) && Objects.equals(namespaceId, that.namespaceId);
     }

@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
-import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
@@ -81,7 +80,8 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     public SyncDataServiceImpl(final AppAuthService appAuthService,
                                final PluginService pluginService,
-                               PluginNamespaceService pluginNamespaceService, final SelectorService selectorService,
+                               final PluginNamespaceService pluginNamespaceService,
+                               final SelectorService selectorService,
                                final RuleService ruleService,
                                final ApplicationEventPublisher eventPublisher,
                                final MetaDataService metaDataService,
@@ -118,7 +118,7 @@ public class SyncDataServiceImpl implements SyncDataService {
     }
 
     @Override
-    public boolean syncPluginData(final String pluginId,String namespaceId) {
+    public boolean syncPluginData(final String pluginId, final String namespaceId) {
         PluginNamespaceVO pluginNamespaceVO = pluginNamespaceService.findById(pluginId, namespaceId);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginNamespaceVO))));

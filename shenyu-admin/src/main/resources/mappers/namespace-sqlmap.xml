@@ -161,12 +161,11 @@
         FROM namespace
         <where>
             <if test="name != null and name != ''">
-                AND name = #{name, name=VARCHAR}
+                AND name = #{name, jdbcType=VARCHAR}
             </if>
             <if test="namespaceId != null and namespaceId != ''">
-                AND namespace_id = #{namespaceId, name=VARCHAR}
+                AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
             </if>
-
         </where>
     </select>
 
@@ -176,12 +175,39 @@
         FROM namespace
         <where>
             <if test="name != null and name != ''">
-                AND name = #{name, name=VARCHAR}
+                AND name = #{name, jdbcType=VARCHAR}
             </if>
             <if test="namespaceId != null and namespaceId != ''">
-                AND namespace_id = #{namespaceId, name=VARCHAR}
+                AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
             </if>
         </where>
     </select>
 
+    <select id="selectByNamespaceIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM namespace
+        WHERE namespace_id IN
+        <foreach item="namespaceId" collection="ids" open="(" separator="," close=")">
+            #{namespaceId, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
+    <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM namespace
+        WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM namespace
+        WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
 </mapper>

@@ -1,10 +1,23 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.admin.model.entity;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.PluginNamespaceDTO;
-import org.apache.shenyu.common.utils.UUIDUtils;
-import org.opengauss.util.Base64;
 
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -16,7 +29,7 @@ import java.util.Optional;
 public final class PluginNsRelDO extends BaseDO {
 
     /**
-     *  namespaceId.
+     * namespaceId.
      */
     private String namespaceId;
 
@@ -41,53 +54,113 @@ public final class PluginNsRelDO extends BaseDO {
      */
     private Integer sort;
 
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
     public String getNamespaceId() {
         return namespaceId;
     }
 
-    public void setNamespaceId(String namespaceId) {
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
 
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
     public String getPluginId() {
         return pluginId;
     }
 
-    public void setPluginId(String pluginId) {
+    /**
+     * Sets the pluginId.
+     *
+     * @param pluginId pluginId
+     */
+    public void setPluginId(final String pluginId) {
         this.pluginId = pluginId;
     }
 
+    /**
+     * Gets the value of config.
+     *
+     * @return the value of config
+     */
     public String getConfig() {
         return config;
     }
 
-    public void setConfig(String config) {
+    /**
+     * Sets the config.
+     *
+     * @param config config
+     */
+    public void setConfig(final String config) {
         this.config = config;
     }
 
+    /**
+     * Gets the value of enabled.
+     *
+     * @return the value of enabled
+     */
     public Boolean getEnabled() {
         return enabled;
     }
 
-    public void setEnabled(Boolean enabled) {
+    /**
+     * Sets the enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
     }
 
+    /**
+     * Gets the value of sort.
+     *
+     * @return the value of sort
+     */
     public Integer getSort() {
         return sort;
     }
 
-    public void setSort(Integer sort) {
+    /**
+     * Sets the sort.
+     *
+     * @param sort sort
+     */
+    public void setSort(final Integer sort) {
         this.sort = sort;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         PluginNsRelDO that = (PluginNsRelDO) o;
-        return Objects.equals(namespaceId, that.namespaceId) && Objects.equals(pluginId, that.pluginId) && Objects.equals(config, that.config) && Objects.equals(enabled, that.enabled) && Objects.equals(sort, that.sort);
+        return Objects.equals(namespaceId, that.namespaceId)
+                && Objects.equals(pluginId, that.pluginId)
+                && Objects.equals(config, that.config)
+                && Objects.equals(enabled, that.enabled)
+                && Objects.equals(sort, that.sort);
     }
 
     /**
@@ -122,63 +195,121 @@ public final class PluginNsRelDO extends BaseDO {
     public static PluginNsRelDOBuilder builder() {
         return new PluginNsRelDOBuilder();
     }
+
     public static final class PluginNsRelDOBuilder {
+
         private String id;
+
         private Timestamp dateCreated;
+
         private Timestamp dateUpdated;
+
         private String namespaceId;
+
         private String pluginId;
+
         private String config;
+
         private Boolean enabled;
+
         private Integer sort;
 
         private PluginNsRelDOBuilder() {
         }
 
-        public static PluginNsRelDOBuilder aPluginNsRelDO() {
-            return new PluginNsRelDOBuilder();
-        }
-
-        public PluginNsRelDOBuilder id(String id) {
+        /**
+         * id.
+         *
+         * @param id the id.
+         * @return PluginNsRelDOBuilder.
+         */
+        public PluginNsRelDOBuilder id(final String id) {
             this.id = id;
             return this;
         }
 
-        public PluginNsRelDOBuilder dateCreated(Timestamp dateCreated) {
+        /**
+         * dateCreated.
+         *
+         * @param dateCreated the dateCreated.
+         * @return PluginNsRelDOBuilder.
+         */
+        public PluginNsRelDOBuilder dateCreated(final Timestamp dateCreated) {
             this.dateCreated = dateCreated;
             return this;
         }
 
-        public PluginNsRelDOBuilder dateUpdated(Timestamp dateUpdated) {
+        /**
+         * dateUpdated.
+         *
+         * @param dateUpdated the dateUpdated.
+         * @return PluginNsRelDOBuilder.
+         */
+        public PluginNsRelDOBuilder dateUpdated(final Timestamp dateUpdated) {
             this.dateUpdated = dateUpdated;
             return this;
         }
 
-        public PluginNsRelDOBuilder namespaceId(String namespaceId) {
+        /**
+         * namespaceId.
+         *
+         * @param namespaceId the namespaceId.
+         * @return PluginNsRelDOBuilder.
+         */
+        public PluginNsRelDOBuilder namespaceId(final String namespaceId) {
             this.namespaceId = namespaceId;
             return this;
         }
 
-        public PluginNsRelDOBuilder pluginId(String pluginId) {
+        /**
+         * pluginId.
+         *
+         * @param pluginId the pluginId.
+         * @return PluginNsRelDOBuilder.
+         */
+        public PluginNsRelDOBuilder pluginId(final String pluginId) {
             this.pluginId = pluginId;
             return this;
         }
 
-        public PluginNsRelDOBuilder config(String config) {
+        /**
+         * config.
+         *
+         * @param config the config.
+         * @return PluginNsRelDOBuilder.
+         */
+        public PluginNsRelDOBuilder config(final String config) {
             this.config = config;
             return this;
         }
 
-        public PluginNsRelDOBuilder enabled(Boolean enabled) {
+        /**
+         * enabled.
+         *
+         * @param enabled the enabled.
+         * @return PluginNsRelDOBuilder.
+         */
+        public PluginNsRelDOBuilder enabled(final Boolean enabled) {
             this.enabled = enabled;
             return this;
         }
 
-        public PluginNsRelDOBuilder sort(Integer sort) {
+        /**
+         * sort.
+         *
+         * @param sort the sort.
+         * @return PluginNsRelDOBuilder.
+         */
+        public PluginNsRelDOBuilder sort(final Integer sort) {
             this.sort = sort;
             return this;
         }
 
+        /**
+         * build method.
+         *
+         * @return build object.
+         */
         public PluginNsRelDO build() {
             PluginNsRelDO pluginNsRelDO = new PluginNsRelDO();
             pluginNsRelDO.setId(id);

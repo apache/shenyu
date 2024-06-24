@@ -19,14 +19,15 @@ package org.apache.shenyu.admin.model.vo;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * NamespaceVO.
  */
 public class NamespaceVO implements Serializable {
 
-
+    /**
+     * id.
+     */
     private String id;
 
     /**
@@ -47,35 +48,75 @@ public class NamespaceVO implements Serializable {
     @NotNull(message = "description not null")
     private String description;
 
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
         this.id = id;
     }
 
+    /**
+     * Gets the value of namespaceId.
+     *
+     * @return the value of namespaceId
+     */
     public String getNamespaceId() {
         return namespaceId;
     }
 
-    public void setNamespaceId(String namespaceId) {
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
 
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    /**
+     * Sets the name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
         this.name = name;
     }
 
+    /**
+     * Gets the value of description.
+     *
+     * @return the value of description
+     */
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
+    /**
+     * Sets the description.
+     *
+     * @param description description
+     */
+    public void setDescription(final String description) {
         this.description = description;
     }
 }

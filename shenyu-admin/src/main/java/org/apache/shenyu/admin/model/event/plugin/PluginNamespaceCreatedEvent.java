@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.model.event.plugin;
 
-import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
 

@@ -69,12 +69,12 @@ public class PluginData {
     /**
      * all args constructor.
      *
-     * @param id id
-     * @param name name
-     * @param config config
-     * @param role role
+     * @param id      id
+     * @param name    name
+     * @param config  config
+     * @param role    role
      * @param enabled enabled
-     * @param sort sort
+     * @param sort    sort
      */
     public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled,
                       final Integer sort, final String pluginJar) {
@@ -101,17 +101,18 @@ public class PluginData {
         this.sort = builder.sort;
         this.pluginJar = builder.pluginJar;
     }
+
     /**
      * all args constructor.
      *
-     * @param id id
-     * @param name name
-     * @param config config
-     * @param role role
+     * @param id      id
+     * @param name    name
+     * @param config  config
+     * @param role    role
      * @param enabled enabled
-     * @param sort sort
+     * @param sort    sort
      */
-    public PluginData(String id, String name, String config, String role, Boolean enabled, Integer sort, String pluginJar, String namespaceId) {
+    public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled, final Integer sort, final String pluginJar, final String namespaceId) {
         this.id = id;
         this.name = name;
         this.config = config;
@@ -214,6 +215,7 @@ public class PluginData {
 
     /**
      * get pluginJar.
+     *
      * @return pluginJar
      */
     public String getPluginJar() {
@@ -222,6 +224,7 @@ public class PluginData {
 
     /**
      * set pluginJar.
+     *
      * @param pluginJar pluginJar
      */
     public void setPluginJar(final String pluginJar) {
@@ -270,16 +273,22 @@ public class PluginData {
      *
      * @param namespaceId namespaceId
      */
-    public void setNamespaceId(String namespaceId) {
+    public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         PluginData that = (PluginData) o;
-        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(config, that.config) && Objects.equals(role, that.role) && Objects.equals(enabled, that.enabled) && Objects.equals(sort, that.sort) && Objects.equals(pluginJar, that.pluginJar) && Objects.equals(namespaceId, that.namespaceId);
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(config, that.config)
+                && Objects.equals(role, that.role) && Objects.equals(enabled, that.enabled) && Objects.equals(sort, that.sort)
+                && Objects.equals(pluginJar, that.pluginJar) && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
@@ -287,64 +296,132 @@ public class PluginData {
         return Objects.hash(id, name, config, role, enabled, sort, pluginJar, namespaceId);
     }
 
-
     public static final class Builder {
+
         private String id;
+
         private String name;
+
         private String config;
+
         private String role;
+
         private Boolean enabled;
+
         private Integer sort;
+
         private String pluginJar;
+
         private String namespaceId;
 
+        /**
+         * no args constructor.
+         */
         private Builder() {
         }
 
-        public static Builder aPluginData() {
+        /**
+         * build new Object.
+         *
+         * @return PluginData
+         */
+        public static Builder builder() {
             return new Builder();
         }
 
-        public Builder id(String id) {
+        /**
+         * build id.
+         *
+         * @param id id
+         * @return this
+         */
+        public Builder id(final String id) {
             this.id = id;
             return this;
         }
 
-        public Builder name(String name) {
+        /**
+         * build name.
+         *
+         * @param name name
+         * @return this
+         */
+        public Builder name(final String name) {
             this.name = name;
             return this;
         }
 
-        public Builder config(String config) {
+        /**
+         * build config.
+         *
+         * @param config config
+         * @return this
+         */
+        public Builder config(final String config) {
             this.config = config;
             return this;
         }
 
-        public Builder role(String role) {
+        /**
+         * build role.
+         *
+         * @param role role
+         * @return this
+         */
+        public Builder role(final String role) {
             this.role = role;
             return this;
         }
 
-        public Builder enabled(Boolean enabled) {
+        /**
+         * build enabled.
+         *
+         * @param enabled enabled
+         * @return this
+         */
+        public Builder enabled(final Boolean enabled) {
             this.enabled = enabled;
             return this;
         }
 
-        public Builder sort(Integer sort) {
+        /**
+         * build sort.
+         *
+         * @param sort sort
+         * @return this
+         */
+        public Builder sort(final Integer sort) {
             this.sort = sort;
             return this;
         }
 
-        public Builder pluginJar(String pluginJar) {
+        /**
+         * build pluginJar.
+         *
+         * @param pluginJar pluginJar
+         * @return this
+         */
+        public Builder pluginJar(final String pluginJar) {
             this.pluginJar = pluginJar;
             return this;
         }
 
-        public Builder namespaceId(String namespaceId) {
+        /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public Builder namespaceId(final String namespaceId) {
             this.namespaceId = namespaceId;
             return this;
         }
 
+        /**
+         * build new Object.
+         *
+         * @return PluginData
+         */
         public PluginData build() {
             PluginData pluginData = new PluginData();
             pluginData.setId(id);

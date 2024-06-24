@@ -48,8 +48,7 @@ public class PluginNamespaceQuery implements Serializable {
      */
     private String namespaceId;
 
-
-    public PluginNamespaceQuery(final String name, final Integer enabled, final PageParameter pageParameter, String namespaceId) {
+    public PluginNamespaceQuery(final String name, final Integer enabled, final PageParameter pageParameter, final String namespaceId) {
         this.name = name;
         this.enabled = enabled;
         this.pageParameter = pageParameter;
@@ -124,17 +123,22 @@ public class PluginNamespaceQuery implements Serializable {
      *
      * @param namespaceId namespaceId
      */
-    public void setNamespaceId(String namespaceId) {
+    public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
 
-
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         PluginNamespaceQuery that = (PluginNamespaceQuery) o;
-        return Objects.equals(name, that.name) && Objects.equals(enabled, that.enabled) && Objects.equals(pageParameter, that.pageParameter) && Objects.equals(namespaceId, that.namespaceId);
+        return Objects.equals(name, that.name) && Objects.equals(enabled, that.enabled)
+                && Objects.equals(pageParameter, that.pageParameter)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override

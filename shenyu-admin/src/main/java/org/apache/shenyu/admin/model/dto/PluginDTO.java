@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.model.dto;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.mapper.PluginNsRelMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import javax.validation.constraints.Min;
@@ -248,16 +247,24 @@ public class PluginDTO implements Serializable {
      *
      * @param namespaceId namespaceId
      */
-    public void setNamespaceId(String namespaceId) {
+    public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         PluginDTO pluginDTO = (PluginDTO) o;
-        return Objects.equals(id, pluginDTO.id) && Objects.equals(name, pluginDTO.name) && Objects.equals(config, pluginDTO.config) && Objects.equals(role, pluginDTO.role) && Objects.equals(sort, pluginDTO.sort) && Objects.equals(enabled, pluginDTO.enabled) && Objects.equals(file, pluginDTO.file) && Objects.equals(pluginHandleList, pluginDTO.pluginHandleList) && Objects.equals(namespaceId, pluginDTO.namespaceId);
+        return Objects.equals(id, pluginDTO.id) && Objects.equals(name, pluginDTO.name)
+                && Objects.equals(config, pluginDTO.config) && Objects.equals(role, pluginDTO.role)
+                && Objects.equals(sort, pluginDTO.sort) && Objects.equals(enabled, pluginDTO.enabled)
+                && Objects.equals(file, pluginDTO.file) && Objects.equals(pluginHandleList, pluginDTO.pluginHandleList)
+                && Objects.equals(namespaceId, pluginDTO.namespaceId);
     }
 
     @Override

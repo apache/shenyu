@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
@@ -42,7 +59,9 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
 
     private final PluginNamespaceEventPublisher pluginNamespaceEventPublisher;
 
-    public PluginNamespaceServiceImpl(PluginNsRelMapper pluginNsRelMapper, PluginHandleService pluginHandleService, PluginNamespaceEventPublisher pluginNamespaceEventPublisher) {
+    public PluginNamespaceServiceImpl(final PluginNsRelMapper pluginNsRelMapper,
+                                      final PluginHandleService pluginHandleService,
+                                      final PluginNamespaceEventPublisher pluginNamespaceEventPublisher) {
         this.pluginNsRelMapper = pluginNsRelMapper;
         this.pluginHandleService = pluginHandleService;
         this.pluginNamespaceEventPublisher = pluginNamespaceEventPublisher;
@@ -50,9 +69,12 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String update(PluginNamespaceDTO pluginNamespaceDTO) {
-        Assert.isNull(pluginNsRelMapper.nameExistedExclude(pluginNamespaceDTO.getName(), Collections.singletonList(pluginNamespaceDTO.getPluginId()), pluginNamespaceDTO.getNamespaceId()), AdminConstants.PLUGIN_NAME_IS_EXIST);
-        final PluginNamespaceVO before = pluginNsRelMapper.selectById(pluginNamespaceDTO.getPluginId(), pluginNamespaceDTO.getNamespaceId());
+    public String update(final PluginNamespaceDTO pluginNamespaceDTO) {
+        Assert.isNull(pluginNsRelMapper.nameExistedExclude(pluginNamespaceDTO.getName(),
+                Collections.singletonList(pluginNamespaceDTO.getPluginId()),
+                pluginNamespaceDTO.getNamespaceId()), AdminConstants.PLUGIN_NAME_IS_EXIST);
+        final PluginNamespaceVO before = pluginNsRelMapper.selectById(pluginNamespaceDTO.getPluginId(),
+                pluginNamespaceDTO.getNamespaceId());
         PluginNsRelDO pluginNsRelDO = PluginNsRelDO.buildPluginNsRelDO(pluginNamespaceDTO);
         if (pluginNsRelMapper.updateSelective(pluginNsRelDO) > 0) {
             final PluginNamespaceVO now = pluginNsRelMapper.selectById(pluginNamespaceDTO.getPluginId(), pluginNamespaceDTO.getNamespaceId());
@@ -64,7 +86,7 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String delete(List<String> pluginIds, String namespaceId) {
+    public String delete(final List<String> pluginIds, final String namespaceId) {
         // select plugin id.
         List<PluginNamespaceVO> pluginNamespaceVOS = this.pluginNsRelMapper.selectByIds(pluginIds, namespaceId);
         if (CollectionUtils.isEmpty(pluginNamespaceVOS)) {
@@ -79,17 +101,17 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
     }
 
     @Override
-    public PluginNamespaceVO findById(String pluginId, String namespaceId) {
+    public PluginNamespaceVO findById(final String pluginId, final String namespaceId) {
         return this.pluginNsRelMapper.selectById(pluginId, namespaceId);
     }
 
     @Override
-    public CommonPager<PluginNamespaceVO> listByPage(PluginNamespaceQuery pluginNamespaceQuery) {
+    public CommonPager<PluginNamespaceVO> listByPage(final PluginNamespaceQuery pluginNamespaceQuery) {
         return PageResultUtils.result(pluginNamespaceQuery.getPageParameter(), () -> pluginNsRelMapper.selectByQuery(pluginNamespaceQuery));
     }
 
     @Override
-    public List<PluginData> listAll(String namespaceId) {
+    public List<PluginData> listAll(final String namespaceId) {
         return ListUtil.map(pluginNsRelMapper.selectAll(namespaceId), PluginTransfer.INSTANCE::mapToData);
     }
 
@@ -99,7 +121,7 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
     }
 
     @Override
-    public List<PluginNamespaceVO> listAllData(String namespaceId) {
+    public List<PluginNamespaceVO> listAllData(final String namespaceId) {
         Map<String, List<PluginHandleVO>> pluginHandleMap = pluginHandleService.listAllData()
                 .stream()
                 .collect(Collectors.groupingBy(PluginHandleVO::getPluginId));
@@ -119,9 +141,8 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
                 }).collect(Collectors.toList());
     }
 
-
     @Override
-    public String enabled(List<String> ids, Boolean enabled, String namespaceId) {
+    public String enabled(final List<String> ids, final Boolean enabled, final String namespaceId) {
         List<PluginNamespaceVO> pluginNamespaceVOList = pluginNsRelMapper.selectByIds(ids, namespaceId);
         if (CollectionUtils.isEmpty(pluginNamespaceVOList)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
@@ -135,14 +156,13 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
         return StringUtils.EMPTY;
     }
 
-
     @Override
     public List<PluginSnapshotVO> activePluginSnapshot() {
         return null;
     }
 
     @Override
-    public ConfigImportResult importData(List<PluginDTO> pluginList) {
+    public ConfigImportResult importData(final List<PluginDTO> pluginList) {
         return null;
     }
 }

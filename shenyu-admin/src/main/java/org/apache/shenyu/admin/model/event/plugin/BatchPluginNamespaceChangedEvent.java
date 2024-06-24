@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.model.event.plugin;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.BatchChangedEvent;
 import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
@@ -43,12 +42,12 @@ public class BatchPluginNamespaceChangedEvent extends BatchChangedEvent {
     public BatchPluginNamespaceChangedEvent(final Collection<PluginNamespaceVO> source, final Collection<PluginNamespaceVO> before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
-    
+
     @Override
     public String buildContext() {
         PluginNamespaceVO pluginNamespaceVO = ((Collection<?>) getSource())
                 .stream()
-                .map(s -> ((PluginNamespaceVO) s)).findFirst().get();
+                .map(s -> (PluginNamespaceVO) s).findFirst().get();
         final String plugins = ((Collection<?>) getSource())
                 .stream()
                 .map(s -> ((PluginNamespaceVO) s).getName())
@@ -56,7 +55,7 @@ public class BatchPluginNamespaceChangedEvent extends BatchChangedEvent {
 
         return String.format("the namespace[%s]  plugins[%s] is %s", pluginNamespaceVO.getNamespaceId(), plugins, StringUtils.lowerCase(getType().getType().toString()));
     }
-    
+
     @Override
     public String eventName() {
         return "pluginNamespace";

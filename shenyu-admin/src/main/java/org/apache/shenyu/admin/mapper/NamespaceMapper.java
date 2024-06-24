@@ -19,10 +19,7 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.shenyu.admin.model.entity.AppAuthDO;
-import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
-import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.query.NamespaceQuery;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
@@ -123,10 +120,35 @@ public interface NamespaceMapper extends ExistProvider {
     Integer countByQuery(NamespaceQuery namespaceQuery);
 
     /**
-     * select application authority by query.
+     * select namespace by query.
      *
      * @param namespaceQuery {@linkplain NamespaceQuery}
      * @return {@linkplain List}
      */
     List<NamespaceDO> selectByQuery(NamespaceQuery namespaceQuery);
+
+    /**
+     * select namespace by NamespaceId.
+     *
+     * @param namespaceId namespaceId.
+     * @return {@linkplain NamespaceDO}
+     */
+    List<NamespaceDO> selectByNamespaceIds(List<String> namespaceId);
+
+    /**
+     * select namespace by ids.
+     *
+     * @param ids ids.
+     * @return {@linkplain NamespaceDO}
+     */
+    List<NamespaceDO> selectByIds(List<String> ids);
+
+
+    /**
+     * delete namespace.
+     *
+     * @param ids primary keys.
+     * @return rows int
+     */
+    int deleteByIds(List<String> ids);
 }

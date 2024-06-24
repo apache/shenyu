@@ -84,7 +84,6 @@ public class PluginNamespaceDTO implements Serializable {
     private String namespaceId;
 
 
-
     /**
      * Gets the value of id.
      *
@@ -211,7 +210,7 @@ public class PluginNamespaceDTO implements Serializable {
      *
      * @param namespaceId namespaceId
      */
-    public void setNamespaceId(String namespaceId) {
+    public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
 
@@ -230,16 +229,24 @@ public class PluginNamespaceDTO implements Serializable {
      *
      * @param pluginId pluginId
      */
-    public void setPluginId(String pluginId) {
+    public void setPluginId(final String pluginId) {
         this.pluginId = pluginId;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         PluginNamespaceDTO that = (PluginNamespaceDTO) o;
-        return Objects.equals(id, that.id) && Objects.equals(pluginId, that.pluginId) && Objects.equals(name, that.name) && Objects.equals(config, that.config) && Objects.equals(sort, that.sort) && Objects.equals(enabled, that.enabled) && Objects.equals(pluginHandleList, that.pluginHandleList) && Objects.equals(namespaceId, that.namespaceId);
+        return Objects.equals(id, that.id) && Objects.equals(pluginId, that.pluginId)
+                && Objects.equals(name, that.name) && Objects.equals(config, that.config)
+                && Objects.equals(sort, that.sort) && Objects.equals(enabled, that.enabled)
+                && Objects.equals(pluginHandleList, that.pluginHandleList)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override

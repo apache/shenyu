@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import com.google.common.collect.Lists;
-import org.apache.shenyu.admin.model.dto.PluginNamespaceDTO;
-import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shiro.codec.Base64;
 
 import java.io.Serializable;
@@ -112,7 +108,7 @@ public class PluginNamespaceVO implements Serializable {
                              final String dateCreated,
                              final String dateUpdated,
                              final String file,
-                             String namespaceId,
+                             final String namespaceId,
                              final List<PluginHandleVO> pluginHandleList,
                              final byte[] pluginJar) {
         this.id = id;
@@ -324,7 +320,7 @@ public class PluginNamespaceVO implements Serializable {
      *
      * @param namespaceId namespaceId
      */
-    public void setNamespaceId(String namespaceId) {
+    public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
 
@@ -336,12 +332,13 @@ public class PluginNamespaceVO implements Serializable {
     public byte[] getPluginJar() {
         return pluginJar;
     }
+
     /**
      * set pluginJar.
      *
      * @param pluginJar pluginJar
      */
-    public void setPluginJar(byte[] pluginJar) {
+    public void setPluginJar(final byte[] pluginJar) {
         this.pluginJar = pluginJar;
     }
 
@@ -359,7 +356,7 @@ public class PluginNamespaceVO implements Serializable {
      *
      * @param pluginId pluginId
      */
-    public void setPluginId(String pluginId) {
+    public void setPluginId(final String pluginId) {
         this.pluginId = pluginId;
     }
 

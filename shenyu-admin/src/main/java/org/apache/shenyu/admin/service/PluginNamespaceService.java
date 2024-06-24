@@ -19,10 +19,8 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.PluginNamespaceDTO;
-import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.PluginNamespaceQuery;
-import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.query.PluginNamespaceQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
@@ -48,7 +46,8 @@ public interface PluginNamespaceService extends PageService<PluginNamespaceQuery
     /**
      * Delete string.
      *
-     * @param ids the ids
+     * @param ids         the ids.
+     * @param namespaceId the namespaceId
      * @return the string
      */
     String delete(List<String> ids, String namespaceId);
@@ -56,10 +55,11 @@ public interface PluginNamespaceService extends PageService<PluginNamespaceQuery
     /**
      * find plugin namespace by id.
      *
-     * @param pluginId pk.
+     * @param pluginId    pk.
+     * @param namespaceId the namespaceId
      * @return {@linkplain PluginVO}
      */
-    PluginNamespaceVO findById(String pluginId,String namespaceId);
+    PluginNamespaceVO findById(String pluginId, String namespaceId);
 
     /**
      * find page of plugin namespace by query.
@@ -72,6 +72,7 @@ public interface PluginNamespaceService extends PageService<PluginNamespaceQuery
     /**
      * List all list.
      *
+     * @param namespaceId the namespaceId
      * @return the list
      */
     List<PluginData> listAll(String namespaceId);
@@ -86,6 +87,7 @@ public interface PluginNamespaceService extends PageService<PluginNamespaceQuery
     /**
      * List all vo list.
      *
+     * @param namespaceId the namespaceId
      * @return the vo list
      */
     List<PluginNamespaceVO> listAllData(String namespaceId);
@@ -93,8 +95,9 @@ public interface PluginNamespaceService extends PageService<PluginNamespaceQuery
     /**
      * Enabled string.
      *
-     * @param ids     the ids
-     * @param enabled the enabled
+     * @param ids         the ids
+     * @param enabled     the enabled
+     * @param namespaceId the namespaceId
      * @return the string
      */
     String enabled(List<String> ids, Boolean enabled, String namespaceId);

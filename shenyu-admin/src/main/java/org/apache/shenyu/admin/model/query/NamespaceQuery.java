@@ -38,46 +38,76 @@ public class NamespaceQuery implements Serializable {
      */
     private String name;
 
-
-
-
     /**
      * page parameter.
      */
     private PageParameter pageParameter;
 
+    /**
+     * Gets the value of namespaceId.
+     *
+     * @return the value of namespaceId
+     */
     public String getNamespaceId() {
         return namespaceId;
     }
 
-    public void setNamespaceId(String namespaceId) {
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
 
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    /**
+     * Sets the name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
         this.name = name;
     }
 
-
-
+    /**
+     * Gets the value of getPageParameter.
+     *
+     * @return the value of getPageParameter
+     */
     public PageParameter getPageParameter() {
         return pageParameter;
     }
 
-    public void setPageParameter(PageParameter pageParameter) {
+    /**
+     * Sets the pageParameter.
+     *
+     * @param pageParameter pageParameter
+     */
+    public void setPageParameter(final PageParameter pageParameter) {
         this.pageParameter = pageParameter;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         NamespaceQuery that = (NamespaceQuery) o;
-        return Objects.equals(namespaceId, that.namespaceId) && Objects.equals(name, that.name) && Objects.equals(pageParameter, that.pageParameter);
+        return Objects.equals(namespaceId, that.namespaceId) && Objects.equals(name, that.name)
+                && Objects.equals(pageParameter, that.pageParameter);
     }
 
     @Override
