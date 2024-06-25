@@ -60,7 +60,7 @@ import org.springframework.ldap.support.LdapEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;

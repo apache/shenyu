@@ -236,7 +236,7 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         logInfo.setTraceId(getTraceId());
         // Do not collect stack
         Object result = ShenyuResultWrap.error(exchange, httpStatus.value(),
-                ((HttpStatus)httpStatus).getReasonPhrase(), throwable.getMessage());
+                ((HttpStatus) httpStatus).getReasonPhrase(), throwable.getMessage());
         final ShenyuResult<?> shenyuResult = ShenyuResultWrap.shenyuResult();
         Object resultData = shenyuResult.format(exchange, result);
         final Object responseData = shenyuResult.result(exchange, resultData);

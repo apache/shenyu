@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.logging.rabbitmq.config;
 import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;

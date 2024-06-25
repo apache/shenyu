@@ -17,7 +17,12 @@
 
 package org.apache.shenyu.alert.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
+import org.thymeleaf.templatemode.TemplateMode;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * thymeleaf config.
@@ -25,22 +30,22 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ThymeleafConfig {
     
-//    /**
-//     * Thymeleaf Config bean.
-//     * @return SpringResourceTemplateResolver
-//     */
-//    @Bean
-//    public SpringResourceTemplateResolver templateResolver() {
-//        SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
-//        templateResolver.setPrefix("classpath:/static/");
-//        templateResolver.setSuffix(".txt");
-//        templateResolver.setTemplateMode(TemplateMode.TEXT);
-//        templateResolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
-//        templateResolver.setOrder(2);
-//        templateResolver.setCheckExistence(true);
-//        templateResolver.setCacheable(true);
-//
-//        return templateResolver;
-//    }
+    /**
+     * Thymeleaf Config bean.
+     * @return SpringResourceTemplateResolver
+     */
+    @Bean
+    public SpringResourceTemplateResolver templateResolver() {
+        SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
+        templateResolver.setPrefix("classpath:/static/");
+        templateResolver.setSuffix(".txt");
+        templateResolver.setTemplateMode(TemplateMode.TEXT);
+        templateResolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        templateResolver.setOrder(2);
+        templateResolver.setCheckExistence(true);
+        templateResolver.setCacheable(true);
+
+        return templateResolver;
+    }
     
 }

@@ -207,12 +207,13 @@
             <groupId>com.dyuproject.protostuff</groupId>
             <artifactId>protostuff-runtime</artifactId>
         </dependency>
-
+        
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         </dependency>
-
+        
+        
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>

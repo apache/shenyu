@@ -66,6 +66,12 @@
             <artifactId>shenyu-discovery-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!--shenyu consul register center -->
         <!--<dependency>
