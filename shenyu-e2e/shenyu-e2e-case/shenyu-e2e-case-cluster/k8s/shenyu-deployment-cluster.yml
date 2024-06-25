@@ -42,6 +42,8 @@ spec:
               value: mysql
             - name: server.port
               value: "9095"
+            - name: shenyu.cluster.enabled
+              value: true
             - name: spring.datasource.username
               value: root
             - name: spring.datasource.password
@@ -107,6 +109,8 @@ spec:
               value: mysql
             - name: server.port
               value: "9096"
+            - name: shenyu.cluster.enabled
+              value: true
             - name: spring.datasource.username
               value: root
             - name: spring.datasource.password
