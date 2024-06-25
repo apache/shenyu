@@ -112,6 +112,21 @@ shenyu:
     login-field: cn
   jwt:
     expired-seconds: 86400000
+  cluster:
+    enabled: false
+    type: jdbc
+    forward-list:
+      - /shenyu-client/**
+      - /configs/**
+      - /selector/batchEnabled
+      - /selector/batch
+      - /rule/batchEnabled
+      - /rule/batch
+      - /plugin/syncPluginData/**
+    zookeeper:
+      url: localhost:2181
+      sessionTimeout: 5000
+      connectionTimeout: 2000
   shiro:
     white-list:
       - /

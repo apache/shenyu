@@ -48,6 +48,11 @@ public enum DataEventTypeEnum {
     REFRESH,
 
     /**
+     * CLUSTER data event type enum.
+     */
+    CLUSTER,
+
+    /**
      * Myself data event type enum.
      */
     MYSELF;
