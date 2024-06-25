@@ -17,21 +17,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shenyu-admin-cluster-1
+  name: shenyu-admin-master
   labels:
-    app: shenyu-admin-cluster-1
+    app: shenyu-admin-master
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: shenyu-admin-cluster-1
+      app: shenyu-admin-master
   template:
     metadata:
       labels:
-        app: shenyu-admin-cluster-1
+        app: shenyu-admin-master
     spec:
       containers:
-        - name: shenyu-admin-cluster-1
+        - name: shenyu-admin-master
           image: apache/shenyu-admin:latest
           args:
             - -Xmx768m -Xms768m
@@ -82,21 +82,21 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shenyu-admin-cluster-2
+  name: shenyu-admin-slave
   labels:
-    app: shenyu-admin-cluster-2
+    app: shenyu-admin-slave
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: shenyu-admin-cluster-2
+      app: shenyu-admin-slave
   template:
     metadata:
       labels:
-        app: shenyu-admin-cluster-2
+        app: shenyu-admin-slave
     spec:
       containers:
-        - name: shenyu-admin-cluster-2
+        - name: shenyu-admin-slave
           image: apache/shenyu-admin:latest
           args:
             - -Xmx768m -Xms768m
@@ -168,7 +168,7 @@ spec:
             - -Xmx768m -Xms768m
           env:
             - name: shenyu.sync.websocket.urls
-              value: ws://shenyu-admin-cluster-1:9095/websocket,ws://shenyu-admin-cluster-2:9096/websocket
+              value: ws://shenyu-admin-master:9095/websocket,ws://shenyu-admin-slave:9096/websocket
           ports:
             - containerPort: 9195
           livenessProbe:
