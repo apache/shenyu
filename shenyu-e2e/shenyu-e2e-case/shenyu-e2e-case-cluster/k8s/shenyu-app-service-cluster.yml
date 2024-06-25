@@ -51,13 +51,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: shenyu-bootstrap-mysql
+  name: shenyu-bootstrap-cluster
   labels:
-    app: shenyu-bootstrap-mysql
+    app: shenyu-bootstrap-cluster
 spec:
   type: NodePort
   selector:
-    app: shenyu-bootstrap-mysql
+    app: shenyu-bootstrap-cluster
   ports:
     - name: "9195"
       port: 9195

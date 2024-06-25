@@ -147,21 +147,21 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shenyu-bootstrap-mysql
+  name: shenyu-bootstrap-cluster
   labels:
-    app: shenyu-bootstrap-mysql
+    app: shenyu-bootstrap-cluster
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: shenyu-bootstrap-mysql
+      app: shenyu-bootstrap-cluster
   template:
     metadata:
       labels:
-        app: shenyu-bootstrap-mysql
+        app: shenyu-bootstrap-cluster
     spec:
       containers:
-        - name: shenyu-bootstrap-mysql
+        - name: shenyu-bootstrap-cluster
           image: apache/shenyu-bootstrap:latest
           resources: { }
           args:
