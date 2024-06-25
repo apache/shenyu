@@ -41,7 +41,7 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: mysql
             - name: server.port
-              value: 9095
+              value: "9095"
             - name: spring.datasource.username
               value: root
             - name: spring.datasource.password
@@ -106,7 +106,7 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: mysql
             - name: server.port
-              value: 9096
+              value: "9096"
             - name: spring.datasource.username
               value: root
             - name: spring.datasource.password
