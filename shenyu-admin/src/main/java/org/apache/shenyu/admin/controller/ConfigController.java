@@ -31,6 +31,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.Map;
 
 /**
@@ -38,6 +40,7 @@ import java.util.Map;
  */
 @ResponseBody
 @RequestMapping("/configs")
+@RestController
 public class ConfigController {
     
     private final HttpLongPollingDataChangedListener longPollingListener;

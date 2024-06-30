@@ -177,8 +177,8 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
     protected String buildApiPath(final Method method, final String superPath,
                                   @NonNull final ShenyuSpringCloudClient methodShenyuClient) {
         final String contextPath = getContextPath();
-        if (StringUtils.isNotBlank(methodShenyuClient.path())) {
-            return pathJoin(contextPath, superPath, methodShenyuClient.path());
+        if (StringUtils.isNotBlank(methodShenyuClient.path()[0])) {
+            return pathJoin(contextPath, superPath, methodShenyuClient.path()[0]);
         }
         final String path = getPathByMethod(method);
         if (StringUtils.isNotBlank(path)) {
@@ -215,8 +215,8 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
 
     @Override
     protected String buildApiSuperPath(final Class<?> clazz, @Nullable final ShenyuSpringCloudClient beanShenyuClient) {
-        if (Objects.nonNull(beanShenyuClient) && StringUtils.isNotBlank(beanShenyuClient.path())) {
-            return beanShenyuClient.path();
+        if (Objects.nonNull(beanShenyuClient) && StringUtils.isNotBlank(beanShenyuClient.path()[0])) {
+            return beanShenyuClient.path()[0];
         }
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(clazz, RequestMapping.class);
         // Only the first path is supported temporarily
