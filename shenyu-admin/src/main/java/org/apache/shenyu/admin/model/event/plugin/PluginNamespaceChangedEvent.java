@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.model.event.plugin;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
 import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
@@ -54,9 +53,9 @@ public class PluginNamespaceChangedEvent extends AdminDataModelChangedEvent {
     }
     
     private String contrast() {
-        final PluginDO before = (PluginDO) getBefore();
+        final PluginNamespaceVO before = (PluginNamespaceVO) getBefore();
         Objects.requireNonNull(before);
-        final PluginDO after = (PluginDO) getAfter();
+        final PluginNamespaceVO after = (PluginNamespaceVO) getAfter();
         Objects.requireNonNull(after);
         if (Objects.equals(before, after)) {
             return "it no change";

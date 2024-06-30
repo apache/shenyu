@@ -176,6 +176,8 @@ public final class PluginNsRelDO extends BaseDO {
                     .config(item.getConfig())
                     .enabled(item.getEnabled())
                     .sort(item.getSort())
+                    .namespaceId(item.getNamespaceId())
+                    .pluginId(item.getPluginId())
                     .dateUpdated(currentTime)
                     .build();
             return pluginNsRelDO;

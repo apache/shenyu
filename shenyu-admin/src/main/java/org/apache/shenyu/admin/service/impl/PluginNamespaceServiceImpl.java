@@ -35,7 +35,6 @@ import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.service.PluginNamespaceService;
 import org.apache.shenyu.admin.service.publish.PluginNamespaceEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
-import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
@@ -43,7 +42,6 @@ import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -70,9 +68,9 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String update(final PluginNamespaceDTO pluginNamespaceDTO) {
-        Assert.isNull(pluginNsRelMapper.nameExistedExclude(pluginNamespaceDTO.getName(),
-                Collections.singletonList(pluginNamespaceDTO.getPluginId()),
-                pluginNamespaceDTO.getNamespaceId()), AdminConstants.PLUGIN_NAME_IS_EXIST);
+//        Assert.isNull(pluginNsRelMapper.nameExistedExclude(pluginNamespaceDTO.getName(),
+//                Collections.singletonList(pluginNamespaceDTO.getPluginId()),
+//                pluginNamespaceDTO.getNamespaceId()), AdminConstants.PLUGIN_NAME_IS_EXIST);
         final PluginNamespaceVO before = pluginNsRelMapper.selectById(pluginNamespaceDTO.getPluginId(),
                 pluginNamespaceDTO.getNamespaceId());
         PluginNsRelDO pluginNsRelDO = PluginNsRelDO.buildPluginNsRelDO(pluginNamespaceDTO);
@@ -86,14 +84,14 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String delete(final List<String> pluginIds, final String namespaceId) {
+    public String delete(final List<String> ids, final String namespaceId) {
         // select plugin id.
-        List<PluginNamespaceVO> pluginNamespaceVOS = this.pluginNsRelMapper.selectByIds(pluginIds, namespaceId);
+        List<PluginNamespaceVO> pluginNamespaceVOS = this.pluginNsRelMapper.selectByIds(ids, namespaceId);
         if (CollectionUtils.isEmpty(pluginNamespaceVOS)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }
         // delete plugins.
-        if (this.pluginNsRelMapper.deleteByIds(ListUtil.map(pluginNamespaceVOS, PluginNamespaceVO::getPluginId), namespaceId) > 0) {
+        if (this.pluginNsRelMapper.deleteByIds(ListUtil.map(pluginNamespaceVOS, PluginNamespaceVO::getId), namespaceId) > 0) {
             // publish deleted event. synchronously delete and link data[selector,rule,condition,resource]
             pluginNamespaceEventPublisher.onDeleted(pluginNamespaceVOS);
         }
@@ -101,8 +99,8 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
     }
 
     @Override
-    public PluginNamespaceVO findById(final String pluginId, final String namespaceId) {
-        return this.pluginNsRelMapper.selectById(pluginId, namespaceId);
+    public PluginNamespaceVO findById(final String id, final String namespaceId) {
+        return this.pluginNsRelMapper.selectById(id, namespaceId);
     }
 
     @Override

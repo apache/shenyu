@@ -48,6 +48,9 @@ public class PluginNamespaceQuery implements Serializable {
      */
     private String namespaceId;
 
+    public PluginNamespaceQuery() {
+    }
+
     public PluginNamespaceQuery(final String name, final Integer enabled, final PageParameter pageParameter, final String namespaceId) {
         this.name = name;
         this.enabled = enabled;

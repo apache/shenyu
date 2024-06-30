@@ -42,6 +42,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SyncDataService}.
  */
@@ -98,13 +100,15 @@ public class SyncDataServiceImpl implements SyncDataService {
         this.discoveryService = discoveryService;
     }
 
-    //todo:根据命名空间做同步
+    //todo:[命名空间待改造]只做根据namespaceId做同步
     @Override
     public boolean syncAll(final DataEventTypeEnum type) {
         appAuthService.syncData();
 
         List<PluginData> pluginDataList = pluginNamespaceService.listAll();
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, pluginDataList));
+        //todo:[命名空间待改造]暂时只同步默认命名空间的插件数据
+        List<PluginData> pluginDataListFilter = pluginDataList.stream().filter(v -> v.getNamespaceId().equals(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).collect(Collectors.toList());
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, pluginDataListFilter));
 
         List<SelectorData> selectorDataList = selectorService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, type, selectorDataList));

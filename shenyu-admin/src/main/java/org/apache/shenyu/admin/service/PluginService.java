@@ -21,7 +21,7 @@ import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.PluginQuery;
-import org.apache.shenyu.admin.model.query.PluginNamespaceQueryCondition;
+import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * this is plugin service.
  */
-public interface PluginService extends PageService<PluginNamespaceQueryCondition, PluginVO> {
+public interface PluginService extends PageService<PluginQueryCondition, PluginVO> {
 
     /**
      * Create or update string.

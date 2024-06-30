@@ -29,7 +29,7 @@ import org.apache.shenyu.admin.model.event.plugin.PluginCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginQuery;
-import org.apache.shenyu.admin.model.query.PluginNamespaceQueryCondition;
+import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
@@ -88,7 +88,7 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
-    public List<PluginVO> searchByCondition(final PluginNamespaceQueryCondition condition) {
+    public List<PluginVO> searchByCondition(final PluginQueryCondition condition) {
         condition.init();
         return pluginMapper.searchByCondition(condition);
     }

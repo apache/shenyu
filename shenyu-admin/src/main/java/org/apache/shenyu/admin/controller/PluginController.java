@@ -24,8 +24,8 @@ import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
-import org.apache.shenyu.admin.model.query.PluginNamespaceQueryCondition;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PageService;
@@ -53,8 +53,8 @@ import java.util.List;
  * this is plugin controller.
  */
 @RestApi("/plugin")
-public class PluginController implements PagedController<PluginNamespaceQueryCondition, PluginVO> {
-    
+public class PluginController implements PagedController<PluginQueryCondition, PluginVO> {
+
     private final PluginService pluginService;
     
     private final SyncDataService syncDataService;
@@ -197,7 +197,7 @@ public class PluginController implements PagedController<PluginNamespaceQueryCon
     }
     
     @Override
-    public PageService<PluginNamespaceQueryCondition, PluginVO> pageService() {
+    public PageService<PluginQueryCondition, PluginVO> pageService() {
         return pluginService;
     }
 }

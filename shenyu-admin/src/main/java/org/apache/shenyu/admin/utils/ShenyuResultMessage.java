@@ -86,6 +86,10 @@ public final class ShenyuResultMessage {
     
     public static final String PASSWORD_USED_FOR_LONG_TIME = "If the password has not been changed for a long time, "
             + "please use it after changing it to ensure the security of the super administrator account";
+
+    public static final String NAMESPACE_ID_NOT_NULL = "namespace is not null";
+
+    public static final String ENABLED_NOT_NULL = "enabled is not null";
     
     private ShenyuResultMessage() {
     

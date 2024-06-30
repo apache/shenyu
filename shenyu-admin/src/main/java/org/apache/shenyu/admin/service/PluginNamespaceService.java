@@ -55,11 +55,11 @@ public interface PluginNamespaceService extends PageService<PluginNamespaceQuery
     /**
      * find plugin namespace by id.
      *
-     * @param pluginId    pk.
+     * @param id    pk.
      * @param namespaceId the namespaceId
      * @return {@linkplain PluginVO}
      */
-    PluginNamespaceVO findById(String pluginId, String namespaceId);
+    PluginNamespaceVO findById(String id, String namespaceId);
 
     /**
      * find page of plugin namespace by query.
