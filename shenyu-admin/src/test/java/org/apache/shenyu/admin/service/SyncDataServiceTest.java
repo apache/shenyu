@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.impl.SyncDataServiceImpl;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -89,13 +90,14 @@ public final class SyncDataServiceTest {
     @Mock
     private DiscoveryUpstreamService discoveryUpstreamService;
 
+    @Mock
+    private PluginNamespaceService pluginNamespaceService;
+
     @Test
     public void syncAllTest() {
-        PluginData pluginData = buildPluginData();
         SelectorData selectorData = buildSelectorData();
         RuleData ruleData = buildRuleData();
         given(this.appAuthService.syncData()).willReturn(ShenyuAdminResult.success());
-        given(this.pluginService.listAll()).willReturn(Collections.singletonList(pluginData));
         given(this.selectorService.listAll()).willReturn(Collections.singletonList(selectorData));
         given(this.ruleService.listAll()).willReturn(Collections.singletonList(ruleData));
         assertThat(syncDataService.syncAll(DataEventTypeEnum.CREATE), greaterThan(false));
@@ -104,11 +106,13 @@ public final class SyncDataServiceTest {
     @Test
     public void syncPluginDataTest() {
         PluginVO pluginVO = buildPluginVO();
-        given(this.pluginService.findById(pluginVO.getId())).willReturn(pluginVO);
+        PluginNamespaceVO pluginNamespaceVO = new PluginNamespaceVO();
+        String namespaceId = "test1";
+        given(this.pluginNamespaceService.findById(pluginVO.getId(), namespaceId)).willReturn(pluginNamespaceVO);
         SelectorData selectorData = buildSelectorData();
         given(this.selectorService.findByPluginId(pluginVO.getId())).willReturn(Collections.singletonList(selectorData));
 
-        assertThat(syncDataService.syncPluginData(pluginVO.getId(), "test1"), greaterThan(false));
+        assertThat(syncDataService.syncPluginData(pluginVO.getId(), namespaceId), greaterThan(false));
     }
 
 

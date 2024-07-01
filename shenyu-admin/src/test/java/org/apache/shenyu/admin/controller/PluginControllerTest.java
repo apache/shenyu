@@ -32,7 +32,6 @@ import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.hamcrest.Matchers;
@@ -279,35 +278,4 @@ public final class PluginControllerTest {
                 .andExpect(jsonPath("$.message", is(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST)))
                 .andReturn();
     }
-
-    @Test
-    public void testSyncPluginAll() throws Exception {
-        given(this.syncDataService.syncAll(DataEventTypeEnum.REFRESH)).willReturn(true);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/syncPluginAll"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_SUCCESS)))
-                .andReturn();
-
-        given(this.syncDataService.syncAll(DataEventTypeEnum.REFRESH)).willReturn(false);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/syncPluginAll"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_FAIL)))
-                .andReturn();
-    }
-
-    @Test
-    public void testSyncPluginData() throws Exception {
-        given(this.syncDataService.syncPluginData("123", "test1")).willReturn(true);
-        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/syncPluginData/{id}", "123"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_SUCCESS)))
-                .andReturn();
-
-        given(this.syncDataService.syncPluginData("123", "test1")).willReturn(false);
-        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/syncPluginData/{id}", "123"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_FAIL)))
-                .andReturn();
-    }
-
 }
