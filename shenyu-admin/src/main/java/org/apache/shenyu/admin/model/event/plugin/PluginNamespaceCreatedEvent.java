@@ -15,30 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service;
+package org.apache.shenyu.admin.model.event.plugin;
 
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
+import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
 
 /**
- * The interface Sync data service.
+ * PluginCreatedEvent.
  */
-public interface SyncDataService {
+public class PluginNamespaceCreatedEvent extends PluginNamespaceChangedEvent {
+
 
     /**
-     * Sync all boolean.
+     * Create a new {@code PluginNamespaceChangedEvent}.operator is unknown.
      *
-     * @param type the type
-     * @return the boolean
+     * @param source   Current plugin state
+     * @param operator operator
      */
-    boolean syncAll(DataEventTypeEnum type);
-
+    public PluginNamespaceCreatedEvent(final PluginNamespaceVO source, final String operator) {
+        super(source, null, EventTypeEnum.PLUGIN_CREATE, operator);
+    }
+    
     /**
-     * Sync plugin data boolean.
+     * the created plugin.
      *
-     * @param pluginId    the plugin id
-     * @param namespaceId the namespace id
-     * @return the boolean
+     * @return plugin
      */
-    boolean syncPluginData(String pluginId, String namespaceId);
-
+    public PluginNamespaceVO getPlugin() {
+        return (PluginNamespaceVO) getSource();
+    }
+    
 }

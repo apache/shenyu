@@ -27,7 +27,7 @@ import java.util.Objects;
 /**
  * The type Batch common dto.
  */
-public class BatchCommonDTO implements Serializable {
+public class BatchNamespaceCommonDTO implements Serializable {
 
     private static final long serialVersionUID = 7154784370528669046L;
 
@@ -35,9 +35,9 @@ public class BatchCommonDTO implements Serializable {
     @NotNull
     private List<@NotBlank String> ids;
 
-    @NotNull
     private Boolean enabled;
 
+    @NotNull
     private String namespaceId;
 
     /**
@@ -102,7 +102,7 @@ public class BatchCommonDTO implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        BatchCommonDTO that = (BatchCommonDTO) o;
+        BatchNamespaceCommonDTO that = (BatchNamespaceCommonDTO) o;
         return Objects.equals(ids, that.ids) && Objects.equals(enabled, that.enabled) && Objects.equals(namespaceId, that.namespaceId);
     }
 
