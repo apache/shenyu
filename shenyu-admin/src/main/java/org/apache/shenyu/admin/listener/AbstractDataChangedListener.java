@@ -37,6 +37,7 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -166,6 +167,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
+        LOG.info("onPluginChanged, changed:{}, eventType:{}", JsonUtils.toJson(changed),  JsonUtils.toJson(eventType));
         this.updatePluginCache();
         this.afterPluginChanged(changed, eventType);
     }
