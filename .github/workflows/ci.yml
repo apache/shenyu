@@ -65,6 +65,7 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
         with:
           java-version: ${{ matrix.java }}
+          distribution: 'temurin'
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean test -Prelease
