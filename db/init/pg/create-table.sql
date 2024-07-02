@@ -2679,10 +2679,10 @@ INSERT INTO "public"."namespace" VALUES ('1', '649330b6c2d74edcbe8e8a54df9eb385'
 
 DROP TABLE IF EXISTS "public"."plugin_ns_rel";
 CREATE TABLE "public"."plugin_ns_rel" (
-                                          id varchar(128) COLLATE "utf8mb4_unicode_ci" NOT NULL,
-                                          namespace_id varchar(50) COLLATE "utf8mb4_unicode_ci" NOT NULL,
+                                          id varchar(128)  NOT NULL,
+                                          namespace_id varchar(50)  NOT NULL,
                                           plugin_id int NOT NULL,
-                                          config text COLLATE "utf8mb4_unicode_ci",
+                                          config text ,
                                           sort int,
                                           enabled smallint NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
                                           date_created timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

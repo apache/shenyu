@@ -73,15 +73,15 @@ INSERT INTO "public"."namespace" VALUES ('1', '649330b6c2d74edcbe8e8a54df9eb385'
 
 DROP TABLE IF EXISTS "public"."plugin_ns_rel";
 CREATE TABLE "public"."plugin_ns_rel" (
-                               id varchar(128) COLLATE "utf8mb4_unicode_ci" NOT NULL,
-                               namespace_id varchar(50) COLLATE "utf8mb4_unicode_ci" NOT NULL,
-                               plugin_id int NOT NULL,
-                               config text COLLATE "utf8mb4_unicode_ci",
-                               sort int,
-                               enabled smallint NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
-                               date_created timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                               date_updated timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                               PRIMARY KEY (id)
+                                          id varchar(128)  NOT NULL,
+                                          namespace_id varchar(50)  NOT NULL,
+                                          plugin_id int NOT NULL,
+                                          config text ,
+                                          sort int,
+                                          enabled smallint NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
+                                          date_created timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                          date_updated timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                          PRIMARY KEY (id)
 );
 
 INSERT INTO "public"."plugin_ns_rel" VALUES ('1801816010882822145','649330b6c2d74edcbe8e8a54df9eb385','1', NULL, 20, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
