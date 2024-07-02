@@ -2542,29 +2542,46 @@ INSERT INTO "public"."permission" VALUES ('1792779493541343256', '13463585604272
 
 DROP TABLE IF EXISTS "public"."namespace";
 CREATE TABLE "public"."namespace" (
-                                      "id" varchar(128) NOT NULL,
-                                      "namespace_id" varchar(50) NOT NULL,
-                                      "name" varchar(255) NOT NULL,
-                                      "description" varchar(255),
+                                      "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "description" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
                                       "date_created" timestamp(3) NOT NULL DEFAULT now(),
                                       "date_updated" timestamp(3) NOT NULL DEFAULT now(),
                                       PRIMARY KEY ("id")
 );
+COMMENT ON COLUMN "public"."namespace"."id" IS 'Namespace primary key';
+COMMENT ON COLUMN "public"."namespace"."namespace_id" IS 'Namespace ID';
+COMMENT ON COLUMN "public"."namespace"."name" IS 'Namespace name';
+COMMENT ON COLUMN "public"."namespace"."description" IS 'Namespace description';
+COMMENT ON COLUMN "public"."namespace"."date_created" IS 'Creation time';
+COMMENT ON COLUMN "public"."namespace"."date_updated" IS 'Update time';
+
 
 INSERT INTO "public"."namespace" VALUES ('1', '649330b6c2d74edcbe8e8a54df9eb385', 'default', 'default-namespace', '2024-06-22 20:25:14.359', '2024-06-22 23:27:40.778');
 
 DROP TABLE IF EXISTS "public"."plugin_ns_rel";
 CREATE TABLE "public"."plugin_ns_rel" (
-                                          id varchar(128)  NOT NULL,
-                                          namespace_id varchar(50)  NOT NULL,
-                                          plugin_id int NOT NULL,
-                                          config text ,
-                                          sort int,
-                                          enabled smallint NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
-                                          date_created timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                          date_updated timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                          "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                          "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+                                          "plugin_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                          "config" text ,
+                                          "sort" int,
+                                          "enabled" smallint NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
+                                          "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                          "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                           PRIMARY KEY (id)
 );
+
+COMMENT ON COLUMN "public"."plugin_ns_rel"."id" IS 'Primary key ID';
+COMMENT ON COLUMN "public"."plugin_ns_rel"."namespace_id" IS 'Namespace ID';
+COMMENT ON COLUMN "public"."plugin_ns_rel"."plugin_id" IS 'Plugin ID';
+COMMENT ON COLUMN "public"."plugin_ns_rel"."config" IS 'Plugin configuration';
+COMMENT ON COLUMN "public"."plugin_ns_rel"."sort" IS 'Sort order';
+COMMENT ON COLUMN "public"."plugin_ns_rel"."enabled" IS 'Whether the plugin is enabled (0 = not open, 1 = open)';
+COMMENT ON COLUMN "public"."plugin_ns_rel"."date_created" IS 'Creation time';
+COMMENT ON COLUMN "public"."plugin_ns_rel"."date_updated" IS 'Update time';
+
 
 INSERT INTO "public"."plugin_ns_rel" VALUES ('1801816010882822145','649330b6c2d74edcbe8e8a54df9eb385','1', NULL, 20, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."plugin_ns_rel" VALUES ('1801816010882822146','649330b6c2d74edcbe8e8a54df9eb385','10', NULL, 140, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
