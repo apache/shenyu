@@ -154,7 +154,7 @@
         <kafka-clients.version>3.4.0</kafka-clients.version>
         <amqp-client.version>5.16.0</amqp-client.version>
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
-        <eureka.version>1.10.17</eureka.version>
+        <eureka.version>2.0.2</eureka.version>
         <javatuples.version>1.2</javatuples.version>
         <k8s-client.version>17.0.2</k8s-client.version>
         <polaris.version>1.13.0</polaris.version>
