@@ -20,7 +20,6 @@ package org.apache.shenyu.e2e.model.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.Serializable;
 import java.util.Date;
 
 /**
