@@ -195,6 +195,7 @@ public final class AbstractDataChangedListenerTest {
     public void testOnRuleChanged() {
         List<RuleData> empty = Lists.newArrayList();
         DataEventTypeEnum eventType = mock(DataEventTypeEnum.class);
+        LOG.info("onRuleChanged empty");
         listener.onRuleChanged(empty, eventType);
         LOG.info("listener.getCache():{} ", JsonUtils.toJson(listener.getCache()));
         assertFalse(listener.getCache().containsKey(ConfigGroupEnum.RULE.name()));

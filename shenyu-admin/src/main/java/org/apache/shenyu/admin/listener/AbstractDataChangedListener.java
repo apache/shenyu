@@ -167,7 +167,6 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        LOG.info("onPluginChanged, changed:{}, eventType:{}", JsonUtils.toJson(changed), JsonUtils.toJson(eventType));
         this.updatePluginCache();
         this.afterPluginChanged(changed, eventType);
     }
@@ -186,6 +185,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
+        LOG.info("onRuleChanged, changed:{}, eventType:{}", JsonUtils.toJson(changed), JsonUtils.toJson(eventType));
         this.updateRuleCache();
         this.afterRuleChanged(changed, eventType);
     }
