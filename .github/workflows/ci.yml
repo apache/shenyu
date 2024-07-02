@@ -30,14 +30,19 @@ jobs:
         include:
           - java: 17
             os: ubuntu-latest
+            distribution: 'temurin'
           - java: 18
             os: ubuntu-latest
+            distribution: 'oracle'
           - java: 19
             os: ubuntu-latest
+            distribution: 'temurin'
           - java: 20
             os: ubuntu-latest
+            distribution: 'temurin'
           - java: 21
             os: ubuntu-latest
+            distribution: 'temurin'
     runs-on: ${{ matrix.os }}
     if: (github.repository == 'apache/shenyu')
     steps:
@@ -65,7 +70,7 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
         with:
           java-version: ${{ matrix.java }}
-          distribution: 'temurin'
+          distribution: ${{ matrix.distribution }}
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean test -Prelease
