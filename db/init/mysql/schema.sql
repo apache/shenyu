@@ -2259,7 +2259,10 @@ INSERT INTO `shenyu`.`permission` (`id`, `object_id`, `resource_id`, `date_creat
 INSERT INTO `shenyu`.`permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1792779493541343255', '1346358560427216896', '1792749362445840477', '2024-06-22 17:00:00.000', '2024-06-22 17:00:00.000');
 INSERT INTO `shenyu`.`permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1792779493541343256', '1346358560427216896', '1792749362445840478', '2024-06-22 17:00:00.000', '2024-06-22 17:00:00.000');
 
-
+-- ----------------------------
+-- Table structure for namespace
+-- ----------------------------
+DROP TABLE IF EXISTS `namespace`;
 CREATE TABLE `namespace` (
                              `id` varchar(128) NOT NULL COMMENT 'namespace primary key',
                              `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
@@ -2272,7 +2275,10 @@ CREATE TABLE `namespace` (
 
 INSERT INTO `shenyu`.`namespace` (`id`, `namespace_id`, `name`, `description`, `date_created`, `date_updated`) VALUES ('1', '649330b6c2d74edcbe8e8a54df9eb385', 'default', 'default-namespace', '2024-06-22 20:25:14.359', '2024-06-22 23:27:40.778');
 
-
+-- ----------------------------
+-- Table structure for plugin_ns_rel
+-- ----------------------------
+DROP TABLE IF EXISTS `plugin_ns_rel`;
 CREATE TABLE `plugin_ns_rel` (
                                  `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
                                  `namespace_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace id',
@@ -2331,7 +2337,6 @@ INSERT INTO `shenyu`.`plugin_ns_rel` (`id`,`namespace_id`,`plugin_id`, `config`,
 
 
 
-INSERT INTO `shenyu`.`resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1792749362445840479', '1357956838021890048', 'SHENYU.MENU.SYSTEM.MANAGMENT.PLUGINNAMESPACE', 'pluginNamespace', '/config/pluginNamespace', 'pluginNamespace', 1, 2, 'build', 0, 0, '', 1, '2024-06-25 18:02:53.000', '2024-06-25 18:02:53.000');
 INSERT INTO `shenyu`.`resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1792749362445840479', '1357956838021890048', 'SHENYU.MENU.SYSTEM.MANAGMENT.PLUGINNAMESPACE', 'pluginNamespace', '/config/pluginNamespace', 'pluginNamespace', 1, 2, 'build', 0, 0, '', 1, '2024-06-25 18:02:53.000', '2024-06-25 18:02:53.000');
 INSERT INTO `shenyu`.`resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1792749362445840480', '1792749362445840479', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 0, '', 1, 0, 'system:pluginNamespace:list', 1, '2024-06-25 18:02:53.000', '2024-06-25 18:02:53.000');
 INSERT INTO `shenyu`.`resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1792749362445840481', '1792749362445840479', 'SHENYU.BUTTON.SYSTEM.DELETE', '', '', '', 2, 1, '', 1, 0, 'system:pluginNamespace:delete', 1, '2024-06-25 18:02:53.000', '2024-06-25 18:02:53.000');
