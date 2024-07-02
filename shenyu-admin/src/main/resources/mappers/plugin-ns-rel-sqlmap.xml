@@ -98,7 +98,7 @@
             </if>
         </where>
         ) pnr
-        LEFT JOIN PLUGIN p ON p.id = pnr.plugin_id
+        LEFT JOIN plugin p ON p.id = pnr.plugin_id
         <where>
             <if test="name != null and name != ''">
                 <bind name="nameLike" value="('%' + name + '%')"/>
@@ -131,7 +131,7 @@
         and namespace_id =  #{namespaceId, jdbcType=VARCHAR}
         )
         pnr
-        LEFT JOIN PLUGIN p ON pnr.plugin_id = p.id
+        LEFT JOIN plugin p ON pnr.plugin_id = p.id
     </select>
 
     <select id="searchByCondition" resultType="org.apache.shenyu.admin.model.vo.PluginNamespaceVO">
@@ -256,7 +256,7 @@
             </if>
         </where>
         ) pnr
-        LEFT JOIN PLUGIN p ON p.id = pnr.plugin_id
+        LEFT JOIN plugin p ON p.id = pnr.plugin_id
         ORDER BY
         sort,
         pnr.id ASC
