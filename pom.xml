@@ -163,7 +163,7 @@
         <jaxb.api.version>2.3.1</jaxb.api.version>
         <mail.version>1.6.2</mail.version>
         <ojdbc8.version>19.3.0.0</ojdbc8.version>
-        <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
+        <spring-cloud-commons.version>4.1.2</spring-cloud-commons.version>
         <spring-cloud.version>4.1.2</spring-cloud.version>
         <log4j-1.2-api.vetsion>2.17.2</log4j-1.2-api.vetsion>
         <caffeine.version>2.9.3</caffeine.version>
