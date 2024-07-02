@@ -78,6 +78,8 @@ public final class AbstractDataChangedListenerTest {
     @BeforeEach
     public void setUp() throws Exception {
         listener = new MockAbstractDataChangedListener();
+        LOG.info("mock listener:{} ", JsonUtils.toJson(listener));
+        LOG.info("mock listener CACHE:{} ", JsonUtils.toJson(listener.getCache()));
         appAuthService = mock(AppAuthService.class);
         pluginService = mock(PluginService.class);
         ruleService = mock(RuleService.class);
@@ -128,10 +130,12 @@ public final class AbstractDataChangedListenerTest {
     @AfterEach
     public void cleanUp() {
         listener.getCache().clear();
+        LOG.info("after cleanUp:{} ", JsonUtils.toJson(listener));
     }
 
     @Test
     public void testFetchConfig() {
+        LOG.info("before testFetchConfig:{} ", JsonUtils.toJson(listener));
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
         listener.updateCache(ConfigGroupEnum.APP_AUTH, appAuthDatas);
         ConfigData<?> result1 = listener.fetchConfig(ConfigGroupEnum.APP_AUTH);
@@ -193,6 +197,7 @@ public final class AbstractDataChangedListenerTest {
 
     @Test
     public void testOnRuleChanged() {
+        LOG.info("before testOnRuleChanged:{} ", JsonUtils.toJson(listener));
         List<RuleData> empty = Lists.newArrayList();
         DataEventTypeEnum eventType = mock(DataEventTypeEnum.class);
         LOG.info("onRuleChanged empty");
