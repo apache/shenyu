@@ -146,7 +146,7 @@ public class PluginNamespaceController implements PagedController<PluginNamespac
             @PathVariable("namespaceId")
             @Existed(message = "namespace is not existed", provider = NamespaceMapper.class) final String namespaceId,
             @PathVariable("pluginId")
-            @Existed(message = "pluginNamespace is not existed",
+            @Existed(message = "PluginMapper is not existed",
                     provider = PluginMapper.class) final String pluginId,
             @Valid @ModelAttribute final PluginNamespaceDTO pluginNamespaceDTO) {
         pluginNamespaceDTO.setPluginId(pluginId);
