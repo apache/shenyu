@@ -35,6 +35,7 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -191,6 +192,7 @@ public final class AbstractDataChangedListenerTest {
         List<RuleData> empty = Lists.newArrayList();
         DataEventTypeEnum eventType = mock(DataEventTypeEnum.class);
         listener.onRuleChanged(empty, eventType);
+        System.out.println(JsonUtils.toJson(listener.getCache()));
         assertFalse(listener.getCache().containsKey(ConfigGroupEnum.RULE.name()));
         List<RuleData> ruleDatas = Lists.newArrayList(mock(RuleData.class));
         listener.onRuleChanged(ruleDatas, eventType);
