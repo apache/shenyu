@@ -19,26 +19,28 @@ package org.apache.shenyu.admin.listener;
 
 import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.ProxySelectorService;
-import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConfigData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -54,6 +56,8 @@ import static org.mockito.Mockito.when;
  * The TestCase for {@link AbstractDataChangedListener}.
  */
 public final class AbstractDataChangedListenerTest {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractDataChangedListenerTest.class);
 
     private MockAbstractDataChangedListener listener;
 
@@ -192,7 +196,7 @@ public final class AbstractDataChangedListenerTest {
         List<RuleData> empty = Lists.newArrayList();
         DataEventTypeEnum eventType = mock(DataEventTypeEnum.class);
         listener.onRuleChanged(empty, eventType);
-        System.out.println(JsonUtils.toJson(listener.getCache()));
+        LOG.info("listener.getCache():{} ", JsonUtils.toJson(listener.getCache()));
         assertFalse(listener.getCache().containsKey(ConfigGroupEnum.RULE.name()));
         List<RuleData> ruleDatas = Lists.newArrayList(mock(RuleData.class));
         listener.onRuleChanged(ruleDatas, eventType);
