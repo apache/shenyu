@@ -29,7 +29,7 @@
     <artifactId>shenyu-examples-sdk-feign</artifactId>
 
     <properties>
-        <spring-cloud.version>3.1.2</spring-cloud.version>
+        <spring-cloud.version>4.1.2</spring-cloud.version>
     </properties>
 
     <dependencies>

@@ -24,7 +24,7 @@ import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
 import io.grpc.ManagedChannel;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannels;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.List;

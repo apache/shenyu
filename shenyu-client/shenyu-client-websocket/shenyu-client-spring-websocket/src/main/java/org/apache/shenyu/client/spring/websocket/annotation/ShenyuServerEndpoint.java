@@ -19,9 +19,9 @@ package org.apache.shenyu.client.spring.websocket.annotation;
 
 import org.springframework.core.annotation.AliasFor;
 
-import javax.websocket.Decoder;
-import javax.websocket.Encoder;
-import javax.websocket.server.ServerEndpointConfig;
+import jakarta.websocket.Decoder;
+import jakarta.websocket.Encoder;
+import jakarta.websocket.server.ServerEndpointConfig;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

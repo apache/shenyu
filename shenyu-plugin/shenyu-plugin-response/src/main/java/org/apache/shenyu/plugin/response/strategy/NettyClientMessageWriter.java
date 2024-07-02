@@ -27,7 +27,7 @@ import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.lang.Nullable;
@@ -76,7 +76,7 @@ public class NettyClientMessageWriter implements MessageWriter {
                     : response.writeWith(body);
             exchange.getAttributes().put(Constants.RESPONSE_MONO, responseMono);
             // watcher httpStatus
-            final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);
+            final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);
             Optional.ofNullable(consumer).ifPresent(c -> c.accept(response.getStatusCode()));
             return responseMono.onErrorResume(error -> releaseIfNotConsumed(body, error));
         })).doOnCancel(() -> cleanup(exchange));

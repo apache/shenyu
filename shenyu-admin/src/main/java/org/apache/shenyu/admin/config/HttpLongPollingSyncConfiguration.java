@@ -18,10 +18,8 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
-import org.apache.shenyu.admin.controller.ConfigController;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
  * http long polling.
  */
 @Configuration
-@ConditionalOnProperty(name = "shenyu.sync.http.enabled", havingValue = "true")
+//@ConditionalOnProperty(name = "shenyu.sync.http.enabled", havingValue = "true")
 @EnableConfigurationProperties(HttpSyncProperties.class)
 public class HttpLongPollingSyncConfiguration {
 
@@ -46,15 +44,15 @@ public class HttpLongPollingSyncConfiguration {
         return new HttpLongPollingDataChangedListener(httpSyncProperties);
     }
 
-    /**
-     * configController.
-     *
-     * @param httpLongPollingDataChangedListener httpLongPollingDataChangedListener
-     * @return {@link ConfigController}
-     */
-    @Bean
-    @ConditionalOnMissingBean(ConfigController.class)
-    public ConfigController configController(final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener) {
-        return new ConfigController(httpLongPollingDataChangedListener);
-    }
+//    /**
+//     * configController.
+//     *
+//     * @param httpLongPollingDataChangedListener httpLongPollingDataChangedListener
+//     * @return {@link ConfigController}
+//     */
+//    @Bean
+//    @ConditionalOnMissingBean(ConfigController.class)
+//    public ConfigController configController(final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener) {
+//        return new ConfigController(httpLongPollingDataChangedListener);
+//    }
 }

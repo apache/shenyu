@@ -30,7 +30,7 @@ import org.apache.shenyu.e2e.model.data.SelectorData;
 import org.apache.shenyu.e2e.model.handle.DivideRuleHandle;
 import org.apache.shenyu.e2e.model.handle.Upstreams;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

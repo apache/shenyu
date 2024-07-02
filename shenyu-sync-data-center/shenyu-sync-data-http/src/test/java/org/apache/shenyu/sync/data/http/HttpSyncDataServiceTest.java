@@ -41,8 +41,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import okhttp3.OkHttpClient;
-import wiremock.org.apache.http.HttpHeaders;
-import wiremock.org.apache.http.entity.ContentType;
+import wiremock.org.apache.hc.core5.http.ContentType;
+import wiremock.org.apache.hc.core5.http.HttpHeaders;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -88,7 +88,7 @@ public final class HttpSyncDataServiceTest {
     public void before() {
         this.wireMockServer = new WireMockServer(
                 options()
-                        .extensions(new ResponseTemplateTransformer(false))
+                        .extensions(mock(ResponseTemplateTransformer.class))
                         .dynamicPort());
         this.wireMockServer.start();
         wireMockServer.stubFor(get(urlPathEqualTo("/platform/login"))

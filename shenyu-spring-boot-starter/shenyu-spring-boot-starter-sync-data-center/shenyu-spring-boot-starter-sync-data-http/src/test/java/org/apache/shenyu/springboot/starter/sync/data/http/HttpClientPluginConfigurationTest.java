@@ -32,8 +32,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import wiremock.org.apache.http.HttpHeaders;
-import wiremock.org.apache.http.entity.ContentType;
+import wiremock.org.apache.hc.core5.http.ContentType;
+import wiremock.org.apache.hc.core5.http.HttpHeaders;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;

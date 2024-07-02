@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.listener;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.admin.utils.ShenyuDomain;

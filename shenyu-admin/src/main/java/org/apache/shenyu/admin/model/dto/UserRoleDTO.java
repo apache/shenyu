@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import java.util.Objects;
 
 /**

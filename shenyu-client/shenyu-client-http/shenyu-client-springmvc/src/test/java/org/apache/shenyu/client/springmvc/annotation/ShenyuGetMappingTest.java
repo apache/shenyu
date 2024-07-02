@@ -60,8 +60,8 @@ public class ShenyuGetMappingTest {
             assertEquals(requestMapping.path()[0], "/{id}");
             ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
             assertNotNull(shenyuSpringMvcClient);
-            assertEquals(shenyuSpringMvcClient.value(), "/{id}");
-            assertEquals(shenyuSpringMvcClient.path(), "/{id}");
+            assertEquals(shenyuSpringMvcClient.value()[0], "/{id}");
+            assertEquals(shenyuSpringMvcClient.path()[0], "/{id}");
             assertEquals(shenyuSpringMvcClient.ruleName(), "divide");
             assertFalse(shenyuSpringMvcClient.enabled());
             assertEquals(shenyuSpringMvcClient.desc(), "it`s test.");

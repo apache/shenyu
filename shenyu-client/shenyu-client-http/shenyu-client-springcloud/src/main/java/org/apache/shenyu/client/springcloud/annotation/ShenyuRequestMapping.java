@@ -42,7 +42,7 @@ public @interface ShenyuRequestMapping {
      * @return the string
      */
     @AliasFor(attribute = "path")
-    String value() default "";
+    String[] value() default "";
 
     /**
      * Alias for {@link RequestMapping#path}, {@link ShenyuSpringCloudClient#path}.
@@ -50,7 +50,7 @@ public @interface ShenyuRequestMapping {
      * @return the string
      */
     @AliasFor(attribute = "value")
-    String path() default "";
+    String[] path() default "";
 
     /**
      * Alias for {@link ShenyuSpringCloudClient#ruleName}.

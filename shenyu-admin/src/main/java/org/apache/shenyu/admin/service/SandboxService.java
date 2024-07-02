@@ -19,8 +19,8 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**

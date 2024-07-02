@@ -36,7 +36,7 @@ import org.apache.shenyu.plugin.hystrix.command.HystrixCommandOnThread;
 import org.apache.shenyu.plugin.hystrix.handler.HystrixPluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Subscription;
@@ -78,7 +78,7 @@ public class HystrixPlugin extends AbstractShenyuPlugin {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
             chain.execute(exchange);
         }).then().doFinally(monoV -> {
-            final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.METRICS_HYSTRIX);
+            final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.METRICS_HYSTRIX);
             Optional.ofNullable(consumer).ifPresent(c -> c.accept(exchange.getResponse().getStatusCode()));
         });
     }

@@ -60,8 +60,8 @@ public class ShenyuPostMappingTest {
             assertEquals(requestMapping.path()[0], "/save");
             ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
             assertNotNull(shenyuSpringMvcClient);
-            assertEquals(shenyuSpringMvcClient.value(), "/save");
-            assertEquals(shenyuSpringMvcClient.path(), "/save");
+            assertEquals(shenyuSpringMvcClient.value()[0], "/save");
+            assertEquals(shenyuSpringMvcClient.path()[0], "/save");
             assertEquals(shenyuSpringMvcClient.ruleName(), "divide");
             assertFalse(shenyuSpringMvcClient.enabled());
             assertEquals(shenyuSpringMvcClient.desc(), "it`s test.");

@@ -22,6 +22,7 @@ import com.google.gson.JsonSyntaxException;
 import com.netflix.appinfo.EurekaInstanceConfig;
 import com.netflix.appinfo.MyDataCenterInstanceConfig;
 import com.netflix.discovery.EurekaClientConfig;
+import com.netflix.discovery.shared.transport.jersey3.Jersey3TransportClientFactories;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import com.netflix.appinfo.ApplicationInfoManager;
@@ -142,7 +143,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
             ConfigurationManager.loadProperties(getEurekaProperties(true));
             InstanceInfo instanceInfo = new EurekaConfigBasedInstanceInfoProvider(customedEurekaConfig).get();
             applicationInfoManager = new ApplicationInfoManager(customedEurekaConfig, instanceInfo);
-            eurekaClient = new DiscoveryClient(applicationInfoManager, new DefaultEurekaClientConfig());
+            eurekaClient = new DiscoveryClient(applicationInfoManager, new DefaultEurekaClientConfig(), new Jersey3TransportClientFactories());
             applicationInfoManager.setInstanceStatus(InstanceInfo.InstanceStatus.UP);
         } catch (Exception e) {
             LOGGER.error("Error register eureka instance", e);
@@ -216,7 +217,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
 
     private EurekaClient initializeEurekaClient(final ApplicationInfoManager applicationInfoManager, final EurekaClientConfig clientConfig) {
         if (Objects.isNull(eurekaClient)) {
-            eurekaClient = new DiscoveryClient(applicationInfoManager, clientConfig);
+            eurekaClient = new DiscoveryClient(applicationInfoManager, clientConfig, new Jersey3TransportClientFactories());
         }
 
         return eurekaClient;

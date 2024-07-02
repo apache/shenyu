@@ -37,7 +37,7 @@ public @interface ShenyuSpringMvcClient {
      * @return the string
      */
     @AliasFor(attribute = "path")
-    String value() default "";
+    String[] value() default "";
 
     /**
      * Path string.
@@ -45,7 +45,7 @@ public @interface ShenyuSpringMvcClient {
      * @return the string
      */
     @AliasFor(attribute = "value")
-    String path() default "";
+    String[] path() default "";
 
     /**
      * Rule name string.

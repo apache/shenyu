@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.listener;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * AbstractDataChangedInit.

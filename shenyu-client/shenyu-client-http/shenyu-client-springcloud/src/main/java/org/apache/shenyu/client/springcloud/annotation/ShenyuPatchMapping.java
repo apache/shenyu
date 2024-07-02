@@ -39,16 +39,16 @@ public @interface ShenyuPatchMapping {
      *
      * @return the string
      */
-    @AliasFor(annotation = ShenyuRequestMapping.class)
-    String value() default "";
+    @AliasFor(attribute = "path")
+    String[] value() default "";
 
     /**
      * Alias for {@link ShenyuRequestMapping#path}.
      *
      * @return the string
      */
-    @AliasFor(annotation = ShenyuRequestMapping.class)
-    String path() default "";
+    @AliasFor(attribute = "value")
+    String[] path() default "";
 
     /**
      * Alias for {@link ShenyuRequestMapping#ruleName}.

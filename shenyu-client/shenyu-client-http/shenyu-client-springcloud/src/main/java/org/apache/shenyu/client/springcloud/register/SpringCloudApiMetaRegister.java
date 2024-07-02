@@ -66,14 +66,14 @@ public class SpringCloudApiMetaRegister extends AbstractApiMetaRegistrar {
 
         ShenyuSpringCloudClient annotation = apiBean.getAnnotation(ShenyuSpringCloudClient.class);
 
-        return annotation != null && annotation.path().endsWith("/**");
+        return annotation != null && annotation.path()[0].endsWith("/**");
     }
 
     @Override
     protected MetaDataRegisterDTO preParse(final ApiBean apiBean) {
 
         ShenyuSpringCloudClient annotation = apiBean.getAnnotation(ShenyuSpringCloudClient.class);
-        String apiPath = PathUtils.pathJoin(clientRegisterConfig.getContextPath(), annotation.path());
+        String apiPath = PathUtils.pathJoin(clientRegisterConfig.getContextPath(), annotation.path()[0]);
 
         return MetaDataRegisterDTO.builder()
                 .contextPath(clientRegisterConfig.getContextPath())
@@ -96,7 +96,7 @@ public class SpringCloudApiMetaRegister extends AbstractApiMetaRegistrar {
     protected Boolean match(final ApiBean apiBean) {
         ShenyuSpringCloudClient annotation = apiBean.getAnnotation(ShenyuSpringCloudClient.class);
         if (annotation != null) {
-            return !annotation.path().endsWith("/**");
+            return !annotation.path()[0].endsWith("/**");
         }
         return true;
     }
@@ -111,7 +111,7 @@ public class SpringCloudApiMetaRegister extends AbstractApiMetaRegistrar {
 
         ShenyuSpringCloudClient methodAnnotation = apiDefinition.getAnnotation(ShenyuSpringCloudClient.class);
 
-        String methodPath = Objects.isNull(methodAnnotation) ? StringUtils.EMPTY : methodAnnotation.path();
+        String methodPath = Objects.isNull(methodAnnotation) ? StringUtils.EMPTY : methodAnnotation.path()[0];
 
         if (StringUtils.isEmpty(methodPath)) {
             methodPath = apiDefinition.getMethodPath();
@@ -120,8 +120,8 @@ public class SpringCloudApiMetaRegister extends AbstractApiMetaRegistrar {
         ShenyuSpringCloudClient classAnnotation = apiDefinition.getApiBean()
                 .getAnnotation(ShenyuSpringCloudClient.class);
 
-        String beanPath = Objects.isNull(classAnnotation) || StringUtils.isBlank(classAnnotation.path())
-                ? apiDefinition.getBeanPath() : classAnnotation.path();
+        String beanPath = Objects.isNull(classAnnotation) || StringUtils.isBlank(classAnnotation.path()[0])
+                ? apiDefinition.getBeanPath() : classAnnotation.path()[0];
 
         String apiPath = PathUtils.pathJoin(clientRegisterConfig.getContextPath(), beanPath, methodPath);
 

@@ -131,6 +131,7 @@ shenyu:
       - /v3/api-docs/**
       - /csrf
       - /alert/report
+      - /shenyu-client/**
   dashboard:
     core:
       onlySuperAdminPermission:

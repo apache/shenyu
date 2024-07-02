@@ -44,8 +44,8 @@ public class ShenyuRequestMappingTest {
         Class<?> clazz = springCloudClientTestBean.getClass();
         final ShenyuSpringCloudClient shenyuSpringCloudClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSpringCloudClient.class);
         assertNotNull(shenyuSpringCloudClient);
-        assertEquals(shenyuSpringCloudClient.value(), "/order");
-        assertEquals(shenyuSpringCloudClient.path(), "/order");
+        assertEquals(shenyuSpringCloudClient.value()[0], "/order");
+        assertEquals(shenyuSpringCloudClient.path()[0], "/order");
         assertEquals(shenyuSpringCloudClient.ruleName(), "divide");
         assertFalse(shenyuSpringCloudClient.enabled());
         assertEquals(shenyuSpringCloudClient.desc(), "it`s test.");

@@ -93,7 +93,8 @@ public final class ShenyuPluginLoaderTest {
                 mock(ApplicationContext.class);
         when(mockApplication.getBean("dividePlugin")).thenReturn(new Object());
         when(mockApplication.getBean("customPlugin")).thenReturn(new Object());
-        when(mockApplication.getAutowireCapableBeanFactory()).thenReturn(mock(DefaultListableBeanFactory.class));
+        DefaultListableBeanFactory defaultListableBeanFactory = new DefaultListableBeanFactory();
+        when(mockApplication.getAutowireCapableBeanFactory()).thenReturn(defaultListableBeanFactory);
         when(mockApplication.containsBean("dividePlugin")).thenReturn(true);
         SpringBeanUtils instance = SpringBeanUtils.getInstance();
         instance.setApplicationContext(mockApplication);

@@ -34,12 +34,12 @@ public class ShenyuSpringCloudClientProcessorImpl extends BaseAnnotationApiProce
     
     @Override
     public void process(final ApiBean apiBean, final ShenyuSpringCloudClient annotation) {
-        apiBean.setBeanPath(annotation.path());
+        apiBean.setBeanPath(annotation.path()[0]);
         apiBean.addProperties("desc", annotation.desc());
         if (StringUtils.isNotBlank(apiBean.getPropertiesValue("rule"))) {
             apiBean.addProperties("rule", annotation.ruleName());
         }
-        apiBean.addProperties("value", annotation.value());
+        apiBean.addProperties("value", annotation.value()[0]);
         apiBean.addProperties("enabled", Objects.toString(annotation.enabled()));
         apiBean.addProperties("registerMetaData", Objects.toString(annotation.registerMetaData()));
         if (!annotation.registerMetaData()) {
@@ -55,10 +55,10 @@ public class ShenyuSpringCloudClientProcessorImpl extends BaseAnnotationApiProce
     
     @Override
     public void process(final ApiBean.ApiDefinition definition, final ShenyuSpringCloudClient annotation) {
-        definition.setMethodPath(annotation.path());
+        definition.setMethodPath(annotation.path()[0]);
         definition.addProperties("desc", annotation.desc());
         definition.addProperties("rule", annotation.ruleName());
-        definition.addProperties("value", annotation.value());
+        definition.addProperties("value", annotation.value()[0]);
         definition.addProperties("enabled", Objects.toString(annotation.enabled()));
         definition.addProperties("registerMetaData", Objects.toString(annotation.registerMetaData()));
         if (!annotation.registerMetaData()) {

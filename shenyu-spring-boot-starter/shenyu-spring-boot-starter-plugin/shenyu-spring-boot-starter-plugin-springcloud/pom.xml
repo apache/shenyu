@@ -26,7 +26,7 @@
     <artifactId>shenyu-spring-boot-starter-plugin-springcloud</artifactId>
 
     <properties>
-        <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
+        <spring-cloud-commons.version>4.1.3</spring-cloud-commons.version>
     </properties>
 
     <dependencies>

@@ -17,27 +17,30 @@
 
 package org.apache.shenyu.admin.listener;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.ProxySelectorService;
-import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConfigData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.assertj.core.util.Lists;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -53,6 +56,8 @@ import static org.mockito.Mockito.when;
  * The TestCase for {@link AbstractDataChangedListener}.
  */
 public final class AbstractDataChangedListenerTest {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractDataChangedListenerTest.class);
 
     private MockAbstractDataChangedListener listener;
 
@@ -73,6 +78,8 @@ public final class AbstractDataChangedListenerTest {
     @BeforeEach
     public void setUp() throws Exception {
         listener = new MockAbstractDataChangedListener();
+        LOG.info("mock listener:{} ", JsonUtils.toJson(listener));
+        LOG.info("mock listener CACHE:{} ", JsonUtils.toJson(listener.getCache()));
         appAuthService = mock(AppAuthService.class);
         pluginService = mock(PluginService.class);
         ruleService = mock(RuleService.class);
@@ -118,15 +125,20 @@ public final class AbstractDataChangedListenerTest {
         when(proxySelectorService.listAll()).thenReturn(proxySelectorDatas);
         List<DiscoverySyncData> discoverySyncDatas = Lists.newArrayList(mock(DiscoverySyncData.class));
         when(discoveryUpstreamService.listAll()).thenReturn(discoverySyncDatas);
+        
+        // clear first
+        listener.getCache().clear();
     }
 
     @AfterEach
     public void cleanUp() {
         listener.getCache().clear();
+        LOG.info("after cleanUp:{} ", JsonUtils.toJson(listener));
     }
 
     @Test
     public void testFetchConfig() {
+        LOG.info("before testFetchConfig:{} ", JsonUtils.toJson(listener));
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
         listener.updateCache(ConfigGroupEnum.APP_AUTH, appAuthDatas);
         ConfigData<?> result1 = listener.fetchConfig(ConfigGroupEnum.APP_AUTH);
@@ -188,9 +200,12 @@ public final class AbstractDataChangedListenerTest {
 
     @Test
     public void testOnRuleChanged() {
+        LOG.info("before testOnRuleChanged:{} ", JsonUtils.toJson(listener));
         List<RuleData> empty = Lists.newArrayList();
         DataEventTypeEnum eventType = mock(DataEventTypeEnum.class);
+        LOG.info("onRuleChanged empty");
         listener.onRuleChanged(empty, eventType);
+        LOG.info("listener.getCache():{} ", JsonUtils.toJson(listener.getCache()));
         assertFalse(listener.getCache().containsKey(ConfigGroupEnum.RULE.name()));
         List<RuleData> ruleDatas = Lists.newArrayList(mock(RuleData.class));
         listener.onRuleChanged(ruleDatas, eventType);

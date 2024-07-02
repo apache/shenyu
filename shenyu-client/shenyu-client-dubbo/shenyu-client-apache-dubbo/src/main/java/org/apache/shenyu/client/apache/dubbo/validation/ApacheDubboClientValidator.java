@@ -47,12 +47,12 @@ import org.apache.dubbo.validation.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.Constraint;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.ValidationException;
-import javax.validation.ValidatorFactory;
-import javax.validation.groups.Default;
+import jakarta.validation.Constraint;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.ValidationException;
+import jakarta.validation.ValidatorFactory;
+import jakarta.validation.groups.Default;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -78,7 +78,7 @@ public class ApacheDubboClientValidator implements Validator {
 
     private final Map<String, Class<?>> methodClassMap;
 
-    private final javax.validation.Validator validator;
+    private final jakarta.validation.Validator validator;
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public ApacheDubboClientValidator(final URL url) {

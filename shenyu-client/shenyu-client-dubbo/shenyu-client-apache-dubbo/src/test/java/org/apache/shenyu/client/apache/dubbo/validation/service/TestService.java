@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.client.apache.dubbo.validation.service;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**

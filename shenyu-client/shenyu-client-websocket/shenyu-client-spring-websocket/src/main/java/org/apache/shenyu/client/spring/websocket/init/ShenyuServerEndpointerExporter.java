@@ -27,10 +27,10 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.context.support.WebApplicationObjectSupport;
 
-import javax.servlet.ServletContext;
-import javax.websocket.DeploymentException;
-import javax.websocket.server.ServerContainer;
-import javax.websocket.server.ServerEndpointConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.websocket.DeploymentException;
+import jakarta.websocket.server.ServerContainer;
+import jakarta.websocket.server.ServerEndpointConfig;
 import java.util.Arrays;
 
 public class ShenyuServerEndpointerExporter extends WebApplicationObjectSupport {
@@ -60,7 +60,7 @@ public class ShenyuServerEndpointerExporter extends WebApplicationObjectSupport 
     @Override
     protected void initServletContext(final ServletContext servletContext) {
         if (this.serverContainer == null) {
-            this.serverContainer = (ServerContainer) servletContext.getAttribute("javax.websocket.server.ServerContainer");
+            this.serverContainer = (ServerContainer) servletContext.getAttribute("jakarta.websocket.server.ServerContainer");
         }
     }
 
