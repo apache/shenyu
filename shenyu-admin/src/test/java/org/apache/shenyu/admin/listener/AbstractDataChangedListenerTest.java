@@ -125,6 +125,9 @@ public final class AbstractDataChangedListenerTest {
         when(proxySelectorService.listAll()).thenReturn(proxySelectorDatas);
         List<DiscoverySyncData> discoverySyncDatas = Lists.newArrayList(mock(DiscoverySyncData.class));
         when(discoveryUpstreamService.listAll()).thenReturn(discoverySyncDatas);
+        
+        // clear first
+        listener.getCache().clear();
     }
 
     @AfterEach
