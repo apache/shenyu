@@ -80,11 +80,11 @@ public @interface ShenyuClient {
     String[] qualifiers() default {};
 
     /**
-     * decode 404 or not.
-     * @return whether 404s should be decoded instead of throwing FeignExceptions
+     * dismiss 404 or not.
+     * @return whether 404s should be dismissed instead of throwing FeignExceptions
      */
-    @AliasFor(value = "decode404", annotation = FeignClient.class)
-    boolean decode404() default false;
+    @AliasFor(value = "dismiss404", annotation = FeignClient.class)
+    boolean dismiss404() default false;
 
     /**
      * A custom configuration class for the feign client. Can contain override
