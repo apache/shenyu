@@ -73,6 +73,7 @@ public class SpringCloudPluginTest {
         formData.add("sort", "200");
         adminClient.changePluginStatus("8", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.springcloud.SpringCloudPlugin");
+
     }
 
     @ShenYuScenario(provider = SpringCloudPluginCases.class)

@@ -44,6 +44,7 @@ import org.apache.shenyu.e2e.model.response.LoginInfo;
 import org.apache.shenyu.e2e.model.response.MetaDataDTO;
 import org.apache.shenyu.e2e.model.response.PaginatedResources;
 import org.apache.shenyu.e2e.model.response.PluginDTO;
+import org.apache.shenyu.e2e.model.response.PluginNamespaceDTO;
 import org.apache.shenyu.e2e.model.response.ResourceDTO;
 import org.apache.shenyu.e2e.model.response.RuleDTO;
 import org.apache.shenyu.e2e.model.response.SearchedResources;
@@ -64,6 +65,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import static org.apache.shenyu.e2e.constant.Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
 import static org.apache.shenyu.e2e.model.data.SearchCondition.QUERY_ALL;
 
 /**
@@ -483,12 +485,12 @@ public class AdminClient extends BaseClient {
      * @param formData formData
      */
     public void changePluginStatus(final String id, final MultiValueMap<String, String> formData) {
-        putResource("/plugin", id, PluginDTO.class, formData);
+        putResource("/pluginNamespace", id, PluginNamespaceDTO.class, formData);
     }
 
     private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final MultiValueMap<String, String> formData) {
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, basicAuth);
-        ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri + "/" + id, HttpMethod.PUT, requestEntity, ShenYuResult.class);
+        ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri + "/pluginId=" + id + "&namespaceId=" + SYS_DEFAULT_NAMESPACE_NAMESPACE_ID , HttpMethod.PUT, requestEntity, ShenYuResult.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
         ShenYuResult rst = response.getBody();
         Assertions.assertNotNull(rst, "checking http response body");
