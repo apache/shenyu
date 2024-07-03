@@ -48,9 +48,9 @@ public enum DataEventTypeEnum {
     REFRESH,
 
     /**
-     * CLUSTER data event type enum.
+     * RUNNING_MODE data event type enum.
      */
-    CLUSTER,
+    RUNNING_MODE,
 
     /**
      * Myself data event type enum.

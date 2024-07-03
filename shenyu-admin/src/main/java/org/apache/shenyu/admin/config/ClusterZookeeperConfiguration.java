@@ -43,7 +43,7 @@ public class ClusterZookeeperConfiguration {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterZookeeperConfiguration.class);
     
-    private static final String LOCK_PATH = "/shenyu-lock";
+    private static final String LOCK_PATH = "/shenyu-cluster-lock";
     
     /**
      * Shenyu Admin distributed lock by spring-integration-zookeeper.

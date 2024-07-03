@@ -50,9 +50,9 @@ import java.util.Objects;
 public class DataChangedEventDispatcher implements ApplicationListener<DataChangedEvent>, InitializingBean {
     
     private static final Logger LOG = LoggerFactory.getLogger(DataChangedEventDispatcher.class);
-
+    
     private final ApplicationContext applicationContext;
-
+    
     private List<DataChangedListener> listeners;
     
     @Resource
@@ -61,22 +61,21 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
     @Resource
     @Nullable
     private ClusterSelectMasterService shenyuClusterSelectMasterService;
-
+    
     public DataChangedEventDispatcher(final ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
-
+    
     @Override
     @SuppressWarnings("unchecked")
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
         for (DataChangedListener listener : listeners) {
-            if (!(listener instanceof AbstractDataChangedListener)) {
-                if (clusterProperties.isEnabled()
-                        && Objects.nonNull(shenyuClusterSelectMasterService)
-                        && !shenyuClusterSelectMasterService.isMaster()) {
-                    LOG.info("received DataChangedEvent, not master, pass");
-                    return;
-                }
+            if (!(listener instanceof AbstractDataChangedListener)
+                    && clusterProperties.isEnabled()
+                    && Objects.nonNull(shenyuClusterSelectMasterService)
+                    && !shenyuClusterSelectMasterService.isMaster()) {
+                LOG.info("received DataChangedEvent, not master, pass");
+                return;
             }
             switch (event.getGroupKey()) {
                 case APP_AUTH:
@@ -106,7 +105,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
             }
         }
     }
-
+    
     @Override
     public void afterPropertiesSet() {
         Collection<DataChangedListener> listenerBeans = applicationContext.getBeansOfType(DataChangedListener.class).values();

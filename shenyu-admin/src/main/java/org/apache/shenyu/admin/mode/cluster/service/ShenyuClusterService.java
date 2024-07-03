@@ -65,7 +65,7 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
      */
     public void startSelectMasterTask(final String host, final String port, final String contextPath) {
         LOG.info("starting select master task");
-        // schedule task 15s
+        // schedule task selectPeriod seconds
         executorService.scheduleAtFixedRate(() -> doSelectMaster(host, port, contextPath),
                 0,
                 clusterProperties.getSelectPeriod(),
@@ -78,8 +78,6 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
             boolean selected = shenyuClusterSelectMasterService.selectMaster(host, port, contextPath);
             if (!selected) {
                 LOG.info("select master fail, wait for next period");
-//                TimeUnit.SECONDS.sleep(clusterProperties.getSelectPeriod());
-//                selected = shenyuClusterSelectMasterService.selectMaster(host, port, contextPath);
                 return;
             }
             
@@ -94,18 +92,13 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
             boolean renewed = shenyuClusterSelectMasterService.checkMasterStatus();
             
             while (renewed) {
-//                try {
-                    // sleeps 10s then renew the lock
+                // sleeps selectPeriod seconds then renew the lock
                 TimeUnit.SECONDS.sleep(clusterProperties.getSelectPeriod());
                 
                 renewed = shenyuClusterSelectMasterService.checkMasterStatus();
                 if (renewed) {
                     LOG.info("renew master success");
                 }
-//                } catch (Exception e) {
-//                    // if renew fail, remove local master flag
-//                    shenyuClusterSelectMasterService.releaseMaster();
-//                }
             }
         } catch (Exception e) {
             LOG.error("select master error", e);

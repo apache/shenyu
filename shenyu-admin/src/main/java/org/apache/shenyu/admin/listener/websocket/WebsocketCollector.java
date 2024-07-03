@@ -25,7 +25,9 @@ import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtils;
+import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,28 +91,28 @@ public class WebsocketCollector {
     @OnMessage
     public void onMessage(final String message, final Session session) {
         if (!Objects.equals(message, DataEventTypeEnum.MYSELF.name())
-                && !Objects.equals(message, DataEventTypeEnum.CLUSTER.name())) {
+                && !Objects.equals(message, DataEventTypeEnum.RUNNING_MODE.name())) {
             return;
         }
         
-        if (Objects.equals(message, DataEventTypeEnum.CLUSTER.name())) {
-            LOG.info("websocket fetching cluster info...");
+        if (Objects.equals(message, DataEventTypeEnum.RUNNING_MODE.name())) {
+            LOG.info("websocket fetching running mode info...");
             // check if this node is master
             boolean isMaster = true;
-            String runningMode = "standalone";
+            String runningMode = RunningModeEnum.STANDALONE.name();
             String masterUrl = "";
             ClusterProperties clusterProperties = SpringBeanUtils.getInstance().getBean(ClusterProperties.class);
             if (clusterProperties.isEnabled()) {
                 ClusterSelectMasterService clusterSelectMasterService = SpringBeanUtils.getInstance().getBean(ClusterSelectMasterService.class);
                 masterUrl = clusterSelectMasterService.getMasterUrl();
                 isMaster = clusterSelectMasterService.isMaster();
-                runningMode = "cluster";
+                runningMode = RunningModeEnum.CLUSTER.name();
             }
             Map<String, Object> map = Maps.newHashMap();
-            map.put("eventType", DataEventTypeEnum.CLUSTER.name());
-            map.put("isMaster", isMaster);
-            map.put("runningMode", runningMode);
-            map.put("masterUrl", masterUrl
+            map.put(RunningModeConstants.EVENT_TYPE, DataEventTypeEnum.RUNNING_MODE.name());
+            map.put(RunningModeConstants.IS_MASTER, isMaster);
+            map.put(RunningModeConstants.RUNNING_MODE, runningMode);
+            map.put(RunningModeConstants.MASTER_URL, masterUrl
                     .replace("http", "ws")
                     .replace("https", "ws")
                     .concat("/websocket"));
@@ -118,7 +120,6 @@ public class WebsocketCollector {
                 ThreadLocalUtils.put(SESSION_KEY, session);
             }
 
-//            send(JsonUtils.toJson(map), DataEventTypeEnum.MYSELF);
             sendMessageBySession(session, JsonUtils.toJson(map));
             return;
         }

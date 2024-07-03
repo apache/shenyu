@@ -35,9 +35,9 @@ public class ClusterSelectMasterServiceZookeeperImpl implements ClusterSelectMas
     
     private static final Logger LOG = LoggerFactory.getLogger(ClusterSelectMasterServiceZookeeperImpl.class);
     
-    private static final String MASTER_LOCK_KEY = "cluster/master";
+    private static final String MASTER_LOCK_KEY = "shenyu_cluster_lock/master";
     
-    private static final String MASTER_INFO = "/cluster/master/info";
+    private static final String MASTER_INFO = "/shenyu_cluster_lock/master/info";
     
     private final ClusterProperties clusterProperties;
     

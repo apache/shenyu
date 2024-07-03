@@ -153,16 +153,14 @@ public class UpstreamCheckService {
      * Set up.
      */
     public void setup() {
-        if (REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType)) {
-            if (checked) {
-                LOG.info("setup upstream check task");
-                this.fetchUpstreamData();
-                executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
-                scheduledFuture = executor.scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
-    
-                ThreadFactory requestFactory = ShenyuThreadFactory.create("upstream-health-check-request", true);
-                invokeExecutor = new ScheduledThreadPoolExecutor(this.scheduledThreads, requestFactory);
-            }
+        if (REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) && checked) {
+            LOG.info("setup upstream check task");
+            this.fetchUpstreamData();
+            executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
+            scheduledFuture = executor.scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
+
+            ThreadFactory requestFactory = ShenyuThreadFactory.create("upstream-health-check-request", true);
+            invokeExecutor = new ScheduledThreadPoolExecutor(this.scheduledThreads, requestFactory);
         }
     }
 

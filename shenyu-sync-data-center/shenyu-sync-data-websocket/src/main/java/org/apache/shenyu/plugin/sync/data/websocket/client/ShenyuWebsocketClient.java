@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.client;
 
+import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.timer.AbstractRoundTask;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
@@ -141,7 +143,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     @Override
     public void onOpen(final ServerHandshake serverHandshake) {
         LOG.info("websocket connection server[{}] is opened, sending sync msg", this.getURI().toString());
-        send(DataEventTypeEnum.CLUSTER.name());
+        send(DataEventTypeEnum.RUNNING_MODE.name());
         if (!alreadySync) {
             send(DataEventTypeEnum.MYSELF.name());
             alreadySync = true;
@@ -150,17 +152,18 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     @Override
     public void onMessage(final String result) {
-//        LOG.info("onMessage server[{}] result({})", this.getURI().toString(), result);
+        LOG.info("onMessage server[{}] result({})", this.getURI().toString(), result);
+        
         Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
-        Object eventType = jsonToMap.get("eventType");
-        if (Objects.equals("CLUSTER", eventType)) {
-            LOG.info("server[{}] handle CLUSTER Result({})", this.getURI().toString(), result);
-            this.runningMode = String.valueOf(jsonToMap.get("runningMode"));
-            if (Objects.equals("standalone", runningMode)) {
+        Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
+        if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
+            LOG.info("server[{}] handle cluster result({})", this.getURI().toString(), result);
+            this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
+            if (Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
                 return;
             }
-            this.masterUrl = String.valueOf(jsonToMap.get("masterUrl"));
-            this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get("isMaster"));
+            this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
+            this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
             if (!isConnectedToMaster) {
                 LOG.info("not connected to master, close now, master url:[{}], current url:[{}]", masterUrl, this.getURI().toString());
                 this.nowClose();
@@ -205,7 +208,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                 this.reconnectBlocking();
             } else {
                 this.sendPing();
-                send(DataEventTypeEnum.CLUSTER.name());
+                send(DataEventTypeEnum.RUNNING_MODE.name());
                 LOG.debug("websocket send to [{}] ping message successful", this.getURI());
             }
         } catch (Exception e) {
@@ -229,6 +232,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     /**
      * Gets the master url.
+     *
      * @return the master url
      */
     public String getMasterUrl() {
@@ -237,6 +241,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     /**
      * Gets the running mode.
+     *
      * @return the running mode
      */
     public String getRunningMode() {
@@ -245,6 +250,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     /**
      * whether connect to master.
+     *
      * @return whether connect to master
      */
     public boolean isConnectedToMaster() {
