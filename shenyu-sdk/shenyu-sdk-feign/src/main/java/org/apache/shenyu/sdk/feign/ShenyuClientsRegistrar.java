@@ -371,9 +371,9 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
      * @return the name
      */
     String getName(final ConfigurableBeanFactory beanFactory, final Map<String, Object> attributes) {
-        String name = ((String[]) attributes.get("name"))[0];
+        String name = (String) attributes.get("name");
         if (!StringUtils.hasText(name)) {
-            name = ((String[]) attributes.get("value"))[0];
+            name = (String) attributes.get("value");
         }
         name = resolve(beanFactory, name);
         return getName(name);
