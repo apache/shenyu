@@ -27,6 +27,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,13 +71,14 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
     @SuppressWarnings("unchecked")
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
         for (DataChangedListener listener : listeners) {
-            if (!(listener instanceof AbstractDataChangedListener)
+            if ((!(listener instanceof AbstractDataChangedListener))
                     && clusterProperties.isEnabled()
                     && Objects.nonNull(shenyuClusterSelectMasterService)
                     && !shenyuClusterSelectMasterService.isMaster()) {
                 LOG.info("received DataChangedEvent, not master, pass");
                 return;
             }
+            LOG.info("received DataChangedEvent, dispatching, event:{}", JsonUtils.toJson(event));
             switch (event.getGroupKey()) {
                 case APP_AUTH:
                     listener.onAppAuthChanged((List<AppAuthData>) event.getSource(), event.getEventType());
