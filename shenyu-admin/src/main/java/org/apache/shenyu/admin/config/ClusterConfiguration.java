@@ -42,7 +42,7 @@ import org.springframework.context.annotation.Configuration;
 public class ClusterConfiguration {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterConfiguration.class);
- 
+    
     /**
      * Shenyu running mode cluster service.
      *
@@ -53,7 +53,6 @@ public class ClusterConfiguration {
      * @return Shenyu cluster service
      */
     @Bean(destroyMethod = "shutdown")
-    @ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "true", matchIfMissing = false)
     @ConditionalOnMissingBean
     public ShenyuRunningModeService shenyuRunningModeService(final ClusterSelectMasterService shenyuClusterSelectMasterService,
                                                              final UpstreamCheckService upstreamCheckService,
@@ -73,7 +72,6 @@ public class ClusterConfiguration {
      * @return the Shenyu cluster forward filter
      */
     @Bean
-    @ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "true", matchIfMissing = false)
     public ClusterForwardFilter clusterForwardFilter() {
         return new ClusterForwardFilter();
     }
