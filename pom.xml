@@ -126,9 +126,9 @@
         <springdoc.version>2.5.0</springdoc.version>
         <sofa.rpc.version>5.12.0</sofa.rpc.version>
         <tars.version>1.7.2</tars.version>
-        <curator.version>4.3.0</curator.version>
+        <curator.version>5.7.0</curator.version>
         <wiremock.version>3.0.1</wiremock.version>
-        <zookeeper.version>3.7.2</zookeeper.version>
+        <zookeeper.version>3.9.2</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
         <shiro.version>1.13.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
@@ -141,7 +141,7 @@
         <mockito.version>3.5.15</mockito.version>
         <awaitility.version>4.0.3</awaitility.version>
         <commons-io.version>2.11.0</commons-io.version>
-        <nacos-client.version>2.0.4</nacos-client.version>
+        <nacos-client.version>2.2.4</nacos-client.version>
         <spring-security.version>6.3.0</spring-security.version>
         <grpc.version>1.64.0</grpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>
