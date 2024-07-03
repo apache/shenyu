@@ -134,6 +134,30 @@
         LEFT JOIN plugin p ON pnr.plugin_id = p.id
     </select>
 
+    <select id="selectByPluginId" parameterType="java.lang.String"
+            resultType="org.apache.shenyu.admin.model.vo.PluginNamespaceVO">
+        SELECT
+        pnr.namespace_id AS namespaceId,
+        pnr.plugin_id AS pluginId,
+        pnr.config AS config,
+        pnr.sort AS sort,
+        pnr.enabled AS enabled,
+        pnr.date_created AS dateCreated,
+        pnr.date_updated AS dateUpdated,
+        p.role AS role,
+        p.NAME AS NAME,
+        p.plugin_jar AS pluginJar
+        FROM
+        ( SELECT
+        <include refid="Base_Column_List"/>
+        FROM plugin_ns_rel
+        WHERE plugin_id = #{pluginId, jdbcType=VARCHAR}
+        and namespace_id =  #{namespaceId, jdbcType=VARCHAR}
+        )
+        pnr
+        LEFT JOIN plugin p ON pnr.plugin_id = p.id
+    </select>
+
     <select id="searchByCondition" resultType="org.apache.shenyu.admin.model.vo.PluginNamespaceVO">
         SELECT
         pnr.namespace_id AS namespaceId,

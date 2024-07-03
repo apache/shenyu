@@ -75,7 +75,7 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
                 pluginNamespaceDTO.getNamespaceId());
         PluginNsRelDO pluginNsRelDO = PluginNsRelDO.buildPluginNsRelDO(pluginNamespaceDTO);
         if (pluginNsRelMapper.updateSelective(pluginNsRelDO) > 0) {
-            final PluginNamespaceVO now = pluginNsRelMapper.selectById(pluginNamespaceDTO.getPluginId(), pluginNamespaceDTO.getNamespaceId());
+            final PluginNamespaceVO now = pluginNsRelMapper.selectByPluginId(pluginNamespaceDTO.getPluginId(), pluginNamespaceDTO.getNamespaceId());
             // publish update event.
             pluginNamespaceEventPublisher.onUpdated(now, before);
         }

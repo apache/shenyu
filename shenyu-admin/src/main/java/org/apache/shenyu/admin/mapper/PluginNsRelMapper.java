@@ -63,13 +63,22 @@ public interface PluginNsRelMapper extends ExistProvider {
     List<PluginNamespaceVO> selectByQuery(PluginNamespaceQuery pluginNamespaceQuery);
 
     /**
-     * select plugin by pluginId.
+     * select plugin by pluginNamespaceId.
      *
      * @param id    primary key.
      * @param namespaceId namespace id.
      * @return {@linkplain PluginVO}
      */
     PluginNamespaceVO selectById(String id, String namespaceId);
+
+    /**
+     * select plugin by pluginId.
+     *
+     * @param pluginId    primary key.
+     * @param namespaceId namespace id.
+     * @return {@linkplain PluginVO}
+     */
+    PluginNamespaceVO selectByPluginId(String pluginId, String namespaceId);
 
     /**
      * search by condition.
