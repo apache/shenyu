@@ -157,7 +157,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
         Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
         if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
-            LOG.info("server[{}] handle cluster result({})", this.getURI().toString(), result);
+            LOG.info("server[{}] handle running mode result({})", this.getURI().toString(), result);
             this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
             if (Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
                 return;

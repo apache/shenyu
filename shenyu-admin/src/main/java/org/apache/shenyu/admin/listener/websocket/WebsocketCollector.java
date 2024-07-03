@@ -103,13 +103,13 @@ public class WebsocketCollector {
             // check if this node is master
             boolean isMaster = true;
             String runningMode = RunningModeEnum.STANDALONE.name();
-            String masterUrl = "";
+            String masterUrl = StringUtils.EMPTY;
             ClusterProperties clusterProperties = SpringBeanUtils.getInstance().getBean(ClusterProperties.class);
             if (clusterProperties.isEnabled()) {
                 ClusterSelectMasterService clusterSelectMasterService = SpringBeanUtils.getInstance().getBean(ClusterSelectMasterService.class);
-                masterUrl = clusterSelectMasterService.getMasterUrl();
-                isMaster = clusterSelectMasterService.isMaster();
                 runningMode = RunningModeEnum.CLUSTER.name();
+                isMaster = clusterSelectMasterService.isMaster();
+                masterUrl = clusterSelectMasterService.getMasterUrl();
             }
             Map<String, Object> map = Maps.newHashMap();
             map.put(RunningModeConstants.EVENT_TYPE, DataEventTypeEnum.RUNNING_MODE.name());
