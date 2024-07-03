@@ -64,7 +64,7 @@ public class SpringCloudPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        LOG.info("start spring cloud plugin");
+        LOG.info("start spring cloud  plugin");
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "8");
         formData.add("name", "springCloud");
