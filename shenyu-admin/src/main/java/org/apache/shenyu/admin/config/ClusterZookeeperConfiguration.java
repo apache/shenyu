@@ -79,8 +79,8 @@ public class ClusterZookeeperConfiguration {
      */
     @Bean
     public ClusterZookeeperClient clusterZookeeperClient(final ClusterZookeeperProperties clusterZookeeperProperties) {
-        int sessionTimeout = Objects.isNull(clusterZookeeperProperties.getSessionTimeout()) ? 3000 : clusterZookeeperProperties.getSessionTimeout();
-        int connectionTimeout = Objects.isNull(clusterZookeeperProperties.getConnectionTimeout()) ? 3000 : clusterZookeeperProperties.getConnectionTimeout();
+        int sessionTimeout = clusterZookeeperProperties.getSessionTimeout();
+        int connectionTimeout = clusterZookeeperProperties.getConnectionTimeout();
         ClusterZookeeperConfig zkConfig = new ClusterZookeeperConfig(clusterZookeeperProperties.getUrl());
         zkConfig.setSessionTimeoutMilliseconds(sessionTimeout)
                 .setConnectionTimeoutMilliseconds(connectionTimeout);

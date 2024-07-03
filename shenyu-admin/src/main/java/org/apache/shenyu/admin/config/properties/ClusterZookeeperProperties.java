@@ -29,9 +29,9 @@ public class ClusterZookeeperProperties {
     
     private String url;
     
-    private Integer sessionTimeout;
+    private Integer sessionTimeout = 3000;
     
-    private Integer connectionTimeout;
+    private Integer connectionTimeout = 3000;
     
     private String serializer;
     
