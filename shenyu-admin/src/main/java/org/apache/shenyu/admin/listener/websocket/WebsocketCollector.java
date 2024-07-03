@@ -72,6 +72,9 @@ public class WebsocketCollector {
     }
     
     private static String getClientIp(final Session session) {
+        if (!session.isOpen()) {
+            return StringUtils.EMPTY;
+        }
         Map<String, Object> userProperties = session.getUserProperties();
         if (MapUtils.isEmpty(userProperties)) {
             return StringUtils.EMPTY;
