@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
-import com.alibaba.nacos.common.utils.DateFormatUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.ConfigsService;
