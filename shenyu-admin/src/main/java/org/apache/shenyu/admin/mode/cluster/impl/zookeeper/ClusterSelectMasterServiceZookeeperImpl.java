@@ -107,8 +107,8 @@ public class ClusterSelectMasterServiceZookeeperImpl implements ClusterSelectMas
         String masterInfoJson = clusterZookeeperClient.getDirectly(MASTER_INFO);
         ClusterMasterDTO master = JsonUtils.jsonToObject(masterInfoJson, ClusterMasterDTO.class);
         if (StringUtils.isEmpty(master.getContextPath())) {
-            return "http://" + master.getMasterHost() + ":" + master.getMasterPort();
+            return clusterProperties.getSchema() + "://" + master.getMasterHost() + ":" + master.getMasterPort();
         }
-        return "http://" + master.getMasterHost() + ":" + master.getMasterPort() + "/" + master.getContextPath();
+        return clusterProperties.getSchema() + "://" + master.getMasterHost() + ":" + master.getMasterPort() + "/" + master.getContextPath();
     }
 }

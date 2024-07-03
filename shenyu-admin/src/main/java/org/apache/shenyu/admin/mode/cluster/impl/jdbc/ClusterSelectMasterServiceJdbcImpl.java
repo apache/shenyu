@@ -37,7 +37,7 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
     
     private static final Logger LOG = LoggerFactory.getLogger(ClusterSelectMasterServiceJdbcImpl.class);
     
-    private static final String MASTER_LOCK_KEY = "shenyu:cluster:master";
+    private static final String MASTER_LOCK_KEY = "shenyu_cluster_lock:master";
     
     private static final String MASTER_ID = "1";
     
@@ -125,11 +125,11 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
         ClusterMasterDO master = clusterMasterMapper.selectById(MASTER_ID);
         String contextPath = master.getContextPath();
         if (StringUtils.isEmpty(contextPath)) {
-            return "http://" + master.getMasterHost() + ":" + master.getMasterPort();
+            return clusterProperties.getSchema() + "://" + master.getMasterHost() + ":" + master.getMasterPort();
         }
         if (contextPath.startsWith("/")) {
-            return "http://" + master.getMasterHost() + ":" + master.getMasterPort() + contextPath;
+            return clusterProperties.getSchema() + "://" + master.getMasterHost() + ":" + master.getMasterPort() + contextPath;
         }
-        return "http://" + master.getMasterHost() + ":" + master.getMasterPort() + "/" + contextPath;
+        return clusterProperties.getSchema() + "://" + master.getMasterHost() + ":" + master.getMasterPort() + "/" + contextPath;
     }
 }

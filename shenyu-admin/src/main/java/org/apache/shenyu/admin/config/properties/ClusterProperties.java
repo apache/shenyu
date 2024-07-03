@@ -38,6 +38,11 @@ public class ClusterProperties {
     private String type;
     
     /**
+     * the master schema (http/https).
+     */
+    private String schema = "http";
+    
+    /**
      * cluster forward uri list.
      */
     private List<String> forwardList;
@@ -89,6 +94,24 @@ public class ClusterProperties {
     }
     
     /**
+     * Get the schema.
+     *
+     * @return schema
+     */
+    public String getSchema() {
+        return schema;
+    }
+    
+    /**
+     * Set the schema.
+     *
+     * @param schema schema
+     */
+    public void setSchema(final String schema) {
+        this.schema = schema;
+    }
+    
+    /**
      * Gets the value of forwardList.
      *
      * @return the value of forwardList
@@ -108,6 +131,7 @@ public class ClusterProperties {
     
     /**
      * Gets the select master task period.
+     *
      * @return select master task period
      */
     public Long getSelectPeriod() {
@@ -116,6 +140,7 @@ public class ClusterProperties {
     
     /**
      * Sets select master task period.
+     *
      * @param selectPeriod select master task period
      */
     public void setSelectPeriod(final Long selectPeriod) {
@@ -124,6 +149,7 @@ public class ClusterProperties {
     
     /**
      * Gets the select master lock ttl.
+     *
      * @return lock ttl
      */
     public Long getLockTtl() {
@@ -132,6 +158,7 @@ public class ClusterProperties {
     
     /**
      * Sets select master lock ttl.
+     *
      * @param lockTtl lock ttl
      */
     public void setLockTtl(final Long lockTtl) {
