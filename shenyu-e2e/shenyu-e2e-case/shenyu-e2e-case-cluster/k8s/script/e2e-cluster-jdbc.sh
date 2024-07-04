@@ -35,7 +35,13 @@ sh "${curPath}"/healthcheck.sh cluster http://localhost:31095/actuator/health ht
 
 kubectl logs "$(kubectl get pod -o wide | grep shenyu-mysql | awk '{print $1}')"
 
-kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
+kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin-master | awk '{print $1}')"
+
+kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin-slave | awk '{print $1}')"
+
+kubectl describe pod shenyu-admin-master
+
+kubectl describe pod shenyu-admin-slave
 
 kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
 
