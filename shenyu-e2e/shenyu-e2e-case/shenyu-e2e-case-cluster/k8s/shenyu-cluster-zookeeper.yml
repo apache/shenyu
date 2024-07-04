@@ -44,8 +44,6 @@ spec:
               value: "9095"
             - name: shenyu.cluster.enabled
               value: "true"
-            - name: shenyu.cluster.type
-              value: "zookeeper"
             - name: shenyu.cluster.zookeeper.url
               value: "shenyu-zookeeper:2181"
             - name: spring.datasource.username
@@ -115,8 +113,6 @@ spec:
               value: "9096"
             - name: shenyu.cluster.enabled
               value: "true"
-            - name: shenyu.cluster.type
-              value: "zookeeper"
             - name: spring.datasource.username
               value: root
             - name: spring.datasource.password
