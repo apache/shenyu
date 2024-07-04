@@ -152,7 +152,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     @Override
     public void onMessage(final String result) {
-        LOG.info("onMessage server[{}] result({})", this.getURI().toString(), result);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("onMessage server[{}] result({})", this.getURI().toString(), result);
+        }
         
         Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
         Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
