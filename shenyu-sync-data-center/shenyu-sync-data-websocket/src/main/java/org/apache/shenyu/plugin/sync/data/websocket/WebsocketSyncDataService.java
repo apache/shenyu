@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.timer.AbstractRoundTask;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
@@ -146,7 +147,7 @@ public class WebsocketSyncDataService implements SyncDataService {
             }
             String runningMode = websocketClient.getRunningMode();
             // check running mode
-            if (Objects.equals(runningMode, "standalone")) {
+            if (Objects.equals(runningMode, RunningModeEnum.STANDALONE.name())) {
                 LOG.info("admin running in standalone mode...");
                 timerTask.cancel();
                 return;
