@@ -20,12 +20,12 @@ package org.apache.shenyu.admin.listener;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.PluginNamespaceService;
+import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.ProxySelectorService;
-import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -71,7 +71,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * The Plugin service.
      */
     @Resource
-    private PluginService pluginService;
+    private PluginNamespaceService pluginNamespaceService;
 
     /**
      * The Rule service.
@@ -314,7 +314,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * Update plugin cache.
      */
     protected void updatePluginCache() {
-        this.updateCache(ConfigGroupEnum.PLUGIN, pluginService.listAll());
+        this.updateCache(ConfigGroupEnum.PLUGIN, pluginNamespaceService.listAll());
     }
     
     /**
