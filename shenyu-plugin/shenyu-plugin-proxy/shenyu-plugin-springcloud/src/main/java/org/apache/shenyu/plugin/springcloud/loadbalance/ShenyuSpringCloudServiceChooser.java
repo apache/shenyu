@@ -20,11 +20,14 @@ package org.apache.shenyu.plugin.springcloud.loadbalance;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 
@@ -39,6 +42,8 @@ import java.util.stream.Collectors;
  * spring cloud plugin loadbalancer.
  */
 public final class ShenyuSpringCloudServiceChooser {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuSpringCloudServiceChooser.class);
 
     private final DiscoveryClient discoveryClient;
 
@@ -60,6 +65,7 @@ public final class ShenyuSpringCloudServiceChooser {
         // load service instance by serviceId
         List<ServiceInstance> available = this.getServiceInstance(serviceId);
         if (CollectionUtils.isEmpty(available)) {
+            LOG.info("choose return 1");
             return null;
         }
         final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudPluginDataHandler.SELECTOR_CACHED.get().obtainHandle(selectorId);
@@ -71,6 +77,7 @@ public final class ShenyuSpringCloudServiceChooser {
         List<Upstream> divideUpstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
         // gray flow,but upstream is null
         if (CollectionUtils.isEmpty(divideUpstreams)) {
+            LOG.info("choose return 2");
             return this.doSelect(serviceId, ip, loadbalancer);
         }
         // select server from available to choose
@@ -82,8 +89,10 @@ public final class ShenyuSpringCloudServiceChooser {
                     .findFirst().ifPresent(choose::add);
         }
         if (CollectionUtils.isEmpty(choose)) {
+            LOG.info("choose return 3");
             return this.doSelect(serviceId, ip, loadbalancer);
         }
+        LOG.info("choose return 4");
         // select by divideUpstreams
         return this.doSelect(choose, loadbalancer, ip);
     }
@@ -117,8 +126,11 @@ public final class ShenyuSpringCloudServiceChooser {
      */
     private List<ServiceInstance> getServiceInstance(final String serviceId) {
         if (CollectionUtils.isEmpty(ServiceInstanceCache.getServiceInstance(serviceId))) {
-            return Optional.ofNullable(discoveryClient.getInstances(serviceId)).orElse(Collections.emptyList());
+            List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
+            LOG.info("getServiceInstance: {}", JsonUtils.toJson(instances));
+            return Optional.ofNullable(instances).orElse(Collections.emptyList());
         }
+        LOG.info("ServiceInstanceCache.getServiceInstance(serviceId)");
         return ServiceInstanceCache.getServiceInstance(serviceId);
     }
 
