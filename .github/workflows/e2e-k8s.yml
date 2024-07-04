@@ -115,7 +115,7 @@ jobs:
         include:
           - case: shenyu-e2e-case-cluster
             script: e2e-cluster-jdbc
-          - case: shenyu-e2e-case-storage
+          - case: shenyu-e2e-case-cluster
             script: e2e-cluster-zookeeper
     steps:
       - uses: actions/checkout@v2
