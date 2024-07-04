@@ -24,7 +24,7 @@ bash "$shenyuTestCaseDir"/k8s/script/init/mysql_container_init.sh
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
 echo "$PRGDIR"
-kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-zookeeper.yml
+kubectl apply -f "${shenyuTestCaseDir}"/k8s/shenyu-zookeeper.yml
 kubectl apply -f "${PRGDIR}"/shenyu-cluster-zookeeper.yml
 
 kubectl get pod -o wide
