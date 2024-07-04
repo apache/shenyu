@@ -206,6 +206,15 @@ public class UpstreamCheckService {
             return;
         }
 
+        Optional.ofNullable(submitJust(selectorId, commonUpstream))
+                .ifPresent(upstreams -> executor.execute(() -> updateHandler(selectorId, upstreams, upstreams)));
+    }
+
+    private List<CommonUpstream> submitJust(final String selectorId, final CommonUpstream commonUpstream) {
+        if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked) {
+            return null;
+        }
+
         List<CommonUpstream> upstreams = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> new CopyOnWriteArrayList<>());
         if (commonUpstream.isStatus()) {
             Optional<CommonUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
@@ -220,7 +229,7 @@ public class UpstreamCheckService {
             upstreams.removeIf(item -> item.equals(commonUpstream));
             PENDING_SYNC.add(NumberUtils.INTEGER_ZERO);
         }
-        executor.execute(() -> updateHandler(selectorId, upstreams, upstreams));
+        return upstreams;
     }
 
     /**
@@ -304,7 +313,8 @@ public class UpstreamCheckService {
             commonUpstream.setStatus(true);
             LOG.info("UpstreamCacheManager check zombie upstream success the url: {}, host: {} ", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost());
             List<CommonUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList()));
-            this.submit(selectorId, commonUpstream);
+            // fix https://github.com/apache/shenyu/issues/5311
+            this.submitJust(selectorId, commonUpstream);
             updateHandler(selectorId, old, UPSTREAM_MAP.get(selectorId));
         } else {
             LOG.error("check zombie upstream the url={} is fail", commonUpstream.getUpstreamUrl());
@@ -473,6 +483,7 @@ public class UpstreamCheckService {
 
     /**
      * get the zombie removal time value.
+     *
      * @return zombie removal time value
      */
     public static int getZombieRemovalTimes() {
