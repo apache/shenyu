@@ -24,6 +24,7 @@ bash "$shenyuTestCaseDir"/k8s/script/init/mysql_container_init.sh
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
 echo "$PRGDIR"
+kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-zookeeper.yml
 kubectl apply -f "${PRGDIR}"/shenyu-deployment-cluster.yml
 kubectl apply -f "${PRGDIR}"/shenyu-app-service-cluster.yml
 
@@ -34,7 +35,9 @@ sleep 30s
 chmod +x "${curPath}"/healthcheck.sh
 sh "${curPath}"/healthcheck.sh cluster http://localhost:31095/actuator/health http://localhost:31096/actuator/health http://localhost:31195/actuator/health
 
-#kubectl logs "$(kubectl get pod -o wide | grep shenyu-mysql | awk '{print $1}')"
+kubectl logs "$(kubectl get pod -o wide | grep shenyu-zookeeper | awk '{print $1}')"
+
+kubectl logs "$(kubectl get pod -o wide | grep shenyu-mysql | awk '{print $1}')"
 
 kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
 
@@ -44,5 +47,5 @@ kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1
 sleep 60s
 curl -S "http://localhost:31195/actuator/pluginData"
 
-./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test
+./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-cluster -am test
 
