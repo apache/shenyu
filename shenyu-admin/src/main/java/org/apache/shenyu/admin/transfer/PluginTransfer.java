@@ -85,7 +85,7 @@ public enum PluginTransfer {
     public PluginData mapToData(final PluginNamespaceVO pluginNamespaceVO) {
         return Optional.ofNullable(pluginNamespaceVO)
                 .map(v -> PluginData.builder()
-                        .id(v.getId())
+                        .id(v.getPluginId())
                         .name(v.getName())
                         .config(v.getConfig())
                         .role(v.getRole())
