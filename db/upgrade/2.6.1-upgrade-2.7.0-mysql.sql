@@ -21,16 +21,17 @@ INSERT INTO `plugin_handle` VALUES ('1722804548510507023', '3', 'rewriteMetaData
 
 INSERT INTO `shenyu_dict` VALUES ('1679002911061737478', 'rewriteMetaData', 'REWRITE_META_DATA', 'true', 'true', '', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO `shenyu_dict` VALUES ('1679002911061737479', 'rewriteMetaData', 'REWRITE_META_DATA', 'false', 'false', '', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+
 -- ----------------------------
--- Table structure for INT_LOCK
+-- Table structure for sheny_lock
 -- ----------------------------
-DROP TABLE IF EXISTS `INT_LOCK`;
-CREATE TABLE IF NOT EXISTS INT_LOCK  (
+DROP TABLE IF EXISTS `SHENYU_LOCK`;
+CREATE TABLE IF NOT EXISTS SHENYU_LOCK  (
     `LOCK_KEY` CHAR(36) NOT NULL,
     `REGION` VARCHAR(100) NOT NULL,
     `CLIENT_ID` CHAR(36),
     `CREATED_DATE` TIMESTAMP NOT NULL,
-    constraint INT_LOCK_PK primary key (LOCK_KEY, REGION)
+    constraint SHENYU_LOCK_PK primary key (LOCK_KEY, REGION)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 INSERT INTO `resource` VALUES ('1347048240677269503', '1346777766301888512', 'SHENYU.PLUGIN.BATCH.OPENED', '', '', '', 2, 3, '', 1, 0, 'system:authen:open', 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -41,6 +42,20 @@ INSERT INTO `resource` VALUES ('1386680049203195916', '1346777157943259136', 'SH
 INSERT INTO `permission` VALUES ('1386680049203195906', '1346358560427216896', '1386680049203195915', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `permission` VALUES ('1386680049203195907', '1346358560427216896', '1386680049203195916', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 
+
+-- ----------------------------
+-- Table structure for cluster_master
+-- ----------------------------
+DROP TABLE IF EXISTS `cluster_master`;
+CREATE TABLE IF NOT EXISTS cluster_master  (
+    `id`           varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
+    `master_host`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'master host',
+    `master_port`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'master port',
+    `context_path`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'master context_path',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 
 INSERT INTO `shenyu`.`resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1792749362445840474', '1346776175553376256', 'SHENYU.MENU.SYSTEM.MANAGMENT.NAMESPACE', 'namespace', '/system/namespace', 'namespace', 1, 0, 'appstore', 0, 0, '', 1, '2024-06-22 17:00:00.000', '2024-06-22 17:00:00.000');

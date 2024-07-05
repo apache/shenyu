@@ -1204,15 +1204,28 @@ CREATE TABLE IF NOT EXISTS `alert_receiver`
 );
 
 -- ----------------------------
--- Table structure for INT_LOCK
+-- Table structure for shenyu_lock
 -- ----------------------------
-CREATE TABLE IF NOT EXISTS `INT_LOCK`  (
+CREATE TABLE IF NOT EXISTS `SHENYU_LOCK`  (
    `LOCK_KEY` CHAR(36),
    `REGION` VARCHAR(100),
    `CLIENT_ID` CHAR(36),
    `CREATED_DATE` TIMESTAMP NOT NULL,
-   constraint INT_LOCK_PK primary key (LOCK_KEY, REGION)
+   constraint SHENYU_LOCK primary key (LOCK_KEY, REGION)
 );
+
+-- ----------------------------
+-- Table structure for cluster_master
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS cluster_master  (
+    `id`           varchar(128) NOT NULL COMMENT 'primary key id',
+    `master_host`  varchar(255) COMMENT 'master host',
+    `master_port`  varchar(255) COMMENT 'master port',
+    `context_path`  varchar(255) COMMENT 'master context_path',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+) ;
 
 
 

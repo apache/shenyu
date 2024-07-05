@@ -2680,22 +2680,61 @@ comment
 on column alert_receiver.date_updated
   is 'update time';
 
-CREATE TABLE INT_LOCK  (
+
+-- ----------------------------
+-- Table structure for SHENYU_LOCK
+-- ----------------------------
+CREATE TABLE SHENYU_LOCK  (
    LOCK_KEY CHAR(36),
    REGION VARCHAR(100),
    CLIENT_ID CHAR(36),
    CREATED_DATE TIMESTAMP NOT NULL,
-   constraint INT_LOCK_PK primary key (LOCK_KEY, REGION)
+   constraint SHENYU_LOCK_PK primary key (LOCK_KEY, REGION)
 );
 -- Add comments to the columns
-comment on column INT_LOCK.LOCK_KEY
+comment on column SHENYU_LOCK.LOCK_KEY
   is 'LOCK_KEY';
-comment on column INT_LOCK.REGION
+comment on column SHENYU_LOCK.REGION
   is 'REGION';
-comment on column INT_LOCK.CLIENT_ID
+comment on column SHENYU_LOCK.CLIENT_ID
   is 'CLIENT_ID';
-comment on column INT_LOCK.CREATED_DATE
+comment on column SHENYU_LOCK.CREATED_DATE
   is 'CREATED_DATE';
+
+-- ----------------------------
+-- Table structure for cluster_master
+-- ----------------------------
+create table cluster_master
+(
+    id                   varchar(128)   not null,
+    master_host          varchar(255)   not null,
+    master_port          varchar(255)   not null,
+    context_path          varchar(255)   not null,
+    date_created      timestamp(3) default SYSDATE not null,
+    date_updated      timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+)
+;
+-- Add comments to the columns
+comment
+on column alert_receiver.id
+  is 'primary key id';
+comment
+on column alert_receiver.master_host
+  is 'master host';
+comment
+on column alert_receiver.master_port
+  is 'master port';
+comment
+on column alert_receiver.context_path
+  is 'master context_path';
+comment
+on column alert_receiver.date_created
+  is 'create time';
+comment
+on column alert_receiver.date_updated
+  is 'update time';
+
 
 
 
