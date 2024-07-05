@@ -147,16 +147,14 @@ public class UpstreamCheckService {
         this.scheduledTime = Integer.parseInt(props.getProperty(Constants.SCHEDULED_TIME, Constants.SCHEDULED_TIME_VALUE));
         this.registerType = shenyuRegisterCenterConfig.getRegisterType();
         zombieRemovalTimes = Integer.parseInt(props.getProperty(Constants.ZOMBIE_REMOVAL_TIMES, Constants.ZOMBIE_REMOVAL_TIMES_VALUE));
-        if (REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType)) {
-            setup();
-        }
     }
 
     /**
      * Set up.
      */
     public void setup() {
-        if (checked) {
+        if (REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) && checked) {
+            LOG.info("setup upstream check task");
             this.fetchUpstreamData();
             executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
             scheduledFuture = executor.scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
@@ -172,8 +170,12 @@ public class UpstreamCheckService {
     @PreDestroy
     public void close() {
         if (checked) {
-            scheduledFuture.cancel(false);
-            executor.shutdown();
+            if (Objects.nonNull(scheduledFuture)) {
+                scheduledFuture.cancel(false);
+            }
+            if (Objects.nonNull(executor)) {
+                executor.shutdown();
+            }
         }
     }
 

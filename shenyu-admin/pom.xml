@@ -85,6 +85,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework.integration</groupId>
+            <artifactId>spring-integration-zookeeper</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
@@ -298,7 +303,7 @@
             <version>${project.version}</version>
         </dependency>
         <!-- shenyu-admin-listener end-->
-
+    
     </dependencies>
 
     <profiles>
