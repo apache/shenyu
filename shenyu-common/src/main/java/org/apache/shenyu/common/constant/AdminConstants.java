@@ -275,5 +275,9 @@ public final class AdminConstants {
     public static final String PROXY_SELECTOR_ID_IS_NOT_EXIST = "The proxy selector(s) does not exist";
 
     public static final long THE_ONE_DAY_MILLIS_TIME = 24 * 60 * 60 * 1000L;
+
+    public static final long FIVE_SECONDS_MILLIS_TIME = 5 * 1000L;
+
+    public static final long TEN_SECONDS_MILLIS_TIME = 10 * 1000L;
 }
 

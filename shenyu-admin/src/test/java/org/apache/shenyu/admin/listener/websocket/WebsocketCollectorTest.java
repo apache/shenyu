@@ -138,6 +138,7 @@ public final class WebsocketCollectorTest {
     public void testSend() throws IOException {
         RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
         when(session.getBasicRemote()).thenReturn(basic);
+        when(session.isOpen()).thenReturn(true);
         websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());
         WebsocketCollector.send(null, DataEventTypeEnum.MYSELF);
