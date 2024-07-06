@@ -45,6 +45,8 @@ spec:
               value: "9095"
             - name: shenyu.cluster.enabled
               value: "true"
+            - name: shenyu.sync.websocket.allowOrigins
+              value: ws://localhost:9095;ws://localhost:9195;
             - name: spring.datasource.username
               value: root
             - name: spring.datasource.password
@@ -112,6 +114,8 @@ spec:
               value: "9096"
             - name: shenyu.cluster.enabled
               value: "true"
+            - name: shenyu.sync.websocket.allowOrigins
+              value: ws://localhost:9096;ws://localhost:9195;
             - name: spring.datasource.username
               value: root
             - name: spring.datasource.password
