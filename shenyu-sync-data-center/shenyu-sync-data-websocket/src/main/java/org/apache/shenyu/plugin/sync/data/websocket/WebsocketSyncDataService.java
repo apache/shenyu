@@ -59,8 +59,6 @@ public class WebsocketSyncDataService implements SyncDataService {
      */
     private static final String ORIGIN_HEADER_NAME = "Origin";
     
-    private ShenyuWebsocketClient client;
-    
     private final WebsocketConfig websocketConfig;
     
     private final PluginDataSubscriber pluginDataSubscriber;
@@ -101,7 +99,7 @@ public class WebsocketSyncDataService implements SyncDataService {
         this.authDataSubscribers = authDataSubscribers;
         this.proxySelectorDataSubscribers = proxySelectorDataSubscribers;
         this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
-        
+        LOG.info("start init connecting...");
         List<String> urls = websocketConfig.getUrls();
         for (String url : urls) {
             if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
@@ -113,7 +111,7 @@ public class WebsocketSyncDataService implements SyncDataService {
                         metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers));
             }
         }
-        
+        LOG.info("start check task...");
         this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(60)) {
             @Override
             public void doRun(final String key, final TimerTask timerTask) {
@@ -162,8 +160,12 @@ public class WebsocketSyncDataService implements SyncDataService {
     
     @Override
     public void close() {
-        if (Objects.nonNull(client)) {
-            client.nowClose();
+        if (CollectionUtils.isNotEmpty(clients)) {
+            for (ShenyuWebsocketClient client : clients) {
+                if (Objects.nonNull(client)) {
+                    client.close();
+                }
+            }
         }
         if (Objects.nonNull(timerTask)) {
             timerTask.cancel();
