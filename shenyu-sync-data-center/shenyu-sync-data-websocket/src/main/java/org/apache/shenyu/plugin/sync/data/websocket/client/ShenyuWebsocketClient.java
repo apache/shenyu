@@ -166,12 +166,14 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             }
             this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
             this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
-            if (!isConnectedToMaster) {
-                LOG.info("not connected to master, close now, master url:[{}], current url:[{}]", masterUrl, this.getURI().toString());
-                this.nowClose();
-            }
+//            if (!isConnectedToMaster) {
+//                LOG.info("not connected to master, close now, master url:[{}], current url:[{}]", masterUrl, this.getURI().toString());
+//                this.nowClose();
+//            }
         } else {
-            handleResult(result);
+            if (isConnectedToMaster) {
+                handleResult(result);
+            }
         }
     }
     
