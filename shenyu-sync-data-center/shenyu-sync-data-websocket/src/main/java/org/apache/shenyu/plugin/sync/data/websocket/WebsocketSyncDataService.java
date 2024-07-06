@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.enums.RunningModeEnum;
-import org.apache.shenyu.common.timer.AbstractRoundTask;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
@@ -42,7 +41,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Websocket sync data service.
@@ -111,13 +109,13 @@ public class WebsocketSyncDataService implements SyncDataService {
                         metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers));
             }
         }
-        LOG.info("start check task...");
-        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(60)) {
-            @Override
-            public void doRun(final String key, final TimerTask timerTask) {
-                masterCheck();
-            }
-        });
+//        LOG.info("start check task...");
+//        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(60)) {
+//            @Override
+//            public void doRun(final String key, final TimerTask timerTask) {
+//                masterCheck();
+//            }
+//        });
     }
     
     private void masterCheck() {
