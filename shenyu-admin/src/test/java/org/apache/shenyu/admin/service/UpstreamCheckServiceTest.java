@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.ZombieUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -50,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -103,6 +105,9 @@ public final class UpstreamCheckServiceTest {
     private SelectorConditionMapper selectorConditionMapper;
 
     private SelectorHandleConverterFactor converterFactor;
+    
+    @Mock
+    private DiscoveryUpstreamService discoveryUpstreamService;
 
     private final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = new ShenyuRegisterCenterConfig();
 
@@ -133,7 +138,8 @@ public final class UpstreamCheckServiceTest {
         Map<String, SelectorHandleConverter> maps = new HashMap<>();
         maps.put(PluginEnum.DIVIDE.getName(), new DivideSelectorHandleConverter());
         converterFactor = new SelectorHandleConverterFactor(maps);
-        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig, converterFactor);
+        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper,
+                shenyuRegisterCenterConfig, converterFactor, discoveryUpstreamService);
     }
 
     @Test
@@ -242,11 +248,22 @@ public final class UpstreamCheckServiceTest {
                 .name(MOCK_SELECTOR_NAME_OTHER)
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
                 .build();
+        DiscoveryUpstreamData discoveryUpstreamData = DiscoveryUpstreamData.builder()
+                .dateCreated(new Timestamp(System.currentTimeMillis()))
+                .protocol("http")
+                .url("127.0.0.1:8080")
+                .props("{}")
+                .discoveryHandlerId("1")
+                .status(0)
+                .build();
         when(pluginMapper.selectByNames(anyList())).thenReturn(Lists.newArrayList(pluginDO));
         when(selectorMapper.findByPluginIds(anyList())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
+        when(discoveryUpstreamService.findBySelectorId(anyString())).thenReturn(Lists.newArrayList(discoveryUpstreamData));
         upstreamCheckService.fetchUpstreamData();
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME));
+        assertEquals(2, upstreamMap.get(MOCK_SELECTOR_NAME).size());
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
+        assertEquals(2, upstreamMap.get(MOCK_SELECTOR_NAME_OTHER).size());
     }
 
     @Test
@@ -254,7 +271,8 @@ public final class UpstreamCheckServiceTest {
         Properties properties = new Properties();
         properties.setProperty(Constants.IS_CHECKED, "true");
         shenyuRegisterCenterConfig.setProps(properties);
-        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig, converterFactor);
+        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper,
+                shenyuRegisterCenterConfig, converterFactor, discoveryUpstreamService);
         upstreamCheckService.close();
     }
 
