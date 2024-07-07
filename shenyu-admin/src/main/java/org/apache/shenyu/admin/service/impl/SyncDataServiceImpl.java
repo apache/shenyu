@@ -34,7 +34,6 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -103,11 +102,9 @@ public class SyncDataServiceImpl implements SyncDataService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, pluginDataList));
 
         List<SelectorData> selectorDataList = selectorService.listAll();
-        LOG.info("selectorDataList:{}", JsonUtils.toJson(selectorDataList));
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, type, selectorDataList));
 
         List<RuleData> ruleDataList = ruleService.listAll();
-        LOG.info("ruleList:{}", JsonUtils.toJson(ruleDataList));
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, type, ruleDataList));
 
         metaDataService.syncData();
