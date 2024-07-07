@@ -121,11 +121,45 @@ shenyu:
       - /selector/batchEnabled
       - /selector/batch
       - /selector
+      - /selector/**
       - /rule/batchEnabled
       - /rule/batch
       - /rule
+      - /rule/**
+      - /plugin
+      - /plugin/**
+      - /plugin/createPluginResource/**
+      - /plugin/batch
+      - /plugin/enabled
+      - /plugin/syncPluginAll
       - /plugin/syncPluginData/**
       - /proxy-selector/binding
+      - /proxy-selector/**
+      - /proxy-selector/batch
+      - /proxy-selector/addProxySelector
+      - /proxy-selector/fetch/**
+      - /api
+      - /api/**
+      - /api/batch
+      - /appAuth/apply
+      - /appAuth/updateDetail
+      - /appAuth/updateDetailPath
+      - /appAuth/batchDelete
+      - /appAuth/batchEnabled
+      - /appAuth/batchOpened
+      - /appAuth/syncData
+      - /discovery/insertOrUpdate
+      - /discovery/**
+      - /discovery-upstream
+      - /discovery-upstream/batch
+      - /discovery-upstream/**
+      - /meta-data/createOrUpdate
+      - /meta-data/batchDeleted
+      - /meta-data/batchEnabled
+      - /meta-data/syncData
+      - /plugin-handle
+      - /plugin-handle/**
+      - /plugin-handle/batch
     zookeeper:
       url: localhost:2181
       sessionTimeout: 5000
