@@ -44,6 +44,8 @@ spec:
               value: "9095"
             - name: shenyu.cluster.enabled
               value: "true"
+            - name: shenyu.sync.websocket.allowOrigins
+              value: ws://localhost:9095;ws://localhost:9195;
             - name: shenyu.cluster.type
               value: "zookeeper"
             - name: shenyu.cluster.zookeeper.url
@@ -115,6 +117,8 @@ spec:
               value: "9096"
             - name: shenyu.cluster.enabled
               value: "true"
+            - name: shenyu.sync.websocket.allowOrigins
+              value: ws://localhost:9096;ws://localhost:9195;
             - name: shenyu.cluster.type
               value: "zookeeper"
             - name: shenyu.cluster.zookeeper.url

@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * custom Stateless AccessControlFilter.
@@ -100,6 +101,9 @@ public class StatelessAuthFilter extends AccessControlFilter {
             return tokenValue;
         }
         Cookie[] cookies = httpServletRequest.getCookies();
+        if (Objects.isNull(cookies)) {
+            return "";
+        }
         return Arrays.stream(cookies)
                 .filter(cookie -> StringUtils.equals(tokenName, cookie.getName()))
                 .findAny()
