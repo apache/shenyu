@@ -120,9 +120,12 @@ shenyu:
       - /configs/**
       - /selector/batchEnabled
       - /selector/batch
+      - /selector
       - /rule/batchEnabled
       - /rule/batch
+      - /rule
       - /plugin/syncPluginData/**
+      - /proxy-selector/binding
     zookeeper:
       url: localhost:2181
       sessionTimeout: 5000
