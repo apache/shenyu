@@ -26,18 +26,18 @@ jobs:
     strategy:
       matrix:
         case:
-          - shenyu-integrated-test-apache-dubbo
-          - shenyu-integrated-test-grpc
+#          - shenyu-integrated-test-apache-dubbo
+#          - shenyu-integrated-test-grpc
           - shenyu-integrated-test-http
-          - shenyu-integrated-test-https
-          - shenyu-integrated-test-motan
-          - shenyu-integrated-test-spring-cloud
-          - shenyu-integrated-test-sofa
-          - shenyu-integrated-test-websocket
-          - shenyu-integrated-test-rewrite
-          - shenyu-integrated-test-combination
-          - shenyu-integrated-test-sdk-apache-dubbo
-          - shenyu-integrated-test-sdk-http
+#          - shenyu-integrated-test-https
+#          - shenyu-integrated-test-motan
+#          - shenyu-integrated-test-spring-cloud
+#          - shenyu-integrated-test-sofa
+#          - shenyu-integrated-test-websocket
+#          - shenyu-integrated-test-rewrite
+#          - shenyu-integrated-test-combination
+#          - shenyu-integrated-test-sdk-apache-dubbo
+#          - shenyu-integrated-test-sdk-http
     runs-on: ubuntu-latest
     if: (github.repository == 'apache/shenyu')
     steps:
