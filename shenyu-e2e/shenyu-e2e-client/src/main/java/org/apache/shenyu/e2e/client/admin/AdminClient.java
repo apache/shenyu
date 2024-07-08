@@ -162,6 +162,11 @@ public class AdminClient extends BaseClient {
                     cur,
                     30
             );
+            try {
+                log.info("response:{}", mapper.writeValueAsString(response.getBody()));
+            } catch (Exception e) {
+                log.error("basicAuth error", e);
+            }
             ShenYuResult rst = assertAndGet(response, "query success");
             
             PaginatedResources<PluginDTO> pagination = Assertions.assertDoesNotThrow(() -> mapper.readValue(rst.getData().traverse(), PAGINATED_PLUGINS_TYPE_REFERENCE),
