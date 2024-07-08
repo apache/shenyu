@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config.properties;
 
+import com.google.common.collect.Lists;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
@@ -45,12 +46,12 @@ public class ClusterProperties {
     /**
      * cluster forward uri list.
      */
-    private List<String> forwardList;
+    private List<String> forwardList = Lists.newArrayList();
     
     /**
      * cluster forward ignore uri list.
      */
-    private List<String> ignoredList;
+    private List<String> ignoredList = Lists.newArrayList();
     
     /**
      * cluster select master task period.
