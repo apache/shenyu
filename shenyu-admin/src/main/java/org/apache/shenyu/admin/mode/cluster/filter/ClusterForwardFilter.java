@@ -87,6 +87,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         String requestContextPath = request.getContextPath();
         String simpleUri = uri.replaceAll(requestContextPath, "");
         
+        // check whether the uri should be ignored
         boolean shouldIgnore = clusterProperties.getIgnoredList()
                 .stream().anyMatch(x -> PATH_MATCHER.match(x, simpleUri));
         if (shouldIgnore) {
@@ -94,12 +95,14 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             return;
         }
         
+        // check whether the uri should be forwarded
         boolean shouldForward = clusterProperties.getForwardList()
                 .stream().anyMatch(x -> PATH_MATCHER.match(x, simpleUri));
         if (!shouldForward) {
             filterChain.doFilter(request, response);
             return;
         }
+        
         // cluster forward request to master
         forwardRequest(request, response);
     }
