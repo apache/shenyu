@@ -57,6 +57,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.BufferingClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
@@ -91,7 +93,7 @@ public class AdminClient extends BaseClient {
     
     private final MultiValueMap<String, String> basicAuth = new HttpHeaders();
     
-    private final RestTemplate template = new RestTemplate();
+    private final RestTemplate template;
     
     private final ObjectMapper mapper = new ObjectMapper();
     
@@ -114,6 +116,11 @@ public class AdminClient extends BaseClient {
                 .put("username", properties.getProperty("username"))
                 .put("password", properties.getProperty("password"))
                 .build();
+        
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(5000);
+        requestFactory.setReadTimeout(5000);
+        this.template = new RestTemplate(new BufferingClientHttpRequestFactory(requestFactory));
     }
     
     /**
@@ -154,6 +161,8 @@ public class AdminClient extends BaseClient {
         int cur = 1;
         int total;
         do {
+            log.info("fetching plugin list");
+            basicAuth.set("Transfer-Encoding", "");
             ResponseEntity<ShenYuResult> response = template.exchange(
                     baseURL + "/plugin?currentPage={cur}&pageSize={page}",
                     HttpMethod.GET,
@@ -165,7 +174,7 @@ public class AdminClient extends BaseClient {
             try {
                 log.info("response:{}", mapper.writeValueAsString(response.getBody()));
             } catch (Exception e) {
-                log.error("basicAuth error", e);
+                log.error("fetching plugin list error", e);
             }
             ShenYuResult rst = assertAndGet(response, "query success");
             
