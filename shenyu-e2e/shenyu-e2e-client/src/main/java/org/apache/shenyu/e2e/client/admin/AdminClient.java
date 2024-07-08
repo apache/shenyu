@@ -57,8 +57,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.BufferingClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
@@ -93,7 +91,7 @@ public class AdminClient extends BaseClient {
     
     private final MultiValueMap<String, String> basicAuth = new HttpHeaders();
     
-    private final RestTemplate template;
+    private final RestTemplate template = new RestTemplate();
     
     private final ObjectMapper mapper = new ObjectMapper();
     
@@ -116,11 +114,6 @@ public class AdminClient extends BaseClient {
                 .put("username", properties.getProperty("username"))
                 .put("password", properties.getProperty("password"))
                 .build();
-        
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(5000);
-        requestFactory.setReadTimeout(5000);
-        this.template = new RestTemplate(new BufferingClientHttpRequestFactory(requestFactory));
     }
     
     /**
@@ -128,7 +121,6 @@ public class AdminClient extends BaseClient {
      */
     public void login() {
         final String url = baseURL + "/platform/login?userName={username}&password={password}";
-        log.info("login, url:{}", url);
         ResponseEntity<ShenYuResult> response = template.getForEntity(
                 url,
                 ShenYuResult.class,
@@ -140,8 +132,7 @@ public class AdminClient extends BaseClient {
         Assertions.assertNotNull(token, "checking token not null");
         Assertions.assertNotEquals("", token, "checking token not empty");
         basicAuth.set("X-Access-Token", token);
-        log.info("X-Access-Token:{}", token);
-        log.info("X-Access-Token length:{}", token.length());
+
         Plugin.check(listPlugins());
     }
     
@@ -151,18 +142,11 @@ public class AdminClient extends BaseClient {
      * @return a list of {@link PluginDTO}s
      */
     public List<PluginDTO> listPlugins() {
-        try {
-            log.info("basicAuth:{}", mapper.writeValueAsString(basicAuth));
-        } catch (Exception e) {
-            log.error("basicAuth error", e);
-        }
         List<PluginDTO> result = Lists.newArrayList();
         
         int cur = 1;
         int total;
         do {
-            log.info("fetching plugin list");
-            basicAuth.set("Transfer-Encoding", "");
             ResponseEntity<ShenYuResult> response = template.exchange(
                     baseURL + "/plugin?currentPage={cur}&pageSize={page}",
                     HttpMethod.GET,
@@ -359,7 +343,11 @@ public class AdminClient extends BaseClient {
         HttpEntity<T> entity = new HttpEntity<>(data, basicAuth);
         ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + uri, entity, ShenYuResult.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "status code");
-        
+        try {
+            log.info("create uri:{} response:{}", uri, mapper.writeValueAsString(response.getBody()));
+        } catch (Exception e) {
+            log.error("create error", e);
+        }
         ShenYuResult rst = response.getBody();
         Assertions.assertNotNull(rst, "checking http response body");
         Assertions.assertEquals(200, rst.getCode(), "checking shenyu result code");
@@ -449,7 +437,7 @@ public class AdminClient extends BaseClient {
     
     private void delete(final String uri, final List<String> ids) {
         if (ids.isEmpty()) {
-            log.info("delete resources, effected size: 0, cause by: there is not resources in ShenYuAdmin");
+            log.info("delete resources:{}, effected size: 0, cause by: there is not resources in ShenYuAdmin", uri);
             return;
         }
         
