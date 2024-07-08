@@ -126,8 +126,6 @@ shenyu:
       - /rule/batch
       - /rule
       - /rule/**
-      - /plugin
-      - /plugin/**
       - /plugin/createPluginResource/**
       - /plugin/batch
       - /plugin/enabled
