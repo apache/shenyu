@@ -133,7 +133,7 @@ public class AdminClient extends BaseClient {
         Assertions.assertNotNull(token, "checking token not null");
         Assertions.assertNotEquals("", token, "checking token not empty");
         basicAuth.set("X-Access-Token", token);
-        
+        log.info("X-Access-Token:{}", token);
         Plugin.check(listPlugins());
     }
     
@@ -143,9 +143,8 @@ public class AdminClient extends BaseClient {
      * @return a list of {@link PluginDTO}s
      */
     public List<PluginDTO> listPlugins() {
-        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            log.info("basicAuth:{}", objectMapper.writeValueAsString(basicAuth));
+            log.info("basicAuth:{}", mapper.writeValueAsString(basicAuth));
         } catch (Exception e) {
             log.error("basicAuth error", e);
         }
