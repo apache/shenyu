@@ -71,6 +71,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
                                     @NotNull final HttpServletResponse response,
                                     @NotNull final FilterChain filterChain) throws ServletException, IOException {
         String method = request.getMethod();
+        
         if (StringUtils.equals(HttpMethod.OPTIONS.name(), method)
                 || StringUtils.equals(HttpMethod.GET.name(), method)) {
             filterChain.doFilter(request, response);
@@ -84,10 +85,18 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         // this node is not master
         String uri = request.getRequestURI();
         String requestContextPath = request.getContextPath();
-        String replaced = uri.replaceAll(requestContextPath, "");
-        boolean anyMatch = clusterProperties.getForwardList()
-                .stream().anyMatch(x -> PATH_MATCHER.match(x, replaced));
-        if (!anyMatch) {
+        String simpleUri = uri.replaceAll(requestContextPath, "");
+        
+        boolean shouldIgnore = clusterProperties.getIgnoredList()
+                .stream().anyMatch(x -> PATH_MATCHER.match(x, simpleUri));
+        if (shouldIgnore) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+        boolean shouldForward = clusterProperties.getForwardList()
+                .stream().anyMatch(x -> PATH_MATCHER.match(x, simpleUri));
+        if (!shouldForward) {
             filterChain.doFilter(request, response);
             return;
         }

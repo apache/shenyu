@@ -115,6 +115,8 @@ shenyu:
   cluster:
     enabled: false
     type: jdbc
+    ignored-list:
+      - /selector/list/**
     forward-list:
       - /shenyu-client/**
       - /configs/**
@@ -126,6 +128,8 @@ shenyu:
       - /rule/batch
       - /rule
       - /rule/**
+      - /plugin
+      - /plugin/**
       - /plugin/createPluginResource/**
       - /plugin/batch
       - /plugin/enabled

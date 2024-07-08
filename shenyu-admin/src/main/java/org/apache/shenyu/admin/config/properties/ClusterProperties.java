@@ -48,6 +48,11 @@ public class ClusterProperties {
     private List<String> forwardList;
     
     /**
+     * cluster forward ignore uri list.
+     */
+    private List<String> ignoredList;
+    
+    /**
      * cluster select master task period.
      */
     private Long selectPeriod = 15L;
@@ -127,6 +132,23 @@ public class ClusterProperties {
      */
     public void setForwardList(final List<String> forwardList) {
         this.forwardList = forwardList;
+    }
+    
+    /**
+     * Get the ignore list.
+     *
+     * @return the ignore list
+     */
+    public List<String> getIgnoredList() {
+        return ignoredList;
+    }
+    
+    /**
+     * Set the ignore list.
+     * @param ignoredList the ignore list
+     */
+    public void setIgnoredList(final List<String> ignoredList) {
+        this.ignoredList = ignoredList;
     }
     
     /**
