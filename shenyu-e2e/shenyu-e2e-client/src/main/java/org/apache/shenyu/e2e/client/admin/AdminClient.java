@@ -147,7 +147,7 @@ public class AdminClient extends BaseClient {
         try {
             log.info("basicAuth:{}", objectMapper.writeValueAsString(basicAuth));
         } catch (Exception e) {
-            log.error("basicAuth", e);
+            log.error("basicAuth error", e);
         }
         List<PluginDTO> result = Lists.newArrayList();
         
