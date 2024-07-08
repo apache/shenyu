@@ -134,6 +134,7 @@ public class AdminClient extends BaseClient {
         Assertions.assertNotEquals("", token, "checking token not empty");
         basicAuth.set("X-Access-Token", token);
         log.info("X-Access-Token:{}", token);
+        log.info("X-Access-Token length:{}", token.length());
         Plugin.check(listPlugins());
     }
     
