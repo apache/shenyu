@@ -117,6 +117,9 @@ shenyu:
     type: jdbc
     ignored-list:
       - /selector/list/**
+      - /appAuth/list/**
+      - /plugin/list/**
+      - /rule/list/**
     forward-list:
       - /shenyu-client/**
       - /configs/**
