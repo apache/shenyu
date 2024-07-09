@@ -196,10 +196,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - case: shenyu-e2e-case-cluster
-            script: e2e-cluster-jdbc
-          - case: shenyu-e2e-case-cluster
-            script: e2e-cluster-zookeeper
           - case: shenyu-e2e-case-http
             script: e2e-http-sync
           - case: shenyu-e2e-case-spring-cloud
@@ -212,10 +208,10 @@ jobs:
             script: e2e-grpc-sync
           - case: shenyu-e2e-case-websocket
             script: e2e-websocket-sync
-#          - case: shenyu-e2e-case-cluster
-#            script: e2e-cluster-jdbc
-#          - case: shenyu-e2e-case-cluster
-#            script: e2e-cluster-zookeeper
+          - case: shenyu-e2e-case-cluster
+            script: e2e-cluster-jdbc
+          - case: shenyu-e2e-case-cluster
+            script: e2e-cluster-zookeeper
             
     steps:
       - uses: actions/checkout@v2
