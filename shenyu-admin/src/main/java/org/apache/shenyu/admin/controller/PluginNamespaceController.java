@@ -181,7 +181,7 @@ public class PluginNamespaceController implements PagedController<PluginNamespac
     @RequiresPermissions("system:plugin:disable")
     public ShenyuAdminResult enabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
         if (batchCommonDTO.getEnabled() == null) {
-            return ShenyuAdminResult.error(ShenyuResultMessage.ENABLED_NOT_NULL);
+            return ShenyuAdminResult.error(ShenyuResultMessage.PLUGIN_NAMESPACE_ENABLED_NOT_NULL);
         }
         final String result = pluginNamespaceService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId());
         if (StringUtils.isNoneBlank(result)) {

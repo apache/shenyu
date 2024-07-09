@@ -89,7 +89,7 @@ public final class ShenyuResultMessage {
 
     public static final String NAMESPACE_ID_NOT_NULL = "namespace is not null";
 
-    public static final String ENABLED_NOT_NULL = "enabled is not null";
+    public static final String PLUGIN_NAMESPACE_ENABLED_NOT_NULL = "pluginNamespace enabled is not null";
     
     private ShenyuResultMessage() {
     

@@ -100,13 +100,13 @@ public class SyncDataServiceImpl implements SyncDataService {
         this.discoveryService = discoveryService;
     }
 
-    //todo:[命名空间待改造]只做根据namespaceId做同步
+    //todo:[Namespace to be modified] Synchronize based on namespaceId
     @Override
     public boolean syncAll(final DataEventTypeEnum type) {
         appAuthService.syncData();
 
         List<PluginData> pluginDataList = pluginNamespaceService.listAll();
-        //todo:[命名空间待改造]暂时只同步默认命名空间的插件数据
+        //todo:[Namespace to be modified] Temporarily only synchronize plugin data for the default namespace
         List<PluginData> pluginDataListFilter = pluginDataList.stream().filter(v -> v.getNamespaceId().equals(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).collect(Collectors.toList());
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, pluginDataListFilter));
 

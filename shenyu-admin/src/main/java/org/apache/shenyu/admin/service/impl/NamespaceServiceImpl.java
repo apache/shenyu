@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.transfer.NamespaceTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.utils.NamespaceIDUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +42,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -107,8 +107,7 @@ public class NamespaceServiceImpl implements NamespaceService {
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
-        //todo:封装到shenyu-common包下
-        String namespaceId = UUID.randomUUID().toString().replace("-", "");
+        String namespaceId = NamespaceIDUtils.getInstance().generateNamespaceID();
         NamespaceDO namespaceDO = NamespaceDO.builder()
                 .id(id)
                 .namespaceId(namespaceId)
