@@ -46,12 +46,12 @@ public class ClusterProperties {
     /**
      * the connectionTimeout.
      */
-    private int connectionTimeout = 5000;
+    private int connectionTimeout = 6000;
     
     /**
      * the readTimeout.
      */
-    private int readTimeout = 5000;
+    private int readTimeout = 6000;
     
     /**
      * cluster forward uri list.
