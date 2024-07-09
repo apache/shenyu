@@ -94,7 +94,7 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
         if (masterFlag) {
             try {
                 jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
-            }catch (IllegalStateException e){
+            } catch (IllegalStateException e) {
                 masterFlag = false;
                 throw e;
             }
