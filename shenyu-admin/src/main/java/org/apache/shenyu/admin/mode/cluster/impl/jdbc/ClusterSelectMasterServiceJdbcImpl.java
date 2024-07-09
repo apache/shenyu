@@ -33,6 +33,9 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 
+/**
+ * The cluster select master service jdbc impl.
+ */
 public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterService {
     
     private static final Logger LOG = LoggerFactory.getLogger(ClusterSelectMasterServiceJdbcImpl.class);
