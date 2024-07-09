@@ -92,7 +92,12 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
     @Override
     public boolean checkMasterStatus() throws IllegalStateException {
         if (masterFlag) {
-            jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
+            try {
+                jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
+            }catch (IllegalStateException e){
+                masterFlag = false;
+                throw e;
+            }
         }
         return masterFlag;
     }
