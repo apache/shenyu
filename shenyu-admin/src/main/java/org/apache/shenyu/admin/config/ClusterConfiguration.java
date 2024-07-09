@@ -32,6 +32,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * The type Cluster configuration.
@@ -72,8 +74,11 @@ public class ClusterConfiguration {
      * @return the Shenyu cluster forward filter
      */
     @Bean
-    public ClusterForwardFilter clusterForwardFilter() {
-        return new ClusterForwardFilter();
+    public ClusterForwardFilter clusterForwardFilter(final ClusterProperties clusterProperties) {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(clusterProperties.getConnectionTimeout());
+        factory.setReadTimeout(clusterProperties.getReadTimeout());
+        return new ClusterForwardFilter(new RestTemplate(factory));
     }
     
 }

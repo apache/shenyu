@@ -44,6 +44,16 @@ public class ClusterProperties {
     private String schema = "http";
     
     /**
+     * the connectionTimeout.
+     */
+    private int connectionTimeout = 5000;
+    
+    /**
+     * the readTimeout.
+     */
+    private int readTimeout = 5000;
+    
+    /**
      * cluster forward uri list.
      */
     private List<String> forwardList = Lists.newArrayList();
@@ -118,6 +128,42 @@ public class ClusterProperties {
     }
     
     /**
+     * Get connection timeout.
+     *
+     * @return connectionTimeout
+     */
+    public int getConnectionTimeout() {
+        return connectionTimeout;
+    }
+    
+    /**
+     * Set connection timeout.
+     *
+     * @param connectionTimeout connectionTimeout
+     */
+    public void setConnectionTimeout(final int connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+    
+    /**
+     * Get readTimeout.
+     *
+     * @return readTimeout
+     */
+    public int getReadTimeout() {
+        return readTimeout;
+    }
+    
+    /**
+     * Set readTimeout.
+     *
+     * @param readTimeout readTimeout
+     */
+    public void setReadTimeout(final int readTimeout) {
+        this.readTimeout = readTimeout;
+    }
+    
+    /**
      * Gets the value of forwardList.
      *
      * @return the value of forwardList
@@ -146,6 +192,7 @@ public class ClusterProperties {
     
     /**
      * Set the ignore list.
+     *
      * @param ignoredList the ignore list
      */
     public void setIgnoredList(final List<String> ignoredList) {

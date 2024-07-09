@@ -57,8 +57,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     
     private static final PathMatcher PATH_MATCHER = new AntPathMatcher();
     
-    @Resource
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
     
     @Resource
     private ClusterSelectMasterService clusterSelectMasterService;
@@ -66,31 +65,44 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     @Resource
     private ClusterProperties clusterProperties;
     
+    public ClusterForwardFilter(final RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+    
     @Override
     protected void doFilterInternal(@NotNull final HttpServletRequest request,
                                     @NotNull final HttpServletResponse response,
                                     @NotNull final FilterChain filterChain) throws ServletException, IOException {
         String method = request.getMethod();
         
-        if (StringUtils.equals(HttpMethod.OPTIONS.name(), method)
-                || StringUtils.equals(HttpMethod.GET.name(), method)) {
+        String uri = request.getRequestURI();
+        String requestContextPath = request.getContextPath();
+        String simpleUri = uri.replaceAll(requestContextPath, "");
+        
+        if (StringUtils.equals(HttpMethod.OPTIONS.name(), method)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("method is OPTIONS or GET, no forward :{}", simpleUri);
+            }
             filterChain.doFilter(request, response);
             return;
         }
         
         if (clusterSelectMasterService.isMaster()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("this node is master, no forward :{}", simpleUri);
+            }
             filterChain.doFilter(request, response);
             return;
         }
         // this node is not master
-        String uri = request.getRequestURI();
-        String requestContextPath = request.getContextPath();
-        String simpleUri = uri.replaceAll(requestContextPath, "");
         
         // check whether the uri should be ignored
         boolean shouldIgnore = clusterProperties.getIgnoredList()
                 .stream().anyMatch(x -> PATH_MATCHER.match(x, simpleUri));
         if (shouldIgnore) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("shouldIgnore, no forward :{}", simpleUri);
+            }
             filterChain.doFilter(request, response);
             return;
         }
@@ -99,6 +111,9 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         boolean shouldForward = clusterProperties.getForwardList()
                 .stream().anyMatch(x -> PATH_MATCHER.match(x, simpleUri));
         if (!shouldForward) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("!shouldForward, no forward :{}", simpleUri);
+            }
             filterChain.doFilter(request, response);
             return;
         }

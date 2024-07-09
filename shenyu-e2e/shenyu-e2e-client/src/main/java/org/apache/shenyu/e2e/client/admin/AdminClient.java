@@ -155,14 +155,10 @@ public class AdminClient extends BaseClient {
                     cur,
                     30
             );
-            try {
-                log.info("response:{}", mapper.writeValueAsString(response.getBody()));
-            } catch (Exception e) {
-                log.error("fetching plugin list error", e);
-            }
             ShenYuResult rst = assertAndGet(response, "query success");
             
-            PaginatedResources<PluginDTO> pagination = Assertions.assertDoesNotThrow(() -> mapper.readValue(rst.getData().traverse(), PAGINATED_PLUGINS_TYPE_REFERENCE),
+            PaginatedResources<PluginDTO> pagination = Assertions.assertDoesNotThrow(
+                () -> mapper.readValue(rst.getData().traverse(), PAGINATED_PLUGINS_TYPE_REFERENCE),
                     "checking cast to PaginatedResources<T>"
             );
             result.addAll(pagination.getDataList());
@@ -297,7 +293,8 @@ public class AdminClient extends BaseClient {
         ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + uri, entity, ShenYuResult.class);
         ShenYuResult rst = assertAndGet(response, "query success");
         
-        return Assertions.assertDoesNotThrow(() -> mapper.readValue(rst.getData().traverse(), valueType),
+        return Assertions.assertDoesNotThrow(
+            () -> mapper.readValue(rst.getData().traverse(), valueType),
                 "checking cast to SearchedResources<T>"
         );
     }
@@ -305,7 +302,8 @@ public class AdminClient extends BaseClient {
     private <T extends ResourceDTO> List<T> getSearch(final String uri, final TypeReference<List<T>> valueType) {
         ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri, HttpMethod.GET, new HttpEntity<>(basicAuth), ShenYuResult.class);
         ShenYuResult rst = assertAndGet(response, "query success");
-        return Assertions.assertDoesNotThrow(() -> mapper.readValue(rst.getData().traverse(), valueType),
+        return Assertions.assertDoesNotThrow(
+            () -> mapper.readValue(rst.getData().traverse(), valueType),
                 "checking cast to SearchedResources<T>"
         );
     }
@@ -343,11 +341,7 @@ public class AdminClient extends BaseClient {
         HttpEntity<T> entity = new HttpEntity<>(data, basicAuth);
         ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + uri, entity, ShenYuResult.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "status code");
-        try {
-            log.info("create uri:{} response:{}", uri, mapper.writeValueAsString(response.getBody()));
-        } catch (Exception e) {
-            log.error("create error", e);
-        }
+        
         ShenYuResult rst = response.getBody();
         Assertions.assertNotNull(rst, "checking http response body");
         Assertions.assertEquals(200, rst.getCode(), "checking shenyu result code");
@@ -437,7 +431,7 @@ public class AdminClient extends BaseClient {
     
     private void delete(final String uri, final List<String> ids) {
         if (ids.isEmpty()) {
-            log.info("delete resources:{}, effected size: 0, cause by: there is not resources in ShenYuAdmin", uri);
+            log.info("delete resources, effected size: 0, cause by: there is not resources in ShenYuAdmin");
             return;
         }
         
