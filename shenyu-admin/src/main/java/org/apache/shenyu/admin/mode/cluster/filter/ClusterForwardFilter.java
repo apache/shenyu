@@ -98,7 +98,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
                                 final HttpServletResponse response) throws IOException {
         String targetUrl = getForwardingUrl(request);
         
-        LOG.info("forwarding current uri: {} request to target url: {}", request.getRequestURI(), targetUrl);
+        LOG.info("forwarding current uri: {} method: {} request to target url: {}", request.getRequestURI(), request.getMethod(), targetUrl);
         // Create request entity
         HttpHeaders headers = new HttpHeaders();
         // Copy request headers

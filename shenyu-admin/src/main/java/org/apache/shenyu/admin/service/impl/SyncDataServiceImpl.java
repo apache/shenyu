@@ -35,6 +35,8 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +51,8 @@ import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMES
  */
 @Service
 public class SyncDataServiceImpl implements SyncDataService {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(SyncDataServiceImpl.class);
 
     private final AppAuthService appAuthService;
 
