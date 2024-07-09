@@ -71,6 +71,7 @@ public class ClusterConfiguration {
     /**
      * Shenyu cluster forward filter.
      *
+     * @param clusterProperties cluster properties
      * @return the Shenyu cluster forward filter
      */
     @Bean

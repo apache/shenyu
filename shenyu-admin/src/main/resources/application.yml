@@ -115,6 +115,8 @@ shenyu:
   cluster:
     enabled: false
     type: jdbc
+    connectionTimeout: 15000
+    readTimeout: 15000
     ignored-list:
       - /selector/list/**
       - /appAuth/list/**
