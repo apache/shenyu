@@ -248,9 +248,6 @@ public class AdminClient extends BaseClient {
     /**
      * Fetch the selectors by the given conditions.
      *
-     * @param keyword  expected selectors included the word. return all if absent.
-     * @param page     page.
-     *
      * @param keyword expected selectors included the word. return all if absent.
      * @param page page.
      * @param pageSize size.
@@ -360,7 +357,6 @@ public class AdminClient extends BaseClient {
         }
         Assertions.assertNotNull(searchedResources, "checking searchedResources object is non-null");
         Assertions.assertEquals(1, searchedResources.getTotal(), "checking the total hits of searching");
-
 
         ResourceDTO created = searchedResources.getList().get(0);
         Assertions.assertNotNull(created, "checking created object is non-null");
