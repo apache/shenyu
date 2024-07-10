@@ -38,6 +38,9 @@ import org.junit.jupiter.api.BeforeEach;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Testing Cluster Divide plugin.
+ */
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",

@@ -99,7 +99,9 @@ public class WebsocketCollector {
         }
         
         if (Objects.equals(message, DataEventTypeEnum.RUNNING_MODE.name())) {
-            LOG.info("websocket fetching running mode info...");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("websocket fetching running mode info...");
+            }
             // check if this node is master
             boolean isMaster = true;
             String runningMode = RunningModeEnum.STANDALONE.name();
