@@ -97,7 +97,9 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
                 
                 renewed = shenyuClusterSelectMasterService.checkMasterStatus();
                 if (renewed) {
-                    LOG.info("renew master success");
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("renew master success");
+                    }
                 }
             }
         } catch (Exception e) {

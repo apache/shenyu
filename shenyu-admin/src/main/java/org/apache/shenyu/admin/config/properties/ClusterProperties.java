@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config.properties;
 
+import com.google.common.collect.Lists;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
@@ -43,9 +44,24 @@ public class ClusterProperties {
     private String schema = "http";
     
     /**
+     * the connectionTimeout.
+     */
+    private int connectionTimeout = 6000;
+    
+    /**
+     * the readTimeout.
+     */
+    private int readTimeout = 6000;
+    
+    /**
      * cluster forward uri list.
      */
-    private List<String> forwardList;
+    private List<String> forwardList = Lists.newArrayList();
+    
+    /**
+     * cluster forward ignore uri list.
+     */
+    private List<String> ignoredList = Lists.newArrayList();
     
     /**
      * cluster select master task period.
@@ -112,6 +128,42 @@ public class ClusterProperties {
     }
     
     /**
+     * Get connection timeout.
+     *
+     * @return connectionTimeout
+     */
+    public int getConnectionTimeout() {
+        return connectionTimeout;
+    }
+    
+    /**
+     * Set connection timeout.
+     *
+     * @param connectionTimeout connectionTimeout
+     */
+    public void setConnectionTimeout(final int connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+    
+    /**
+     * Get readTimeout.
+     *
+     * @return readTimeout
+     */
+    public int getReadTimeout() {
+        return readTimeout;
+    }
+    
+    /**
+     * Set readTimeout.
+     *
+     * @param readTimeout readTimeout
+     */
+    public void setReadTimeout(final int readTimeout) {
+        this.readTimeout = readTimeout;
+    }
+    
+    /**
      * Gets the value of forwardList.
      *
      * @return the value of forwardList
@@ -127,6 +179,24 @@ public class ClusterProperties {
      */
     public void setForwardList(final List<String> forwardList) {
         this.forwardList = forwardList;
+    }
+    
+    /**
+     * Get the ignore list.
+     *
+     * @return the ignore list
+     */
+    public List<String> getIgnoredList() {
+        return ignoredList;
+    }
+    
+    /**
+     * Set the ignore list.
+     *
+     * @param ignoredList the ignore list
+     */
+    public void setIgnoredList(final List<String> ignoredList) {
+        this.ignoredList = ignoredList;
     }
     
     /**

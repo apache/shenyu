@@ -57,8 +57,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     
     private static final PathMatcher PATH_MATCHER = new AntPathMatcher();
     
-    @Resource
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
     
     @Resource
     private ClusterSelectMasterService clusterSelectMasterService;
@@ -66,30 +65,59 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
     @Resource
     private ClusterProperties clusterProperties;
     
+    public ClusterForwardFilter(final RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+    
     @Override
     protected void doFilterInternal(@NotNull final HttpServletRequest request,
                                     @NotNull final HttpServletResponse response,
                                     @NotNull final FilterChain filterChain) throws ServletException, IOException {
         String method = request.getMethod();
+        
+        String uri = request.getRequestURI();
+        String requestContextPath = request.getContextPath();
+        String simpleUri = uri.replaceAll(requestContextPath, "");
+        
         if (StringUtils.equals(HttpMethod.OPTIONS.name(), method)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("method is OPTIONS or GET, no forward :{}", simpleUri);
+            }
             filterChain.doFilter(request, response);
             return;
         }
         
         if (clusterSelectMasterService.isMaster()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("this node is master, no forward :{}", simpleUri);
+            }
             filterChain.doFilter(request, response);
             return;
         }
         // this node is not master
-        String uri = request.getRequestURI();
-        String requestContextPath = request.getContextPath();
-        String replaced = uri.replaceAll(requestContextPath, "");
-        boolean anyMatch = clusterProperties.getForwardList()
-                .stream().anyMatch(x -> PATH_MATCHER.match(x, replaced));
-        if (!anyMatch) {
+        
+        // check whether the uri should be ignored
+        boolean shouldIgnore = clusterProperties.getIgnoredList()
+                .stream().anyMatch(x -> PATH_MATCHER.match(x, simpleUri));
+        if (shouldIgnore) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("shouldIgnore, no forward :{}", simpleUri);
+            }
             filterChain.doFilter(request, response);
             return;
         }
+        
+        // check whether the uri should be forwarded
+        boolean shouldForward = clusterProperties.getForwardList()
+                .stream().anyMatch(x -> PATH_MATCHER.match(x, simpleUri));
+        if (!shouldForward) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("!shouldForward, no forward :{}", simpleUri);
+            }
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         // cluster forward request to master
         forwardRequest(request, response);
     }
@@ -98,7 +126,9 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
                                 final HttpServletResponse response) throws IOException {
         String targetUrl = getForwardingUrl(request);
         
-        LOG.info("forwarding current uri: {} request to target url: {}", request.getRequestURI(), targetUrl);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("forwarding current uri: {} method: {} request to target url: {}", request.getRequestURI(), request.getMethod(), targetUrl);
+        }
         // Create request entity
         HttpHeaders headers = new HttpHeaders();
         // Copy request headers
@@ -106,7 +136,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(getBody(request), headers);
         // Send request
         ResponseEntity<byte[]> responseEntity = restTemplate.exchange(targetUrl, HttpMethod.valueOf(request.getMethod()), requestEntity, byte[].class);
-
+        
         // Set response status and headers
         response.setStatus(responseEntity.getStatusCodeValue());
         // Copy response headers

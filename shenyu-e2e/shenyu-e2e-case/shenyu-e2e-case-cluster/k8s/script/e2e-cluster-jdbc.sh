@@ -37,10 +37,6 @@ kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin-master | awk '{print
 
 kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin-slave | awk '{print $1}')"
 
-kubectl describe pod shenyu-admin-master
-
-kubectl describe pod shenyu-admin-slave
-
 kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
 
 ## run e2e-test
