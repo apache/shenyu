@@ -190,6 +190,8 @@ public class PluginNamespaceController implements PagedController<PluginNamespac
         return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
     }
 
+
+    //todo：根据namespaceId同步
     /**
      * sync plugins.
      *
@@ -222,15 +224,15 @@ public class PluginNamespaceController implements PagedController<PluginNamespac
         return ShenyuAdminResult.success(syncDataService.syncPluginData(id, namespaceId) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
     }
 
-//    /**
-//     * active plugin snapshot.
-//     *
-//     * @return list
-//     */
-//    @GetMapping("/snapshot/active")
-//    public ShenyuAdminResult activePluginSnapshot() {
-//        return ShenyuAdminResult.success(pluginService.activePluginSnapshot());
-//    }
+    /**
+     * active plugin snapshot.
+     *
+     * @return list
+     */
+    @GetMapping("/snapshot/active")
+    public ShenyuAdminResult activePluginSnapshot() {
+        return ShenyuAdminResult.success(pluginNamespaceService.activePluginSnapshot());
+    }
 
     @Override
     public PageService<PluginNamespaceQueryCondition, PluginNamespaceVO> pageService() {

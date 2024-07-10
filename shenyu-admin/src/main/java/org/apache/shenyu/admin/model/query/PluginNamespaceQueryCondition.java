@@ -35,6 +35,8 @@ public class PluginNamespaceQueryCondition extends BaseExcludedSearchCondition i
      * switch status: plugin status[close or open].
      */
     private Boolean switchStatus;
+
+    //todo：namespaceID 继承
     
     
     /**

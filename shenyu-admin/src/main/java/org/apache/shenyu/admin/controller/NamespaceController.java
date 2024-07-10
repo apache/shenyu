@@ -73,6 +73,7 @@ public class NamespaceController {
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
+    //todo:支持搜索
     /**
      * Find namespace list.
      *

@@ -33,6 +33,7 @@ public class NamespaceVO implements Serializable {
     /**
      * name.
      */
+    //todo:vo不用校验性的判断
     @NotNull(message = "namespace id not null")
     private String namespaceId;
 

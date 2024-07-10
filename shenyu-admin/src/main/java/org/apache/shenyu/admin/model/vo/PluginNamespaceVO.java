@@ -26,6 +26,7 @@ import java.util.Optional;
 /**
  * this is plugin view to web front.
  */
+//todo：继承自PluginVo
 public class PluginNamespaceVO implements Serializable {
 
 

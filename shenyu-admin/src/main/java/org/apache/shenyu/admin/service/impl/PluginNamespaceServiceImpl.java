@@ -68,9 +68,6 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String update(final PluginNamespaceDTO pluginNamespaceDTO) {
-//        Assert.isNull(pluginNsRelMapper.nameExistedExclude(pluginNamespaceDTO.getName(),
-//                Collections.singletonList(pluginNamespaceDTO.getPluginId()),
-//                pluginNamespaceDTO.getNamespaceId()), AdminConstants.PLUGIN_NAME_IS_EXIST);
         final PluginNamespaceVO before = pluginNsRelMapper.selectById(pluginNamespaceDTO.getPluginId(),
                 pluginNamespaceDTO.getNamespaceId());
         PluginNsRelDO pluginNsRelDO = PluginNsRelDO.buildPluginNsRelDO(pluginNamespaceDTO);
@@ -156,6 +153,7 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
 
     @Override
     public List<PluginSnapshotVO> activePluginSnapshot() {
+        //todo：等待实现
         return null;
     }
 
