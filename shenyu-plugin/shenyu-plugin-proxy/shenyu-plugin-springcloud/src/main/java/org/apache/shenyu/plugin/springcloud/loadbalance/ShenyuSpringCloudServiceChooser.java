@@ -77,7 +77,6 @@ public final class ShenyuSpringCloudServiceChooser {
         List<Upstream> divideUpstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
         // gray flow,but upstream is null
         if (CollectionUtils.isEmpty(divideUpstreams)) {
-            LOG.info("choose return 2");
             return this.doSelect(serviceId, ip, loadbalancer);
         }
         // select server from available to choose
@@ -89,10 +88,8 @@ public final class ShenyuSpringCloudServiceChooser {
                     .findFirst().ifPresent(choose::add);
         }
         if (CollectionUtils.isEmpty(choose)) {
-            LOG.info("choose return 3");
             return this.doSelect(serviceId, ip, loadbalancer);
         }
-        LOG.info("choose return 4");
         // select by divideUpstreams
         return this.doSelect(choose, loadbalancer, ip);
     }
