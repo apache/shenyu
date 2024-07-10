@@ -208,8 +208,7 @@ public class PermissionServiceImpl implements PermissionService {
                 .map(item -> AuthPerm.buildAuthPerm(ResourceVO.buildResourceVO(item)))
                 .collect(Collectors.toList());
     }
-    
-    
+
     /**
      * manger role permission.
      *

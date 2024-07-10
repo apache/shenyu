@@ -239,36 +239,6 @@
         </dependency>
         <!--Tcp Plugin end-->
 
-        <!--shenyu sofa plugin start-->
-        <dependency>
-            <groupId>com.alipay.sofa</groupId>
-            <artifactId>sofa-rpc-all</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>net.jcip</groupId>
-                    <artifactId>jcip-annotations</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>commons-io</artifactId>
-                    <groupId>commons-io</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>okio</artifactId>
-                    <groupId>com.squareup.okio</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-sofa</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu sofa plugin end-->
-
         <!--shenyu springCloud plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -360,47 +330,6 @@
         </dependency>
         <!-- Dubbo zookeeper registry dependency end -->
         <!-- shenyu  apache dubbo plugin end-->
-
-        <!--shenyu motan plugin start-->
-        <!--If you plan to use the motan plugin and want to use the hessian serialization,
-        please check the sofa plugin related dependencies.In particular, the reliance on sofa-hessian should be excluded.
-        Because sofa-hessian and caucho-hessian can cause class loading conflicts and cause some unexpected problems-->
-        <dependency>
-            <groupId>com.weibo</groupId>
-            <artifactId>motan-core</artifactId>
-            <version>${motan.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.weibo</groupId>
-            <artifactId>motan-transport-netty4</artifactId>
-            <version>${motan.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.weibo</groupId>
-            <artifactId>motan-registry-zookeeper</artifactId>
-            <version>${motan.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.weibo</groupId>
-            <artifactId>motan-springsupport</artifactId>
-            <version>${motan.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-motan</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu motan plugin end-->
 
         <!--shenyu data sync start use zookeeper-->
         <dependency>

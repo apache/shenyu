@@ -37,8 +37,6 @@
         <module>shenyu-spring-boot-starter-plugin-waf</module>
         <module>shenyu-spring-boot-starter-plugin-rewrite</module>
         <module>shenyu-spring-boot-starter-plugin-sentinel</module>
-        <module>shenyu-spring-boot-starter-plugin-sofa</module>
-        <module>shenyu-spring-boot-starter-plugin-motan</module>
         <module>shenyu-spring-boot-starter-plugin-resilience4j</module>
         <module>shenyu-spring-boot-starter-plugin-tars</module>
         <module>shenyu-spring-boot-starter-plugin-context-path</module>

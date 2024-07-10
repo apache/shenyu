@@ -31,7 +31,7 @@ Accept: application/json
 Content-Type: application/json
 
 {
-  "timeout": "1"
+  "timeout": 1
 }
 
 
@@ -41,9 +41,6 @@ Accept: application/json
 Content-Type: application/json
 
 {
-    "motanTest":
-        {
-            "id": "999",
-            "name": "dinglang"
-        }
+  "id": "999",
+  "name": "dinglang"
 }

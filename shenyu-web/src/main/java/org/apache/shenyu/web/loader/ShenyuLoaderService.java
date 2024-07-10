@@ -22,17 +22,20 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.config.ShenyuConfig.ExtPlugin;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.plugin.isolation.ExtendDataBase;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.isolation.ExtendDataHandler;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -46,20 +49,20 @@ public class ShenyuLoaderService {
 
     private final ShenyuWebHandler webHandler;
 
-    private final CommonPluginDataSubscriber subscriber;
-
     private final ShenyuConfig shenyuConfig;
+
+    private final List<ExtendDataHandler<?>> extendDataHandlers;
 
     /**
      * Instantiates a new Shenyu loader service.
      *
-     * @param webHandler   the web handler
-     * @param subscriber   the subscriber
-     * @param shenyuConfig the shenyu config
+     * @param webHandler         the web handler
+     * @param shenyuConfig       the shenyu config
+     * @param extendDataHandlers addDataHandlers
      */
-    public ShenyuLoaderService(final ShenyuWebHandler webHandler, final CommonPluginDataSubscriber subscriber, final ShenyuConfig shenyuConfig) {
-        this.subscriber = subscriber;
+    public ShenyuLoaderService(final ShenyuWebHandler webHandler, final ShenyuConfig shenyuConfig, final List<ExtendDataHandler<?>> extendDataHandlers) {
         this.webHandler = webHandler;
+        this.extendDataHandlers = extendDataHandlers;
         this.shenyuConfig = shenyuConfig;
         ExtPlugin config = shenyuConfig.getExtPlugin();
         if (config.getEnabled()) {
@@ -82,13 +85,13 @@ public class ShenyuLoaderService {
                 for (PluginJarParser.PluginJar extPath : uploadPluginJars) {
                     LOG.info("shenyu extPlugin find new {} to load", extPath.getAbsolutePath());
                     ShenyuPluginClassLoader extPathClassLoader = singleton.createPluginClassLoader(extPath);
-                    plugins.addAll(extPathClassLoader.loadUploadedJarPlugins());
+                    plugins.addAll(extPathClassLoader.loadUploadedJarPlugins(this.getClass().getClassLoader()));
                 }
             } else {
                 PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(Base64.getDecoder().decode(uploadedJarResource.getPluginJar()));
                 LOG.info("shenyu upload plugin jar find new {} to load", pluginJar.getJarKey());
                 ShenyuPluginClassLoader uploadPluginClassLoader = singleton.createPluginClassLoader(pluginJar);
-                plugins.addAll(uploadPluginClassLoader.loadUploadedJarPlugins());
+                plugins.addAll(uploadPluginClassLoader.loadUploadedJarPlugins(this.getClass().getClassLoader()));
             }
             loaderPlugins(plugins);
         } catch (Exception e) {
@@ -97,18 +100,52 @@ public class ShenyuLoaderService {
     }
 
     /**
+     * loadJarPlugins.
+     *
+     * @param parseJarInputStream parseJarInputStream
+     * @param classLoader classLoader
+     * @return a list of ShenyuLoaderResult
+     */
+    public List<ShenyuLoaderResult> loadJarPlugins(final InputStream parseJarInputStream, final ClassLoader classLoader) {
+        try {
+            ShenyuPluginClassloaderHolder singleton = ShenyuPluginClassloaderHolder.getSingleton();
+            PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(parseJarInputStream);
+            ShenyuPluginClassLoader shenyuPluginClassLoader = singleton.createPluginClassLoader(pluginJar);
+            List<ShenyuLoaderResult> uploadPlugins = shenyuPluginClassLoader.loadUploadedJarPlugins(classLoader);
+            loaderPlugins(uploadPlugins);
+            return uploadPlugins;
+        } catch (Exception e) {
+            LOG.error("Shenyu upload plugins load has error ", e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * removeJarPlugins.
+     *
+     * @param parseJarInputStream parseJarInputStream
+     */
+    public void removeJarPlugins(final InputStream parseJarInputStream) {
+        ShenyuPluginClassloaderHolder singleton = ShenyuPluginClassloaderHolder.getSingleton();
+        PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(parseJarInputStream);
+        String jarKey = Optional.ofNullable(pluginJar.getAbsolutePath()).orElse(pluginJar.getJarKey());
+        singleton.removePluginClassLoader(jarKey);
+    }
+
+    /**
      * loaderPlugins.
      *
      * @param results results
      */
-    private void loaderPlugins(final List<ShenyuLoaderResult> results) {
+    public void loaderPlugins(final List<ShenyuLoaderResult> results) {
         if (CollectionUtils.isEmpty(results)) {
             return;
         }
         List<ShenyuPlugin> shenyuExtendPlugins = results.stream().map(ShenyuLoaderResult::getShenyuPlugin).filter(Objects::nonNull).collect(Collectors.toList());
         webHandler.putExtPlugins(shenyuExtendPlugins);
-        List<PluginDataHandler> handlers = results.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
-        subscriber.putExtendPluginDataHandler(handlers);
+        List<ExtendDataBase> handlers = results.stream().map(ShenyuLoaderResult::getExtendDataBase)
+                .filter(Objects::nonNull).collect(Collectors.toList());
+        extendDataHandlers.forEach(addDataHandlers1 -> addDataHandlers1.putExtendDataHandler(handlers));
     }
 
 }

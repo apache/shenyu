@@ -23,6 +23,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.isolation.ExtendDataBase;
 import org.apache.shenyu.plugin.motan.cache.ApplicationConfigCache;
 
 import java.util.Objects;
@@ -30,7 +31,7 @@ import java.util.Objects;
 /**
  * The type motan plugin data handler.
  */
-public class MotanPluginDataHandler implements PluginDataHandler {
+public class MotanPluginDataHandler implements PluginDataHandler, ExtendDataBase {
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {

@@ -29,6 +29,8 @@ import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,9 +46,11 @@ import java.util.stream.Collectors;
  * The type Shenyu controller endpoint.
  */
 @RestController
-@RequestMapping(value = "/actuator", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+@RequestMapping(value = "/actuator", produces = {MediaType.APPLICATION_JSON_VALUE})
 public class ShenyuControllerEndpoint {
-    
+
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuControllerEndpoint.class);
+
     private final ShenyuWebHandler webHandler;
     
     /**
@@ -66,6 +70,7 @@ public class ShenyuControllerEndpoint {
     @GetMapping("/plugins")
     public Flux<Map<String, Integer>> plugins() {
         List<ShenyuPlugin> plugins = webHandler.getPlugins();
+        plugins.stream().forEach(plugin -> LOG.info("plugin name : {}, plugin order : {}", plugin.toString(), plugin.getOrder()));
         return Flux.just(plugins.stream().collect(Collectors.toMap(ShenyuPlugin::toString, ShenyuPlugin::getOrder)));
     }
     

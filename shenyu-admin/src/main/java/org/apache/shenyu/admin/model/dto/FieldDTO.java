@@ -82,7 +82,6 @@ public class FieldDTO implements Serializable {
      */
     private Timestamp dateUpdated;
 
-
     /**
      * getModelId.
      *

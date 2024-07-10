@@ -19,8 +19,10 @@ package org.apache.shenyu.plugin.base.cache;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
+import org.apache.shenyu.plugin.isolation.ExtendDataHandler;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,16 +30,17 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
  * The type common meta data subscriber.
  */
-public class CommonMetaDataSubscriber implements MetaDataSubscriber {
+public class CommonMetaDataSubscriber implements MetaDataSubscriber, ExtendDataHandler<MetaDataHandler> {
 
     private static final Logger LOG = LoggerFactory.getLogger(CommonMetaDataSubscriber.class);
 
-    private final Map<String, MetaDataHandler> handlerMap;
+    private final Map<String, MetaDataHandler> handlerMap = new ConcurrentHashMap<>();
 
     /**
      * Instantiates a new Common meta data subscriber.
@@ -45,7 +48,19 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
      * @param metaDataHandlerList the plugin data handler list
      */
     public CommonMetaDataSubscriber(final List<MetaDataHandler> metaDataHandlerList) {
-        this.handlerMap = metaDataHandlerList.stream().collect(Collectors.toConcurrentMap(MetaDataHandler::rpcType, e -> e));
+        this.handlerMap.putAll(metaDataHandlerList.stream().collect(Collectors.toConcurrentMap(MetaDataHandler::rpcType, e -> e)));
+    }
+
+    @Override
+    public void addHandlers(final List<MetaDataHandler> handlers) {
+        handlers.forEach(metaDataHandler -> {
+            this.handlerMap.put(metaDataHandler.rpcType(), metaDataHandler);
+        });
+    }
+
+    @Override
+    public void removeHandler(final RpcTypeEnum rpcTypeEnum) {
+        this.handlerMap.remove(rpcTypeEnum.getName());
     }
 
     @Override
@@ -53,8 +68,20 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
         Optional.ofNullable(handlerMap.get(metaData.getRpcType()))
                 .ifPresent(handler -> {
                     LOG.info("subscribe metaData: {}", JsonUtils.toJson(metaData));
-                    handler.handle(metaData);
+                    handleMetaData(handler, metaData);
                 });
+    }
+
+    private void handleMetaData(final MetaDataHandler handler, final MetaData metaData) {
+        ClassLoader current = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(handler.getClass().getClassLoader());
+            handler.handle(metaData);
+        } catch (Throwable e) {
+            LOG.error("handle metaData failed, metaData: {}", JsonUtils.toJson(metaData));
+        } finally {
+            Thread.currentThread().setContextClassLoader(current);
+        }
     }
 
     @Override

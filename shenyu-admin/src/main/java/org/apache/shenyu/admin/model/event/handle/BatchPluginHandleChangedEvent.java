@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
  */
 public class BatchPluginHandleChangedEvent extends BatchChangedEvent {
     
-    
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *

@@ -36,7 +36,6 @@ import java.util.Map;
 
 import static org.apache.shenyu.sdk.core.util.Util.checkState;
 
-
 /**
  * Defines what annotations and values are valid on interfaces.
  */

@@ -32,7 +32,7 @@
         <!-- apache shenyu motan plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-motan</artifactId>
+            <artifactId>shenyu-spring-boot-starter-isolation-plugin-sofa</artifactId>
             <version>${project.version}</version>
         </dependency>
 

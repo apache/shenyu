@@ -35,7 +35,6 @@ public class BatchResourceCreatedEvent extends BatchChangedEvent {
     
     private final List<String> deletedIds;
     
-    
     /**
      * Create a new {@code BatchChangedEvent}.operator is unknown.
      *

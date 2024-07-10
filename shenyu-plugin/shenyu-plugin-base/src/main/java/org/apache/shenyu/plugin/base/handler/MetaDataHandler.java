@@ -51,4 +51,5 @@ public interface MetaDataHandler {
      * @see org.apache.shenyu.common.enums.RpcTypeEnum#getName()
      */
     String rpcType();
+
 }

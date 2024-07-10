@@ -29,8 +29,9 @@ fi
 
 LOG_FILES=${LOGS_DIR}/shenyu-bootstrap.log
 EXT_LIB=${DEPLOY_DIR}/ext-lib
+PLUGIN_LIB=${DEPLOY_DIR}/plugins/lib
 
-CLASS_PATH=.:${DEPLOY_DIR}/conf:${DEPLOY_DIR}/lib/*:${EXT_LIB}/*
+CLASS_PATH=.:${DEPLOY_DIR}/conf:${DEPLOY_DIR}/lib/*:${EXT_LIB}/*:${PLUGIN_LIB}/*
 if [ -z "${BOOT_JVM}" ]; then
     JAVA_OPTS=" -server -Xmx4g -Xms4g -Xmn1g -Xss512k -XX:+DisableExplicitGC   -XX:LargePageSizeInBytes=128m"
     version=`java -version 2>&1 | sed '1!d' | sed -e 's/"//g' | awk '{print $3}'`

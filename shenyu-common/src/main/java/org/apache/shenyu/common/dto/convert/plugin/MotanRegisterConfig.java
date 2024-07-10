@@ -57,7 +57,6 @@ public class MotanRegisterConfig implements Serializable {
         this.threadpool = threadpool;
     }
 
-
     /**
      * get corethreads.
      *

@@ -169,7 +169,6 @@ public final class ApplicationConfigCache {
         return grpcUpstreamCachedHandle.get().obtainHandle(selectorId);
     }
 
-
     /**
      * The type Application config cache instance.
      */

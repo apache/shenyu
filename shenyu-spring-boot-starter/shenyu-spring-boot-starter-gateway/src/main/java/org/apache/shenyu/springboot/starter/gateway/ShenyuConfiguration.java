@@ -30,6 +30,7 @@ import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrieListener;
+import org.apache.shenyu.plugin.isolation.ExtendDataHandler;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.configuration.ErrorHandlerConfiguration;
@@ -142,15 +143,15 @@ public class ShenyuConfiguration {
      * Shenyu loader service.
      *
      * @param shenyuWebHandler the shenyu web handler
-     * @param pluginDataSubscriber the plugin data subscriber
      * @param config the config
+     * @param extendDataHandlers addDataHandlers
      * @return the shenyu loader service
      */
     @Bean
     public ShenyuLoaderService shenyuLoaderService(final ShenyuWebHandler shenyuWebHandler,
-                                                   final PluginDataSubscriber pluginDataSubscriber,
-                                                   final ShenyuConfig config) {
-        return new ShenyuLoaderService(shenyuWebHandler, (CommonPluginDataSubscriber) pluginDataSubscriber, config);
+                                                   final ShenyuConfig config,
+                                                   final List<ExtendDataHandler<?>> extendDataHandlers) {
+        return new ShenyuLoaderService(shenyuWebHandler, config, extendDataHandlers);
     }
     
     /**

@@ -17,11 +17,15 @@
 
 package org.apache.shenyu.web.loader;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +37,8 @@ import java.util.jar.JarInputStream;
  */
 public class PluginJarParser {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PluginJarParser.class);
+
     /**
      * parseJar.
      *
@@ -40,13 +46,23 @@ public class PluginJarParser {
      * @return PluginJar
      */
     public static PluginJar parseJar(final byte[] jarBytes) {
+        return parseJar(new ByteArrayInputStream(jarBytes));
+    }
+
+    /**
+     * parseJar.
+     *
+     * @param parseJarInputStream parseJarInputStream
+     * @return PluginJar
+     */
+    public static PluginJar parseJar(final InputStream parseJarInputStream) {
         PluginJar pluginJar = new PluginJar();
-        try (JarInputStream jarInputStream = new JarInputStream(new ByteArrayInputStream(jarBytes))) {
+        try (JarInputStream jarInputStream = new JarInputStream(parseJarInputStream)) {
             JarEntry jarEntry;
             while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
                 String entryName = jarEntry.getName();
-                // get jar version
-                if (jarEntry.getName().endsWith("pom.properties")) {
+                // Set jar version. The jar file may contain more than one pom.properties, take only the first one.
+                if (pluginJar.isEmpty() && jarEntry.getName().endsWith("pom.properties")) {
                     try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
                         int data;
                         while ((data = jarInputStream.read()) != -1) {
@@ -70,7 +86,7 @@ public class PluginJarParser {
                 }
             }
         } catch (IOException e) {
-            throw new ShenyuException("load jar classes find error");
+            throw new ShenyuException("load jar classes find error, exception:{}", e);
         }
         return pluginJar;
     }
@@ -220,6 +236,17 @@ public class PluginJarParser {
          */
         public void setResourceMap(final Map<String, byte[]> resourceMap) {
             this.resourceMap = resourceMap;
+        }
+
+        /**
+         * jar isEmpty.
+         *
+         * @return boolean
+         */
+        public boolean isEmpty() {
+            return StringUtils.isEmpty(groupId)
+                    && StringUtils.isEmpty(artifactId)
+                    && StringUtils.isEmpty(version);
         }
     }
 

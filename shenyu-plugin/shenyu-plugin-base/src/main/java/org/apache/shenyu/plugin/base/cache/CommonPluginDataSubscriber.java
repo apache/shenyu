@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.enums.TrieEventEnum;
 import org.apache.shenyu.common.utils.MapUtils;
@@ -32,6 +33,7 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.event.TrieEvent;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
+import org.apache.shenyu.plugin.isolation.ExtendDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +49,7 @@ import java.util.stream.Collectors;
 /**
  * The type Common plugin data subscriber.
  */
-public class CommonPluginDataSubscriber implements PluginDataSubscriber {
+public class CommonPluginDataSubscriber implements PluginDataSubscriber, ExtendDataHandler<PluginDataHandler> {
     
     private static final Logger LOG = LoggerFactory.getLogger(CommonPluginDataSubscriber.class);
     
@@ -73,7 +75,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         this.selectorMatchConfig = selectorMatchConfig;
         this.ruleMatchCacheConfig = ruleMatchCacheConfig;
     }
-    
+
     /**
      * Instantiates a new Common plugin data subscriber.
      *
@@ -97,7 +99,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
      *
      * @param handlers the handlers
      */
-    public void putExtendPluginDataHandler(final List<PluginDataHandler> handlers) {
+    @Override
+    public void addHandlers(final List<PluginDataHandler> handlers) {
         if (CollectionUtils.isEmpty(handlers)) {
             return;
         }
@@ -109,7 +112,13 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             });
         }
     }
-    
+
+    @Override
+    public void removeHandler(final RpcTypeEnum rpcTypeEnum) {
+        handlerMap.remove(rpcTypeEnum.getName());
+        LOG.info("shenyu auto remove extends plugin data handler name is :{}", rpcTypeEnum.getName());
+    }
+
     @Override
     public void onSubscribe(final PluginData pluginData) {
         LOG.info("subscribe plugin data for plugin: [id: {}, name: {}, config: {}]", pluginData.getId(), pluginData.getName(), pluginData.getConfig());

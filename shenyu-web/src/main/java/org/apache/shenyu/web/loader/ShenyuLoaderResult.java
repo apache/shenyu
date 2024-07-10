@@ -17,18 +17,38 @@
 
 package org.apache.shenyu.web.loader;
 
+import org.apache.shenyu.plugin.isolation.ExtendDataBase;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 
 /**
  * The type of ShenYu Loader result.
  */
 public class ShenyuLoaderResult {
+
+    private String className;
     
     private ShenyuPlugin shenyuPlugin;
     
-    private PluginDataHandler pluginDataHandler;
-    
+    private ExtendDataBase extendDataBase;
+
+    /**
+     * getClassName.
+     *
+     * @return {@link String}
+     */
+    public String getClassName() {
+        return className;
+    }
+
+    /**
+     * setClassName.
+     *
+     * @param className className
+     */
+    public void setClassName(final String className) {
+        this.className = className;
+    }
+
     /**
      * Gets shenyu plugin.
      *
@@ -46,22 +66,22 @@ public class ShenyuLoaderResult {
     public void setShenyuPlugin(final ShenyuPlugin shenyuPlugin) {
         this.shenyuPlugin = shenyuPlugin;
     }
-    
+
     /**
-     * Gets plugin data handler.
+     * extendDataBase.
      *
-     * @return the plugin data handler
+     * @return ExtendDataBase
      */
-    public PluginDataHandler getPluginDataHandler() {
-        return pluginDataHandler;
+    public ExtendDataBase getExtendDataBase() {
+        return extendDataBase;
     }
-    
+
     /**
-     * Sets plugin data handler.
+     * set extendDataBase.
      *
-     * @param pluginDataHandler the plugin data handler
+     * @param extendDataBase extendDataBase
      */
-    public void setPluginDataHandler(final PluginDataHandler pluginDataHandler) {
-        this.pluginDataHandler = pluginDataHandler;
+    public void setExtendDataBase(final ExtendDataBase extendDataBase) {
+        this.extendDataBase = extendDataBase;
     }
 }

@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
  */
 public class BatchMetaDataChangedEvent extends BatchChangedEvent {
     
-    
     /**
      * Create a new {@code BatchMetaDataChangedEvent}.operator is unknown.
      *

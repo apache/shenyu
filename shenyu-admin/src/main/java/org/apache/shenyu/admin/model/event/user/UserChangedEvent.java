@@ -28,8 +28,7 @@ import java.util.Objects;
  * UserChangedEvent.
  */
 public class UserChangedEvent extends AdminDataModelChangedEvent {
-    
-    
+
     /**
      * Create a new {@code UserChangedEvent}.operator is unknown.
      *

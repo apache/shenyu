@@ -86,8 +86,7 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
         this.consumed = false;
         this.date = new Date();
     }
-    
-    
+
     /**
      * get type.
      *
@@ -139,8 +138,7 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
     public boolean isConsumed() {
         return consumed;
     }
-    
-    
+
     /**
      * get date.
      *

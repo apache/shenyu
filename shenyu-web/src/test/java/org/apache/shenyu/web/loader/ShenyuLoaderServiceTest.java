@@ -44,9 +44,9 @@ import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test for ShenyuLoaderServiceTest.
@@ -93,10 +93,11 @@ public class ShenyuLoaderServiceTest {
         extPlugin.setEnabled(false);
         final ShenyuConfig shenyuConfig = new ShenyuConfig();
         shenyuConfig.setExtPlugin(extPlugin);
-        new ShenyuLoaderService(shenyuWebHandler, commonPluginDataSubscriber, shenyuConfig);
+        new ShenyuLoaderService(shenyuWebHandler, shenyuConfig, null);
         extPlugin.setEnabled(true);
         extPlugin.setPath(path.toString());
-        ShenyuLoaderService shenyuLoaderService = new ShenyuLoaderService(shenyuWebHandler, commonPluginDataSubscriber, shenyuConfig);
+
+        ShenyuLoaderService shenyuLoaderService = new ShenyuLoaderService(shenyuWebHandler, shenyuConfig, null);
         final Method loaderExtPlugins = ShenyuLoaderService.class.getDeclaredMethod("loadExtOrUploadPlugins", PluginData.class);
         loaderExtPlugins.setAccessible(true);
         loaderExtPlugins.invoke(shenyuLoaderService, mock(PluginData.class));

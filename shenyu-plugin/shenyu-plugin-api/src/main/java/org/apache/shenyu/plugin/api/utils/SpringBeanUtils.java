@@ -84,6 +84,7 @@ public final class SpringBeanUtils {
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
         beanFactory.setBeanClassLoader(classLoader);
         beanFactory.registerBeanDefinition(beanName, beanDefinition);
+        beanFactory.applyBeanPostProcessorsAfterInitialization(getBeanByClassName(beanName), beanName);
         return beanName;
     }
     
@@ -134,8 +135,14 @@ public final class SpringBeanUtils {
         ConfigurableApplicationContext configurableApplicationContext = (ConfigurableApplicationContext) applicationContext;
         return (DefaultListableBeanFactory) configurableApplicationContext.getBeanFactory();
     }
-    
-    private String getBeanName(final String className) {
+
+    /**
+     * getBeanName.
+     *
+     * @param className className
+     * @return {@link String}
+     */
+    public String getBeanName(final String className) {
         String name = className.substring(className.lastIndexOf(".") + 1);
         String start = name.substring(0, 1);
         String end = name.substring(1);

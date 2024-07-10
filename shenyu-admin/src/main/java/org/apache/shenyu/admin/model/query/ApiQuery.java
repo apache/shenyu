@@ -34,12 +34,10 @@ public class ApiQuery implements Serializable {
      */
     private String apiPath;
 
-
     /**
      * state.
      */
     private Integer state;
-
 
     /**
      * tagId.
