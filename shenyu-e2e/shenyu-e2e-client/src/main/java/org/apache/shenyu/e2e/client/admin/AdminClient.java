@@ -56,8 +56,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
@@ -123,7 +123,6 @@ public class AdminClient extends BaseClient {
      */
     public void login() {
         final String url = baseURL + "/platform/login?userName={username}&password={password}";
-        log.info("login, url:{}", url);
         ResponseEntity<ShenYuResult> response = template.getForEntity(
                 url,
                 ShenYuResult.class,
@@ -251,6 +250,9 @@ public class AdminClient extends BaseClient {
      *
      * @param keyword  expected selectors included the word. return all if absent.
      * @param page     page.
+     *
+     * @param keyword expected selectors included the word. return all if absent.
+     * @param page page.
      * @param pageSize size.
      * @param plugins  expected selectors under specified plugins. return all if absent.
      * @return paginated info with  list of {@link SelectorDTO}s
@@ -267,7 +269,7 @@ public class AdminClient extends BaseClient {
     /**
      * Fetch the rules by the given conditions.
      *
-     * @param keyword   expected selectors included the word. return all if absent.
+     * @param keyword expected selectors included the word. return all if absent.
      * @param selectors expected selectors under specified plugins. return all if absent.
      * @return paginated info with list of {@link RuleDTO}s
      */
@@ -358,6 +360,7 @@ public class AdminClient extends BaseClient {
         }
         Assertions.assertNotNull(searchedResources, "checking searchedResources object is non-null");
         Assertions.assertEquals(1, searchedResources.getTotal(), "checking the total hits of searching");
+
 
         ResourceDTO created = searchedResources.getList().get(0);
         Assertions.assertNotNull(created, "checking created object is non-null");

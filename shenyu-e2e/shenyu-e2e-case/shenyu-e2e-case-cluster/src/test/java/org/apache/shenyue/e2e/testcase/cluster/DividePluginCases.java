@@ -42,6 +42,9 @@ import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBui
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newUpstreamsBuilder;
 import static org.hamcrest.text.IsEmptyString.isEmptyOrNullString;
 
+/**
+ * Testing Cluster Divide plugin testcases.
+ */
 public class DividePluginCases implements ShenYuScenarioProvider {
     private static final String ANYTHING = "/anything";
 

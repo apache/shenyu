@@ -33,6 +33,9 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 
+/**
+ * The cluster select master service jdbc impl.
+ */
 public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterService {
     
     private static final Logger LOG = LoggerFactory.getLogger(ClusterSelectMasterServiceJdbcImpl.class);
@@ -92,7 +95,12 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
     @Override
     public boolean checkMasterStatus() throws IllegalStateException {
         if (masterFlag) {
-            jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
+            try {
+                jdbcLockRegistry.renewLock(MASTER_LOCK_KEY);
+            } catch (IllegalStateException e) {
+                masterFlag = false;
+                throw e;
+            }
         }
         return masterFlag;
     }
