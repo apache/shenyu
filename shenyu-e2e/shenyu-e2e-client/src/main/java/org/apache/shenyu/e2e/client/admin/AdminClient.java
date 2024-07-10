@@ -360,7 +360,7 @@ public class AdminClient extends BaseClient {
 
         ResourceDTO created = searchedResources.getList().get(0);
         Assertions.assertNotNull(created, "checking created object is non-null");
-        log.info("create resource({}) successful. name: {}, id: {}", data.getClass().getSimpleName(), data.getName(), created.getId());
+        log.info("create resource({}) successful.  name: {}, id: {}", data.getClass().getSimpleName(), data.getName(), created.getId());
 
         return (R) created;
     }
