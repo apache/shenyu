@@ -155,11 +155,13 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         String host = master.getMasterHost();
         String port = master.getMasterPort();
         String masterContextPath = master.getContextPath();
-        
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromUri(URI.create(request.getRequestURI()))
+                .scheme(request.getScheme())
                 .host(host)
-                .port(port);
+                .port(port)
+                .query(request.getQueryString())
+                ;
         String originalPath = builder.build().getPath();
         
         if (StringUtils.isNotEmpty(originalPath)) {
