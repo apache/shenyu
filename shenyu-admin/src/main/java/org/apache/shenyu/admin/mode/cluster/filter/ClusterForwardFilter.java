@@ -160,8 +160,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
                 .scheme(request.getScheme())
                 .host(host)
                 .port(port)
-                .query(request.getQueryString())
-                ;
+                .query(request.getQueryString());
         String originalPath = builder.build().getPath();
         
         if (StringUtils.isNotEmpty(originalPath)) {
