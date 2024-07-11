@@ -38,7 +38,7 @@ for loop in `seq 1 30`
 do
   app_count=$(wget -q -O- http://localhost:8761/eureka/apps | grep "<application>" | wc -l | xargs)
   if [ $app_count -gt 1  ]; then
-          break
+      break
   fi
   sleep 2
 done
