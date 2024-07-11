@@ -38,7 +38,7 @@ abstract class AbstractAlertNotifyHandler implements AlertNotifyHandler {
     @Resource
     private TemplateEngine templateEngine;
     
-    @Resource
+    @Resource(name = "alterRestTemplate")
     private RestTemplate restTemplate;
     
     protected String renderContent(final AlarmContent alert) {

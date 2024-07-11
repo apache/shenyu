@@ -58,6 +58,9 @@ for sync in ${SYNC_ARRAY[@]}; do
   # shellcheck disable=SC2181
   if (($?)); then
     echo "${sync}-sync-e2e-test failed"
+    echo "shenyu-examples-dubbo-deployment log:"
+    echo "------------------"
+    kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-dubbo-deployment | awk '{print $1}')"
     echo "shenyu-admin log:"
     echo "------------------"
     kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"

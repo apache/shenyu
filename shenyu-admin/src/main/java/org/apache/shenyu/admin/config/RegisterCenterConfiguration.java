@@ -87,7 +87,6 @@ public class RegisterCenterConfiguration {
         return new PlatformTransactionRegisterExecutionRepository(platformTransactionManager, pluginMapper);
     }
     
-    
     /**
      * Shenyu Admin distributed lock by spring-integration-jdbc.
      *
