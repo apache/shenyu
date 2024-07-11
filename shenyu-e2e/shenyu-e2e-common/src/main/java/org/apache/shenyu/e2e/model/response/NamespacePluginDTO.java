@@ -15,35 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.dto;
+package org.apache.shenyu.e2e.model.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.validation.annotation.Existed;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
+import java.util.Date;
 
 /**
- * this is plugin from by web front.
+ * this is namespace plugin from by web front.
  */
-public class PluginNamespaceDTO implements Serializable {
+public class NamespacePluginDTO implements ResourceDTO {
 
     /**
      * primary key.
      */
-    @Existed(provider = PluginMapper.class, nullOfIgnore = true, message = "the plugin is not exited")
+    private String id;
+
+    /**
+     * primary key.
+     */
     private String pluginId;
 
 
     /**
      * plugin name.
      */
-    @NotBlank
     private String name;
 
     /**
@@ -55,34 +52,90 @@ public class PluginNamespaceDTO implements Serializable {
     /**
      * plugin sort.
      */
-    @NotNull
-    @Min(0)
     private Integer sort;
 
     /**
      * whether enabled.
      */
-    @NotNull
     private Boolean enabled;
-
-
-    /**
-     * plugin Handle List.
-     */
-    private List<PluginHandleDTO> pluginHandleList;
 
     /**
      * namespace id.
      */
     private String namespaceId;
 
+    @JsonFormat(pattern = "YYYY-MM-dd HH:mm:ss")
+    private Date dateCreated;
+
+    @JsonFormat(pattern = "YYYY-MM-dd HH:mm:ss")
+    private Date dateUpdated;
+
+
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
     /**
      * Gets the value of name.
      *
      * @return the value of name
      */
+    @Override
     public String getName() {
         return name;
+    }
+
+    /**
+     * get dateCreated.
+     *
+     * @return dateCreated
+     */
+    @Override
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+    /**
+     * set dateCreated.
+     *
+     * @param dateCreated dateCreated
+     */
+    public void setDateCreated(final Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    /**
+     * get dateUpdated.
+     *
+     * @return dateUpdated
+     */
+    @Override
+    public Date getDateUpdated() {
+        return dateUpdated;
+    }
+
+    /**
+     * set dateUpdated.
+     *
+     * @param dateUpdated dateUpdated
+     */
+    public void setDateUpdated(final Date dateUpdated) {
+        this.dateUpdated = dateUpdated;
     }
 
     /**
@@ -153,24 +206,6 @@ public class PluginNamespaceDTO implements Serializable {
     }
 
     /**
-     * Gets the plugin handle list.
-     *
-     * @return the plugin handle list
-     */
-    public List<PluginHandleDTO> getPluginHandleList() {
-        return pluginHandleList;
-    }
-
-    /**
-     * Sets the plugin handle list.
-     *
-     * @param pluginHandleList the plugin handle list
-     */
-    public void setPluginHandleList(final List<PluginHandleDTO> pluginHandleList) {
-        this.pluginHandleList = pluginHandleList;
-    }
-
-    /**
      * Gets the namespace id.
      *
      * @return the namespace id
@@ -205,25 +240,5 @@ public class PluginNamespaceDTO implements Serializable {
      */
     public void setPluginId(final String pluginId) {
         this.pluginId = pluginId;
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        PluginNamespaceDTO that = (PluginNamespaceDTO) o;
-        return Objects.equals(name, that.name) && Objects.equals(config, that.config)
-                && Objects.equals(sort, that.sort) && Objects.equals(enabled, that.enabled)
-                && Objects.equals(pluginHandleList, that.pluginHandleList)
-                && Objects.equals(namespaceId, that.namespaceId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(pluginId, name, config, sort, enabled, pluginHandleList, namespaceId);
     }
 }

@@ -23,19 +23,19 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * this is plugin query.
+ * this is namespace plugin query.
  */
-public class PluginNamespaceQuery extends PluginQuery implements Serializable {
+public class NamespacePluginQuery extends PluginQuery implements Serializable {
 
     /**
      * namespace id.
      */
     private String namespaceId;
 
-    public PluginNamespaceQuery() {
+    public NamespacePluginQuery() {
     }
 
-    public PluginNamespaceQuery(final String name, final Integer enabled, final PageParameter pageParameter, final String namespaceId) {
+    public NamespacePluginQuery(final String name, final Integer enabled, final PageParameter pageParameter, final String namespaceId) {
         super(name, enabled, pageParameter);
         this.namespaceId = namespaceId;
     }
@@ -69,7 +69,7 @@ public class PluginNamespaceQuery extends PluginQuery implements Serializable {
         if (!super.equals(o)) {
             return false;
         }
-        PluginNamespaceQuery that = (PluginNamespaceQuery) o;
+        NamespacePluginQuery that = (NamespacePluginQuery) o;
         return Objects.equals(namespaceId, that.namespaceId);
     }
 

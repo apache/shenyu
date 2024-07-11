@@ -18,8 +18,7 @@
 package org.apache.shenyu.admin.transfer;
 
 import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.admin.model.entity.PluginNsRelDO;
-import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.PluginData;
 import org.springframework.util.Base64Utils;
@@ -79,11 +78,11 @@ public enum PluginTransfer {
     /**
      * Map to data plugin data.
      *
-     * @param pluginNamespaceVO the pluginNamespace vo
+     * @param namespacePluginVO the namespacePlugin vo
      * @return the plugin data
      */
-    public PluginData mapToData(final PluginNamespaceVO pluginNamespaceVO) {
-        return Optional.ofNullable(pluginNamespaceVO)
+    public PluginData mapToData(final NamespacePluginVO namespacePluginVO) {
+        return Optional.ofNullable(namespacePluginVO)
                 .map(v -> PluginData.builder()
                         .id(v.getPluginId())
                         .name(v.getName())

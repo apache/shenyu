@@ -20,10 +20,10 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.mapper.PluginNsRelMapper;
+import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
-import org.apache.shenyu.admin.model.entity.PluginNsRelDO;
+import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.NamespaceQuery;
@@ -49,15 +49,15 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     private NamespaceMapper namespaceMapper;
 
-    private PluginNsRelMapper pluginNsRelMapper;
+    private NamespacePluginRelMapper namespacePluginRelMapper;
 
     private PluginService pluginService;
 
     public NamespaceServiceImpl(final NamespaceMapper namespaceMapper,
-                                final PluginNsRelMapper pluginNsRelMapper,
+                                final NamespacePluginRelMapper namespacePluginRelMapper,
                                 final PluginService pluginService) {
         this.namespaceMapper = namespaceMapper;
-        this.pluginNsRelMapper = pluginNsRelMapper;
+        this.namespacePluginRelMapper = namespacePluginRelMapper;
         this.pluginService = pluginService;
     }
 
@@ -118,7 +118,7 @@ public class NamespaceServiceImpl implements NamespaceService {
                 .build();
         List<PluginData> pluginData = pluginService.listAll();
         //创建新命名空间下的默认插件组配置
-        List<PluginNsRelDO> pluginNsRelList = pluginData.stream().map(s -> PluginNsRelDO.builder()
+        List<NamespacePluginRelDO> pluginNsRelList = pluginData.stream().map(s -> NamespacePluginRelDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .pluginId(s.getId())
                 .config(s.getConfig())
@@ -129,7 +129,7 @@ public class NamespaceServiceImpl implements NamespaceService {
                 .dateUpdated(currentTime)
                 .build()).collect(Collectors.toList());
         namespaceMapper.insert(namespaceDO);
-        pluginNsRelMapper.batchSave(pluginNsRelList);
+        namespacePluginRelMapper.batchSave(pluginNsRelList);
         return NamespaceTransfer.INSTANCE.mapToVo(namespaceDO);
     }
 

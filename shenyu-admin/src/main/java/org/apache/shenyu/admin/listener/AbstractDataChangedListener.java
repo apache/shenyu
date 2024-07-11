@@ -22,7 +22,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.PluginNamespaceService;
+import org.apache.shenyu.admin.service.NamespacePluginService;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
@@ -71,7 +71,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * The Plugin service.
      */
     @Resource
-    private PluginNamespaceService pluginNamespaceService;
+    private NamespacePluginService namespacePluginService;
 
     /**
      * The Rule service.
@@ -314,7 +314,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * Update plugin cache.
      */
     protected void updatePluginCache() {
-        this.updateCache(ConfigGroupEnum.PLUGIN, pluginNamespaceService.listAll());
+        this.updateCache(ConfigGroupEnum.PLUGIN, namespacePluginService.listAll());
     }
     
     /**

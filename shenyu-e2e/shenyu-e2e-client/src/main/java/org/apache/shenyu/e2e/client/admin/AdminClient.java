@@ -44,7 +44,7 @@ import org.apache.shenyu.e2e.model.response.LoginInfo;
 import org.apache.shenyu.e2e.model.response.MetaDataDTO;
 import org.apache.shenyu.e2e.model.response.PaginatedResources;
 import org.apache.shenyu.e2e.model.response.PluginDTO;
-import org.apache.shenyu.e2e.model.response.PluginNamespaceDTO;
+import org.apache.shenyu.e2e.model.response.NamespacePluginDTO;
 import org.apache.shenyu.e2e.model.response.ResourceDTO;
 import org.apache.shenyu.e2e.model.response.RuleDTO;
 import org.apache.shenyu.e2e.model.response.SearchedResources;
@@ -491,7 +491,7 @@ public class AdminClient extends BaseClient {
      * @param formData formData
      */
     public void changePluginStatus(final String id, final MultiValueMap<String, String> formData) {
-        putResource("/pluginNamespace", id, PluginNamespaceDTO.class, formData);
+        putResource("/pluginNamespace", id, NamespacePluginDTO.class, formData);
     }
 
     private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final MultiValueMap<String, String> formData) {

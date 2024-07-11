@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.model.event.plugin;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.BatchChangedEvent;
-import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 /**
  * BatchPluginChangedEvent.
  */
-public class BatchPluginNamespaceChangedEvent extends BatchChangedEvent {
+public class BatchNamespacePluginChangedEvent extends BatchChangedEvent {
 
 
     /**
@@ -39,25 +39,25 @@ public class BatchPluginNamespaceChangedEvent extends BatchChangedEvent {
      * @param type     event type
      * @param operator operator
      */
-    public BatchPluginNamespaceChangedEvent(final Collection<PluginNamespaceVO> source, final Collection<PluginNamespaceVO> before, final EventTypeEnum type, final String operator) {
+    public BatchNamespacePluginChangedEvent(final Collection<NamespacePluginVO> source, final Collection<NamespacePluginVO> before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
 
     @Override
     public String buildContext() {
-        PluginNamespaceVO pluginNamespaceVO = ((Collection<?>) getSource())
+        NamespacePluginVO namespacePluginVO = ((Collection<?>) getSource())
                 .stream()
-                .map(s -> (PluginNamespaceVO) s).findFirst().get();
+                .map(s -> (NamespacePluginVO) s).findFirst().get();
         final String plugins = ((Collection<?>) getSource())
                 .stream()
-                .map(s -> ((PluginNamespaceVO) s).getName())
+                .map(s -> ((NamespacePluginVO) s).getName())
                 .collect(Collectors.joining(","));
 
-        return String.format("the namespace[%s]  plugins[%s] is %s", pluginNamespaceVO.getNamespaceId(), plugins, StringUtils.lowerCase(getType().getType().toString()));
+        return String.format("the namespace[%s]  plugins[%s] is %s", namespacePluginVO.getNamespaceId(), plugins, StringUtils.lowerCase(getType().getType().toString()));
     }
 
     @Override
     public String eventName() {
-        return "pluginNamespace";
+        return "namespacePlugin";
     }
 }

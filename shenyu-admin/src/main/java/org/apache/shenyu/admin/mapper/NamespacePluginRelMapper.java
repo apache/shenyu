@@ -19,11 +19,11 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.shenyu.admin.model.entity.PluginNsRelDO;
-import org.apache.shenyu.admin.model.query.PluginNamespaceQuery;
-import org.apache.shenyu.admin.model.query.PluginNamespaceQueryCondition;
+import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
+import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
+import org.apache.shenyu.admin.model.query.NamespacePluginQueryCondition;
 import org.apache.shenyu.admin.model.query.PluginQuery;
-import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
@@ -31,10 +31,10 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * PluginNsRelMapper.
+ * NamespacePluginRelMapper.
  */
 @Mapper
-public interface PluginNsRelMapper extends ExistProvider {
+public interface NamespacePluginRelMapper extends ExistProvider {
 
     /**
      * existed.
@@ -49,27 +49,27 @@ public interface PluginNsRelMapper extends ExistProvider {
     /**
      * Batch save int.
      *
-     * @param pluginNsRelDOList the pluginNsRel do list
+     * @param namespacePluginRelDOList the pluginNsRel do list
      * @return the int
      */
-    int batchSave(@Param("pluginNsRelDOList") List<PluginNsRelDO> pluginNsRelDOList);
+    int batchSave(@Param("namespacePluginRelDOList") List<NamespacePluginRelDO> namespacePluginRelDOList);
 
     /**
      * select plugin by query.
      *
-     * @param pluginNamespaceQuery {@linkplain PluginQuery}
+     * @param namespacePluginQuery {@linkplain PluginQuery}
      * @return {@linkplain List}
      */
-    List<PluginNamespaceVO> selectByQuery(PluginNamespaceQuery pluginNamespaceQuery);
+    List<NamespacePluginVO> selectByQuery(NamespacePluginQuery namespacePluginQuery);
 
     /**
-     * select plugin by pluginNamespaceId.
+     * select plugin by namespacePluginId.
      *
      * @param id    primary key.
      * @param namespaceId namespace id.
      * @return {@linkplain PluginVO}
      */
-    PluginNamespaceVO selectById(String id, String namespaceId);
+    NamespacePluginVO selectById(String id, String namespaceId);
 
     /**
      * select plugin by pluginId.
@@ -78,7 +78,7 @@ public interface PluginNsRelMapper extends ExistProvider {
      * @param namespaceId namespace id.
      * @return {@linkplain PluginVO}
      */
-    PluginNamespaceVO selectByPluginId(String pluginId, String namespaceId);
+    NamespacePluginVO selectByPluginId(String pluginId, String namespaceId);
 
     /**
      * search by condition.
@@ -86,7 +86,7 @@ public interface PluginNsRelMapper extends ExistProvider {
      * @param condition condition.
      * @return list
      */
-    List<PluginNamespaceVO> searchByCondition(@Param("condition") PluginNamespaceQueryCondition condition);
+    List<NamespacePluginVO> searchByCondition(@Param("condition") NamespacePluginQueryCondition condition);
 
     /**
      * plugin existed.
@@ -102,19 +102,19 @@ public interface PluginNsRelMapper extends ExistProvider {
     /**
      * update selective plugin.
      *
-     * @param pluginNsRelDO {@linkplain PluginNsRelDO}
+     * @param namespacePluginRelDO {@linkplain NamespacePluginRelDO}
      * @return rows int
      */
-    int updateSelective(PluginNsRelDO pluginNsRelDO);
+    int updateSelective(NamespacePluginRelDO namespacePluginRelDO);
 
     /**
      * select plugin by id.
      *
      * @param ids   primary keys.
      * @param namespaceId namespace id.
-     * @return {@linkplain PluginNsRelDO}
+     * @return {@linkplain NamespacePluginRelDO}
      */
-    List<PluginNamespaceVO> selectByIds(List<String> ids, String namespaceId);
+    List<NamespacePluginVO> selectByIds(List<String> ids, String namespaceId);
 
 
     /**
@@ -132,14 +132,14 @@ public interface PluginNsRelMapper extends ExistProvider {
      * @param namespaceId namespace id.
      * @return {@linkplain List}
      */
-    List<PluginNamespaceVO> selectAll(String namespaceId);
+    List<NamespacePluginVO> selectAll(String namespaceId);
 
     /**
      * select all.
      *
      * @return {@linkplain List}
      */
-    List<PluginNamespaceVO> selectAll();
+    List<NamespacePluginVO> selectAll();
 
     /**
      * enable data by a list of ids.

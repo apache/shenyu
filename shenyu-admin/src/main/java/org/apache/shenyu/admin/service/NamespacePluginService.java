@@ -18,12 +18,12 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.PluginDTO;
-import org.apache.shenyu.admin.model.dto.PluginNamespaceDTO;
+import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
-import org.apache.shenyu.admin.model.query.PluginNamespaceQuery;
-import org.apache.shenyu.admin.model.query.PluginNamespaceQueryCondition;
+import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
+import org.apache.shenyu.admin.model.query.NamespacePluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
-import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.PluginData;
@@ -33,15 +33,15 @@ import java.util.List;
 /**
  * this is plugin service.
  */
-public interface PluginNamespaceService extends PageService<PluginNamespaceQueryCondition, PluginNamespaceVO> {
+public interface NamespacePluginService extends PageService<NamespacePluginQueryCondition, NamespacePluginVO> {
 
     /**
      * Create or update string.
      *
-     * @param pluginNamespaceDTO the plugin namespace dto
+     * @param namespacePluginDTO the plugin namespace dto
      * @return the string
      */
-    String update(PluginNamespaceDTO pluginNamespaceDTO);
+    String update(NamespacePluginDTO namespacePluginDTO);
 
     /**
      * Delete string.
@@ -59,15 +59,15 @@ public interface PluginNamespaceService extends PageService<PluginNamespaceQuery
      * @param namespaceId the namespaceId
      * @return {@linkplain PluginVO}
      */
-    PluginNamespaceVO findById(String id, String namespaceId);
+    NamespacePluginVO findById(String id, String namespaceId);
 
     /**
      * find page of plugin namespace by query.
      *
-     * @param pluginNamespaceQuery {@linkplain PluginNamespaceQuery}
+     * @param namespacePluginQuery {@linkplain NamespacePluginQuery}
      * @return {@linkplain CommonPager}
      */
-    CommonPager<PluginNamespaceVO> listByPage(PluginNamespaceQuery pluginNamespaceQuery);
+    CommonPager<NamespacePluginVO> listByPage(NamespacePluginQuery namespacePluginQuery);
 
     /**
      * List all list.
@@ -90,7 +90,7 @@ public interface PluginNamespaceService extends PageService<PluginNamespaceQuery
      * @param namespaceId the namespaceId
      * @return the vo list
      */
-    List<PluginNamespaceVO> listAllData(String namespaceId);
+    List<NamespacePluginVO> listAllData(String namespaceId);
 
     /**
      * Enabled string.

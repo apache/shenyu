@@ -15,36 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.query;
+package org.apache.shenyu.admin.model.event.plugin;
 
-import org.apache.shenyu.admin.model.page.condition.SearchCondition;
-import org.apache.shenyu.admin.model.page.condition.SwitchCondition;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 
 /**
- * this is plugin query condition.
+ * PluginCreatedEvent.
  */
-public class PluginNamespaceQueryCondition extends PluginQueryCondition implements SearchCondition, SwitchCondition {
+public class NamespacePluginCreatedEvent extends NamespacePluginChangedEvent {
+
 
     /**
-     * namespace id: namespaceId.
-     */
-    private String namespaceId;
-
-    /**
-     * Gets the value of name.
+     * Create a new {@code NamespacePluginChangedEvent}.operator is unknown.
      *
-     * @return the value of name
+     * @param source   Current plugin state
+     * @param operator operator
      */
-    public String getNamespaceId() {
-        return namespaceId;
+    public NamespacePluginCreatedEvent(final NamespacePluginVO source, final String operator) {
+        super(source, null, EventTypeEnum.PLUGIN_CREATE, operator);
     }
-
+    
     /**
-     * Sets the namespaceId.
+     * the created plugin.
      *
-     * @param namespaceId namespaceId
+     * @return plugin
      */
-    public void setNamespaceId(final String namespaceId) {
-        this.namespaceId = namespaceId;
+    public NamespacePluginVO getPlugin() {
+        return (NamespacePluginVO) getSource();
     }
+    
 }

@@ -20,14 +20,14 @@ package org.apache.shenyu.admin.model.event.plugin;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
-import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 
 import java.util.Objects;
 
 /**
  * AdminDataModelChangedEvent.
  */
-public class PluginNamespaceChangedEvent extends AdminDataModelChangedEvent {
+public class NamespacePluginChangedEvent extends AdminDataModelChangedEvent {
 
 
     /**
@@ -38,13 +38,13 @@ public class PluginNamespaceChangedEvent extends AdminDataModelChangedEvent {
      * @param type     event type
      * @param operator operator
      */
-    public PluginNamespaceChangedEvent(final PluginNamespaceVO source, final PluginNamespaceVO before, final EventTypeEnum type, final String operator) {
+    public NamespacePluginChangedEvent(final NamespacePluginVO source, final NamespacePluginVO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
     
     @Override
     public String buildContext() {
-        final PluginNamespaceVO after = (PluginNamespaceVO) getAfter();
+        final NamespacePluginVO after = (NamespacePluginVO) getAfter();
         if (Objects.isNull(getBefore())) {
             return String.format("the namespace [%s] plugin [%s] is %s", after.getNamespaceId(), after.getName(), StringUtils.lowerCase(getType().getType().toString()));
         }
@@ -53,9 +53,9 @@ public class PluginNamespaceChangedEvent extends AdminDataModelChangedEvent {
     }
     
     private String contrast() {
-        final PluginNamespaceVO before = (PluginNamespaceVO) getBefore();
+        final NamespacePluginVO before = (NamespacePluginVO) getBefore();
         Objects.requireNonNull(before);
-        final PluginNamespaceVO after = (PluginNamespaceVO) getAfter();
+        final NamespacePluginVO after = (NamespacePluginVO) getAfter();
         Objects.requireNonNull(after);
         if (Objects.equals(before, after)) {
             return "it no change";
@@ -75,6 +75,6 @@ public class PluginNamespaceChangedEvent extends AdminDataModelChangedEvent {
     
     @Override
     public String eventName() {
-        return "pluginNamespace";
+        return "namespacePlugin";
     }
 }

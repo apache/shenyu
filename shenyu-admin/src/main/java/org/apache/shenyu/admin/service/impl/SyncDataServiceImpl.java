@@ -19,12 +19,12 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.PluginNamespaceService;
+import org.apache.shenyu.admin.service.NamespacePluginService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
@@ -64,7 +64,7 @@ public class SyncDataServiceImpl implements SyncDataService {
     /**
      * The Plugin Namespace service.
      */
-    private final PluginNamespaceService pluginNamespaceService;
+    private final NamespacePluginService namespacePluginService;
 
     /**
      * The Selector service.
@@ -86,7 +86,7 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     public SyncDataServiceImpl(final AppAuthService appAuthService,
                                final PluginService pluginService,
-                               final PluginNamespaceService pluginNamespaceService,
+                               final NamespacePluginService namespacePluginService,
                                final SelectorService selectorService,
                                final RuleService ruleService,
                                final ApplicationEventPublisher eventPublisher,
@@ -95,7 +95,7 @@ public class SyncDataServiceImpl implements SyncDataService {
                                final DiscoveryService discoveryService) {
         this.appAuthService = appAuthService;
         this.pluginService = pluginService;
-        this.pluginNamespaceService = pluginNamespaceService;
+        this.namespacePluginService = namespacePluginService;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
         this.eventPublisher = eventPublisher;
@@ -109,7 +109,7 @@ public class SyncDataServiceImpl implements SyncDataService {
     public boolean syncAll(final DataEventTypeEnum type) {
         appAuthService.syncData();
 
-        List<PluginData> pluginDataList = pluginNamespaceService.listAll();
+        List<PluginData> pluginDataList = namespacePluginService.listAll();
         //todo:[Namespace] Temporarily only synchronize plugin data for the default namespace
         List<PluginData> pluginDataListFilter = pluginDataList.stream().filter(v -> v.getNamespaceId().equals(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).collect(Collectors.toList());
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, pluginDataListFilter));
@@ -127,9 +127,9 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     @Override
     public boolean syncPluginData(final String pluginId, final String namespaceId) {
-        PluginNamespaceVO pluginNamespaceVO = pluginNamespaceService.findById(pluginId, namespaceId);
+        NamespacePluginVO namespacePluginVO = namespacePluginService.findById(pluginId, namespaceId);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginNamespaceVO))));
+                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(namespacePluginVO))));
 
         List<SelectorData> selectorDataList = selectorService.findByPluginId(pluginId);
 

@@ -17,16 +17,16 @@
 
 package org.apache.shenyu.admin.model.entity;
 
-import org.apache.shenyu.admin.model.dto.PluginNamespaceDTO;
+import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
 
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
- * PluginNsRel do.
+ * NamespacePluginRel do.
  */
-public final class PluginNsRelDO extends BaseDO {
+public final class NamespacePluginRelDO extends BaseDO {
 
     /**
      * namespaceId.
@@ -155,7 +155,7 @@ public final class PluginNsRelDO extends BaseDO {
         if (!super.equals(o)) {
             return false;
         }
-        PluginNsRelDO that = (PluginNsRelDO) o;
+        NamespacePluginRelDO that = (NamespacePluginRelDO) o;
         return Objects.equals(namespaceId, that.namespaceId)
                 && Objects.equals(pluginId, that.pluginId)
                 && Objects.equals(config, that.config)
@@ -166,13 +166,13 @@ public final class PluginNsRelDO extends BaseDO {
     /**
      * build pluginDO.
      *
-     * @param pluginNamespaceDTO {@linkplain PluginNamespaceDTO}
-     * @return {@linkplain PluginNsRelDO}
+     * @param namespacePluginDTO {@linkplain NamespacePluginDTO}
+     * @return {@linkplain NamespacePluginRelDO}
      */
-    public static PluginNsRelDO buildPluginNsRelDO(final PluginNamespaceDTO pluginNamespaceDTO) {
-        return Optional.ofNullable(pluginNamespaceDTO).map(item -> {
+    public static NamespacePluginRelDO buildPluginNsRelDO(final NamespacePluginDTO namespacePluginDTO) {
+        return Optional.ofNullable(namespacePluginDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            PluginNsRelDO pluginNsRelDO = PluginNsRelDO.builder()
+            NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.builder()
                     .config(item.getConfig())
                     .enabled(item.getEnabled())
                     .sort(item.getSort())
@@ -180,7 +180,7 @@ public final class PluginNsRelDO extends BaseDO {
                     .pluginId(item.getPluginId())
                     .dateUpdated(currentTime)
                     .build();
-            return pluginNsRelDO;
+            return namespacePluginRelDO;
         }).orElse(null);
     }
 
@@ -312,17 +312,17 @@ public final class PluginNsRelDO extends BaseDO {
          *
          * @return build object.
          */
-        public PluginNsRelDO build() {
-            PluginNsRelDO pluginNsRelDO = new PluginNsRelDO();
-            pluginNsRelDO.setId(id);
-            pluginNsRelDO.setDateCreated(dateCreated);
-            pluginNsRelDO.setDateUpdated(dateUpdated);
-            pluginNsRelDO.setNamespaceId(namespaceId);
-            pluginNsRelDO.setPluginId(pluginId);
-            pluginNsRelDO.setConfig(config);
-            pluginNsRelDO.setEnabled(enabled);
-            pluginNsRelDO.setSort(sort);
-            return pluginNsRelDO;
+        public NamespacePluginRelDO build() {
+            NamespacePluginRelDO namespacePluginRelDO = new NamespacePluginRelDO();
+            namespacePluginRelDO.setId(id);
+            namespacePluginRelDO.setDateCreated(dateCreated);
+            namespacePluginRelDO.setDateUpdated(dateUpdated);
+            namespacePluginRelDO.setNamespaceId(namespaceId);
+            namespacePluginRelDO.setPluginId(pluginId);
+            namespacePluginRelDO.setConfig(config);
+            namespacePluginRelDO.setEnabled(enabled);
+            namespacePluginRelDO.setSort(sort);
+            return namespacePluginRelDO;
         }
     }
 }

@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.impl.SyncDataServiceImpl;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -91,7 +91,7 @@ public final class SyncDataServiceTest {
     private DiscoveryUpstreamService discoveryUpstreamService;
 
     @Mock
-    private PluginNamespaceService pluginNamespaceService;
+    private NamespacePluginService namespacePluginService;
 
     @Test
     public void syncAllTest() {
@@ -106,9 +106,9 @@ public final class SyncDataServiceTest {
     @Test
     public void syncPluginDataTest() {
         PluginVO pluginVO = buildPluginVO();
-        PluginNamespaceVO pluginNamespaceVO = new PluginNamespaceVO();
+        NamespacePluginVO namespacePluginVO = new NamespacePluginVO();
         String namespaceId = "test1";
-        given(this.pluginNamespaceService.findById(pluginVO.getId(), namespaceId)).willReturn(pluginNamespaceVO);
+        given(this.namespacePluginService.findById(pluginVO.getId(), namespaceId)).willReturn(namespacePluginVO);
         SelectorData selectorData = buildSelectorData();
         given(this.selectorService.findByPluginId(pluginVO.getId())).willReturn(Collections.singletonList(selectorData));
 

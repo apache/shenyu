@@ -26,7 +26,7 @@ import java.util.Optional;
 /**
  * this is plugin view to web front.
  */
-public class PluginNamespaceVO extends PluginVO implements Serializable {
+public class NamespacePluginVO extends PluginVO implements Serializable {
 
     /**
      * plugin id.
@@ -43,10 +43,10 @@ public class PluginNamespaceVO extends PluginVO implements Serializable {
      */
     private byte[] pluginJar;
 
-    public PluginNamespaceVO() {
+    public NamespacePluginVO() {
     }
 
-    public PluginNamespaceVO(final String id, final String role, final String name, final String config, final Integer sort,
+    public NamespacePluginVO(final String id, final String role, final String name, final String config, final Integer sort,
                              final Boolean enabled, final String dateCreated, final String dateUpdated, final String file,
                              final List<PluginHandleVO> pluginHandleList, final String pluginId, final String namespaceId,
                              final byte[] pluginJar) {

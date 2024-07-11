@@ -20,10 +20,10 @@ package org.apache.shenyu.admin.service.publish;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
-import org.apache.shenyu.admin.model.event.plugin.BatchPluginNamespaceChangedEvent;
-import org.apache.shenyu.admin.model.event.plugin.PluginNamespaceChangedEvent;
-import org.apache.shenyu.admin.model.event.plugin.PluginNamespaceCreatedEvent;
-import org.apache.shenyu.admin.model.vo.PluginNamespaceVO;
+import org.apache.shenyu.admin.model.event.plugin.BatchNamespacePluginChangedEvent;
+import org.apache.shenyu.admin.model.event.plugin.NamespacePluginChangedEvent;
+import org.apache.shenyu.admin.model.event.plugin.NamespacePluginCreatedEvent;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -37,14 +37,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * PluginEventPublisher.
+ * NamespacePluginEventPublisher.
  */
 @Component
-public class PluginNamespaceEventPublisher implements AdminDataModelChangedEventPublisher<PluginNamespaceVO> {
+public class NamespacePluginEventPublisher implements AdminDataModelChangedEventPublisher<NamespacePluginVO> {
 
     private final ApplicationEventPublisher publisher;
 
-    public PluginNamespaceEventPublisher(final ApplicationEventPublisher publisher) {
+    public NamespacePluginEventPublisher(final ApplicationEventPublisher publisher) {
         this.publisher = publisher;
     }
 
@@ -52,46 +52,46 @@ public class PluginNamespaceEventPublisher implements AdminDataModelChangedEvent
     /**
      * on plugin created.
      *
-     * @param pluginNamespaceVO pluginNamespaceVO
+     * @param namespacePluginVO namespacePluginVO
      */
     @Override
-    public void onCreated(final PluginNamespaceVO pluginNamespaceVO) {
+    public void onCreated(final NamespacePluginVO namespacePluginVO) {
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.CREATE,
-                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginNamespaceVO))));
-        publish(new PluginNamespaceCreatedEvent(pluginNamespaceVO, SessionUtil.visitorName()));
+                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(namespacePluginVO))));
+        publish(new NamespacePluginCreatedEvent(namespacePluginVO, SessionUtil.visitorName()));
     }
 
     @Override
-    public void onUpdated(final PluginNamespaceVO pluginNamespaceVO, final PluginNamespaceVO before) {
+    public void onUpdated(final NamespacePluginVO namespacePluginVO, final NamespacePluginVO before) {
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginNamespaceVO))));
-        publish(new PluginNamespaceChangedEvent(pluginNamespaceVO, before, EventTypeEnum.PLUGIN_UPDATE, SessionUtil.visitorName()));
+                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(namespacePluginVO))));
+        publish(new NamespacePluginChangedEvent(namespacePluginVO, before, EventTypeEnum.PLUGIN_UPDATE, SessionUtil.visitorName()));
     }
 
     @Override
-    public void onDeleted(final PluginNamespaceVO pluginNamespaceVO) {
-        publish(new PluginNamespaceChangedEvent(pluginNamespaceVO, null, EventTypeEnum.PLUGIN_DELETE, SessionUtil.visitorName()));
+    public void onDeleted(final NamespacePluginVO namespacePluginVO) {
+        publish(new NamespacePluginChangedEvent(namespacePluginVO, null, EventTypeEnum.PLUGIN_DELETE, SessionUtil.visitorName()));
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
-                Stream.of(pluginNamespaceVO).map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
+                Stream.of(namespacePluginVO).map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
     }
 
     @Override
-    public void onDeleted(final Collection<PluginNamespaceVO> pluginNamespaces) {
-        publish(new BatchPluginNamespaceChangedEvent(pluginNamespaces, null, EventTypeEnum.PLUGIN_UPDATE, SessionUtil.visitorName()));
+    public void onDeleted(final Collection<NamespacePluginVO> namespacePlugin) {
+        publish(new BatchNamespacePluginChangedEvent(namespacePlugin, null, EventTypeEnum.PLUGIN_UPDATE, SessionUtil.visitorName()));
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                pluginNamespaces.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
+                namespacePlugin.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
     }
 
 
     /**
      * on plugin namespace batch enabled.
      *
-     * @param pluginNamespaces pluginNamespaces
+     * @param namespacePlugin namespacePlugin
      */
-    public void onEnabled(final Collection<PluginNamespaceVO> pluginNamespaces) {
-        publish(new BatchPluginNamespaceChangedEvent(pluginNamespaces, null, EventTypeEnum.PLUGIN_UPDATE, SessionUtil.visitorName()));
+    public void onEnabled(final Collection<NamespacePluginVO> namespacePlugin) {
+        publish(new BatchNamespacePluginChangedEvent(namespacePlugin, null, EventTypeEnum.PLUGIN_UPDATE, SessionUtil.visitorName()));
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                pluginNamespaces.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
+                namespacePlugin.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
     }
 
     @Override
