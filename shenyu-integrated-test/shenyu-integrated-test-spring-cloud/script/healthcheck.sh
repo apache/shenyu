@@ -42,8 +42,4 @@ do
   fi
   sleep 2
 done
-
-
-cat eureka.log
-date
 echo -e "\n-------------------"
