@@ -69,7 +69,7 @@ COMMENT ON COLUMN "public"."cluster_master"."context_path" IS 'master context_pa
 COMMENT ON COLUMN "public"."cluster_master"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."cluster_master"."date_updated" IS 'update time';
 
-INSERT INTO "public"."resource" VALUES ('1792749362445840474', '1346776175553376256', 'SHENYU.MENU.SYSTEM.MANAGMENT.NAMESPACE', 'namespace', '/system/namespace', 'namespace', 1, 0, 'appstore', 0, 0, '', 1, '2024-06-22 17:00:00.000', '2024-06-22 17:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1792749362445840474', '1357956838021890048', 'SHENYU.MENU.SYSTEM.MANAGMENT.NAMESPACE', 'namespace', '/system/namespace', 'namespace', 1, 0, 'appstore', 0, 0, '', 1, '2024-06-22 17:00:00.000', '2024-06-22 17:00:00.000');
 INSERT INTO "public"."resource" VALUES ('1792749362445840475', '1792749362445840474', 'SHENYU.BUTTON.SYSTEM.ADD', '', '', '', 2, 0, '', 1, 0, 'system:namespace:add', 1, '2024-06-22 17:00:00.000', '2024-06-22 17:00:00.000');
 INSERT INTO "public"."resource" VALUES ('1792749362445840476', '1792749362445840474', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 1, '', 1, 0, 'system:namespace:list', 1, '2024-06-22 17:00:00.000', '2024-06-22 17:00:00.000');
 INSERT INTO "public"."resource" VALUES ('1792749362445840477', '1792749362445840474', 'SHENYU.BUTTON.SYSTEM.DELETE', '', '', '', 2, 2, '', 1, 0, 'system:namespace:delete', 1,'2024-06-22 17:00:00.000', '2024-06-22 17:00:00.000');
