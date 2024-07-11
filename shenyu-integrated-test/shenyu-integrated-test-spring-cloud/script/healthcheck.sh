@@ -32,7 +32,18 @@ do
         sleep 2
     done
 done
-curl -s -XGET http://localhost:8761/eureka/apps > eureka.log
+sleep 30s
+
+for loop in `seq 1 30`
+do
+  app_count=$(wget -q -O- http://localhost:8761/eureka/apps | grep "<application>" | wc -l | xargs)
+  if [ $app_count -gt 1  ]; then
+          break
+  fi
+  sleep 2
+done
+
+
 cat eureka.log
 date
 echo -e "\n-------------------"
