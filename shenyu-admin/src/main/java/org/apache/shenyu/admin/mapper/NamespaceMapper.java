@@ -61,10 +61,10 @@ public interface NamespaceMapper extends ExistProvider {
     /**
      * selectAll.
      *
+     * @param name name.
      * @return namespaceDOList
      */
-    List<NamespaceDO> selectAll();
-
+    List<NamespaceDO> selectAll(String name);
 
     /**
      * insert namespace.
@@ -99,7 +99,6 @@ public interface NamespaceMapper extends ExistProvider {
      * @return rows
      */
     int updateSelective(NamespaceDO namespaceDO);
-
 
 
     /**

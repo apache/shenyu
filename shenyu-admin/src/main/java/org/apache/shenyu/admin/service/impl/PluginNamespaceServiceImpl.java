@@ -153,7 +153,7 @@ public class PluginNamespaceServiceImpl implements PluginNamespaceService {
 
     @Override
     public List<PluginSnapshotVO> activePluginSnapshot() {
-        //todo：等待实现
+        //todo:Not yet implemented
         return null;
     }
 

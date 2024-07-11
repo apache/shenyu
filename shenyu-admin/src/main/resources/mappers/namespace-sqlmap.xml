@@ -60,6 +60,11 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM namespace
+        <where>
+            <if test="name != null and name != ''">
+                AND name = #{name, jdbcType=VARCHAR}
+            </if>
+        </where>
     </select>
 
     <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"

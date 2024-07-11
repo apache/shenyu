@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -33,20 +32,16 @@ public class NamespaceVO implements Serializable {
     /**
      * name.
      */
-    //todo:vo不用校验性的判断
-    @NotNull(message = "namespace id not null")
     private String namespaceId;
 
     /**
      * discovery type.
      */
-    @NotNull(message = "name not null")
     private String name;
 
     /**
      * handler.
      */
-    @NotNull(message = "description not null")
     private String description;
 
     /**

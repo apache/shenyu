@@ -73,16 +73,16 @@ public class NamespaceController {
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
-    //todo:支持搜索
     /**
      * Find namespace list.
      *
+     * @param name name
      * @return the shenyu result
      */
     @GetMapping("/list")
     @RequiresPermissions("system:namespace:list")
-    public ShenyuAdminResult list() {
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, namespaceService.list());
+    public ShenyuAdminResult list(final String name) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, namespaceService.list(name));
     }
 
 

@@ -17,64 +17,34 @@
 
 package org.apache.shenyu.admin.model.query;
 
-import org.apache.shenyu.admin.model.page.condition.BaseExcludedSearchCondition;
 import org.apache.shenyu.admin.model.page.condition.SearchCondition;
 import org.apache.shenyu.admin.model.page.condition.SwitchCondition;
 
 /**
  * this is plugin query condition.
  */
-public class PluginNamespaceQueryCondition extends BaseExcludedSearchCondition implements SearchCondition, SwitchCondition {
-    
-    /**
-     * search keyword: plugin name or role name.
-     */
-    private String keyword;
-    
-    /**
-     * switch status: plugin status[close or open].
-     */
-    private Boolean switchStatus;
+public class PluginNamespaceQueryCondition extends PluginQueryCondition implements SearchCondition, SwitchCondition {
 
-    //todo：namespaceID 继承
-    
-    
     /**
-     * get switchStatus.
-     *
-     * @return status
+     * namespace id: namespaceId.
      */
-    @Override
-    public Boolean getSwitchStatus() {
-        return switchStatus;
+    private String namespaceId;
+
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getNamespaceId() {
+        return namespaceId;
     }
-    
+
     /**
-     * set switchStatus.
+     * Sets the namespaceId.
      *
-     * @param switchStatus status
+     * @param namespaceId namespaceId
      */
-    public void setSwitchStatus(final Boolean switchStatus) {
-        this.switchStatus = switchStatus;
-    }
-    
-    /**
-     * get keyword.
-     *
-     * @return keyword
-     */
-    @Override
-    public String getKeyword() {
-        return keyword;
-    }
-    
-    /**
-     * set keyword.
-     *
-     * @param keyword keyword
-     */
-    @Override
-    public void setKeyword(final String keyword) {
-        this.keyword = keyword;
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
     }
 }

@@ -25,23 +25,7 @@ import java.util.Objects;
 /**
  * this is plugin query.
  */
-public class PluginNamespaceQuery implements Serializable {
-
-
-    /**
-     * plugin name.
-     */
-    private String name;
-
-    /**
-     * plugin enabled.
-     */
-    private Integer enabled;
-
-    /**
-     * page parameter.
-     */
-    private PageParameter pageParameter;
+public class PluginNamespaceQuery extends PluginQuery implements Serializable {
 
     /**
      * namespace id.
@@ -52,9 +36,7 @@ public class PluginNamespaceQuery implements Serializable {
     }
 
     public PluginNamespaceQuery(final String name, final Integer enabled, final PageParameter pageParameter, final String namespaceId) {
-        this.name = name;
-        this.enabled = enabled;
-        this.pageParameter = pageParameter;
+        super(name, enabled, pageParameter);
         this.namespaceId = namespaceId;
     }
 
@@ -62,60 +44,6 @@ public class PluginNamespaceQuery implements Serializable {
      * Gets the value of name.
      *
      * @return the value of name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the name.
-     *
-     * @param name name
-     */
-    public void setName(final String name) {
-        this.name = name;
-    }
-
-    /**
-     * Gets the value of enabled.
-     *
-     * @return the value of enabled
-     */
-    public Integer getEnabled() {
-        return enabled;
-    }
-
-    /**
-     * Sets the enabled.
-     *
-     * @param enabled enabled
-     */
-    public void setEnabled(final Integer enabled) {
-        this.enabled = enabled;
-    }
-
-    /**
-     * Gets the value of pageParameter.
-     *
-     * @return the value of pageParameter
-     */
-    public PageParameter getPageParameter() {
-        return pageParameter;
-    }
-
-    /**
-     * Sets the pageParameter.
-     *
-     * @param pageParameter pageParameter
-     */
-    public void setPageParameter(final PageParameter pageParameter) {
-        this.pageParameter = pageParameter;
-    }
-
-    /**
-     * Gets the value of namespaceId.
-     *
-     * @return the value of namespaceId
      */
     public String getNamespaceId() {
         return namespaceId;
@@ -138,14 +66,15 @@ public class PluginNamespaceQuery implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+        if (!super.equals(o)) {
+            return false;
+        }
         PluginNamespaceQuery that = (PluginNamespaceQuery) o;
-        return Objects.equals(name, that.name) && Objects.equals(enabled, that.enabled)
-                && Objects.equals(pageParameter, that.pageParameter)
-                && Objects.equals(namespaceId, that.namespaceId);
+        return Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, enabled, pageParameter, namespaceId);
+        return Objects.hash(super.hashCode(), namespaceId);
     }
 }

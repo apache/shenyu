@@ -190,8 +190,6 @@ public class PluginNamespaceController implements PagedController<PluginNamespac
         return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
     }
 
-
-    //todo：根据namespaceId同步
     /**
      * sync plugins.
      *
@@ -200,6 +198,7 @@ public class PluginNamespaceController implements PagedController<PluginNamespac
     @PostMapping("/syncPluginAll")
     @RequiresPermissions("system:plugin:modify")
     public ShenyuAdminResult syncPluginAll() {
+        //todo:[Namespace] Synchronize based on namespaceId
         boolean success = syncDataService.syncAll(DataEventTypeEnum.REFRESH);
         if (success) {
             return ShenyuAdminResult.success(ShenyuResultMessage.SYNC_SUCCESS);
