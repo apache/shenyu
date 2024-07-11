@@ -491,7 +491,7 @@ public class AdminClient extends BaseClient {
      * @param formData formData
      */
     public void changePluginStatus(final String id, final MultiValueMap<String, String> formData) {
-        putResource("/pluginNamespace", id, NamespacePluginDTO.class, formData);
+        putResource("/namespacePlugin", id, NamespacePluginDTO.class, formData);
     }
 
     private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final MultiValueMap<String, String> formData) {

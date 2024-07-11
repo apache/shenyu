@@ -54,7 +54,7 @@ import java.util.List;
 /**
  * this is namespace plugin controller.
  */
-@RestApi("/pluginNamespace")
+@RestApi("/namespacePlugin")
 public class NamespacePluginController implements PagedController<NamespacePluginQueryCondition, NamespacePluginVO> {
 
     private final NamespacePluginService namespacePluginService;
