@@ -42,4 +42,8 @@ do
   fi
   sleep 2
 done
+
+curl -s -XGET http://localhost:8761/eureka/apps > eureka.log
+cat eureka.log
+
 echo -e "\n-------------------"
