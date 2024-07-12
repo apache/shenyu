@@ -36,14 +36,15 @@ sleep 30s
 
 for loop in `seq 1 30`
 do
-  app_count=$(wget -q -O- http://localhost:8761/eureka/apps | grep "<application>" | wc -l | xargs)
+  app_count=$(wget -q -O- http://shenyu-examples-eureka:8761/eureka/apps | grep "<application>" | wc -l | xargs)
+  echo "app count ${app_count}"
   if [ $app_count -gt 1  ]; then
       break
   fi
   sleep 2
 done
 
-curl -s -XGET http://localhost:8761/eureka/apps > eureka.log
+curl -s -XGET http://shenyu-examples-eureka:8761/eureka/apps > eureka.log
 cat eureka.log
 
 echo -e "\n-------------------"
