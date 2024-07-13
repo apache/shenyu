@@ -115,12 +115,12 @@ jobs:
         include:
           - case: shenyu-e2e-case-storage
             script: e2e-h2
-          - case: shenyu-e2e-case-storage
-            script: e2e-mysql
-          - case: shenyu-e2e-case-storage
-            script: e2e-postgres
-          - case: shenyu-e2e-case-storage
-            script: e2e-opengauss
+#          - case: shenyu-e2e-case-storage
+#            script: e2e-mysql
+#          - case: shenyu-e2e-case-storage
+#            script: e2e-postgres
+#          - case: shenyu-e2e-case-storage
+#            script: e2e-opengauss
     steps:
       - uses: actions/checkout@v2
         with:

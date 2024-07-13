@@ -97,7 +97,7 @@ jobs:
       - name: Check test result
         if: steps.filter.outputs.changed == 'true'
         run: |
-          docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --tail="all"
+#          docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --tail="all"
           if [[ ${{steps.test.outcome}} == "failure" ]]; then
             echo "Test Failed"
             exit 1
