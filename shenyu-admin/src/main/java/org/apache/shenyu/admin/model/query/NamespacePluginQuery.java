@@ -27,6 +27,8 @@ import java.util.Objects;
  */
 public class NamespacePluginQuery extends PluginQuery implements Serializable {
 
+    private static final long serialVersionUID = -4156603344039606920L;
+
     /**
      * namespace id.
      */

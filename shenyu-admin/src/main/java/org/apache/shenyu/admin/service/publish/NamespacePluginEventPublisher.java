@@ -82,7 +82,6 @@ public class NamespacePluginEventPublisher implements AdminDataModelChangedEvent
                 namespacePlugin.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
     }
 
-
     /**
      * on plugin namespace batch enabled.
      *

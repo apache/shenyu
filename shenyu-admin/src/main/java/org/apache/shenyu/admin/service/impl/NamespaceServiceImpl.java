@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
@@ -131,7 +132,7 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     private NamespaceVO update(final NamespaceDTO namespaceDTO) {
         if (Objects.isNull(namespaceDTO) || Objects.isNull(namespaceDTO.getNamespaceId())) {
-            return null;
+            throw new ShenyuAdminException("namespace is not exist");
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         NamespaceDO namespaceDO = NamespaceDO.builder()
