@@ -52,7 +52,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   kubectl apply -f "${PRGDIR}"/shenyu-examples-springcloud.yml
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:30884/actuator/health
   sleep 10s
-  kubectl get pod -o wide
+  kubectl get pod -o wide -A
 
   sleep 30s
 
@@ -69,14 +69,14 @@ for sync in ${SYNC_ARRAY[@]}; do
   done
 
   for loop in `seq 1 30`
-    do
-      app_count=$(wget -q -O- http://localhost:30761/eureka/apps | grep "<application>" | wc -l | xargs)
-      echo "app count ${app_count}"
-      if [ $app_count -gt 2  ]; then
-          break
-      fi
-      sleep 2
-    done
+  do
+    app_count=$(wget -q -O- http://localhost:30761/eureka/apps | grep "<application>" | wc -l | xargs)
+    echo "app count ${app_count}"
+    if [ $app_count -gt 2  ]; then
+        break
+    fi
+    sleep 2
+  done
 
   wget -q -O- http://shenyu-examples-eureka:8761/eureka/apps
   wget -q -O- http://localhost:30761/eureka/apps
