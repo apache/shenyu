@@ -24,3 +24,26 @@ kubectl apply -f ./shenyu-examples/shenyu-examples-eureka/k8s/shenyu-examples-eu
 kubectl wait --for=condition=Ready pod -l app=shenyu-examples-eureka-deployment -n shenyu-ingress
 kubectl apply -f ./shenyu-examples/shenyu-examples-springcloud/k8s/shenyu-examples-springcloud.yml
 kubectl apply -f ./shenyu-examples/shenyu-examples-springcloud/k8s/ingress.yml
+
+for loop in `seq 1 30`
+  do
+    app_count=$(wget -q -O- http://shenyu-examples-eureka:8761/eureka/apps | grep "<application>" | wc -l | xargs)
+    echo "app count ${app_count}"
+    if [ $app_count -gt 2  ]; then
+        break
+    fi
+    sleep 2
+  done
+
+  for loop in `seq 1 30`
+    do
+      app_count=$(wget -q -O- http://localhost:30761/eureka/apps | grep "<application>" | wc -l | xargs)
+      echo "app count ${app_count}"
+      if [ $app_count -gt 2  ]; then
+          break
+      fi
+      sleep 2
+    done
+
+wget -q -O- http://shenyu-examples-eureka:8761/eureka/apps
+wget -q -O- http://localhost:30761/eureka/apps
