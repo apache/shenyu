@@ -58,19 +58,20 @@ for sync in ${SYNC_ARRAY[@]}; do
 
   kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-eureka | awk '{print $1}')"
   ## check instances register to eureka successfully
-#  for loop in `seq 1 30`
-#  do
-#    app_count=$(wget -q -O- http://shenyu-examples-eureka:8761/eureka/apps | grep "<application>" | wc -l | xargs)
-#    echo "app count ${app_count}"
-#    if [ $app_count -gt 2  ]; then
-#        break
-#    fi
-#    sleep 2
-#  done
-  curl -s -XGET http://shenyu-examples-eureka:8761/eureka/apps > eureka.log
-  cat eureka.log
-  curl -s -XGET http://localhost:8761/eureka/apps > eureka1.log
-  cat eureka1.log
+  for loop in `seq 1 30`
+  do
+    app_count=$(wget -q -O- http://shenyu-examples-eureka:8761/eureka/apps | grep "<application>" | wc -l | xargs)
+    echo "app count ${app_count}"
+    if [ $app_count -gt 2  ]; then
+        break
+    fi
+    sleep 2
+  done
+
+  wget -q -O- http://shenyu-examples-eureka:8761/eureka/apps
+
+  sleep 30s
+
   ## run e2e-test
   ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test
   # shellcheck disable=SC2181
