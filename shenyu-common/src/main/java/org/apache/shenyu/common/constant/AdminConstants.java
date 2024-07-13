@@ -70,7 +70,7 @@ public final class AdminConstants {
     /**
      * The constant SYS_DEFAULT_NAMESPACE_NAMESPACE_ID.
      */
-    public static final String SYS_DEFAULT_NAMESPACE_NAMESPACE_ID = "649330b6c2d74edcbe8e8a54df9eb385";
+    public static final String SYS_DEFAULT_NAMESPACE_NAMESPACE_ID = "649330b6-c2d7-4edc-be8e-8a54df9eb385";
 
     /**
      * The constant SYS_DEFAULT_NAMESPACE_ID.

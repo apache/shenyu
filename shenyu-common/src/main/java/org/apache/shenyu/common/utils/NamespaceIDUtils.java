@@ -41,6 +41,6 @@ public final class NamespaceIDUtils {
      * @return the string
      */
     public String generateNamespaceID() {
-        return UUID.randomUUID().toString().replace("-", "");
+        return UUID.randomUUID().toString();
     }
 }

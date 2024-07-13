@@ -31,7 +31,6 @@ public class BatchCommonDTO implements Serializable {
 
     private static final long serialVersionUID = 7154784370528669046L;
 
-    @NotEmpty
     @NotNull
     private List<@NotBlank String> ids;
 

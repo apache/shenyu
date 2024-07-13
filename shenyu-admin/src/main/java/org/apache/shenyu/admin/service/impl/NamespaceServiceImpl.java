@@ -102,9 +102,6 @@ public class NamespaceServiceImpl implements NamespaceService {
     }
 
     private NamespaceVO create(final NamespaceDTO namespaceDTO) {
-        if (namespaceDTO == null) {
-            return null;
-        }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
         String namespaceId = NamespaceIDUtils.getInstance().generateNamespaceID();
@@ -117,7 +114,6 @@ public class NamespaceServiceImpl implements NamespaceService {
                 .dateUpdated(currentTime)
                 .build();
         List<PluginData> pluginData = pluginService.listAll();
-        //创建新命名空间下的默认插件组配置
         List<NamespacePluginRelDO> pluginNsRelList = pluginData.stream().map(s -> NamespacePluginRelDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .pluginId(s.getId())

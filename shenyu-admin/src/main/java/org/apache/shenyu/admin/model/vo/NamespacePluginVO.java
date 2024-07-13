@@ -28,6 +28,8 @@ import java.util.Optional;
  */
 public class NamespacePluginVO extends PluginVO implements Serializable {
 
+    private static final long serialVersionUID = 4745279543203013538L;
+
     /**
      * plugin id.
      */

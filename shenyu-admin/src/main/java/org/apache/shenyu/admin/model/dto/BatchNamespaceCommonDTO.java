@@ -29,15 +29,14 @@ import java.util.Objects;
  */
 public class BatchNamespaceCommonDTO implements Serializable {
 
-    private static final long serialVersionUID = 7154784370528669046L;
+    private static final long serialVersionUID = 834870704708184767L;
 
-    @NotEmpty
     @NotNull
     private List<@NotBlank String> ids;
 
     private Boolean enabled;
 
-    @NotNull
+    @NotEmpty
     private String namespaceId;
 
     /**

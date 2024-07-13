@@ -28,20 +28,20 @@ public class NamespaceDTO implements Serializable {
     private String id;
 
     /**
-     * name.
+     * namespaceId.
      */
     private String namespaceId;
 
     /**
-     * discovery type.
+     * namespace name.
      */
-    @NotNull(message = "name not null")
+    @NotNull(message = "namespace name not null")
     private String name;
 
     /**
-     * handler.
+     * namespace description.
      */
-    @NotNull(message = "description not null")
+    @NotNull(message = "namespace description not null")
     private String description;
 
     /**
