@@ -33,4 +33,5 @@ do
 done
 
 sleep 30
+docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --tail="all" shenyu-examples-sofa
 echo -e "\n-------------------"
