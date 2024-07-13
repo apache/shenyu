@@ -25,6 +25,7 @@ import java.io.Serializable;
 public class NamespaceVO implements Serializable {
 
     private static final long serialVersionUID = 5500339761043890653L;
+
     /**
      * id.
      */
