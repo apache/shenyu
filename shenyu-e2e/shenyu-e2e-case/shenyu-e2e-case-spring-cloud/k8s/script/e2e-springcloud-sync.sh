@@ -61,16 +61,25 @@ for sync in ${SYNC_ARRAY[@]}; do
   echo "shenyu-bootstrap log"
   kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
 
-  echo "curl -s -X GET http://localhost:8761"
-  curl -s -X GET http://localhost:8761
-  echo "curl -s -X GET http://localhost:8761/eureka/apps"
-  curl -s -X GET http://localhost:8761/eureka/apps
+#  echo "curl -s -X GET http://localhost:8761"
+#  curl -s -X GET http://localhost:8761
+#  echo "curl -s -X GET http://localhost:8761/eureka/apps"
+#  curl -s -X GET http://localhost:8761/eureka/apps
 
   echo "curl -s -X GET http://localhost:30761"
   curl -s -X GET http://localhost:30761
 
   echo "curl -s -X GET http://localhost:30761/eureka/apps"
   curl -s -X GET http://localhost:30761/eureka/apps
+  for loop in `seq 1 30`
+  do
+    app_count=$(wget -q -O- http://localhost:30761/eureka/apps | grep "<application>" | wc -l | xargs)
+    echo "http://localhost:30761/eureka/apps app count ${app_count}"
+    if [ $app_count -gt 2  ]; then
+        break
+    fi
+    sleep 2
+  done
 
   sleep 30s
 

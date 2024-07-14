@@ -26,11 +26,8 @@ kubectl apply -f ./shenyu-examples/shenyu-examples-springcloud/k8s/shenyu-exampl
 kubectl wait --for=condition=Ready pod -l app=shenyu-examples-springcloud-deployment -n shenyu-ingress
 kubectl apply -f ./shenyu-examples/shenyu-examples-springcloud/k8s/ingress.yml
 sleep 10s
-kubectl get pod -o wide -A
-curl -s -X GET http://localhost:8761
-echo "curl -s -X GET http://localhost:8761/eureka/apps"
-curl -s -X GET http://localhost:8761/eureka/apps
-
+kubectl get pod -o wide -A -n shenyu-ingress
+sleep 30s
 curl -s -X GET http://localhost:30761
 echo "curl -s -X GET http://localhost:30761/eureka/apps"
 curl -s -X GET http://localhost:30761/eureka/apps
