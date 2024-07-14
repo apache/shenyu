@@ -54,13 +54,21 @@ for sync in ${SYNC_ARRAY[@]}; do
   sleep 10s
   kubectl get pod -o wide
   kubectl get svc/shenyu-examples-eureka -n default
+  echo "shenyu-examples-springcloud log"
   kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-springcloud | awk '{print $1}')"
+  echo "shenyu-examples-eureka log"
+  kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-eureka | awk '{print $1}')"
+  echo "shenyu-bootstrap log"
+  kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
 
+  echo "curl -s -X GET http://localhost:8761"
   curl -s -X GET http://localhost:8761
   echo "curl -s -X GET http://localhost:8761/eureka/apps"
   curl -s -X GET http://localhost:8761/eureka/apps
 
+  echo "curl -s -X GET http://localhost:30761"
   curl -s -X GET http://localhost:30761
+
   echo "curl -s -X GET http://localhost:30761/eureka/apps"
   curl -s -X GET http://localhost:30761/eureka/apps
 

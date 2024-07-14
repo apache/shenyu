@@ -24,5 +24,6 @@ kubectl apply -f ./shenyu-examples/shenyu-examples-sofa/shenyu-examples-sofa-ser
 kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-sofa/deploy/deploy-shenyu.yaml
 kubectl apply -f ./shenyu-examples/shenyu-examples-sofa/shenyu-examples-sofa-service/k8s/ingress.yml
 
-kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-sofa | awk '{print $1}')"
-kubectl logs "$(kubectl get pod -o wide | grep shenyu-ingress-controller | awk '{print $1}')"
+kubectl get pod -o wide
+#kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-sofa | awk '{print $1}')"
+#kubectl logs "$(kubectl get pod -o wide | grep shenyu-ingress-controller | awk '{print $1}')"
