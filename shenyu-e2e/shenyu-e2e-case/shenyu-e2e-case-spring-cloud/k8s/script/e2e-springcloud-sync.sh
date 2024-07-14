@@ -71,6 +71,16 @@ for sync in ${SYNC_ARRAY[@]}; do
     fi
     sleep 2
   done
+  ## check instances register to eureka successfully
+  for loop in `seq 1 30`
+  do
+    app_count=$(wget -q -O- http://shenyu-examples-eureka:30761/eureka/apps | grep "<application>" | wc -l | xargs)
+    echo "shenyu-examples-eureka:30761 app count ${app_count}"
+    if [ $app_count -gt 2  ]; then
+        break
+    fi
+    sleep 2
+  done
 
   for loop in `seq 1 30`
   do
@@ -82,8 +92,24 @@ for sync in ${SYNC_ARRAY[@]}; do
     sleep 2
   done
 
+  for loop in `seq 1 30`
+  do
+    app_count=$(wget -q -O- http://localhost:8761/eureka/apps | grep "<application>" | wc -l | xargs)
+    echo "localhost:8761 app count ${app_count}"
+    if [ $app_count -gt 2  ]; then
+        break
+    fi
+    sleep 2
+  done
+
+  echo "curl http://shenyu-examples-eureka:8761/eureka/apps"
   curl http://shenyu-examples-eureka:8761/eureka/apps
+  echo "curl -s -X GET http://localhost:8761/eureka/apps"
+  curl -s -X GET http://localhost:8761/eureka/apps
+  echo "curl http://localhost:30761/eureka/apps"
   curl http://localhost:30761/eureka/apps
+  echo "curl -s -X GET http://localhost:30761/eureka/apps"
+  curl -s -X GET http://localhost:30761/eureka/apps
 
   sleep 30s
 
