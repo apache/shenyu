@@ -51,6 +51,7 @@
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-client</artifactId>
+            <version>5.7.0</version>
         </dependency>
 
         <dependency>
