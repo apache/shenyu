@@ -66,8 +66,8 @@ for sync in ${SYNC_ARRAY[@]}; do
 #  echo "curl -s -X GET http://localhost:8761/eureka/apps"
 #  curl -s -X GET http://localhost:8761/eureka/apps
 
-  echo "curl -s -X GET http://localhost:30761"
-  curl -s -X GET http://localhost:30761
+#  echo "curl -s -X GET http://localhost:30761"
+#  curl -s -X GET http://localhost:30761
 
   echo "curl -s -X GET http://localhost:30761/eureka/apps"
   curl -s -X GET http://localhost:30761/eureka/apps
