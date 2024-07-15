@@ -73,7 +73,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   curl -s -X GET http://localhost:30761/eureka/apps
   for loop in `seq 1 30`
   do
-    app_count=$(wget -q -O- http://localhost:30761/eureka/apps | grep "<application>" | wc -l | xargs)
+    app_count=$(curl -s -X GET http://localhost:30761/eureka/apps | grep "<application>" | wc -l | xargs)
     echo "http://localhost:30761/eureka/apps app count ${app_count}"
     if [ $app_count -gt 2  ]; then
         break
