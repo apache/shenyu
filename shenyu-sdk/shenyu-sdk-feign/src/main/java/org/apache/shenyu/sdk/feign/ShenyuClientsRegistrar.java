@@ -17,19 +17,9 @@
 
 package org.apache.shenyu.sdk.feign;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
@@ -60,10 +50,26 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
 /**
  * ShenyuClientsRegistrar.
  */
 public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, EnvironmentAware {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientsRegistrar.class);
 
     private ResourceLoader resourceLoader;
 
@@ -150,8 +156,8 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
                                                      .getAnnotationAttributes(ShenyuClient.class.getCanonicalName());
 
                 String name = getClientName(attributes);
-
-//                registerClientConfiguration(registry, name, attributes.get("configuration"));
+                LOG.info("configuration, attributes:{}", JsonUtils.toJson(attributes));
+                registerClientConfiguration(registry, name, attributes.get("configuration"));
                 registerShenyuClient(registry, annotationMetadata, attributes);
             }
         }
