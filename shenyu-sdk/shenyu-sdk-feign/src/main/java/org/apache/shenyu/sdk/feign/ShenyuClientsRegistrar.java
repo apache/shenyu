@@ -151,7 +151,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
                 String name = getClientName(attributes);
 
-                registerClientConfiguration(registry, name, attributes.get("configuration"));
+//                registerClientConfiguration(registry, name, attributes.get("configuration"));
                 registerShenyuClient(registry, annotationMetadata, attributes);
             }
         }
