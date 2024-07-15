@@ -21,9 +21,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * In fact, this type should be separated into a separate module.
- * <p>
- * Here just for example.
+ * In fact, this type should be separated into a separate module.<br>
+ * <p>Here just a example.
  */
 @Configuration
 public class RustHttpClientPluginConfiguration {
