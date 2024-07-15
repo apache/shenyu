@@ -59,7 +59,7 @@ public class RustHttpClientPlugin extends AbstractWasmPlugin {
     @Override
     protected Long getArgumentId(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         final UUID uuid = UUID.randomUUID();
-        long argumentId = uuid.getMostSignificantBits() ^ uuid.getLeastSignificantBits();
+        final long argumentId = uuid.getMostSignificantBits() ^ uuid.getLeastSignificantBits();
         final String httpMethod = exchange.getRequest().getMethodValue();
         final URI uri = exchange.getAttribute(Constants.HTTP_URI);
         if (Objects.isNull(uri)) {

@@ -21,7 +21,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * In fact, this type should be separated into a separate module.<br>
+ * In fact, this class should be separated into a separate module.
+ *
  * <p>Here just a example.
  */
 @Configuration
