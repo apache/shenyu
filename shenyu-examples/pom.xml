@@ -54,6 +54,7 @@
         <module>shenyu-examples-grpc</module>
         <module>shenyu-examples-motan</module>
         <module>shenyu-examples-plugin</module>
+        <module>shenyu-examples-plugin-wasm</module>
         <module>shenyu-examples-websocket</module>
         <module>shenyu-examples-springmvc</module>
         <module>shenyu-examples-springmvc-tomcat</module>
