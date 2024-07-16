@@ -29,6 +29,11 @@ sleep 10s
 kubectl get pod -o wide -A -n shenyu-ingress
 sleep 30s
 kubectl get svc -A -o wide
-kubectl get svc/shenyu-examples-eureka -n default
-echo "curl -s -X GET http://localhost:8761/eureka/apps"
-curl -s -X GET http://localhost:8761/eureka/apps
+#kubectl get svc/shenyu-examples-eureka -n default
+echo "curl -s -X GET http://localhost:30761/eureka/apps"
+curl -s -X GET http://localhost:30761/eureka/apps
+for loop in `seq 1 30`
+do
+  curl -s -X GET http://localhost:30761/eureka/apps
+  sleep 2
+done
