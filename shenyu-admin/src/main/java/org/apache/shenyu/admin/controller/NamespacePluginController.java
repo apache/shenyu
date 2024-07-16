@@ -87,9 +87,10 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     }
 
     /**
-     * query All plugins of namespace.
+     * query all plugins of namespace.
      *
      * @param namespaceId namespace id.
+     *
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/all/{namespaceId}")
