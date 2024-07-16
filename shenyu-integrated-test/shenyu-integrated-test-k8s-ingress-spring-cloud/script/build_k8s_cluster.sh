@@ -28,6 +28,7 @@ kubectl apply -f ./shenyu-examples/shenyu-examples-springcloud/k8s/ingress.yml
 sleep 10s
 kubectl get pod -o wide -A -n shenyu-ingress
 sleep 30s
+kubectl get svc -A -o wide
 kubectl get svc/shenyu-examples-eureka -n default
 echo "curl -s -X GET http://localhost:8761/eureka/apps"
 curl -s -X GET http://localhost:8761/eureka/apps
