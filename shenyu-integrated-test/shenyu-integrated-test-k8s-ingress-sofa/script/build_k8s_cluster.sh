@@ -26,8 +26,10 @@ kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-sof
 kubectl wait --for=condition=Ready pod -l app=shenyu-ingress-controller -n shenyu-ingress
 kubectl apply -f ./shenyu-examples/shenyu-examples-sofa/shenyu-examples-sofa-service/k8s/ingress.yml
 
-kubectl get pod -o wide
+echo "kubectl get pod -o wide -A"
+kubectl get pod -o wide -A
+
 echo "shenyu-examples-eureka log"
-kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-sofa | awk '{print $1}')"
+kubectl logs "$(kubectl get pod -o wide -A | grep shenyu-examples-sofa | awk '{print $1}')"
 #kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-sofa | awk '{print $1}')"
 #kubectl logs "$(kubectl get pod -o wide | grep shenyu-ingress-controller | awk '{print $1}')"

@@ -54,11 +54,35 @@ for sync in ${SYNC_ARRAY[@]}; do
   sleep 10s
   kubectl get pod -o wide
   echo "shenyu-examples-springcloud log"
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-springcloud | awk '{print $1}')"
+#  kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-springcloud | awk '{print $1}')"
+  sleep 30s
+  result=$(kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-springcloud | awk '{print $1}')" | grep 'Registering application')
+  if [ -n "$result" ]; then
+    echo "找到匹配的日志:";
+    echo "$result";
+  else
+    echo "未找到包含 'Registering application' 的日志";
+  fi
+  sleep 30s
   echo "shenyu-examples-eureka log"
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-eureka | awk '{print $1}')"
+#  kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-eureka | awk '{print $1}')"
+  result=$(kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-eureka | awk '{print $1}')" | grep 'Registering application')
+  if [ -n "$result" ]; then
+    echo "找到匹配的日志:";
+    echo "$result";
+  else
+    echo "未找到包含 'Registering application' 的日志";
+  fi
+  sleep 30s
   echo "shenyu-bootstrap log"
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
+#  kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
+  result=$(kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')" | grep 'Registering application')
+  if [ -n "$result" ]; then
+    echo "找到匹配的日志:";
+    echo "$result";
+  else
+    echo "未找到包含 'Registering application' 的日志";
+  fi
 
 #  echo "curl -s -X GET http://localhost:8761"
 #  curl -s -X GET http://localhost:8761
