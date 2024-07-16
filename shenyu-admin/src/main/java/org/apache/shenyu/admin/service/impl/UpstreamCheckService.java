@@ -31,15 +31,12 @@ import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.event.discovery.DiscoveryStreamUpdatedEvent;
-import org.apache.shenyu.admin.model.event.selector.SelectorCreatedEvent;
-import org.apache.shenyu.admin.model.event.selector.SelectorUpdatedEvent;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
-import org.apache.shenyu.admin.utils.SelectorUtil;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -47,7 +44,6 @@ import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
-import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.ZombieUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -462,36 +458,6 @@ public class UpstreamCheckService {
                         PENDING_SYNC.add(NumberUtils.INTEGER_ZERO);
                     }
                 });
-    }
-
-    /**
-     * listen {@link SelectorCreatedEvent} add data permission.
-     *
-     * @param event event
-     */
-    @Deprecated
-    @EventListener(SelectorCreatedEvent.class)
-    public void onSelectorCreated(final SelectorCreatedEvent event) {
-        final PluginDO plugin = pluginMapper.selectById(event.getSelector().getPluginId());
-        List<DivideUpstream> existDivideUpstreams = SelectorUtil.buildDivideUpstream(event.getSelector(), plugin.getName());
-        if (CollectionUtils.isNotEmpty(existDivideUpstreams)) {
-            replace(event.getSelector().getId(), CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams));
-        }
-    }
-
-    /**
-     * listen {@link SelectorCreatedEvent} add data permission.
-     *
-     * @param event event
-     */
-    @Deprecated
-    @EventListener(SelectorUpdatedEvent.class)
-    public void onSelectorUpdated(final SelectorUpdatedEvent event) {
-        final PluginDO plugin = pluginMapper.selectById(event.getSelector().getPluginId());
-        List<DivideUpstream> existDivideUpstreams = SelectorUtil.buildDivideUpstream(event.getSelector(), plugin.getName());
-        if (CollectionUtils.isNotEmpty(existDivideUpstreams)) {
-            replace(event.getSelector().getId(), CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams));
-        }
     }
 
     /**
