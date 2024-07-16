@@ -15,30 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service;
+package org.apache.shenyu.e2e.constant;
 
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
-
-/**
- * The interface Sync data service.
- */
-public interface SyncDataService {
+public final class Constants {
 
     /**
-     * Sync all boolean.
-     *
-     * @param type the type
-     * @return the boolean
+     * The constant SYS_DEFAULT_NAMESPACE_NAMESPACE_ID.
      */
-    boolean syncAll(DataEventTypeEnum type);
-
-    /**
-     * Sync plugin data boolean.
-     *
-     * @param pluginId    the plugin id
-     * @param namespaceId the namespace id
-     * @return the boolean
-     */
-    boolean syncPluginData(String pluginId, String namespaceId);
-
+    public static final String SYS_DEFAULT_NAMESPACE_NAMESPACE_ID = "649330b6-c2d7-4edc-be8e-8a54df9eb385";
 }

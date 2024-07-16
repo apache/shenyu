@@ -34,7 +34,6 @@ import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,7 +54,7 @@ import java.util.List;
  */
 @RestApi("/plugin")
 public class PluginController implements PagedController<PluginQueryCondition, PluginVO> {
-    
+
     private final PluginService pluginService;
     
     private final SyncDataService syncDataService;
@@ -138,6 +137,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
         return createPlugin(pluginDTO);
     }
 
+
     /**
      * create plugin resource.
      * @param id primary key
@@ -185,36 +185,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
     }
-    
-    /**
-     * sync plugins.
-     *
-     * @return {@linkplain ShenyuAdminResult}
-     */
-    @PostMapping("/syncPluginAll")
-    @RequiresPermissions("system:plugin:modify")
-    public ShenyuAdminResult syncPluginAll() {
-        boolean success = syncDataService.syncAll(DataEventTypeEnum.REFRESH);
-        if (success) {
-            return ShenyuAdminResult.success(ShenyuResultMessage.SYNC_SUCCESS);
-        } else {
-            return ShenyuAdminResult.error(ShenyuResultMessage.SYNC_FAIL);
-        }
-    }
-    
-    /**
-     * Sync plugin data.
-     *
-     * @param id the id
-     * @return the mono
-     */
-    @PutMapping("/syncPluginData/{id}")
-    public ShenyuAdminResult syncPluginData(@PathVariable("id")
-                                            @Existed(message = "plugin is not existed",
-                                                    provider = PluginMapper.class) final String id) {
-        return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
-    }
-    
+
     /**
      * active plugin snapshot.
      *

@@ -15,30 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service;
+package org.apache.shenyu.common.utils;
 
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import java.util.UUID;
 
 /**
- * The interface Sync data service.
+ * NamespaceIDUtils.
  */
-public interface SyncDataService {
+public final class NamespaceIDUtils {
+
+    private static final NamespaceIDUtils NAMESPACE_ID_UTILS = new NamespaceIDUtils();
 
     /**
-     * Sync all boolean.
+     * Gets instance.
      *
-     * @param type the type
-     * @return the boolean
+     * @return the instance
      */
-    boolean syncAll(DataEventTypeEnum type);
+    public static NamespaceIDUtils getInstance() {
+        return NAMESPACE_ID_UTILS;
+    }
 
     /**
-     * Sync plugin data boolean.
+     * Generate namespace ID.
      *
-     * @param pluginId    the plugin id
-     * @param namespaceId the namespace id
-     * @return the boolean
+     * @return the string
      */
-    boolean syncPluginData(String pluginId, String namespaceId);
-
+    public String generateNamespaceID() {
+        return UUID.randomUUID().toString();
+    }
 }

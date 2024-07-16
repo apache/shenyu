@@ -15,69 +15,37 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.dto;
+package org.apache.shenyu.admin.model.query;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import org.apache.shenyu.admin.model.page.PageParameter;
+
 import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
 /**
- * The type Batch common dto.
+ * this is namespace plugin query.
  */
-public class BatchCommonDTO implements Serializable {
+public class NamespacePluginQuery extends PluginQuery implements Serializable {
 
-    private static final long serialVersionUID = 7154784370528669046L;
+    private static final long serialVersionUID = -4156603344039606920L;
 
-    @NotNull
-    private List<@NotBlank String> ids;
-
-    @NotNull
-    private Boolean enabled;
-
+    /**
+     * namespace id.
+     */
     private String namespaceId;
 
-    /**
-     * Gets the value of ids.
-     *
-     * @return the value of ids
-     */
-    public List<String> getIds() {
-        return ids;
+    public NamespacePluginQuery() {
+    }
+
+    public NamespacePluginQuery(final String name, final Integer enabled, final PageParameter pageParameter, final String namespaceId) {
+        super(name, enabled, pageParameter);
+        this.namespaceId = namespaceId;
     }
 
     /**
-     * Sets the ids.
+     * Gets the value of name.
      *
-     * @param ids ids
-     */
-    public void setIds(final List<String> ids) {
-        this.ids = ids;
-    }
-
-    /**
-     * Gets the value of enabled.
-     *
-     * @return the value of enabled
-     */
-    public Boolean getEnabled() {
-        return enabled;
-    }
-
-    /**
-     * Sets the enabled.
-     *
-     * @param enabled enabled
-     */
-    public void setEnabled(final Boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    /**
-     * Gets the value of namespaceId.
-     *
-     * @return the value of namespaceId
+     * @return the value of name
      */
     public String getNamespaceId() {
         return namespaceId;
@@ -100,12 +68,15 @@ public class BatchCommonDTO implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        BatchCommonDTO that = (BatchCommonDTO) o;
-        return Objects.equals(ids, that.ids) && Objects.equals(enabled, that.enabled) && Objects.equals(namespaceId, that.namespaceId);
+        if (!super.equals(o)) {
+            return false;
+        }
+        NamespacePluginQuery that = (NamespacePluginQuery) o;
+        return Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ids, enabled, namespaceId);
+        return Objects.hash(super.hashCode(), namespaceId);
     }
 }
