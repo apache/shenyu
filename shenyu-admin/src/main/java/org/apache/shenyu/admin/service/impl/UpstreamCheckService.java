@@ -30,6 +30,7 @@ import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.event.discovery.DiscoveryStreamUpdatedEvent;
 import org.apache.shenyu.admin.model.event.selector.SelectorCreatedEvent;
 import org.apache.shenyu.admin.model.event.selector.SelectorUpdatedEvent;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
@@ -51,6 +52,7 @@ import org.apache.shenyu.common.dto.convert.selector.ZombieUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -343,6 +345,8 @@ public class UpstreamCheckService {
                 } else {
                     commonUpstream.setStatus(false);
                     ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
+                    LOG.info("change unlive selectorId={}|url={}", selectorId, commonUpstream.getUpstreamUrl());
+                    discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, commonUpstream.getUpstreamUrl(), Boolean.FALSE);
                     LOG.error("check the url={} is fail ", commonUpstream.getUpstreamUrl());
                 }
                 return null;
@@ -414,6 +418,11 @@ public class UpstreamCheckService {
             }
             return true;
         });
+        // change live node status to TRUE
+        discoveryUpstreamDataList.forEach(upstream -> {
+            LOG.info("change alive selectorId={}|url={}", selectorId, upstream.getUrl());
+            discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, upstream.getUrl(), Boolean.TRUE);
+        });
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
         discoverySyncData.setPluginName(pluginName);
@@ -460,6 +469,7 @@ public class UpstreamCheckService {
      *
      * @param event event
      */
+    @Deprecated
     @EventListener(SelectorCreatedEvent.class)
     public void onSelectorCreated(final SelectorCreatedEvent event) {
         final PluginDO plugin = pluginMapper.selectById(event.getSelector().getPluginId());
@@ -474,12 +484,31 @@ public class UpstreamCheckService {
      *
      * @param event event
      */
+    @Deprecated
     @EventListener(SelectorUpdatedEvent.class)
     public void onSelectorUpdated(final SelectorUpdatedEvent event) {
         final PluginDO plugin = pluginMapper.selectById(event.getSelector().getPluginId());
         List<DivideUpstream> existDivideUpstreams = SelectorUtil.buildDivideUpstream(event.getSelector(), plugin.getName());
         if (CollectionUtils.isNotEmpty(existDivideUpstreams)) {
             replace(event.getSelector().getId(), CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams));
+        }
+    }
+
+    /**
+     * listen {@link DiscoveryStreamUpdatedEvent} add data permission.
+     *
+     * @param event event
+     */
+    @EventListener(DiscoveryStreamUpdatedEvent.class)
+    public void onDiscoveryUpstreamUpdated(final DiscoveryStreamUpdatedEvent event) {
+        DiscoverySyncData discoverySyncData = event.getDiscoverySyncData();
+        LOG.info("onDiscoveryUpstreamUpdated plugin={}|list={}", discoverySyncData.getPluginName(), discoverySyncData.getUpstreamDataList());
+        if (PluginEnum.DIVIDE.getName().equals(discoverySyncData.getPluginName())) {
+            List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
+            List<CommonUpstream> collect = upstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToCommonUpstream).collect(Collectors.toList());
+            List<CommonUpstream> commonUpstreams = CommonUpstreamUtils.convertCommonUpstreamList(collect);
+            LOG.info("UpstreamCacheManager replace selectorId={}|json={}", discoverySyncData.getSelectorId(), GsonUtils.getGson().toJson(commonUpstreams));
+            replace(discoverySyncData.getSelectorId(), commonUpstreams);
         }
     }
 
