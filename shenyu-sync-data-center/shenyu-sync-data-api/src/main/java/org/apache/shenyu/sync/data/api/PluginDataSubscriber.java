@@ -28,7 +28,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 public interface PluginDataSubscriber {
     
     /**
-     * On subscribe.
+     * On  subscribe.
      *
      * @param pluginData the plugin data
      */

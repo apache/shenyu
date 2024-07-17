@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
@@ -26,16 +27,16 @@ import java.util.Objects;
 /**
  * The type Batch common dto.
  */
-public class BatchCommonDTO implements Serializable {
+public class BatchNamespaceCommonDTO implements Serializable {
 
-    private static final long serialVersionUID = 7154784370528669046L;
+    private static final long serialVersionUID = 834870704708184767L;
 
     @NotNull
     private List<@NotBlank String> ids;
 
-    @NotNull
     private Boolean enabled;
 
+    @NotEmpty
     private String namespaceId;
 
     /**
@@ -100,7 +101,7 @@ public class BatchCommonDTO implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        BatchCommonDTO that = (BatchCommonDTO) o;
+        BatchNamespaceCommonDTO that = (BatchNamespaceCommonDTO) o;
         return Objects.equals(ids, that.ids) && Objects.equals(enabled, that.enabled) && Objects.equals(namespaceId, that.namespaceId);
     }
 

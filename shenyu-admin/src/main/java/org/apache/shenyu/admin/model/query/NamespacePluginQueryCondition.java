@@ -15,30 +15,36 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service;
+package org.apache.shenyu.admin.model.query;
 
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.admin.model.page.condition.SearchCondition;
+import org.apache.shenyu.admin.model.page.condition.SwitchCondition;
 
 /**
- * The interface Sync data service.
+ * this is plugin namespace query condition.
  */
-public interface SyncDataService {
+public class NamespacePluginQueryCondition extends PluginQueryCondition implements SearchCondition, SwitchCondition {
 
     /**
-     * Sync all boolean.
-     *
-     * @param type the type
-     * @return the boolean
+     * namespace id: namespaceId.
      */
-    boolean syncAll(DataEventTypeEnum type);
+    private String namespaceId;
 
     /**
-     * Sync plugin data boolean.
+     * Gets the value of name.
      *
-     * @param pluginId    the plugin id
-     * @param namespaceId the namespace id
-     * @return the boolean
+     * @return the value of name
      */
-    boolean syncPluginData(String pluginId, String namespaceId);
+    public String getNamespaceId() {
+        return namespaceId;
+    }
 
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
 }
