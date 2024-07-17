@@ -118,6 +118,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
             } else {
                 name = "default." + metadata.getClassName();
             }
+            LOG.info("registerDefaultConfiguration name:{}", name);
             registerClientConfiguration(registry, name, defaultAttrs.get("defaultConfiguration"));
         }
     }
@@ -131,11 +132,13 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         Set<BeanDefinition> candidateComponents = new LinkedHashSet<>();
         Map<String, Object> attrs = metadata.getAnnotationAttributes(EnableShenyuClients.class.getName());
         final Class<?>[] clients = attrs == null ? null : (Class<?>[]) attrs.get("clients");
+        LOG.info("clients:{}", JsonUtils.toJson(clients));
         if (clients == null || clients.length == 0) {
             ClassPathScanningCandidateComponentProvider scanner = getScanner();
             scanner.setResourceLoader(this.resourceLoader);
             scanner.addIncludeFilter(new AnnotationTypeFilter(ShenyuClient.class));
             Set<String> basePackages = getBasePackages(metadata);
+            LOG.info("basePackages:{}", JsonUtils.toJson(basePackages));
             for (String basePackage : basePackages) {
                 candidateComponents.addAll(scanner.findCandidateComponents(basePackage));
             }
@@ -157,7 +160,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
                 String name = getClientName(attributes);
                 LOG.info("configuration, attributes:{}", JsonUtils.toJson(attributes));
-                registerClientConfiguration(registry, name, attributes.get("configuration"));
+//                registerClientConfiguration(registry, name, attributes.get("configuration"));
                 registerShenyuClient(registry, annotationMetadata, attributes);
             }
         }
