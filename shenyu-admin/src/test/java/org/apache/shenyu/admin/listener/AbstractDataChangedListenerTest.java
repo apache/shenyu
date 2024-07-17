@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.ProxySelectorService;
+import org.apache.shenyu.admin.service.NamespacePluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -63,7 +64,7 @@ public final class AbstractDataChangedListenerTest {
 
     private AppAuthService appAuthService;
 
-    private PluginService pluginService;
+    private NamespacePluginService namespacePluginService;
 
     private RuleService ruleService;
 
@@ -81,7 +82,7 @@ public final class AbstractDataChangedListenerTest {
         LOG.info("mock listener:{} ", JsonUtils.toJson(listener));
         LOG.info("mock listener CACHE:{} ", JsonUtils.toJson(listener.getCache()));
         appAuthService = mock(AppAuthService.class);
-        pluginService = mock(PluginService.class);
+        namespacePluginService = mock(NamespacePluginService.class);
         ruleService = mock(RuleService.class);
         selectorService = mock(SelectorService.class);
         metaDataService = mock(MetaDataService.class);
@@ -92,9 +93,9 @@ public final class AbstractDataChangedListenerTest {
         Field appAuthServiceField = clazz.getDeclaredField("appAuthService");
         appAuthServiceField.setAccessible(true);
         appAuthServiceField.set(listener, appAuthService);
-        Field pluginServiceField = clazz.getDeclaredField("pluginService");
-        pluginServiceField.setAccessible(true);
-        pluginServiceField.set(listener, pluginService);
+        Field namespacePluginServiceField = clazz.getDeclaredField("namespacePluginService");
+        namespacePluginServiceField.setAccessible(true);
+        namespacePluginServiceField.set(listener, namespacePluginService);
         Field ruleServiceField = clazz.getDeclaredField("ruleService");
         ruleServiceField.setAccessible(true);
         ruleServiceField.set(listener, ruleService);
@@ -114,7 +115,7 @@ public final class AbstractDataChangedListenerTest {
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
         when(appAuthService.listAll()).thenReturn(appAuthDatas);
         List<PluginData> pluginDatas = Lists.newArrayList(mock(PluginData.class));
-        when(pluginService.listAll()).thenReturn(pluginDatas);
+        when(namespacePluginService.listAll()).thenReturn(pluginDatas);
         List<RuleData> ruleDatas = Lists.newArrayList(mock(RuleData.class));
         when(ruleService.listAll()).thenReturn(ruleDatas);
         List<SelectorData> selectorDatas = Lists.newArrayList(mock(SelectorData.class));

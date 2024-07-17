@@ -73,6 +73,7 @@ public class SpringCloudPluginTest {
         LOG.info("ruleCache: {}", ruleCache);
         List<SelectorCacheData> selectorCache = gatewayClient.getSelectorCache();
         LOG.info("selectorCache: {}", selectorCache);
+        LOG.info("start spring cloud  plugin");
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "8");
         formData.add("name", "springCloud");
@@ -81,6 +82,7 @@ public class SpringCloudPluginTest {
         formData.add("sort", "200");
         adminClient.changePluginStatus("8", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.springcloud.SpringCloudPlugin");
+
     }
 
     @ShenYuScenario(provider = SpringCloudPluginCases.class)
