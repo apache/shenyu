@@ -30,6 +30,6 @@ echo "kubectl get pod -o wide -A"
 kubectl get pod -o wide -A
 
 echo "shenyu-examples-eureka log"
-kubectl logs "$(kubectl get pod -o wide -A | grep shenyu-examples-sofa | awk '{print $1}')"
+kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-sofa | awk '{print $1}')"
 #kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-sofa | awk '{print $1}')"
 #kubectl logs "$(kubectl get pod -o wide | grep shenyu-ingress-controller | awk '{print $1}')"
