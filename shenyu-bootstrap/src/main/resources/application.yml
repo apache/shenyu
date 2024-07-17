@@ -231,7 +231,7 @@ shenyu:
     maxSize : 10
   sync:
     websocket:
-      urls: ws://localhost:9095/websocket
+      urls: ws://localhost:9095/websocket, ws://localhost:9096/websocket
       allowOrigin: ws://localhost:9195
 #    apollo:
 #      appId: shenyu
@@ -337,8 +337,8 @@ shenyu:
 
 logging:
   level:
-    root: info
-    org.springframework.boot: info
+    root: debug
+    org.springframework.boot: debug
     org.apache.ibatis: info
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
@@ -347,4 +347,4 @@ logging:
     org.springframework.web.reactive: info
     reactor.ipc.netty: info
     reactor.netty: info
-    org.apache.shenyu.plugin.api.ShenyuPlugin: info
+    org.apache.shenyu.plugin.api.ShenyuPlugin: debug
