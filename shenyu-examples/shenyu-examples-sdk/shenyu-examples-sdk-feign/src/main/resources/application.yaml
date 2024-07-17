@@ -44,12 +44,12 @@ spring:
 
 logging:
   level:
-    root: info
-    org.springframework.boot: info
-    org.apache.ibatis: info
-    org.apache.shenyu.test.bonuspoint: info
-    org.apache.shenyu.test.lottery: debug
-    org.apache.shenyu.test: debug
+    root: debug
+#    org.springframework.boot: info
+#    org.apache.ibatis: info
+#    org.apache.shenyu.test.bonuspoint: info
+#    org.apache.shenyu.test.lottery: debug
+#    org.apache.shenyu.test: debug
 
 feign:
   client:
