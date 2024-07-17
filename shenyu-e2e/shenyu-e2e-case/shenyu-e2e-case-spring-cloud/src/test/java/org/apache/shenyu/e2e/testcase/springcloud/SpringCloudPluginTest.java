@@ -64,7 +64,7 @@ public class SpringCloudPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        LOG.info("start spring cloud plugin");
+        LOG.info("start spring cloud  plugin");
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("id", "8");
         formData.add("name", "springCloud");
@@ -73,6 +73,7 @@ public class SpringCloudPluginTest {
         formData.add("sort", "200");
         adminClient.changePluginStatus("8", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.springcloud.SpringCloudPlugin");
+
     }
 
     @ShenYuScenario(provider = SpringCloudPluginCases.class)

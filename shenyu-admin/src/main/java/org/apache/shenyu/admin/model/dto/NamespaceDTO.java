@@ -17,61 +17,49 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
 
 /**
- * The type Batch common dto.
+ * NamespaceVO.
  */
-public class BatchCommonDTO implements Serializable {
+public class NamespaceDTO implements Serializable {
 
-    private static final long serialVersionUID = 7154784370528669046L;
+    private String id;
 
-    @NotNull
-    private List<@NotBlank String> ids;
-
-    @NotNull
-    private Boolean enabled;
-
+    /**
+     * namespaceId.
+     */
     private String namespaceId;
 
     /**
-     * Gets the value of ids.
-     *
-     * @return the value of ids
+     * namespace name.
      */
-    public List<String> getIds() {
-        return ids;
+    @NotNull(message = "namespace name not null")
+    private String name;
+
+    /**
+     * namespace description.
+     */
+    @NotNull(message = "namespace description not null")
+    private String description;
+
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
     }
 
     /**
-     * Sets the ids.
+     * Sets the id.
      *
-     * @param ids ids
+     * @param id id
      */
-    public void setIds(final List<String> ids) {
-        this.ids = ids;
-    }
-
-    /**
-     * Gets the value of enabled.
-     *
-     * @return the value of enabled
-     */
-    public Boolean getEnabled() {
-        return enabled;
-    }
-
-    /**
-     * Sets the enabled.
-     *
-     * @param enabled enabled
-     */
-    public void setEnabled(final Boolean enabled) {
-        this.enabled = enabled;
+    public void setId(final String id) {
+        this.id = id;
     }
 
     /**
@@ -92,20 +80,39 @@ public class BatchCommonDTO implements Serializable {
         this.namespaceId = namespaceId;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        BatchCommonDTO that = (BatchCommonDTO) o;
-        return Objects.equals(ids, that.ids) && Objects.equals(enabled, that.enabled) && Objects.equals(namespaceId, that.namespaceId);
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getName() {
+        return name;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(ids, enabled, namespaceId);
+    /**
+     * Sets the name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * Gets the value of description.
+     *
+     * @return the value of description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Sets the description.
+     *
+     * @param description description
+     */
+    public void setDescription(final String description) {
+        this.description = description;
     }
 }
