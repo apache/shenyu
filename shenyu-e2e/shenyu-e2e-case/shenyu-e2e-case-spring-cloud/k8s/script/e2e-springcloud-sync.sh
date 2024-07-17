@@ -53,8 +53,8 @@ for sync in ${SYNC_ARRAY[@]}; do
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:30884/actuator/health
   sleep 10s
   kubectl get pod -o wide
-  echo "shenyu-admin log"
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
+#  echo "shenyu-admin log"
+#  kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
   sleep 30s
 
   echo "shenyu-examples-springcloud log"
