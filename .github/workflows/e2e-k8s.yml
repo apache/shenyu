@@ -115,12 +115,12 @@ jobs:
         include:
           - case: shenyu-e2e-case-storage
             script: e2e-h2
-#          - case: shenyu-e2e-case-storage
-#            script: e2e-mysql
-#          - case: shenyu-e2e-case-storage
-#            script: e2e-postgres
-#          - case: shenyu-e2e-case-storage
-#            script: e2e-opengauss
+          - case: shenyu-e2e-case-storage
+            script: e2e-mysql
+          - case: shenyu-e2e-case-storage
+            script: e2e-postgres
+          - case: shenyu-e2e-case-storage
+            script: e2e-opengauss
     steps:
       - uses: actions/checkout@v2
         with:
@@ -196,22 +196,22 @@ jobs:
     strategy:
       matrix:
         include:
-#          - case: shenyu-e2e-case-http
-#            script: e2e-http-sync
+          - case: shenyu-e2e-case-http
+            script: e2e-http-sync
           - case: shenyu-e2e-case-spring-cloud
             script: e2e-springcloud-sync
-#          - case: shenyu-e2e-case-apache-dubbo
-#            script: e2e-apache-dubbo-sync
+          - case: shenyu-e2e-case-apache-dubbo
+            script: e2e-apache-dubbo-sync
           - case: shenyu-e2e-case-sofa
             script: e2e-sofa-sync
-#          - case: shenyu-e2e-case-grpc
-#            script: e2e-grpc-sync
-#          - case: shenyu-e2e-case-websocket
-#            script: e2e-websocket-sync
-#          - case: shenyu-e2e-case-cluster
-#            script: e2e-cluster-jdbc
-#          - case: shenyu-e2e-case-cluster
-#            script: e2e-cluster-zookeeper
+          - case: shenyu-e2e-case-grpc
+            script: e2e-grpc-sync
+          - case: shenyu-e2e-case-websocket
+            script: e2e-websocket-sync
+          - case: shenyu-e2e-case-cluster
+            script: e2e-cluster-jdbc
+          - case: shenyu-e2e-case-cluster
+            script: e2e-cluster-zookeeper
             
     steps:
       - uses: actions/checkout@v2
