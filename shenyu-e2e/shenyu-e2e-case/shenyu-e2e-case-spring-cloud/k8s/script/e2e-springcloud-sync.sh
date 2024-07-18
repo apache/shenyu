@@ -53,49 +53,15 @@ for sync in ${SYNC_ARRAY[@]}; do
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:30884/actuator/health
   sleep 10s
   kubectl get pod -o wide
-#  echo "shenyu-admin log"
-#  kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
   sleep 30s
 
-  echo "shenyu-examples-springcloud log"
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-springcloud | awk '{print $1}')"
-  sleep 30s
-  result=$(kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-springcloud | awk '{print $1}')" | grep 'Registering application')
-  if [ -n "$result" ]; then
-    echo "找到匹配的日志:";
-    echo "$result";
-  else
-    echo "未找到包含 'Registering application' 的日志";
-  fi
-
-  sleep 30s
-  echo "shenyu-bootstrap log"
-#  kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
-  result=$(kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')" | grep 'Registering application')
-  if [ -n "$result" ]; then
-    echo "找到匹配的日志:";
-    echo "$result";
-  else
-    echo "未找到包含 'Registering application' 的日志";
-  fi
-
-#  echo "curl -s -X GET http://localhost:8761"
-#  curl -s -X GET http://localhost:8761
-#  echo "curl -s -X GET http://localhost:8761/eureka/apps"
-#  curl -s -X GET http://localhost:8761/eureka/apps
-
-#  echo "curl -s -X GET http://localhost:30761"
-#  curl -s -X GET http://localhost:30761
-
-  echo "curl -s -X GET http://localhost:30761/eureka/apps"
-  curl -s -X GET http://localhost:30761/eureka/apps
   for loop in `seq 1 30`
   do
-#    app_count=$(curl -s -X GET http://localhost:30761/eureka/apps | grep "<application>" | wc -l | xargs)
-#    echo "http://localhost:30761/eureka/apps app count ${app_count}"
-#    if [ $app_count -gt 2  ]; then
-#        break
-#    fi
+    app_count=$(curl -s -X GET http://localhost:30761/eureka/apps | grep "<application>" | wc -l | xargs)
+    echo "http://localhost:30761/eureka/apps app count ${app_count}"
+    if [ $app_count -gt 1  ]; then
+        break
+    fi
     curl -s -X GET http://localhost:30761/eureka/apps
     sleep 2
   done

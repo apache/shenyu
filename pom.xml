@@ -143,7 +143,7 @@
         <commons-io.version>2.11.0</commons-io.version>
         <nacos-client.version>2.2.4</nacos-client.version>
         <spring-security.version>6.3.0</spring-security.version>
-        <grpc.version>1.64.0</grpc.version>
+        <grpc.version>1.65.1</grpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>
         <pulsar-client.version>2.10.1</pulsar-client.version>
         <lz4-java.version>1.8.0</lz4-java.version>
@@ -423,6 +423,12 @@
                 <groupId>com.sun.mail</groupId>
                 <artifactId>jakarta.mail</artifactId>
                 <version>${mail.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-client</artifactId>
+                <version>${curator.version}</version>
             </dependency>
 
             <dependency>
