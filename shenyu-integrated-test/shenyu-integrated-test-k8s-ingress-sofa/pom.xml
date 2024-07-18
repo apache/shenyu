@@ -28,6 +28,9 @@
     <artifactId>shenyu-integrated-test-k8s-ingress-sofa</artifactId>
     <name>shenyu-integrated-test-k8s-ingress-sofa</name>
 
+    <properties>
+        <curator.version>4.3.0</curator.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.alipay.sofa</groupId>
@@ -47,16 +50,19 @@
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-client</artifactId>
+            <version>${curator.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-framework</artifactId>
+            <version>${curator.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
+            <version>${curator.version}</version>
         </dependency>
 
         <dependency>

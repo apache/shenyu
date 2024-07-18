@@ -29,7 +29,7 @@
 
     <properties>
         <rpc-sofa-boot-starter.version>4.3.0</rpc-sofa-boot-starter.version>
-        <curator.version>5.7.0</curator.version>
+        <curator.version>4.3.0</curator.version>
         <micrometer.version>1.13.1</micrometer.version>
     </properties>
 
