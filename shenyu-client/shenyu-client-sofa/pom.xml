@@ -44,6 +44,17 @@
         </dependency>
         <dependency>
             <groupId>com.alipay.sofa</groupId>
+            <artifactId>runtime-sofa-boot-starter</artifactId>
+            <version>${runtime-sofa-boot-starter.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>sofa-common-tools</artifactId>
+                    <groupId>com.alipay.sofa.common</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.alipay.sofa</groupId>
             <artifactId>rpc-sofa-boot-starter</artifactId>
             <version>${rpc-sofa-boot-starter.version}</version>
             <exclusions>
