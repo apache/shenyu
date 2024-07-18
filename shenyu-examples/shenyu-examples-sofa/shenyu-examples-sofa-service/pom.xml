@@ -34,11 +34,11 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>com.alipay.sofa</groupId>
-            <artifactId>actuator-sofa-boot-starter</artifactId>
-            <version>${rpc-sofa-boot-starter.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.alipay.sofa</groupId>-->
+<!--            <artifactId>actuator-sofa-boot-starter</artifactId>-->
+<!--            <version>${rpc-sofa-boot-starter.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>rpc-sofa-boot-starter</artifactId>
@@ -49,6 +49,11 @@
                     <groupId>com.alipay.sofa.common</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.alipay.sofa.common</groupId>
+            <artifactId>sofa-common-tools</artifactId>
+            <version>2.1.1</version>
         </dependency>
 <!--        <dependency>-->
 <!--            <groupId>com.alipay.sofa.common</groupId>-->
