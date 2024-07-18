@@ -149,37 +149,37 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     @Override
     protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.APP_AUTH));
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.APP_AUTH,""));
     }
 
     @Override
     protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.META_DATA));
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.META_DATA,""));
     }
 
     @Override
-    protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PLUGIN));
+    protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType,final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PLUGIN,namespaceId));
     }
 
     @Override
     protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.RULE));
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.RULE,""));
     }
 
     @Override
     protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.SELECTOR));
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.SELECTOR,""));
     }
 
     @Override
     protected void afterProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PROXY_SELECTOR));
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PROXY_SELECTOR,""));
     }
 
     @Override
     protected void afterDiscoveryUpstreamDataChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.DISCOVER_UPSTREAM));
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.DISCOVER_UPSTREAM,""));
     }
 
     private List<ConfigGroupEnum> compareChangedGroup(final HttpServletRequest request) {
@@ -229,12 +229,12 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             return !StringUtils.equals(clientMd5, latest.getMd5());
         }
         synchronized (this) {
-            latest = CACHE.get(serverCache.getGroup());
+            latest = CACHE.get(serverCache.getNamespaceId() + ":" + serverCache.getGroup());
             if (latest != serverCache) {
                 return !StringUtils.equals(clientMd5, latest.getMd5());
             }
             super.refreshLocalCache();
-            latest = CACHE.get(serverCache.getGroup());
+            latest = CACHE.get(serverCache.getNamespaceId() + ":" + serverCache.getGroup());
             return !StringUtils.equals(clientMd5, latest.getMd5());
         }
     }

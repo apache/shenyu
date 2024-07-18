@@ -65,4 +65,11 @@ public interface NamespaceService {
      * @return {@linkplain List}
      */
     List<NamespaceVO> list(String name);
+
+    /**
+     * find list of namespace.
+     *
+     * @return {@linkplain List}
+     */
+    List<NamespaceVO> list();
 }

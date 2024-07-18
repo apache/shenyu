@@ -195,9 +195,9 @@ public class HttpSyncDataService implements SyncDataService {
             if (cacheConfig != null) {
                 String value = String.join(",", cacheConfig.getMd5(), String.valueOf(cacheConfig.getLastModifyTime()));
                 params.put(group.name(), Lists.newArrayList(value));
-                params.put("namespaceId", Lists.newArrayList(shenyuConfig.getNamespaceId()));
             }
         }
+        params.put("namespaceId", Lists.newArrayList(shenyuConfig.getNamespaceId()));
         LOG.debug("listener params: [{}]", params);
         Headers headers = new Headers.Builder()
                 .add(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
