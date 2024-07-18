@@ -32,8 +32,6 @@ do
     done
 done
 
-curl -S "http://localhost:9195/actuator/pluginData"
-
 sleep 30
 docker compose -f ./shenyu-integrated-test/shenyu-integrated-test-sofa/docker-compose.yml logs shenyu-examples-sofa
 sleep 30
