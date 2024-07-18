@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.sync.data.http;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -113,7 +114,8 @@ public class HttpSyncDataConfiguration {
                                                final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                                final ObjectProvider<AccessTokenManager> accessTokenManager,
                                                final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscribers,
-                                               final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
+                                               final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers,
+                                               final ObjectProvider<ShenyuConfig> shenyuConfig) {
         LOGGER.info("you use http long pull sync shenyu data");
         return new HttpSyncDataService(
                 Objects.requireNonNull(httpConfig.getIfAvailable()),
@@ -123,7 +125,8 @@ public class HttpSyncDataConfiguration {
                 authSubscribers.getIfAvailable(Collections::emptyList),
                 proxySelectorDataSubscribers.getIfAvailable(Collections::emptyList),
                 discoveryUpstreamDataSubscribers.getIfAvailable(Collections::emptyList),
-                Objects.requireNonNull(accessTokenManager.getIfAvailable())
+                Objects.requireNonNull(accessTokenManager.getIfAvailable()),
+                Objects.requireNonNull(shenyuConfig.getIfAvailable())
         );
     }
 }

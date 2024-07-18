@@ -103,8 +103,8 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param groupKey the group key
      * @return the configuration data
      */
-    public ConfigData<?> fetchConfig(final ConfigGroupEnum groupKey) {
-        ConfigDataCache config = CACHE.get(groupKey.name());
+    public ConfigData<?> fetchConfig(final ConfigGroupEnum groupKey,final String namespaceId) {
+        ConfigDataCache config = CACHE.get(namespaceId+":"+groupKey.name());
         switch (groupKey) {
             case APP_AUTH:
                 return buildConfigData(config, AppAuthData.class);

@@ -23,6 +23,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -53,12 +54,15 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
 
 /**
  * HTTP long polling implementation.
@@ -79,8 +83,10 @@ public class HttpSyncDataService implements SyncDataService {
     private final DataRefreshFactory factory;
 
     private final AccessTokenManager accessTokenManager;
-    
+
     private final OkHttpClient okHttpClient;
+
+    private final ShenyuConfig shenyuConfig;
 
     public HttpSyncDataService(final HttpConfig httpConfig,
                                final PluginDataSubscriber pluginDataSubscriber,
@@ -89,11 +95,13 @@ public class HttpSyncDataService implements SyncDataService {
                                final List<AuthDataSubscriber> authDataSubscribers,
                                final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                                final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
-                               final AccessTokenManager accessTokenManager) {
+                               final AccessTokenManager accessTokenManager,
+                               final ShenyuConfig shenyuConfig) {
         this.accessTokenManager = accessTokenManager;
         this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
         this.okHttpClient = okHttpClient;
+        this.shenyuConfig = shenyuConfig;
         this.start();
     }
 
@@ -134,6 +142,7 @@ public class HttpSyncDataService implements SyncDataService {
         for (ConfigGroupEnum groupKey : groups) {
             params.append("groupKeys").append("=").append(groupKey.name()).append("&");
         }
+        params.append("namespaceId").append("=").append(shenyuConfig.getNamespaceId());
         String url = server + Constants.SHENYU_ADMIN_PATH_CONFIGS_FETCH + "?" + StringUtils.removeEnd(params.toString(), "&");
         LOG.info("request configs: [{}]", url);
         String json;
@@ -186,6 +195,7 @@ public class HttpSyncDataService implements SyncDataService {
             if (cacheConfig != null) {
                 String value = String.join(",", cacheConfig.getMd5(), String.valueOf(cacheConfig.getLastModifyTime()));
                 params.put(group.name(), Lists.newArrayList(value));
+                params.put("namespaceId", Lists.newArrayList(shenyuConfig.getNamespaceId()));
             }
         }
         LOG.debug("listener params: [{}]", params);
@@ -217,7 +227,7 @@ public class HttpSyncDataService implements SyncDataService {
             String message = String.format("listener configs fail, server:[%s], %s", server, e.getMessage());
             throw new ShenyuException(message, e);
         }
-        
+
         if (Objects.nonNull(groupJson) && !groupJson.isEmpty()) {
             // fetch group configuration async.
             ConfigGroupEnum[] changedGroups = GsonUtils.getGson().fromJson(groupJson, ConfigGroupEnum[].class);
