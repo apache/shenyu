@@ -17,21 +17,23 @@
 
 package org.apache.shenyu.admin.listener;
 
+import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.NamespacePluginService;
+import org.apache.shenyu.admin.service.NamespaceService;
+import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.ProxySelectorService;
-import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConfigData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.assertj.core.util.Lists;
@@ -40,6 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
@@ -70,6 +73,10 @@ public final class AbstractDataChangedListenerTest {
 
     private DiscoveryUpstreamService discoveryUpstreamService;
 
+    private final String namespaceId = "649330b6-c2d7-4edc-be8e-8a54df9eb385";
+
+    private NamespaceService namespaceService;
+
     @BeforeEach
     public void setUp() throws Exception {
         listener = new MockAbstractDataChangedListener();
@@ -80,6 +87,7 @@ public final class AbstractDataChangedListenerTest {
         metaDataService = mock(MetaDataService.class);
         proxySelectorService = mock(ProxySelectorService.class);
         discoveryUpstreamService = mock(DiscoveryUpstreamService.class);
+        namespaceService = mock(NamespaceService.class);
 
         Class clazz = MockAbstractDataChangedListener.class.getSuperclass();
         Field appAuthServiceField = clazz.getDeclaredField("appAuthService");
@@ -103,11 +111,14 @@ public final class AbstractDataChangedListenerTest {
         Field discoveryUpstreamServiceField = clazz.getDeclaredField("discoveryUpstreamService");
         discoveryUpstreamServiceField.setAccessible(true);
         discoveryUpstreamServiceField.set(listener, discoveryUpstreamService);
+        Field namespaceServiceField = clazz.getDeclaredField("namespaceService");
+        namespaceServiceField.setAccessible(true);
+        namespaceServiceField.set(listener, namespaceService);
 
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
         when(appAuthService.listAll()).thenReturn(appAuthDatas);
         List<PluginData> pluginDatas = Lists.newArrayList(mock(PluginData.class));
-        when(namespacePluginService.listAll()).thenReturn(pluginDatas);
+        when(namespacePluginService.listAll(namespaceId)).thenReturn(pluginDatas);
         List<RuleData> ruleDatas = Lists.newArrayList(mock(RuleData.class));
         when(ruleService.listAll()).thenReturn(ruleDatas);
         List<SelectorData> selectorDatas = Lists.newArrayList(mock(SelectorData.class));
@@ -118,6 +129,11 @@ public final class AbstractDataChangedListenerTest {
         when(proxySelectorService.listAll()).thenReturn(proxySelectorDatas);
         List<DiscoverySyncData> discoverySyncDatas = Lists.newArrayList(mock(DiscoverySyncData.class));
         when(discoveryUpstreamService.listAll()).thenReturn(discoverySyncDatas);
+        List<NamespaceVO> list = new ArrayList<>();
+        NamespaceVO namespaceVO = new NamespaceVO();
+        namespaceVO.setNamespaceId(namespaceId);
+        list.add(namespaceVO);
+        when(namespaceService.list()).thenReturn(list);
     }
 
     @AfterEach
@@ -128,28 +144,28 @@ public final class AbstractDataChangedListenerTest {
     @Test
     public void testFetchConfig() {
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
-        listener.updateCache(ConfigGroupEnum.APP_AUTH, appAuthDatas);
-        ConfigData<?> result1 = listener.fetchConfig(ConfigGroupEnum.APP_AUTH);
+        listener.updateCache(ConfigGroupEnum.APP_AUTH, appAuthDatas, namespaceId);
+        ConfigData<?> result1 = listener.fetchConfig(ConfigGroupEnum.APP_AUTH, namespaceId);
         assertNotNull(result1);
 
         List<PluginData> pluginDatas = Lists.newArrayList(mock(PluginData.class));
-        listener.updateCache(ConfigGroupEnum.PLUGIN, pluginDatas);
-        ConfigData<?> result2 = listener.fetchConfig(ConfigGroupEnum.PLUGIN);
+        listener.updateCache(ConfigGroupEnum.PLUGIN, pluginDatas, namespaceId);
+        ConfigData<?> result2 = listener.fetchConfig(ConfigGroupEnum.PLUGIN, namespaceId);
         assertNotNull(result2);
 
         List<RuleData> ruleDatas = Lists.newArrayList(mock(RuleData.class));
-        listener.updateCache(ConfigGroupEnum.RULE, ruleDatas);
-        ConfigData<?> result3 = listener.fetchConfig(ConfigGroupEnum.RULE);
+        listener.updateCache(ConfigGroupEnum.RULE, ruleDatas, namespaceId);
+        ConfigData<?> result3 = listener.fetchConfig(ConfigGroupEnum.RULE, namespaceId);
         assertNotNull(result3);
 
         List<SelectorData> selectorDatas = Lists.newArrayList(mock(SelectorData.class));
-        listener.updateCache(ConfigGroupEnum.SELECTOR, selectorDatas);
-        ConfigData<?> result4 = listener.fetchConfig(ConfigGroupEnum.SELECTOR);
+        listener.updateCache(ConfigGroupEnum.SELECTOR, selectorDatas, namespaceId);
+        ConfigData<?> result4 = listener.fetchConfig(ConfigGroupEnum.SELECTOR, namespaceId);
         assertNotNull(result4);
 
         List<MetaData> metaDatas = Lists.newArrayList(mock(MetaData.class));
-        listener.updateCache(ConfigGroupEnum.META_DATA, metaDatas);
-        ConfigData<?> result5 = listener.fetchConfig(ConfigGroupEnum.META_DATA);
+        listener.updateCache(ConfigGroupEnum.META_DATA, metaDatas, namespaceId);
+        ConfigData<?> result5 = listener.fetchConfig(ConfigGroupEnum.META_DATA, namespaceId);
         assertNotNull(result5);
     }
 
@@ -182,8 +198,11 @@ public final class AbstractDataChangedListenerTest {
         listener.onPluginChanged(empty, eventType);
         assertFalse(listener.getCache().containsKey(ConfigGroupEnum.PLUGIN.name()));
         List<PluginData> pluginDatas = Lists.newArrayList(mock(PluginData.class));
+        PluginData pluginData = new PluginData();
+        pluginData.setNamespaceId(namespaceId);
+        pluginDatas.set(0, pluginData);
         listener.onPluginChanged(pluginDatas, eventType);
-        assertTrue(listener.getCache().containsKey(ConfigGroupEnum.PLUGIN.name()));
+        assertTrue(listener.getCache().containsKey(namespaceId + ConfigGroupEnum.PLUGIN.name()));
     }
 
     @Test
@@ -212,7 +231,7 @@ public final class AbstractDataChangedListenerTest {
     public void testAfterPropertiesSet() {
         listener.afterPropertiesSet();
         assertTrue(listener.getCache().containsKey(ConfigGroupEnum.APP_AUTH.name()));
-        assertTrue(listener.getCache().containsKey(ConfigGroupEnum.PLUGIN.name()));
+        assertTrue(listener.getCache().containsKey(namespaceId + ConfigGroupEnum.PLUGIN.name()));
         assertTrue(listener.getCache().containsKey(ConfigGroupEnum.RULE.name()));
         assertTrue(listener.getCache().containsKey(ConfigGroupEnum.SELECTOR.name()));
         assertTrue(listener.getCache().containsKey(ConfigGroupEnum.META_DATA.name()));
@@ -221,7 +240,7 @@ public final class AbstractDataChangedListenerTest {
     @Test
     public void testUpdateCache() {
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
-        listener.updateCache(ConfigGroupEnum.APP_AUTH, appAuthDatas);
+        listener.updateCache(ConfigGroupEnum.APP_AUTH, appAuthDatas, namespaceId);
         assertTrue(listener.getCache().containsKey(ConfigGroupEnum.APP_AUTH.name()));
     }
 

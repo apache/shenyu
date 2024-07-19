@@ -42,7 +42,7 @@ public class ConfigDataCache {
      * @param md5            the md5
      * @param lastModifyTime the last modify time
      */
-    public ConfigDataCache(final String group, final String json, final String md5, final long lastModifyTime, String namespaceId) {
+    public ConfigDataCache(final String group, final String json, final String md5, final long lastModifyTime, final String namespaceId) {
         this.group = group;
         this.json = json;
         this.md5 = md5;
@@ -97,6 +97,11 @@ public class ConfigDataCache {
         return json;
     }
 
+    /**
+     * Gets namespaceId.
+     *
+     * @return the namespaceId
+     */
     public String getNamespaceId() {
         return namespaceId;
     }

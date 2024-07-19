@@ -128,7 +128,6 @@ public final class HttpSyncDataServiceTest {
         this.discoveryUpstreamDataSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
         this.shenyuConfig = mock(ShenyuConfig.class);
 
-
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .readTimeout(Duration.ofMillis(Objects.isNull(httpConfig.getReadTimeout()) ? (int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT : httpConfig.getReadTimeout()))
                 .connectTimeout(Duration.ofMillis(Objects.isNull(httpConfig.getConnectionTimeout()) ? HttpConstants.CLIENT_POLLING_CONNECT_TIMEOUT : httpConfig.getConnectionTimeout()))

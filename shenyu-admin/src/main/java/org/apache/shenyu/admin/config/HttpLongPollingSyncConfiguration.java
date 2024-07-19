@@ -51,6 +51,7 @@ public class HttpLongPollingSyncConfiguration {
      * configController.
      *
      * @param httpLongPollingDataChangedListener httpLongPollingDataChangedListener
+     * @param namespaceService namespaceService
      * @return {@link ConfigController}
      */
     @Bean

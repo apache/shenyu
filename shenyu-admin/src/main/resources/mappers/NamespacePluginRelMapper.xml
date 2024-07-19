@@ -276,7 +276,7 @@
         FROM plugin_ns_rel
         <where>
             <if test="namespaceId != null">
-                AND  pnr.namespace_id = #{namespaceId, jdbcType=BOOLEAN}
+                AND  namespace_id = #{namespaceId, jdbcType=VARCHAR}
             </if>
         </where>
         ) pnr

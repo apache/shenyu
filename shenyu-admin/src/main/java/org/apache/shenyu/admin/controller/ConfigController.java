@@ -50,7 +50,7 @@ public class ConfigController {
 
     private final NamespaceService namespaceService;
 
-    public ConfigController(final HttpLongPollingDataChangedListener longPollingListener, NamespaceService namespaceService) {
+    public ConfigController(final HttpLongPollingDataChangedListener longPollingListener, final NamespaceService namespaceService) {
         this.longPollingListener = longPollingListener;
         this.namespaceService = namespaceService;
     }
@@ -59,6 +59,7 @@ public class ConfigController {
      * Fetch configs shenyu result.
      *
      * @param groupKeys the group keys
+     * @param namespaceIdParams namespaceIdParams
      * @return the shenyu result
      */
     @GetMapping("/fetch")

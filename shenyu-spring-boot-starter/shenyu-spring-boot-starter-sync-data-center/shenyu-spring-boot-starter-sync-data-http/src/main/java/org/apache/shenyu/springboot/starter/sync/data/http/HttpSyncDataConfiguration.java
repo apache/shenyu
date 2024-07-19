@@ -104,6 +104,7 @@ public class HttpSyncDataConfiguration {
      * @param accessTokenManager the access token manager
      * @param proxySelectorDataSubscribers the proxySelectorData subscribers
      * @param discoveryUpstreamDataSubscribers the discoveryUpstreamData subscribers
+     * @param shenyuConfig       the shenyuConfig
      * @return the sync data service
      */
     @Bean

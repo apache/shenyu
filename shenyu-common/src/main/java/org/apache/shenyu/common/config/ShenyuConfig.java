@@ -393,6 +393,22 @@ public class ShenyuConfig {
     public void setAlert(final AlertConfig alert) {
         this.alert = alert;
     }
+
+    /**
+     * get namespaceId config.
+     * @return the namespaceId config
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Set namespaceId config.
+     * @param namespaceId namespaceId config
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
     
     /**
      * The type Scheduler.
@@ -2016,21 +2032,5 @@ public class ShenyuConfig {
         public void setAdmins(final String admins) {
             this.admins = admins;
         }
-    }
-
-    /**
-     * get namespaceId.
-     * @return the namespaceId
-     */
-    public String getNamespaceId() {
-        return namespaceId;
-    }
-
-    /**
-     * Set namespaceId.
-     * @param namespaceId
-     */
-    public void setNamespaceId(String namespaceId) {
-        this.namespaceId = namespaceId;
     }
 }
