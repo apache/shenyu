@@ -18,6 +18,7 @@
 package org.apache.shenyu.springboot.starter.sync.data.http;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -68,7 +69,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
                 "spring.main.web-application-type=none"
         })
 @EnableAutoConfiguration
-@MockBean({PluginDataSubscriber.class, ServletWebServerFactory.class})
+@MockBean({PluginDataSubscriber.class, ServletWebServerFactory.class, ShenyuConfig.class})
 public final class HttpClientPluginConfigurationTest {
 
     @Autowired
