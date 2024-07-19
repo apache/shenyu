@@ -82,6 +82,11 @@ public class PluginDTO implements Serializable {
     private List<PluginHandleDTO> pluginHandleList;
 
     /**
+     * namespace id.
+     */
+    private String namespaceId;
+
+    /**
      * Gets the value of file.
      *
      * @return the value of file
@@ -228,27 +233,42 @@ public class PluginDTO implements Serializable {
         this.pluginHandleList = pluginHandleList;
     }
 
+    /**
+     * Sets the namespaceId.
+     *
+     * @return the namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespace Id.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof PluginDTO)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         PluginDTO pluginDTO = (PluginDTO) o;
-        return Objects.equals(id, pluginDTO.id)
-                && Objects.equals(name, pluginDTO.name)
-                && Objects.equals(config, pluginDTO.config)
-                && Objects.equals(role, pluginDTO.role)
-                && Objects.equals(sort, pluginDTO.sort)
-                && Objects.equals(enabled, pluginDTO.enabled)
-                && Objects.equals(file, pluginDTO.file)
-                && Objects.equals(pluginHandleList, pluginDTO.pluginHandleList);
+        return Objects.equals(id, pluginDTO.id) && Objects.equals(name, pluginDTO.name)
+                && Objects.equals(config, pluginDTO.config) && Objects.equals(role, pluginDTO.role)
+                && Objects.equals(sort, pluginDTO.sort) && Objects.equals(enabled, pluginDTO.enabled)
+                && Objects.equals(file, pluginDTO.file) && Objects.equals(pluginHandleList, pluginDTO.pluginHandleList)
+                && Objects.equals(namespaceId, pluginDTO.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, config, role, sort, enabled, file, pluginHandleList);
+        return Objects.hash(id, name, config, role, sort, enabled, file, pluginHandleList, namespaceId);
     }
 }

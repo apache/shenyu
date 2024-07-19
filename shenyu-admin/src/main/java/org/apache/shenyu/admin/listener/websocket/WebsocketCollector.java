@@ -17,12 +17,18 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
+import com.google.common.collect.Maps;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
+import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtils;
+import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.RunningModeEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,12 +66,15 @@ public class WebsocketCollector {
      */
     @OnOpen
     public void onOpen(final Session session) {
-        LOG.info("websocket on client[{}] open successful,maxTextMessageBufferSize:{}",
+        LOG.info("websocket on client[{}] open successful, maxTextMessageBufferSize: {}",
                 getClientIp(session), session.getMaxTextMessageBufferSize());
         SESSION_SET.add(session);
     }
     
     private static String getClientIp(final Session session) {
+        if (!session.isOpen()) {
+            return StringUtils.EMPTY;
+        }
         Map<String, Object> userProperties = session.getUserProperties();
         if (MapUtils.isEmpty(userProperties)) {
             return StringUtils.EMPTY;
@@ -84,17 +93,51 @@ public class WebsocketCollector {
      */
     @OnMessage
     public void onMessage(final String message, final Session session) {
-        if (!Objects.equals(message, DataEventTypeEnum.MYSELF.name())) {
+        if (!Objects.equals(message, DataEventTypeEnum.MYSELF.name())
+                && !Objects.equals(message, DataEventTypeEnum.RUNNING_MODE.name())) {
             return;
         }
         
-        try {
-            ThreadLocalUtils.put(SESSION_KEY, session);
-            SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAll(DataEventTypeEnum.MYSELF);
-        } finally {
-            ThreadLocalUtils.clear();
-        }
+        if (Objects.equals(message, DataEventTypeEnum.RUNNING_MODE.name())) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("websocket fetching running mode info...");
+            }
+            // check if this node is master
+            boolean isMaster = true;
+            String runningMode = RunningModeEnum.STANDALONE.name();
+            String masterUrl = StringUtils.EMPTY;
+            ClusterProperties clusterProperties = SpringBeanUtils.getInstance().getBean(ClusterProperties.class);
+            if (clusterProperties.isEnabled()) {
+                ClusterSelectMasterService clusterSelectMasterService = SpringBeanUtils.getInstance().getBean(ClusterSelectMasterService.class);
+                runningMode = RunningModeEnum.CLUSTER.name();
+                isMaster = clusterSelectMasterService.isMaster();
+                masterUrl = clusterSelectMasterService.getMasterUrl();
+            }
+            Map<String, Object> map = Maps.newHashMap();
+            map.put(RunningModeConstants.EVENT_TYPE, DataEventTypeEnum.RUNNING_MODE.name());
+            map.put(RunningModeConstants.IS_MASTER, isMaster);
+            map.put(RunningModeConstants.RUNNING_MODE, runningMode);
+            map.put(RunningModeConstants.MASTER_URL, masterUrl
+                    .replace("http", "ws")
+                    .replace("https", "ws")
+                    .concat("/websocket"));
+            if (isMaster) {
+                ThreadLocalUtils.put(SESSION_KEY, session);
+            }
 
+            sendMessageBySession(session, JsonUtils.toJson(map));
+            return;
+        }
+        
+        if (Objects.equals(message, DataEventTypeEnum.MYSELF.name())) {
+            try {
+                ThreadLocalUtils.put(SESSION_KEY, session);
+                SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAll(DataEventTypeEnum.MYSELF);
+            } finally {
+                ThreadLocalUtils.clear();
+            }
+        }
+        
     }
     
     /**
@@ -112,7 +155,7 @@ public class WebsocketCollector {
      * On error.
      *
      * @param session the session
-     * @param error   the error
+     * @param error the error
      */
     @OnError
     public void onError(final Session session, final Throwable error) {
@@ -124,7 +167,7 @@ public class WebsocketCollector {
      * Send.
      *
      * @param message the message
-     * @param type    the type
+     * @param type the type
      */
     public static void send(final String message, final DataEventTypeEnum type) {
         if (StringUtils.isBlank(message)) {
@@ -134,7 +177,11 @@ public class WebsocketCollector {
         if (DataEventTypeEnum.MYSELF == type) {
             Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
             if (Objects.nonNull(session)) {
-                sendMessageBySession(session, message);
+                if (session.isOpen()) {
+                    sendMessageBySession(session, message);
+                } else {
+                    SESSION_SET.remove(session);
+                }
             }
         } else {
             SESSION_SET.forEach(session -> sendMessageBySession(session, message));

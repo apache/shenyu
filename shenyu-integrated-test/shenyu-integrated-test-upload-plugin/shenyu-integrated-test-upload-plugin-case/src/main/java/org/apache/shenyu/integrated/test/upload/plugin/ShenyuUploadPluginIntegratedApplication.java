@@ -20,6 +20,9 @@ package org.apache.shenyu.integrated.test.upload.plugin;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * The type Spring cloud integrated bootstrap.
+ */
 @SpringBootApplication
 public class ShenyuUploadPluginIntegratedApplication {
 

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mode.cluster.impl.jdbc.mapper.ClusterMasterMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.ClusterMasterDO">
+        <!--@mbg.generated-->
+        <!--@Table alert_receiver-->
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="master_host" jdbcType="VARCHAR" property="masterHost"/>
+        <result column="master_port" jdbcType="VARCHAR" property="masterPort"/>
+        <result column="context_path" jdbcType="VARCHAR" property="contextPath"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, master_host, master_port, context_path, date_created, date_updated
+    </sql>
+
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ClusterMasterDO">
+        INSERT INTO cluster_master
+        (id,
+        master_host,
+        master_port,
+        context_path,
+        date_created,
+        date_updated)
+        VALUES
+        (#{id, jdbcType=VARCHAR},
+        #{masterHost, jdbcType=VARCHAR},
+        #{masterPort, jdbcType=VARCHAR},
+        #{contextPath, jdbcType=VARCHAR},
+        #{dateCreated, jdbcType=TIMESTAMP},
+        #{dateUpdated, jdbcType=TIMESTAMP})
+    </insert>
+
+    <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.ClusterMasterDO">
+        UPDATE cluster_master
+        <set>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="masterHost != null">
+                master_host = #{masterHost, jdbcType=VARCHAR},
+            </if>
+            <if test="masterPort != null">
+                master_port = #{masterPort, jdbcType=VARCHAR},
+            </if>
+            <if test="contextPath != null">
+                context_path = #{contextPath, jdbcType=VARCHAR},
+            </if>
+        </set>
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <select id="count" resultType="java.lang.Long">
+        SELECT
+            count(1)
+        FROM cluster_master
+        WHERE master_host = #{masterHost, jdbcType=VARCHAR}
+        AND master_port = #{masterPort, jdbcType=VARCHAR}
+        AND context_path = #{contextPath, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SElECT
+        <include refid="Base_Column_List"/>
+        FROM cluster_master
+        WHERE id = #{id,jdbcType=VARCHAR}
+    </select>
+</mapper>
