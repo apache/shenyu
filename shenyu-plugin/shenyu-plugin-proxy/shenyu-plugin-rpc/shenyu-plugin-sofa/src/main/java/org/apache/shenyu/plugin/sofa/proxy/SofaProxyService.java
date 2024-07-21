@@ -31,9 +31,12 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -44,6 +47,8 @@ import java.util.concurrent.CompletableFuture;
  * sofa proxy service is use GenericService.
  */
 public class SofaProxyService {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(SofaProxyService.class);
     
     private final SofaParamResolveService sofaParamResolveService;
     
@@ -96,6 +101,7 @@ public class SofaProxyService {
             }
         });
         GenericService genericService = reference.refer();
+        LOG.info("genericService:{}, metaData:{}, pair:{}", JsonUtils.toJson(genericService), JsonUtils.toJson(metaData), JsonUtils.toJson(pair));
         genericService.$genericInvoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
