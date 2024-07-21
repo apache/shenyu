@@ -30,7 +30,7 @@
     <properties>
         <rpc-sofa-boot-starter.version>4.3.0</rpc-sofa-boot-starter.version>
         <runtime-sofa-boot-starter.version>4.3.0</runtime-sofa-boot-starter.version>
-        <curator.version>4.3.0</curator.version>
+        <curator.version>5.7.0</curator.version>
         <micrometer.version>1.13.1</micrometer.version>
     </properties>
 
@@ -66,6 +66,12 @@
             <groupId>com.alipay.sofa.common</groupId>
             <artifactId>sofa-common-tools</artifactId>
             <version>2.1.1</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 <!--        <dependency>-->
 <!--            <groupId>com.alipay.sofa.common</groupId>-->
@@ -82,6 +88,12 @@
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-client</artifactId>
             <version>${curator.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>checker-qual</artifactId>
+                    <groupId>org.checkerframework</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.curator</groupId>
@@ -119,6 +131,22 @@
                 <exclusion>
                     <artifactId>snakeyaml</artifactId>
                     <groupId>org.yaml</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>grpc-context</artifactId>
+                    <groupId>io.grpc</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>auto-value-annotations</artifactId>
+                    <groupId>com.google.auto.value</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>protobuf-java</artifactId>
+                    <groupId>com.google.protobuf</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>j2objc-annotations</artifactId>
+                    <groupId>com.google.j2objc</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
