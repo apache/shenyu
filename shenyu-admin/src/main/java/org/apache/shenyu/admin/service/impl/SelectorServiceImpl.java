@@ -151,6 +151,7 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public List<SelectorVO> searchByCondition(final SelectorQueryCondition condition) {
         condition.init();
+        condition.setNamespaceId("111");
         final List<SelectorVO> list = selectorMapper.selectByCondition(condition);
         for (SelectorVO selector : list) {
             selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));

@@ -32,6 +32,7 @@
         <result column="continued" jdbcType="TINYINT" property="continued"/>
         <result column="match_restful" jdbcType="TINYINT" property="matchRestful"/>
         <result column="handle" jdbcType="VARCHAR" property="handle"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -47,7 +48,8 @@
         loged,
         continued,
         match_restful,
-        handle
+        handle,
+        namespace_id
     </sql>
 
     <sql id="Base_Column_List_Alis">
@@ -63,7 +65,8 @@
         ${alis}.loged,
         ${alis}.continued,
         ${alis}.match_restful,
-        ${alis}.handle
+        ${alis}.handle,
+        ${alis}.namespace_id
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -200,11 +203,24 @@
                     #{id, jdbcType=VARCHAR}
                 </foreach>
             </if>
+
             <if test="condition.userId != null and condition.userId != ''">
                 AND exists(select true
                     from data_permission
                     where data_id = selector.id
                         and user_id = #{condition.userId})
+            </if>
+            <if test="condition.namespaceId != null and condition.namespaceId != ''">
+                <choose>
+                    <when test="condition.namespaceId == '649330b6-c2d7-4edc-be8e-8a54df9eb385'">
+                        AND (namespace_id = #{condition.namespaceId, jdbcType=VARCHAR}
+                        OR
+                        (namespace_id IS NULL)
+                    </when>
+                    <otherwise>
+                        AND namespace_id = #{condition.namespaceId, jdbcType=VARCHAR}
+                    </otherwise>
+                </choose>
             </if>
         </where>
     </select>
