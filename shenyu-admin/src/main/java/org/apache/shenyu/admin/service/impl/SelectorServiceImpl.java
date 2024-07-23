@@ -90,6 +90,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SelectorService}.
  * Maintain {@link SelectorDO} and {@link SelectorConditionDO} related data.
@@ -151,7 +153,6 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public List<SelectorVO> searchByCondition(final SelectorQueryCondition condition) {
         condition.init();
-        condition.setNamespaceId("111");
         final List<SelectorVO> list = selectorMapper.selectByCondition(condition);
         for (SelectorVO selector : list) {
             selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));
@@ -178,6 +179,8 @@ public class SelectorServiceImpl implements SelectorService {
         if (Objects.isNull(selectorDO)) {
             SelectorDTO selectorDTO = SelectorUtil.buildSelectorDTO(contextPath, pluginMapper.selectByName(pluginName).getId());
             selectorDTO.setHandle(selectorHandler);
+            // todo:[To be refactored with namespace] Temporarily hardcode
+            selectorDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
             return registerDefault(selectorDTO);
         }
         return selectorDO.getId();

@@ -316,6 +316,9 @@
             <if test="handle != null">
                 handle,
             </if>
+            <if test="namespaceId != null">
+                namespace_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
                 #{id, jdbcType=VARCHAR},
@@ -354,6 +357,9 @@
             </if>
             <if test="handle != null">
                 #{handle, jdbcType=VARCHAR},
+            </if>
+            <if test="namespaceId != null">
+                #{namespace_id, jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>

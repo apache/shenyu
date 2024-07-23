@@ -371,6 +371,7 @@ public final class SelectorDO extends BaseDO {
                     .pluginId(item.getPluginId())
                     .name(item.getName())
                     .matchRestful(item.getMatchRestful())
+                    .namespaceId(item.getNamespaceId())
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
                 selectorDO.setId(UUIDUtils.getInstance().generateShortUuid());
