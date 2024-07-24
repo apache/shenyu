@@ -19,10 +19,12 @@ package org.apache.shenyu.admin.listener;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.NamespacePluginService;
+import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
@@ -43,6 +45,7 @@ import org.springframework.beans.factory.InitializingBean;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -97,14 +100,22 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     @Resource
     private DiscoveryUpstreamService discoveryUpstreamService;
 
+    @Resource
+    private NamespaceService namespaceService;
+
     /**
      * fetch configuration from cache.
      *
-     * @param groupKey the group key
+     * @param groupKey    the group key
+     * @param namespaceId the namespaceId
      * @return the configuration data
      */
-    public ConfigData<?> fetchConfig(final ConfigGroupEnum groupKey) {
+    public ConfigData<?> fetchConfig(final ConfigGroupEnum groupKey, final String namespaceId) {
+        //todo:[Namespace] Currently, only plugin data is compatible with namespace, while other data is waiting for modification
         ConfigDataCache config = CACHE.get(groupKey.name());
+        if (groupKey.equals(ConfigGroupEnum.PLUGIN)) {
+            config = CACHE.get(namespaceId + groupKey.name());
+        }
         switch (groupKey) {
             case APP_AUTH:
                 return buildConfigData(config, AppAuthData.class);
@@ -166,19 +177,20 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        this.updatePluginCache();
-        this.afterPluginChanged(changed, eventType);
+        Optional<String> namespaceId = changed.stream().map(PluginData::getNamespaceId).findFirst();
+        this.updatePluginCache(namespaceId.get());
+        this.afterPluginChanged(changed, eventType, namespaceId.get());
     }
-    
+
     /**
      * After plugin changed.
      *
      * @param changed   the changed
      * @param eventType the event type
      */
-    protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
+    protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
     }
-    
+
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -187,7 +199,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateRuleCache();
         this.afterRuleChanged(changed, eventType);
     }
-    
+
     /**
      * After rule changed.
      *
@@ -196,7 +208,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
     }
-    
+
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -276,19 +288,28 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param <T>   the type of class
      * @param data  the new config data
      */
-    protected <T> void updateCache(final ConfigGroupEnum group, final List<T> data) {
+    protected <T> void updateCache(final ConfigGroupEnum group, final List<T> data, final String namespaceId) {
         String json = GsonUtils.getInstance().toJson(data);
-        ConfigDataCache newVal = new ConfigDataCache(group.name(), json, DigestUtils.md5Hex(json), System.currentTimeMillis());
+        //todo:[Namespace] Currently, only plugin data is compatible with namespace, while other data is waiting for modification
+        String configDataCacheKey = group.name();
+        if (group.equals(ConfigGroupEnum.PLUGIN)) {
+            configDataCacheKey = namespaceId + group.name();
+        }
+        ConfigDataCache newVal = new ConfigDataCache(configDataCacheKey, json, DigestUtils.md5Hex(json), System.currentTimeMillis(), namespaceId);
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
         LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
     }
-    
+
     /**
      * refresh local cache.
      */
     protected void refreshLocalCache() {
+        List<NamespaceVO> namespaceList = namespaceService.list();
+        for (NamespaceVO namespace : namespaceList) {
+            String namespaceId = namespace.getNamespaceId();
+            this.updatePluginCache(namespaceId);
+        }
         this.updateAppAuthCache();
-        this.updatePluginCache();
         this.updateRuleCache();
         this.updateSelectorCache();
         this.updateMetaDataCache();
@@ -300,43 +321,43 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * Update selector cache.
      */
     protected void updateSelectorCache() {
-        this.updateCache(ConfigGroupEnum.SELECTOR, selectorService.listAll());
+        this.updateCache(ConfigGroupEnum.SELECTOR, selectorService.listAll(), "");
     }
 
     /**
      * Update rule cache.
      */
     protected void updateRuleCache() {
-        this.updateCache(ConfigGroupEnum.RULE, ruleService.listAll());
+        this.updateCache(ConfigGroupEnum.RULE, ruleService.listAll(), "");
     }
 
     /**
      * Update plugin cache.
      */
-    protected void updatePluginCache() {
-        this.updateCache(ConfigGroupEnum.PLUGIN, namespacePluginService.listAll());
+    protected void updatePluginCache(final String namespaceId) {
+        this.updateCache(ConfigGroupEnum.PLUGIN, namespacePluginService.listAll(namespaceId), namespaceId);
     }
-    
+
     /**
      * Update app auth cache.
      */
     protected void updateAppAuthCache() {
-        this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAll());
+        this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAll(), "");
     }
-    
+
     /**
      * Update meta data cache.
      */
     protected void updateMetaDataCache() {
-        this.updateCache(ConfigGroupEnum.META_DATA, metaDataService.listAll());
+        this.updateCache(ConfigGroupEnum.META_DATA, metaDataService.listAll(), "");
     }
 
     protected void updateProxySelectorDataCache() {
-        this.updateCache(ConfigGroupEnum.PROXY_SELECTOR, proxySelectorService.listAll());
+        this.updateCache(ConfigGroupEnum.PROXY_SELECTOR, proxySelectorService.listAll(), "");
     }
 
     protected void updateDiscoveryUpstreamDataCache() {
-        this.updateCache(ConfigGroupEnum.DISCOVER_UPSTREAM, discoveryUpstreamService.listAll());
+        this.updateCache(ConfigGroupEnum.DISCOVER_UPSTREAM, discoveryUpstreamService.listAll(), "");
     }
 
     private <T> ConfigData<T> buildConfigData(final ConfigDataCache config, final Class<T> dataType) {

@@ -71,12 +71,12 @@ public final class ConfigControllerTest {
     public void testFetchConfigs() throws Exception {
         // Configure HttpLongPollingDataChangedListener.fetchConfig(...).
         final ConfigData<?> configData = new ConfigData<>("md5-value1", 0L, Collections.emptyList());
-        doReturn(configData).when(mockLongPollingListener).fetchConfig(ConfigGroupEnum.APP_AUTH);
+        doReturn(configData).when(mockLongPollingListener).fetchConfig(ConfigGroupEnum.APP_AUTH, "649330b6-c2d7-4edc-be8e-8a54df9eb385");
 
         // Run the test
         final MockHttpServletResponse response = mockMvc.perform(get("/configs/fetch")
-                .param("groupKeys", new String[]{ConfigGroupEnum.APP_AUTH.toString()})
-                .accept(MediaType.APPLICATION_JSON))
+                        .param("groupKeys", new String[]{ConfigGroupEnum.APP_AUTH.toString()})
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SUCCESS)))
                 .andExpect(jsonPath("$.data['APP_AUTH'].md5", is("md5-value1")))
@@ -90,7 +90,7 @@ public final class ConfigControllerTest {
     public void testListener() throws Exception {
         // Run the test
         final MockHttpServletResponse response = mockMvc.perform(post("/configs/listener")
-                .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andReturn().getResponse();
 
         // Verify the results

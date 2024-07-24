@@ -69,7 +69,9 @@ public class ShenyuConfig {
     private SpringCloudCacheConfig springCloudCache = new SpringCloudCacheConfig();
     
     private AlertConfig alert = new AlertConfig();
-    
+
+    private String namespaceId = "";
+
     /**
      * Gets health.
      *
@@ -390,6 +392,22 @@ public class ShenyuConfig {
      */
     public void setAlert(final AlertConfig alert) {
         this.alert = alert;
+    }
+
+    /**
+     * get namespaceId config.
+     * @return the namespaceId config
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Set namespaceId config.
+     * @param namespaceId namespaceId config
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
     }
     
     /**
