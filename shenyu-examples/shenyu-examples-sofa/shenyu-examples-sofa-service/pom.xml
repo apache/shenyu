@@ -40,17 +40,17 @@
             <artifactId>actuator-sofa-boot-starter</artifactId>
             <version>${rpc-sofa-boot-starter.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.alipay.sofa</groupId>
-            <artifactId>runtime-sofa-boot-starter</artifactId>
-            <version>${runtime-sofa-boot-starter.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>sofa-common-tools</artifactId>
-                    <groupId>com.alipay.sofa.common</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.alipay.sofa</groupId>-->
+<!--            <artifactId>runtime-sofa-boot-starter</artifactId>-->
+<!--            <version>${runtime-sofa-boot-starter.version}</version>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <artifactId>sofa-common-tools</artifactId>-->
+<!--                    <groupId>com.alipay.sofa.common</groupId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>rpc-sofa-boot-starter</artifactId>
@@ -59,6 +59,10 @@
                 <exclusion>
                     <artifactId>sofa-common-tools</artifactId>
                     <groupId>com.alipay.sofa.common</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-logging</artifactId>
+                    <groupId>commons-logging</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -79,16 +83,16 @@
 <!--            <version>1.3.11</version>-->
 <!--        </dependency>-->
         
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter</artifactId>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <artifactId>logback-classic</artifactId>-->
-<!--                    <groupId>ch.qos.logback</groupId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>logback-classic</artifactId>
+                    <groupId>ch.qos.logback</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         
         <dependency>
             <groupId>org.apache.curator</groupId>
@@ -154,18 +158,18 @@
                     <artifactId>j2objc-annotations</artifactId>
                     <groupId>com.google.j2objc</groupId>
                 </exclusion>
-                <exclusion>
-                    <artifactId>logback-classic</artifactId>
-                    <groupId>ch.qos.logback</groupId>
-                </exclusion>
+<!--                <exclusion>-->
+<!--                    <artifactId>logback-classic</artifactId>-->
+<!--                    <groupId>ch.qos.logback</groupId>-->
+<!--                </exclusion>-->
             </exclusions>
         </dependency>
         
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.5.6</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>ch.qos.logback</groupId>-->
+<!--            <artifactId>logback-classic</artifactId>-->
+<!--            <version>1.5.6</version>-->
+<!--        </dependency>-->
         
         <dependency>
             <groupId>org.springframework.boot</groupId>
