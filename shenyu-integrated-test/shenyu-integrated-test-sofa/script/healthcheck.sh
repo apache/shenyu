@@ -33,8 +33,10 @@ do
 done
 
 sleep 30
+docker compose -f ./shenyu-integrated-test/shenyu-integrated-test-sofa/docker-compose.yml logs shenyu-zk
+sleep 90
 docker compose -f ./shenyu-integrated-test/shenyu-integrated-test-sofa/docker-compose.yml logs shenyu-examples-sofa
-sleep 30
+sleep 90
 docker compose -f ./shenyu-integrated-test/shenyu-integrated-test-sofa/docker-compose.yml logs shenyu-integrated-test-sofa
-sleep 30
+sleep 90
 echo -e "\n-------------------"
