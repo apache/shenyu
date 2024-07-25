@@ -52,7 +52,7 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
     public void onSubscribe(final MetaData metaData) {
         Optional.ofNullable(handlerMap.get(metaData.getRpcType()))
                 .ifPresent(handler -> {
-                    LOG.info("subscribe metaData: {}", JsonUtils.toJson(metaData));
+//                    LOG.info("subscribe metaData: {}", JsonUtils.toJson(metaData));
                     handler.handle(metaData);
                 });
     }
@@ -61,7 +61,7 @@ public class CommonMetaDataSubscriber implements MetaDataSubscriber {
     public void unSubscribe(final MetaData metaData) {
         Optional.ofNullable(handlerMap.get(metaData.getRpcType()))
                 .ifPresent(handler -> {
-                    LOG.info("unSubscribe metaData: {}", JsonUtils.toJson(metaData));
+//                    LOG.info("unSubscribe metaData: {}", JsonUtils.toJson(metaData));
                     handler.remove(metaData);
                 });
     }
