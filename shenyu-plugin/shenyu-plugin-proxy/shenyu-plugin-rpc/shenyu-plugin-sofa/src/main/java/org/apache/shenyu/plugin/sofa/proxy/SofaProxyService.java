@@ -31,6 +31,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
@@ -83,7 +84,7 @@ public class SofaProxyService {
             pair = sofaParamResolveService.buildParameter(body, metaData.getParameterTypes());
         }
         CompletableFuture<Object> future = new CompletableFuture<>();
-        RpcInvokeContext.getContext().setResponseCallback(new SofaResponseCallback<Object>() {
+        RpcInvokeContext.getContext().setResponseCallback(new SofaResponseCallback<>() {
             @Override
             public void onAppResponse(final Object o, final String s, final RequestBase requestBase) {
                 future.complete(o);
@@ -100,6 +101,7 @@ public class SofaProxyService {
             }
         });
         GenericService genericService = reference.refer();
+        LOG.info("sofa genericInvoker genericService:{}, metaData:{}, pair:{}", JsonUtils.toJson(genericService), JsonUtils.toJson(metaData), JsonUtils.toJson(pair));
         genericService.$genericInvoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
