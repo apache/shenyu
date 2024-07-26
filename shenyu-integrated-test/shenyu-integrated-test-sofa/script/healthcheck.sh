@@ -31,7 +31,6 @@ do
         sleep 2
     done
 done
-docker exec -it shenyu-zk zkCli.sh ls /sofa-rpc/org.apache.shenyu.examples.sofa.api.service.SofaSingleParamService/providers
 sleep 30
 docker compose -f ./shenyu-integrated-test/shenyu-integrated-test-sofa/docker-compose.yml logs shenyu-zk
 sleep 90
