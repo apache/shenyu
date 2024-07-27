@@ -30,27 +30,43 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <curator.version>4.3.0</curator.version>
+        <curator.version>5.7.0</curator.version>
         <zookeeper.version>3.5.7</zookeeper.version>
     </properties>
 
     <dependencies>
         <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-dependencies-zookeeper</artifactId>
+            <version>${apache.dubbo.version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.jcip</groupId>
+                    <artifactId>jcip-annotations</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-client</artifactId>
-            <version>${curator.version}</version>
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <artifactId>zookeeper</artifactId>-->
-<!--                    <groupId>org.apache.zookeeper</groupId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.curator</groupId>-->
+<!--            <artifactId>curator-client</artifactId>-->
+<!--            <version>${curator.version}</version>-->
+<!--&lt;!&ndash;            <exclusions>&ndash;&gt;-->
+<!--&lt;!&ndash;                <exclusion>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <artifactId>zookeeper</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <groupId>org.apache.zookeeper</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;                </exclusion>&ndash;&gt;-->
+<!--&lt;!&ndash;            </exclusions>&ndash;&gt;-->
+<!--        </dependency>-->
 <!--        <dependency>-->
 <!--            <groupId>org.apache.zookeeper</groupId>-->
 <!--            <artifactId>zookeeper</artifactId>-->
@@ -63,36 +79,36 @@
 <!--            </exclusions>-->
 <!--        </dependency>-->
 
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-            <version>${curator.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.curator</groupId>-->
+<!--            <artifactId>curator-framework</artifactId>-->
+<!--            <version>${curator.version}</version>-->
+<!--        </dependency>-->
 
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-            <version>${curator.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.curator</groupId>-->
+<!--            <artifactId>curator-recipes</artifactId>-->
+<!--            <version>${curator.version}</version>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-sofa</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>checker-qual</artifactId>
-                    <groupId>org.checkerframework</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>grpc-api</artifactId>
-                    <groupId>io.grpc</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>grpc-core</artifactId>
-                    <groupId>io.grpc</groupId>
-                </exclusion>
-            </exclusions>
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <artifactId>checker-qual</artifactId>-->
+<!--                    <groupId>org.checkerframework</groupId>-->
+<!--                </exclusion>-->
+<!--                <exclusion>-->
+<!--                    <artifactId>grpc-api</artifactId>-->
+<!--                    <groupId>io.grpc</groupId>-->
+<!--                </exclusion>-->
+<!--                <exclusion>-->
+<!--                    <artifactId>grpc-core</artifactId>-->
+<!--                    <groupId>io.grpc</groupId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
         </dependency>
 
         <dependency>
