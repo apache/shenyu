@@ -37,24 +37,6 @@
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>net.jcip</groupId>
-                    <artifactId>jcip-annotations</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>commons-io</artifactId>
-                    <groupId>commons-io</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>asm</artifactId>
-                    <groupId>org.ow2.asm</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -83,6 +65,14 @@
                 <exclusion>
                     <artifactId>checker-qual</artifactId>
                     <groupId>org.checkerframework</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>grpc-api</artifactId>
+                    <groupId>io.grpc</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>grpc-core</artifactId>
+                    <groupId>io.grpc</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
