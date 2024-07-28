@@ -355,7 +355,6 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                             .role(1)
                             .roles(Lists.newArrayList(role.getId()))
                             .enabled(true)
-                            .clientId(clientId)
                             .build();
                     createOrUpdate(dashboardUserDTO);
                     dashboardUserVO = DashboardUserTransfer.INSTANCE.transferDTO2VO(dashboardUserDTO);
