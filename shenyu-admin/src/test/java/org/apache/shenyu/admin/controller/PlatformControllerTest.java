@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.model.vo.DashboardUserVO;
+import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.EnumService;
 import org.apache.shenyu.admin.service.SecretService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.admin.model.vo.DashboardUserVO;
-import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,7 +69,7 @@ public final class PlatformControllerTest {
      * dashboardUser mock data.
      */
     private final DashboardUserVO dashboardUserVO = new DashboardUserVO("1", "admin", "2095132720951327",
-            1, true, DateUtils.localDateTimeToString(LocalDateTime.now()),
+            1, true, "1", DateUtils.localDateTimeToString(LocalDateTime.now()),
             DateUtils.localDateTimeToString(LocalDateTime.now()));
 
     /**

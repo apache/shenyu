@@ -55,6 +55,11 @@ public final class DashboardUserDO extends BaseDO {
     private Boolean enabled;
 
     /**
+     * clientId.
+     */
+    private String clientId;
+
+    /**
      * current role list.
      */
     private List<String> roles;
@@ -131,6 +136,24 @@ public final class DashboardUserDO extends BaseDO {
      */
     public Boolean getEnabled() {
         return enabled;
+    }
+
+    /**
+     * Gets the value of clientId.
+     *
+     * @return the value of clientId
+     */
+    public String getClientId() {
+        return clientId;
+    }
+
+    /**
+     * Sets the clientId.
+     *
+     * @param clientId clientId
+     */
+    public void setClientId(final String clientId) {
+        this.clientId = clientId;
     }
 
     /**

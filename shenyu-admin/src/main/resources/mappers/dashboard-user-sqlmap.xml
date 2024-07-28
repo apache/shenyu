@@ -26,6 +26,7 @@
         <result column="password" jdbcType="VARCHAR" property="password"/>
         <result column="role" jdbcType="INTEGER" property="role"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
+        <result column="client_id" jdbcType="VARCHAR" property="clientId"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -35,7 +36,8 @@
         user_name,
         password,
         role,
-        enabled
+        enabled,
+        client_id
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -145,6 +147,9 @@
             <if test="enabled != null">
                 enabled,
             </if>
+            <if test="clientId != null">
+                client_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
                 #{id, jdbcType=VARCHAR},
@@ -165,6 +170,9 @@
             </if>
             <if test="enabled != null">
                 #{enabled, jdbcType=TINYINT},
+            </if>
+            <if test="clientId != null">
+                #{clientId, jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -201,6 +209,9 @@
             </if>
             <if test="enabled != null">
                 enabled = #{enabled, jdbcType=TINYINT},
+            </if>
+            <if test="clientId != null">
+                client_id = #{clientId, jdbcType=VARCHAR},
             </if>
         </set>
          WHERE id = #{id, jdbcType=VARCHAR}
