@@ -280,11 +280,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
         final String clientId = UUIDUtils.getInstance().generateShortUuid();
         if (Objects.nonNull(ldapTemplate)) {
-            dashboardUserVO = loginByLdap(userName, cbcDecryptPassword, clientId);
+            dashboardUserVO = loginByLdap(userName, cbcDecryptPassword);
         }
 
         if (Objects.isNull(dashboardUserVO)) {
-            dashboardUserVO = loginByDatabase(userName, cbcDecryptPassword, clientId);
+            dashboardUserVO = loginByDatabase(userName, cbcDecryptPassword);
         }
 
         final LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
@@ -339,7 +339,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         return true;
     }
 
-    private DashboardUserVO loginByLdap(final String userName, final String password, String clientId) {
+    private DashboardUserVO loginByLdap(final String userName, final String password) {
         Assert.notNull(ldapProperties, "ldap config is not enable");
         String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), LdapEncoder.nameEncode(userName), ldapProperties.getBaseDn());
         String filter = String.format("(objectClass=%s)", ldapProperties.getObjectClass());
@@ -370,7 +370,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         }
     }
 
-    private DashboardUserVO loginByDatabase(final String userName, final String password, String clientId) {
+    private DashboardUserVO loginByDatabase(final String userName, final String password) {
         return findByQuery(userName, DigestUtils.sha512Hex(password));
     }
 
