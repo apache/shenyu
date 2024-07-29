@@ -124,6 +124,16 @@
             <artifactId>protobuf-java</artifactId>
             <version>3.21.7</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-x-discovery</artifactId>
+            <version>4.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>3.5.7</version>
+        </dependency>
         <!--        <dependency>-->
 <!--            <groupId>com.alipay.sofa.common</groupId>-->
 <!--            <artifactId>sofa-common-tools</artifactId>-->
