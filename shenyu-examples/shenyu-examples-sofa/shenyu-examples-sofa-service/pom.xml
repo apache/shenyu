@@ -96,6 +96,10 @@
                     <artifactId>protobuf-java</artifactId>
                     <groupId>com.google.protobuf</groupId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>auto-value-annotations</artifactId>
+                    <groupId>com.google.auto.value</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -145,6 +149,11 @@
                     <groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.google.auto.value</groupId>
+            <artifactId>auto-value-annotations</artifactId>
+            <version>1.9</version>
         </dependency>
         <!--        <dependency>-->
 <!--            <groupId>com.alipay.sofa.common</groupId>-->
