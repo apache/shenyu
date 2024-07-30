@@ -34,6 +34,7 @@ import org.apache.shenyu.plugin.resilience4j.executor.Executor;
 import org.apache.shenyu.plugin.resilience4j.executor.RateLimiterExecutor;
 import org.apache.shenyu.plugin.resilience4j.handler.Resilience4JHandler;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -80,7 +81,7 @@ public class Resilience4JPlugin extends AbstractShenyuPlugin {
         Resilience4JConf conf = Resilience4JBuilder.build(rule);
         return combinedExecutor.run(
                 chain.execute(exchange).doOnSuccess(v -> {
-                    HttpStatus status = exchange.getResponse().getStatusCode();
+                    HttpStatusCode status = exchange.getResponse().getStatusCode();
                     if (Objects.isNull(status) || !status.is2xxSuccessful()) {
                         exchange.getResponse().setStatusCode(null);
                         throw new CircuitBreakerStatusCodeException(Objects.isNull(status) ? HttpStatus.INTERNAL_SERVER_ERROR : status);
@@ -91,7 +92,7 @@ public class Resilience4JPlugin extends AbstractShenyuPlugin {
     private Function<Throwable, Mono<Void>> fallback(final Executor executor,
                                                      final ServerWebExchange exchange, final String uri) {
         return throwable -> executor.fallback(exchange, UriUtils.createUri(uri), throwable).doFinally(monoV -> {
-            final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.METRICS_RESILIENCE4J);
+            final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.METRICS_RESILIENCE4J);
             Optional.ofNullable(consumer).ifPresent(c -> c.accept(exchange.getResponse().getStatusCode()));
         });
     }
@@ -108,7 +109,7 @@ public class Resilience4JPlugin extends AbstractShenyuPlugin {
 
     public static class CircuitBreakerStatusCodeException extends HttpStatusCodeException {
 
-        public CircuitBreakerStatusCodeException(final HttpStatus statusCode) {
+        public CircuitBreakerStatusCodeException(final HttpStatusCode statusCode) {
             super(statusCode);
         }
     }

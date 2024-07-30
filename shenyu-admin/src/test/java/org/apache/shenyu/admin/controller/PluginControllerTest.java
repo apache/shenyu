@@ -184,7 +184,7 @@ public final class PluginControllerTest {
                         .param("role", pluginDTO.getRole())
                         .param("sort", String.valueOf(pluginDTO.getSort())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", Matchers.containsString("The system is busy, please try again later")))
+                .andExpect(jsonPath("$.message", Matchers.containsString("Request error! invalid argument")))
                 .andReturn();
     }
 
@@ -215,7 +215,7 @@ public final class PluginControllerTest {
                         .param("enabled", String.valueOf(pluginDTO.getEnabled()))
                         .param("role", pluginDTO.getRole())
                         .param("sort", String.valueOf(pluginDTO.getSort())))
-                .andExpect(jsonPath("$.message", is("The system is busy, please try again later")))
+                .andExpect(jsonPath("$.message", Matchers.containsString("Request error! invalid argument")))
                 .andReturn();
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);

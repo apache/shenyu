@@ -29,9 +29,9 @@
     <artifactId>shenyu-examples-sdk-springcloud-consumer</artifactId>
 
     <properties>
-        <spring-cloud.version>3.1.2</spring-cloud.version>
+        <spring-cloud.version>4.1.2</spring-cloud.version>
         <nacos-discovery.version>2021.0.1.0</nacos-discovery.version>
-        <eureka-client.version>3.1.2</eureka-client.version>
+        <eureka-client.version>4.1.2</eureka-client.version>
     </properties>
 
     <dependencies>
