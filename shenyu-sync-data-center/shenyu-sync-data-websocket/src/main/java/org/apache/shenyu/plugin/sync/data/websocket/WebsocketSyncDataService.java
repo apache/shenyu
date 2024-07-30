@@ -121,7 +121,9 @@ public class WebsocketSyncDataService implements SyncDataService {
     }
     
     private void masterCheck() {
-        LOG.info("master checking task start...");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("master checking task start...");
+        }
         if (CollectionUtils.isEmpty(clients)) {
             List<String> urls = websocketConfig.getUrls();
             for (String url : urls) {

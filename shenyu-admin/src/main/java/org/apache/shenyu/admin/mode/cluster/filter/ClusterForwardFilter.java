@@ -17,6 +17,11 @@
 
 package org.apache.shenyu.admin.mode.cluster.filter;
 
+import jakarta.annotation.Resource;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
@@ -29,22 +34,17 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.annotation.Resource;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Objects;
 
@@ -138,7 +138,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         ResponseEntity<byte[]> responseEntity = restTemplate.exchange(targetUrl, HttpMethod.valueOf(request.getMethod()), requestEntity, byte[].class);
         
         // Set response status and headers
-        response.setStatus(responseEntity.getStatusCodeValue());
+        response.setStatus(responseEntity.getStatusCode().value());
         // Copy response headers
         copyHeaders(responseEntity.getHeaders(), response);
         // fix cors error
@@ -155,11 +155,12 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         String host = master.getMasterHost();
         String port = master.getMasterPort();
         String masterContextPath = master.getContextPath();
-        
         UriComponentsBuilder builder = UriComponentsBuilder
-                .fromHttpRequest(new ServletServerHttpRequest(request))
+                .fromUri(URI.create(request.getRequestURI()))
+                .scheme(request.getScheme())
                 .host(host)
-                .port(port);
+                .port(port)
+                .query(request.getQueryString());
         String originalPath = builder.build().getPath();
         
         if (StringUtils.isNotEmpty(originalPath)) {

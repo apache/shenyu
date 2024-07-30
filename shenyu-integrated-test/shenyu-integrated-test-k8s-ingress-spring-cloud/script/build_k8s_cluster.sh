@@ -23,4 +23,10 @@ kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-spr
 kubectl apply -f ./shenyu-examples/shenyu-examples-eureka/k8s/shenyu-examples-eureka.yml
 kubectl wait --for=condition=Ready pod -l app=shenyu-examples-eureka-deployment -n shenyu-ingress
 kubectl apply -f ./shenyu-examples/shenyu-examples-springcloud/k8s/shenyu-examples-springcloud.yml
+kubectl wait --for=condition=Ready pod -l app=shenyu-examples-springcloud-deployment -n shenyu-ingress
 kubectl apply -f ./shenyu-examples/shenyu-examples-springcloud/k8s/ingress.yml
+for loop in `seq 1 30`
+do
+  curl -s -X GET http://localhost:30761/eureka/apps
+  sleep 2
+done

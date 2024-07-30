@@ -45,8 +45,8 @@ public class ShenyuRequestMappingTest {
         Class<?> clazz = springMvcClientTestBean.getClass();
         final ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSpringMvcClient.class);
         assertNotNull(shenyuSpringMvcClient);
-        assertEquals(shenyuSpringMvcClient.value(), "/order");
-        assertEquals(shenyuSpringMvcClient.path(), "/order");
+        assertEquals(shenyuSpringMvcClient.value()[0], "/order");
+        assertEquals(shenyuSpringMvcClient.path()[0], "/order");
         assertEquals(shenyuSpringMvcClient.ruleName(), "divide");
         assertFalse(shenyuSpringMvcClient.enabled());
         assertEquals(shenyuSpringMvcClient.desc(), "it`s test.");
