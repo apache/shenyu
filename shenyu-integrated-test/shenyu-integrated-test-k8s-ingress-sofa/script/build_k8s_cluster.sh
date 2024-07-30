@@ -27,7 +27,7 @@ kubectl wait --for=condition=Ready pod -l app=shenyu-ingress-controller -n sheny
 kubectl apply -f ./shenyu-examples/shenyu-examples-sofa/shenyu-examples-sofa-service/k8s/ingress.yml
 
 echo "kubectl get pod -o wide -A"
-kubectl get pod -o wide -A -n shenyu-ingress
+kubectl get pod -o wide -A
 
 #echo "shenyu-examples-eureka log"
 #kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-sofa-deployment | awk '{print $1}')"
