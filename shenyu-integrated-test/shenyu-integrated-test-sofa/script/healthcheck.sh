@@ -31,9 +31,9 @@ do
         sleep 2
     done
 done
-sleep 30
-docker compose -f ./shenyu-integrated-test/shenyu-integrated-test-sofa/docker-compose.yml logs shenyu-zk
-sleep 90
+#sleep 30
+#docker compose -f ./shenyu-integrated-test/shenyu-integrated-test-sofa/docker-compose.yml logs shenyu-zk
+#sleep 90
 docker compose -f ./shenyu-integrated-test/shenyu-integrated-test-sofa/docker-compose.yml logs shenyu-examples-sofa
 sleep 90
 docker compose -f ./shenyu-integrated-test/shenyu-integrated-test-sofa/docker-compose.yml logs shenyu-integrated-test-sofa
