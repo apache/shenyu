@@ -22,7 +22,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/shenyu
     username: postgres
-    password: aizazadi
+    password: 123456
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 30000
