@@ -26,6 +26,7 @@ import com.netflix.appinfo.MyDataCenterInstanceConfig;
 import com.netflix.appinfo.RefreshableInstanceConfig;
 import com.netflix.appinfo.UniqueIdentifier;
 import com.netflix.appinfo.providers.Archaius1VipAddressResolver;
+import com.netflix.appinfo.providers.EurekaConfigBasedInstanceInfoProvider;
 import com.netflix.discovery.DefaultEurekaClientConfig;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.discovery.EurekaClient;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Join
@@ -61,7 +63,26 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
             public List<String> getEurekaServerServiceUrls(final String zone) {
                 return Arrays.asList(config.getServerLists().split(","));
             }
+
+            @Override
+            public boolean shouldFetchRegistry() {
+                return false;
+            }
         };
+
+        DefaultEurekaClientConfig eurekaClientNotRegisterEurekaConfig = new DefaultEurekaClientConfig() {
+            @Override
+            public List<String> getEurekaServerServiceUrls(final String zone) {
+                return Arrays.asList(config.getServerLists().split(","));
+            }
+
+            @Override
+            public boolean shouldRegisterWithEureka() {
+                return false;
+            }
+        };
+        eurekaClient = new DiscoveryClient(new ApplicationInfoManager(eurekaInstanceConfig,
+                new EurekaConfigBasedInstanceInfoProvider(eurekaInstanceConfig).get()), eurekaClientNotRegisterEurekaConfig);
     }
 
     @Override
@@ -79,7 +100,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
                 .setDurationInSecs(eurekaInstanceConfig.getLeaseExpirationDurationInSeconds());
         instanceInfo.setLeaseInfo(leaseInfoBuilder.build());
         ApplicationInfoManager applicationInfoManager = new ApplicationInfoManager(eurekaInstanceConfig, instanceInfo);
-        eurekaClient = new DiscoveryClient(applicationInfoManager, eurekaClientConfig);
+        new DiscoveryClient(applicationInfoManager, eurekaClientConfig);
     }
 
     /**
@@ -174,6 +195,6 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     @Override
     public void close() {
-        eurekaClient.shutdown();
+        Optional.ofNullable(eurekaClient).ifPresent(EurekaClient::shutdown);
     }
 }

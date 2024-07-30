@@ -33,6 +33,9 @@ import org.springframework.context.ApplicationListener;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * SpringCloud HeartBeat Listener.
+ */
 public class SpringCloudHeartBeatListener implements ApplicationListener<HeartbeatEvent> {
     
     private static final Logger LOG = LoggerFactory.getLogger(SpringCloudHeartBeatListener.class);

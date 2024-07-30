@@ -59,10 +59,10 @@ jobs:
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
 
-      - name: Set up JDK 8 for Building ShenYu
+      - name: Set up JDK 17 for Building ShenYu
         uses: actions/setup-java@v3
         with:
-          java-version: '8'
+          java-version: '17'
           distribution: 'temurin'
 
       - uses: dorny/paths-filter@v2
@@ -150,10 +150,10 @@ jobs:
           mkdir -p ~/.kube
           cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
 
-      - name: Set up JDK 8 for Building ShenYu
+      - name: Set up JDK 17 for Building ShenYu
         uses: actions/setup-java@v3
         with:
-          java-version: '8'
+          java-version: '17'
           distribution: 'temurin'
 
       - name: Restore ShenYu Maven Repos
@@ -176,12 +176,6 @@ jobs:
           sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
           sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
-#      - name: Setup Debug Session
-#        uses: mxschmitt/action-tmate@v3
-#        timeout-minutes: 15
-#        with:
-#          detached: true
-
       - name: Run E2E Tests
         if: steps.filter.outputs.changed == 'true'
         run: |
@@ -192,7 +186,6 @@ jobs:
         run: |
           kubectl get all
           kubectl get events --all-namespaces
-          kubectl logs -l app=shenyu-admin-mysql
 
   e2e-case:
     runs-on: ubuntu-latest
@@ -215,6 +208,11 @@ jobs:
             script: e2e-grpc-sync
           - case: shenyu-e2e-case-websocket
             script: e2e-websocket-sync
+          - case: shenyu-e2e-case-cluster
+            script: e2e-cluster-jdbc
+          - case: shenyu-e2e-case-cluster
+            script: e2e-cluster-zookeeper
+            
     steps:
       - uses: actions/checkout@v2
         with:
@@ -244,10 +242,10 @@ jobs:
           mkdir -p ~/.kube
           cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
 
-      - name: Set up JDK 8 for Building ShenYu
+      - name: Set up JDK 17 for Building ShenYu
         uses: actions/setup-java@v3
         with:
-          java-version: '8'
+          java-version: '17'
           distribution: 'temurin'
 
       - name: Restore ShenYu Maven Repos

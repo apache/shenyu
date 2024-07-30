@@ -95,7 +95,7 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         ParameterizedType parameterizedType = (ParameterizedType) this.getClass().getGenericSuperclass();
         Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
         final Class<T> globalLogConfigClass = (Class<T>) actualTypeArguments[0];
-        LOG.info("handler {} Plugin data: {}", pluginNamed(), GsonUtils.getGson().toJson(pluginData));
+        LOG.info("handler {} Plugin data:  {}", pluginNamed(), GsonUtils.getGson().toJson(pluginData));
         if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
             T globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), globalLogConfigClass);
             T exist = Singleton.INST.get(globalLogConfigClass);

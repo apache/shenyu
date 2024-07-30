@@ -801,6 +801,16 @@ public interface Constants {
     String PLUGIN_END_TIME = "pluginEndTime:";
 
     /**
+     * the chain start time of chain lifecycle.
+     */
+    String CHAIN_START_TIME = "chainStartTime:";
+
+    /**
+     * the chain end time of chain lifecycle.
+     */
+    String CHAIN_END_TIME = "chainEndTime:";
+
+    /**
      * ratelimiter plugin metrics.
      */
     String METRICS_RATE_LIMITER = "metricsRateLimiter";

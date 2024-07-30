@@ -53,7 +53,6 @@ public class DiscoveryUpstreamController {
      */
     @PostMapping("")
     public ShenyuAdminResult createDiscoveryUpstream(@Valid @RequestBody final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
-
         return ShenyuAdminResult.success(discoveryUpstreamService.createOrUpdate(discoveryUpstreamDTO));
     }
 
@@ -97,7 +96,6 @@ public class DiscoveryUpstreamController {
      */
     @DeleteMapping("/batch")
     public ShenyuAdminResult deleteDiscoveryUpstream(@NotEmpty @RequestBody final List<@NotBlank String> ids) {
-
         return ShenyuAdminResult.success(discoveryUpstreamService.delete(ids));
     }
 }

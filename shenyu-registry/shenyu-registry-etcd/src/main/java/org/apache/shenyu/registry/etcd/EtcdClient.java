@@ -125,7 +125,7 @@ public class EtcdClient {
         try {
             return this.client.getKVClient().get(bytesOf(key), getOption).get();
         } catch (ExecutionException | InterruptedException e) {
-            LOGGER.error("etcd getRange key {} error {}", key, e);
+            LOGGER.error("etcd getRange key {} error", key, e);
             throw new ShenyuException(e);
         }
     }

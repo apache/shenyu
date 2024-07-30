@@ -15,30 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.register.client.server.api;
+package org.apache.shenyu.admin.register;
 
-import org.apache.shenyu.register.common.type.DataTypeParent;
-
-import java.util.Collection;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.spi.SPI;
 
 /**
- * The interface Shenyu client server register publisher.
+ * Shenyu client server register repository.
  */
-public interface ShenyuClientServerRegisterPublisher {
+@SPI
+public interface ShenyuClientServerRegisterRepository {
     
     /**
-     * Publish.
+     * Init.
      *
-     * @param t the t
+     * @param config the config
      */
-    void publish(Collection<? extends DataTypeParent> t);
+    default void init(ShenyuRegisterCenterConfig config) {
+    }
     
     /**
-     * Publish.
+     * Init.
      *
-     * @param dataList the dataList
+     * @param publisher the publisher
+     * @param config the config
      */
-    void publish(DataTypeParent dataList);
+    default void init(ShenyuClientServerRegisterPublisher publisher, ShenyuRegisterCenterConfig config) {
+    }
     
     /**
      * Close.

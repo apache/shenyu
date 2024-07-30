@@ -65,7 +65,7 @@ public class WaitDataSync {
             if (retryNum % 3 == 0) {
                 adminClient.syncPluginAll();
             }
-            Thread.sleep(3000);
+            Thread.sleep(10000);
             retryNum++;
         }
         Assertions.assertNotEquals(adminDataList.size(), 0);
@@ -90,7 +90,7 @@ public class WaitDataSync {
                     break;
                 }
             }
-            Thread.sleep(3000);
+            Thread.sleep(10000);
             retryNum++;
             pluginMap = gatewayClient.getPlugins();
         }

@@ -15,37 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.register.client.server.api;
+package org.apache.shenyu.admin.model.event.discovery;
 
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.apache.shenyu.spi.SPI;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
+import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 
-/**
- * Shenyu client server register repository.
- */
-@SPI
-public interface ShenyuClientServerRegisterRepository {
-    
+public class DiscoveryStreamUpdatedEvent extends AdminDataModelChangedEvent {
+
+    public DiscoveryStreamUpdatedEvent(final DiscoverySyncData source, final EventTypeEnum type) {
+        super(source, null, type);
+    }
+
     /**
-     * Init.
+     * the created selector.
      *
-     * @param config the config
+     * @return selector
      */
-    default void init(ShenyuRegisterCenterConfig config) {
+    public DiscoverySyncData getDiscoverySyncData() {
+        return (DiscoverySyncData) getSource();
     }
-    
-    /**
-     * Init.
-     *
-     * @param publisher the publisher
-     * @param config the config
-     */
-    default void init(ShenyuClientServerRegisterPublisher publisher, ShenyuRegisterCenterConfig config) {
-    }
-    
-    /**
-     * Close.
-     */
-    default void close() {
-    }
+
 }

@@ -219,4 +219,11 @@
     <delete id="deleteByUrl">
         DELETE FROM discovery_upstream WHERE discovery_handler_id = #{discoveryHandlerId} and url = #{url}
     </delete>
+
+    <update id="updateStatusByUrl">
+        UPDATE discovery_upstream
+        SET status = #{status}
+        WHERE discovery_handler_id = #{discoveryHandlerId} and url = #{url}
+    </update>
+
 </mapper>
