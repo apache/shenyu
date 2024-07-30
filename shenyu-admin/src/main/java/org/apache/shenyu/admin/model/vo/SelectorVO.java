@@ -129,6 +129,11 @@ public class SelectorVO implements Serializable {
      */
     private List<RuleVO> selectorRules;
 
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
     public SelectorVO() {
     }
 
@@ -535,6 +540,24 @@ public class SelectorVO implements Serializable {
      */
     public static SelectorVO buildSelectorVO(final SelectorDO selectorDO) {
         return buildSelectorVO(selectorDO, null);
+    }
+
+    /**
+     * Gets the value of namespaceId.
+     *
+     * @return the value of namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
     }
 
     /**

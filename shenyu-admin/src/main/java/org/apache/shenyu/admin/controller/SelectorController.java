@@ -18,8 +18,10 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
+import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageCondition;
@@ -70,12 +72,16 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      */
     @GetMapping("")
     public AdminResult<CommonPager<SelectorVO>> querySelectors(final String pluginId, final String name,
-                                                                @RequestParam @NotNull final Integer currentPage,
-                                                                @RequestParam @NotNull final Integer pageSize) {
+                                                               @RequestParam @NotNull final Integer currentPage,
+                                                               @RequestParam @NotNull final Integer pageSize,
+                                                               @Existed(message = "namespaceId is not existed",
+                                                                       provider = NamespaceMapper.class) final String namespaceId
+    ) {
         final SelectorQueryCondition condition = new SelectorQueryCondition();
         condition.setUserId(SessionUtil.visitor().getUserId());
         condition.setPlugin(ListUtil.of(pluginId));
         condition.setKeyword(name);
+        condition.setNamespaceId(namespaceId);
         return searchAdaptor(new PageCondition<>(currentPage, pageSize, condition));
     }
 
@@ -87,8 +93,10 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      */
     @GetMapping("/{id}")
     public ShenyuAdminResult detailSelector(@PathVariable("id") @Valid
-                                            @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id) {
-        SelectorVO selectorVO = selectorService.findById(id);
+                                            @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id,
+                                            @Existed(message = "namespaceId is not existed",
+                                                    provider = NamespaceMapper.class) final String namespaceId) {
+        SelectorVO selectorVO = selectorService.findById(id, namespaceId);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, selectorVO);
     }
 
@@ -129,7 +137,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      */
     @PostMapping("/batchEnabled")
     public ShenyuAdminResult batchEnabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
-        if (!selectorService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())) {
+        if (!selectorService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId())) {
             return ShenyuAdminResult.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
@@ -138,12 +146,12 @@ public class SelectorController implements PagedController<SelectorQueryConditio
     /**
      * delete Selectors.
      *
-     * @param ids primary key.
+     * @param batchNamespaceCommonDTO batchNamespaceCommonDTO.
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deleteSelector(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
-        Integer deleteCount = selectorService.delete(ids);
+    public ShenyuAdminResult deleteSelector(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
+        Integer deleteCount = selectorService.delete(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 

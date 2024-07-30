@@ -191,14 +191,14 @@ public final class SelectorServiceTest {
 
         final List<String> ids = Collections.singletonList(correctId);
         given(selectorMapper.deleteByIds(ids)).willReturn(ids.size());
-        assertEquals(selectorService.delete(ids), ids.size());
+        assertEquals(selectorService.delete(ids, any()), ids.size());
     }
 
     @Test
     public void testFindById() {
         SelectorDO selectorDO = buildSelectorDO();
-        given(this.selectorMapper.selectById(eq("123"))).willReturn(selectorDO);
-        SelectorVO selectorVO = this.selectorService.findById("123");
+        given(this.selectorMapper.selectById(eq("123"), any())).willReturn(selectorDO);
+        SelectorVO selectorVO = this.selectorService.findById("123", any());
         assertNotNull(selectorDO);
         assertEquals(selectorVO.getId(), selectorDO.getId());
 
@@ -209,8 +209,8 @@ public final class SelectorServiceTest {
     @Test
     public void testFindByName() {
         List<SelectorDO> selectorDO1List = Collections.singletonList(buildSelectorDO());
-        given(this.selectorMapper.selectByName(eq("kuan"))).willReturn(selectorDO1List);
-        SelectorDO selectorDO2 = this.selectorService.findByName("kuan");
+        given(this.selectorMapper.selectByName(eq("kuan"), anyString())).willReturn(selectorDO1List);
+        SelectorDO selectorDO2 = this.selectorService.findByName("kuan", anyString());
         assertNotNull(selectorDO2);
         assertEquals(selectorDO1List.size(), 1);
         assertEquals(selectorDO1List.get(0).getId(), selectorDO2.getId());

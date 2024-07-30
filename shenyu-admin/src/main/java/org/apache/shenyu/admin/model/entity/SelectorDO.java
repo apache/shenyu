@@ -414,6 +414,7 @@ public final class SelectorDO extends BaseDO {
                 .conditionList(conditionDataList)
                 .matchRestful(selectorDO.getMatchRestful())
                 .beforeConditionList(beforeConditionDataList)
+                .namespaceId(selectorDO.getNamespaceId())
                 .build();
     }
 

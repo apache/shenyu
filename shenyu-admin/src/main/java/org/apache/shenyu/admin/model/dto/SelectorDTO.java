@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -117,6 +118,8 @@ public final class SelectorDTO implements Serializable {
     /**
      * namespaceId.
      */
+    @NotBlank
+    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
     private String namespaceId;
     
     public SelectorDTO() {

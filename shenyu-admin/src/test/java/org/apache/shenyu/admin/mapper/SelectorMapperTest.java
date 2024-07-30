@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 
 
 /**
@@ -51,7 +52,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
-        SelectorDO selector = selectorMapper.selectById(selectorDO.getId());
+        SelectorDO selector = selectorMapper.selectById(selectorDO.getId(),any());
         assertNotNull(selector);
         assertEquals(selectorDO.getId(), selector.getId());
         assertEquals(selectorDO.getContinued(), selector.getContinued());
@@ -114,7 +115,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         SelectorDO selectorDO = buildSelectorDO();
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
-        List<SelectorDO> doList = selectorMapper.selectByName(selectorDO.getName());
+        List<SelectorDO> doList = selectorMapper.selectByName(selectorDO.getName(), null);
         assertEquals(doList.size(), 1);
         assertNotNull(doList.get(0));
         assertEquals(selectorDO.getName(), doList.get(0).getName());

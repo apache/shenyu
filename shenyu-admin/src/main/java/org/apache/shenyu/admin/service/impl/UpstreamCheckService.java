@@ -382,7 +382,7 @@ public class UpstreamCheckService {
     }
 
     private void updateSelectorHandler(final String selectorId, final List<CommonUpstream> aliveList) {
-        SelectorDO selectorDO = selectorMapper.selectById(selectorId);
+        SelectorDO selectorDO = selectorMapper.selectByOnlyId(selectorId);
         if (Objects.isNull(selectorDO)) {
             return;
         }
