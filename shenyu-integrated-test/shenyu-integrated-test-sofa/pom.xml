@@ -30,7 +30,7 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <!--        <curator.version>4.3.0</curator.version>-->
+        <curator.version>4.3.0</curator.version>
         <!--        <zookeeper.version>3.5.7</zookeeper.version>-->
     </properties>
     
@@ -41,52 +41,23 @@
             <version>${project.version}</version>
         </dependency>
         
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.shenyu</groupId>-->
-        <!--            <artifactId>shenyu-spring-boot-starter-plugin-divide</artifactId>-->
-        <!--            <version>${project.version}</version>-->
-        <!--        </dependency>-->
-        <!--        -->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.shenyu</groupId>-->
-        <!--            <artifactId>shenyu-spring-boot-starter-plugin-cryptor</artifactId>-->
-        <!--            <version>${project.version}</version>-->
-        <!--        </dependency>-->
-        <!--        -->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.shenyu</groupId>-->
-        <!--            <artifactId>shenyu-spring-boot-starter-plugin-param-mapping</artifactId>-->
-        <!--            <version>${project.version}</version>-->
-        <!--        </dependency>-->
-        <!--        -->
-        <!--        &lt;!&ndash;shenyu apache dubbo plugin start&ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.shenyu</groupId>-->
-        <!--            <artifactId>shenyu-spring-boot-starter-plugin-apache-dubbo</artifactId>-->
-        <!--            <version>${project.version}</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.dubbo</groupId>-->
-        <!--            <artifactId>dubbo</artifactId>-->
-        <!--            <version>${apache.dubbo.version}</version>-->
-        <!--        </dependency>-->
-        <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo-dependencies-zookeeper</artifactId>
-            <version>${apache.dubbo.version}</version>
-            <type>pom</type>
-            <exclusions>
-                <exclusion>
-                    <artifactId>curator-recipes</artifactId>
-                    <groupId>org.apache.curator</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.dubbo</groupId>-->
+<!--            <artifactId>dubbo-dependencies-zookeeper</artifactId>-->
+<!--            <version>${apache.dubbo.version}</version>-->
+<!--            <type>pom</type>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <artifactId>curator-recipes</artifactId>-->
+<!--                    <groupId>org.apache.curator</groupId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
         
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
-            <version>4.3.0</version>
+            <version>${curator.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>curator-framework</artifactId>
@@ -97,7 +68,7 @@
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-framework</artifactId>
-            <version>4.3.0</version>
+            <version>${curator.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>curator-client</artifactId>
@@ -109,85 +80,8 @@
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-client</artifactId>
-            <version>4.3.0</version>
+            <version>${curator.version}</version>
         </dependency>
-        <!--shenyu apache dubbo plugin end-->
-        
-        <!--        &lt;!&ndash; shenyu ratelimiter plugin start&ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.shenyu</groupId>-->
-        <!--            <artifactId>shenyu-spring-boot-starter-plugin-ratelimiter</artifactId>-->
-        <!--            <version>${project.version}</version>-->
-        <!--        </dependency>-->
-        <!--        &lt;!&ndash; shenyu ratelimiter plugin end&ndash;&gt;-->
-        <!--        -->
-        <!--        &lt;!&ndash; shenyu rewrite plugin start&ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.shenyu</groupId>-->
-        <!--            <artifactId>shenyu-spring-boot-starter-plugin-rewrite</artifactId>-->
-        <!--            <version>${project.version}</version>-->
-        <!--        </dependency>-->
-        <!--        &lt;!&ndash; shenyu rewrite plugin end&ndash;&gt;-->
-        <!--        -->
-        <!--        &lt;!&ndash; apache shenyu redirect plugin start&ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.shenyu</groupId>-->
-        <!--            <artifactId>shenyu-spring-boot-starter-plugin-redirect</artifactId>-->
-        <!--            <version>${project.version}</version>-->
-        <!--        </dependency>-->
-        <!--        &lt;!&ndash; apache shenyu redirect plugin end&ndash;&gt;-->
-        <!--        -->
-        <!--        &lt;!&ndash; shenyu jwt plugin starter&ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.shenyu</groupId>-->
-        <!--            <artifactId>shenyu-spring-boot-starter-plugin-jwt</artifactId>-->
-        <!--            <version>${project.version}</version>-->
-        <!--        </dependency>-->
-        <!--        &lt;!&ndash; shenyu jwt plugin end&ndash;&gt;-->
-        <!--        -->
-        <!--        &lt;!&ndash; apache shenyu request plugin start&ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.shenyu</groupId>-->
-        <!--            <artifactId>shenyu-spring-boot-starter-plugin-request</artifactId>-->
-        <!--            <version>${project.version}</version>-->
-        <!--        </dependency>-->
-        <!--        &lt;!&ndash; apache shenyu request plugin end&ndash;&gt;-->
-        <!--        -->
-        <!--        &lt;!&ndash;shenyu grpc plugin start&ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.shenyu</groupId>-->
-        <!--            <artifactId>shenyu-spring-boot-starter-plugin-grpc</artifactId>-->
-        <!--            <version>${project.version}</version>-->
-        <!--        </dependency>-->
-        <!--        &lt;!&ndash;shenyu grpc plugin end&ndash;&gt;-->
-        <!--        -->
-        <!--        &lt;!&ndash; apache shenyu motan plugin start&ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.shenyu</groupId>-->
-        <!--            <artifactId>shenyu-spring-boot-starter-plugin-motan</artifactId>-->
-        <!--            <version>${project.version}</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.weibo</groupId>-->
-        <!--            <artifactId>motan-core</artifactId>-->
-        <!--            <version>1.2.1</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.weibo</groupId>-->
-        <!--            <artifactId>motan-registry-zookeeper</artifactId>-->
-        <!--            <version>1.2.1</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.weibo</groupId>-->
-        <!--            <artifactId>motan-transport-netty4</artifactId>-->
-        <!--            <version>1.2.1</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.weibo</groupId>-->
-        <!--            <artifactId>motan-springsupport</artifactId>-->
-        <!--            <version>1.2.1</version>-->
-        <!--        </dependency>-->
-        <!-- apache shenyu motan plugin end-->
         
         <!-- apache shenyu sofa plugin start-->
         <dependency>
