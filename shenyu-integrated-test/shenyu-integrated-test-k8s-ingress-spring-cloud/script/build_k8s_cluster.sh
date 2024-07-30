@@ -25,17 +25,6 @@ kubectl wait --for=condition=Ready pod -l app=shenyu-examples-eureka-deployment 
 kubectl apply -f ./shenyu-examples/shenyu-examples-springcloud/k8s/shenyu-examples-springcloud.yml
 kubectl wait --for=condition=Ready pod -l app=shenyu-examples-springcloud-deployment -n shenyu-ingress
 kubectl apply -f ./shenyu-examples/shenyu-examples-springcloud/k8s/ingress.yml
-sleep 10s
-kubectl get pod -o wide -A -n shenyu-ingress
-sleep 30s
-kubectl get svc -A -o wide
-#kubectl get svc/shenyu-examples-eureka -n default
-echo "shenyu-examples-springcloud log"
-kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-springcloud | awk '{print $1}')"
-  echo "shenyu-examples-eureka log"
-  kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-eureka | awk '{print $1}')"
-echo "curl -s -X GET http://localhost:30761/eureka/apps"
-curl -s -X GET http://localhost:30761/eureka/apps
 for loop in `seq 1 30`
 do
   curl -s -X GET http://localhost:30761/eureka/apps

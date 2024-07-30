@@ -337,8 +337,8 @@ shenyu:
 
 logging:
   level:
-    root: debug
-    org.springframework.boot: debug
+    root: info
+    org.springframework.boot: info
     org.apache.ibatis: info
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
@@ -347,4 +347,4 @@ logging:
     org.springframework.web.reactive: info
     reactor.ipc.netty: info
     reactor.netty: info
-    org.apache.shenyu.plugin.api.ShenyuPlugin: debug
+    org.apache.shenyu.plugin.api.ShenyuPlugin: info

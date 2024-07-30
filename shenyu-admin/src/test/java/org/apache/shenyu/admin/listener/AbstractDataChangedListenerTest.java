@@ -35,12 +35,9 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -56,8 +53,6 @@ import static org.mockito.Mockito.when;
  * The TestCase for {@link AbstractDataChangedListener}.
  */
 public final class AbstractDataChangedListenerTest {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractDataChangedListenerTest.class);
 
     private MockAbstractDataChangedListener listener;
 
@@ -78,8 +73,6 @@ public final class AbstractDataChangedListenerTest {
     @BeforeEach
     public void setUp() throws Exception {
         listener = new MockAbstractDataChangedListener();
-        LOG.info("mock listener:{} ", JsonUtils.toJson(listener));
-        LOG.info("mock listener CACHE:{} ", JsonUtils.toJson(listener.getCache()));
         appAuthService = mock(AppAuthService.class);
         namespacePluginService = mock(NamespacePluginService.class);
         ruleService = mock(RuleService.class);
@@ -133,12 +126,10 @@ public final class AbstractDataChangedListenerTest {
     @AfterEach
     public void cleanUp() {
         listener.getCache().clear();
-        LOG.info("after cleanUp:{} ", JsonUtils.toJson(listener));
     }
 
     @Test
     public void testFetchConfig() {
-        LOG.info("before testFetchConfig:{} ", JsonUtils.toJson(listener));
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
         listener.updateCache(ConfigGroupEnum.APP_AUTH, appAuthDatas);
         ConfigData<?> result1 = listener.fetchConfig(ConfigGroupEnum.APP_AUTH);
@@ -200,12 +191,9 @@ public final class AbstractDataChangedListenerTest {
 
     @Test
     public void testOnRuleChanged() {
-        LOG.info("before testOnRuleChanged:{} ", JsonUtils.toJson(listener));
         List<RuleData> empty = Lists.newArrayList();
         DataEventTypeEnum eventType = mock(DataEventTypeEnum.class);
-        LOG.info("onRuleChanged empty");
         listener.onRuleChanged(empty, eventType);
-        LOG.info("listener.getCache():{} ", JsonUtils.toJson(listener.getCache()));
         assertFalse(listener.getCache().containsKey(ConfigGroupEnum.RULE.name()));
         List<RuleData> ruleDatas = Lists.newArrayList(mock(RuleData.class));
         listener.onRuleChanged(ruleDatas, eventType);

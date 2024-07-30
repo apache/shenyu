@@ -28,7 +28,6 @@ import org.springframework.context.annotation.Configuration;
  * http long polling.
  */
 @Configuration
-//@ConditionalOnProperty(name = "shenyu.sync.http.enabled", havingValue = "true")
 @EnableConfigurationProperties(HttpSyncProperties.class)
 public class HttpLongPollingSyncConfiguration {
 
@@ -44,15 +43,4 @@ public class HttpLongPollingSyncConfiguration {
         return new HttpLongPollingDataChangedListener(httpSyncProperties);
     }
 
-//    /**
-//     * configController.
-//     *
-//     * @param httpLongPollingDataChangedListener httpLongPollingDataChangedListener
-//     * @return {@link ConfigController}
-//     */
-//    @Bean
-//    @ConditionalOnMissingBean(ConfigController.class)
-//    public ConfigController configController(final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener) {
-//        return new ConfigController(httpLongPollingDataChangedListener);
-//    }
 }

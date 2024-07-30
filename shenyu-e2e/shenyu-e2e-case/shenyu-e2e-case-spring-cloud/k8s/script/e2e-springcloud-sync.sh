@@ -62,7 +62,6 @@ for sync in ${SYNC_ARRAY[@]}; do
     if [ $app_count -gt 1  ]; then
         break
     fi
-    curl -s -X GET http://localhost:30761/eureka/apps
     sleep 2
   done
 

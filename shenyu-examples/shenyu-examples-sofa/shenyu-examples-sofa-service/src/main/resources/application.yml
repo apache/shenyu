@@ -49,6 +49,3 @@ shenyu:
         ipAndPort: sofa
         appName: sofa
         port: 8888
-logging:
-  level:
-    root: debug
