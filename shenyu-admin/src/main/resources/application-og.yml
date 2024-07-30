@@ -20,9 +20,9 @@ shenyu:
 
 spring:
   datasource:
-    url: jdbc:opengauss://localhost:5432/shenyu
-    username: root
-    password: Shenyu123456
+    url: jdbc:opengauss://101.42.227.32:5432/postgres
+    username: gaussdb
+    password: Admin@123456
     driver-class-name: org.opengauss.Driver
     hikari:
       connection-timeout: 30000
