@@ -41,19 +41,6 @@
             <version>${project.version}</version>
         </dependency>
         
-<!--        <dependency>-->
-<!--            <groupId>org.apache.dubbo</groupId>-->
-<!--            <artifactId>dubbo-dependencies-zookeeper</artifactId>-->
-<!--            <version>${apache.dubbo.version}</version>-->
-<!--            <type>pom</type>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <artifactId>curator-recipes</artifactId>-->
-<!--                    <groupId>org.apache.curator</groupId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-        
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
