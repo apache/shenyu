@@ -17,7 +17,7 @@ version: "3.9"
 services:
   shenyu-zk:
     container_name: shenyu-zk
-    image: zookeeper:latest
+    image: zookeeper:3.5
     restart: always
     networks:
       - shenyu
