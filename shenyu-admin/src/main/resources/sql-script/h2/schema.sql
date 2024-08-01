@@ -1341,3 +1341,47 @@ INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1792779493541343265', '1346358560427216896', '1792749362445840484', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1792779493541343266', '1346358560427216896', '1792749362445840485', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1792779493541343267', '1346358560427216896', '1792749362445840486', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
+
+
+CREATE TABLE IF NOT EXISTS `scale_policy`
+(
+    `id`             varchar(128)   NOT NULL COMMENT 'primary key id',
+    `sort`           int         NOT NULL COMMENT 'sort',
+    `status`         int         NOT NULL COMMENT 'status 1:enable 0:disable',
+    `num`            int            COMMENT 'number of bootstrap',
+    `begin_time`     datetime    COMMENT 'begin time',
+    `end_time`       datetime  COMMENT 'end time',
+    `date_created`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
+
+INSERT IGNORE INTO `scale_policy` (`id`, `sort`, `status`, `num`, `begin_time`, `end_time`, `date_created`, `date_updated`) VALUES ('1', 1, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT IGNORE INTO `scale_policy` (`id`, `sort`, `status`, `num`, `begin_time`, `end_time`, `date_created`, `date_updated`) VALUES ('2', 2, 0, 10, '2024-07-31 20:00:00.000', '2024-08-01 20:00:00.000', '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT IGNORE INTO `scale_policy` (`id`, `sort`, `status`, `num`, `begin_time`, `end_time`, `date_created`, `date_updated`) VALUES ('3', 3, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+
+CREATE TABLE IF NOT EXISTS `scale_rule`
+(
+    `id`             varchar(128)   NOT NULL COMMENT 'primary key id',
+    `metric_name`    varchar(128)   NOT NULL COMMENT 'metric name',
+    `type`           int         NOT NULL COMMENT 'type 0:shenyu 1:k8s 2:others',
+    `sort`           int         NOT NULL COMMENT 'sort',
+    `status`         int         NOT NULL COMMENT 'status 1:enable 0:disable',
+    `minimum`        varchar(128)   COMMENT 'minimum of metric',
+    `maximum`        varchar(128)   COMMENT 'maximum of metric',
+    `date_created`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `scale_history`
+(
+    `id`             varchar(128)   NOT NULL COMMENT 'primary key id',
+    `config_id`      int         NOT NULL COMMENT '0:manual 1:period 2:dynamic',
+    `num`            int            NOT NULL COMMENT 'number of bootstrap',
+    `action`         int         NOT NULL COMMENT 'status 1:enable 0:disable',
+    `msg`            text           COMMENT 'message',
+    `date_created`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
