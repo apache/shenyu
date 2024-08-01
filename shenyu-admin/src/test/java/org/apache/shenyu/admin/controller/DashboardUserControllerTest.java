@@ -79,11 +79,12 @@ public final class DashboardUserControllerTest {
             "bbiB8zbUo3z3oA0VqEB/IA==",
             0,
             false,
+            "1",
             "dateCreated",
             "dateUpdated");
 
     private final DashboardUserDTO dashboardUserDTO = new DashboardUserDTO("2", "userName",
-            "Admin@123", 0, Lists.newArrayList("1"), false);
+            "Admin@123", 0, Lists.newArrayList("1"), false, "1");
 
     private final DashboardUserModifyPasswordDTO modifyPasswordDTO = new DashboardUserModifyPasswordDTO("2",
             "admin", "ShenYu=#.123", "ShenYu=#.123");
