@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.service.EnumService;
 import org.apache.shenyu.admin.service.SecretService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Optional;
 
@@ -51,11 +52,12 @@ public class PlatformController {
      *
      * @param userName user name
      * @param password user password
+     * @param clientId client id
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/login")
-    public ShenyuAdminResult loginDashboardUser(final String userName, final String password) {
-        LoginDashboardUserVO loginVO = dashboardUserService.login(userName, password);
+    public ShenyuAdminResult loginDashboardUser(final String userName, final String password, @RequestParam(required = false) final String clientId) {
+        LoginDashboardUserVO loginVO = dashboardUserService.login(userName, password, clientId);
         return Optional.ofNullable(loginVO)
                 .map(loginStatus -> {
                     if (Boolean.TRUE.equals(loginStatus.getEnabled())) {

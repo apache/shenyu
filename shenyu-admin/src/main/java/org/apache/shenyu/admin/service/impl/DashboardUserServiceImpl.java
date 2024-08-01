@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import jakarta.annotation.Nullable;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
@@ -52,7 +53,6 @@ import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.ListUtil;
-import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.NameNotFoundException;
@@ -61,7 +61,6 @@ import org.springframework.ldap.support.LdapEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -266,10 +265,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      *
      * @param userName default username is admin
      * @param password admin password
+     * @param clientId client id
      * @return {@linkplain LoginDashboardUserVO}
      */
     @Override
-    public LoginDashboardUserVO login(final String userName, final String password) {
+    public LoginDashboardUserVO login(final String userName, final String password, final String clientId) {
         DashboardUserVO dashboardUserVO = null;
         final String cbcDecryptPassword;
         if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())) {
@@ -278,7 +278,6 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             cbcDecryptPassword = password;
         }
 
-        final String clientId = UUIDUtils.getInstance().generateShortUuid();
         if (Objects.nonNull(ldapTemplate)) {
             dashboardUserVO = loginByLdap(userName, cbcDecryptPassword);
         }
@@ -294,10 +293,12 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                     if (Boolean.FALSE.equals(loginUser.getEnabled())) {
                         return loginUser;
                     }
-                    DashboardUserDO userDO = new DashboardUserDO();
-                    userDO.setId(loginUser.getId());
-                    userDO.setClientId(clientId);
-                    dashboardUserMapper.updateSelective(userDO);
+                    if (clientId != null) {
+                        DashboardUserDO userDO = new DashboardUserDO();
+                        userDO.setId(loginUser.getId());
+                        userDO.setClientId(clientId);
+                        dashboardUserMapper.updateSelective(userDO);
+                    }
                     return loginUser.setToken(JwtUtils.generateToken(finalDashboardUserVO.getUserName(), finalDashboardUserVO.getPassword(),
                             clientId, jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
                 })

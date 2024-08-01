@@ -102,9 +102,10 @@ public interface DashboardUserService {
      *
      * @param userName default username is admin
      * @param password admin password
+     * @param clientId client id
      * @return {@linkplain LoginDashboardUserVO}
      */
-    LoginDashboardUserVO login(String userName, String password);
+    LoginDashboardUserVO login(String userName, String password, String clientId);
 
     /**
      * modify password.

@@ -277,6 +277,8 @@ public final class DashboardUserDO extends BaseDO {
 
         private Boolean enabled;
 
+        private String clientId;
+
         private List<String> roles;
 
         private DashboardUserDOBuilder() {
@@ -360,6 +362,17 @@ public final class DashboardUserDO extends BaseDO {
         }
 
         /**
+         * clientId.
+         *
+         * @param clientId the clientId.
+         * @return DashboardUserDOBuilder.
+         */
+        public DashboardUserDOBuilder clientId(final String clientId) {
+            this.clientId = clientId;
+            return this;
+        }
+
+        /**
          * roles.
          *
          * @param roles the roles.
@@ -383,6 +396,7 @@ public final class DashboardUserDO extends BaseDO {
             dashboardUserDO.setUserName(userName);
             dashboardUserDO.setPassword(password);
             dashboardUserDO.setRole(role);
+            dashboardUserDO.setClientId(clientId);
             dashboardUserDO.setEnabled(enabled);
             dashboardUserDO.setRoles(roles);
             return dashboardUserDO;
