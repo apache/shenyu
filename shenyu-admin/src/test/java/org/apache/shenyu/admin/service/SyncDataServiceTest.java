@@ -41,6 +41,7 @@ import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -110,7 +111,7 @@ public final class SyncDataServiceTest {
         String namespaceId = "test1";
         given(this.namespacePluginService.findById(pluginVO.getId(), namespaceId)).willReturn(namespacePluginVO);
         SelectorData selectorData = buildSelectorData();
-        given(this.selectorService.findByPluginId(pluginVO.getId())).willReturn(Collections.singletonList(selectorData));
+        given(this.selectorService.findByPluginId(pluginVO.getId(), any())).willReturn(Collections.singletonList(selectorData));
 
         assertThat(syncDataService.syncPluginData(pluginVO.getId(), namespaceId), greaterThan(false));
     }

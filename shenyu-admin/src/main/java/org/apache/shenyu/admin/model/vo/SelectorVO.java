@@ -543,6 +543,24 @@ public class SelectorVO implements Serializable {
     }
 
     /**
+     * build selectorVO.
+     *
+     * @param selectorDO         {@linkplain SelectorDO}
+     * @param selectorConditions {@linkplain List}
+     * @return {@linkplain SelectorVO}
+     */
+    public static SelectorVO buildSelectorVO(final SelectorDO selectorDO,
+                                             final List<SelectorConditionVO> selectorConditions) {
+        return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getName(), selectorDO.getMatchMode(),
+                MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()), selectorDO.getType(),
+                SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getSort(),
+                selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(),
+                selectorDO.getMatchRestful(), selectorDO.getHandle(), selectorConditions,
+                DateUtils.localDateTimeToString(selectorDO.getDateCreated().toLocalDateTime()),
+                DateUtils.localDateTimeToString(selectorDO.getDateUpdated().toLocalDateTime()));
+    }
+
+    /**
      * Gets the value of namespaceId.
      *
      * @return the value of namespaceId
@@ -560,20 +578,4 @@ public class SelectorVO implements Serializable {
         this.namespaceId = namespaceId;
     }
 
-    /**
-     * build selectorVO.
-     *
-     * @param selectorDO         {@linkplain SelectorDO}
-     * @param selectorConditions {@linkplain List}
-     * @return {@linkplain SelectorVO}
-     */
-    public static SelectorVO buildSelectorVO(final SelectorDO selectorDO, final List<SelectorConditionVO> selectorConditions) {
-        return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getName(), selectorDO.getMatchMode(),
-                MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()), selectorDO.getType(),
-                SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getSort(),
-                selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(),
-                selectorDO.getMatchRestful(), selectorDO.getHandle(), selectorConditions,
-                DateUtils.localDateTimeToString(selectorDO.getDateCreated().toLocalDateTime()),
-                DateUtils.localDateTimeToString(selectorDO.getDateUpdated().toLocalDateTime()));
-    }
 }

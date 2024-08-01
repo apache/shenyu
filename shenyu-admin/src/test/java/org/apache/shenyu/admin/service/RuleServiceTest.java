@@ -201,7 +201,7 @@ public final class RuleServiceTest {
     }
 
     private void mockFindSelectorIsNull() {
-        given(this.selectorMapper.selectById("456")).willReturn(null);
+        given(this.selectorMapper.selectById("456", any())).willReturn(null);
         given(this.pluginMapper.selectById("789")).willReturn(buildPluginDO());
     }
 
@@ -212,7 +212,7 @@ public final class RuleServiceTest {
     }
 
     private void mockFindPluginIsNull() {
-        given(this.selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(this.selectorMapper.selectById("456", any())).willReturn(buildSelectorDO());
         given(this.pluginMapper.selectById("789")).willReturn(null);
     }
 
@@ -259,7 +259,7 @@ public final class RuleServiceTest {
     private void publishEvent() {
         PluginDO pluginDO = buildPluginDO();
         SelectorDO selectorDO = buildSelectorDO();
-        given(this.selectorMapper.selectById("456")).willReturn(selectorDO);
+        given(this.selectorMapper.selectById("456", any())).willReturn(selectorDO);
         given(this.pluginMapper.selectById("789")).willReturn(pluginDO);
         given(this.selectorMapper.selectByIdSet(Sets.newHashSet("456"))).willReturn(Collections.singletonList(selectorDO));
         given(this.pluginMapper.selectByIds(Lists.newArrayList("789"))).willReturn(Collections.singletonList(pluginDO));

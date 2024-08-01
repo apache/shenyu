@@ -144,7 +144,7 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         assertThrows(ShenyuException.class, () -> abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO)));
 
         SelectorDO selectorDO = mock(SelectorDO.class);
-        when(selectorService.findByNameAndPluginName(any(), any() ,any())).thenReturn(selectorDO);
+        when(selectorService.findByNameAndPluginName(any(), any(), any())).thenReturn(selectorDO);
         SelectorData selectorData = new SelectorData();
         when(selectorService.buildByName(any(), any(), any())).thenReturn(selectorData);
         assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO)));

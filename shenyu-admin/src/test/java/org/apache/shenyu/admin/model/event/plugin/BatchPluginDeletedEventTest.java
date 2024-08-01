@@ -60,7 +60,7 @@ public class BatchPluginDeletedEventTest {
                 .dateCreated(now)
                 .build();
 
-        deletedEvent = new BatchPluginDeletedEvent(Arrays.asList(one, two), "test-operator");
+        deletedEvent = new BatchPluginDeletedEvent(Arrays.asList(one, two), "test-operator", "namespaceId");
     }
 
     @Test

@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.validation.annotation.Existed;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -37,6 +40,7 @@ public class BatchNamespaceCommonDTO implements Serializable {
     private Boolean enabled;
 
     @NotEmpty
+    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
     private String namespaceId;
 
     /**

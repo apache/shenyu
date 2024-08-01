@@ -65,11 +65,11 @@ public interface NamespacePluginRelMapper extends ExistProvider {
     /**
      * select plugin by namespacePluginId.
      *
-     * @param id    primary key.
+     * @param pluginId    primary key.
      * @param namespaceId namespace id.
      * @return {@linkplain PluginVO}
      */
-    NamespacePluginVO selectById(String id, String namespaceId);
+    NamespacePluginVO selectById(String pluginId, String namespaceId);
 
     /**
      * select plugin by pluginId.

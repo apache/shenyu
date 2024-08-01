@@ -127,7 +127,7 @@
         ( SELECT
         <include refid="Base_Column_List"/>
         FROM plugin_ns_rel
-        WHERE id = #{id, jdbcType=VARCHAR}
+        WHERE plugin_id = #{pluginId, jdbcType=VARCHAR}
         and namespace_id =  #{namespaceId, jdbcType=VARCHAR}
         )
         pnr

@@ -18,9 +18,11 @@
 package org.apache.shenyu.admin.service.publish;
 
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
 import org.apache.shenyu.admin.model.event.plugin.BatchNamespacePluginChangedEvent;
+import org.apache.shenyu.admin.model.event.plugin.BatchPluginDeletedEvent;
 import org.apache.shenyu.admin.model.event.plugin.NamespacePluginChangedEvent;
 import org.apache.shenyu.admin.model.event.plugin.NamespacePluginCreatedEvent;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
@@ -33,6 +35,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -77,9 +80,21 @@ public class NamespacePluginEventPublisher implements AdminDataModelChangedEvent
 
     @Override
     public void onDeleted(final Collection<NamespacePluginVO> namespacePlugin) {
-        publish(new BatchNamespacePluginChangedEvent(namespacePlugin, null, EventTypeEnum.PLUGIN_UPDATE, SessionUtil.visitorName()));
-        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
+        String namespaceId = ((Collection<?>) namespacePlugin)
+                .stream()
+                .map(NamespacePluginVO.class::cast)
+                .findFirst()
+                .map(NamespacePluginVO::getNamespaceId)
+                .orElse("");
+        List<PluginDO> pluginDOList = ((Collection<?>) namespacePlugin)
+                .stream()
+                .map(NamespacePluginVO.class::cast)
+                .map(PluginDO::buildPluginDO)
+                .collect(Collectors.toList());
+        publish(new BatchPluginDeletedEvent(pluginDOList, SessionUtil.visitorName(), namespaceId));
+        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
                 namespacePlugin.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
+
     }
 
     /**

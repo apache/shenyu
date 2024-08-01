@@ -44,10 +44,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 /**
  * this is selector controller.
@@ -68,6 +65,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @param name        selector name.
      * @param currentPage current page.
      * @param pageSize    page size.
+     * @param namespaceId namespaceId.
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
@@ -89,13 +87,14 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * detail selector.
      *
      * @param id selector id.
+     * @param namespaceId namespaceId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/{id}")
+    @GetMapping("/id={id}&namespaceId={namespaceId}")
     public ShenyuAdminResult detailSelector(@PathVariable("id") @Valid
                                             @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id,
-                                            @Existed(message = "namespaceId is not existed",
-                                                    provider = NamespaceMapper.class) final String namespaceId) {
+                                            @PathVariable("namespaceId") @Valid
+                                            @Existed(provider = NamespaceMapper.class, message = "namespaceId is not existed") final String namespaceId) {
         SelectorVO selectorVO = selectorService.findById(id, namespaceId);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, selectorVO);
     }
@@ -119,10 +118,9 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @param selectorDTO selector.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PutMapping("/{id}")
+    @PutMapping("/id={id}")
     public ShenyuAdminResult updateSelector(@PathVariable("id") @Valid
-                                            @Existed(provider = SelectorMapper.class,
-                                                    message = "selector is not existed") final String id,
+                                            @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id,
                                             @Valid @RequestBody final SelectorDTO selectorDTO) {
         selectorDTO.setId(id);
         Integer updateCount = selectorService.createOrUpdate(selectorDTO);

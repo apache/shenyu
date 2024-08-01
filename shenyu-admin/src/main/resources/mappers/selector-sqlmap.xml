@@ -129,9 +129,9 @@
            AND plugin_id = #{pluginId, jdbcType=VARCHAR}
             <choose>
                 <when test="namespaceId == null || namespaceId == '649330b6-c2d7-4edc-be8e-8a54df9eb385'">
-                    AND (namespace_id = #{namespaceId, jdbcType=VARCHAR})
+                    AND (namespace_id = #{namespaceId, jdbcType=VARCHAR}
                     OR
-                    (namespace_id IS NULL)
+                    namespace_id IS NULL)
                 </when>
                 <otherwise>
                     AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
@@ -173,6 +173,16 @@
                <include refid="Base_Column_List"/>
           FROM selector
          WHERE plugin_id = #{pluginId, jdbcType=VARCHAR}
+        <choose>
+            <when test="namespaceId == null || namespaceId == '649330b6-c2d7-4edc-be8e-8a54df9eb385'">
+                AND (namespace_id = #{namespaceId, jdbcType=VARCHAR}
+                OR
+                namespace_id IS NULL)
+            </when>
+            <otherwise>
+                AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+            </otherwise>
+        </choose>
     </select>
 
     <select id="findByPluginIds" parameterType="java.util.List" resultMap="BaseResultMap">
@@ -183,6 +193,16 @@
         <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
         </foreach>
+        <choose>
+            <when test="namespaceId == null || namespaceId == '649330b6-c2d7-4edc-be8e-8a54df9eb385'">
+                AND (namespace_id = #{namespaceId, jdbcType=VARCHAR}
+                OR
+                namespace_id IS NULL)
+            </when>
+            <otherwise>
+                AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+            </otherwise>
+        </choose>
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
@@ -250,9 +270,9 @@
             </if>
                 <choose>
                     <when test="condition.namespaceId == null ||condition.namespaceId == '649330b6-c2d7-4edc-be8e-8a54df9eb385'">
-                        AND (namespace_id = #{condition.namespaceId, jdbcType=VARCHAR})
+                        AND (namespace_id = #{condition.namespaceId, jdbcType=VARCHAR}
                         OR
-                        (namespace_id IS NULL)
+                        namespace_id IS NULL)
                     </when>
                     <otherwise>
                         AND namespace_id = #{condition.namespaceId, jdbcType=VARCHAR}
@@ -396,7 +416,7 @@
                 #{handle, jdbcType=VARCHAR},
             </if>
             <if test="namespaceId != null">
-                #{namespace_id, jdbcType=VARCHAR},
+                #{namespaceId, jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -462,9 +482,9 @@
             WHERE id = #{id, jdbcType=VARCHAR}
                 <choose>
                     <when test="namespaceId == null || namespaceId == '649330b6-c2d7-4edc-be8e-8a54df9eb385'">
-                        AND (namespace_id = #{namespaceId, jdbcType=VARCHAR})
+                        AND (namespace_id = #{namespaceId, jdbcType=VARCHAR}
                         OR
-                        (namespace_id IS NULL)
+                        namespace_id IS NULL)
                     </when>
                     <otherwise>
                         AND namespace_id = #{namespaceId, jdbcType=VARCHAR}

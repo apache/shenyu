@@ -268,6 +268,7 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids, final String namespaceId) {
+        //todo:[Namespace] To be renovated
         final List<SelectorDO> selectors = selectorMapper.selectByIdSet(new TreeSet<>(ids));
         List<PluginDO> pluginDOS = pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId));
         unbindDiscovery(selectors, pluginDOS);
@@ -376,7 +377,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public SelectorData buildByName(final String name, final String namespaceId) {
-        return buildSelectorData(this.findByName(name,namespaceId));
+        return buildSelectorData(this.findByName(name, namespaceId));
     }
 
     /**
@@ -413,8 +414,8 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
-    public List<SelectorData> findByPluginId(final String pluginId) {
-        return this.buildSelectorDataList(selectorMapper.findByPluginId(pluginId));
+    public List<SelectorData> findByPluginId(final String pluginId, final String namespaceId) {
+        return this.buildSelectorDataList(selectorMapper.findByPluginId(pluginId, namespaceId));
     }
 
     @Override
@@ -499,7 +500,7 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @EventListener(value = BatchPluginDeletedEvent.class)
     public void onPluginDeleted(final BatchPluginDeletedEvent event) {
-        deleteSelector(selectorMapper.findByPluginIds(event.getDeletedPluginIds()), event.getPlugins());
+        deleteSelector(selectorMapper.findByPluginIds(event.getDeletedPluginIds(), event.getNamespaceId()), event.getPlugins());
     }
 
     private void createCondition(final String selectorId, final List<SelectorConditionDTO> selectorConditions) {

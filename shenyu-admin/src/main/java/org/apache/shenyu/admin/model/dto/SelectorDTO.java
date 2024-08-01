@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.model.dto;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
-import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.hibernate.validator.constraints.Range;
 
@@ -137,7 +136,8 @@ public final class SelectorDTO implements Serializable {
                        final String handle,
                        @Valid final List<SelectorConditionDTO> selectorConditions,
                        @NotNull final Boolean matchRestful,
-                       @Valid final List<RuleDTO> selectorRules, String namespaceId) {
+                       @Valid final List<RuleDTO> selectorRules,
+                       @Valid final String namespaceId) {
         this.id = id;
         this.pluginId = pluginId;
         this.name = name;
@@ -416,7 +416,7 @@ public final class SelectorDTO implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }

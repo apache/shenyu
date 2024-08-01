@@ -21,7 +21,6 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
 import org.apache.shenyu.admin.model.event.plugin.BatchPluginChangedEvent;
-import org.apache.shenyu.admin.model.event.plugin.BatchPluginDeletedEvent;
 import org.apache.shenyu.admin.model.event.plugin.PluginChangedEvent;
 import org.apache.shenyu.admin.model.event.plugin.PluginCreatedEvent;
 import org.apache.shenyu.admin.utils.SessionUtil;
@@ -72,7 +71,7 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
     public void onDeleted(final PluginDO plugin) {
         publish(new PluginChangedEvent(plugin, null, EventTypeEnum.PLUGIN_DELETE, SessionUtil.visitorName()));
     }
-    
+
     /**
      * on plugin deleted.
      *
@@ -80,9 +79,9 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
      */
     @Override
     public void onDeleted(final Collection<PluginDO> plugins) {
-        publish(new BatchPluginDeletedEvent(plugins, SessionUtil.visitorName()));
+
     }
-    
+
     /**
      * on plugin batch enabled.
      *

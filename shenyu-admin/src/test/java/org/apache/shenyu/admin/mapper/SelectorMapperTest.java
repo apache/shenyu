@@ -52,7 +52,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
-        SelectorDO selector = selectorMapper.selectById(selectorDO.getId(),any());
+        SelectorDO selector = selectorMapper.selectById(selectorDO.getId(), any());
         assertNotNull(selector);
         assertEquals(selectorDO.getId(), selector.getId());
         assertEquals(selectorDO.getContinued(), selector.getContinued());
@@ -101,7 +101,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
-        List<SelectorDO> list = selectorMapper.findByPluginId(selectorDO.getPluginId());
+        List<SelectorDO> list = selectorMapper.findByPluginId(selectorDO.getPluginId(), selectorDO.getNamespaceId());
         assertNotNull(list);
         assertEquals(list.size(), 1);
         assertNotNull(selectorDO.getPluginId(), list.get(0).getPluginId());
@@ -238,6 +238,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
                 .matchRestful(false)
                 .continued(Boolean.TRUE)
                 .handle("handle")
+                .namespaceId("namespaceId")
                 .build();
     }
 }

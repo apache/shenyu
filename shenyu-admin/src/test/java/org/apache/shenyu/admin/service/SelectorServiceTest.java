@@ -229,7 +229,7 @@ public final class SelectorServiceTest {
     @Test
     public void testFindByPluginId() {
 
-        List<SelectorData> res = this.selectorService.findByPluginId("789");
+        List<SelectorData> res = this.selectorService.findByPluginId("789", any());
         res.forEach(selectorData -> assertEquals("789", selectorData.getPluginId()));
     }
 

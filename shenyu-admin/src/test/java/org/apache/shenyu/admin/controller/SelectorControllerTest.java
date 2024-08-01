@@ -167,7 +167,7 @@ public final class SelectorControllerTest {
 
     @Test
     public void deleteSelector() throws Exception {
-        given(this.selectorService.delete(Collections.singletonList("123"))).willReturn(1);
+        given(this.selectorService.delete(Collections.singletonList("123"), any())).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/selector/batch")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"123\"]"))
@@ -178,7 +178,7 @@ public final class SelectorControllerTest {
 
     @Test
     public void detailSelector() throws Exception {
-        given(this.selectorService.findById("1")).willReturn(selectorVO);
+        given(this.selectorService.findById("1", any())).willReturn(selectorVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/selector/{id}", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
@@ -204,7 +204,7 @@ public final class SelectorControllerTest {
         when(selectorMapper.existed(selectorDTO.getId())).thenReturn(true);
         when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
         when(pluginMapper.existed(selectorDTO.getPluginId())).thenReturn(true);
-        given(this.selectorService.enabled(Arrays.asList(selectorDTO.getId()), false)).willReturn(true);
+        given(this.selectorService.enabled(Arrays.asList(selectorDTO.getId()), false, any())).willReturn(true);
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Arrays.asList(selectorDTO.getId()));
         batchCommonDTO.setEnabled(false);

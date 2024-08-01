@@ -104,7 +104,7 @@ public final class PluginServiceTest {
 
         final List<SelectorDO> selectorDOList = new ArrayList<>();
         selectorDOList.add(SelectorDO.builder().id("101").build());
-        when(selectorMapper.findByPluginIds(Collections.singletonList("101"))).thenReturn(selectorDOList);
+        when(selectorMapper.findByPluginIds(Collections.singletonList("101"), any())).thenReturn(selectorDOList);
         assertEquals(StringUtils.EMPTY, pluginService.delete(Collections.singletonList("123")));
     }
 

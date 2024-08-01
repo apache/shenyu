@@ -81,7 +81,7 @@ public class SelectorConditionQuery implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
