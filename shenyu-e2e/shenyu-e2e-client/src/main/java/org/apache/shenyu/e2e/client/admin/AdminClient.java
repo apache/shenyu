@@ -61,7 +61,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -317,6 +319,7 @@ public class AdminClient extends BaseClient {
      * @return SelectorDTO
      */
     public SelectorDTO create(final SelectorData selector) {
+        selector.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         SelectorDTO dto = create("/selector", selector);
         Selectors.INSTANCE.put(selector.getName(), dto.getId());
         return dto;
@@ -436,8 +439,10 @@ public class AdminClient extends BaseClient {
             log.info("delete resources, effected size: 0, cause by: there is not resources in ShenYuAdmin");
             return;
         }
-
-        HttpEntity<List<String>> entity = new HttpEntity<>(ids, basicAuth);
+        Map<String,Object> body=new HashMap<>();
+        body.put("ids",ids);
+        body.put("namespaceId",SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        HttpEntity<Map<String,Object>> entity = new HttpEntity<>(body, basicAuth);
         ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri, HttpMethod.DELETE, entity, ShenYuResult.class);
         ShenYuResult rst = assertAndGet(response, "delete success");
         Integer deleted = Assertions.assertDoesNotThrow(() -> rst.toObject(Integer.class), "checking to cast object");

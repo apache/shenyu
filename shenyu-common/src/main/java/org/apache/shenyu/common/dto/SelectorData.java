@@ -67,6 +67,9 @@ public class SelectorData {
      */
     private Boolean matchRestful;
 
+    /**
+     * namespaceId.
+     */
     private String namespaceId;
 
     /**
