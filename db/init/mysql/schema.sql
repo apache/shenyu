@@ -164,7 +164,7 @@ CREATE TABLE `dashboard_user`  (
 -- ----------------------------
 -- Records of dashboard_user
 -- ----------------------------
-INSERT INTO `dashboard_user` VALUES ('1', 'admin', 'ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413', 1, 1, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
+INSERT INTO `dashboard_user` VALUES ('1', 'admin', 'ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413', 1, 1, null, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
 
 -- ----------------------------
 -- Table structure for data_permission
