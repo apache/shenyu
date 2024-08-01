@@ -124,7 +124,10 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         if (StringUtils.hasLength(discoveryUpstreamDTO.getId())) {
             discoveryUpstreamMapper.updateSelective(discoveryUpstreamDO);
         } else {
-            discoveryUpstreamMapper.insert(discoveryUpstreamDO);
+            DiscoveryUpstreamDO existingRecord = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryUpstreamDO.getDiscoveryHandlerId(), discoveryUpstreamDO.getUrl());
+            if (Objects.isNull(existingRecord)) {
+                discoveryUpstreamMapper.insert(discoveryUpstreamDO);
+            }
         }
     }
 
@@ -225,6 +228,15 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
         if (Objects.nonNull(discoveryHandlerDO)) {
             discoveryUpstreamMapper.deleteByUrl(discoveryHandlerDO.getId(), url);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void changeStatusBySelectorIdAndUrl(final String selectorId, final String url, final Boolean enabled) {
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
+        if (Objects.nonNull(discoveryHandlerDO)) {
+            discoveryUpstreamMapper.updateStatusByUrl(discoveryHandlerDO.getId(), url, enabled ? 0 : 1);
         }
     }
 

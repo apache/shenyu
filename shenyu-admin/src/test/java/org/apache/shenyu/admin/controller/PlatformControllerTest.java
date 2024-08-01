@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.model.vo.DashboardUserVO;
+import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.EnumService;
 import org.apache.shenyu.admin.service.SecretService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.admin.model.vo.DashboardUserVO;
-import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +40,7 @@ import java.time.LocalDateTime;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -69,7 +70,7 @@ public final class PlatformControllerTest {
      * dashboardUser mock data.
      */
     private final DashboardUserVO dashboardUserVO = new DashboardUserVO("1", "admin", "2095132720951327",
-            1, true, DateUtils.localDateTimeToString(LocalDateTime.now()),
+            1, true, "1", DateUtils.localDateTimeToString(LocalDateTime.now()),
             DateUtils.localDateTimeToString(LocalDateTime.now()));
 
     /**
@@ -88,7 +89,7 @@ public final class PlatformControllerTest {
         final String loginUri = "/platform/login?userName=admin&password=123456";
 
         LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
-        given(this.dashboardUserService.login(eq("admin"), eq("123456"))).willReturn(loginDashboardUserVO);
+        given(this.dashboardUserService.login(eq("admin"), eq("123456"), isNull())).willReturn(loginDashboardUserVO);
         this.mockMvc.perform(MockMvcRequestBuilders.request(HttpMethod.GET, loginUri))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code", is(CommonErrorCode.SUCCESSFUL)))

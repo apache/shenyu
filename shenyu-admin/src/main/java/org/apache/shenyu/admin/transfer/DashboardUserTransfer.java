@@ -65,6 +65,7 @@ public enum DashboardUserTransfer {
             dashboardVO.setPassword(data.getPassword());
             dashboardVO.setRole(data.getRole());
             dashboardVO.setEnabled(data.getEnabled());
+            dashboardVO.setClientId(data.getClientId());
             dashboardVO.setDateCreated(data.getDateCreated());
             dashboardVO.setDateUpdated(data.getDateUpdated());
             return dashboardVO;

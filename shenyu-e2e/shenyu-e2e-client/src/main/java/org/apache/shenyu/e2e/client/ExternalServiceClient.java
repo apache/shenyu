@@ -19,7 +19,7 @@ package org.apache.shenyu.e2e.client;
 
 import org.apache.shenyu.e2e.annotation.ExternalService;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import java.util.Properties;
 
 /**

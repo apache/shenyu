@@ -17,19 +17,9 @@
 
 package org.apache.shenyu.sdk.feign;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
@@ -60,10 +50,26 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
 /**
  * ShenyuClientsRegistrar.
  */
 public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, EnvironmentAware {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientsRegistrar.class);
 
     private ResourceLoader resourceLoader;
 
@@ -112,6 +118,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
             } else {
                 name = "default." + metadata.getClassName();
             }
+            LOG.info("registerDefaultConfiguration name:{}", name);
             registerClientConfiguration(registry, name, defaultAttrs.get("defaultConfiguration"));
         }
     }
@@ -125,11 +132,13 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         Set<BeanDefinition> candidateComponents = new LinkedHashSet<>();
         Map<String, Object> attrs = metadata.getAnnotationAttributes(EnableShenyuClients.class.getName());
         final Class<?>[] clients = attrs == null ? null : (Class<?>[]) attrs.get("clients");
+        LOG.info("clients:{}", JsonUtils.toJson(clients));
         if (clients == null || clients.length == 0) {
             ClassPathScanningCandidateComponentProvider scanner = getScanner();
             scanner.setResourceLoader(this.resourceLoader);
             scanner.addIncludeFilter(new AnnotationTypeFilter(ShenyuClient.class));
             Set<String> basePackages = getBasePackages(metadata);
+            LOG.info("basePackages:{}", JsonUtils.toJson(basePackages));
             for (String basePackage : basePackages) {
                 candidateComponents.addAll(scanner.findCandidateComponents(basePackage));
             }
@@ -150,8 +159,8 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
                                                      .getAnnotationAttributes(ShenyuClient.class.getCanonicalName());
 
                 String name = getClientName(attributes);
-
-                registerClientConfiguration(registry, name, attributes.get("configuration"));
+                LOG.info("configuration, attributes:{}", JsonUtils.toJson(attributes));
+//                registerClientConfiguration(registry, name, attributes.get("configuration"));
                 registerShenyuClient(registry, annotationMetadata, attributes);
             }
         }
@@ -174,7 +183,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(clazz, () -> {
             factoryBean.setUrl(name);
             factoryBean.setPath(getPath(beanFactory, attributes));
-            factoryBean.setDecode404(Boolean.parseBoolean(String.valueOf(attributes.get("decode404"))));
+            factoryBean.setDismiss404(Boolean.parseBoolean(String.valueOf(attributes.get("dismiss404"))));
             Object fallback = attributes.get("fallback");
             if (fallback != null) {
                 factoryBean.setFallback(fallback instanceof Class ? (Class<?>) fallback
