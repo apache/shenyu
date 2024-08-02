@@ -71,7 +71,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
     public AdminResult<CommonPager<SelectorVO>> querySelectors(final String pluginId, final String name,
                                                                @RequestParam @NotNull final Integer currentPage,
                                                                @RequestParam @NotNull final Integer pageSize,
-                                                               @Existed(message = "namespaceId is not existed",
+                                                               @Valid @Existed(message = "namespaceId is not existed",
                                                                        provider = NamespaceMapper.class) final String namespaceId
     ) {
         final SelectorQueryCondition condition = new SelectorQueryCondition();

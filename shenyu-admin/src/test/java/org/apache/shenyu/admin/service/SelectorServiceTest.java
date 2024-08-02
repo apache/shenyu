@@ -72,6 +72,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
@@ -209,8 +210,8 @@ public final class SelectorServiceTest {
     @Test
     public void testFindByName() {
         List<SelectorDO> selectorDO1List = Collections.singletonList(buildSelectorDO());
-        given(this.selectorMapper.selectByName(eq("kuan"), anyString())).willReturn(selectorDO1List);
-        SelectorDO selectorDO2 = this.selectorService.findByName("kuan", anyString());
+        given(this.selectorMapper.selectByName(eq("kuan"), eq(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID))).willReturn(selectorDO1List);
+        SelectorDO selectorDO2 = this.selectorService.findByName("kuan", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         assertNotNull(selectorDO2);
         assertEquals(selectorDO1List.size(), 1);
         assertEquals(selectorDO1List.get(0).getId(), selectorDO2.getId());
@@ -229,7 +230,7 @@ public final class SelectorServiceTest {
     @Test
     public void testFindByPluginId() {
 
-        List<SelectorData> res = this.selectorService.findByPluginId("789", any());
+        List<SelectorData> res = this.selectorService.findByPluginId("789", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         res.forEach(selectorData -> assertEquals("789", selectorData.getPluginId()));
     }
 

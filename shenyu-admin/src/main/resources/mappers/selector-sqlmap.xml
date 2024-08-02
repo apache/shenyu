@@ -316,7 +316,8 @@
                     loged,
                     continued,
                     match_restful,
-                    handle)
+                    handle,
+                    namespace_id)
             VALUES
                     (#{id, jdbcType=VARCHAR},
                     #{dateCreated, jdbcType=TIMESTAMP},
@@ -330,7 +331,8 @@
                     #{loged, jdbcType=TINYINT},
                     #{continued, jdbcType=TINYINT},
                     #{matchRestful, jdbcType=TINYINT},
-                    #{handle, jdbcType=VARCHAR})
+                    #{handle, jdbcType=VARCHAR},
+                    #{namespaceId, jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">

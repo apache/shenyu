@@ -18,10 +18,12 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
+import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -52,6 +54,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -81,10 +84,14 @@ public final class SelectorControllerTest {
     @Mock
     private PluginMapper pluginMapper;
 
+    @Mock
+    private NamespaceMapper namespaceMapper;
+
     private final SelectorVO selectorVO = new SelectorVO("1", "2", "selector-1", MatchModeEnum.AND.getCode(),
             MatchModeEnum.AND.getName(), SelectorTypeEnum.FULL_FLOW.getCode(), SelectorTypeEnum.FULL_FLOW.getName(),
             1, true, true, true, false, "handle", Collections.emptyList(),
-            DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
+            DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()),
+            SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
 
     private final CommonPager<SelectorVO> commonPager = new CommonPager<>(new PageParameter(), Collections.singletonList(selectorVO));
 
@@ -123,16 +130,19 @@ public final class SelectorControllerTest {
                 .matchRestful(false)
                 .pluginId("2")
                 .sort(1)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                 .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
         when(selectorMapper.existed(selectorDTO.getId())).thenReturn(true);
         when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
         when(pluginMapper.existed(selectorDTO.getPluginId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
+        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).thenReturn(true);
         given(this.selectorService.createOrUpdate(selectorDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/selector")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(selectorDTO)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(selectorDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
@@ -150,16 +160,19 @@ public final class SelectorControllerTest {
                 .matchRestful(false)
                 .pluginId("2")
                 .sort(1)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                 .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
         when(selectorMapper.existed(selectorDTO.getId())).thenReturn(true);
         when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
         when(pluginMapper.existed(selectorDTO.getPluginId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
+        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).thenReturn(true);
         given(this.selectorService.createOrUpdate(selectorDTO)).willReturn(1);
-        this.mockMvc.perform(MockMvcRequestBuilders.put("/selector/{id}", "123")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(selectorDTO)))
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/selector/id={id}", "123")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(selectorDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
@@ -167,10 +180,16 @@ public final class SelectorControllerTest {
 
     @Test
     public void deleteSelector() throws Exception {
-        given(this.selectorService.delete(Collections.singletonList("123"), any())).willReturn(1);
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
+        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).thenReturn(true);
+        given(this.selectorService.delete(Collections.singletonList("123"), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).willReturn(1);
+        final BatchNamespaceCommonDTO batchNamespaceCommonDTO = new BatchNamespaceCommonDTO();
+        batchNamespaceCommonDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        batchNamespaceCommonDTO.setIds(Collections.singletonList("123"));
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/selector/batch")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("[\"123\"]"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(batchNamespaceCommonDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();
@@ -178,8 +197,13 @@ public final class SelectorControllerTest {
 
     @Test
     public void detailSelector() throws Exception {
-        given(this.selectorService.findById("1", any())).willReturn(selectorVO);
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/selector/{id}", "1"))
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+
+        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
+        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).thenReturn(true);
+        given(this.selectorService.findById("1", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).willReturn(selectorVO);
+
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/selector/id={id}&namespaceId={namespaceId}", "1", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(selectorVO.getId())))
@@ -189,30 +213,32 @@ public final class SelectorControllerTest {
     @Test
     public void enableSelector() throws Exception {
         SelectorDTO selectorDTO = SelectorDTO.builder()
-            .id("123")
-            .name("test123")
-            .continued(true)
-            .type(1)
-            .loged(true)
-            .enabled(true)
-            .matchRestful(false)
-            .pluginId("2")
-            .sort(1)
-            .build();
+                .id("123")
+                .name("test123")
+                .continued(true)
+                .type(1)
+                .loged(true)
+                .enabled(true)
+                .matchRestful(false)
+                .pluginId("2")
+                .sort(1)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
+                .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
         when(selectorMapper.existed(selectorDTO.getId())).thenReturn(true);
         when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
         when(pluginMapper.existed(selectorDTO.getPluginId())).thenReturn(true);
-        given(this.selectorService.enabled(Arrays.asList(selectorDTO.getId()), false, any())).willReturn(true);
+        given(this.selectorService.enabled(Arrays.asList(selectorDTO.getId()), false, SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).willReturn(true);
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Arrays.asList(selectorDTO.getId()));
         batchCommonDTO.setEnabled(false);
+        batchCommonDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/selector/batchEnabled")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ENABLE_SUCCESS)))
-            .andReturn();
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ENABLE_SUCCESS)))
+                .andReturn();
     }
 }

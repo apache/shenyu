@@ -152,7 +152,8 @@ public class SelectorVO implements Serializable {
                       final String handle,
                       final List<SelectorConditionVO> selectorConditions,
                       final String dateCreated,
-                      final String dateUpdated) {
+                      final String dateUpdated,
+                      final String namespaceId) {
         this.id = id;
         this.pluginId = pluginId;
         this.name = name;
@@ -557,7 +558,8 @@ public class SelectorVO implements Serializable {
                 selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(),
                 selectorDO.getMatchRestful(), selectorDO.getHandle(), selectorConditions,
                 DateUtils.localDateTimeToString(selectorDO.getDateCreated().toLocalDateTime()),
-                DateUtils.localDateTimeToString(selectorDO.getDateUpdated().toLocalDateTime()));
+                DateUtils.localDateTimeToString(selectorDO.getDateUpdated().toLocalDateTime()),
+                selectorDO.getNamespaceId());
     }
 
     /**

@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -238,7 +239,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
                 .matchRestful(false)
                 .continued(Boolean.TRUE)
                 .handle("handle")
-                .namespaceId("namespaceId")
+                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                 .build();
     }
 }
