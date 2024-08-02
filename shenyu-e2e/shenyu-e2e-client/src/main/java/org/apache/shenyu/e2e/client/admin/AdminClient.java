@@ -251,8 +251,8 @@ public class AdminClient extends BaseClient {
     /**
      * Fetch the selectors by the given conditions.
      *
-     * @param keyword expected selectors included the word. return all if absent.
-     * @param page page.
+     * @param keyword  expected selectors included the word. return all if absent.
+     * @param page     page.
      * @param pageSize size.
      * @param plugins  expected selectors under specified plugins. return all if absent.
      * @return paginated info with  list of {@link SelectorDTO}s
@@ -269,7 +269,7 @@ public class AdminClient extends BaseClient {
     /**
      * Fetch the rules by the given conditions.
      *
-     * @param keyword expected selectors included the word. return all if absent.
+     * @param keyword   expected selectors included the word. return all if absent.
      * @param selectors expected selectors under specified plugins. return all if absent.
      * @return paginated info with list of {@link RuleDTO}s
      */
@@ -298,9 +298,9 @@ public class AdminClient extends BaseClient {
         ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + uri, entity, ShenYuResult.class);
         ShenYuResult rst = assertAndGet(response, "query success");
 
-        return Assertions.assertDoesNotThrow(
-            () -> mapper.readValue(rst.getData().traverse(), valueType),
-                "checking cast to SearchedResources<T>"
+        return Assertions.assertDoesNotThrow(() -> mapper.readValue(
+            rst.getData().traverse(), valueType),
+            "checking cast to SearchedResources<T>"
         );
     }
 
@@ -309,7 +309,7 @@ public class AdminClient extends BaseClient {
         ShenYuResult rst = assertAndGet(response, "query success");
         return Assertions.assertDoesNotThrow(
             () -> mapper.readValue(rst.getData().traverse(), valueType),
-                "checking cast to SearchedResources<T>"
+            "checking cast to SearchedResources<T>"
         );
     }
 
@@ -440,10 +440,10 @@ public class AdminClient extends BaseClient {
             log.info("delete resources, effected size: 0, cause by: there is not resources in ShenYuAdmin");
             return;
         }
-        Map<String,Object> body=new HashMap<>();
-        body.put("ids",ids);
-        body.put("namespaceId",SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
-        HttpEntity<Map<String,Object>> entity = new HttpEntity<>(body, basicAuth);
+        Map<String, Object> body = new HashMap<>();
+        body.put("ids", ids);
+        body.put("namespaceId", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, basicAuth);
         ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri, HttpMethod.DELETE, entity, ShenYuResult.class);
         ShenYuResult rst = assertAndGet(response, "delete success");
         Integer deleted = Assertions.assertDoesNotThrow(() -> rst.toObject(Integer.class), "checking to cast object");

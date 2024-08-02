@@ -25,7 +25,7 @@ import java.util.Objects;
  *
  * @since 2.0.0
  */
-public class SelectorCacheData {
+public final class SelectorCacheData {
 
     /**
      * id.
@@ -391,10 +391,10 @@ public class SelectorCacheData {
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o){
+        if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()){
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         SelectorCacheData that = (SelectorCacheData) o;
@@ -408,8 +408,8 @@ public class SelectorCacheData {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, pluginId, pluginName, name, matchMode, type, sort, enabled, logged, continued, handle, conditionList
-                , beforeConditionList, matchRestful, namespaceId);
+        return Objects.hash(id, pluginId, pluginName, name, matchMode, type, sort, enabled, logged, continued, handle, conditionList,
+                beforeConditionList, matchRestful, namespaceId);
     }
 
     @Override

@@ -175,7 +175,7 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public String registerDefault(final MetaDataRegisterDTO dto, final String pluginName, final String selectorHandler) {
         String contextPath = ContextPathUtils.buildContextPath(dto.getContextPath(), dto.getAppName());
-        // todo:[To be refactored with namespace] Temporarily hardcode
+        // todo:[To be refactored with namespace] Temporarily  hardcode
         SelectorDO selectorDO = findByNameAndPluginName(contextPath, pluginName, SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         if (Objects.isNull(selectorDO)) {
             SelectorDTO selectorDTO = SelectorUtil.buildSelectorDTO(contextPath, pluginMapper.selectByName(pluginName).getId());
