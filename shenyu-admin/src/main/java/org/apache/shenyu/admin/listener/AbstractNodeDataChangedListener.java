@@ -41,13 +41,20 @@ import java.util.stream.Collectors;
 
 /**
  * AbstractNodeDataChangedListener.
+ * 节点数据变更的监听器的抽象框架实现
  */
 public abstract class AbstractNodeDataChangedListener implements DataChangedListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractNodeDataChangedListener.class);
 
+    /**
+     * 变更数据
+     */
     private final ChangeData changeData;
 
+    /**
+     * 列表保存可重入锁映射
+     */
     private final Map<String, ReentrantLock> listSaveLockMap = new ConcurrentHashMap<>();
 
     /**
@@ -68,8 +75,11 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
 
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
+        // 配置键的前缀("${pluginDataId}.")
         final String configKeyPrefix = changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT;
+        // 数据变更
         this.onCommonChanged(configKeyPrefix, changed, eventType, PluginData::getName, PluginData.class);
+        // 操作日志
         LOG.debug("[DataChangedListener] PluginChanged {}", configKeyPrefix);
     }
 
@@ -99,19 +109,22 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
                                      final DataEventTypeEnum eventType, final Function<? super T, ? extends String> mapperToKey,
                                      final Class<T> tClass) {
         // Avoiding concurrent operations on list nodes
+        // 避免并发操作
         final ReentrantLock reentrantLock = listSaveLockMap.computeIfAbsent(configKeyPrefix, key -> new ReentrantLock());
         try {
             reentrantLock.lock();
+            // 配置键列表
             final List<String> changeNames = changedList.stream().map(mapperToKey).collect(Collectors.toList());
             switch (eventType) {
                 case DELETE:
-                    changedList.stream().map(mapperToKey).forEach(removeKey -> {
+                    changeNames.forEach(removeKey -> {
                         delConfig(configKeyPrefix + removeKey);
                     });
                     delChangedData(configKeyPrefix, changeNames);
                     break;
                 case REFRESH:
                 case MYSELF:
+                    // 配置数据名称的列表
                     final List<String> configDataNames = this.getConfigDataNames(configKeyPrefix);
                     changedList.forEach(changedData -> {
                         publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData);
@@ -125,6 +138,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
                     publishConfig(configKeyPrefix + DefaultNodeConstants.LIST_STR, changeNames);
                     break;
                 default:
+                    // 更新
                     changedList.forEach(changedData -> {
                         publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData);
                     });
@@ -160,6 +174,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         final String configKeyPrefix = changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonMultiChanged(changed, eventType, configKeyPrefix, SelectorData::getPluginName, SelectorData::getId);
+        // 操作日志
         LOG.debug("[DataChangedListener] SelectorChanged {}", configKeyPrefix);
     }
 
@@ -169,6 +184,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
         this.onCommonMultiChanged(changed, eventType,
                 configKeyPrefix, ruleData -> String.join(DefaultNodeConstants.JOIN_POINT, ruleData.getPluginName(), ruleData.getSelectorId()),
                 RuleData::getId);
+        // 操作日志
         LOG.debug("[DataChangedListener] RuleChanged {}", changeData.getRuleDataId());
     }
 
@@ -280,6 +296,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
 
     private void delConfig(final String dataId) {
         LOG.debug("[DataChangedListener] delConfig {}", dataId);
+        // 删除配置
         this.doDelConfig(dataId);
     }
 
@@ -312,16 +329,19 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
 
         /**
          * plugin data id.
+         * 插件数据ID
          */
         private final String pluginDataId;
 
         /**
          * selector data id.
+         * 选择器数据ID
          */
         private final String selectorDataId;
 
         /**
          * rule data id.
+         * 规则数据ID
          */
         private final String ruleDataId;
 
