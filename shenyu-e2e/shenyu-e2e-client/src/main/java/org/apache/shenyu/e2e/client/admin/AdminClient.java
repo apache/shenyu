@@ -243,6 +243,7 @@ public class AdminClient extends BaseClient {
                 .keyword(keyword)
                 .plugins(plugins)
                 .switchStatus(true)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                 .build();
         return search("/selector/list/search", condition, SEARCHED_SELECTORS_TYPE_REFERENCE);
     }
