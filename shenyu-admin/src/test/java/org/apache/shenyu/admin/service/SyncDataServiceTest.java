@@ -39,6 +39,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.time.LocalDateTime;
 import java.util.Collections;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.mockito.ArgumentMatchers.any;
@@ -108,12 +109,11 @@ public final class SyncDataServiceTest {
     public void syncPluginDataTest() {
         PluginVO pluginVO = buildPluginVO();
         NamespacePluginVO namespacePluginVO = new NamespacePluginVO();
-        String namespaceId = "test1";
-        given(this.namespacePluginService.findById(pluginVO.getId(), namespaceId)).willReturn(namespacePluginVO);
+        given(this.namespacePluginService.findById(pluginVO.getId(), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).willReturn(namespacePluginVO);
         SelectorData selectorData = buildSelectorData();
-        given(this.selectorService.findByPluginId(pluginVO.getId(), any())).willReturn(Collections.singletonList(selectorData));
+        given(this.selectorService.findByPluginId(pluginVO.getId(), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).willReturn(Collections.singletonList(selectorData));
 
-        assertThat(syncDataService.syncPluginData(pluginVO.getId(), namespaceId), greaterThan(false));
+        assertThat(syncDataService.syncPluginData(pluginVO.getId(), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID), greaterThan(false));
     }
 
 
