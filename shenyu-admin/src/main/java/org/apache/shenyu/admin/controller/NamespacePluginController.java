@@ -190,7 +190,7 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     @PostMapping("/syncPluginAll")
     @RequiresPermissions("system:plugin:modify")
     public ShenyuAdminResult syncPluginAll() {
-        //todo:[Namespace] Synchronize based on  namespaceId
+        //todo:[Namespace] Synchronize based on namespaceId
         boolean success = syncDataService.syncAll(DataEventTypeEnum.REFRESH);
         if (success) {
             return ShenyuAdminResult.success(ShenyuResultMessage.SYNC_SUCCESS);
