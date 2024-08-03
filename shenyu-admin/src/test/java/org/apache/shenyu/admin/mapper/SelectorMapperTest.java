@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.mapper;
 
+import jakarta.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -24,7 +25,6 @@ import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
 
-import jakarta.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Set;
@@ -32,11 +32,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 
 
 /**
