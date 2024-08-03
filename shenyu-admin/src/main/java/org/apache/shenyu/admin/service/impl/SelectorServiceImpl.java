@@ -180,6 +180,7 @@ public class SelectorServiceImpl implements SelectorService {
         if (Objects.isNull(selectorDO)) {
             SelectorDTO selectorDTO = SelectorUtil.buildSelectorDTO(contextPath, pluginMapper.selectByName(pluginName).getId());
             selectorDTO.setHandle(selectorHandler);
+            selectorDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
             return registerDefault(selectorDTO);
         }
         return selectorDO.getId();
