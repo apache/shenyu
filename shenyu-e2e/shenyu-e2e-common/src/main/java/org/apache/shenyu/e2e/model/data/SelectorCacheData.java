@@ -103,6 +103,12 @@ public final class SelectorCacheData {
     private String namespaceId;
 
     /**
+     * no args constructor.
+     */
+    public SelectorCacheData() {
+    }
+
+    /**
      * builder constructor.
      *
      * @param builder builder
@@ -387,6 +393,24 @@ public final class SelectorCacheData {
      */
     public void setBeforeConditionList(final List<ConditionData> beforeConditionList) {
         this.beforeConditionList = beforeConditionList;
+    }
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
     }
 
     @Override

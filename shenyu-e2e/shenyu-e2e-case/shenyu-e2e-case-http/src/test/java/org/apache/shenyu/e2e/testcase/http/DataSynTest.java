@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
                 service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:31095",
+                        baseUrl = "http://localhost:9095",
                         type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
                                 @ShenYuTest.Parameter(key = "username", value = "admin"),
@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-gateway",
                 service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:31195",
+                        baseUrl = "http://localhost:9195",
                         type = ServiceTypeEnum.SHENYU_GATEWAY
                 )
         )
