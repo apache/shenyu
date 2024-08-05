@@ -69,7 +69,7 @@
         ${alis}.namespace_id
     </sql>
 
-    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectByIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector
@@ -103,7 +103,7 @@
          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
-    <select id="findByNameAndPluginId" resultMap="BaseResultMap">
+    <select id="findByNameAndPluginIdAndNamespaceId" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector

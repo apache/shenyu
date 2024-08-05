@@ -51,7 +51,7 @@ public interface SelectorMapper extends ExistProvider {
      * @param namespaceId namespaceId.
      * @return {@linkplain SelectorDO}
      */
-    SelectorDO selectById(String id, String namespaceId);
+    SelectorDO selectByIdAndNamespaceId(String id, String namespaceId);
 
     /**
      * select selector by id.
@@ -112,9 +112,9 @@ public interface SelectorMapper extends ExistProvider {
      * @param namespaceId namespaceId.
      * @return the selector do
      */
-    SelectorDO findByNameAndPluginId(@Param("name") String name,
-                                     @Param("pluginId") String pluginId,
-                                     @Param("namespaceId") String namespaceId);
+    SelectorDO findByNameAndPluginIdAndNamespaceId(@Param("name") String name,
+                                                   @Param("pluginId") String pluginId,
+                                                   @Param("namespaceId") String namespaceId);
 
     /**
      * count selector by query.

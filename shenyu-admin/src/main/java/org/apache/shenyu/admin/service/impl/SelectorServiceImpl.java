@@ -215,7 +215,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public int update(final SelectorDTO selectorDTO) {
-        final SelectorDO before = selectorMapper.selectById(selectorDTO.getId(), selectorDTO.getNamespaceId());
+        final SelectorDO before = selectorMapper.selectByIdAndNamespaceId(selectorDTO.getId(), selectorDTO.getNamespaceId());
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         final int selectorCount = selectorMapper.updateSelective(selectorDO);
 
@@ -253,7 +253,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public int updateSelective(final SelectorDO selectorDO) {
-        final SelectorDO before = selectorMapper.selectById(selectorDO.getId(), selectorDO.getNamespaceId());
+        final SelectorDO before = selectorMapper.selectByIdAndNamespaceId(selectorDO.getId(), selectorDO.getNamespaceId());
         final int updateCount = selectorMapper.updateSelective(selectorDO);
         if (updateCount > 0) {
             selectorEventPublisher.onUpdated(selectorDO, before);
@@ -316,7 +316,7 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public SelectorVO findById(final String id, final String namespaceId) {
         final List<SelectorConditionVO> conditions = ListUtil.map(selectorConditionMapper.selectByQuery(new SelectorConditionQuery(id)), SelectorConditionVO::buildSelectorConditionVO);
-        SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorMapper.selectById(id, namespaceId), conditions);
+        SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorMapper.selectByIdAndNamespaceId(id, namespaceId), conditions);
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(id);
         if (Objects.nonNull(discoveryHandlerDO)) {
             selectorVO.setDiscoveryHandler(DiscoveryTransfer.INSTANCE.mapToVo(discoveryHandlerDO));
@@ -354,14 +354,14 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public SelectorDO findByNameAndPluginName(final String name, final String pluginName, final String namespaceId) {
         PluginDO pluginDO = pluginMapper.selectByName(pluginName);
-        return selectorMapper.findByNameAndPluginId(name, pluginDO.getId(), namespaceId);
+        return selectorMapper.findByNameAndPluginIdAndNamespaceId(name, pluginDO.getId(), namespaceId);
     }
 
     @Override
     public SelectorDO findByNameAndPluginNameForUpdate(final String name, final String pluginName, final String namespaceId) {
         PluginDO pluginDO = pluginMapper.selectByNameForUpdate(pluginName);
         // todo:[To be refactored with namespace] Temporarily hardcode
-        return selectorMapper.findByNameAndPluginId(name, pluginDO.getId(), namespaceId);
+        return selectorMapper.findByNameAndPluginIdAndNamespaceId(name, pluginDO.getId(), namespaceId);
     }
 
     @Override
@@ -485,7 +485,7 @@ public class SelectorServiceImpl implements SelectorService {
     @Transactional(rollbackFor = Exception.class)
     public Boolean enabled(final List<String> ids, final Boolean enabled, final String namespaceId) {
         ids.forEach(id -> {
-            SelectorDO selectorDO = selectorMapper.selectById(id, namespaceId);
+            SelectorDO selectorDO = selectorMapper.selectByIdAndNamespaceId(id, namespaceId);
             SelectorDO before = JsonUtils.jsonToObject(JsonUtils.toJson(selectorDO), SelectorDO.class);
             selectorDO.setEnabled(enabled);
             if (selectorMapper.updateEnable(id, enabled) > 0) {

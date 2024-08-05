@@ -202,7 +202,7 @@ public final class RuleServiceTest {
     }
 
     private void mockFindSelectorIsNull() {
-        given(this.selectorMapper.selectById("456", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).willReturn(null);
+        given(this.selectorMapper.selectByIdAndNamespaceId("456", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).willReturn(null);
         given(this.pluginMapper.selectById("789")).willReturn(buildPluginDO());
     }
 
@@ -213,7 +213,7 @@ public final class RuleServiceTest {
     }
 
     private void mockFindPluginIsNull() {
-        given(this.selectorMapper.selectById("456", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).willReturn(buildSelectorDO());
+        given(this.selectorMapper.selectByIdAndNamespaceId("456", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).willReturn(buildSelectorDO());
         given(this.pluginMapper.selectById("789")).willReturn(null);
     }
 
@@ -260,7 +260,7 @@ public final class RuleServiceTest {
     private void publishEvent() {
         PluginDO pluginDO = buildPluginDO();
         SelectorDO selectorDO = buildSelectorDO();
-        given(this.selectorMapper.selectById("456", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).willReturn(selectorDO);
+        given(this.selectorMapper.selectByIdAndNamespaceId("456", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).willReturn(selectorDO);
         given(this.pluginMapper.selectById("789")).willReturn(pluginDO);
         given(this.selectorMapper.selectByIdSet(Sets.newHashSet("456"))).willReturn(Collections.singletonList(selectorDO));
         given(this.pluginMapper.selectByIds(Lists.newArrayList("789"))).willReturn(Collections.singletonList(pluginDO));
