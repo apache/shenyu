@@ -33,7 +33,7 @@ public class DivideShenyuContextDecorator implements ShenyuContextDecorator {
     @Override
     public ShenyuContext decorator(final ShenyuContext shenyuContext, final MetaData metaData) {
         String path = shenyuContext.getPath();
-        shenyuContext.setMethod(path);
+        shenyuContext.setMethod(shenyuContext.getHttpMethod());
         shenyuContext.setRealUrl(path);
         shenyuContext.setRpcType(RpcTypeEnum.HTTP.getName());
         shenyuContext.setModule(Optional.ofNullable(metaData).map(MetaData::getAppName)
