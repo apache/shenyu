@@ -185,7 +185,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         String handler = buildHandle(validUriList, selectorDO);
         if (handler != null) {
             selectorDO.setHandle(handler);
-            // todo:[To be refactored with namespace]  Temporarily hardcode
+            // todo:[To be refactored with namespace] Temporarily hardcode
             SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
             selectorData.setHandle(handler);
             // update db
