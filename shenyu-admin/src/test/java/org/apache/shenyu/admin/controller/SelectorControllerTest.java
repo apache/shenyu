@@ -170,7 +170,7 @@ public final class SelectorControllerTest {
         when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
         when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).thenReturn(true);
         given(this.selectorService.createOrUpdate(selectorDTO)).willReturn(1);
-        this.mockMvc.perform(MockMvcRequestBuilders.put("/selector/id={id}", "123")
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/selector/{id}", "123")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(selectorDTO)))
                 .andExpect(status().isOk())
@@ -203,7 +203,7 @@ public final class SelectorControllerTest {
         when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).thenReturn(true);
         given(this.selectorService.findById("1", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).willReturn(selectorVO);
 
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/selector/id={id}&namespaceId={namespaceId}", "1", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID))
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/selector/{id}/{namespaceId}", "1", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(selectorVO.getId())))
