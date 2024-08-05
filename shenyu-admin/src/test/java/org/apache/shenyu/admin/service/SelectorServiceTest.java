@@ -187,7 +187,7 @@ public final class SelectorServiceTest {
 
         // mock for test for-each statement.
 //        RuleDO mockedRuleDo = mock(RuleDO.class);
-//        when(ruleMapper.deleteByIds(Collections.singletonList(mockedRuleDo.getId()))).thenReturn(1);
+//        when(ruleMapper.deleteByIdsAndNamespaceId(Collections.singletonList(mockedRuleDo.getId()))).thenReturn(1);
 //        when(ruleConditionMapper.deleteByRuleIds(Collections.singletonList(mockedRuleDo.getId()))).thenReturn(1);
 
         final List<String> ids = Collections.singletonList(correctId);
@@ -210,7 +210,7 @@ public final class SelectorServiceTest {
     @Test
     public void testFindByName() {
         List<SelectorDO> selectorDO1List = Collections.singletonList(buildSelectorDO());
-        given(this.selectorMapper.selectByName(eq("kuan"), eq(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID))).willReturn(selectorDO1List);
+        given(this.selectorMapper.selectByNameAndNamespaceId(eq("kuan"), eq(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID))).willReturn(selectorDO1List);
         SelectorDO selectorDO2 = this.selectorService.findByName("kuan", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         assertNotNull(selectorDO2);
         assertEquals(selectorDO1List.size(), 1);

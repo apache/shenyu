@@ -49,7 +49,7 @@ public interface DiscoveryMapper extends ExistProvider {
     DiscoveryDO selectById(String id);
 
     /**
-     * selectAll.
+     * selectAllByNamespaceId.
      *
      * @return discoveryDOList
      */

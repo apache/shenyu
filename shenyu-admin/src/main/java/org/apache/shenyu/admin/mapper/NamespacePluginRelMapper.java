@@ -69,16 +69,15 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @param namespaceId namespace id.
      * @return {@linkplain PluginVO}
      */
-    NamespacePluginVO selectById(String pluginId, String namespaceId);
+    NamespacePluginVO selectByPluginIdAndNamespaceId(String pluginId, String namespaceId);
 
     /**
      * select plugin by pluginId.
      *
      * @param pluginId    primary key.
-     * @param namespaceId namespace id.
      * @return {@linkplain PluginVO}
      */
-    NamespacePluginVO selectByPluginId(String pluginId, String namespaceId);
+    NamespacePluginVO selectByPluginId(String pluginId);
 
     /**
      * search by condition.
@@ -114,7 +113,7 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @param namespaceId namespace id.
      * @return {@linkplain NamespacePluginRelDO}
      */
-    List<NamespacePluginVO> selectByIds(List<String> ids, String namespaceId);
+    List<NamespacePluginVO> selectByIdsAndNamespaceId(List<String> ids, String namespaceId);
 
 
     /**
@@ -124,7 +123,7 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @param namespaceId namespace id.
      * @return rows int
      */
-    int deleteByIds(List<String> ids, String namespaceId);
+    int deleteByIdsAndNamespaceId(List<String> ids, String namespaceId);
 
     /**
      * select all.
@@ -132,14 +131,14 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @param namespaceId namespace id.
      * @return {@linkplain List}
      */
-    List<NamespacePluginVO> selectAll(String namespaceId);
+    List<NamespacePluginVO> selectAllByNamespaceId(String namespaceId);
 
     /**
      * select all.
      *
      * @return {@linkplain List}
      */
-    List<NamespacePluginVO> selectAll();
+    List<NamespacePluginVO> selectAllByNamespaceId();
 
     /**
      * enable data by a list of ids.

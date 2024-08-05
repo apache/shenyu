@@ -22,7 +22,7 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
 import org.apache.shenyu.admin.model.event.plugin.BatchNamespacePluginChangedEvent;
-import org.apache.shenyu.admin.model.event.plugin.BatchPluginDeletedEvent;
+import org.apache.shenyu.admin.model.event.plugin.BatchNamespacePluginDeletedEvent;
 import org.apache.shenyu.admin.model.event.plugin.NamespacePluginChangedEvent;
 import org.apache.shenyu.admin.model.event.plugin.NamespacePluginCreatedEvent;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
@@ -91,7 +91,7 @@ public class NamespacePluginEventPublisher implements AdminDataModelChangedEvent
                 .map(NamespacePluginVO.class::cast)
                 .map(PluginDO::buildPluginDO)
                 .collect(Collectors.toList());
-        publish(new BatchPluginDeletedEvent(pluginDOList, SessionUtil.visitorName(), namespaceId));
+        publish(new BatchNamespacePluginDeletedEvent(pluginDOList, SessionUtil.visitorName(), namespaceId));
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
                 namespacePlugin.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
 

@@ -434,8 +434,8 @@ public final class SelectorDTO implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, pluginId, name, matchMode, type, sort, enabled, loged, continued, handle, selectorConditions,
-                matchRestful, selectorRules, namespaceId);
+        return Objects.hash(id, pluginId, name, matchMode, type, sort, enabled, loged, continued, handle,
+                selectorConditions, matchRestful, namespaceId);
     }
 
     public static final class SelectorDTOBuilder {

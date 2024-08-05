@@ -95,7 +95,7 @@
                  </foreach>
     </select>
 
-    <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectByNameAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector
@@ -141,7 +141,7 @@
         ORDER BY sort
     </select>
 
-    <select id="findByPluginId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="findByPluginIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector
@@ -149,7 +149,7 @@
          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
-    <select id="findByPluginIds" parameterType="java.util.List" resultMap="BaseResultMap">
+    <select id="findByPluginIdsAndNamespaceId" parameterType="java.util.List" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector

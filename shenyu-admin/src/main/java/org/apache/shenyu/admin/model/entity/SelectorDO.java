@@ -340,10 +340,17 @@ public final class SelectorDO extends BaseDO {
             return false;
         }
         SelectorDO that = (SelectorDO) o;
-        return Objects.equals(pluginId, that.pluginId) && Objects.equals(name, that.name) && Objects.equals(matchMode, that.matchMode)
-                && Objects.equals(type, that.type) && Objects.equals(sort, that.sort) && Objects.equals(enabled, that.enabled)
-                && Objects.equals(loged, that.loged) && Objects.equals(continued, that.continued) && Objects.equals(handle, that.handle)
-                && Objects.equals(matchRestful, that.matchRestful) && Objects.equals(namespaceId, that.namespaceId);
+        return Objects.equals(pluginId, that.pluginId)
+                && Objects.equals(name, that.name)
+                && Objects.equals(matchMode, that.matchMode)
+                && Objects.equals(type, that.type)
+                && Objects.equals(sort, that.sort)
+                && Objects.equals(enabled, that.enabled)
+                && Objects.equals(loged, that.loged)
+                && Objects.equals(continued, that.continued)
+                && Objects.equals(handle, that.handle)
+                && Objects.equals(matchRestful, that.matchRestful)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override

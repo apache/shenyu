@@ -45,7 +45,7 @@ import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.model.event.plugin.BatchPluginDeletedEvent;
+import org.apache.shenyu.admin.model.event.plugin.BatchNamespacePluginDeletedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
@@ -334,13 +334,13 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public SelectorDO findByName(final String name, final String namespaceId) {
-        List<SelectorDO> doList = selectorMapper.selectByName(name, namespaceId);
+        List<SelectorDO> doList = selectorMapper.selectByNameAndNamespaceId(name, namespaceId);
         return CollectionUtils.isNotEmpty(doList) ? doList.get(0) : null;
     }
 
     @Override
     public List<SelectorDO> findListByName(final String name, final String namespaceId) {
-        return selectorMapper.selectByName(name, namespaceId);
+        return selectorMapper.selectByNameAndNamespaceId(name, namespaceId);
     }
 
     /**
@@ -416,7 +416,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public List<SelectorData> findByPluginId(final String pluginId, final String namespaceId) {
-        return this.buildSelectorDataList(selectorMapper.findByPluginId(pluginId, namespaceId));
+        return this.buildSelectorDataList(selectorMapper.findByPluginIdAndNamespaceId(pluginId, namespaceId));
     }
 
     @Override
@@ -499,9 +499,9 @@ public class SelectorServiceImpl implements SelectorService {
      *
      * @param event event
      */
-    @EventListener(value = BatchPluginDeletedEvent.class)
-    public void onPluginDeleted(final BatchPluginDeletedEvent event) {
-        deleteSelector(selectorMapper.findByPluginIds(event.getDeletedPluginIds(), event.getNamespaceId()), event.getPlugins());
+    @EventListener(value = BatchNamespacePluginDeletedEvent.class)
+    public void onPluginDeleted(final BatchNamespacePluginDeletedEvent event) {
+        deleteSelector(selectorMapper.findByPluginIdsAndNamespaceId(event.getDeletedPluginIds(), event.getNamespaceId()), event.getPlugins());
     }
 
     private void createCondition(final String selectorId, final List<SelectorConditionDTO> selectorConditions) {

@@ -440,7 +440,7 @@ public class UpstreamCheckService {
         Map<String, String> pluginMap = pluginDOList.stream().filter(Objects::nonNull)
                 .collect(Collectors.toMap(PluginDO::getId, PluginDO::getName, (value1, value2) -> value1));
         // todo:[To be refactored with namespace] Temporarily hardcode
-        final List<SelectorDO> selectorDOList = selectorMapper.findByPluginIds(new ArrayList<>(pluginMap.keySet()), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        final List<SelectorDO> selectorDOList = selectorMapper.findByPluginIdsAndNamespaceId(new ArrayList<>(pluginMap.keySet()), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         long currentTimeMillis = System.currentTimeMillis();
         Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new).stream()
                 .filter(Objects::nonNull)

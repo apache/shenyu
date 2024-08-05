@@ -89,7 +89,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @param namespaceId namespaceId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/id={id}&namespaceId={namespaceId}")
+    @GetMapping("{id}/{namespaceId}")
     public ShenyuAdminResult detailSelector(@PathVariable("id") @Valid
                                             @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id,
                                             @PathVariable("namespaceId") @Valid
@@ -117,7 +117,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @param selectorDTO selector.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PutMapping("/id={id}")
+    @PutMapping("{id}")
     public ShenyuAdminResult updateSelector(@PathVariable("id") @Valid
                                             @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id,
                                             @Valid @RequestBody final SelectorDTO selectorDTO) {

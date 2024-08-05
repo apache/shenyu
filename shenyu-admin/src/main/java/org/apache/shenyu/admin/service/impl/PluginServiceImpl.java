@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
@@ -79,12 +80,16 @@ public class PluginServiceImpl implements PluginService {
 
     private final PluginHandleService pluginHandleService;
 
+    private final NamespacePluginRelMapper namespacePluginRelMapper;
+
     public PluginServiceImpl(final PluginMapper pluginMapper,
                              final PluginEventPublisher pluginEventPublisher,
-                             final PluginHandleService pluginHandleService) {
+                             final PluginHandleService pluginHandleService,
+                             final NamespacePluginRelMapper namespacePluginRelMapper) {
         this.pluginMapper = pluginMapper;
         this.pluginEventPublisher = pluginEventPublisher;
         this.pluginHandleService = pluginHandleService;
+        this.namespacePluginRelMapper = namespacePluginRelMapper;
     }
 
     @Override
@@ -129,6 +134,12 @@ public class PluginServiceImpl implements PluginService {
         List<PluginDO> plugins = this.pluginMapper.selectByIds(ids);
         if (CollectionUtils.isEmpty(plugins)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
+        }
+        Optional<PluginDO> exist = plugins.stream()
+                .filter(value -> !Objects.isNull(this.namespacePluginRelMapper.selectByPluginId(value.getId())))
+                .findAny();
+        if (exist.isPresent()) {
+            return AdminConstants.NAMESPACE_PLUGIN_NOT_DELETE;
         }
         // delete plugins.
         if (this.pluginMapper.deleteByIds(ListUtil.map(plugins, PluginDO::getId)) > 0) {

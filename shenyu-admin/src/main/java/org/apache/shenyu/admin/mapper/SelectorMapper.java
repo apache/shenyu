@@ -84,16 +84,16 @@ public interface SelectorMapper extends ExistProvider {
      * @param namespaceId namespaceId.
      * @return the list
      */
-    List<SelectorDO> findByPluginId(String pluginId, String namespaceId);
+    List<SelectorDO> findByPluginIdAndNamespaceId(String pluginId, String namespaceId);
 
     /**
-     * Find by plugin id list.
+     * Find by plugin id and namespace id list.
      *
      * @param pluginIds   the plugin ids
      * @param namespaceId namespaceId.
      * @return the list
      */
-    List<SelectorDO> findByPluginIds(@Param("list") List<String> pluginIds, String namespaceId);
+    List<SelectorDO> findByPluginIdsAndNamespaceId(@Param("list") List<String> pluginIds, String namespaceId);
 
     /**
      * select select by name.
@@ -102,7 +102,7 @@ public interface SelectorMapper extends ExistProvider {
      * @param namespaceId namespaceId.
      * @return selector do list
      */
-    List<SelectorDO> selectByName(String name, String namespaceId);
+    List<SelectorDO> selectByNameAndNamespaceId(String name, String namespaceId);
 
     /**
      * Find by name and plugin id selector do.
@@ -112,7 +112,9 @@ public interface SelectorMapper extends ExistProvider {
      * @param namespaceId namespaceId.
      * @return the selector do
      */
-    SelectorDO findByNameAndPluginId(@Param("name") String name, @Param("pluginId") String pluginId, @Param("namespaceId") String namespaceId);
+    SelectorDO findByNameAndPluginId(@Param("name") String name,
+                                     @Param("pluginId") String pluginId,
+                                     @Param("namespaceId") String namespaceId);
 
     /**
      * count selector by query.
