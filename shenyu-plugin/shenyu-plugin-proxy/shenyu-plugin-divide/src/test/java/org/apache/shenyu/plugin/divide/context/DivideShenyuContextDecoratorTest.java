@@ -35,8 +35,6 @@ public final class DivideShenyuContextDecoratorTest {
 
     private static final String MOCK_CONTEXT_PATH = "mockContextPath";
 
-    private static final String MOCK_METHOD = "GET";
-
     private DivideShenyuContextDecorator divideShenyuContextDecorator;
 
     @BeforeEach
@@ -52,9 +50,9 @@ public final class DivideShenyuContextDecoratorTest {
         MetaData metaData = new MetaData();
         ShenyuContext shenyuContext = new ShenyuContext();
         shenyuContext.setPath(MOCK_CONTEXT_PATH);
-        shenyuContext.setHttpMethod(MOCK_METHOD);
+        shenyuContext.setHttpMethod(MOCK_CONTEXT_PATH);
         ShenyuContext decorator = divideShenyuContextDecorator.decorator(shenyuContext, metaData);
-        assert MOCK_METHOD.equals(decorator.getMethod());
+        assert MOCK_CONTEXT_PATH.equals(decorator.getMethod());
         assert MOCK_CONTEXT_PATH.equals(decorator.getRealUrl());
     }
 }
