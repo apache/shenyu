@@ -170,6 +170,7 @@ public class SelectorVO implements Serializable {
         this.selectorConditions = selectorConditions;
         this.dateCreated = dateCreated;
         this.dateUpdated = dateUpdated;
+        this.namespaceId = namespaceId;
     }
 
     /**

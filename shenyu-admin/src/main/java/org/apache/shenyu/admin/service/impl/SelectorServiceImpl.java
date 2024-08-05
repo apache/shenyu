@@ -176,11 +176,12 @@ public class SelectorServiceImpl implements SelectorService {
     public String registerDefault(final MetaDataRegisterDTO dto, final String pluginName, final String selectorHandler) {
         String contextPath = ContextPathUtils.buildContextPath(dto.getContextPath(), dto.getAppName());
         // todo:[To be refactored with namespace]  Temporarily  hardcode
-        SelectorDO selectorDO = findByNameAndPluginName(contextPath, pluginName, SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        String namespaceId = StringUtils.defaultIfEmpty(dto.getNamespaceId(), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        SelectorDO selectorDO = findByNameAndPluginName(contextPath, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
             SelectorDTO selectorDTO = SelectorUtil.buildSelectorDTO(contextPath, pluginMapper.selectByName(pluginName).getId());
             selectorDTO.setHandle(selectorHandler);
-            selectorDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+            selectorDTO.setNamespaceId(namespaceId);
             return registerDefault(selectorDTO);
         }
         return selectorDO.getId();
