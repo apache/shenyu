@@ -102,7 +102,7 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
 
         L requestInfo = this.doLogExecute(exchange, selector, rule);
         requestInfo.setRequestUri(request.getURI().toString());
-        requestInfo.setMethod(request.getMethod().name());
+        requestInfo.setRequestMethod(request.getMethod().name());
         requestInfo.setRequestHeader(LogCollectUtils.getHeaders(request.getHeaders()));
         requestInfo.setQueryParams(request.getURI().getQuery());
         requestInfo.setClientIp(HostAddressUtils.acquireIp(exchange));
