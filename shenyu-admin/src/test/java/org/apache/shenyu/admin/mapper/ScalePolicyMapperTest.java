@@ -48,7 +48,7 @@ public final class ScalePolicyMapperTest extends AbstractSpringIntegrationTest {
     @Test
     void selectByPrimaryKey() {
         ScalePolicyDO resultDO = scalePolicyMapper.selectByPrimaryKey("1");
-        // assertNotNull(resultDO);
+        assertNotNull(resultDO);
         assertEquals("1", resultDO.getId());
         assertEquals(1, resultDO.getSort());
         assertEquals(0, resultDO.getStatus());
