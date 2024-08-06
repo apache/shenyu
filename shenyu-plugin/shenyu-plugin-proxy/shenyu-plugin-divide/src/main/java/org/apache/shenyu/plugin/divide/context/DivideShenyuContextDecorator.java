@@ -29,11 +29,11 @@ import java.util.Optional;
  * The type Divide shenyu context decorator.
  */
 public class DivideShenyuContextDecorator implements ShenyuContextDecorator {
-    
+
     @Override
     public ShenyuContext decorator(final ShenyuContext shenyuContext, final MetaData metaData) {
         String path = shenyuContext.getPath();
-        shenyuContext.setMethod(shenyuContext.getHttpMethod());
+        shenyuContext.setMethod(path);
         shenyuContext.setRealUrl(path);
         shenyuContext.setRpcType(RpcTypeEnum.HTTP.getName());
         shenyuContext.setModule(Optional.ofNullable(metaData).map(MetaData::getAppName)
