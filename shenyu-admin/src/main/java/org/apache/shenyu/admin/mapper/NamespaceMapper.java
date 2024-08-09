@@ -59,7 +59,7 @@ public interface NamespaceMapper extends ExistProvider {
 
 
     /**
-     * selectAll.
+     * selectAllByNamespaceId.
      *
      * @param name name.
      * @return namespaceDOList

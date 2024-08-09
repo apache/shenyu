@@ -68,6 +68,8 @@ public final class SelectorData implements ResourceData {
     
     private boolean matchRestful;
 
+    private String namespaceId;
+
     /**
      * builder constructor.
      *
@@ -86,6 +88,7 @@ public final class SelectorData implements ResourceData {
         this.conditionList = builder.conditionList;
         this.sort = builder.sort;
         this.matchRestful = builder.matchRestful;
+        this.namespaceId = builder.namespaceId;
     }
 
     /**
@@ -316,6 +319,24 @@ public final class SelectorData implements ResourceData {
         this.matchRestful = matchRestful;
     }
 
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     static class PluginHandleSerializer extends JsonSerializer<PluginHandle> {
         private static final ObjectMapper MAPPER = new ObjectMapper();
         
@@ -358,6 +379,8 @@ public final class SelectorData implements ResourceData {
         private int sort;
 
         private boolean matchRestful;
+
+        private String namespaceId;
 
         /**
          * no args constructor.
@@ -504,6 +527,17 @@ public final class SelectorData implements ResourceData {
          */
         public SelectorDataBuilder matchRestful(final boolean matchRestful) {
             this.matchRestful = matchRestful;
+            return this;
+        }
+
+        /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public SelectorDataBuilder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }

@@ -47,10 +47,19 @@ public interface SelectorMapper extends ExistProvider {
     /**
      * select selector by id.
      *
+     * @param id          primary key.
+     * @param namespaceId namespaceId.
+     * @return {@linkplain SelectorDO}
+     */
+    SelectorDO selectByIdAndNamespaceId(String id, String namespaceId);
+
+    /**
+     * select selector by id.
+     *
      * @param id primary key.
      * @return {@linkplain SelectorDO}
      */
-    SelectorDO selectById(String id);
+    SelectorDO selectByOnlyId(String id);
 
     /**
      * Select selector by a list of ids.
@@ -71,35 +80,41 @@ public interface SelectorMapper extends ExistProvider {
     /**
      * Find by plugin id list.
      *
-     * @param pluginId the plugin id
+     * @param pluginId    the plugin id
+     * @param namespaceId namespaceId.
      * @return the list
      */
-    List<SelectorDO> findByPluginId(String pluginId);
+    List<SelectorDO> findByPluginIdAndNamespaceId(String pluginId, String namespaceId);
 
     /**
-     * Find by plugin id list.
+     * Find by plugin id and namespace id list.
      *
-     * @param pluginIds the plugin ids
+     * @param pluginIds   the plugin ids
+     * @param namespaceId namespaceId.
      * @return the list
      */
-    List<SelectorDO> findByPluginIds(List<String> pluginIds);
+    List<SelectorDO> findByPluginIdsAndNamespaceId(@Param("list") List<String> pluginIds, String namespaceId);
 
     /**
      * select select by name.
      *
-     * @param name the name
+     * @param name        the name
+     * @param namespaceId namespaceId.
      * @return selector do list
      */
-    List<SelectorDO> selectByName(String name);
+    List<SelectorDO> selectByNameAndNamespaceId(String name, String namespaceId);
 
     /**
      * Find by name and plugin id selector do.
      *
-     * @param name     the name
-     * @param pluginId the plugin id
+     * @param name        the name
+     * @param pluginId    the plugin id
+     * @param namespaceId namespaceId.
      * @return the selector do
      */
-    SelectorDO findByNameAndPluginId(@Param("name") String name, @Param("pluginId") String pluginId);
+    SelectorDO findByNameAndPluginIdAndNamespaceId(@Param("name") String name,
+                                                   @Param("pluginId") String pluginId,
+                                                   @Param("namespaceId") String namespaceId);
 
     /**
      * count selector by query.
@@ -199,7 +214,7 @@ public interface SelectorMapper extends ExistProvider {
     /**
      * update status.
      *
-     * @param id id
+     * @param id      id
      * @param enabled enabled
      * @return result
      */

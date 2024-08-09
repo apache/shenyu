@@ -168,3 +168,10 @@ INSERT INTO `shenyu`.`permission` (`id`, `object_id`, `resource_id`, `date_creat
 
 /* add column into dashboard_user table */
 ALTER TABLE `shenyu`.`dashboard_user` ADD COLUMN `client_id` varchar(32) NULL DEFAULT NULL COMMENT 'client id';
+
+
+ALTER TABLE `shenyu`.`selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
+
+UPDATE selector
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespaceId IS NULL;

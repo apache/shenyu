@@ -155,7 +155,7 @@ public class ResourceMapperTest extends AbstractSpringIntegrationTest {
     @Test
     public void testSelectAll() {
         List<ResourceDO> resourceDOS = resourceMapper.selectAll();
-        // for init schema resource insert, only assert resourceMapper.selectAll() result not null
+        // for init schema resource insert, only assert resourceMapper.selectAllByNamespaceId() result not null
         assertTrue(CollectionUtils.isNotEmpty(resourceDOS));
     }
 

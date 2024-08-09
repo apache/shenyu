@@ -43,6 +43,11 @@ public class SelectorQueryCondition extends BaseExcludedSearchCondition implemen
      * selector from plugin.
      */
     private List<String> plugin;
+
+    /**
+     * namespace id.
+     */
+    private String namespaceId;
     
     /**
      * user id.
@@ -125,4 +130,23 @@ public class SelectorQueryCondition extends BaseExcludedSearchCondition implemen
     public void setPlugin(final List<String> plugin) {
         this.plugin = plugin;
     }
+
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
 }

@@ -37,6 +37,8 @@ public final class SelectorQueryCondition implements QueryCondition {
 
     private boolean switchStatus;
 
+    private String namespaceId;
+
     /**
      * builder constructor.
      *
@@ -47,6 +49,7 @@ public final class SelectorQueryCondition implements QueryCondition {
         this.keyword = builder.keyword;
         this.plugins = builder.plugins;
         this.switchStatus = builder.switchStatus;
+        this.namespaceId = builder.namespaceId;
     }
 
     /**
@@ -133,6 +136,24 @@ public final class SelectorQueryCondition implements QueryCondition {
         this.switchStatus = switchStatus;
     }
 
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public String toString() {
         return "SelectorQueryCondition{"
@@ -146,6 +167,8 @@ public final class SelectorQueryCondition implements QueryCondition {
                 + Arrays.toString(plugins)
                 + ", switchStatus="
                 + switchStatus
+                + ", namespaceId="
+                + namespaceId
                 + '}';
     }
 
@@ -162,6 +185,8 @@ public final class SelectorQueryCondition implements QueryCondition {
         private String[] plugins;
 
         private boolean switchStatus;
+
+        private String namespaceId;
 
         /**
          * no args constructor.
@@ -220,6 +245,17 @@ public final class SelectorQueryCondition implements QueryCondition {
          */
         public Builder switchStatus(final boolean switchStatus) {
             this.switchStatus = switchStatus;
+            return this;
+        }
+
+        /**
+         * namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return SelectorDOBuilder
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }

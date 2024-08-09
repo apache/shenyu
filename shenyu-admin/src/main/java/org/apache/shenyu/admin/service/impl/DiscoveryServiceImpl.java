@@ -63,6 +63,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+
 @Service
 public class DiscoveryServiceImpl implements DiscoveryService {
 
@@ -125,7 +127,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     private SelectorDO findAndLockOnDB(final String selectorName, final String pluginName) {
         SelectorDO selectorDO = null;
         for (int i = 0; i < 3; i++) {
-            selectorDO = selectorService.findByNameAndPluginNameForUpdate(selectorName, pluginName);
+            selectorDO = selectorService.findByNameAndPluginNameForUpdate(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
             if (selectorDO != null) {
                 return selectorDO;
             }

@@ -72,7 +72,7 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
     public void onDeleted(final PluginDO plugin) {
         publish(new PluginChangedEvent(plugin, null, EventTypeEnum.PLUGIN_DELETE, SessionUtil.visitorName()));
     }
-    
+
     /**
      * on plugin deleted.
      *
@@ -82,7 +82,7 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
     public void onDeleted(final Collection<PluginDO> plugins) {
         publish(new BatchPluginDeletedEvent(plugins, SessionUtil.visitorName()));
     }
-    
+
     /**
      * on plugin batch enabled.
      *

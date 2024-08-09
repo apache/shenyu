@@ -63,6 +63,11 @@ public final class AdminConstants {
     public static final String SYS_NAMESPACE_ID_NOT_EXIST = "The namespace(s) does not exist！";
 
     /**
+     * The constant NAMESPACE_PLUGIN_NOT_DELETE.
+     */
+    public static final String NAMESPACE_PLUGIN_NOT_DELETE = "The plugin that exists under a certain namespace cannot be deleted.";
+
+    /**
      * The constant SYS_DEFAULT_NAMESPACE_ID_DELETE.
      */
     public static final String SYS_DEFAULT_NAMESPACE_ID_DELETE = "The default namespace can't deleted！";

@@ -131,7 +131,7 @@ public class SyncDataServiceImpl implements SyncDataService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(PluginTransfer.INSTANCE.mapToData(namespacePluginVO))));
 
-        List<SelectorData> selectorDataList = selectorService.findByPluginId(pluginId);
+        List<SelectorData> selectorDataList = selectorService.findByPluginId(pluginId, namespaceId);
 
         if (!CollectionUtils.isEmpty(selectorDataList)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));

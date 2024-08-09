@@ -30,19 +30,23 @@ import java.util.stream.Collectors;
 /**
  * BatchPluginDeletedEvent.
  */
-public class BatchPluginDeletedEvent extends BatchPluginChangedEvent {
+public class BatchNamespacePluginDeletedEvent extends BatchPluginChangedEvent {
 
     private final List<String> deletedPluginIds;
 
+    private final String namespaceId;
+    
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
      * @param source      Current plugin state
      * @param operator    operator
+     * @param namespaceId namespaceId
      */
-    public BatchPluginDeletedEvent(final Collection<PluginDO> source, final String operator) {
+    public BatchNamespacePluginDeletedEvent(final Collection<PluginDO> source, final String operator, final String namespaceId) {
         super(source, null, EventTypeEnum.PLUGIN_DELETE, operator);
         this.deletedPluginIds = ListUtil.map(source, BaseDO::getId);
+        this.namespaceId = namespaceId;
     }
     
     @Override
@@ -75,4 +79,12 @@ public class BatchPluginDeletedEvent extends BatchPluginChangedEvent {
         return deletedPluginIds;
     }
 
+    /**
+     * Gets the namespace id.
+     *
+     * @return the plugin handle list
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
 }

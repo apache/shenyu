@@ -110,7 +110,7 @@
         pnr.id ASC
     </select>
 
-    <select id="selectById" parameterType="java.lang.String"
+    <select id="selectByPluginIdAndNamespaceId" parameterType="java.lang.String"
             resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
         SELECT
         pnr.namespace_id AS namespaceId,
@@ -127,7 +127,7 @@
         ( SELECT
         <include refid="Base_Column_List"/>
         FROM plugin_ns_rel
-        WHERE id = #{id, jdbcType=VARCHAR}
+        WHERE plugin_id = #{pluginId, jdbcType=VARCHAR}
         and namespace_id =  #{namespaceId, jdbcType=VARCHAR}
         )
         pnr
@@ -152,7 +152,6 @@
         <include refid="Base_Column_List"/>
         FROM plugin_ns_rel
         WHERE plugin_id = #{pluginId, jdbcType=VARCHAR}
-        and namespace_id =  #{namespaceId, jdbcType=VARCHAR}
         )
         pnr
         LEFT JOIN plugin p ON pnr.plugin_id = p.id
@@ -226,7 +225,7 @@
         AND namespace_id=#{namespaceId}
     </update>
 
-    <select id="selectByIds" parameterType="java.util.List" resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
+    <select id="selectByIdsAndNamespaceId" parameterType="java.util.List" resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
         SELECT
         pnr.id AS id,
         pnr.namespace_id AS namespaceId,
@@ -248,7 +247,7 @@
     </select>
 
 
-    <delete id="deleteByIds" parameterType="java.util.List">
+    <delete id="deleteByIdsAndNamespaceId" parameterType="java.util.List">
         DELETE FROM plugin_ns_rel
         WHERE id IN
         <foreach item="id" collection="ids" open="(" separator="," close=")">
@@ -257,7 +256,7 @@
         and namespace_id=#{namespaceId, jdbcType=VARCHAR}
     </delete>
 
-    <select id="selectAll" resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
+    <select id="selectAllByNamespaceId" resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
         SELECT
         pnr.id as id,
         pnr.namespace_id AS namespaceId,

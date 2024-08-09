@@ -218,3 +218,8 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 /* add column into dashboard_user table */
 ALTER TABLE dashboard_user ADD client_id VARCHAR(32) NULL;
 COMMENT ON COLUMN dashboard_user.client_id IS 'client id';
+
+ALTER TABLE selector ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN selector.namespace_id IS 'namespaceId';
+
+UPDATE selector SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;

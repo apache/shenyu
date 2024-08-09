@@ -50,7 +50,7 @@ public final class SelectorChangedEventTest {
                 = new SelectorChangedEvent(before, null, EventTypeEnum.SELECTOR_CREATE, "test-operator");
 
         SelectorDO after = (SelectorDO) selectorChangedEvent.getAfter();
-        String expectMsg = String.format("the selector [%s] is %s", after.getName(), StringUtils.lowerCase(selectorChangedEvent.getType().getType().toString()));
+        String expectMsg = String.format("the namespace [%s] selector [%s] is %s", after.getNamespaceId(), after.getName(), StringUtils.lowerCase(selectorChangedEvent.getType().getType().toString()));
 
         String actualMsg = selectorChangedEvent.buildContext();
 
@@ -64,7 +64,8 @@ public final class SelectorChangedEventTest {
 
         String changeMsg = "it no change";
         SelectorDO after = (SelectorDO) selectorChangedEvent.getAfter();
-        String expectMsg = String.format("the selector [%s] is %s : %s", after.getName(), StringUtils.lowerCase(selectorChangedEvent.getType().getType().toString()), changeMsg);
+        String expectMsg = String.format("the namespace [%s] selector [%s] is %s : %s", after.getNamespaceId(), after.getName(),
+                StringUtils.lowerCase(selectorChangedEvent.getType().getType().toString()), changeMsg);
 
         String actualMsg = selectorChangedEvent.buildContext();
 
@@ -88,7 +89,8 @@ public final class SelectorChangedEventTest {
         builder.append(String.format("loged[%s => %s] ", before.getLoged(), after.getLoged()));
 
         String changeMsg = builder.toString();
-        String expectMsg = String.format("the selector [%s] is %s : %s", after.getName(), StringUtils.lowerCase(selectorChangedEvent.getType().getType().toString()), changeMsg);
+        String expectMsg = String.format("the namespace [%s] selector [%s] is %s : %s", after.getNamespaceId(), after.getName(),
+                StringUtils.lowerCase(selectorChangedEvent.getType().getType().toString()), changeMsg);
 
         String actualMsg = selectorChangedEvent.buildContext();
 

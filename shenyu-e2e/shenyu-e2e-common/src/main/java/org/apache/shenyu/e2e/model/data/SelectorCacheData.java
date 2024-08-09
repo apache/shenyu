@@ -22,80 +22,86 @@ import java.util.Objects;
 
 /**
  * SelectorData.
+ *
  * @since 2.0.0
  */
-public class SelectorCacheData {
-    
+public final class SelectorCacheData {
+
     /**
      * id.
      */
     private String id;
-    
+
     /**
      * plugin id.
      */
     private String pluginId;
-    
+
     /**
      * plugin name.
      */
     private String pluginName;
-    
+
     /**
      * select name.
      */
     private String name;
-    
+
     /**
      * matchMode（0 and  1 or).
      */
     private Integer matchMode;
-    
+
     /**
      * type（false full，true custom).
      */
     private Integer type;
-    
+
     /**
      * sort.
      */
     private Integer sort;
-    
+
     /**
      * enabled.
      */
     private Boolean enabled;
-    
+
     /**
      * logged.
      */
     private Boolean logged;
-    
+
     /**
      * continued.
      */
     private Boolean continued = Boolean.TRUE;
-    
+
     /**
      * handle.
      */
     private String handle;
-    
+
     /**
      * condition list.
      */
     private List<ConditionData> conditionList;
-    
+
     /**
      * orginal condition list.
      */
     private List<ConditionData> beforeConditionList;
-    
+
     /**
      * match restful api.
      */
     private Boolean matchRestful;
-    
+
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
     /**
      * no args constructor.
      */
@@ -122,6 +128,7 @@ public class SelectorCacheData {
         this.conditionList = builder.conditionList;
         this.matchRestful = builder.matchRestful;
         this.beforeConditionList = builder.beforeConditionList;
+        this.namespaceId = builder.namespaceId;
     }
 
     /**
@@ -351,7 +358,7 @@ public class SelectorCacheData {
     public void setConditionList(final List<ConditionData> conditionList) {
         this.conditionList = conditionList;
     }
-    
+
     /**
      * get match restful.
      *
@@ -360,7 +367,7 @@ public class SelectorCacheData {
     public Boolean getMatchRestful() {
         return matchRestful;
     }
-    
+
     /**
      * set match restful.
      *
@@ -369,7 +376,7 @@ public class SelectorCacheData {
     public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
-    
+
     /**
      * get before condition list.
      *
@@ -378,7 +385,7 @@ public class SelectorCacheData {
     public List<ConditionData> getBeforeConditionList() {
         return beforeConditionList;
     }
-    
+
     /**
      * set before condition list.
      *
@@ -387,7 +394,25 @@ public class SelectorCacheData {
     public void setBeforeConditionList(final List<ConditionData> beforeConditionList) {
         this.beforeConditionList = beforeConditionList;
     }
-    
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -401,13 +426,14 @@ public class SelectorCacheData {
                 && Objects.equals(name, that.name) && Objects.equals(matchMode, that.matchMode) && Objects.equals(type, that.type)
                 && Objects.equals(sort, that.sort) && Objects.equals(enabled, that.enabled) && Objects.equals(logged, that.logged)
                 && Objects.equals(continued, that.continued) && Objects.equals(handle, that.handle)
-                && Objects.equals(conditionList, that.conditionList) && Objects.equals(matchRestful, that.matchRestful)
-                && Objects.equals(beforeConditionList, that.beforeConditionList);
+                && Objects.equals(conditionList, that.conditionList) && Objects.equals(beforeConditionList, that.beforeConditionList)
+                && Objects.equals(matchRestful, that.matchRestful) && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, pluginId, pluginName, name, matchMode, type, sort, enabled, logged, continued, handle, conditionList, matchRestful, beforeConditionList);
+        return Objects.hash(id, pluginId, pluginName, name, matchMode, type, sort, enabled, logged, continued, handle, conditionList,
+                beforeConditionList, matchRestful, namespaceId);
     }
 
     @Override
@@ -444,6 +470,8 @@ public class SelectorCacheData {
                 + conditionList
                 + ", matchRestful="
                 + matchRestful
+                + ", namespaceId="
+                + namespaceId
                 + '}';
     }
 
@@ -475,10 +503,12 @@ public class SelectorCacheData {
         private String handle;
 
         private List<ConditionData> conditionList;
-        
+
         private Boolean matchRestful;
-        
+
         private List<ConditionData> beforeConditionList;
+
+        private String namespaceId;
 
         /**
          * no args constructor.
@@ -626,7 +656,7 @@ public class SelectorCacheData {
             this.conditionList = conditionList;
             return this;
         }
-    
+
         /**
          * build match restful.
          *
@@ -637,7 +667,7 @@ public class SelectorCacheData {
             this.matchRestful = matchRestful;
             return this;
         }
-        
+
         /**
          * build beforeConditionList.
          *
@@ -646,6 +676,17 @@ public class SelectorCacheData {
          */
         public Builder beforeConditionList(final List<ConditionData> beforeConditionList) {
             this.beforeConditionList = beforeConditionList;
+            return this;
+        }
+
+        /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }

@@ -26,15 +26,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- *  test cast for {@link BatchPluginDeletedEvent}.
+ *  test cast for {@link BatchNamespacePluginDeletedEvent}.
  */
-public class BatchPluginDeletedEventTest {
+public class BatchNamespacePluginDeletedEventTest {
 
     private PluginDO one;
 
     private PluginDO two;
 
-    private BatchPluginDeletedEvent deletedEvent;
+    private BatchNamespacePluginDeletedEvent deletedEvent;
 
     @BeforeEach
     public void setUp() {
@@ -60,7 +60,7 @@ public class BatchPluginDeletedEventTest {
                 .dateCreated(now)
                 .build();
 
-        deletedEvent = new BatchPluginDeletedEvent(Arrays.asList(one, two), "test-operator");
+        deletedEvent = new BatchNamespacePluginDeletedEvent(Arrays.asList(one, two), "test-operator", "namespaceId");
     }
 
     @Test

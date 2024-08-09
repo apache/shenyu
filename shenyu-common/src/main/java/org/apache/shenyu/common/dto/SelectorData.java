@@ -59,14 +59,19 @@ public class SelectorData {
     private String handle;
 
     private List<ConditionData> conditionList;
-    
+
     private List<ConditionData> beforeConditionList;
-    
+
     /**
      * match restful api.
      */
     private Boolean matchRestful;
-    
+
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
     /**
      * no args constructor.
      */
@@ -93,6 +98,7 @@ public class SelectorData {
         this.conditionList = builder.conditionList;
         this.matchRestful = builder.matchRestful;
         this.beforeConditionList = builder.beforeConditionList;
+        this.namespaceId = builder.namespaceId;
     }
 
     /**
@@ -322,7 +328,7 @@ public class SelectorData {
     public void setConditionList(final List<ConditionData> conditionList) {
         this.conditionList = conditionList;
     }
-    
+
     /**
      * get match restful.
      *
@@ -331,7 +337,7 @@ public class SelectorData {
     public Boolean getMatchRestful() {
         return matchRestful;
     }
-    
+
     /**
      * set match restful.
      *
@@ -340,7 +346,7 @@ public class SelectorData {
     public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
-    
+
     /**
      * get before condition list.
      *
@@ -349,7 +355,7 @@ public class SelectorData {
     public List<ConditionData> getBeforeConditionList() {
         return beforeConditionList;
     }
-    
+
     /**
      * set before condition list.
      *
@@ -358,7 +364,25 @@ public class SelectorData {
     public void setBeforeConditionList(final List<ConditionData> beforeConditionList) {
         this.beforeConditionList = beforeConditionList;
     }
-    
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -371,14 +395,14 @@ public class SelectorData {
         return Objects.equals(id, that.id) && Objects.equals(pluginId, that.pluginId) && Objects.equals(pluginName, that.pluginName)
                 && Objects.equals(name, that.name) && Objects.equals(matchMode, that.matchMode) && Objects.equals(type, that.type)
                 && Objects.equals(sort, that.sort) && Objects.equals(enabled, that.enabled) && Objects.equals(logged, that.logged)
-                && Objects.equals(continued, that.continued) && Objects.equals(handle, that.handle)
-                && Objects.equals(conditionList, that.conditionList) && Objects.equals(matchRestful, that.matchRestful)
-                && Objects.equals(beforeConditionList, that.beforeConditionList);
+                && Objects.equals(continued, that.continued) && Objects.equals(handle, that.handle) && Objects.equals(conditionList, that.conditionList)
+                && Objects.equals(beforeConditionList, that.beforeConditionList) && Objects.equals(matchRestful, that.matchRestful)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, pluginId, pluginName, name, matchMode, type, sort, enabled, logged, continued, handle, conditionList, matchRestful, beforeConditionList);
+        return Objects.hash(id, pluginId, pluginName, name, matchMode, type, sort, enabled, logged, continued, handle, conditionList, beforeConditionList, matchRestful, namespaceId);
     }
 
     @Override
@@ -415,6 +439,8 @@ public class SelectorData {
                 + conditionList
                 + ", matchRestful="
                 + matchRestful
+                + ", namespaceId="
+                + namespaceId
                 + '}';
     }
 
@@ -446,10 +472,12 @@ public class SelectorData {
         private String handle;
 
         private List<ConditionData> conditionList;
-        
+
         private Boolean matchRestful;
-        
+
         private List<ConditionData> beforeConditionList;
+
+        private String namespaceId;
 
         /**
          * no args constructor.
@@ -597,7 +625,7 @@ public class SelectorData {
             this.conditionList = conditionList;
             return this;
         }
-    
+
         /**
          * build match restful.
          *
@@ -608,7 +636,7 @@ public class SelectorData {
             this.matchRestful = matchRestful;
             return this;
         }
-        
+
         /**
          * build beforeConditionList.
          *
@@ -617,6 +645,17 @@ public class SelectorData {
          */
         public Builder beforeConditionList(final List<ConditionData> beforeConditionList) {
             this.beforeConditionList = beforeConditionList;
+            return this;
+        }
+
+        /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }

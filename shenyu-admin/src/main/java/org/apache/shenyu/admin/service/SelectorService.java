@@ -107,55 +107,61 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     /**
      * delete selectors.
      *
-     * @param ids primary key.
+     * @param ids         primary key.
+     * @param namespaceId namespaceId.
      * @return rows int
      */
-    int delete(List<String> ids);
+    int delete(List<String> ids, String namespaceId);
 
     /**
      * find selector by id.
      *
-     * @param id primary key.
+     * @param id          primary key.
+     * @param namespaceId namespaceId.
      * @return {@linkplain SelectorVO}
      */
-    SelectorVO findById(String id);
+    SelectorVO findById(String id, String namespaceId);
 
     /**
      * find selector by name.
      *
-     * @param name the name
+     * @param name        the name
+     * @param namespaceId namespaceId.
+     *                    Therefore, it is recommended to: {@linkplain SelectorService#findListByName(java.lang.String, java.lang.String)}
      * @return selector do
      * @deprecated sice 2.6.0  Deprecated. By querying under this condition, multiple data are usually obtained.
-     *              Therefore, it is recommended to: {@linkplain SelectorService#findListByName(java.lang.String)}
      */
     @Deprecated
-    SelectorDO findByName(String name);
+    SelectorDO findByName(String name, String namespaceId);
 
     /**
      * find selector list by name.
      *
-     * @param name name
+     * @param name        name
+     * @param namespaceId namespaceId.
      * @return list
      */
-    List<SelectorDO> findListByName(String name);
+    List<SelectorDO> findListByName(String name, String namespaceId);
 
     /**
      * Find by name and plugin id selector do.
      *
-     * @param name       the name
-     * @param pluginName the plugin name
+     * @param name        the name
+     * @param pluginName  the plugin name
+     * @param namespaceId the namespaceId
      * @return the selector do
      */
-    SelectorDO findByNameAndPluginName(String name, String pluginName);
+    SelectorDO findByNameAndPluginName(String name, String pluginName, String namespaceId);
 
     /**
      * findByNameAndPluginNameForUpdate.
      *
-     * @param name       name
-     * @param pluginName pluginName
+     * @param name        name
+     * @param pluginName  pluginName
+     * @param namespaceId namespaceId.
      * @return SelectorDO
      */
-    SelectorDO findByNameAndPluginNameForUpdate(String name, String pluginName);
+    SelectorDO findByNameAndPluginNameForUpdate(String name, String pluginName, String namespaceId);
 
     /**
      * Find selectorDO list by name and plugin name list.
@@ -169,19 +175,21 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     /**
      * Build by name selector data.
      *
-     * @param name the name
+     * @param name        the name
+     * @param namespaceId namespaceId.
      * @return the selector data
      */
-    SelectorData buildByName(String name);
+    SelectorData buildByName(String name, String namespaceId);
 
     /**
      * Build by name selector data.
      *
-     * @param name       the name
-     * @param pluginName the plugin name
+     * @param name        the name
+     * @param pluginName  the plugin name
+     * @param namespaceId the namespaceId
      * @return the selector data
      */
-    SelectorData buildByName(String name, String pluginName);
+    SelectorData buildByName(String name, String pluginName, String namespaceId);
 
     /**
      * find page of selector by query.
@@ -202,10 +210,11 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     /**
      * Find by plugin id list.
      *
-     * @param pluginId the plugin id
+     * @param pluginId    the plugin id
+     * @param namespaceId the namespaceId
      * @return the list
      */
-    List<SelectorData> findByPluginId(String pluginId);
+    List<SelectorData> findByPluginId(String pluginId, String namespaceId);
 
     /**
      * List all list.
@@ -223,6 +232,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
 
     /**
      * Import the plugin selector list.
+     *
      * @param selectorList the plugin selector list
      * @return config import result
      */
@@ -231,9 +241,10 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     /**
      * Enabled string.
      *
-     * @param ids     the ids
-     * @param enabled the enable
+     * @param ids         the ids
+     * @param enabled     the enable
+     * @param namespaceId namespaceId
      * @return the result
      */
-    Boolean enabled(List<String> ids, Boolean enabled);
+    Boolean enabled(List<String> ids, Boolean enabled, String namespaceId);
 }
