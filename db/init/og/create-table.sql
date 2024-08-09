@@ -2673,3 +2673,73 @@ INSERT INTO "public"."permission" VALUES ('1792779493541343265', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1792779493541343266', '1346358560427216896', '1792749362445840485', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1792779493541343267', '1346358560427216896', '1792749362445840486', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
 
+-- ----------------------------
+-- Table structure for scale
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."scale_policy";
+CREATE TABLE IF NOT EXISTS "public"."scale_policy"
+(
+    "id"             varchar(128)   COLLATE "pg_catalog"."default" NOT NULL,
+    "sort"           int4           NOT NULL,
+    "status"         int2           NOT NULL,
+    "num"            int4           ,
+    "begin_time"     timestamp(6)   ,
+    "end_time"       timestamp(6)   ,
+    "date_created"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+);
+COMMENT ON COLUMN "public"."scale_policy"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."scale_policy"."sort" IS 'sort';
+COMMENT ON COLUMN "public"."scale_policy"."status" IS 'status 1:enable 0:disable';
+COMMENT ON COLUMN "public"."scale_policy"."num" IS 'number of bootstrap';
+COMMENT ON COLUMN "public"."scale_policy"."begin_time" IS 'begin time';
+COMMENT ON COLUMN "public"."scale_policy"."end_time" IS 'end time';
+COMMENT ON COLUMN "public"."scale_policy"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."scale_policy"."date_updated" IS 'update time';
+
+INSERT INTO "public"."scale_policy" VALUES ('1', 1, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT INTO "public"."scale_policy" VALUES ('2', 2, 0, 10, '2024-07-31 20:00:00.000', '2024-08-01 20:00:00.000', '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT INTO "public"."scale_policy" VALUES ('3', 3, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+
+DROP TABLE IF EXISTS "public"."scale_rule";
+CREATE TABLE "public"."scale_rule"
+(
+    "id"             varchar(128)   COLLATE "pg_catalog"."default" NOT NULL,
+    "metric_name"    varchar(128)   COLLATE "pg_catalog"."default" NOT NULL,
+    "type"           int4           NOT NULL,
+    "sort"           int4           NOT NULL,
+    "status"         int2           NOT NULL,
+    "minimum"        varchar(128)   COLLATE "pg_catalog"."default",
+    "maximum"        varchar(128)   COLLATE "pg_catalog"."default",
+    "date_created"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+);
+COMMENT ON COLUMN "public"."scale_rule"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."scale_rule"."metric_name" IS 'metric name';
+COMMENT ON COLUMN "public"."scale_rule"."type" IS 'type 0:shenyu 1:k8s 2:others';
+COMMENT ON COLUMN "public"."scale_rule"."sort" IS 'sort';
+COMMENT ON COLUMN "public"."scale_rule"."status" IS 'status 1:enable 0:disable';
+COMMENT ON COLUMN "public"."scale_rule"."minimum" IS 'minimum of metric';
+COMMENT ON COLUMN "public"."scale_rule"."maximum" IS 'maximum of metric';
+COMMENT ON COLUMN "public"."scale_rule"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."scale_rule"."date_updated" IS 'update time';
+
+DROP TABLE IF EXISTS "public"."scale_history";
+CREATE TABLE "public"."scale_history"
+(
+    "id"             varchar(128)   COLLATE "pg_catalog"."default" NOT NULL,
+    "config_id"      int4           NOT NULL,
+    "num"            int4           NOT NULL,
+    "action"         int4           NOT NULL,
+    "msg"            text           COLLATE "pg_catalog"."default",
+    "date_created"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+);
+COMMENT ON COLUMN "public"."scale_history"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."scale_history"."config_id" IS '0:manual 1:period 2:dynamic';
+COMMENT ON COLUMN "public"."scale_history"."num" IS 'number of bootstrap';
+COMMENT ON COLUMN "public"."scale_history"."action" IS 'status 1:enable 0:disable';
+COMMENT ON COLUMN "public"."scale_history"."msg" IS 'message';
+COMMENT ON COLUMN "public"."scale_history"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."scale_history"."date_updated" IS 'update time';
+
