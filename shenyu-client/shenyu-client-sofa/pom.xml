@@ -63,7 +63,7 @@
         <dependency>
             <groupId>com.alipay.sofa.common</groupId>
             <artifactId>sofa-common-tools</artifactId>
-            <version>2.1.1</version>
+            <version>${sofa-common-tools.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
