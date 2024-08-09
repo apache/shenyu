@@ -125,6 +125,7 @@
         <prometheus-jmx.version>0.15.0</prometheus-jmx.version>
         <springdoc.version>2.5.0</springdoc.version>
         <sofa.rpc.version>5.13.0</sofa.rpc.version>
+        <sofa-common-tools.version>2.1.1</sofa-common-tools.version>
         <tars.version>1.7.2</tars.version>
         <curator.version>5.7.0</curator.version>
         <wiremock.version>3.0.1</wiremock.version>
@@ -395,7 +396,7 @@
                 <artifactId>pagehelper</artifactId>
                 <version>${pagehelper.version}</version>
             </dependency>
-            
+
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -782,6 +783,8 @@
                         <exclude>**/.mvn/wrapper/maven-wrapper.properties</exclude>
                         <!-- GitHub files -->
                         <exclude>**/.github/**</exclude>
+                        <!-- Gitpod files -->
+                        <exclude>**/.gitpod.yml</exclude>
                         <!-- document files -->
                         <exclude>**/*.md</exclude>
                         <excldue>**/*.MD</excldue>
