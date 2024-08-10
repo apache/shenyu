@@ -44,7 +44,7 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * spring mvc websocket service register.
@@ -108,7 +108,7 @@ public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPat
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         SelectorService selectorService = getSelectorService();
         // todo:[To be refactored with namespace] Temporarily hardcode
-        SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
         if (Objects.isNull(selectorDO)) {
             return Constants.SUCCESS;
         }

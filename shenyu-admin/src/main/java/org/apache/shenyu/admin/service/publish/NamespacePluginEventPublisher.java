@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+
 /**
  * NamespacePluginEventPublisher.
  */
@@ -85,7 +87,7 @@ public class NamespacePluginEventPublisher implements AdminDataModelChangedEvent
                 .map(NamespacePluginVO.class::cast)
                 .findFirst()
                 .map(NamespacePluginVO::getNamespaceId)
-                .orElse("");
+                .orElse(SYS_DEFAULT_NAMESPACE_ID);
         List<PluginDO> pluginDOList = ((Collection<?>) namespacePlugin)
                 .stream()
                 .map(NamespacePluginVO.class::cast)

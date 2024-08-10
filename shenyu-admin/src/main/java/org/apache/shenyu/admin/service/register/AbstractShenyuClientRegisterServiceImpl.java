@@ -58,7 +58,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * Abstract strategy.
@@ -174,7 +174,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         }
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         // todo:[To be refactored with namespace] Temporarily hardcode
-        SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
         if (Objects.isNull(selectorDO)) {
             throw new ShenyuException("doRegister Failed to execute,wait to retry.");
         }
@@ -186,7 +186,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         if (handler != null) {
             selectorDO.setHandle(handler);
             // todo:[To be refactored with namespace] Temporarily hardcode
-            SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+            SelectorData selectorData = selectorService.buildByNameAndPluginNameAndNamespaceId(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), SYS_DEFAULT_NAMESPACE_ID);
             selectorData.setHandle(handler);
             // update db
             selectorService.updateSelective(selectorDO);

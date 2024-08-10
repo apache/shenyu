@@ -37,8 +37,8 @@ public class BatchPluginDeletedEvent extends BatchPluginChangedEvent {
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
-     * @param source      Current plugin state
-     * @param operator    operator
+     * @param source Current plugin state
+     * @param operator operator
      */
     public BatchPluginDeletedEvent(final Collection<PluginDO> source, final String operator) {
         super(source, null, EventTypeEnum.PLUGIN_DELETE, operator);

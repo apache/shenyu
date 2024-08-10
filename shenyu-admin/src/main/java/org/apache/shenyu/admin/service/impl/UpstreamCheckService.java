@@ -76,7 +76,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * This is the upstream check service.
@@ -384,7 +384,7 @@ public class UpstreamCheckService {
     }
 
     private void updateSelectorHandler(final String selectorId, final List<CommonUpstream> aliveList) {
-        SelectorDO selectorDO = selectorMapper.selectByOnlyId(selectorId);
+        SelectorDO selectorDO = selectorMapper.selectById(selectorId);
         if (Objects.isNull(selectorDO)) {
             return;
         }
@@ -440,7 +440,7 @@ public class UpstreamCheckService {
         Map<String, String> pluginMap = pluginDOList.stream().filter(Objects::nonNull)
                 .collect(Collectors.toMap(PluginDO::getId, PluginDO::getName, (value1, value2) -> value1));
         // todo:[To be refactored with namespace] Temporarily hardcode
-        final List<SelectorDO> selectorDOList = selectorMapper.findByPluginIdsAndNamespaceId(new ArrayList<>(pluginMap.keySet()), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        final List<SelectorDO> selectorDOList = selectorMapper.findByPluginIdsAndNamespaceId(new ArrayList<>(pluginMap.keySet()), SYS_DEFAULT_NAMESPACE_ID);
         long currentTimeMillis = System.currentTimeMillis();
         Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new).stream()
                 .filter(Objects::nonNull)

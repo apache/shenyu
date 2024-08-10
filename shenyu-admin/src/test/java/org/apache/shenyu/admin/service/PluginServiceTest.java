@@ -54,7 +54,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -109,7 +109,7 @@ public final class PluginServiceTest {
 
         final List<SelectorDO> selectorDOList = new ArrayList<>();
         selectorDOList.add(SelectorDO.builder().id("101").build());
-        when(selectorMapper.findByPluginIdsAndNamespaceId(Collections.singletonList("101"), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).thenReturn(selectorDOList);
+        when(selectorMapper.findByPluginIdsAndNamespaceId(Collections.singletonList("101"), SYS_DEFAULT_NAMESPACE_ID)).thenReturn(selectorDOList);
         assertEquals(StringUtils.EMPTY, pluginService.delete(Collections.singletonList("123")));
     }
 

@@ -136,7 +136,7 @@ public class PluginServiceImpl implements PluginService {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }
         Optional<PluginDO> exist = plugins.stream()
-                .filter(value -> !Objects.isNull(this.namespacePluginRelMapper.selectByPluginId(value.getId())))
+                .filter(value -> Objects.nonNull(this.namespacePluginRelMapper.selectByPluginId(value.getId())))
                 .findAny();
         if (exist.isPresent()) {
             return AdminConstants.NAMESPACE_PLUGIN_NOT_DELETE;

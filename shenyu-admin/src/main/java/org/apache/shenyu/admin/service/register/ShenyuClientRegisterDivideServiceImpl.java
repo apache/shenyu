@@ -48,7 +48,7 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * spring mvc http service register.
@@ -124,7 +124,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         final SelectorService selectorService = getSelectorService();
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         // todo:[To be refactored with namespace] Temporarily hardcode
-        SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
         if (Objects.isNull(selectorDO)) {
             return Constants.SUCCESS;
         }
@@ -136,7 +136,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         existList.removeAll(needToRemove);
         final String handler = GsonUtils.getInstance().toJson(existList);
         selectorDO.setHandle(handler);
-        SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        SelectorData selectorData = selectorService.buildByNameAndPluginNameAndNamespaceId(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), SYS_DEFAULT_NAMESPACE_ID);
         selectorData.setHandle(handler);
         // update db
         selectorService.updateSelective(selectorDO);

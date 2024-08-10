@@ -428,8 +428,8 @@ public final class SelectorDO extends BaseDO {
     /**
      * selector data transform.
      *
-     * @param selectorDO        selector entity
-     * @param pluginName        plugin name
+     * @param selectorDO selector entity
+     * @param pluginName plugin name
      * @param conditionDataList condition data list
      * @return the selector data
      */

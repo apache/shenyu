@@ -59,7 +59,7 @@ public interface SelectorMapper extends ExistProvider {
      * @param id primary key.
      * @return {@linkplain SelectorDO}
      */
-    SelectorDO selectByOnlyId(String id);
+    SelectorDO selectById(String id);
 
     /**
      * Select selector by a list of ids.

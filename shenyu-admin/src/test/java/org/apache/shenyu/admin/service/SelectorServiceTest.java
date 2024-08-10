@@ -72,7 +72,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
@@ -192,14 +192,14 @@ public final class SelectorServiceTest {
 
         final List<String> ids = Collections.singletonList(correctId);
         given(selectorMapper.deleteByIds(ids)).willReturn(ids.size());
-        assertEquals(selectorService.delete(ids, any()), ids.size());
+        assertEquals(selectorService.deleteByNamespaceId(ids, any()), ids.size());
     }
 
     @Test
     public void testFindById() {
         SelectorDO selectorDO = buildSelectorDO();
         given(this.selectorMapper.selectByIdAndNamespaceId(eq("123"), any())).willReturn(selectorDO);
-        SelectorVO selectorVO = this.selectorService.findById("123", any());
+        SelectorVO selectorVO = this.selectorService.findByIdAndNamespaceId("123", any());
         assertNotNull(selectorDO);
         assertEquals(selectorVO.getId(), selectorDO.getId());
 
@@ -210,8 +210,8 @@ public final class SelectorServiceTest {
     @Test
     public void testFindByName() {
         List<SelectorDO> selectorDO1List = Collections.singletonList(buildSelectorDO());
-        given(this.selectorMapper.selectByNameAndNamespaceId(eq("kuan"), eq(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID))).willReturn(selectorDO1List);
-        SelectorDO selectorDO2 = this.selectorService.findByName("kuan", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        given(this.selectorMapper.selectByNameAndNamespaceId(eq("kuan"), eq(SYS_DEFAULT_NAMESPACE_ID))).willReturn(selectorDO1List);
+        SelectorDO selectorDO2 = this.selectorService.findByNameAndNamespaceId("kuan", SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(selectorDO2);
         assertEquals(selectorDO1List.size(), 1);
         assertEquals(selectorDO1List.get(0).getId(), selectorDO2.getId());
@@ -230,7 +230,7 @@ public final class SelectorServiceTest {
     @Test
     public void testFindByPluginId() {
 
-        List<SelectorData> res = this.selectorService.findByPluginId("789", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        List<SelectorData> res = this.selectorService.findByPluginIdAndNamespaceId("789", SYS_DEFAULT_NAMESPACE_ID);
         res.forEach(selectorData -> assertEquals("789", selectorData.getPluginId()));
     }
 

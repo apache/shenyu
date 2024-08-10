@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,7 +52,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
-        SelectorDO selector = selectorMapper.selectByIdAndNamespaceId(selectorDO.getId(), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        SelectorDO selector = selectorMapper.selectByIdAndNamespaceId(selectorDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(selector);
         assertEquals(selectorDO.getId(), selector.getId());
         assertEquals(selectorDO.getContinued(), selector.getContinued());
@@ -115,7 +115,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         SelectorDO selectorDO = buildSelectorDO();
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
-        List<SelectorDO> doList = selectorMapper.selectByNameAndNamespaceId(selectorDO.getName(), SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        List<SelectorDO> doList = selectorMapper.selectByNameAndNamespaceId(selectorDO.getName(), SYS_DEFAULT_NAMESPACE_ID);
         assertEquals(doList.size(), 1);
         assertNotNull(doList.get(0));
         assertEquals(selectorDO.getName(), doList.get(0).getName());
@@ -238,7 +238,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
                 .matchRestful(false)
                 .continued(Boolean.TRUE)
                 .handle("handle")
-                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
     }
 }

@@ -111,7 +111,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @param namespaceId namespaceId.
      * @return rows int
      */
-    int delete(List<String> ids, String namespaceId);
+    int deleteByNamespaceId(List<String> ids, String namespaceId);
 
     /**
      * find selector by id.
@@ -120,19 +120,19 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @param namespaceId namespaceId.
      * @return {@linkplain SelectorVO}
      */
-    SelectorVO findById(String id, String namespaceId);
+    SelectorVO findByIdAndNamespaceId(String id, String namespaceId);
 
     /**
      * find selector by name.
      *
      * @param name        the name
      * @param namespaceId namespaceId.
-     *                    Therefore, it is recommended to: {@linkplain SelectorService#findListByName(java.lang.String, java.lang.String)}
+     *                    Therefore, it is recommended to: {@linkplain SelectorService#findListByNameAndNamespaceId(java.lang.String, java.lang.String)}
      * @return selector do
      * @deprecated sice 2.6.0  Deprecated. By querying under this condition, multiple data are usually obtained.
      */
     @Deprecated
-    SelectorDO findByName(String name, String namespaceId);
+    SelectorDO findByNameAndNamespaceId(String name, String namespaceId);
 
     /**
      * find selector list by name.
@@ -141,7 +141,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @param namespaceId namespaceId.
      * @return list
      */
-    List<SelectorDO> findListByName(String name, String namespaceId);
+    List<SelectorDO> findListByNameAndNamespaceId(String name, String namespaceId);
 
     /**
      * Find by name and plugin id selector do.
@@ -151,17 +151,17 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @param namespaceId the namespaceId
      * @return the selector do
      */
-    SelectorDO findByNameAndPluginName(String name, String pluginName, String namespaceId);
+    SelectorDO findByNameAndPluginNameAndNamespaceId(String name, String pluginName, String namespaceId);
 
     /**
-     * findByNameAndPluginNameForUpdate.
+     * findByNameAndPluginNameAndNamespaceIdForUpdate.
      *
      * @param name        name
      * @param pluginName  pluginName
      * @param namespaceId namespaceId.
      * @return SelectorDO
      */
-    SelectorDO findByNameAndPluginNameForUpdate(String name, String pluginName, String namespaceId);
+    SelectorDO findByNameAndPluginNameAndNamespaceIdForUpdate(String name, String pluginName, String namespaceId);
 
     /**
      * Find selectorDO list by name and plugin name list.
@@ -179,7 +179,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @param namespaceId namespaceId.
      * @return the selector data
      */
-    SelectorData buildByName(String name, String namespaceId);
+    SelectorData buildByNameAndNamespaceId(String name, String namespaceId);
 
     /**
      * Build by name selector data.
@@ -189,7 +189,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @param namespaceId the namespaceId
      * @return the selector data
      */
-    SelectorData buildByName(String name, String pluginName, String namespaceId);
+    SelectorData buildByNameAndPluginNameAndNamespaceId(String name, String pluginName, String namespaceId);
 
     /**
      * find page of selector by query.
@@ -214,7 +214,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @param namespaceId the namespaceId
      * @return the list
      */
-    List<SelectorData> findByPluginId(String pluginId, String namespaceId);
+    List<SelectorData> findByPluginIdAndNamespaceId(String pluginId, String namespaceId);
 
     /**
      * List all list.
@@ -246,5 +246,5 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @param namespaceId namespaceId
      * @return the result
      */
-    Boolean enabled(List<String> ids, Boolean enabled, String namespaceId);
+    Boolean enabledByIdsAndNamespaceId(List<String> ids, Boolean enabled, String namespaceId);
 }

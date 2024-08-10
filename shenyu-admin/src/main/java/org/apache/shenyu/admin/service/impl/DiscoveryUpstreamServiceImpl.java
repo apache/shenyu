@@ -154,7 +154,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             if (StringUtils.hasLength(discoveryRelDO.getSelectorId())) {
                 String selectorId = discoveryRelDO.getSelectorId();
                 discoverySyncData.setSelectorId(selectorId);
-                SelectorDO selectorDO = selectorMapper.selectByOnlyId(selectorId);
+                SelectorDO selectorDO = selectorMapper.selectById(selectorId);
                 discoverySyncData.setSelectorName(selectorDO.getName());
             } else {
                 String proxySelectorId = discoveryRelDO.getProxySelectorId();

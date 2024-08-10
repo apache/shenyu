@@ -94,7 +94,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
                                             @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id,
                                             @PathVariable("namespaceId") @Valid
                                             @Existed(provider = NamespaceMapper.class, message = "namespaceId is not existed") final String namespaceId) {
-        SelectorVO selectorVO = selectorService.findById(id, namespaceId);
+        SelectorVO selectorVO = selectorService.findByIdAndNamespaceId(id, namespaceId);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, selectorVO);
     }
 
@@ -134,7 +134,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      */
     @PostMapping("/batchEnabled")
     public ShenyuAdminResult batchEnabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
-        if (!selectorService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId())) {
+        if (!selectorService.enabledByIdsAndNamespaceId(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId())) {
             return ShenyuAdminResult.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
@@ -148,7 +148,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      */
     @DeleteMapping("/batch")
     public ShenyuAdminResult deleteSelector(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
-        Integer deleteCount = selectorService.delete(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
+        Integer deleteCount = selectorService.deleteByNamespaceId(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 
