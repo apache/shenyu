@@ -188,7 +188,7 @@ public class ApiServiceImpl implements ApiService {
             }
         });
         if (CollectionUtils.isNotEmpty(selectorIds)) {
-            selectorService.delete(selectorIds, SYS_DEFAULT_NAMESPACE_ID);
+            selectorService.deleteByNamespaceId(selectorIds, SYS_DEFAULT_NAMESPACE_ID);
         }
         //clean metadata
         Optional.ofNullable(metaDataService.findByPath(path))
