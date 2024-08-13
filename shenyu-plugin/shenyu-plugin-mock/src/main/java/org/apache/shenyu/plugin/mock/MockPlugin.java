@@ -89,7 +89,7 @@ public class MockPlugin extends AbstractShenyuPlugin {
         
         return MockRequest.Builder.builder()
                 .headers(serverHttpRequest.getHeaders().toSingleValueMap())
-                .method(serverHttpRequest.getMethodValue())
+                .method(serverHttpRequest.getMethod().name())
                 .queries(serverHttpRequest.getQueryParams().toSingleValueMap())
                 .uri(serverHttpRequest.getURI().toString())
                 .body(originalBody)

@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
+import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -48,6 +49,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.hamcrest.core.Is.is;
@@ -72,13 +74,13 @@ public final class SelectorControllerTest {
 
     @Mock
     private SelectorService selectorService;
-    
+
     @Mock
     private SelectorMapper selectorMapper;
-    
+
     @Mock
     private PluginMapper pluginMapper;
-    
+
     private final SelectorVO selectorVO = new SelectorVO("1", "2", "selector-1", MatchModeEnum.AND.getCode(),
             MatchModeEnum.AND.getName(), SelectorTypeEnum.FULL_FLOW.getCode(), SelectorTypeEnum.FULL_FLOW.getName(),
             1, true, true, true, false, "handle", Collections.emptyList(),
@@ -182,5 +184,35 @@ public final class SelectorControllerTest {
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(selectorVO.getId())))
                 .andReturn();
+    }
+
+    @Test
+    public void enableSelector() throws Exception {
+        SelectorDTO selectorDTO = SelectorDTO.builder()
+            .id("123")
+            .name("test123")
+            .continued(true)
+            .type(1)
+            .loged(true)
+            .enabled(true)
+            .matchRestful(false)
+            .pluginId("2")
+            .sort(1)
+            .build();
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+        when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
+        when(selectorMapper.existed(selectorDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
+        when(pluginMapper.existed(selectorDTO.getPluginId())).thenReturn(true);
+        given(this.selectorService.enabled(Arrays.asList(selectorDTO.getId()), false)).willReturn(true);
+        BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
+        batchCommonDTO.setIds(Arrays.asList(selectorDTO.getId()));
+        batchCommonDTO.setEnabled(false);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/selector/batchEnabled")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ENABLE_SUCCESS)))
+            .andReturn();
     }
 }

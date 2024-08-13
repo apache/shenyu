@@ -77,7 +77,7 @@ public class ShenYuExtension implements BeforeAllCallback, ExecutionCondition, A
             });
             // FIXME check service is available
             for (ShenYuTest.Environment environment : environments) {
-                if (!SocketUtils.checkUrl(environment.service().baseUrl(), 3000)) {
+                if (!SocketUtils.checkUrl(environment.service().baseUrl(), 15000)) {
                     throw new AssertionFailedError(environment.serviceName() + ":" + environment.service().baseUrl() + " is not available");
                     //return ConditionEvaluationResult.disabled(environment.serviceName() + ":" + environment.service().baseUrl() + " is not available");
                 }

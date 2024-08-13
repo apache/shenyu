@@ -1,0 +1,38 @@
+{
+  "name": "Shenyu DevContainer",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+      "ghcr.io/devcontainers/features/java:1": {
+          "version": "17",
+          "installMaven": "true",
+          "installGradle": "false"
+      },
+      "ghcr.io/devcontainers/features/node:1": {
+          "version": "20"
+      },
+      "ghcr.io/devcontainers/features/git-lfs:1.1.0": {}
+  },
+  "customizations": {
+      "vscode": {
+          "settings": {},
+          // same extensions as Gitpod, should match /.gitpod.yml
+          "extensions": [
+              "vscjava.vscode-java-pack",
+              "editorconfig.editorconfig",
+              "dbaeumer.vscode-eslint",
+              "stylelint.vscode-stylelint",
+              "DavidAnson.vscode-markdownlint",
+              "ms-azuretools.vscode-docker",
+              "cweijan.vscode-database-client2",
+              "GitHub.vscode-pull-request-github"
+          ]
+      }
+  },
+  "portsAttributes": {
+      "8000": {
+          "label": "Shenyu Admin",
+          "onAutoForward": "notify"
+      }
+  },
+  "postCreateCommand": "java -version"
+}

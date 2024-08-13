@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:8-jre-alpine
+FROM eclipse-temurin:17-centos7
 ENV APP_NAME shenyu-integrated-test-custom-plugin
 
-ADD target/shenyu-custom-plugin-2.6.1-SNAPSHOT.jar /opt/shenyu-custom-plugin.jar
+ADD target/shenyu-custom-plugin-2.7.0-SNAPSHOT.jar /opt/shenyu-custom-plugin.jar
 
 RUN ls -l

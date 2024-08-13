@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM alpine AS prepare
+FROM centos:7 AS prepare
 
 ARG APP_NAME
 
@@ -23,9 +23,10 @@ ENV LOCAL_PATH /opt/shenyu-bootstrap
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
-FROM openjdk:8-jre-alpine
+# FROM amazoncorretto:17.0.11-alpine3.19
+FROM eclipse-temurin:17-centos7
 
-RUN apk --no-cache add procps
+# RUN apk --no-cache add wget curl
 
 ENV LOCAL_PATH /opt/shenyu-bootstrap
 ENV BOOT_JVM ""

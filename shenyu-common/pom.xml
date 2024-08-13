@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.6.1-SNAPSHOT</version>
+        <version>2.7.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-common</artifactId>
@@ -49,7 +49,7 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-parameter-names</artifactId>
@@ -82,6 +82,11 @@
         <dependency>
             <groupId>io.projectreactor.netty</groupId>
             <artifactId>reactor-netty-http</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
         </dependency>
     </dependencies>
 </project>

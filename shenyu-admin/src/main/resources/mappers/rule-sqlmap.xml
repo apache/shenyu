@@ -335,6 +335,10 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
+    <update id="updateEnable">
+        UPDATE rule SET enabled = #{enabled, jdbcType=TINYINT} WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
     <delete id="delete" parameterType="java.lang.String">
         DELETE FROM rule
               WHERE id = #{id, jdbcType=VARCHAR}

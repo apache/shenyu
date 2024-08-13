@@ -76,9 +76,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*" # or health,info
-
-
+        include:
+          - 'health'
+          - 'info'
 shenyu:
   selectorMatchCache:
     ## selector L1 cache
@@ -94,7 +94,7 @@ shenyu:
   ruleMatchCache:
     ## rule L1 cache
     cache:
-      enabled: true
+      enabled: false
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 65536 # max size in cache
     ## rule L2 cache, use trie as L2 cache
@@ -110,7 +110,6 @@ shenyu:
       workerCount: 8
       accessLog: false
       serverSocketChannel:
-        soRcvBuf: 87380
         soBackLog: 128
         soReuseAddr: false
         connectTimeoutMillis: 10000
@@ -126,8 +125,6 @@ shenyu:
         soReuseAddr: false
         soLinger: -1
         tcpNoDelay: true
-        soRcvBuf: 87380
-        soSndBuf: 16384
         ipTos: 0
         allowHalfClosure: false
         connectTimeoutMillis: 10000
@@ -350,3 +347,4 @@ logging:
     org.springframework.web.reactive: info
     reactor.ipc.netty: info
     reactor.netty: info
+    org.apache.shenyu.plugin.api.ShenyuPlugin: info

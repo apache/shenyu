@@ -101,12 +101,15 @@ public class ProxySelectorVO implements Serializable {
 
     /**
      * ProxySelectorVO.
-     *
+     * @param id  id of the id
      * @param name name of the proxy
      * @param forwardPort forward port
      * @param type type of the proxy
      * @param listenerNode listener
      * @param handler handler
+     * @param discoveryHandlerId discoveryHandlerId
+     * @param createTime createTime
+     * @param updateTime updateTime
      * @param discovery discovery
      * @param discoveryUpstreams discoveryUpstreams
      * @param props props

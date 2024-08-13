@@ -27,7 +27,6 @@ jobs:
       matrix:
         case:
           - shenyu-integrated-test-k8s-ingress-http
-          - shenyu-integrated-test-k8s-ingress-alibaba-dubbo
           - shenyu-integrated-test-k8s-ingress-apache-dubbo
           - shenyu-integrated-test-k8s-ingress-motan
           - shenyu-integrated-test-k8s-ingress-spring-cloud
@@ -67,7 +66,7 @@ jobs:
       - uses: actions/setup-java@v3
         if: steps.filter.outputs.changed == 'true'
         with:
-          java-version: 8
+          java-version: 17
           distribution: 'temurin'
 
       - name: Install Go
@@ -94,7 +93,7 @@ jobs:
       - uses: actions/setup-java@v3
         if: steps.filter.outputs.changed == 'true'
         with:
-          java-version: 8
+          java-version: 17
           distribution: 'temurin'
 
       - name: Build with Maven

@@ -18,11 +18,14 @@
 package org.apache.shenyu.admin.model.entity;
 
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -89,6 +92,39 @@ public class ProxySelectorDO extends BaseDO {
             } else {
                 proxySelectorDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 proxySelectorDO.setDateCreated(currentTime);
+            }
+            return proxySelectorDO;
+        }).orElse(null);
+    }
+
+    /**
+     * buildProxySelectorDO.
+     *
+     * @param proxySelectorData proxySelectorData
+     * @return ProxySelectorDO
+     */
+    public static ProxySelectorDO buildProxySelectorDO(final ProxySelectorData proxySelectorData) {
+
+        return Optional.ofNullable(proxySelectorData).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            ProxySelectorDO proxySelectorDO = ProxySelectorDO.builder()
+                    .name(item.getName())
+                    .pluginName(PluginEnum.TCP.getName())
+                    .forwardPort(item.getForwardPort())
+                    .type(item.getType())
+                    .props(JsonUtils.toJson(item.getProps()))
+                    .dateUpdated(currentTime).build();
+            if (StringUtils.hasLength(item.getId())) {
+                proxySelectorDO.setId(item.getId());
+            } else {
+                proxySelectorDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                proxySelectorDO.setDateCreated(currentTime);
+            }
+            if (Objects.isNull(proxySelectorDO.getDateCreated())) {
+                proxySelectorDO.setDateCreated(currentTime);
+            }
+            if (Objects.isNull(proxySelectorDO.getDateUpdated())) {
+                proxySelectorDO.setDateUpdated(currentTime);
             }
             return proxySelectorDO;
         }).orElse(null);

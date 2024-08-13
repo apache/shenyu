@@ -152,10 +152,10 @@ public class ConsulSyncDataService extends AbstractPathDataSyncService {
                         //data has not changed
                         return;
                     }
-                    if (!Objects.isNull(lastDatas)) {
+                    if (Objects.nonNull(lastDatas)) {
                         final ConsulData consulData = lastDatas.stream()
                                 .filter(lastData -> data.getKey().equals(lastData.getConsulKey())).findFirst().orElse(null);
-                        if (!Objects.isNull(consulData) && !StringUtils.isBlank(consulData.getConsulDataMd5())
+                        if (Objects.nonNull(consulData) && !StringUtils.isBlank(consulData.getConsulDataMd5())
                                 && consulData.getConsulDataMd5().equals(DigestUtils.md5Hex(data.getValue()))) {
                             return;
                         }

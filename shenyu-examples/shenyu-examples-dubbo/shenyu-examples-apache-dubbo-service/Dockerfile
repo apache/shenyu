@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:8-jre-alpine
+FROM amazoncorretto:17.0.11-alpine3.19
 
 ENV APP_NAME shenyu-examples-apache-dubbo-service
 ENV LOCAL_PATH /opt/${APP_NAME}

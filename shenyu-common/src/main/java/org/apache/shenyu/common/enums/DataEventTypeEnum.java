@@ -48,6 +48,11 @@ public enum DataEventTypeEnum {
     REFRESH,
 
     /**
+     * RUNNING_MODE data event type enum.
+     */
+    RUNNING_MODE,
+
+    /**
      * Myself data event type enum.
      */
     MYSELF;

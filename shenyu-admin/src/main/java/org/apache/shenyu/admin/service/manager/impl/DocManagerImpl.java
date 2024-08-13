@@ -28,7 +28,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.google.gson.JsonObject;
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.bean.DocInfo;
@@ -154,7 +154,7 @@ public class DocManagerImpl implements DocManager {
             docInfo.setContextPath(contexPath);
             return docInfo;
         } catch (Exception e) {
-            LOG.error("getDocInfo clusterName={} error={} ", clusterName, e);
+            LOG.error("getDocInfo clusterName={} error", clusterName, e);
             return null;
         }
     }

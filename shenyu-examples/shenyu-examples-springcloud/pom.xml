@@ -22,15 +22,15 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-examples</artifactId>
-        <version>2.6.1-SNAPSHOT</version>
+        <version>2.7.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-examples-springcloud</artifactId>
 
     <properties>
-        <spring-cloud.version>3.1.2</spring-cloud.version>
+        <spring-cloud.version>4.1.2</spring-cloud.version>
         <nacos-discovery.version>2021.0.1.0</nacos-discovery.version>
-        <eureka-client.version>3.1.2</eureka-client.version>
+        <eureka-client.version>4.1.2</eureka-client.version>
     </properties>
 
     <dependencies>

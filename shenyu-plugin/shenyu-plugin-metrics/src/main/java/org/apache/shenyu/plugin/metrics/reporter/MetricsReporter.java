@@ -29,9 +29,9 @@ import java.util.Optional;
  * Metrics reporter.
  */
 public final class MetricsReporter {
-    
+
     private static MetricsRegister metricsRegister;
-    
+
     /**
      * Register.
      *
@@ -43,8 +43,14 @@ public final class MetricsReporter {
         MetricsReporter.registerCounter(LabelNames.REQUEST_TYPE_TOTAL, new String[]{"path", "type"}, "shenyu http request type total count");
         MetricsReporter.registerCounter(LabelNames.REQUEST_THROW_TOTAL, "shenyu request error total count");
         MetricsReporter.registerHistogram(LabelNames.EXECUTE_LATENCY_NAME, "the shenyu executor latency millis");
+        MetricsReporter.registerCounter(LabelNames.SENTINEL_REQUEST_RESTRICT_TOTAL, "shenyu sentinel request restrict total count");
+        MetricsReporter.registerCounter(LabelNames.SENTINEL_REQUEST_CIRCUITBREAKER_TOTAL, "shenyu sentinel circuitbreaker request total count");
+        MetricsReporter.registerCounter(LabelNames.RESILIENCE4J_REQUEST_RESTRICT_TOTAL, "shenyu resilience4j request restrict total count");
+        MetricsReporter.registerCounter(LabelNames.RESILIENCE4J_REQUEST_CIRCUITBREAKER_TOTAL, "shenyu resilience4j circuitbreaker request total count");
+        MetricsReporter.registerCounter(LabelNames.HYSTRIX_REQUEST_CIRCUITBREAKER_TOTAL, "shenyu hystrix circuitbreaker request total count");
+        MetricsReporter.registerCounter(LabelNames.RATELIMITER_REQUEST_RESTRICT_TOTAL, "shenyu ratelimiter request restrict total count");
     }
-    
+
     /**
      * Register metrics.
      *
@@ -67,7 +73,7 @@ public final class MetricsReporter {
             }
         }
     }
-    
+
     /**
      * Register counter.
      *
@@ -78,7 +84,7 @@ public final class MetricsReporter {
     public static void registerCounter(final String name, final String[] labelNames, final String document) {
         Optional.ofNullable(metricsRegister).ifPresent(register -> register.registerCounter(name, labelNames, document));
     }
-    
+
     /**
      * Register counter.
      *
@@ -88,7 +94,7 @@ public final class MetricsReporter {
     public static void registerCounter(final String name, final String document) {
         registerCounter(name, null, document);
     }
-    
+
     /**
      * Register gauge.
      *
@@ -99,7 +105,7 @@ public final class MetricsReporter {
     public static void registerGauge(final String name, final String[] labelNames, final String document) {
         Optional.ofNullable(metricsRegister).ifPresent(register -> register.registerGauge(name, labelNames, document));
     }
-    
+
     /**
      * Register gauge.
      *
@@ -109,7 +115,7 @@ public final class MetricsReporter {
     public static void registerGauge(final String name, final String document) {
         registerGauge(name, null, document);
     }
-    
+
     /**
      * Register histogram by label names.
      *
@@ -120,7 +126,7 @@ public final class MetricsReporter {
     public static void registerHistogram(final String name, final String[] labelNames, final String document) {
         Optional.ofNullable(metricsRegister).ifPresent(register -> register.registerHistogram(name, labelNames, document));
     }
-    
+
     /**
      * Register histogram.
      *
@@ -130,7 +136,7 @@ public final class MetricsReporter {
     public static void registerHistogram(final String name, final String document) {
         registerHistogram(name, null, document);
     }
-    
+
     /**
      * Counter increment.
      *
@@ -140,7 +146,7 @@ public final class MetricsReporter {
     public static void counterIncrement(final String name, final String[] labelValues) {
         counterIncrement(name, labelValues, 1);
     }
-    
+
     /**
      * Counter increment.
      *
@@ -149,7 +155,7 @@ public final class MetricsReporter {
     public static void counterIncrement(final String name) {
         counterIncrement(name, null, 1);
     }
-    
+
     /**
      * Counter increment by count.
      *
@@ -160,7 +166,7 @@ public final class MetricsReporter {
     public static void counterIncrement(final String name, final String[] labelValues, final long count) {
         Optional.ofNullable(metricsRegister).ifPresent(register -> register.counterIncrement(name, labelValues, count));
     }
-    
+
     /**
      * Gauge increment.
      *
@@ -170,7 +176,7 @@ public final class MetricsReporter {
     public static void gaugeIncrement(final String name, final String[] labelValues) {
         Optional.ofNullable(metricsRegister).ifPresent(register -> register.gaugeIncrement(name, labelValues));
     }
-    
+
     /**
      * Gauge increment.
      *
@@ -179,7 +185,7 @@ public final class MetricsReporter {
     public static void gaugeIncrement(final String name) {
         gaugeIncrement(name, null);
     }
-    
+
     /**
      * Gauge decrement.
      *
@@ -189,7 +195,7 @@ public final class MetricsReporter {
     public static void gaugeDecrement(final String name, final String[] labelValues) {
         Optional.ofNullable(metricsRegister).ifPresent(register -> register.gaugeDecrement(name, labelValues));
     }
-    
+
     /**
      * Gauge decrement.
      *
@@ -198,7 +204,7 @@ public final class MetricsReporter {
     public static void gaugeDecrement(final String name) {
         gaugeDecrement(name, null);
     }
-    
+
     /**
      * Record time by duration.
      *
@@ -209,7 +215,7 @@ public final class MetricsReporter {
     public static void recordTime(final String name, final String[] labelValues, final long duration) {
         Optional.ofNullable(metricsRegister).ifPresent(register -> register.recordTime(name, labelValues, duration));
     }
-    
+
     /**
      * Record time by duration.
      *
@@ -219,7 +225,7 @@ public final class MetricsReporter {
     public static void recordTime(final String name, final long duration) {
         recordTime(name, null, duration);
     }
-    
+
     /**
      * Clean.
      */
@@ -227,7 +233,7 @@ public final class MetricsReporter {
         Optional.ofNullable(metricsRegister).ifPresent(MetricsRegister::clean);
         metricsRegister = null;
     }
-    
+
     private static String[] getLabelNames(final List<String> labels) {
         return labels.toArray(new String[0]);
     }
