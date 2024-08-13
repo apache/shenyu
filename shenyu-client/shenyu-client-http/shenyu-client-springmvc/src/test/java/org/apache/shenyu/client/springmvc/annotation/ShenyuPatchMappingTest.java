@@ -60,8 +60,8 @@ public class ShenyuPatchMappingTest {
             assertEquals(requestMapping.path()[0], "/patch");
             ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
             assertNotNull(shenyuSpringMvcClient);
-            assertEquals(shenyuSpringMvcClient.value(), "/patch");
-            assertEquals(shenyuSpringMvcClient.path(), "/patch");
+            assertEquals(shenyuSpringMvcClient.value()[0], "/patch");
+            assertEquals(shenyuSpringMvcClient.path()[0], "/patch");
             assertEquals(shenyuSpringMvcClient.ruleName(), "divide");
             assertFalse(shenyuSpringMvcClient.enabled());
             assertEquals(shenyuSpringMvcClient.desc(), "it`s test.");

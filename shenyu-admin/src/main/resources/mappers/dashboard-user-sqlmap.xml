@@ -26,6 +26,7 @@
         <result column="password" jdbcType="VARCHAR" property="password"/>
         <result column="role" jdbcType="INTEGER" property="role"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
+        <result column="client_id" jdbcType="VARCHAR" property="clientId"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -35,7 +36,8 @@
         user_name,
         password,
         role,
-        enabled
+        enabled,
+        client_id
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -112,7 +114,8 @@
                     user_name,
                     password,
                     role,
-                    enabled)
+                    enabled,
+                    client_id)
              VALUES
                     (#{id, jdbcType=VARCHAR},
                     #{dateCreated, jdbcType=TIMESTAMP},
@@ -120,7 +123,8 @@
                     #{userName, jdbcType=VARCHAR},
                     #{password, jdbcType=VARCHAR},
                     #{role, jdbcType=INTEGER},
-                    #{enabled, jdbcType=TINYINT})
+                    #{enabled, jdbcType=TINYINT},
+                    #{clientId, jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
@@ -145,6 +149,9 @@
             <if test="enabled != null">
                 enabled,
             </if>
+            <if test="clientId != null">
+                client_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
                 #{id, jdbcType=VARCHAR},
@@ -166,6 +173,9 @@
             <if test="enabled != null">
                 #{enabled, jdbcType=TINYINT},
             </if>
+            <if test="clientId != null">
+                #{clientId, jdbcType=VARCHAR},
+            </if>
         </trim>
     </insert>
 
@@ -177,7 +187,8 @@
                 user_name = #{userName, jdbcType=VARCHAR},
                 password = #{password, jdbcType=VARCHAR},
                 role = #{role, jdbcType=INTEGER},
-                enabled = #{enabled, jdbcType=TINYINT}
+                enabled = #{enabled, jdbcType=TINYINT},
+                client_id = #{clientId, jdbcType=VARCHAR}
           WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
@@ -201,6 +212,9 @@
             </if>
             <if test="enabled != null">
                 enabled = #{enabled, jdbcType=TINYINT},
+            </if>
+            <if test="clientId != null">
+                client_id = #{clientId, jdbcType=VARCHAR},
             </if>
         </set>
          WHERE id = #{id, jdbcType=VARCHAR}

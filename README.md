@@ -45,6 +45,9 @@
   <a target="_blank" href="https://hub.docker.com/r/apache/shenyu-bootstrap/tags">
     <image src="https://img.shields.io/docker/pulls/apache/shenyu-bootstrap" alt="Docker Pulls"/>
   </a>
+  <a target="_blank" href="https://gitpod.io/#https://github.com/apache/shenyu">
+    <image src="https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod&color=green"/>
+  </a>
 </p>
 <br/>
 

@@ -187,7 +187,13 @@ public enum EventTypeEnum {
     /**
      * user update.
      */
-    USER_UPDATE("UPDATE:User", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR);
+    USER_UPDATE("UPDATE:User", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
+
+
+    /**
+     * local discovery upstream update.
+     */
+    LOCAL_DISCOVERY_UPSTREAM_UPDATE("UPDATE:LocalDiscoveryUpstream", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR);
     
     /**
      * type name.

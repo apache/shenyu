@@ -43,6 +43,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.PluginRoleEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.k8s.cache.IngressCache;
 import org.apache.shenyu.k8s.cache.IngressSecretCache;
 import org.apache.shenyu.k8s.cache.IngressSelectorCache;
@@ -312,7 +313,10 @@ public class IngressReconciler implements Reconciler {
             zookeeperUrl = annotations.get(IngressConstants.ZOOKEEPER_REGISTER_ADDRESS);
         } else {
             Lister<V1Endpoints> endpointsLister = ingressParser.getEndpointsLister();
-            V1Endpoints v1Endpoints = endpointsLister.namespace(request.getNamespace()).get(zookeeperK8sIpUrl);
+            LOG.info("endpointsLister:{}", JsonUtils.toJson(endpointsLister));
+            Lister<V1Endpoints> namespace = endpointsLister.namespace(request.getNamespace());
+            LOG.info("namespace:{}", JsonUtils.toJson(namespace));
+            V1Endpoints v1Endpoints = namespace.get(zookeeperK8sIpUrl);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints do not have subsets");

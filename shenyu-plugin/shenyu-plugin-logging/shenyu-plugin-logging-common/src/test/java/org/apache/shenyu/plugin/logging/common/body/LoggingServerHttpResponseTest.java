@@ -89,7 +89,7 @@ public class LoggingServerHttpResponseTest {
         exchange.getAttributes().put(GenericLoggingConstant.SHENYU_AGENT_TRACE_ID, "shenyu-agent-trace-id");
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
         requestInfo.setRequestUri(serverHttpRequest.getURI().toString());
-        requestInfo.setMethod(serverHttpRequest.getMethodValue());
+        requestInfo.setMethod(serverHttpRequest.getMethod().name());
         requestInfo.setRequestHeader(LogCollectUtils.getHeaders(serverHttpRequest.getHeaders()));
         requestInfo.setQueryParams(serverHttpRequest.getURI().getQuery());
         requestInfo.setClientIp(HostAddressUtils.acquireIp(exchange));

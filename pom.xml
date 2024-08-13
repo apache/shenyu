@@ -80,7 +80,7 @@
     </issueManagement>
 
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skipTests>false</skipTests>
         <!-- maven plugin version start -->
@@ -106,7 +106,7 @@
 
         <!-- dependency version start -->
         <jasypt.version>1.9.2</jasypt.version>
-        <mybatis.starter.version>2.2.2</mybatis.starter.version>
+        <mybatis.starter.version>3.0.3</mybatis.starter.version>
         <mysql.version>8.0.29</mysql.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <guava.version>32.0.0-jre</guava.version>
@@ -118,54 +118,55 @@
         <protostuff.version>1.0.8</protostuff.version>
         <kryo.version>4.0.0</kryo.version>
         <pagehelper.version>5.3.3</pagehelper.version>
-        <apache.dubbo.version>3.2.11</apache.dubbo.version>
+        <apache.dubbo.version>3.2.14</apache.dubbo.version>
         <gson.version>2.9.0</gson.version>
         <okhttp.version>4.9.3</okhttp.version>
         <prometheus-java-client.version>0.15.0</prometheus-java-client.version>
         <prometheus-jmx.version>0.15.0</prometheus-jmx.version>
-        <springdoc.version>1.7.0</springdoc.version>
-        <sofa.rpc.version>5.12.0</sofa.rpc.version>
+        <springdoc.version>2.5.0</springdoc.version>
+        <sofa.rpc.version>5.13.0</sofa.rpc.version>
+        <sofa-common-tools.version>2.1.1</sofa-common-tools.version>
         <tars.version>1.7.2</tars.version>
-        <curator.version>4.3.0</curator.version>
-        <wiremock.version>2.18.0</wiremock.version>
-        <zookeeper.version>3.7.2</zookeeper.version>
+        <curator.version>5.7.0</curator.version>
+        <wiremock.version>3.0.1</wiremock.version>
+        <zookeeper.version>3.9.2</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
         <shiro.version>1.13.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
         <motan.version>1.2.1</motan.version>
-        <spring-boot.version>2.7.17</spring-boot.version>
+        <spring-boot.version>3.3.1</spring-boot.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
         <jetcd-core.version>0.7.3</jetcd-core.version>
         <java-websocket.version>1.5.0</java-websocket.version>
-        <mockito.version>3.5.15</mockito.version>
+        <mockito.version>5.11.0</mockito.version>
         <awaitility.version>4.0.3</awaitility.version>
         <commons-io.version>2.11.0</commons-io.version>
-        <nacos-client.version>2.0.4</nacos-client.version>
-        <spring-security.version>5.3.10.RELEASE</spring-security.version>
-        <grpc.version>1.53.0</grpc.version>
+        <nacos-client.version>2.2.4</nacos-client.version>
+        <spring-security.version>6.3.0</spring-security.version>
+        <grpc.version>1.65.1</grpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>
         <pulsar-client.version>2.10.1</pulsar-client.version>
         <lz4-java.version>1.8.0</lz4-java.version>
         <elasticsearch-java.version>8.2.3</elasticsearch-java.version>
-        <jackson-databind.version>2.12.3</jackson-databind.version>
+        <jackson-databind.version>2.15.3</jackson-databind.version>
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
         <kafka-clients.version>3.4.0</kafka-clients.version>
         <amqp-client.version>5.16.0</amqp-client.version>
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
-        <eureka.version>1.10.17</eureka.version>
+        <eureka.version>2.0.2</eureka.version>
         <javatuples.version>1.2</javatuples.version>
         <k8s-client.version>17.0.2</k8s-client.version>
         <polaris.version>1.13.0</polaris.version>
         <bytebuddy.version>1.14.11</bytebuddy.version>
         <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
         <jaxb.api.version>2.3.1</jaxb.api.version>
-        <mail.version>1.6.2</mail.version>
+        <mail-api.version>2.1.3</mail-api.version>
+        <mail.version>2.0.1</mail.version>
         <ojdbc8.version>19.3.0.0</ojdbc8.version>
-        <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>
-        <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
-        <spring-cloud.version>3.1.2</spring-cloud.version>
+        <spring-cloud-commons.version>4.1.2</spring-cloud-commons.version>
+        <spring-cloud.version>4.1.2</spring-cloud.version>
         <log4j-1.2-api.vetsion>2.17.2</log4j-1.2-api.vetsion>
         <caffeine.version>2.9.3</caffeine.version>
         <httpasyncclient.version>4.1.5</httpasyncclient.version>
@@ -182,7 +183,7 @@
         <huawei-log-sdk.version>1.0.1</huawei-log-sdk.version>
         <opengauss-jdbc.version>5.0.0-og</opengauss-jdbc.version>
         <wasmtime-java.version>0.19.0</wasmtime-java.version>
-        <bcprov-jdk18on.version>1.77</bcprov-jdk18on.version>
+        <bcprov-jdk18on.version>1.78</bcprov-jdk18on.version>
         <!-- dependency version end -->
     </properties>
 
@@ -201,14 +202,6 @@
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm-tree</artifactId>
                 <version>${asm.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.alibaba.cloud</groupId>
-                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
-                <version>${spring-cloud-alibaba.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
             </dependency>
 
             <dependency>
@@ -406,7 +399,7 @@
 
             <dependency>
                 <groupId>org.springdoc</groupId>
-                <artifactId>springdoc-openapi-ui</artifactId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
                 <version>${springdoc.version}</version>
             </dependency>
 
@@ -423,14 +416,20 @@
             </dependency>
 
             <dependency>
-                <groupId>javax.mail</groupId>
-                <artifactId>javax.mail-api</artifactId>
-                <version>${mail.version}</version>
+                <groupId>jakarta.mail</groupId>
+                <artifactId>jakarta.mail-api</artifactId>
+                <version>${mail-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.sun.mail</groupId>
-                <artifactId>javax.mail</artifactId>
+                <artifactId>jakarta.mail</artifactId>
                 <version>${mail.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-client</artifactId>
+                <version>${curator.version}</version>
             </dependency>
 
             <dependency>
@@ -633,21 +632,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-inline</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
             <version>${awaitility.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>${jaxb.api.version}</version>
         </dependency>
 
     </dependencies>
@@ -795,6 +783,8 @@
                         <exclude>**/.mvn/wrapper/maven-wrapper.properties</exclude>
                         <!-- GitHub files -->
                         <exclude>**/.github/**</exclude>
+                        <!-- Gitpod files -->
+                        <exclude>**/.gitpod.yml</exclude>
                         <!-- document files -->
                         <exclude>**/*.md</exclude>
                         <excldue>**/*.MD</excldue>

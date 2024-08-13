@@ -53,18 +53,37 @@ for sync in ${SYNC_ARRAY[@]}; do
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:30884/actuator/health
   sleep 10s
   kubectl get pod -o wide
+  sleep 30s
+
+  for loop in `seq 1 30`
+  do
+    app_count=$(curl -s -X GET http://localhost:30761/eureka/apps | grep "<application>" | wc -l | xargs)
+    echo "http://localhost:30761/eureka/apps app count ${app_count}"
+    if [ $app_count -gt 1  ]; then
+        break
+    fi
+    sleep 2
+  done
+
+  sleep 30s
 
   ## run e2e-test
   ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test
   # shellcheck disable=SC2181
   if (($?)); then
     echo "${sync}-sync-e2e-test failed"
+    echo "shenyu-examples-springcloud log:"
+    echo "------------------"
+    kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-springcloud | awk '{print $1}')"
     echo "shenyu-admin log:"
     echo "------------------"
     kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
     echo "shenyu-bootstrap log:"
     echo "------------------"
     kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
+    echo "shenyu-examples-springcloud log:"
+    echo "------------------"
+    kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-springcloud | awk '{print $1}')"
     exit 1
   fi
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-mysql.yml

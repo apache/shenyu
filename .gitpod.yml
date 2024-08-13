@@ -1,0 +1,51 @@
+additionalRepositories:
+    - url: https://github.com/apache/shenyu-dashboard.git
+      checkoutLocation: frontend
+
+tasks:
+
+    - name: Run backend
+      before: cd ./shenyu-admin
+      command: |
+          gp sync-await setup-backend
+          mvn spring-boot:run
+
+    - name: Run frontend
+      before: cd ../frontend
+      command: |
+          gp sync-await setup-frontend && gp ports await 9095
+          npm start
+      openMode: split-right
+
+    - name: Setup backend
+      init: |
+          sdk install java 17.0.11.fx-zulu < /dev/null
+          sdk default java 17.0.11.fx-zulu < /dev/null
+          mvn clean install -DskipTests
+      command: |
+          gp sync-done setup-backend
+          exit 0
+
+    - name: Setup frontend
+      before: cd ../frontend
+      init: |
+          npm install
+      command: |
+          gp sync-done setup-frontend
+          exit 0
+      openMode: split-right
+
+vscode:
+    extensions:
+        - vscjava.vscode-java-pack
+        - editorconfig.editorconfig
+        - dbaeumer.vscode-eslint
+        - stylelint.vscode-stylelint
+        - DavidAnson.vscode-markdownlint
+        - ms-azuretools.vscode-docker
+        - cweijan.vscode-database-client2
+        - GitHub.vscode-pull-request-github
+
+ports:
+    - port: 9095
+      onOpen: ignore
