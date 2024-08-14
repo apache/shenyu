@@ -16,7 +16,7 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN" "http://checkstyle.sourceforge.net/dtds/configuration_1_3.dtd">
+<!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN" "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <module name = "Checker">
     <property name="charset" value="UTF-8"/>
     <property name="severity" value="error"/>
@@ -50,7 +50,12 @@
         <property name="format" value="\.printStackTrace"/>
         <property name="message" value="Prohibit invoking .printStackTrace in source code ! Please use org.slf4j.Logger and write log instead."/>
     </module>
-
+    
+    <module name="LineLength">
+        <property name="max" value="200"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    </module>
+    
     <module name="TreeWalker">
 
         <!-- Naming Conventions -->
@@ -87,10 +92,7 @@
             <property name="tokens" value="METHOD_DEF" />
             <property name="max" value="80" />
         </module>
-        <module name="LineLength">
-            <property name="max" value="200"/>
-            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-        </module>
+        
         <module name="OuterTypeNumber"/>
 
         <!-- Whitespace -->
@@ -251,9 +253,8 @@
         <module name="SingleLineJavadoc"/>
         <module name="SummaryJavadoc"/>
         <module name="JavadocMethod">
-            <property name="scope" value="public"/>
+            <property name="accessModifiers" value="public"/>
             <property name="allowedAnnotations" value="Override, Test, Before, After, BeforeClass, AfterClass, Parameterized, Parameters, BeforeEach, AfterEach, BeforeAll, AfterAll, ParameterizedTest, TestMethodOrder"/>
-            <property name="ignoreMethodNamesRegex" value="^assert.*$|^verify.*$"/>
             <property name="tokens" value="METHOD_DEF, ANNOTATION_FIELD_DEF"/>
         </module>
 
