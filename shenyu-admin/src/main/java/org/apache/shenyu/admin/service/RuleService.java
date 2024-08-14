@@ -91,17 +91,19 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * delete rules.
      *
      * @param ids primary key.
+     * @param namespaceId namespaceId.
      * @return rows int
      */
-    int delete(List<String> ids);
+    int delete(List<String> ids, String namespaceId);
 
     /**
      * find rule by id.
      *
      * @param id primary key.
+     * @param namespaceId namespaceId.
      * @return {@linkplain RuleVO}
      */
-    RuleVO findById(String id);
+    RuleVO findByIdAndNamespaceId(String id, String namespaceId);
 
     /**
      * find page of rule by query.
@@ -170,7 +172,8 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      *
      * @param ids     the ids
      * @param enabled the enable
+     * @param namespaceId namespaceId.
      * @return the result
      */
-    Boolean enabled(List<String> ids, Boolean enabled);
+    Boolean enabled(List<String> ids, Boolean enabled, String namespaceId);
 }

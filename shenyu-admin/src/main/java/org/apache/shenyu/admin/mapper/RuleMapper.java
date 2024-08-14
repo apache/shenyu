@@ -47,9 +47,10 @@ public interface RuleMapper extends ExistProvider {
      * select rule by id.
      *
      * @param id primary key.
+     * @param namespaceId namespaceId.
      * @return {@linkplain RuleDO}
      */
-    RuleDO selectById(String id);
+    RuleDO selectByIdAndNamespaceId(String id, String namespaceId);
 
     /**
      * select rule by query.

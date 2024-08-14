@@ -175,7 +175,8 @@ public class ApiServiceImpl implements ApiService {
             ruleService.delete(rules.stream()
                     .map(RuleVO::getId)
                     .distinct()
-                    .collect(Collectors.toList()));
+                    // todo:[To be refactored with namespace]  Temporarily  hardcode
+                    .collect(Collectors.toList()),SYS_DEFAULT_NAMESPACE_ID);
         }
         //clean selector
         List<SelectorDO> selectorDOList = selectorService.findByNameAndPluginNames(apiDO.getContextPath(), PluginEnum.getUpstreamNames());

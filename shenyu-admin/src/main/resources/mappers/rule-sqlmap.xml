@@ -46,11 +46,12 @@
         handle
     </sql>
 
-    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectByIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM rule
          WHERE id = #{id, jdbcType=VARCHAR}
+         AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <select id="findByName" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -169,6 +170,9 @@
                     where data_id = rule.id
                         and user_id = #{condition.userId})
             </if>
+            <if test="condition.namespaceId != null and condition.namespaceId != ''">
+                AND namespace_id = #{condition.namespaceId, jdbcType=VARCHAR}
+            </if>
         </where>
     </select>
 
@@ -247,6 +251,9 @@
             <if test="handle != null">
                 handle,
             </if>
+            <if test="namespaceId != null">
+                namespace_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             #{id, jdbcType=VARCHAR},
@@ -279,6 +286,9 @@
             </if>
             <if test="handle != null">
                 #{handle, jdbcType=VARCHAR},
+            </if>
+            <if test="namespaceId != null">
+                #{namespaceId, jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -333,6 +343,7 @@
             </if>
         </set>
         WHERE id = #{id, jdbcType=VARCHAR}
+        AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </update>
 
     <update id="updateEnable">

@@ -126,7 +126,7 @@ public final class RuleServiceTest {
     public void testDelete() {
         publishEvent();
         RuleDO ruleDO = buildRuleDO("123");
-        given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
+        given(this.ruleMapper.selectByIdAndNamespaceId("123", SYS_DEFAULT_NAMESPACE_ID)).willReturn(ruleDO);
         final List<String> ids = Collections.singletonList(ruleDO.getId());
         given(this.ruleMapper.deleteByIds(ids)).willReturn(ids.size());
         assertEquals(this.ruleService.delete(ids), ids.size());
@@ -135,12 +135,12 @@ public final class RuleServiceTest {
     @Test
     public void testFindById() {
         RuleDO ruleDO = buildRuleDO("123");
-        given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
+        given(this.ruleMapper.selectByIdAndNamespaceId("123", SYS_DEFAULT_NAMESPACE_ID)).willReturn(ruleDO);
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
         given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
         RuleVO ruleVO = buildRuleVO();
-        final RuleVO ruleVOById = this.ruleService.findById("123");
+        final RuleVO ruleVOById = this.ruleService.findByIdAndNamespaceId("123", SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(ruleVOById);
         assertEquals(ruleVOById.getId(), ruleVO.getId());
     }
@@ -294,7 +294,7 @@ public final class RuleServiceTest {
 
     private void testUpdate() {
         RuleDTO ruleDTO = buildRuleDTO("123");
-        given(this.ruleMapper.selectById("123")).willReturn(RuleDO.builder().id("123").build());
+        given(this.ruleMapper.selectByIdAndNamespaceId("123", SYS_DEFAULT_NAMESPACE_ID)).willReturn(RuleDO.builder().id("123").build());
         given(this.ruleMapper.updateSelective(any())).willReturn(1);
         assertThat(this.ruleService.createOrUpdate(ruleDTO), greaterThan(0));
     }
