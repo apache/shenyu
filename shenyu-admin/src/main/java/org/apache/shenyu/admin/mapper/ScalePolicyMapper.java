@@ -21,6 +21,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.shenyu.admin.model.entity.ScalePolicyDO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
+import java.util.List;
+
 /**
  * ScalePolicy Mapper.
  */
@@ -74,4 +76,11 @@ public interface ScalePolicyMapper extends ExistProvider {
      * @return int
      */
     int updateByPrimaryKey(ScalePolicyDO row);
+
+    /**
+     * select all.
+     *
+     * @return List
+     */
+    List<ScalePolicyDO> selectAll();
 }

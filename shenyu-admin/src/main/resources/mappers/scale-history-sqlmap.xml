@@ -147,4 +147,9 @@
       date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=VARCHAR}
   </update>
+  <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.ScaleHistoryDO" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM scale_history
+  </select>
 </mapper>

@@ -55,6 +55,14 @@ public interface ScaleRuleMapper extends ExistProvider {
     int deleteByPrimaryKey(String id);
 
     /**
+     * delete.
+     *
+     * @param ids ids
+     * @return int
+     */
+    int delete(List<String> ids);
+
+    /**
      * insert.
      *
      * @param row row
@@ -101,4 +109,11 @@ public interface ScaleRuleMapper extends ExistProvider {
      * @return int
      */
     int updateByPrimaryKey(ScaleRuleDO row);
+
+    /**
+     * select all.
+     *
+     * @return List
+     */
+    List<ScaleRuleDO> selectAll();
 }

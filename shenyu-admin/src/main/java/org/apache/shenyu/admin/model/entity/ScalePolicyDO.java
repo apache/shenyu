@@ -17,9 +17,16 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.dto.ScalePolicyDTO;
+import org.apache.shenyu.common.utils.UUIDUtils;
+
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Table: scale_policy.
@@ -219,6 +226,37 @@ public final class ScalePolicyDO extends BaseDO {
      */
     public static ScalePolicyDO.ScalePolicyDOBuilder builder() {
         return new ScalePolicyDO.ScalePolicyDOBuilder();
+    }
+
+    /**
+     * buildScalePolicyDO.
+     *
+     * @param scalePolicyDTO scalePolicyDTO
+     * @return ScalePolicyDO
+     */
+    public static ScalePolicyDO buildScalePolicyDO(final ScalePolicyDTO scalePolicyDTO) {
+        return Optional.ofNullable(scalePolicyDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            try {
+                ScalePolicyDO scalePolicyDO = ScalePolicyDO.builder()
+                        .sort(item.getSort())
+                        .status(item.getStatus())
+                        .num(item.getNum())
+                        .beginTime(new SimpleDateFormat("yyyy-MM-dd").parse(item.getBeginTime()))
+                        .endTime(new SimpleDateFormat("yyyy-MM-dd").parse(item.getEndTime()))
+                        .dateUpdated(currentTime)
+                        .build();
+                if (StringUtils.isEmpty(item.getId())) {
+                    scalePolicyDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                    scalePolicyDO.setDateCreated(currentTime);
+                } else {
+                    scalePolicyDO.setId(item.getId());
+                }
+                return scalePolicyDO;
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
+        }).orElse(null);
     }
 
     public static final class ScalePolicyDOBuilder {

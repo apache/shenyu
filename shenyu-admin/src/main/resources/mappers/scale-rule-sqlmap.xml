@@ -206,4 +206,16 @@
     where id = #{id}
     limit 1
   </select>
+  <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.ScaleRuleDO" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM scale_rule
+  </select>
+  <delete id="delete" parameterType="java.util.List">
+    DELETE FROM scale_rule
+    WHERE id IN
+    <foreach item="id" collection="list" open="(" separator="," close=")">
+      #{id, jdbcType=VARCHAR}
+    </foreach>
+  </delete>
 </mapper>

@@ -23,7 +23,6 @@ import org.apache.shenyu.admin.model.entity.ScalePolicyDO;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test cases for ScalePolicyMapper.

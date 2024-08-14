@@ -17,9 +17,14 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.dto.ScaleRuleDTO;
+import org.apache.shenyu.common.utils.UUIDUtils;
+
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Table: scale_rule.
@@ -211,6 +216,43 @@ public final class ScaleRuleDO extends BaseDO {
      */
     public void setMaximum(final String maximum) {
         this.maximum = maximum;
+    }
+
+    /**
+     * builder.
+     *
+     * @return ScaleRuleDOBuilder
+     */
+    public static ScaleRuleDO.ScaleRuleDOBuilder builder() {
+        return new ScaleRuleDO.ScaleRuleDOBuilder();
+    }
+
+    /**
+     * build ScaleRuleDO.
+     *
+     * @param scaleRuleDTO scaleRuleDTO
+     * @return ScaleRuleDO
+     */
+    public static ScaleRuleDO buildScaleRuleDO(final ScaleRuleDTO scaleRuleDTO) {
+        return Optional.ofNullable(scaleRuleDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            ScaleRuleDO scaleRuleDO = ScaleRuleDO.builder()
+                    .metricName(item.getMetricName())
+                    .type(item.getType())
+                    .sort(item.getSort())
+                    .status(item.getStatus())
+                    .minimum(item.getMinimum())
+                    .maximum(item.getMaximum())
+                    .dateUpdated(currentTime)
+                    .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                scaleRuleDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                scaleRuleDO.setDateCreated(currentTime);
+            } else {
+                scaleRuleDO.setId(item.getId());
+            }
+            return scaleRuleDO;
+        }).orElse(null);
     }
 
     @Override

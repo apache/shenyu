@@ -21,6 +21,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.shenyu.admin.model.entity.ScaleHistoryDO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
+import java.util.List;
+
 /**
  * ScaleHistory Mapper.
  */
@@ -81,4 +83,12 @@ public interface ScaleHistoryMapper extends ExistProvider {
      * @return int
      */
     int updateByPrimaryKey(ScaleHistoryDO row);
+
+
+    /**
+     * select all.
+     *
+     * @return List
+     */
+    List<ScaleHistoryDO> selectAll();
 }
