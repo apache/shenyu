@@ -36,7 +36,6 @@ public class RecordLogQueryCondition extends BaseExcludedSearchCondition impleme
      */
     private String keyword;
     
-    
     /**
      * log type.
      */
@@ -71,7 +70,6 @@ public class RecordLogQueryCondition extends BaseExcludedSearchCondition impleme
     public String getKeyword() {
         return keyword;
     }
-    
     
     /**
      * get startTime.

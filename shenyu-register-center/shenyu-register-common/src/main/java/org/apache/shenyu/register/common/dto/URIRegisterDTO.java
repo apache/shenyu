@@ -42,7 +42,6 @@ public class URIRegisterDTO implements DataTypeParent {
 
     private EventType eventType;
 
-    
     /**
      * Instantiates a new Uri register dto.
      *

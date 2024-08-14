@@ -30,7 +30,6 @@ public class ConfigImportResult implements Serializable {
 
     private final String failMessage;
 
-
     /**
      * Instantiates a new config import result.
      *

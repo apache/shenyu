@@ -195,7 +195,6 @@ public final class AlarmContent {
         this.dateUpdated = dateUpdated;
     }
     
-    
     /**
      * builder.
      */

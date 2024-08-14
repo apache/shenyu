@@ -67,7 +67,6 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 /**
  * The test for  {@link EtcdDiscoveryService } .
  */

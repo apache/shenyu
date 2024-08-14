@@ -508,7 +508,6 @@ public class SelectorVO implements Serializable {
         this.dateUpdated = dateUpdated;
     }
 
-
     /**
      * Gets the value of rules.
      *

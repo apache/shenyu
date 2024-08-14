@@ -166,7 +166,6 @@ public class TimerTaskList implements Delayed, Iterable<TimerTask> {
         return new Itr(root.next);
     }
     
-    
     /**
      * The type Timer task entry.
      */

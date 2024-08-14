@@ -29,7 +29,6 @@ import java.util.Objects;
  */
 public class ResourceChangedEvent extends AdminDataModelChangedEvent {
     
-    
     /**
      * Create a new {@code ResourceChangedEvent}.operator is unknown.
      *

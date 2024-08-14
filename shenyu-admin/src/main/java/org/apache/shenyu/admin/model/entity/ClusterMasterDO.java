@@ -175,7 +175,6 @@ public class ClusterMasterDO implements Serializable {
         this.dateUpdated = dateUpdated;
     }
 
-
     /**
      * builder method.
      *

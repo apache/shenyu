@@ -66,7 +66,6 @@ public class NamespacePluginDTO implements Serializable {
     @NotNull
     private Boolean enabled;
 
-
     /**
      * plugin Handle List.
      */
@@ -116,7 +115,6 @@ public class NamespacePluginDTO implements Serializable {
         }
         this.config = config;
     }
-
 
     /**
      * Gets the value of sort.
@@ -189,7 +187,6 @@ public class NamespacePluginDTO implements Serializable {
     public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
-
 
     /**
      * Gets the plugin id.

@@ -40,7 +40,6 @@ public final class ZipUtil {
     private ZipUtil() {
     }
 
-
     /**
      * zip method.
      *

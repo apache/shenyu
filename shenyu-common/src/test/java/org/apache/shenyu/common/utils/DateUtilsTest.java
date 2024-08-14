@@ -26,7 +26,6 @@ import java.time.ZonedDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 /**
  * Test Cases for DateUtils.
  */

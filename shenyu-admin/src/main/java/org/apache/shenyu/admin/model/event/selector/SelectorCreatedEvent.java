@@ -25,7 +25,6 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  */
 public class SelectorCreatedEvent extends SelectorChangedEvent {
     
-    
     /**
      * Create a new {@code SelectorChangedEvent}.operator is unknown.
      *

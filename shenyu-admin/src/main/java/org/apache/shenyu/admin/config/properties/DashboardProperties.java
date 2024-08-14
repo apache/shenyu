@@ -38,13 +38,11 @@ public class DashboardProperties implements InitializingBean {
      */
     private Integer recordLogLimit = 12;
     
-    
     /**
      * Only supports deleting logs older than a certain day.
      * default is 3.
      */
     private Integer onlyCleanDays = 3;
-    
     
     /**
      * enable print api log..
@@ -64,13 +62,11 @@ public class DashboardProperties implements InitializingBean {
      */
     private Boolean enableSuperAdminPasswordSafe = true;
     
-    
     /**
      * enable SuperAdminPassword valid duration.
      * default is 30 day
      */
     private Long superAdminPasswordValidDuration = 30 * AdminConstants.THE_ONE_DAY_MILLIS_TIME;
-    
     
     /**
      * Only the super administrator root user has the privileges.

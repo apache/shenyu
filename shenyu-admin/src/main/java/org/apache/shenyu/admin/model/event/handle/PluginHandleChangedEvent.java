@@ -29,7 +29,6 @@ import java.util.Objects;
  */
 public class PluginHandleChangedEvent extends AdminDataModelChangedEvent {
     
-    
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *

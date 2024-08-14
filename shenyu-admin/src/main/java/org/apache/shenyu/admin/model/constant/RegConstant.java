@@ -27,7 +27,6 @@ public final class RegConstant {
      */
     public static final String PASSWORD_RULE = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#.=_+-])[A-Za-z\\d@$!%*?&#.=_+-]{8,}$";
 
-
     /**
      * At least 8 in length, containing at least one letter and one number.
      */

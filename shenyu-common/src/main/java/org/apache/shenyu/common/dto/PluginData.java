@@ -240,7 +240,6 @@ public class PluginData {
         return sort;
     }
 
-
     /**
      * set sort.
      *

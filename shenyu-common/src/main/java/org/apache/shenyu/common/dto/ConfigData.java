@@ -18,7 +18,6 @@
 package org.apache.shenyu.common.dto;
 
 import org.apache.shenyu.common.utils.GsonUtils;
-
 import java.util.List;
 import java.util.Objects;
 
