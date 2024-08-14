@@ -105,7 +105,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     int updateSelective(SelectorDO selectorDO);
 
     /**
-     * delete selectors.
+     * delete selectors by ids and namespaceId.
      *
      * @param ids         primary key.
      * @param namespaceId namespaceId.
@@ -114,7 +114,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     int deleteByNamespaceId(List<String> ids, String namespaceId);
 
     /**
-     * find selector by id.
+     * find selector by id and namespaceId.
      *
      * @param id          primary key.
      * @param namespaceId namespaceId.
@@ -123,7 +123,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     SelectorVO findByIdAndNamespaceId(String id, String namespaceId);
 
     /**
-     * find selector by name.
+     * find selector by name and namespaceId.
      *
      * @param name        the name
      * @param namespaceId namespaceId.
@@ -135,7 +135,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     SelectorDO findByNameAndNamespaceId(String name, String namespaceId);
 
     /**
-     * find selector list by name.
+     * find selector list by name and namespaceId.
      *
      * @param name        name
      * @param namespaceId namespaceId.
@@ -144,7 +144,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     List<SelectorDO> findListByNameAndNamespaceId(String name, String namespaceId);
 
     /**
-     * Find by name and plugin id selector do.
+     * Find by name and pluginName and namespaceId selector do.
      *
      * @param name        the name
      * @param pluginName  the plugin name
@@ -173,7 +173,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     List<SelectorDO> findByNameAndPluginNames(String name, List<String> pluginNames);
 
     /**
-     * Build by name selector data.
+     * Build by name and namespaceId selector data.
      *
      * @param name        the name
      * @param namespaceId namespaceId.
@@ -208,7 +208,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery);
 
     /**
-     * Find by plugin id list.
+     * Find by plugin id and namespaceId list.
      *
      * @param pluginId    the plugin id
      * @param namespaceId the namespaceId
@@ -239,11 +239,11 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     ConfigImportResult importData(List<SelectorDTO> selectorList);
 
     /**
-     * Enabled string.
+     * Enabled by ids and namespaceId.
      *
      * @param ids         the ids
-     * @param enabled     the enable
-     * @param namespaceId namespaceId
+     * @param enabled     the enabled
+     * @param namespaceId the namespaceId
      * @return the result
      */
     Boolean enabledByIdsAndNamespaceId(List<String> ids, Boolean enabled, String namespaceId);

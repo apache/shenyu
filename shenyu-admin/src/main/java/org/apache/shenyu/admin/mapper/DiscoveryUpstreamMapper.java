@@ -38,7 +38,7 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
     Boolean existed(@Param("id") Serializable key);
 
     /**
-     * selectByIdsAndNamespaceId.
+     * selectByIds.
      *
      * @param ids id list
      * @return discoveryUpstreamDO list

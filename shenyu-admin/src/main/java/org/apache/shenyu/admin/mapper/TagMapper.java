@@ -119,7 +119,7 @@ public interface TagMapper extends ExistProvider {
     int deleteAllData();
 
     /**
-     * selectByIdsAndNamespaceId.
+     * selectByIds.
      * @param list ids
      * @return List
      */

@@ -262,9 +262,10 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     /**
-     * delete selectors.
+     * delete selectors by ids and namespaceId.
      *
      * @param ids primary key.
+     * @param namespaceId namespaceId.
      * @return rows
      */
     @Override
@@ -308,9 +309,10 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     /**
-     * find selector by id.
+     * find selector by id and namespaceId.
      *
      * @param id primary key.
+     * @param namespaceId namespaceId.
      * @return {@link SelectorVO}
      */
     @Override
@@ -345,10 +347,11 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     /**
-     * Find selectorDO by name and plugin name.
+     * Find selectorDO by name and plugin name and namespaceId.
      *
      * @param name       the name
      * @param pluginName the plugin name
+     * @param namespaceId namespaceId
      * @return the selector do
      */
     @Override
@@ -383,10 +386,11 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     /**
-     * Build by name selector data.
+     * Build by name and namespaceId selector data.
      *
      * @param name       the name
      * @param pluginName the plugin name
+     * @param namespaceId the namespaceId.
      * @return the selector data
      */
     @Override

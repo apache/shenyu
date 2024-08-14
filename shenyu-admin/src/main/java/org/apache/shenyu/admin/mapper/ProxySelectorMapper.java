@@ -79,7 +79,7 @@ public interface ProxySelectorMapper extends ExistProvider {
     ProxySelectorDO selectById(@Param("id") String id);
 
     /**
-     * selectByIdsAndNamespaceId.
+     * selectByIds.
      *
      * @param ids id list
      * @return proxySelectorDO list
