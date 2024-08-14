@@ -40,7 +40,7 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
     }
 
     /**
-     * selectAll.
+     * select all.
      *
      * @return List
      */
