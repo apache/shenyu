@@ -17,7 +17,7 @@ version: "3.9"
 services:
   shenyu-zk:
     container_name: shenyu-zk
-    image: zookeeper:latest
+    image: zookeeper:3.5
     restart: always
     networks:
       - shenyu
@@ -148,6 +148,7 @@ services:
     environment:
       - shenyu.register.serverLists=http://shenyu-admin:9095
       - com.alipay.sofa.rpc.registry-address=zookeeper://shenyu-zk:2181
+      - sofa.boot.rpc.registry.address=zookeeper://shenyu-zk:2181
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://localhost:28011/actuator/health | grep UP || exit 1" ]
       timeout: 2s

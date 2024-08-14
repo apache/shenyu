@@ -27,7 +27,9 @@
 
     <artifactId>shenyu-integrated-test-k8s-ingress-apache-dubbo</artifactId>
     <name>shenyu-integrated-test-k8s-ingress-apache-dubbo</name>
-
+    <properties>
+        <curator.version>5.7.0</curator.version>
+    </properties>
 
     <dependencies>
 
@@ -68,7 +70,7 @@
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-x-discovery</artifactId>
-            <version>5.1.0</version>
+            <version>${curator.version}</version>
         </dependency>
         <!--shenyu apache dubbo plugin end-->
 
@@ -100,12 +102,6 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-general-context</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-apache-dubbo</artifactId>
             <version>${project.version}</version>
         </dependency>
 

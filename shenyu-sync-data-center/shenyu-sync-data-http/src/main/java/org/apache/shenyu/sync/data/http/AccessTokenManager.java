@@ -19,9 +19,11 @@ package org.apache.shenyu.sync.data.http;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
+import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.slf4j.Logger;
@@ -103,12 +105,16 @@ public class AccessTokenManager {
     }
 
     private Boolean doLogin(final String server) {
+        if (StringUtils.isNotBlank(httpConfig.getAesSecretKey()) && StringUtils.isNotBlank(httpConfig.getAesSecretIv())) {
+            String password = AesUtils.cbcEncrypt(httpConfig.getAesSecretKey(), httpConfig.getAesSecretIv(), httpConfig.getPassword());
+            httpConfig.setPassword(password);
+        }
         String param = Constants.LOGIN_NAME + "=" + httpConfig.getUsername() + "&" + Constants.PASS_WORD + "=" + httpConfig.getPassword();
         String url = String.join("?", server + Constants.LOGIN_PATH, param);
         Request request = new Request.Builder().url(url).build();
         try (Response response = this.okHttpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                LOG.warn(String.format("get token from server : [%s] error", server));
+                LOG.warn("get token from server : [{}] error", server);
                 return false;
             }
             ResponseBody responseBody = response.body();
@@ -116,7 +122,7 @@ public class AccessTokenManager {
             String result = responseBody.string();
             Map<String, Object> resultMap = GsonUtils.getInstance().convertToMap(result);
             if (!String.valueOf(CommonErrorCode.SUCCESSFUL).equals(String.valueOf(resultMap.get(Constants.ADMIN_RESULT_CODE)))) {
-                LOG.warn(String.format("get token from server : [%s] error", server));
+                LOG.warn("get token from server : [{}] error", server);
                 return false;
             }
             String tokenJson = GsonUtils.getInstance().toJson(resultMap.get(Constants.ADMIN_RESULT_DATA));
@@ -127,7 +133,7 @@ public class AccessTokenManager {
             this.tokenRefreshWindow = this.tokenExpiredTime / 10;
             return true;
         } catch (IOException e) {
-            LOG.error(String.format("get token from server : [%s] error", server), e);
+            LOG.error("get token from server : [{}] error", server, e);
             return false;
         }
     }

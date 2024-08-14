@@ -59,6 +59,11 @@ public class DashboardUserVO implements Serializable {
     private Boolean enabled;
 
     /**
+     * clientId.
+     */
+    private String clientId;
+
+    /**
      * created time.
      */
     private String dateCreated;
@@ -76,6 +81,7 @@ public class DashboardUserVO implements Serializable {
                            final String password,
                            final Integer role,
                            final Boolean enabled,
+                           final String clientId,
                            final String dateCreated,
                            final String dateUpdated) {
         this.id = id;
@@ -83,6 +89,7 @@ public class DashboardUserVO implements Serializable {
         this.password = password;
         this.role = role;
         this.enabled = enabled;
+        this.clientId = clientId;
         this.dateCreated = dateCreated;
         this.dateUpdated = dateUpdated;
     }
@@ -178,6 +185,24 @@ public class DashboardUserVO implements Serializable {
     }
 
     /**
+     * Gets the value of clientId.
+     *
+     * @return the value of clientId
+     */
+    public String getClientId() {
+        return clientId;
+    }
+
+    /**
+     * Sets the clientId.
+     *
+     * @param clientId clientId
+     */
+    public void setClientId(final String clientId) {
+        this.clientId = clientId;
+    }
+
+    /**
      * Gets the value of dateCreated.
      *
      * @return the value of dateCreated
@@ -222,7 +247,7 @@ public class DashboardUserVO implements Serializable {
     public static DashboardUserVO buildDashboardUserVO(final DashboardUserDO dashboardUserDO) {
         return Optional.ofNullable(dashboardUserDO)
                 .map(item -> new DashboardUserVO(item.getId(), item.getUserName(),
-                        item.getPassword(), item.getRole(), item.getEnabled(),
+                        item.getPassword(), item.getRole(), item.getEnabled(), item.getClientId(),
                         DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
                         DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime())))
                 .orElse(null);

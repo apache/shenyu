@@ -39,6 +39,7 @@ header:
     - '**/.gitignore'
     - '**/.gitmodules'
     - '**/.git/**'
+    - '**/.gitpod.yml'
     - '**/.travis.yml'
     - '**/.codecov.yml'
     - '**/.mvn/jvm.config'

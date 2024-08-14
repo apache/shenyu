@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ *  the Service Instance Cache.
+ */
 public class ServiceInstanceCache {
     
     private static final Map<String, List<ServiceInstance>> SERVICE_INSTANCE_MAP = Maps.newConcurrentMap();

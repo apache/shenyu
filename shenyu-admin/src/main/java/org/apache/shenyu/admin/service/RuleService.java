@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.RuleQueryCondition;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.OperatorEnum;
@@ -118,6 +119,13 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
     List<RuleData> listAll();
 
     /**
+     * List all rule vo list.
+     *
+     * @return the rule vo list
+     */
+    List<RuleVO> listAllData();
+
+    /**
      * Find by selector id list.
      *
      * @param selectorId the selector id
@@ -140,7 +148,7 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return {@link RuleDO}
      */
     RuleDO findByName(String name);
-    
+
     /**
      * Find by selector id and name rule do.
      *
@@ -149,4 +157,20 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return {@link RuleDO}
      */
     RuleDO findBySelectorIdAndName(String selectorId, String name);
+
+    /**
+     * Import data.
+     * @param ruleList rule list
+     * @return config import result
+     */
+    ConfigImportResult importData(List<RuleDTO> ruleList);
+
+    /**
+     * Enabled string.
+     *
+     * @param ids     the ids
+     * @param enabled the enable
+     * @return the result
+     */
+    Boolean enabled(List<String> ids, Boolean enabled);
 }

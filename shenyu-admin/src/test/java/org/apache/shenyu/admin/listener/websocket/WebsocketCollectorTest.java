@@ -36,9 +36,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
+import jakarta.websocket.RemoteEndpoint;
+import jakarta.websocket.Session;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -137,6 +138,7 @@ public final class WebsocketCollectorTest {
     public void testSend() throws IOException {
         RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
         when(session.getBasicRemote()).thenReturn(basic);
+        when(session.isOpen()).thenReturn(true);
         websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());
         WebsocketCollector.send(null, DataEventTypeEnum.MYSELF);
@@ -153,7 +155,7 @@ public final class WebsocketCollectorTest {
 
     private long getSessionSetSize() {
         Set sessionSet = (Set) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_SET");
-        return sessionSet == null ? -1 : sessionSet.size();
+        return Objects.isNull(sessionSet) ? -1 : sessionSet.size();
     }
 
     private Session getSession() {

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.client.apache.dubbo.validation.mock;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * MockValidationParameter.

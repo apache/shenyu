@@ -66,12 +66,12 @@
         <dependency>
             <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo</artifactId>
-            <version>3.1.1</version>
+            <version>${apache.dubbo.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo-dependencies-zookeeper</artifactId>
-            <version>3.1.1</version>
+            <version>${apache.dubbo.version}</version>
             <type>pom</type>
         </dependency>
         <!--shenyu apache dubbo plugin end-->
@@ -156,7 +156,6 @@
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>
-            <version>5.7.6</version>
             <exclusions>
                 <exclusion>
                     <groupId>net.jcip</groupId>
@@ -166,7 +165,16 @@
                     <groupId>io.grpc</groupId>
                     <artifactId>grpc-core</artifactId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>sofa-common-tools</artifactId>
+                    <groupId>com.alipay.sofa.common</groupId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.alipay.sofa.common</groupId>
+            <artifactId>sofa-common-tools</artifactId>
+            <version>${sofa-common-tools.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>

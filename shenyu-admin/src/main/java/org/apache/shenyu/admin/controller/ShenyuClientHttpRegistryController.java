@@ -17,44 +17,29 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterPublisher;
-import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterRepository;
-import org.apache.shenyu.admin.service.DiscoveryService;
+import jakarta.annotation.Resource;
+import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.spi.Join;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import javax.annotation.Resource;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * The type shenyu client controller.
  */
+@RestController
 @RequestMapping("/shenyu-client")
-@Join
-public class ShenyuClientHttpRegistryController implements ShenyuClientServerRegisterRepository {
-
-    private ShenyuClientServerRegisterPublisher publisher;
+public class ShenyuClientHttpRegistryController {
 
     @Resource
-    private DiscoveryService discoveryService;
-
-    @Override
-    public void init(final ShenyuClientServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
-        this.publisher = publisher;
-    }
-
-    @Override
-    public void close() {
-        publisher.close();
-    }
+    private ShenyuClientServerRegisterPublisher publisher;
+    
 
     /**
      * Register metadata string.

@@ -20,12 +20,12 @@ package org.apache.shenyu.admin.listener;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.NamespacePluginService;
+import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.ProxySelectorService;
-import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -37,11 +37,12 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -71,7 +72,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * The Plugin service.
      */
     @Resource
-    private PluginService pluginService;
+    private NamespacePluginService namespacePluginService;
 
     /**
      * The Rule service.
@@ -184,6 +185,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
+        LOG.info("onRuleChanged, changed:{}, eventType:{}", JsonUtils.toJson(changed), JsonUtils.toJson(eventType));
         this.updateRuleCache();
         this.afterRuleChanged(changed, eventType);
     }
@@ -270,7 +272,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     protected abstract void afterInitialize();
 
     /**
-     * if md5 is not the same as the original, then update lcoal cache.
+     * if md5 is not the same as the original, then update local cache.
      *
      * @param group ConfigGroupEnum
      * @param <T>   the type of class
@@ -314,7 +316,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * Update plugin cache.
      */
     protected void updatePluginCache() {
-        this.updateCache(ConfigGroupEnum.PLUGIN, pluginService.listAll());
+        this.updateCache(ConfigGroupEnum.PLUGIN, namespacePluginService.listAll());
     }
     
     /**

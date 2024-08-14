@@ -22,9 +22,10 @@ import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,9 +55,15 @@ public class JwtUtilsTest {
     }
 
     @Test
+    public void testGetClientId() {
+        assertThat(JwtUtils.getClientId(TOKEN), is(""));
+    }
+
+    @Test
     public void testGenerateToken() {
-        String token = JwtUtils.generateToken("userName", KEY);
+        String token = JwtUtils.generateToken("userName", KEY, "clientId");
         assertThat(token, notNullValue());
         assertThat(JwtUtils.getIssuer(token), is("userName"));
+        assertThat(JwtUtils.getClientId(token), is("clientId"));
     }
 }

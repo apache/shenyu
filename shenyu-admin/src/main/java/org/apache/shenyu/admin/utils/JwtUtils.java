@@ -36,14 +36,14 @@ import java.util.Optional;
  * JWT tools.
  */
 public final class JwtUtils {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(JwtUtils.class);
-    
+
     private static final long TOKEN_EXPIRE_SECONDS = 24 * 60 * 60 * 1000L;
-    
+
     private JwtUtils() {
     }
-    
+
     /**
      * according to token to get isUserInfo.
      *
@@ -52,7 +52,7 @@ public final class JwtUtils {
     public static UserInfo getUserInfo() {
         return (UserInfo) SecurityUtils.getSubject().getPrincipal();
     }
-    
+
     /**
      * according to token to get issuer.
      *
@@ -63,30 +63,44 @@ public final class JwtUtils {
         DecodedJWT jwt = JWT.decode(token);
         return Optional.of(jwt).map(item -> item.getClaim("userName").asString()).orElse("");
     }
-    
+
+    /**
+     * according to token to get clientId.
+     *
+     * @param token token
+     * @return ClientId {@link String}
+     */
+    public static String getClientId(final String token) {
+        DecodedJWT jwt = JWT.decode(token);
+        return Optional.of(jwt).map(item -> item.getClaim("clientId").asString()).orElse("");
+    }
+
     /**
      * generate jwt token.
      *
      * @param userName login's userName
      * @param key      secretKey
+     * @param clientId clientId
      * @return token
      */
-    public static String generateToken(final String userName, final String key) {
-        return generateToken(userName, key, null);
+    public static String generateToken(final String userName, final String key, final String clientId) {
+        return generateToken(userName, key, clientId, null);
     }
-    
+
     /**
      * generate jwt token.
      *
      * @param userName      login's userName
      * @param key           secretKey
+     * @param clientId      clientId
      * @param expireSeconds expireSeconds
      * @return token
      */
-    public static String generateToken(final String userName, final String key, final Long expireSeconds) {
+    public static String generateToken(final String userName, final String key, final String clientId, final Long expireSeconds) {
         try {
             return JWT.create()
                     .withClaim("userName", userName)
+                    .withClaim("clientId", clientId)
                     .withExpiresAt(new Date(System.currentTimeMillis() + Optional.ofNullable(expireSeconds).orElse(TOKEN_EXPIRE_SECONDS)))
                     .sign(Algorithm.HMAC256(key));
         } catch (IllegalArgumentException | JWTCreationException e) {
@@ -94,7 +108,7 @@ public final class JwtUtils {
         }
         return StringUtils.EMPTY_STRING;
     }
-    
+
     public static boolean verifyToken(final String token, final String key) {
         try {
             JWTVerifier verifier = JWT.require(Algorithm.HMAC256(key)).build();

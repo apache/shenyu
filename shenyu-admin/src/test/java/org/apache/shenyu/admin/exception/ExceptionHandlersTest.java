@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.exception;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
@@ -44,8 +46,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -131,7 +132,7 @@ public final class ExceptionHandlersTest {
     @Test
     public void testHandleHttpRequestMethodNotSupportedException() {
         String[] supportedMethod = new String[]{"POST", "GET"};
-        HttpRequestMethodNotSupportedException exception = new HttpRequestMethodNotSupportedException("POST", supportedMethod, "request method");
+        HttpRequestMethodNotSupportedException exception = new HttpRequestMethodNotSupportedException("POST" + supportedMethod + "request method", Arrays.asList(supportedMethod));
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleHttpRequestMethodNotSupportedException(exception);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertThat(result.getMessage(), containsString("method is not supported for this request. Supported methods are"));
@@ -153,7 +154,7 @@ public final class ExceptionHandlersTest {
 
     @Test
     public void testHandleMissingServletRequestParameterException() {
-        MissingServletRequestParameterException exception = spy(mock(MissingServletRequestParameterException.class));
+        MissingServletRequestParameterException exception = new MissingServletRequestParameterException("parameter1", "String");
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleMissingServletRequestParameterException(exception);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertThat(result.getMessage(), containsString("parameter is missing"));
@@ -161,7 +162,7 @@ public final class ExceptionHandlersTest {
 
     @Test
     public void testHandleMethodArgumentTypeMismatchException() {
-        MethodArgumentTypeMismatchException exception = spy(mock(MethodArgumentTypeMismatchException.class));
+        MethodArgumentTypeMismatchException exception = mock(MethodArgumentTypeMismatchException.class);
         Class clazz = MethodArgumentTypeMismatchException.class;
         when(exception.getRequiredType()).thenReturn(clazz);
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleMethodArgumentTypeMismatchException(exception);

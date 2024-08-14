@@ -1,0 +1,120 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.shenyu.admin.service;
+
+import org.apache.shenyu.admin.model.dto.PluginDTO;
+import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
+import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
+import org.apache.shenyu.admin.model.query.NamespacePluginQueryCondition;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
+import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
+import org.apache.shenyu.admin.model.vo.PluginVO;
+import org.apache.shenyu.common.dto.PluginData;
+
+import java.util.List;
+
+/**
+ * this is plugin service.
+ */
+public interface NamespacePluginService extends PageService<NamespacePluginQueryCondition, NamespacePluginVO> {
+
+    /**
+     * Create or update string.
+     *
+     * @param namespacePluginDTO the plugin namespace dto
+     * @return the string
+     */
+    String update(NamespacePluginDTO namespacePluginDTO);
+
+    /**
+     * Delete string.
+     *
+     * @param ids         the ids.
+     * @param namespaceId the namespaceId
+     * @return the string
+     */
+    String delete(List<String> ids, String namespaceId);
+
+    /**
+     * find plugin namespace by id.
+     *
+     * @param id    pk.
+     * @param namespaceId the namespaceId
+     * @return {@linkplain PluginVO}
+     */
+    NamespacePluginVO findById(String id, String namespaceId);
+
+    /**
+     * find page of plugin namespace by query.
+     *
+     * @param namespacePluginQuery {@linkplain NamespacePluginQuery}
+     * @return {@linkplain CommonPager}
+     */
+    CommonPager<NamespacePluginVO> listByPage(NamespacePluginQuery namespacePluginQuery);
+
+    /**
+     * List all list.
+     *
+     * @param namespaceId the namespaceId
+     * @return the list
+     */
+    List<PluginData> listAll(String namespaceId);
+
+    /**
+     * List all list.
+     *
+     * @return the list
+     */
+    List<PluginData> listAll();
+
+    /**
+     * List all vo list.
+     *
+     * @param namespaceId the namespaceId
+     * @return the vo list
+     */
+    List<NamespacePluginVO> listAllData(String namespaceId);
+
+    /**
+     * Enabled string.
+     *
+     * @param ids         the ids
+     * @param enabled     the enabled
+     * @param namespaceId the namespaceId
+     * @return the string
+     */
+    String enabled(List<String> ids, Boolean enabled, String namespaceId);
+
+
+    /**
+     * active plugin snapshot.
+     *
+     * @return plugin list
+     */
+    List<PluginSnapshotVO> activePluginSnapshot();
+
+    /**
+     * import plugin data.
+     *
+     * @param pluginList the plugin data
+     * @return config import result
+     */
+    ConfigImportResult importData(List<PluginDTO> pluginList);
+}

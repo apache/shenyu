@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
+import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -49,6 +50,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -74,10 +76,10 @@ public final class RuleControllerTest {
 
     @Mock
     private RuleService ruleService;
-    
+
     @Mock
     private RuleMapper ruleMapper;
-    
+
     @Mock
     private SelectorMapper selectorMapper;
 
@@ -89,7 +91,7 @@ public final class RuleControllerTest {
 
     private final RuleVO ruleVO = new RuleVO("666", "168", 0, "zero mode", "/http/test/**", true, true, 1, "{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}", false,
             rcList, DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
-    
+
     private final CommonPager<RuleVO> commonPager = new CommonPager<>(new PageParameter(), Collections.singletonList(ruleVO));
 
     @BeforeEach
@@ -217,6 +219,37 @@ public final class RuleControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();
+    }
+
+    @Test
+    public void testEnableRule() throws Exception {
+        RuleDTO ruleDTO = RuleDTO.builder()
+            .id("666")
+            .selectorId("168")
+            .matchMode(0)
+            .name("/http/order/update")
+            .enabled(true)
+            .loged(true)
+            .matchRestful(false)
+            .sort(1)
+            .handle("{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}")
+            .build();
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+        when(SpringBeanUtils.getInstance().getBean(RuleMapper.class)).thenReturn(ruleMapper);
+        when(ruleMapper.existed(ruleDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
+        when(selectorMapper.existed(ruleDTO.getSelectorId())).thenReturn(true);
+        given(this.ruleService.enabled(Arrays.asList(ruleDTO.getId()), false)).willReturn(true);
+        BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
+        batchCommonDTO.setIds(Arrays.asList(ruleDTO.getId()));
+        batchCommonDTO.setEnabled(false);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/rule/batchEnabled")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(batchCommonDTO))
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ENABLE_SUCCESS)))
+            .andReturn();
     }
 
 }

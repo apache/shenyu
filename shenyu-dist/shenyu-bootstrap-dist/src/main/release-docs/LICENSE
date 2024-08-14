@@ -322,9 +322,9 @@ The text of each license is the standard Apache 2.0 license.
     jetcd-grpc 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
     jettison 1.4.0: https://github.com/jettison-json/jettison, Apache 2.0
 	jcommander 1.78: https://mvnrepository.com/artifact/com.beust/jcommander, Apache 2.0
-    jjwt-api 0.11.5: https://jwt.io, Apache 2.0
-    jjwt-impl 0.11.5: https://jwt.io, Apache 2.0
-    jjwt-jackson 0.11.5: https://jwt.io, Apache 2.0
+    jjwt-api 0.12.3: https://jwt.io, Apache 2.0
+    jjwt-impl 0.12.3: https://jwt.io, Apache 2.0
+    jjwt-jackson 0.12.3: https://jwt.io, Apache 2.0
     json-patch 1.9: https://github.com/fge/json-patch, Apache 2.0 and LGPL
     json-path 2.7.0: https://github.com/jayway/JsonPath, Apache 2.0
     json-smart 2.4.11: https://www.minidev.net/, Apache 2.0
@@ -432,7 +432,7 @@ The text of each license is the standard Apache 2.0 license.
     simpleclient 0.15.0: https://github.com/prometheus/client_java, Apache 2.0
     snakeyaml 1.30: http://www.snakeyaml.org, Apache 2.0
     snappy-java 1.1.8.4: https://github.com/xerial/snappy-java, Apache 2.0
-    sofa-common-tools 1.0.18: https://github.com/sofastack/sofa-common-tools/sofa-common-tools, Apache 2.0
+    sofa-common-tools 2.1.1: https://github.com/sofastack/sofa-common-tools/sofa-common-tools, Apache 2.0
     sofa-rpc-all 5.7.6: http://github.com/sofastack/sofa-rpc, Apache 2.0
     spring-aop 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-aop, Apache 2.0
     spring-beans 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-beans, Apache 2.0

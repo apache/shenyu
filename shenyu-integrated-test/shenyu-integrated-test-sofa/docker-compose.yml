@@ -54,7 +54,7 @@ services:
     restart: always
     environment:
       - shenyu.register.serverLists=http://shenyu-admin:9095
-      - com.alipay.sofa.rpc.registry-address=zookeeper://shenyu-zk:2181
+      - sofa.boot.rpc.registry.address=zookeeper://shenyu-zk:2181
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://localhost:28011/actuator/health | grep UP || exit 1" ]
       timeout: 2s

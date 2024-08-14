@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ratelimiter;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
@@ -33,10 +34,12 @@ import org.apache.shenyu.plugin.ratelimiter.executor.RedisRateLimiter;
 import org.apache.shenyu.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
 import org.apache.shenyu.plugin.ratelimiter.resolver.RateLimiterKeyResolverFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * RateLimiter Plugin.
@@ -75,6 +78,8 @@ public class RateLimiterPlugin extends AbstractShenyuPlugin {
                 .flatMap(response -> {
                     if (!response.isAllowed()) {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+                        final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.METRICS_RATE_LIMITER);
+                        Optional.ofNullable(consumer).ifPresent(c -> c.accept(exchange.getResponse().getStatusCode()));
                         Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TOO_MANY_REQUESTS);
                         return WebFluxResultUtils.result(exchange, error);
                     }
