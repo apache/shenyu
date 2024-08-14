@@ -102,7 +102,7 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
     int updateSelective(DiscoveryUpstreamDO discoveryUpstreamDO);
 
     /**
-     * deleteByIdsAndNamespaceId.
+     * deleteByIds.
      *
      * @param ids id list
      * @return rows int

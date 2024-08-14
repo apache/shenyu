@@ -71,7 +71,7 @@ public interface ProxySelectorMapper extends ExistProvider {
     int update(ProxySelectorDO proxySelectorDO);
 
     /**
-     * selectByIdAndNamespaceId.
+     * selectById.
      *
      * @param id id
      * @return ProxySelectorDO
@@ -87,7 +87,7 @@ public interface ProxySelectorMapper extends ExistProvider {
     List<ProxySelectorDO> selectByIds(@Param("ids") List<String> ids);
 
     /**
-     * deleteByIdsAndNamespaceId.
+     * deleteByIds.
      *
      * @param ids id list
      * @return rows int
