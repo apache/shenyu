@@ -28,7 +28,7 @@ import java.util.List;
 public interface ScalePolicyService {
 
     /**
-     * selectAll.
+     * select all.
      *
      * @return List
      */
