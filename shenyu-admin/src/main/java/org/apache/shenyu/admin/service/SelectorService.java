@@ -144,7 +144,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     List<SelectorDO> findListByNameAndNamespaceId(String name, String namespaceId);
 
     /**
-     * Find by name and pluginName and namespaceId selector do.
+     * Find selector do by name and pluginName and namespaceId.
      *
      * @param name        the name
      * @param pluginName  the plugin name
@@ -173,7 +173,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     List<SelectorDO> findByNameAndPluginNames(String name, List<String> pluginNames);
 
     /**
-     * Build by name and namespaceId selector data.
+     * Build selector data by name and namespaceId.
      *
      * @param name        the name
      * @param namespaceId namespaceId.
@@ -182,7 +182,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     SelectorData buildByNameAndNamespaceId(String name, String namespaceId);
 
     /**
-     * Build by name selector data.
+     * Build selector data by name and plugin name and namespaceId.
      *
      * @param name        the name
      * @param pluginName  the plugin name
@@ -208,7 +208,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery);
 
     /**
-     * Find by plugin id and namespaceId list.
+     * Find list by plugin id and namespaceId.
      *
      * @param pluginId    the plugin id
      * @param namespaceId the namespaceId
