@@ -96,9 +96,7 @@ public final class RateLimiterPluginDataHandlerTest {
      */
     @Test
     public void redisStandaloneConfigurationErrorTest() {
-        assertThrows(Throwable.class, () -> {
-            ReflectionTestUtils.invokeMethod(redisConnectionFactory, "redisStandaloneConfiguration", new RedisConfigProperties());
-        });
+        assertThrows(Throwable.class, () -> ReflectionTestUtils.invokeMethod(redisConnectionFactory, "redisStandaloneConfiguration", new RedisConfigProperties()));
     }
 
     /**

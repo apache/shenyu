@@ -107,18 +107,16 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP);
                                         consumer.setNamesrvAddr(NAMESERVER);
                                         consumer.subscribe(TOPIC, "*");
-                                        consumer.registerMessageListener(new MessageListenerConcurrently() {
-                                            public ConsumeConcurrentlyStatus consumeMessage(final List<MessageExt> msgs, final ConsumeConcurrentlyContext consumeConcurrentlyContext) {
-                                                LOG.info("Msg:{}", msgs);
-                                                if (CollectionUtils.isNotEmpty(msgs)) {
-                                                    msgs.forEach(e -> {
-                                                        if (new String(e.getBody()).contains("/http/order/findById?id=23")) {
-                                                            isLog.set(true);
-                                                        }
-                                                    });
-                                                }
-                                                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+                                        consumer.registerMessageListener((MessageListenerConcurrently) (msgs, consumeConcurrentlyContext) -> {
+                                            LOG.info("Msg:{}", msgs);
+                                            if (CollectionUtils.isNotEmpty(msgs)) {
+                                                msgs.forEach(e -> {
+                                                    if (new String(e.getBody()).contains("/http/order/findById?id=23")) {
+                                                        isLog.set(true);
+                                                    }
+                                                });
                                             }
+                                            return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
                                         });
                                         LOG.info("consumer.start ; isLog.get():{}", isLog.get());
                                         consumer.start();

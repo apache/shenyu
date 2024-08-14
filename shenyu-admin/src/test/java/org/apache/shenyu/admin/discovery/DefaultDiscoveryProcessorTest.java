@@ -139,14 +139,10 @@ public class DefaultDiscoveryProcessorTest {
     public void testCreateProxySelector() {
         DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO);
-        });
+        Assertions.assertThrows(NullPointerException.class, () -> defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO));
         discoveryHandlerDTO.setDiscoveryId("id");
 
-        Assertions.assertThrows(ShenyuAdminException.class, () -> {
-            defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO);
-        });
+        Assertions.assertThrows(ShenyuAdminException.class, () -> defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO));
         when(shenyuDiscoveryService.exists(anyString())).thenReturn(true);
         doNothing().when(shenyuDiscoveryService).watch(anyString(), any(DataChangedEventListener.class));
         doNothing().when(eventPublisher).publishEvent(any(Object.class));

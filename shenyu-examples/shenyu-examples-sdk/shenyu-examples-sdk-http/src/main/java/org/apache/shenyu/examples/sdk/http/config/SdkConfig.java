@@ -37,11 +37,6 @@ public class SdkConfig {
      */
     @Bean
     public ShenyuSdkRequestInterceptor getShenyuSdkRequestInterceptor() {
-        return new ShenyuSdkRequestInterceptor() {
-            @Override
-            public void apply(final ShenyuRequest shenyuRequest) {
-                shenyuRequest.getHeaders().put("X-Auth", Collections.singleton("currentToken"));
-            }
-        };
+        return shenyuRequest -> shenyuRequest.getHeaders().put("X-Auth", Collections.singleton("currentToken"));
     }
 }
