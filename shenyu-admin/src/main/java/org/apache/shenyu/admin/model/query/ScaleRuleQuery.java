@@ -23,7 +23,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * The ScaleRule Query.
+ * The scale rule query.
  */
 public class ScaleRuleQuery implements Serializable {
 
