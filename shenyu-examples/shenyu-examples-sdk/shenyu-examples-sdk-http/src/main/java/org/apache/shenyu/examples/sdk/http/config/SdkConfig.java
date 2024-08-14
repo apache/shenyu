@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.examples.sdk.http.config;
 
-import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.interceptor.ShenyuSdkRequestInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
