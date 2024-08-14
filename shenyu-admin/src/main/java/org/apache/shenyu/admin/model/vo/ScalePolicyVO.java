@@ -26,7 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * this is ScalePolicy view to web front.
+ * this is scale policy view to web front.
  */
 public class ScalePolicyVO implements Serializable {
 
