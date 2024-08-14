@@ -160,8 +160,8 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         final String servletPath = StringUtils.defaultString(this.env.getProperty("spring.mvc.servlet.path"), "");
         final String servletContextPath = StringUtils.defaultString(this.env.getProperty("server.servlet.context-path"), "");
         final String rootPath = String.format("/%s/%s/", servletContextPath, servletPath);
-        if (Objects.nonNull(beanShenyuClient) && StringUtils.isNotBlank(beanShenyuClient.path())) {
-            return formatPath(String.format("%s/%s", rootPath, beanShenyuClient.path()));
+        if (Objects.nonNull(beanShenyuClient) && StringUtils.isNotBlank(beanShenyuClient.path()[0])) {
+            return formatPath(String.format("%s/%s", rootPath, beanShenyuClient.path()[0]));
         }
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(clazz, RequestMapping.class);
         // Only the first path is supported temporarily
@@ -197,8 +197,8 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     protected String buildApiPath(final Method method, final String superPath,
                                   @NonNull final ShenyuSpringMvcClient methodShenyuClient) {
         String contextPath = getContextPath();
-        if (StringUtils.isNotBlank(methodShenyuClient.path())) {
-            return pathJoin(contextPath, superPath, methodShenyuClient.path());
+        if (StringUtils.isNotBlank(methodShenyuClient.path()[0])) {
+            return pathJoin(contextPath, superPath, methodShenyuClient.path()[0]);
         }
         final String path = getPathByMethod(method);
         if (StringUtils.isNotBlank(path)) {

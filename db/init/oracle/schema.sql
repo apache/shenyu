@@ -21,6 +21,7 @@ create table dashboard_user
     password     VARCHAR2(128),
     role         NUMBER(10) not null,
     enabled      NUMBER(3) not null,
+    client_id     VARCHAR2(32),
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id),
