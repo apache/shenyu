@@ -18,7 +18,6 @@
 package org.apache.shenyu.common.dto;
 
 import org.apache.commons.lang3.StringUtils;
-
 import java.util.Objects;
 
 public class MetaData {

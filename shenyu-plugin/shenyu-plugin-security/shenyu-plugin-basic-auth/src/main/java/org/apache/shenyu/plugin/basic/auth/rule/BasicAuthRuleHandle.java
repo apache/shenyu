@@ -71,7 +71,6 @@ public class BasicAuthRuleHandle implements RuleHandle {
         this.basicAuthAuthenticationStrategy = basicAuthAuthenticationStrategy;
     }
 
-
     /**
      * new instance basicAuthRuleHandle.
      *

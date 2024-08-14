@@ -18,7 +18,6 @@
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
-
 import java.util.Objects;
 
 /**

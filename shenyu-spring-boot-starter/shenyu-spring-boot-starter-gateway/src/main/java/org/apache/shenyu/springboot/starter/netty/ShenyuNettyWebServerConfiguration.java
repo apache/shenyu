@@ -20,6 +20,7 @@ package org.apache.shenyu.springboot.starter.netty;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.WriteBufferWaterMark;
 import org.apache.shenyu.common.config.NettyHttpProperties;
+import org.apache.shenyu.common.config.NettyHttpProperties.SniProperties;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyFile;
@@ -91,7 +92,8 @@ public class ShenyuNettyWebServerConfiguration {
         NettyHttpProperties nettyHttpProperties = Optional.ofNullable(properties.getIfAvailable()).orElse(new NettyHttpProperties());
         webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyHttpProperties, httpServer -> {
             // Configure sni certificates
-            NettyHttpProperties.SniProperties sniProperties = nettyHttpProperties.getSni();
+            SniProperties sniProperties = nettyHttpProperties.getSni();
+            HttpServer httpServerRes = null;
             if (sniProperties.getEnabled()) {
                 ShenyuSniAsyncMapping shenyuSniAsyncMapping = shenyuSniAsyncMappingProvider.getIfAvailable();
                 if (shenyuSniAsyncMapping == null) {
@@ -115,19 +117,19 @@ public class ShenyuNettyWebServerConfiguration {
                     SslCrtAndKeyFile defaultCert = certificates.get(0);
                     TcpSslContextSpec defaultSpec = TcpSslContextSpec.forServer(new File(defaultCert.getKeyCertChainFile()),
                             new File(defaultCert.getKeyFile()));
-
-                    httpServer = httpServer.secure(spec -> spec.sslContext(defaultSpec)
+                    
+                    httpServerRes = httpServer.secure(spec -> spec.sslContext(defaultSpec)
                                 .setSniAsyncMappings(shenyuSniAsyncMapping), false);
                 } else if ("k8s".equals(sniProperties.getMod())) {
                     TcpSslContextSpec defaultSpec = Objects.requireNonNull(tcpSslContextSpecs.getIfAvailable());
-                    httpServer = httpServer.secure(spec -> spec.sslContext(defaultSpec)
+                    httpServerRes = httpServer.secure(spec -> spec.sslContext(defaultSpec)
                             .setSniAsyncMappings(shenyuSniAsyncMapping), false);
                     shenyuSniAsyncMapping.addSslProvider("shenyu-default", SslProvider.builder().sslContext(defaultSpec).build());
                 } else {
                     throw new ShenyuException("Cannot read the sni mod");
                 }
             }
-            return httpServer;
+            return httpServerRes;
         }));
         return webServerFactory;
     }

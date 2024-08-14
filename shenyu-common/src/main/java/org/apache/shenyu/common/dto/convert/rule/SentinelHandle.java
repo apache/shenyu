@@ -18,7 +18,6 @@
 package org.apache.shenyu.common.dto.convert.rule;
 
 import org.apache.shenyu.common.constant.Constants;
-
 import java.util.Objects;
 
 /**

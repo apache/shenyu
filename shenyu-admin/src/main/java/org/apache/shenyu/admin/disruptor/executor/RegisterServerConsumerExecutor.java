@@ -101,7 +101,6 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
             return "shenyu_register_server";
         }
     
-    
         /**
          * Add subscribers abstract queue consumer factory.
          *

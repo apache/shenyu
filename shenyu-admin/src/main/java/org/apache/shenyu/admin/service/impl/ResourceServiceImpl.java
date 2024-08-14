@@ -240,7 +240,6 @@ public class ResourceServiceImpl implements ResourceService {
         return insertCount;
     }
     
-
     /**
      * insert Resources.
      *

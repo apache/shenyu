@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.plugins.casdoor.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.plugins.casdoor.enabled", havingValue = "true", matchIfMissing = true)
 public class CasdoorPluginConfiguration {
 
     /**

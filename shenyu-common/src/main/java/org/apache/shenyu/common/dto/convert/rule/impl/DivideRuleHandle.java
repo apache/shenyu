@@ -21,7 +21,6 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
-
 import java.util.Objects;
 
 /**

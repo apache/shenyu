@@ -29,7 +29,6 @@ import java.util.Objects;
  */
 public class DictChangedEvent extends AdminDataModelChangedEvent {
     
-    
     /**
      * Create a new {@code DictChangedEvent}.operator is unknown.
      *

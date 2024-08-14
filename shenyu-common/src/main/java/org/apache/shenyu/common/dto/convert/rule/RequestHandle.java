@@ -19,7 +19,6 @@ package org.apache.shenyu.common.dto.convert.rule;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;

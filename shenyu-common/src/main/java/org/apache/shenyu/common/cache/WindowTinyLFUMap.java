@@ -19,7 +19,6 @@ package org.apache.shenyu.common.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.Serializable;
 import java.util.AbstractMap;

@@ -38,16 +38,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * test case for {@link ZookeeperSyncDataConfiguration}.
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(
-        classes = {
-                ZookeeperSyncDataConfiguration.class
-        },
+@SpringBootTest(classes = ZookeeperSyncDataConfiguration.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {
-                "shenyu.sync.zookeeper.url=localhost:2181",
-                "shenyu.sync.zookeeper.sessionTimeout=30000",
-                "shenyu.sync.zookeeper.connectionTimeout=500"
-        })
+        properties = {"shenyu.sync.zookeeper.url=localhost:2181", "shenyu.sync.zookeeper.sessionTimeout=30000", "shenyu.sync.zookeeper.connectionTimeout=500"})
 @EnableAutoConfiguration
 @MockBean({PluginDataSubscriber.class, ZookeeperClient.class})
 public final class ZookeeperSyncDataConfigurationTest {

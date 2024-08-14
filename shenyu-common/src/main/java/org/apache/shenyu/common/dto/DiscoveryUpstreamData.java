@@ -18,7 +18,6 @@
 package org.apache.shenyu.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-
 import java.sql.Timestamp;
 import java.util.Objects;
 

@@ -19,7 +19,6 @@ package org.apache.shenyu.common.cache;
 
 import org.apache.commons.collections4.map.LRUMap;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Map;
 

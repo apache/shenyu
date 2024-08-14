@@ -38,13 +38,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
-        classes = {
-                WebsocketSyncDataConfiguration.class
-        },
+        classes = WebsocketSyncDataConfiguration.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {
-                "shenyu.sync.websocket.urls=ws://localhost:9095/websocket"
-        })
+        properties = "shenyu.sync.websocket.urls=ws://localhost:9095/websocket")
 @EnableAutoConfiguration
 @MockBean(PluginDataSubscriber.class)
 public final class WebsocketSyncDataConfigurationTest {

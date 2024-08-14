@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Transform plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.plugins.transform.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.plugins.transform.enabled", havingValue = "true", matchIfMissing = true)
 public class TransformPluginConfiguration {
     
     /**

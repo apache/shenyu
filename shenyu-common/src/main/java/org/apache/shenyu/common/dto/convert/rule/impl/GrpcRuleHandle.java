@@ -19,7 +19,6 @@ package org.apache.shenyu.common.dto.convert.rule.impl;
 
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
-
 import java.util.Objects;
 
 /**

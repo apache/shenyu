@@ -18,7 +18,6 @@
 package org.apache.shenyu.common.enums;
 
 import org.apache.shenyu.common.exception.ShenyuException;
-
 import java.util.Arrays;
 
 /**

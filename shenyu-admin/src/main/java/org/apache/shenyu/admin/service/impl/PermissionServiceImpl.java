@@ -209,7 +209,6 @@ public class PermissionServiceImpl implements PermissionService {
                 .collect(Collectors.toList());
     }
     
-    
     /**
      * manger role permission.
      *

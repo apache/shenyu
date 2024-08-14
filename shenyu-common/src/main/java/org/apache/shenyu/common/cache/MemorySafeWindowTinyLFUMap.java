@@ -23,7 +23,6 @@ import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.checkerframework.checker.nullness.qual.NonNull;
-
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;

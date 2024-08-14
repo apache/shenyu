@@ -115,7 +115,6 @@ public final class SyncDataServiceTest {
         assertThat(syncDataService.syncPluginData(pluginVO.getId(), namespaceId), greaterThan(false));
     }
 
-
     /**
      * build mock PluginData.
      *

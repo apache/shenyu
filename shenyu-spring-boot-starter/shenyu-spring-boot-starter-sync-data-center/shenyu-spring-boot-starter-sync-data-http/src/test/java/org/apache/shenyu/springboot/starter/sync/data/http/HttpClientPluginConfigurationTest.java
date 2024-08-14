@@ -55,18 +55,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
-        classes = {
-                HttpSyncDataConfiguration.class
-        },
+        classes = HttpSyncDataConfiguration.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {
-                "shenyu.sync.http.url=http://localhost:18848",
-                "shenyu.sync.http.delayTime=3",
-                "shenyu.sync.http.username=admin",
-                "shenyu.sync.http.password=123456",
-                "shenyu.sync.http.connectionTimeout=5",
-                "spring.main.web-application-type=none"
-        })
+        properties = {"shenyu.sync.http.url=http://localhost:18848", "shenyu.sync.http.delayTime=3", "shenyu.sync.http.username=admin", "shenyu.sync.http.password=123456", "shenyu.sync.http.connectionTimeout=5", "spring.main.web-application-type=none"})
 @EnableAutoConfiguration
 @MockBean({PluginDataSubscriber.class, ServletWebServerFactory.class})
 public final class HttpClientPluginConfigurationTest {

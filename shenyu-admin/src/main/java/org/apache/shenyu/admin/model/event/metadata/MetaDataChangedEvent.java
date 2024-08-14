@@ -29,7 +29,6 @@ import java.util.Objects;
  */
 public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
     
-    
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *

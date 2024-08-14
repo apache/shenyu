@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * config logging rabbitmq plugin.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.plugins.logging-rabbitmq.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.plugins.logging-rabbitmq.enabled", havingValue = "true", matchIfMissing = true)
 public class LoggingRabbitmqPluginConfiguration {
 
     /**

@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Mock plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.plugins.mock.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.plugins.mock.enabled", havingValue = "true", matchIfMissing = true)
 public class MockPluginConfiguration {
 
     /**

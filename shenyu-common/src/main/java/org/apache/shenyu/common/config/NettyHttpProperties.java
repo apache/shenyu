@@ -18,7 +18,6 @@
 package org.apache.shenyu.common.config;
 
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyFile;
-
 import java.util.List;
 
 /**
