@@ -124,6 +124,11 @@ public class SelectorVO implements Serializable {
      */
     private List<DiscoveryUpstreamVO> discoveryUpstreams;
 
+    /**
+     * selector rules.
+     */
+    private List<RuleVO> selectorRules;
+
     public SelectorVO() {
     }
 
@@ -501,6 +506,25 @@ public class SelectorVO implements Serializable {
      */
     public void setDateUpdated(final String dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+
+
+    /**
+     * Gets the value of rules.
+     *
+     * @return the value of rules
+     */
+    public List<RuleVO> getSelectorRules() {
+        return selectorRules;
+    }
+
+    /**
+     * Sets the rules.
+     *
+     * @param selectorRules the rules
+     */
+    public void setSelectorRules(final List<RuleVO> selectorRules) {
+        this.selectorRules = selectorRules;
     }
 
     /**

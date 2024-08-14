@@ -58,6 +58,26 @@ public final class AdminConstants {
     public static final String SYS_PLUGIN_ID_NOT_EXIST = "The plugin(s) does not exist！";
 
     /**
+     * The constant SYS_NAMESPACE_ID_NOT_EXIST.
+     */
+    public static final String SYS_NAMESPACE_ID_NOT_EXIST = "The namespace(s) does not exist！";
+
+    /**
+     * The constant SYS_DEFAULT_NAMESPACE_ID_DELETE.
+     */
+    public static final String SYS_DEFAULT_NAMESPACE_ID_DELETE = "The default namespace can't deleted！";
+
+    /**
+     * The constant SYS_DEFAULT_NAMESPACE_NAMESPACE_ID.
+     */
+    public static final String SYS_DEFAULT_NAMESPACE_NAMESPACE_ID = "649330b6-c2d7-4edc-be8e-8a54df9eb385";
+
+    /**
+     * The constant SYS_DEFAULT_NAMESPACE_ID.
+     */
+    public static final String SYS_DEFAULT_NAMESPACE_ID = "1";
+
+    /**
      * The constant SYS_API_ID_NOT_EXIST.
      */
     public static final String SYS_API_ID_NOT_EXIST = "The api(s) does not exist！";
@@ -275,5 +295,9 @@ public final class AdminConstants {
     public static final String PROXY_SELECTOR_ID_IS_NOT_EXIST = "The proxy selector(s) does not exist";
 
     public static final long THE_ONE_DAY_MILLIS_TIME = 24 * 60 * 60 * 1000L;
+
+    public static final long FIVE_SECONDS_MILLIS_TIME = 5 * 1000L;
+
+    public static final long TEN_SECONDS_MILLIS_TIME = 10 * 1000L;
 }
 

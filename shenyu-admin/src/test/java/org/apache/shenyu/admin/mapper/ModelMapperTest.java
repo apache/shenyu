@@ -22,7 +22,7 @@ import org.apache.shenyu.admin.model.entity.ModelDO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import java.sql.Timestamp;
 

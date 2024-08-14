@@ -30,9 +30,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 @RestApi("/discovery-upstream")
@@ -53,7 +53,6 @@ public class DiscoveryUpstreamController {
      */
     @PostMapping("")
     public ShenyuAdminResult createDiscoveryUpstream(@Valid @RequestBody final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
-
         return ShenyuAdminResult.success(discoveryUpstreamService.createOrUpdate(discoveryUpstreamDTO));
     }
 
@@ -97,7 +96,6 @@ public class DiscoveryUpstreamController {
      */
     @DeleteMapping("/batch")
     public ShenyuAdminResult deleteDiscoveryUpstream(@NotEmpty @RequestBody final List<@NotBlank String> ids) {
-
         return ShenyuAdminResult.success(discoveryUpstreamService.delete(ids));
     }
 }

@@ -31,10 +31,12 @@ import org.apache.shenyu.plugin.base.fallback.FallbackHandler;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.sentinel.handler.SentinelRuleHandle;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -61,7 +63,11 @@ public class SentinelPlugin extends AbstractShenyuPlugin {
             }
         });
         return chain.execute(exchange).transform(new SentinelReactorTransformer<>(resourceName)).onErrorResume(throwable ->
-                fallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallbackUri()), throwable));
+                fallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallbackUri()), throwable)).doFinally(monoV -> {
+                    final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.METRICS_SENTINEL);
+                    Optional.ofNullable(consumer).ifPresent(c -> c.accept(exchange.getResponse().getStatusCode()));
+                }
+        );
     }
 
     @Override

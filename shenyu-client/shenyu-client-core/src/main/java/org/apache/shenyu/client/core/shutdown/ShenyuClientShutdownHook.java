@@ -24,7 +24,6 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -40,10 +39,6 @@ public class ShenyuClientShutdownHook {
 
     private static final AtomicBoolean DELAY = new AtomicBoolean(false);
 
-    private static String hookNamePrefix = "ShenyuClientShutdownHook";
-
-    private static AtomicInteger hookId = new AtomicInteger(0);
-
     private static Properties props;
 
     private static IdentityHashMap<Thread, Thread> delayHooks = new IdentityHashMap<>();
@@ -54,10 +49,7 @@ public class ShenyuClientShutdownHook {
     }
 
     public ShenyuClientShutdownHook(final ShenyuClientRegisterRepository repository, final ShenyuRegisterCenterConfig config) {
-        String name = String.join("-", hookNamePrefix, String.valueOf(hookId.incrementAndGet()));
-        ShutdownHookManager.get().addShutdownHook(new Thread(repository::closeRepository, name), 1);
-        LOG.info("Add hook {}", name);
-        ShenyuClientShutdownHook.props = config.getProps();
+        set(repository, config.getProps());
     }
 
     /**
@@ -67,9 +59,7 @@ public class ShenyuClientShutdownHook {
      * @param props  Properties
      */
     public static void set(final ShenyuClientRegisterRepository repository, final Properties props) {
-        String name = String.join("-", hookNamePrefix, String.valueOf(hookId.incrementAndGet()));
-        ShutdownHookManager.get().addShutdownHook(new Thread(repository::closeRepository, name), 1);
-        LOG.info("Add hook {}", name);
+        ShutdownHookManager.get().addShutdownHook(new Thread(repository::closeRepository), 1);
         ShenyuClientShutdownHook.props = props;
     }
 
@@ -105,7 +95,7 @@ public class ShenyuClientShutdownHook {
             while (System.currentTimeMillis() - s < delayOtherHooksExecTime) {
                 for (Iterator<Thread> iterator = Objects.requireNonNull(hooks).keySet().iterator(); iterator.hasNext();) {
                     Thread hook = iterator.next();
-                    if (hook.getName().startsWith(hookNamePrefix)) {
+                    if (hook.getName().equals(ShutdownHookManager.getHookName())) {
                         continue;
                     }
                     if (delayHooks.containsKey(hook) || delayedHooks.containsKey(hook)) {
@@ -138,8 +128,7 @@ public class ShenyuClientShutdownHook {
                 }
             }
 
-            hookNamePrefix = null;
-            hookId = new AtomicInteger(0);
+            ShutdownHookManager.clearHookName();
             props = null;
             delayHooks = null;
             delayedHooks = null;

@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -114,7 +114,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
             );
             tagExt.setRefreshTime(newRefreshTime);
         } catch (Exception e) {
-            LOG.error("add api document fail. clusterName={} url={} error={}", instance.getClusterName(), url, e);
+            LOG.error("add api document fail. clusterName={} url={} error", instance.getClusterName(), url, e);
         } finally {
             tagExt.setDocLock(null);
             //Save the time of the last updated document and the newMd5 of apidoc.

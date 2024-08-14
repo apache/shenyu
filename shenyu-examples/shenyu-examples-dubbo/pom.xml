@@ -31,12 +31,17 @@
     <modules>
         <module>shenyu-examples-dubbo-api</module>
         <module>shenyu-examples-apache-dubbo-service</module>
-        <module>shenyu-examples-alibaba-dubbo-service</module>
-        <module>shenyu-examples-alibaba-dubbo-service-annotation</module>
         <module>shenyu-examples-apache-dubbo-service-annotation</module>
-        <module>shenyu-examples-spring-cloud-alibaba-dubbo-service-annotation</module>
         <module>shenyu-examples-apache-dubbo-service-xml</module>
     </modules>
+    
+    
+    <properties>
+        <curator.version>5.7.0</curator.version>
+        <nacos-client.version>2.2.4</nacos-client.version>
+        <apache.dubbo.version>3.2.14</apache.dubbo.version>
+        <zookeeper.version>3.9.2</zookeeper.version>
+    </properties>
 
     <dependencyManagement>
         <dependencies>

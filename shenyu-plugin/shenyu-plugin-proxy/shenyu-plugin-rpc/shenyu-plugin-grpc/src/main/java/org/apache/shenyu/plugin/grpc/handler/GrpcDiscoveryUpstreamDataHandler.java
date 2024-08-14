@@ -23,6 +23,7 @@ import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
 import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
@@ -42,7 +43,9 @@ public class GrpcDiscoveryUpstreamDataHandler implements DiscoveryUpstreamDataHa
         if (Objects.isNull(discoverySyncData) || Objects.isNull(discoverySyncData.getSelectorId())) {
             return;
         }
-        ApplicationConfigCache.getInstance().handlerUpstream(discoverySyncData.getSelectorId(), convertUpstreamList(discoverySyncData.getUpstreamDataList()));
+        final String selectorId = discoverySyncData.getSelectorId();
+        ApplicationConfigCache.getInstance().handlerUpstream(selectorId, convertUpstreamList(discoverySyncData.getUpstreamDataList()));
+        GrpcClientCache.initGrpcClient(selectorId);
     }
 
     private List<GrpcUpstream> convertUpstreamList(final List<DiscoveryUpstreamData> upstreamList) {

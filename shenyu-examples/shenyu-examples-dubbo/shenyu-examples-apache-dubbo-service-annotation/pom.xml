@@ -26,14 +26,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>shenyu-examples-apache-dubbo-service-annotation</artifactId>
-
-    <properties>
-        <curator.version>5.2.1</curator.version>
-        <nacos-client.version>2.0.4</nacos-client.version>
-        <apache.dubbo.version>2.7.15</apache.dubbo.version>
-        <zookeeper.version>3.7.2</zookeeper.version>
-    </properties>
-
+    
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -78,7 +71,16 @@
             <artifactId>dubbo-spring-boot-starter</artifactId>
             <version>${apache.dubbo.version}</version>
         </dependency>
-
+        
+        <!-- Dubbo Nacos registry dependency -->
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-registry-nacos</artifactId>
+            <version>${apache.dubbo.version}</version>
+        </dependency>
+        
+        
+        
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-client</artifactId>

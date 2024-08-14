@@ -39,13 +39,6 @@ spec:
       containers:
         - image: shenyu-examples-eureka
           name: shenyu-examples-eureka
-          livenessProbe:
-            exec:
-              command:
-                - wget -q -O - http://localhost:8885/actuator/health | grep UP || exit 1
-            initialDelaySeconds: 10
-            failureThreshold: 3
-            timeoutSeconds: 2
           env:
             - name: eureka.instance.client.serviceUrl.defaultZone
               value: http://shenyu-examples-eureka:8761

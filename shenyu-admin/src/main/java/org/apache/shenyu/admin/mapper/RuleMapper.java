@@ -33,7 +33,7 @@ import java.util.List;
  */
 @Mapper
 public interface RuleMapper extends ExistProvider {
-    
+
     /**
      * rule existed.
      *
@@ -42,7 +42,7 @@ public interface RuleMapper extends ExistProvider {
      */
     @Override
     Boolean existed(@Param("id") Serializable id);
-    
+
     /**
      * select rule by id.
      *
@@ -50,7 +50,7 @@ public interface RuleMapper extends ExistProvider {
      * @return {@linkplain RuleDO}
      */
     RuleDO selectById(String id);
-    
+
     /**
      * select rule by query.
      *
@@ -58,7 +58,7 @@ public interface RuleMapper extends ExistProvider {
      * @return {@linkplain List}
      */
     List<RuleDO> selectByQuery(RuleQuery ruleQuery);
-    
+
     /**
      * Find by selector id list.
      *
@@ -66,7 +66,7 @@ public interface RuleMapper extends ExistProvider {
      * @return the list
      */
     List<RuleDO> findBySelectorId(String selectorId);
-    
+
     /**
      * Find by selector id list.
      *
@@ -74,7 +74,7 @@ public interface RuleMapper extends ExistProvider {
      * @return the list
      */
     List<RuleDO> findBySelectorIds(List<String> selectorIds);
-    
+
     /**
      * select rule by name.
      *
@@ -82,7 +82,7 @@ public interface RuleMapper extends ExistProvider {
      * @return rule do
      */
     RuleDO findByName(String name);
-    
+
     /**
      * Find by selector id and name rule do.
      *
@@ -91,7 +91,7 @@ public interface RuleMapper extends ExistProvider {
      * @return the rule do
      */
     RuleDO findBySelectorIdAndName(@Param("selectorId") String selectorId, @Param("name") String name);
-    
+
     /**
      * count rule by query.
      *
@@ -99,7 +99,7 @@ public interface RuleMapper extends ExistProvider {
      * @return {@linkplain Integer}
      */
     Integer countByQuery(RuleQuery ruleQuery);
-    
+
     /**
      * insert rule.
      *
@@ -107,7 +107,7 @@ public interface RuleMapper extends ExistProvider {
      * @return rows int
      */
     int insert(RuleDO ruleDO);
-    
+
     /**
      * insert selective rule.
      *
@@ -115,7 +115,7 @@ public interface RuleMapper extends ExistProvider {
      * @return rows int
      */
     int insertSelective(RuleDO ruleDO);
-    
+
     /**
      * update rule.
      *
@@ -123,7 +123,7 @@ public interface RuleMapper extends ExistProvider {
      * @return rows int
      */
     int update(RuleDO ruleDO);
-    
+
     /**
      * update selective rule.
      *
@@ -131,7 +131,7 @@ public interface RuleMapper extends ExistProvider {
      * @return rows int
      */
     int updateSelective(RuleDO ruleDO);
-    
+
     /**
      * delete rule.
      *
@@ -139,7 +139,7 @@ public interface RuleMapper extends ExistProvider {
      * @return rows int
      */
     int delete(String id);
-    
+
     /**
      * delete rule.
      *
@@ -147,14 +147,14 @@ public interface RuleMapper extends ExistProvider {
      * @return rows int
      */
     int deleteByIds(List<String> ids);
-    
+
     /**
      * list all.
      *
      * @return {@linkplain List}
      */
     List<RuleDO> selectAll();
-    
+
     /**
      * search by condition.
      *
@@ -162,7 +162,7 @@ public interface RuleMapper extends ExistProvider {
      * @return list
      */
     List<RuleVO> selectByCondition(@Param("condition") RuleQueryCondition condition);
-    
+
     /**
      * get plugin name by selectorId.
      *
@@ -170,7 +170,7 @@ public interface RuleMapper extends ExistProvider {
      * @return plugin name
      */
     String getPluginNameBySelectorId(@Param("selectorId") String selectorId);
-    
+
     /**
      * select by rule ids.
      *
@@ -178,5 +178,13 @@ public interface RuleMapper extends ExistProvider {
      * @return rules
      */
     List<RuleDO> selectByIds(@Param("ids") List<String> ids);
-    
+
+    /**
+     * update status.
+     *
+     * @param id id
+     * @param enabled enabled
+     * @return result
+     */
+    int updateEnable(@Param("id") String id, @Param("enabled") Boolean enabled);
 }

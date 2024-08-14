@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.listener.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
+import org.apache.shenyu.admin.listener.utils.NodeDataPathUtils;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,21 +48,25 @@ public class NacosDataChangedInitTest {
         long timeout = NacosPathConstants.DEFAULT_TIME_OUT;
         NacosDataChangedInit nacosDataChangedInit = new NacosDataChangedInit(configService);
 
-        when(configService.getConfig(PLUGIN_DATA_ID, group, timeout)).thenReturn(PLUGIN_DATA_ID);
+        when(configService.getConfig(join(PLUGIN_DATA_ID), group, timeout)).thenReturn(PLUGIN_DATA_ID);
         boolean pluginExist = nacosDataChangedInit.notExist();
         assertFalse(pluginExist, "plugin exist.");
-        when(configService.getConfig(PLUGIN_DATA_ID, group, timeout)).thenReturn(null);
+        when(configService.getConfig(join(PLUGIN_DATA_ID), group, timeout)).thenReturn(null);
 
-        when(configService.getConfig(AUTH_DATA_ID, group, timeout)).thenReturn(AUTH_DATA_ID);
+        when(configService.getConfig(join(AUTH_DATA_ID), group, timeout)).thenReturn(AUTH_DATA_ID);
         boolean authExist = nacosDataChangedInit.notExist();
         assertFalse(authExist, "auth exist.");
-        when(configService.getConfig(AUTH_DATA_ID, group, timeout)).thenReturn(null);
+        when(configService.getConfig(join(AUTH_DATA_ID), group, timeout)).thenReturn(null);
 
-        when(configService.getConfig(META_DATA_ID, group, timeout)).thenReturn(META_DATA_ID);
+        when(configService.getConfig(join(META_DATA_ID), group, timeout)).thenReturn(META_DATA_ID);
         boolean metaDataExist = nacosDataChangedInit.notExist();
         assertFalse(metaDataExist, "metadata exist.");
-        when(configService.getConfig(META_DATA_ID, group, timeout)).thenReturn(null);
+        when(configService.getConfig(join(META_DATA_ID), group, timeout)).thenReturn(null);
         boolean metaDataNotExist = nacosDataChangedInit.notExist();
         assertTrue(metaDataNotExist, "metadata not exist.");
+    }
+
+    private String join(final String text) {
+        return NodeDataPathUtils.appendListStuff(text);
     }
 }

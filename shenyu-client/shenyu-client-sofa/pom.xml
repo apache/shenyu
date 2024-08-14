@@ -26,7 +26,8 @@
     <artifactId>shenyu-client-sofa</artifactId>
 
     <properties>
-        <runtime-sofa-boot-starter.version>3.1.4</runtime-sofa-boot-starter.version>
+        <runtime-sofa-boot-starter.version>4.3.0</runtime-sofa-boot-starter.version>
+        <rpc-sofa-boot-starter.version>4.3.0</rpc-sofa-boot-starter.version>
     </properties>
 
     <dependencies>
@@ -46,11 +47,23 @@
             <artifactId>runtime-sofa-boot-starter</artifactId>
             <version>${runtime-sofa-boot-starter.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>sofa-common-tools</artifactId>
+                    <groupId>com.alipay.sofa.common</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
+        
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.alipay.sofa.common</groupId>
+            <artifactId>sofa-common-tools</artifactId>
+            <version>${sofa-common-tools.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

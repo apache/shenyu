@@ -17,6 +17,13 @@
 
 package org.apache.shenyu.admin.lock;
 
+/**
+ * The interface Register execution repository.
+ * Deprecated: this class is deprecated and will be removed in the next major version.
+ * @since 2.6.1
+ * @deprecated Please use {@link org.springframework.integration.jdbc.lock.DefaultLockRepository}.
+ */
+@Deprecated
 public interface RegisterExecutionRepository {
     /**
      * Return the lock for the client register global allowing for the lock to be acquired or released. Caution:

@@ -31,6 +31,15 @@ import org.apache.shenyu.spi.ExtensionLoader;
 public final class ShenyuClientRegisterRepositoryFactory {
     
     private static final Map<String, ShenyuClientRegisterRepository> REPOSITORY_MAP = new ConcurrentHashMap<>();
+
+    /**
+     * Retrieves the repository map containing mappings of register types to corresponding ShenyuClientRegisterRepository instances.
+     *
+     * @return A {@link Map} where keys are register types and values are associated {@link ShenyuClientRegisterRepository} instances.
+     */
+    public static Map<String, ShenyuClientRegisterRepository> getRepositoryMap() {
+        return REPOSITORY_MAP;
+    }
     
     /**
      * New instance shenyu client register repository.

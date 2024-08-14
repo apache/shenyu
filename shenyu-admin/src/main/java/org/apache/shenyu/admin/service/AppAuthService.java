@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
@@ -96,6 +97,16 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
      */
     String enabled(List<String> ids, Boolean enabled);
 
+
+    /**
+     * Opened string.
+     *
+     * @param ids     the ids
+     * @param enabled the enable
+     * @return the string
+     */
+    String opened(List<String> ids, Boolean enabled);
+
     /**
      * find application authority by id.
      *
@@ -129,6 +140,13 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
     List<AppAuthData> listAll();
 
     /**
+     * List all vo list.
+     *
+     * @return the vo list
+     */
+    List<AppAuthVO> listAllData();
+
+    /**
      * Update app secret by app key shenyu result.
      *
      * @param appKey    the app key
@@ -152,5 +170,13 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
      * @return the shenyu result
      */
     ShenyuAdminResult syncData();
+
+
+    /**
+     * Import shenyu auth data.
+     * @param authDataList app auth list
+     * @return the config import result
+     */
+    ConfigImportResult importData(List<AppAuthDTO> authDataList);
 
 }

@@ -17,15 +17,14 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterRepository;
+import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
+import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
-import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,30 +32,27 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Test cases for {@link RegisterCenterConfiguration}.
  */
 @ExtendWith(MockitoExtension.class)
 public class RegisterCenterConfigurationTest {
-
+    
     @InjectMocks
     private RegisterCenterConfiguration registerCenterConfiguration;
-
+    
     @Test
     public void testShenyuRegisterCenterConfig() {
         assertEquals(ShenyuRegisterCenterConfig.class, registerCenterConfiguration.shenyuRegisterCenterConfig().getClass());
     }
-
+    
     @Test
-    public void testShenyuServerRegisterRepository() {
-        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = mock(ShenyuRegisterCenterConfig.class);
+    public void testRegisterClientServerDisruptorPublisher() {
+        DiscoveryService discoveryService = mock(DiscoveryService.class);
         List<ShenyuClientRegisterService> shenyuClientRegisterService = new ArrayList<>();
-        when(shenyuRegisterCenterConfig.getRegisterType()).thenReturn("http");
-        ShenyuClientServerRegisterRepository registerRepository = registerCenterConfiguration
-                .shenyuClientServerRegisterRepository(shenyuRegisterCenterConfig, shenyuClientRegisterService);
-        assertNotNull(registerRepository);
+        RegisterClientServerDisruptorPublisher publisher = registerCenterConfiguration
+                .registerClientServerDisruptorPublisher(shenyuClientRegisterService, discoveryService);
+        assertNotNull(publisher);
     }
 }

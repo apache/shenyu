@@ -18,8 +18,10 @@
 
 kind load docker-image "shenyu-examples-sofa:latest"
 kind load docker-image "apache/shenyu-integrated-test-k8s-ingress-sofa:latest"
-kubectl apply -f ./shenyu-examples/shenyu-examples-sofa/shenyu-examples-sofa-service/k8s//shenyu-zookeeper.yml
+kubectl apply -f ./shenyu-examples/shenyu-examples-sofa/shenyu-examples-sofa-service/k8s/shenyu-zookeeper.yml
 kubectl wait --for=condition=Ready pod -l app=shenyu-zk -n shenyu-ingress
 kubectl apply -f ./shenyu-examples/shenyu-examples-sofa/shenyu-examples-sofa-service/k8s/shenyu-examples-sofa.yml
+kubectl wait --for=condition=Ready pod -l app=shenyu-examples-sofa -n shenyu-ingress
 kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-sofa/deploy/deploy-shenyu.yaml
+kubectl wait --for=condition=Ready pod -l app=shenyu-ingress-controller -n shenyu-ingress
 kubectl apply -f ./shenyu-examples/shenyu-examples-sofa/shenyu-examples-sofa-service/k8s/ingress.yml
