@@ -22,7 +22,6 @@ import org.apache.shenyu.admin.model.dto.ScaleRuleDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 

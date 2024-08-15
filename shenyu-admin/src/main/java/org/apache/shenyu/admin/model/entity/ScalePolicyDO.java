@@ -208,7 +208,11 @@ public final class ScalePolicyDO extends BaseDO {
             return false;
         }
         ScalePolicyDO that = (ScalePolicyDO) o;
-        return Objects.equals(sort, that.sort) && Objects.equals(status, that.status) && Objects.equals(num, that.num) && Objects.equals(beginTime, that.beginTime) && Objects.equals(endTime, that.endTime);
+        return Objects.equals(sort, that.sort)
+                && Objects.equals(status, that.status)
+                && Objects.equals(num, that.num)
+                && Objects.equals(beginTime, that.beginTime)
+                && Objects.equals(endTime, that.endTime);
     }
 
     @Override
@@ -235,7 +239,17 @@ public final class ScalePolicyDO extends BaseDO {
         return Optional.ofNullable(scalePolicyDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             try {
-                ScalePolicyDO scalePolicyDO = ScalePolicyDO.builder().sort(item.getSort()).status(item.getStatus()).num(item.getNum()).beginTime(DateUtils.isValidDate(item.getBeginTime()) ? new SimpleDateFormat("yyyy-MM-dd").parse(item.getBeginTime()) : null).endTime(DateUtils.isValidDate(item.getEndTime()) ? new SimpleDateFormat("yyyy-MM-dd").parse(item.getEndTime()) : null).dateUpdated(currentTime).build();
+                ScalePolicyDO scalePolicyDO =
+                        ScalePolicyDO.builder()
+                                .sort(item.getSort())
+                                .status(item.getStatus())
+                                .num(item.getNum())
+                                .beginTime(DateUtils.isValidDate(item.getBeginTime())
+                                        ? new SimpleDateFormat("yyyy-MM-dd").parse(item.getBeginTime()) : null)
+                                .endTime(DateUtils.isValidDate(item.getEndTime())
+                                        ? new SimpleDateFormat("yyyy-MM-dd").parse(item.getEndTime()) : null)
+                                .dateUpdated(currentTime)
+                                .build();
                 if (StringUtils.isEmpty(item.getId())) {
                     scalePolicyDO.setId(UUIDUtils.getInstance().generateShortUuid());
                     scalePolicyDO.setDateCreated(currentTime);

@@ -132,7 +132,7 @@ public final class DateUtils {
      * @param dateStr dateStr
      * @return boolean
      */
-    public static boolean isValidDate(String dateStr) {
+    public static boolean isValidDate(final String dateStr) {
         return dateStr != null && !dateStr.trim().isEmpty();
     }
 

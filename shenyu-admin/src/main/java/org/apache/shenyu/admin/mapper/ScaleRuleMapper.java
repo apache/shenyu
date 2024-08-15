@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.admin.model.entity.ScaleRuleDO;
 import org.apache.shenyu.admin.model.query.ScaleRuleQuery;
 import org.apache.shenyu.admin.validation.ExistProvider;

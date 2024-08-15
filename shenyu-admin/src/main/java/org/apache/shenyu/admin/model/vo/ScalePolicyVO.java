@@ -246,10 +246,10 @@ public class ScalePolicyVO implements Serializable {
     public static ScalePolicyVO buildScalePolicyVO(final ScalePolicyDO scalePolicyDO) {
         return Optional.ofNullable(scalePolicyDO)
                 .map(item -> {
-                    String beginTime = item.getBeginTime() != null ?
-                            DateUtils.localDateTimeToString(new Timestamp(item.getBeginTime().getTime()).toLocalDateTime()) : null;
-                    String endTime = item.getEndTime() != null ?
-                            DateUtils.localDateTimeToString(new Timestamp(item.getEndTime().getTime()).toLocalDateTime()) : null;
+                    String beginTime = item.getBeginTime() != null
+                            ? DateUtils.localDateTimeToString(new Timestamp(item.getBeginTime().getTime()).toLocalDateTime()) : null;
+                    String endTime = item.getEndTime() != null
+                            ? DateUtils.localDateTimeToString(new Timestamp(item.getEndTime().getTime()).toLocalDateTime()) : null;
                     return new ScalePolicyVO(item.getId(), item.getSort(), item.getStatus(), item.getNum(),
                             beginTime,
                             endTime,
