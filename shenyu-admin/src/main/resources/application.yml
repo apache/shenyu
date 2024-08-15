@@ -113,7 +113,7 @@ shenyu:
   jwt:
     expired-seconds: 86400000
   cluster:
-    enabled: true
+    enabled: false
     type: jdbc
     connectionTimeout: 15000
     readTimeout: 15000
