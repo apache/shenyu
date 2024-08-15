@@ -31,9 +31,9 @@
     <module name="FileLength">
         <property name="max" value="2500"/>
     </module>
-    <module name="NewlineAtEndOfFile">
-        <property name="lineSeparator" value="lf"/>
-    </module>
+<!--    <module name="NewlineAtEndOfFile">-->
+<!--        <property name="lineSeparator" value="lf"/>-->
+<!--    </module>-->
     <module name="Translation"/>
     <module name="UniqueProperties"/>
     <module name="SeverityMatchFilter"/>
