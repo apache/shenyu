@@ -23,6 +23,7 @@ import java.util.Objects;
 
 public class DetailQuery {
 
+
     /**
      * field value.
      */
@@ -79,6 +80,7 @@ public class DetailQuery {
     public void setValueDesc(final String valueDesc) {
         this.valueDesc = valueDesc;
     }
+
 
     /**
      * getPageParameter.

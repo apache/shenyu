@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
  */
 public class NamespacePluginCreatedEvent extends NamespacePluginChangedEvent {
 
+
     /**
      * Create a new {@code NamespacePluginChangedEvent}.operator is unknown.
      *

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.bean;
 
+
 /**
  * CustomCode.
  */
@@ -27,6 +28,7 @@ public class CustomCode {
     private String message;
 
     private String solution;
+
 
     /**
      * getCode.

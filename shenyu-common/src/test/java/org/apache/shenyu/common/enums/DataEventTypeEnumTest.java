@@ -26,6 +26,7 @@ import java.util.Arrays;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+
 /**
  * Test Cases for DataEventTypeEnum.
  */

@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  */
 public class DictUpdatedEvent extends DictChangedEvent {
     
+    
     /**
      * Create a new {@code DictUpdatedEvent}.operator is unknown.
      *

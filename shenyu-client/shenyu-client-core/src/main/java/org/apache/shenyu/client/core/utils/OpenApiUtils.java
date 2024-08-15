@@ -43,6 +43,7 @@ public class OpenApiUtils {
 
     private static final String[] QUERY_CLASSES = new String[]{"org.springframework.web.bind.annotation.RequestParam", "org.springframework.web.bind.annotation.RequestPart"};
 
+
     /**
      * generateDocumentParameters.
      *

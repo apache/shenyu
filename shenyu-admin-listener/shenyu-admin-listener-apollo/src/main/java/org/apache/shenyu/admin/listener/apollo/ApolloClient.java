@@ -75,6 +75,7 @@ public class ApolloClient {
         return openItemDTO.getValue();
     }
 
+
     /**
      * removeItemKey.
      *

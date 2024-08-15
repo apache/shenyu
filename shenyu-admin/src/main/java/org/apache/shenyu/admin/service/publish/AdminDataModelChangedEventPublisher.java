@@ -76,6 +76,7 @@ public interface AdminDataModelChangedEventPublisher<T> {
         publish(new AdminDataModelChangedEvent(data, null, EventTypeEnum.DELETE, SessionUtil.visitorName()));
     }
     
+    
     /**
      * on data deleted.
      *

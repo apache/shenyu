@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.vo;
 
+
 /**
  * MenuDocItemVO.
  */

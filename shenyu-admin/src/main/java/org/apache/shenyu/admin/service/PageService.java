@@ -31,6 +31,7 @@ import java.util.List;
  */
 public interface PageService<Q, R> {
     
+    
     /**
      * search by page condition.
      *
@@ -42,6 +43,7 @@ public interface PageService<Q, R> {
         PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         return new PageInfo<>(searchByCondition(pageCondition.getCondition()));
     }
+    
     
     /**
      * search by page condition.

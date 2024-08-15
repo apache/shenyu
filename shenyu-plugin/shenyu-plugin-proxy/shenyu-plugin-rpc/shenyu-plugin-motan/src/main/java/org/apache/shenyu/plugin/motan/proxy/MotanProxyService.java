@@ -56,6 +56,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.LinkedBlockingQueue;
 
+
 /**
  * Motan proxy service.
  */
@@ -107,13 +108,12 @@ public class MotanProxyService {
         initThreadPool();
         CompletableFuture<Object> future = CompletableFuture.supplyAsync(responseFuture::getValue, threadPool);
         return Mono.fromFuture(future.thenApply(ret -> {
-            Object result = ret;
-            if (Objects.isNull(result)) {
-                result = Constants.MOTAN_RPC_RESULT_EMPTY;
+            if (Objects.isNull(ret)) {
+                ret = Constants.MOTAN_RPC_RESULT_EMPTY;
             }
-            exchange.getAttributes().put(Constants.RPC_RESULT, result);
+            exchange.getAttributes().put(Constants.RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
-            return result;
+            return ret;
         })).onErrorMap(ShenyuException::new);
     }
 

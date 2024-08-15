@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
  */
 public class BatchDictChangedEvent extends BatchChangedEvent {
     
+    
     /**
      * Create a new {@code BatchDictChangedEvent}.operator is unknown.
      *

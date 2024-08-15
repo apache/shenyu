@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  */
 public class MetaDataCreatedEvent extends MetaDataChangedEvent {
     
+    
     /**
      * Create a new {@code MetaDataChangedEvent}.operator is unknown.
      *

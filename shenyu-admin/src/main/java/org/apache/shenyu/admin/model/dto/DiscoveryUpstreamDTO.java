@@ -84,6 +84,7 @@ public class DiscoveryUpstreamDTO implements Serializable {
      */
     private Timestamp dateUpdated;
 
+
     /**
      * getId.
      *

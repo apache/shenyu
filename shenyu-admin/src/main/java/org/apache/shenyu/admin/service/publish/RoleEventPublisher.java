@@ -51,6 +51,7 @@ public class RoleEventPublisher implements AdminDataModelChangedEventPublisher<R
         publish(new RoleCreatedEvent(rule, SessionUtil.visitorName()));
     }
     
+    
     /**
      * on rule updated.
      *

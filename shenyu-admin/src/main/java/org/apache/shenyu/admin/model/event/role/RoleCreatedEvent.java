@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  */
 public class RoleCreatedEvent extends RoleChangedEvent {
     
+    
     /**
      * Create a new {@code RoleCreatedEvent}.operator is unknown.
      *

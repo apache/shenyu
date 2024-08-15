@@ -38,6 +38,7 @@ public final class NamespacePluginRelDO extends BaseDO {
      */
     private String pluginId;
 
+
     /**
      * plugin config @see 2.0.
      */

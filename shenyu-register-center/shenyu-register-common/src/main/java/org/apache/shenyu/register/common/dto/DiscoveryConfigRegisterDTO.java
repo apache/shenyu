@@ -80,6 +80,7 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
         return new Builder();
     }
 
+
     /**
      * getSelectorName.
      *
@@ -245,6 +246,7 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
         private Builder() {
         }
 
+
         /**
          * selectorName.
          *
@@ -255,6 +257,7 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
             this.selectorName = selectorName;
             return this;
         }
+
 
         /**
          * listenerNode.
@@ -277,7 +280,8 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
             this.handler = handler;
             return this;
         }
-        
+
+
         /**
          * name.
          *

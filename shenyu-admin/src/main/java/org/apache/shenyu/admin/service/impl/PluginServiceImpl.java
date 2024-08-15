@@ -324,6 +324,7 @@ public class PluginServiceImpl implements PluginService {
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
 
+
     /**
      * update plugin.<br>
      *

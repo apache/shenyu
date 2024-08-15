@@ -49,6 +49,7 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
 
     private final Map<String, String> conversion;
 
+
     /**
      * CustomDiscoveryUpstreamParser.
      *

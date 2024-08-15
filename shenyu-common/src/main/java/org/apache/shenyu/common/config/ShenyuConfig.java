@@ -20,6 +20,7 @@ package org.apache.shenyu.common.config;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
 import org.apache.shenyu.common.enums.TrieMatchModeEnum;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

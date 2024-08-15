@@ -27,6 +27,7 @@ import java.util.Objects;
  */
 public class NamespaceQuery implements Serializable {
 
+
     /**
      * namespace id.
      */

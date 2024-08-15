@@ -27,6 +27,7 @@ import java.util.Collections;
 
 import static org.mockito.Mockito.mock;
 
+
 /**
  * AssertTest.
  */

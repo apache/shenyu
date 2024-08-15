@@ -37,6 +37,7 @@ public final class SessionUtil {
     private SessionUtil() {
     }
     
+    
     /**
      * visitor is login user[admin or other] / app /bootstrap.
      *

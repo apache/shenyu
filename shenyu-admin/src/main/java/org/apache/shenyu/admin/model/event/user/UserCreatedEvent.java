@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
  */
 public class UserCreatedEvent extends UserChangedEvent {
     
+    
     /**
      * Create a new {@code UserCreatedEvent}.operator is unknown.
      *

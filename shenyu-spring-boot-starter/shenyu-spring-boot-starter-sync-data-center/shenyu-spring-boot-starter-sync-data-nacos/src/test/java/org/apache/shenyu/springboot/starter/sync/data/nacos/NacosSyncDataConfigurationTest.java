@@ -46,7 +46,10 @@ import static org.mockito.Mockito.mockStatic;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
         classes = NacosSyncDataConfiguration.class,
-        properties = {"shenyu.sync.nacos.url=localhost:8848", "shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c"})
+        properties = {
+                "shenyu.sync.nacos.url=localhost:8848",
+                "shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c"
+        })
 @EnableAutoConfiguration
 @MockBean(name = "nacosConfigService", value = NacosMockConfigService.class, answer = CALLS_REAL_METHODS)
 public final class NacosSyncDataConfigurationTest {

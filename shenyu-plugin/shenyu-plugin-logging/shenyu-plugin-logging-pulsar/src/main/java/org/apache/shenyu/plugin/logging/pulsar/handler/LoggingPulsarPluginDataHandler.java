@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.logging.pulsar.client.PulsarLogCollectClient;
 import org.apache.shenyu.plugin.logging.pulsar.collector.PulsarLogCollector;
 import org.apache.shenyu.plugin.logging.pulsar.config.PulsarLogCollectConfig;
 
+
 /**
  * The type logging pulsar plugin data handler.
  */

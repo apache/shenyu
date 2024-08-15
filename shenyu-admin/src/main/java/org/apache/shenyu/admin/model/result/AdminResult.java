@@ -53,6 +53,7 @@ public class AdminResult<T> implements Serializable {
         this.data = data;
     }
     
+    
     /**
      * Gets the value of code.
      *

@@ -55,6 +55,7 @@ public class ClickHouseLoggingConstant {
             + " TTL toDateTime(timeLocal) + INTERVAL %s DAY \n"
             + ";";
 
+
     /**
      * The constant CREATE_DISTRIBUTED_TABLE_SQL.
      */

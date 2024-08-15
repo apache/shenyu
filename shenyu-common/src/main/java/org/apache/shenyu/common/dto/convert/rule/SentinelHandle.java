@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.dto.convert.rule;
 
 import org.apache.shenyu.common.constant.Constants;
+
 import java.util.Objects;
 
 /**
@@ -39,6 +40,7 @@ public class SentinelHandle {
      * Max queueing time in rate limiter behavior (ms).
      */
     private int flowRuleMaxQueueingTimeMs = 500;
+
 
     /**
      * The flow control warm-up time (s).

@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
  */
 public class BatchNamespacePluginChangedEvent extends BatchChangedEvent {
 
+
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *

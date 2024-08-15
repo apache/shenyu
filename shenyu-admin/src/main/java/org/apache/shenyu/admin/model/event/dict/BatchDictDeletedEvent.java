@@ -54,6 +54,8 @@ public class BatchDictDeletedEvent extends BatchDictChangedEvent {
         return String.format("the dict[%s] is %s", data, StringUtils.lowerCase(getType().getType().toString()));
     }
     
+
+    
     /**
      * get deleted iss.
      *

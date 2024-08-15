@@ -238,6 +238,7 @@ public enum EventTypeEnum {
         return type;
     }
     
+    
     /**
      * get color.
      *

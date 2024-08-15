@@ -83,6 +83,7 @@ public class FieldQuery {
         this.fieldDesc = fieldDesc;
     }
 
+
     /**
      * getPageParameter.
      *

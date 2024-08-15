@@ -53,6 +53,7 @@ public class DocVO {
         this.gatewayUrl = gatewayUrl;
     }
 
+
     /**
      * getEnvProps.
      * @return List

@@ -67,6 +67,8 @@ public class BatchRoleDeletedEvent extends BatchChangedEvent {
                 .collect(Collectors.toList());
     }
     
+
+    
     /**
      * get deleted ids.
      *
