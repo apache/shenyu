@@ -40,7 +40,7 @@ public final class ShutdownHookManager {
     private static String hookName = "ShenyuClientShutdownHook";
 
     private final Set<HookEntry> hooks =
-            Collections.synchronizedSet(new HashSet<HookEntry>());
+            Collections.synchronizedSet(new HashSet<>());
 
     private final AtomicBoolean shutdownInProgress = new AtomicBoolean(false);
 
@@ -82,10 +82,10 @@ public final class ShutdownHookManager {
     List<Runnable> getShutdownHooksInOrder() {
         List<HookEntry> list;
         synchronized (MGR.hooks) {
-            list = new ArrayList<HookEntry>(MGR.hooks);
+            list = new ArrayList<>(MGR.hooks);
         }
-        Collections.sort(list, (o1, o2) -> o2.priority - o1.priority);
-        List<Runnable> ordered = new ArrayList<Runnable>();
+        list.sort((o1, o2) -> o2.priority - o1.priority);
+        List<Runnable> ordered = new ArrayList<>();
         for (HookEntry entry : list) {
             ordered.add(entry.hook);
         }

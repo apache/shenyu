@@ -129,7 +129,7 @@ public class GatewayClient extends BaseClient {
                     @Override
                     public void onMessage(final String message) {
                         BLOCKING_QUEUE.add(message);
-                        log.info("Receive Message: " + message);
+                        log.info("Receive Message: {}", message);
                     }
 
                     @Override

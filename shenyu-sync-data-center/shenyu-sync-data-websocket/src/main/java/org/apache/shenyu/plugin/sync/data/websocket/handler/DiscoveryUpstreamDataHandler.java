@@ -38,29 +38,17 @@ public class DiscoveryUpstreamDataHandler extends AbstractDataHandler<DiscoveryS
 
     @Override
     protected void doRefresh(final List<DiscoverySyncData> dataList) {
-        dataList.forEach(data -> {
-            discoveryUpstreamDataSubscribers.forEach(p -> {
-                p.onSubscribe(data);
-            });
-        });
+        dataList.forEach(data -> discoveryUpstreamDataSubscribers.forEach(p -> p.onSubscribe(data)));
     }
 
     @Override
     protected void doUpdate(final List<DiscoverySyncData> dataList) {
-        dataList.forEach(data -> {
-            discoveryUpstreamDataSubscribers.forEach(p -> {
-                p.onSubscribe(data);
-            });
-        });
+        dataList.forEach(data -> discoveryUpstreamDataSubscribers.forEach(p -> p.onSubscribe(data)));
     }
 
     @Override
     protected void doDelete(final List<DiscoverySyncData> dataList) {
-        dataList.forEach(data -> {
-            discoveryUpstreamDataSubscribers.forEach(p -> {
-                p.unSubscribe(data);
-            });
-        });
+        dataList.forEach(data -> discoveryUpstreamDataSubscribers.forEach(p -> p.unSubscribe(data)));
     }
 
 }

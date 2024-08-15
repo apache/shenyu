@@ -21,10 +21,8 @@ import com.google.common.collect.Lists;
 import io.restassured.http.Method;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
-import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
-import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
@@ -107,18 +105,16 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP);
                                         consumer.setNamesrvAddr(NAMESERVER);
                                         consumer.subscribe(TOPIC, "*");
-                                        consumer.registerMessageListener(new MessageListenerConcurrently() {
-                                            public ConsumeConcurrentlyStatus consumeMessage(final List<MessageExt> msgs, final ConsumeConcurrentlyContext consumeConcurrentlyContext) {
-                                                LOG.info("Msg:{}", msgs);
-                                                if (CollectionUtils.isNotEmpty(msgs)) {
-                                                    msgs.forEach(e -> {
-                                                        if (new String(e.getBody()).contains("/http/order/findById?id=23")) {
-                                                            isLog.set(true);
-                                                        }
-                                                    });
-                                                }
-                                                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+                                        consumer.registerMessageListener((MessageListenerConcurrently) (msgs, consumeConcurrentlyContext) -> {
+                                            LOG.info("Msg:{}", msgs);
+                                            if (CollectionUtils.isNotEmpty(msgs)) {
+                                                msgs.forEach(e -> {
+                                                    if (new String(e.getBody()).contains("/http/order/findById?id=23")) {
+                                                        isLog.set(true);
+                                                    }
+                                                });
                                             }
+                                            return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
                                         });
                                         LOG.info("consumer.start ; isLog.get():{}", isLog.get());
                                         consumer.start();
