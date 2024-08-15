@@ -139,7 +139,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      */
     @PostMapping("/batchEnabled")
     public ShenyuAdminResult batchEnabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
-        if (!ruleService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId())) {
+        if (!ruleService.enabledByIdsAndNamespaceId(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId())) {
             return ShenyuAdminResult.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
@@ -153,7 +153,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      */
     @DeleteMapping("/batch")
     public ShenyuAdminResult deleteRules(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
-        Integer deleteCount = ruleService.delete(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
+        Integer deleteCount = ruleService.deleteByIdsAndNamespaceId(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 

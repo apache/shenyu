@@ -191,7 +191,7 @@ public class RuleServiceImpl implements RuleService {
     }
 
     /**
-     * find rule by id.
+     * find rule by id and namespaceId.
      *
      * @param id primary key.
      * @param namespaceId namespaceId.
@@ -292,7 +292,7 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean enabled(final List<String> ids, final Boolean enabled, final String namespaceId) {
+    public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
         ids.forEach(id -> {
             RuleDO ruleDO = ruleMapper.selectByIdAndNamespaceId(id, namespaceId);
             RuleDO before = JsonUtils.jsonToObject(JsonUtils.toJson(ruleDO), RuleDO.class);
@@ -305,14 +305,14 @@ public class RuleServiceImpl implements RuleService {
     }
 
     /**
-     * delete rules.
+     * delete rules by ids and namespaceId.
      *
      * @param ids primary key.
      * @return rows
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int delete(final List<String> ids, final String namespaceId) {
+    public int deleteByIdsAndNamespaceId(final List<String> ids, final String namespaceId) {
         List<RuleDO> rules = ruleMapper.selectByIds(ids);
         final int deleteCount = ruleMapper.deleteByIds(ids);
         if (deleteCount > 0) {

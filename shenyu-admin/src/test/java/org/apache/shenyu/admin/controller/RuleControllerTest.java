@@ -212,7 +212,7 @@ public final class RuleControllerTest {
 
     @Test
     public void testDeleteRules() throws Exception {
-        given(this.ruleService.delete(Collections.singletonList("111"))).willReturn(1);
+        given(this.ruleService.deleteByIdsAndNamespaceId(Collections.singletonList("111"), SYS_DEFAULT_NAMESPACE_ID)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/rule/batch")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[\"111\"]")
@@ -240,7 +240,7 @@ public final class RuleControllerTest {
         when(ruleMapper.existed(ruleDTO.getId())).thenReturn(true);
         when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
         when(selectorMapper.existed(ruleDTO.getSelectorId())).thenReturn(true);
-        given(this.ruleService.enabled(Arrays.asList(ruleDTO.getId()), false)).willReturn(true);
+        given(this.ruleService.enabledByIdsAndNamespaceId(Arrays.asList(ruleDTO.getId()), false, SYS_DEFAULT_NAMESPACE_ID)).willReturn(true);
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Arrays.asList(ruleDTO.getId()));
         batchCommonDTO.setEnabled(false);

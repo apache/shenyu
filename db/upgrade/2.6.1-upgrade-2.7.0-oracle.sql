@@ -223,3 +223,8 @@ ALTER TABLE selector ADD namespace_id VARCHAR2(50) NULL;
 COMMENT ON COLUMN selector.namespace_id IS 'namespaceId';
 
 UPDATE selector SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+ALTER TABLE rule ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN rule.namespace_id IS 'namespaceId';
+
+UPDATE rule SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;

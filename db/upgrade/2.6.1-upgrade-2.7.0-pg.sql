@@ -198,3 +198,8 @@ ALTER TABLE "public"."selector" ADD COLUMN namespace_id VARCHAR(50) NULL;
 COMMENT ON COLUMN "public"."selector"."namespace_id" IS 'namespaceId';
 
 UPDATE "public"."selector" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+ALTER TABLE "public"."rule" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespaceId';
+
+UPDATE "public"."rule" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;

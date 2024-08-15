@@ -172,7 +172,7 @@ public class ApiServiceImpl implements ApiService {
         //clean rule
         final List<RuleVO> rules = ruleService.searchByCondition(condition);
         if (CollectionUtils.isNotEmpty(rules)) {
-            ruleService.delete(rules.stream()
+            ruleService.deleteByIdsAndNamespaceId(rules.stream()
                     .map(RuleVO::getId)
                     .distinct()
                     // todo:[To be refactored with namespace]  Temporarily  hardcode

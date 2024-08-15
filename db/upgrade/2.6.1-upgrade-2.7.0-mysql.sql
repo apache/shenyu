@@ -175,3 +175,10 @@ ALTER TABLE `shenyu`.`selector` ADD COLUMN `namespace_id` varchar(50) NULL COMME
 UPDATE selector
 SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
 WHERE namespaceId IS NULL;
+
+
+ALTER TABLE `shenyu`.`rule` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
+
+UPDATE rule
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespaceId IS NULL;

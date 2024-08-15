@@ -44,7 +44,7 @@ public interface RuleMapper extends ExistProvider {
     Boolean existed(@Param("id") Serializable id);
 
     /**
-     * select rule by id.
+     * select rule by id and namespaceId.
      *
      * @param id primary key.
      * @param namespaceId namespaceId.

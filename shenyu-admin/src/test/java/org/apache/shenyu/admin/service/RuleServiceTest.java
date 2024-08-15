@@ -129,7 +129,7 @@ public final class RuleServiceTest {
         given(this.ruleMapper.selectByIdAndNamespaceId("123", SYS_DEFAULT_NAMESPACE_ID)).willReturn(ruleDO);
         final List<String> ids = Collections.singletonList(ruleDO.getId());
         given(this.ruleMapper.deleteByIds(ids)).willReturn(ids.size());
-        assertEquals(this.ruleService.delete(ids), ids.size());
+        assertEquals(this.ruleService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID), ids.size());
     }
 
     @Test
