@@ -45,7 +45,7 @@ public class ShenyuSdkGrpcConsumerController {
      */
     @PostMapping("/hello")
     public List<HelloResponse> hello(final @RequestBody HelloRequest request) {
-        return shenyuGrpcClientApi.hello(new GrpcData<HelloRequest>(Collections.singletonList(request)));
+        return shenyuGrpcClientApi.hello(new GrpcData<>(Collections.singletonList(request)));
     }
 
     /**

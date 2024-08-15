@@ -97,7 +97,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
         this.accessToken = Caffeine.newBuilder()
                 //see org.apache.shenyu.admin.config.properties.JwtProperties#expiredSeconds
                 .expireAfterWrite(24L, TimeUnit.HOURS)
-                .build(new CacheLoader<String, String>() {
+                .build(new CacheLoader<>() {
                     @Override
                     public @Nullable String load(@NonNull final String server) {
                         try {

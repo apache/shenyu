@@ -112,7 +112,7 @@ public class UriUtils {
      */
     public static int getActualPort(final String scheme, final Integer port) {
         Integer actualPort = port;
-        if (Objects.isNull(port) || port.intValue() < 0) {
+        if (Objects.isNull(port) || port < 0) {
             if (!"http".equals(scheme) && !"ws".equals(scheme)) {
                 if ("https".equals(scheme) || "wss".equals(scheme)) {
                     actualPort = 443;

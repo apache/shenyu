@@ -363,7 +363,7 @@ public class SelectorServiceImpl implements SelectorService {
         if (CollectionUtils.isEmpty(pluginDOList)) {
             return Lists.newArrayList();
         }
-        List<String> pluginIds = pluginDOList.stream().map(it -> it.getId()).collect(Collectors.toList());
+        List<String> pluginIds = pluginDOList.stream().map(BaseDO::getId).collect(Collectors.toList());
         SelectorQuery selectorQuery = new SelectorQuery();
         selectorQuery.setName(name);
         selectorQuery.setPluginIds(pluginIds);

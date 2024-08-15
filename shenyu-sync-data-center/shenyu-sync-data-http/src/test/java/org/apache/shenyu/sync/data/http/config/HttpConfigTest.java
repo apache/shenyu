@@ -17,13 +17,11 @@
 
 package org.apache.shenyu.sync.data.http.config;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.util.Objects;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 /**
  * add test case for {@link HttpConfig}.
@@ -54,23 +52,22 @@ public class HttpConfigTest {
 
     @Test
     public void testGetterSetter() {
-        assertEquals(URL, httpConfig.getUrl());
-        assertEquals(DELAY_TIME, httpConfig.getDelayTime());
-        assertEquals(CONNECTION_TIMEOUT, httpConfig.getConnectionTimeout());
+        Assertions.assertEquals(URL, httpConfig.getUrl());
+        Assertions.assertEquals(DELAY_TIME, httpConfig.getDelayTime());
+        Assertions.assertEquals(CONNECTION_TIMEOUT, httpConfig.getConnectionTimeout());
     }
 
     @Test
     public void testEquals() {
-        assertEquals(httpConfig, httpConfig);
-        assertEquals(httpConfig, that);
-        assertNotEquals(httpConfig, null);
-        assertNotEquals(httpConfig, new Object());
+        Assertions.assertEquals(httpConfig, httpConfig);
+        Assertions.assertEquals(httpConfig, that);
+        Assertions.assertNotEquals(httpConfig, null);
+        Assertions.assertNotEquals(httpConfig, new Object());
     }
 
     @Test
     public void testHashCode() {
-        assertEquals(Objects.hash(httpConfig.getUrl(), httpConfig.getDelayTime(),
-                        httpConfig.getConnectionTimeout(), httpConfig.getReadTimeout(), httpConfig.getWriteTimeout()),
-                httpConfig.hashCode());
+        Assertions.assertEquals(Objects.hash(httpConfig.getUrl(), httpConfig.getDelayTime(),
+                        httpConfig.getConnectionTimeout(), httpConfig.getReadTimeout(), httpConfig.getWriteTimeout()), httpConfig.hashCode());
     }
 }

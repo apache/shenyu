@@ -41,15 +41,12 @@ public final class ParamCheckUtilsTest {
 
     @Test
     public void testcheckParamsLength() {
-        assertDoesNotThrow(() -> {
-            ParamCheckUtils.checkParamsLength(2, 2); });
+        assertDoesNotThrow(() -> ParamCheckUtils.checkParamsLength(2, 2));
     }
 
     @Test
     public void testcheckParamsLengthException() {
-        Throwable exception = assertThrows(ShenyuException.class, () -> {
-            ParamCheckUtils.checkParamsLength(1, 2);
-        });
+        Throwable exception = assertThrows(ShenyuException.class, () -> ParamCheckUtils.checkParamsLength(1, 2));
         assertEquals("args.length < types.length", exception.getMessage());
     }
 }

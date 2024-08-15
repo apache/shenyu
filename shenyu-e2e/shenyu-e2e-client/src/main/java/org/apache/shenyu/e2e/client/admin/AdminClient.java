@@ -76,19 +76,19 @@ public class AdminClient extends BaseClient {
 
     private static final Logger log = LoggerFactory.getLogger(AdminClient.class);
 
-    private static final TypeReference<PaginatedResources<PluginDTO>> PAGINATED_PLUGINS_TYPE_REFERENCE = new TypeReference<PaginatedResources<PluginDTO>>() {
+    private static final TypeReference<PaginatedResources<PluginDTO>> PAGINATED_PLUGINS_TYPE_REFERENCE = new TypeReference<>() {
     };
 
-    private static final TypeReference<SearchedResources<SelectorDTO>> SEARCHED_SELECTORS_TYPE_REFERENCE = new TypeReference<SearchedResources<SelectorDTO>>() {
+    private static final TypeReference<SearchedResources<SelectorDTO>> SEARCHED_SELECTORS_TYPE_REFERENCE = new TypeReference<>() {
     };
 
-    private static final TypeReference<SearchedResources<RuleDTO>> SEARCHED_RULES_TYPE_REFERENCE = new TypeReference<SearchedResources<RuleDTO>>() {
+    private static final TypeReference<SearchedResources<RuleDTO>> SEARCHED_RULES_TYPE_REFERENCE = new TypeReference<>() {
     };
 
-    private static final TypeReference<SearchedResources<FakeResourceDTO>> FAKE_VALUE_TYPE = new TypeReference<SearchedResources<FakeResourceDTO>>() {
+    private static final TypeReference<SearchedResources<FakeResourceDTO>> FAKE_VALUE_TYPE = new TypeReference<>() {
     };
 
-    private static final TypeReference<List<MetaDataDTO>> SEARCHED_METADATAS_TYPE_REFERENCE = new TypeReference<List<MetaDataDTO>>() {
+    private static final TypeReference<List<MetaDataDTO>> SEARCHED_METADATAS_TYPE_REFERENCE = new TypeReference<>() {
     };
 
     private final MultiValueMap<String, String> basicAuth = new HttpHeaders();

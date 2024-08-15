@@ -104,9 +104,7 @@ public final class ConsulInstanceRegisterRepositoryTest {
                 .port(9195)
                 .build();
 
-        try (MockedConstruction<ConsulClient> construction = mockConstruction(ConsulClient.class, (mock, context) -> {
-            when(mock.agentCheckRegister(any())).thenReturn(any());
-        })) {
+        try (MockedConstruction<ConsulClient> construction = mockConstruction(ConsulClient.class, (mock, context) -> when(mock.agentCheckRegister(any())).thenReturn(any()))) {
             RegisterConfig instanceConfig = new RegisterConfig();
             final ConsulInstanceRegisterRepository repository = mock(ConsulInstanceRegisterRepository.class);
             Properties properties = new Properties();
