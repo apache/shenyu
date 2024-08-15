@@ -1133,7 +1133,7 @@ public class ShenyuConfig {
         private static final Set<String> DEFAULT_ALLOWED_HEADERS;
 
         static {
-            DEFAULT_ALLOWED_HEADERS = new HashSet<String>() {
+            DEFAULT_ALLOWED_HEADERS = new HashSet<>() {
                 {
                     add("x-requested-with");
                     add("authorization");

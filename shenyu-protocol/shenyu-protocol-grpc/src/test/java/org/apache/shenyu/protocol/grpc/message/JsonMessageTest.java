@@ -120,7 +120,7 @@ public class JsonMessageTest {
 
         try (MockedStatic<Descriptors.FileDescriptor> descriptorMockedStatic = mockStatic(Descriptors.FileDescriptor.class)) {
             descriptorMockedStatic.when(() -> Descriptors.FileDescriptor.buildFrom(any(), any(Descriptors.FileDescriptor[].class))).thenThrow(Descriptors.DescriptorValidationException.class);
-            assertThrows(RuntimeException.class, () -> JsonMessage.buildJsonMessage());
+            assertThrows(RuntimeException.class, JsonMessage::buildJsonMessage);
         }
     }
 

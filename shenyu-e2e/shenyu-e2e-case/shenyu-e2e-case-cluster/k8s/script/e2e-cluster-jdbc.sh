@@ -33,6 +33,8 @@ sleep 30s
 chmod +x "${curPath}"/healthcheck.sh
 sh "${curPath}"/healthcheck.sh cluster http://localhost:31095/actuator/health http://localhost:31096/actuator/health http://localhost:31195/actuator/health
 
+kubectl logs "$(kubectl get pod -o wide | grep shenyu-mysql | awk '{print $1}')"
+
 kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin-master | awk '{print $1}')"
 
 kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin-slave | awk '{print $1}')"

@@ -66,16 +66,16 @@ public class EtcdClient {
     private void initLease() {
         try {
             this.globalLeaseId = client.getLeaseClient().grant(ttl).get().getID();
-            client.getLeaseClient().keepAlive(globalLeaseId, new StreamObserver<LeaseKeepAliveResponse>() {
+            client.getLeaseClient().keepAlive(globalLeaseId, new StreamObserver<>() {
                 @Override
                 public void onNext(final LeaseKeepAliveResponse leaseKeepAliveResponse) {
                 }
-
+                
                 @Override
                 public void onError(final Throwable throwable) {
                     LOGGER.error("keep alive error", throwable);
                 }
-
+                
                 @Override
                 public void onCompleted() {
                 }

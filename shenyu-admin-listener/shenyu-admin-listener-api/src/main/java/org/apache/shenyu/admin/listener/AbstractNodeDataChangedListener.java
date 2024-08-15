@@ -105,17 +105,13 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
             final List<String> changeNames = changedList.stream().map(mapperToKey).collect(Collectors.toList());
             switch (eventType) {
                 case DELETE:
-                    changedList.stream().map(mapperToKey).forEach(removeKey -> {
-                        delConfig(configKeyPrefix + removeKey);
-                    });
+                    changedList.stream().map(mapperToKey).forEach(removeKey -> delConfig(configKeyPrefix + removeKey));
                     delChangedData(configKeyPrefix, changeNames);
                     break;
                 case REFRESH:
                 case MYSELF:
                     final List<String> configDataNames = this.getConfigDataNames(configKeyPrefix);
-                    changedList.forEach(changedData -> {
-                        publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData);
-                    });
+                    changedList.forEach(changedData -> publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData));
 
                     if (configDataNames != null && configDataNames.size() > changedList.size()) {
                         configDataNames.removeAll(changeNames);
@@ -125,9 +121,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
                     publishConfig(configKeyPrefix + DefaultNodeConstants.LIST_STR, changeNames);
                     break;
                 default:
-                    changedList.forEach(changedData -> {
-                        publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData);
-                    });
+                    changedList.forEach(changedData -> publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData));
                     putChangeData(configKeyPrefix, changeNames);
                     break;
             }
@@ -201,17 +195,13 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
                     .collect(Collectors.groupingBy(mappingKey, Collectors.mapping(mappingValue, Collectors.toList())));
             switch (eventType) {
                 case DELETE:
-                    changedList.forEach(changedData -> {
-                        delConfig(configKeyPrefix + mappingKey.apply(changedData) + DefaultNodeConstants.JOIN_POINT + mappingValue.apply(changedData));
-                    });
+                    changedList.forEach(changedData -> delConfig(configKeyPrefix + mappingKey.apply(changedData) + DefaultNodeConstants.JOIN_POINT + mappingValue.apply(changedData)));
                     this.delChangedMapToList(nameToIdMap, configKeyPrefix);
                     break;
                 case REFRESH:
                 case MYSELF:
                 default:
-                    changedList.forEach(changedData -> {
-                        publishConfig(configKeyPrefix + mappingKey.apply(changedData) + DefaultNodeConstants.JOIN_POINT + mappingValue.apply(changedData), changedData);
-                    });
+                    changedList.forEach(changedData -> publishConfig(configKeyPrefix + mappingKey.apply(changedData) + DefaultNodeConstants.JOIN_POINT + mappingValue.apply(changedData), changedData));
                     this.putChangedMapToList(nameToIdMap, configKeyPrefix);
                     break;
             }

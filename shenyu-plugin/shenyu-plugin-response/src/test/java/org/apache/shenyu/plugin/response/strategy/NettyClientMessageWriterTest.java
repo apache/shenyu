@@ -82,7 +82,7 @@ public class NettyClientMessageWriterTest {
         when(connection.inbound().receive()).thenReturn(mock(ByteBufFlux.class));
         when(connection.inbound().receive().retain()).thenReturn(mock(ByteBufFlux.class));
 
-        final Flux<NettyDataBuffer> body = new Flux<NettyDataBuffer>() {
+        final Flux<NettyDataBuffer> body = new Flux<>() {
             @Override
             public void subscribe(final CoreSubscriber<? super NettyDataBuffer> coreSubscriber) {
                 coreSubscriber.onComplete();

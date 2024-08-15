@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -115,7 +117,7 @@ public final class IpUtils {
         // if the progress works under docker environment
         // return the host ip about this docker located from environment value
         String dockerHostIp = System.getenv(SYSTEM_ENV_DOCKER_HOST_IP);
-        if (dockerHostIp != null && !"".equals(dockerHostIp)) {
+        if (dockerHostIp != null && StringUtils.isNoneBlank(dockerHostIp)) {
             return dockerHostIp;
         }
 
