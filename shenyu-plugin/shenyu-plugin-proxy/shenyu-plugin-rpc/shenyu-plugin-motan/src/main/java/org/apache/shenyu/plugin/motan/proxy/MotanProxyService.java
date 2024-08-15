@@ -127,7 +127,7 @@ public class MotanProxyService {
             // should not execute to here
             threadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                     60L, TimeUnit.SECONDS,
-                    new SynchronousQueue<Runnable>(),
+                    new SynchronousQueue<>(),
                     factory);
             return;
         }

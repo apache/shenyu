@@ -88,7 +88,7 @@ public class ShenyuDiscoveryClient {
         }
         // loadBalancer upstreams
         if (CollectionUtils.isEmpty(upstreams)) {
-            LOG.error("The serviceId that named " + serviceId + " could not load balanced to at least one upstream.");
+            LOG.error("The serviceId that named {} could not load balanced to at least one upstream.", serviceId);
         }
         Upstream upstream = upstreams.get(0);
         if (CollectionUtils.isNotEmpty(upstreams) && upstreams.size() > 1) {

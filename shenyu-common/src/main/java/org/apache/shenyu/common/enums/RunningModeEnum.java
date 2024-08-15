@@ -30,6 +30,6 @@ public enum RunningModeEnum {
     /**
      * cluster.
      */
-    CLUSTER;
+    CLUSTER
     
 }
