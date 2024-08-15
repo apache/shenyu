@@ -35,6 +35,12 @@
   <sql id="Blob_Column_List">
     msg
   </sql>
+  <select id="existed" resultType="java.lang.Boolean">
+    SELECT true
+    FROM scale_history
+    WHERE id = #{id}
+    LIMIT 1
+  </select>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="ResultMapWithBLOBs">
     select
     <include refid="Base_Column_List" />

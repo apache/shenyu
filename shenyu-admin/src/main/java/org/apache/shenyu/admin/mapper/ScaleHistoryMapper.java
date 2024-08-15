@@ -18,9 +18,11 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.ScaleHistoryDO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -28,6 +30,16 @@ import java.util.List;
  */
 @Mapper
 public interface ScaleHistoryMapper extends ExistProvider {
+
+    /**
+     * scale history existed.
+     *
+     * @param id id
+     * @return Boolean
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
+
     /**
      * deleteByPrimaryKey.
      *

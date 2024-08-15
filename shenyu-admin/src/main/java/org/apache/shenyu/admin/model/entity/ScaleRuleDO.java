@@ -34,13 +34,6 @@ public final class ScaleRuleDO extends BaseDO {
     private static final long serialVersionUID = 8778323510074951149L;
 
     /**
-     * Column: id.
-     * Type: VARCHAR(128).
-     * Remark: primary key id.
-     */
-    private String id;
-
-    /**
      * Column: metric_name.
      * Type: VARCHAR(128).
      * Remark: metric name.
@@ -81,22 +74,6 @@ public final class ScaleRuleDO extends BaseDO {
      * Remark: maximum of metric.
      */
     private String maximum;
-
-    /**
-     * Column: date_created.
-     * Type: TIMESTAMP.
-     * Default value: CURRENT_TIMESTAMP(3).
-     * Remark: create time.
-     */
-    private Date dateCreated;
-
-    /**
-     * Column: date_updated.
-     * Type: TIMESTAMP.
-     * Default value: CURRENT_TIMESTAMP(3).
-     * Remark: update time.
-     */
-    private Date dateUpdated;
 
     public ScaleRuleDO() {
     }
@@ -234,23 +211,22 @@ public final class ScaleRuleDO extends BaseDO {
      * @return ScaleRuleDO
      */
     public static ScaleRuleDO buildScaleRuleDO(final ScaleRuleDTO scaleRuleDTO) {
-        return Optional.ofNullable(scaleRuleDTO).map(item -> {
+        ScaleRuleDO scaleRuleDO = new ScaleRuleDO();
+        if (StringUtils.isEmpty(scaleRuleDTO.getId())) {
+            scaleRuleDO.setId(UUIDUtils.getInstance().generateShortUuid());
+            scaleRuleDO.setDateCreated(new Timestamp(System.currentTimeMillis()));
+        } else {
+            scaleRuleDO.setId(scaleRuleDTO.getId());
+        }
+        return Optional.of(scaleRuleDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            ScaleRuleDO scaleRuleDO = ScaleRuleDO.builder()
-                    .metricName(item.getMetricName())
-                    .type(item.getType())
-                    .sort(item.getSort())
-                    .status(item.getStatus())
-                    .minimum(item.getMinimum())
-                    .maximum(item.getMaximum())
-                    .dateUpdated(currentTime)
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                scaleRuleDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                scaleRuleDO.setDateCreated(currentTime);
-            } else {
-                scaleRuleDO.setId(item.getId());
-            }
+            scaleRuleDO.setMetricName(item.getMetricName());
+            scaleRuleDO.setType(item.getType());
+            scaleRuleDO.setSort(item.getSort());
+            scaleRuleDO.setStatus(item.getStatus());
+            scaleRuleDO.setMinimum(item.getMinimum());
+            scaleRuleDO.setMaximum(item.getMaximum());
+            scaleRuleDO.setDateUpdated(currentTime);
             return scaleRuleDO;
         }).orElse(null);
     }
@@ -282,6 +258,12 @@ public final class ScaleRuleDO extends BaseDO {
 
     public static final class ScaleRuleDOBuilder {
 
+        private String id;
+
+        private Timestamp dateCreated;
+
+        private Timestamp dateUpdated;
+
         private String metricName;
 
         private Integer type;
@@ -293,12 +275,6 @@ public final class ScaleRuleDO extends BaseDO {
         private String minimum;
 
         private String maximum;
-
-        private String id;
-
-        private Timestamp dateCreated;
-
-        private Timestamp dateUpdated;
 
         private ScaleRuleDOBuilder() {
         }
@@ -409,15 +385,15 @@ public final class ScaleRuleDO extends BaseDO {
          */
         public ScaleRuleDO build() {
             ScaleRuleDO scaleRuleDO = new ScaleRuleDO();
+            scaleRuleDO.setId(id);
+            scaleRuleDO.setDateCreated(dateCreated);
+            scaleRuleDO.setDateUpdated(dateUpdated);
             scaleRuleDO.setMetricName(metricName);
             scaleRuleDO.setType(type);
             scaleRuleDO.setSort(sort);
             scaleRuleDO.setStatus(status);
             scaleRuleDO.setMinimum(minimum);
             scaleRuleDO.setMaximum(maximum);
-            scaleRuleDO.setId(id);
-            scaleRuleDO.setDateCreated(dateCreated);
-            scaleRuleDO.setDateUpdated(dateUpdated);
             return scaleRuleDO;
         }
     }

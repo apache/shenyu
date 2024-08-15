@@ -68,7 +68,7 @@
     <where>
       <if test="metricName != null">
         <bind name="nameLike" value="('%' + metricName + '%')"/>
-        and metric_name like = #{nameLike, jdbcType=VARCHAR}
+        and metric_name like #{nameLike, jdbcType=VARCHAR}
       </if>
     </where>
     order by sort, date_created
@@ -95,11 +95,9 @@
       #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ScaleRuleDO">
-    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.String">
-      SELECT LAST_INSERT_ID()
-    </selectKey>
     insert into scale_rule
     <trim prefix="(" suffix=")" suffixOverrides=",">
+      id,
       <if test="metricName != null">
         metric_name,
       </if>
@@ -126,6 +124,7 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
+      #{id, jdbcType=VARCHAR},
       <if test="metricName != null">
         #{metricName,jdbcType=VARCHAR},
       </if>

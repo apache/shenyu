@@ -96,7 +96,7 @@ public class ScaleRuleDTO implements Serializable {
      *
      * @return the value of id
      */
-    public @Existed(provider = ScaleRuleMapper.class, nullOfIgnore = true, message = "scale rule is not existed") String getId() {
+    public String getId() {
         return id;
     }
 
@@ -105,7 +105,7 @@ public class ScaleRuleDTO implements Serializable {
      *
      * @param id id
      */
-    public void setId(@Existed(provider = ScaleRuleMapper.class, nullOfIgnore = true, message = "scale rule is not existed") final String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -251,7 +251,7 @@ public class ScaleRuleDTO implements Serializable {
 
     public static final class ScaleRuleDTOBuilder {
 
-        private @Existed(provider = ScaleRuleMapper.class, nullOfIgnore = true, message = "scale rule is not existed") String id;
+        private String id;
 
         private @NotBlank String metricName;
 

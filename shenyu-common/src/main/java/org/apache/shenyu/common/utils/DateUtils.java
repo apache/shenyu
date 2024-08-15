@@ -125,4 +125,15 @@ public final class DateUtils {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
         return localDateTime.format(formatter);
     }
+
+    /**
+     * isValidDate.
+     *
+     * @param dateStr dateStr
+     * @return boolean
+     */
+    public static boolean isValidDate(String dateStr) {
+        return dateStr != null && !dateStr.trim().isEmpty();
+    }
+
 }
