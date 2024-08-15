@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ClusterProperties.class, ClusterZookeeperProperties.class})
-@ConditionalOnProperty(value = "shenyu.cluster.type", havingValue = "jdbc", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.cluster.type"}, havingValue = "jdbc", matchIfMissing = true)
 public class ClusterJdbcConfiguration {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterJdbcConfiguration.class);

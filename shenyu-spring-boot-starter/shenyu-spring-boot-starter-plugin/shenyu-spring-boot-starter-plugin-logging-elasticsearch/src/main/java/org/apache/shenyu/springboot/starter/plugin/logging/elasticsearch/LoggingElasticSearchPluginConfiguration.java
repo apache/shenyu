@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * config logging ElasticSearch plugin.
  */
 @Configuration
-@ConditionalOnProperty(value = "shenyu.plugins.logging-elasticsearch.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.logging-elasticsearch.enabled"}, havingValue = "true", matchIfMissing = true)
 public class LoggingElasticSearchPluginConfiguration {
 
     /**

@@ -44,7 +44,7 @@ public class StandaloneConfiguration {
      * @return Shenyu standalone service
      */
     @Bean(destroyMethod = "shutdown")
-    @ConditionalOnProperty(value = "shenyu.cluster.enabled", havingValue = "false", matchIfMissing = true)
+    @ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "false", matchIfMissing = true)
     @ConditionalOnMissingBean
     public ShenyuRunningModeService shenyuRunningModeService(final UpstreamCheckService upstreamCheckService,
                                                              final LoadServiceDocEntry loadServiceDocEntry) {

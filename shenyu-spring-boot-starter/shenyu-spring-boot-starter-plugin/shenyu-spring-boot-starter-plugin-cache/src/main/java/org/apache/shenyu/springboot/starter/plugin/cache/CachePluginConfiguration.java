@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
  * CachePluginConfiguration.
  */
 @Configuration
-@ConditionalOnProperty(value = "shenyu.plugins.cache.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.cache.enabled"}, havingValue = "true", matchIfMissing = true)
 public class CachePluginConfiguration {
 
     /**

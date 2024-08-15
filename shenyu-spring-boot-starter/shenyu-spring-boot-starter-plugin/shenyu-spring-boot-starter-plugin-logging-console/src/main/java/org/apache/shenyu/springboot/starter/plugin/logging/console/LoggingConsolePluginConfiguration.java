@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Logging console plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = "shenyu.plugins.logging-console.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.logging-console.enabled"}, havingValue = "true", matchIfMissing = true)
 public class LoggingConsolePluginConfiguration {
 
     /**

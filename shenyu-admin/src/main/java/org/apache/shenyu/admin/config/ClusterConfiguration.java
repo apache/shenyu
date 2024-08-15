@@ -40,7 +40,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ClusterProperties.class, ClusterZookeeperProperties.class})
-@ConditionalOnProperty(value = "shenyu.cluster.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "true", matchIfMissing = false)
 public class ClusterConfiguration {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterConfiguration.class);

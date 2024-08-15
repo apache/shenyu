@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * config logging Kafka plugin.
  */
 @Configuration
-@ConditionalOnProperty(value = "shenyu.plugins.logging-kafka.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.logging-kafka.enabled"}, havingValue = "true", matchIfMissing = true)
 public class LoggingKafkaPluginConfiguration {
 
     /**

@@ -43,12 +43,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         },
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
-                "shenyu.sync.apollo.meta=http://localhost:8080",
-                "shenyu.sync.apollo.appId=shenyu",
-                "shenyu.sync.apollo.env=dev",
-                "shenyu.sync.apollo.clusterName=test",
-                "shenyu.sync.apollo.namespace=application"
-
+            "shenyu.sync.apollo.meta=http://localhost:8080",
+            "shenyu.sync.apollo.appId=shenyu",
+            "shenyu.sync.apollo.env=dev",
+            "shenyu.sync.apollo.clusterName=test",
+            "shenyu.sync.apollo.namespace=application"
         })
 class ApolloSyncDataConfigurationTest {
 

@@ -31,7 +31,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ContextConfiguration(classes = ApolloDataChangedListener.class)
+@ContextConfiguration(classes = {ApolloDataChangedListener.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ApolloDataChangedListenerTest {
 

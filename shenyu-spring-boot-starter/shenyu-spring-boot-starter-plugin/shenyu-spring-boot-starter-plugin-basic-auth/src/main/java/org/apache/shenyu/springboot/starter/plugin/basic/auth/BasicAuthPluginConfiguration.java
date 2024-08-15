@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Basic auth plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = "shenyu.plugins.basic-auth.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.basic-auth.enabled"}, havingValue = "true", matchIfMissing = true)
 public class BasicAuthPluginConfiguration {
     /**
      * GeneralContext plugin.

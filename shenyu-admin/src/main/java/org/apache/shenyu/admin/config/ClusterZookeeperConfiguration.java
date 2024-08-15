@@ -36,7 +36,7 @@ import org.springframework.integration.zookeeper.lock.ZookeeperLockRegistry;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ClusterProperties.class, ClusterZookeeperProperties.class})
-@ConditionalOnProperty(value = "shenyu.cluster.type", havingValue = "zookeeper", matchIfMissing = false)
+@ConditionalOnProperty(value = {"shenyu.cluster.type"}, havingValue = "zookeeper", matchIfMissing = false)
 public class ClusterZookeeperConfiguration {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterZookeeperConfiguration.class);

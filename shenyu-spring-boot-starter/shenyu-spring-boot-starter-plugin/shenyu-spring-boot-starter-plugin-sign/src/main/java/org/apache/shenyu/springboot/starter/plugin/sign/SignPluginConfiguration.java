@@ -38,7 +38,7 @@ import org.springframework.http.codec.ServerCodecConfigurer;
  * The type Sign plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = "shenyu.plugins.sign.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.sign.enabled"}, havingValue = "true", matchIfMissing = true)
 public class SignPluginConfiguration {
 
     /**

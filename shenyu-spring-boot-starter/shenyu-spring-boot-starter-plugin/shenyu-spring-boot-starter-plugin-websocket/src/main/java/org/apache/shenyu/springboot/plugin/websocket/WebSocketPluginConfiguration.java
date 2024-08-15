@@ -43,7 +43,7 @@ import java.util.function.Supplier;
  * The type Web socket plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = "shenyu.plugins.websocket.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.websocket.enabled"}, havingValue = "true", matchIfMissing = true)
 public class WebSocketPluginConfiguration {
 
     /**

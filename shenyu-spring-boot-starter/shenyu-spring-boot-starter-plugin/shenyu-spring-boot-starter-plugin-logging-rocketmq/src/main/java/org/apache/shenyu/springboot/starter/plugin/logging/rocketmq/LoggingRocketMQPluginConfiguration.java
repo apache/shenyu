@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * config logging RocketMQ plugin.
  */
 @Configuration
-@ConditionalOnProperty(value = "shenyu.plugins.logging-rocketmq.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.logging-rocketmq.enabled"}, havingValue = "true", matchIfMissing = true)
 public class LoggingRocketMQPluginConfiguration {
 
     /**

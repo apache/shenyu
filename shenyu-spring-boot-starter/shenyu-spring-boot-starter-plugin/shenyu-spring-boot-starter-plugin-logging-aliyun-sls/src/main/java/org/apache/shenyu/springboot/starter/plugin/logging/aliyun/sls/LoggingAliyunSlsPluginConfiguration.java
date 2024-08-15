@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Logging Aliyun sls plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = "shenyu.plugins.logging-aliyun-sls.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.logging-aliyun-sls.enabled"}, havingValue = "true", matchIfMissing = true)
 public class LoggingAliyunSlsPluginConfiguration {
 
     /**

@@ -136,7 +136,7 @@
         <module name="WhitespaceAfter"/>
         <module name="SingleSpaceSeparator"/>
         <module name="EmptyLineSeparator">
-            <property name="allowMultipleEmptyLines" value="false"/>
+            <property name="allowMultipleEmptyLines" value="true"/>
             <property name="allowMultipleEmptyLinesInsideClassMembers" value="false"/>
         </module>
 
@@ -159,7 +159,9 @@
             <property name="tokens" value="VARIABLE_DEF"/>
             <property name="allowSamelineMultipleAnnotations" value="true"/>
         </module>
-        <module name="AnnotationUseStyle"/>
+        <module name="AnnotationUseStyle">
+            <property name="elementStyle" value="ignore"/>
+        </module>
         <module name="MissingOverride"/>
         <module name="SuppressWarnings"/>
         <module name="MissingDeprecated"/>

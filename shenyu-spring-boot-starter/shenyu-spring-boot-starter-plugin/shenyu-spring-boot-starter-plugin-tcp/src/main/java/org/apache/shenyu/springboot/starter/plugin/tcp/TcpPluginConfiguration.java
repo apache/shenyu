@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type mqtt plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = "shenyu.plugins.tcp.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.tcp.enabled"}, havingValue = "true", matchIfMissing = true)
 public class TcpPluginConfiguration {
 
     /**

@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * config logging ClickHouse plugin.
  */
 @Configuration
-@ConditionalOnProperty(value = "shenyu.plugins.logging-clickhouse.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.logging-clickhouse.enabled"}, havingValue = "true", matchIfMissing = true)
 public class LoggingClickHousePluginConfiguration {
 
     /**
