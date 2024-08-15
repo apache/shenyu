@@ -45,6 +45,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -78,7 +79,7 @@ public final class DataPermissionServiceTest {
 
     @BeforeEach
     public void setup() {
-        ruleDTO = new RuleDTO("1", "1", 1, "test", true, true, 1, "test", null, false);
+        ruleDTO = new RuleDTO("1", "1", 1, "test", true, true, 1, "test", null, false, SYS_DEFAULT_NAMESPACE_ID);
         dataPermissionDTO = new DataPermissionDTO();
         dataPermissionDTO.setId("1");
         dataPermissionDTO.setUserId("1001");
@@ -143,7 +144,7 @@ public final class DataPermissionServiceTest {
 
     @Test
     public void assertCreateRule() {
-        given(ruleMapper.selectById("1")).willReturn(RuleDO.buildRuleDO(ruleDTO));
+        given(ruleMapper.selectByIdAndNamespaceId("1", SYS_DEFAULT_NAMESPACE_ID)).willReturn(RuleDO.buildRuleDO(ruleDTO));
         given(dataPermissionMapper.insertSelective(any(DataPermissionDO.class))).willReturn(1);
         assertThat(dataPermissionService.createRule(dataPermissionDTO), is(2));
     }

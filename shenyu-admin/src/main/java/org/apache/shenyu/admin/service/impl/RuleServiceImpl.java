@@ -198,7 +198,7 @@ public class RuleServiceImpl implements RuleService {
      * @return {@linkplain RuleVO}
      */
     @Override
-    public RuleVO findByIdAndNamespaceId(final String id, String namespaceId) {
+    public RuleVO findByIdAndNamespaceId(final String id, final String namespaceId) {
         return RuleVO.buildRuleVO(ruleMapper.selectByIdAndNamespaceId(id, namespaceId),
                 map(ruleConditionMapper.selectByQuery(new RuleConditionQuery(id)), RuleConditionVO::buildRuleConditionVO));
     }
