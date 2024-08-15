@@ -99,7 +99,7 @@ public class ScaleRlueController {
     }
 
     /**
-     * create rule.
+     * create scale rule.
      *
      * @param scaleRuleDTO scaleRuleDTO
      * @return ShenyuAdminResult
