@@ -39,7 +39,7 @@ public interface ScaleRuleMapper extends ExistProvider {
     Boolean existed(@Param("id") Serializable id);
 
     /**
-     * countByExample.
+     * count by example.
      *
      * @param scaleRuleQuery scaleRuleQuery
      * @return long
