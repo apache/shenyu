@@ -47,7 +47,7 @@ public interface ScaleRuleMapper extends ExistProvider {
     long countByQuery(ScaleRuleQuery scaleRuleQuery);
 
     /**
-     * deleteByPrimaryKey.
+     * delete by id.
      *
      * @param id id
      * @return int
