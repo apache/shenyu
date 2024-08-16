@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.grpc.resolver;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,9 +28,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -54,20 +52,20 @@ public class ShenyuServiceInstanceListsTest {
     @Test
     public void noArgsConstructor() {
         shenyuServiceInstanceLists = new ShenyuServiceInstanceLists();
-        assertNotNull(shenyuServiceInstanceLists.getShenyuServiceInstances());
+        Assertions.assertNotNull(shenyuServiceInstanceLists.getShenyuServiceInstances());
     }
     
     @Test
     public void testSet() {
         shenyuServiceInstanceLists.setAppName("shenyu");
         shenyuServiceInstanceLists.addShenyuServiceInstances(Stream.of(mock(ShenyuServiceInstance.class)).collect(Collectors.toList()));
-        assertEquals(shenyuServiceInstanceLists.getAppName(), appName);
-        assertTrue(shenyuServiceInstanceLists.getShenyuServiceInstances().containsAll(shenyuServiceInstances));
+        Assertions.assertEquals(shenyuServiceInstanceLists.getAppName(), appName);
+        Assertions.assertTrue(shenyuServiceInstanceLists.getShenyuServiceInstances().containsAll(shenyuServiceInstances));
     }
     
     @Test
     public void getCopyInstances() {
         List<ShenyuServiceInstance> list = shenyuServiceInstanceLists.getCopyInstances();
-        assertEquals(1, list.size());
+        Assertions.assertEquals(1, list.size());
     }
 }

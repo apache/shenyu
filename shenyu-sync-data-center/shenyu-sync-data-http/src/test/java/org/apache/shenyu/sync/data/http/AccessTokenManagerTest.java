@@ -25,7 +25,6 @@ import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +43,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -100,7 +100,7 @@ public class AccessTokenManagerTest {
     @Test
     public void testLogin() {
         accessTokenManager.login(Lists.newArrayList(httpConfig.getUrl().split(",")));
-        Assert.assertEquals(this.accessToken, accessTokenManager.getAccessToken());
+        assertEquals(this.accessToken, accessTokenManager.getAccessToken());
     }
 
     // mock configs fetch api response
