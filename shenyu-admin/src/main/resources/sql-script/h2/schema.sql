@@ -1345,3 +1345,5 @@ INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created
 ALTER TABLE `selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
 
 ALTER TABLE `rule` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
+
+ALTER TABLE `meta_data` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;

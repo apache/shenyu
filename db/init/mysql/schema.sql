@@ -2374,3 +2374,5 @@ INSERT INTO `shenyu`.`permission` (`id`, `object_id`, `resource_id`, `date_creat
 ALTER TABLE `shenyu`.`selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
 
 ALTER TABLE `shenyu`.`rule` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
+
+ALTER TABLE `shenyu`.`meta_data` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId';

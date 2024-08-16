@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -28,6 +29,7 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -67,8 +69,10 @@ public class MetaDataController {
     @RequiresPermissions("system:meta:list")
     public ShenyuAdminResult queryList(final String path,
                                        @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
-                                       @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
-        CommonPager<MetaDataVO> commonPager = metaDataService.listByPage(new MetaDataQuery(path, new PageParameter(currentPage, pageSize)));
+                                       @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize,
+                                       @Valid @Existed(message = "namespaceId is not existed",
+                                               provider = NamespaceMapper.class) final String namespaceId) {
+        CommonPager<MetaDataVO> commonPager = metaDataService.listByPage(new MetaDataQuery(path, new PageParameter(currentPage, pageSize), namespaceId));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
@@ -98,11 +102,14 @@ public class MetaDataController {
      * Get detail of metadata.
      *
      * @param id the id
+     * @param namespaceId namespaceId.
      * @return the shenyu result
      */
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/{namespaceId}")
     @RequiresPermissions("system:meta:edit")
-    public ShenyuAdminResult detail(@PathVariable("id") final String id) {
+    public ShenyuAdminResult detail(@PathVariable("id") final String id,
+                                    @PathVariable("namespaceId") @Valid
+                                    @Existed(provider = NamespaceMapper.class, message = "namespaceId is not existed") final String namespaceId) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, metaDataService.findById(id));
     }
 

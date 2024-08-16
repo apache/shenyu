@@ -53,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -80,7 +81,7 @@ public final class MetaDataControllerTest {
 
     private final MetaDataVO metaDataVO = new MetaDataVO("appName", "appPath", "desc", "rpcType", "serviceName", "methodName", "types", "rpcExt",
             "1", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()),
-            true);
+            true, SYS_DEFAULT_NAMESPACE_ID);
 
     @BeforeEach
     public void setUp() {
@@ -97,7 +98,7 @@ public final class MetaDataControllerTest {
         final CommonPager<MetaDataVO> commonPager = new CommonPager<>();
         commonPager.setPage(pageParameter);
         commonPager.setDataList(metaDataVOS);
-        final MetaDataQuery metaDataQuery = new MetaDataQuery("path", pageParameter);
+        final MetaDataQuery metaDataQuery = new MetaDataQuery("path", pageParameter, SYS_DEFAULT_NAMESPACE_ID);
         given(this.metaDataService.listByPage(metaDataQuery)).willReturn(commonPager);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/queryList")
                 .param("path", "path")
