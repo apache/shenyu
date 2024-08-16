@@ -105,7 +105,7 @@ public interface SelectorMapper extends ExistProvider {
     List<SelectorDO> selectByNameAndNamespaceId(String name, String namespaceId);
 
     /**
-     * Find selector do by name and plugin id and namespaceId.
+     * Find selector entity by name and plugin id and namespaceId.
      *
      * @param name        the name
      * @param pluginId    the plugin id
@@ -214,7 +214,7 @@ public interface SelectorMapper extends ExistProvider {
     /**
      * update status.
      *
-     * @param id      id
+     * @param id id
      * @param enabled enabled
      * @return result
      */

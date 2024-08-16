@@ -154,7 +154,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     SelectorDO findByNameAndPluginNameAndNamespaceId(String name, String pluginName, String namespaceId);
 
     /**
-     * findByNameAndPluginNameAndNamespaceIdForUpdate.
+     * find selector entity by selector name, plugin name and namespace id.
      *
      * @param name        name
      * @param pluginName  pluginName
