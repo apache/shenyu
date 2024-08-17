@@ -586,6 +586,7 @@
                 <groupId>com.oceanbase</groupId>
                 <artifactId>oceanbase-client</artifactId>
                 <version>${oceanbase.version}</version>
+                <scope>provided</scope>
             </dependency>
 
         </dependencies>
