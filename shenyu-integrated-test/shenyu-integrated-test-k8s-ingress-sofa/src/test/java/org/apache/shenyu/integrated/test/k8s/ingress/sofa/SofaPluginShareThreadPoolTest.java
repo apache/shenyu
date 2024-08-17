@@ -35,7 +35,7 @@ public class SofaPluginShareThreadPoolTest extends AbstractPluginDataInit {
 
     @BeforeAll
     public static void setup() {
-        HTTP_HELPER.setGatewayEndpoint("http://localhost:30095");
+        HTTP_HELPER.setGatewayEndpoint("http://localhost:30195");
     }
 
     @Test
