@@ -833,7 +833,16 @@ public interface Constants {
     /**
      * namespace constants start.
      */
-    String SYS_DEFAULT_NAMESPACE_NAMESPACE_ID = "649330b6-c2d7-4edc-be8e-8a54df9eb385";
+    /**
+     * The constant SYS_DEFAULT_NAMESPACE_ID.
+     */
+    String SYS_DEFAULT_NAMESPACE_ID = "649330b6-c2d7-4edc-be8e-8a54df9eb385";
+    
+    /**
+     * The constant DEFAULT_NAMESPACE_PRIMARY_KEY.
+     */
+    String DEFAULT_NAMESPACE_PRIMARY_KEY = "1";
+    
     /**
      * String q.
      */
