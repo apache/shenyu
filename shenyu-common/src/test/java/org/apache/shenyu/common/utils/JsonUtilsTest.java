@@ -65,7 +65,7 @@ public final class JsonUtilsTest {
                 .nullObject(null)
                 .emptyList(new LinkedList<>())
                 .emptyMap(new HashMap<>())
-                .nestedMap(new HashMap<String, Object>() {
+                .nestedMap(new HashMap<>() {
                     {
                         put("map1", testMap);
                         put("map2", new HashMap<>());

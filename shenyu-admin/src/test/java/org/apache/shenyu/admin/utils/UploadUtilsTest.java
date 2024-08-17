@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.utils;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.LinkedMultiValueMap;
@@ -43,6 +44,6 @@ public class UploadUtilsTest {
         fileMultiValueMap.add("file", mock(MultipartFile.class));
         when(httpServletRequest.getMultiFileMap()).thenReturn(fileMultiValueMap);
         final Collection<MultipartFile> uploadFiles = UploadUtils.getUploadFiles(httpServletRequest);
-        Assertions.assertTrue(uploadFiles.size() > 0);
+        Assertions.assertTrue(CollectionUtils.isNotEmpty(uploadFiles));
     }
 }

@@ -92,12 +92,12 @@ public final class CrossFilterTest {
         final CrossFilterConfig filterConfig = new CrossFilterConfig();
         CrossFilterConfig.AllowedOriginConfig allowedOriginConfig = new CrossFilterConfig.AllowedOriginConfig();
         allowedOriginConfig.setDomain("apache.org");
-        allowedOriginConfig.setPrefixes(new HashSet<String>() {
+        allowedOriginConfig.setPrefixes(new HashSet<>() {
             {
                 add("a");
             }
         });
-        allowedOriginConfig.setOrigins(new HashSet<String>() {
+        allowedOriginConfig.setOrigins(new HashSet<>() {
             {
                 add("b.apache.org");
                 add("c.apache.org");
@@ -110,7 +110,7 @@ public final class CrossFilterTest {
         StepVerifier.create(filter.filter(exchange, chainNormal))
                 .expectSubscription()
                 .verifyComplete();
-        allowedOriginConfig.setOrigins(new HashSet<String>() {
+        allowedOriginConfig.setOrigins(new HashSet<>() {
             {
                 add("a.apache.org");
             }
@@ -129,7 +129,7 @@ public final class CrossFilterTest {
                 .verifyComplete();
 
         filterConfig.setAllowedAnyOrigin(false);
-        allowedOriginConfig.setOrigins(new HashSet<String>() {
+        allowedOriginConfig.setOrigins(new HashSet<>() {
             {
                 add("*");
             }

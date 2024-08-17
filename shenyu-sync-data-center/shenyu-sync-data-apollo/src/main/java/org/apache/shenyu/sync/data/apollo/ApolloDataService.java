@@ -74,69 +74,67 @@ public class ApolloDataService extends AbstractNodeDataSyncService implements Sy
     }
 
     private void apolloWatchPrefixes() {
-        final ConfigChangeListener listener = changeEvent -> {
-            changeEvent.changedKeys().forEach(changeKey -> {
-                try {
-                    final ConfigChange configChange = changeEvent.getChange(changeKey);
-                    if (configChange == null) {
-                        LOG.error("apollo watchPrefixes error configChange is null {}", changeKey);
-                        return;
-                    }
-                    final String newValue = configChange.getNewValue();
-                    // skip last is "list"
-                    final int lastListStrIndex = changeKey.length() - DefaultNodeConstants.LIST_STR.length();
-                    if (changeKey.lastIndexOf(DefaultNodeConstants.LIST_STR) == lastListStrIndex) {
-                        return;
-                    }
-                    // check prefix
-                    if (changeKey.indexOf(ApolloPathConstants.PLUGIN_DATA_ID) == 0) {
-                        if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
-                            unCachePluginData(changeKey);
-                        } else {
-                            cachePluginData(newValue);
-                        }
-                    } else if (changeKey.indexOf(ApolloPathConstants.SELECTOR_DATA_ID) == 0) {
-                        if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
-                            unCacheSelectorData(changeKey);
-                        } else {
-                            cacheSelectorData(newValue);
-                        }
-                    } else if (changeKey.indexOf(ApolloPathConstants.RULE_DATA_ID) == 0) {
-                        if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
-                            unCacheRuleData(changeKey);
-                        } else {
-                            cacheRuleData(newValue);
-                        }
-                    } else if (changeKey.indexOf(ApolloPathConstants.AUTH_DATA_ID) == 0) {
-                        if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
-                            unCacheAuthData(changeKey);
-                        } else {
-                            cacheAuthData(newValue);
-                        }
-                    } else if (changeKey.indexOf(ApolloPathConstants.META_DATA_ID) == 0) {
-                        if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
-                            unCacheMetaData(changeKey);
-                        } else {
-                            cacheMetaData(newValue);
-                        }
-                    } else if (changeKey.indexOf(ApolloPathConstants.PROXY_SELECTOR_DATA_ID) == 0) {
-                        if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
-                            unCacheProxySelectorData(changeKey);
-                        } else {
-                            cacheProxySelectorData(newValue);
-                        }
-                    } else if (changeKey.indexOf(ApolloPathConstants.DISCOVERY_DATA_ID) == 0) {
-                        if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
-                            unCacheDiscoveryUpstreamData(changeKey);
-                        } else {
-                            cacheDiscoveryUpstreamData(newValue);
-                        }
-                    }
-                } catch (Exception e) {
-                    LOG.error("apollo sync listener change key handler error", e);
+        final ConfigChangeListener listener = changeEvent -> changeEvent.changedKeys().forEach(changeKey -> {
+            try {
+                final ConfigChange configChange = changeEvent.getChange(changeKey);
+                if (configChange == null) {
+                    LOG.error("apollo watchPrefixes error configChange is null {}", changeKey);
+                    return;
                 }
-            });
-        };
+                final String newValue = configChange.getNewValue();
+                // skip last is "list"
+                final int lastListStrIndex = changeKey.length() - DefaultNodeConstants.LIST_STR.length();
+                if (changeKey.lastIndexOf(DefaultNodeConstants.LIST_STR) == lastListStrIndex) {
+                    return;
+                }
+                // check prefix
+                if (changeKey.indexOf(ApolloPathConstants.PLUGIN_DATA_ID) == 0) {
+                    if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
+                        unCachePluginData(changeKey);
+                    } else {
+                        cachePluginData(newValue);
+                    }
+                } else if (changeKey.indexOf(ApolloPathConstants.SELECTOR_DATA_ID) == 0) {
+                    if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
+                        unCacheSelectorData(changeKey);
+                    } else {
+                        cacheSelectorData(newValue);
+                    }
+                } else if (changeKey.indexOf(ApolloPathConstants.RULE_DATA_ID) == 0) {
+                    if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
+                        unCacheRuleData(changeKey);
+                    } else {
+                        cacheRuleData(newValue);
+                    }
+                } else if (changeKey.indexOf(ApolloPathConstants.AUTH_DATA_ID) == 0) {
+                    if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
+                        unCacheAuthData(changeKey);
+                    } else {
+                        cacheAuthData(newValue);
+                    }
+                } else if (changeKey.indexOf(ApolloPathConstants.META_DATA_ID) == 0) {
+                    if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
+                        unCacheMetaData(changeKey);
+                    } else {
+                        cacheMetaData(newValue);
+                    }
+                } else if (changeKey.indexOf(ApolloPathConstants.PROXY_SELECTOR_DATA_ID) == 0) {
+                    if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
+                        unCacheProxySelectorData(changeKey);
+                    } else {
+                        cacheProxySelectorData(newValue);
+                    }
+                } else if (changeKey.indexOf(ApolloPathConstants.DISCOVERY_DATA_ID) == 0) {
+                    if (PropertyChangeType.DELETED.equals(configChange.getChangeType())) {
+                        unCacheDiscoveryUpstreamData(changeKey);
+                    } else {
+                        cacheDiscoveryUpstreamData(newValue);
+                    }
+                }
+            } catch (Exception e) {
+                LOG.error("apollo sync listener change key handler error", e);
+            }
+        });
         watchConfigChangeListener = listener;
         configService.addChangeListener(listener, Collections.emptySet(), ApolloPathConstants.pathKeySet());
 

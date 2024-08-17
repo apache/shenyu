@@ -24,7 +24,9 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,8 +54,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
@@ -93,40 +93,40 @@ public final class ExceptionHandlersTest {
     public void testServerExceptionHandlerByException() {
         Exception exception = new Exception();
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleExceptionHandler(exception);
-        assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
-        assertEquals(result.getMessage(), "The system is busy, please try again later");
+        Assertions.assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
+        Assertions.assertEquals(result.getMessage(), "The system is busy, please try again later");
     }
 
     @Test
     public void testServerExceptionHandlerByShenyuException() {
         ShenyuException shenyuException = new ShenyuException(new Throwable("Test shenyuException message!"));
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleShenyuException(shenyuException);
-        assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
-        assertEquals(result.getMessage(), shenyuException.getCause().getMessage());
+        Assertions.assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
+        Assertions.assertEquals(result.getMessage(), shenyuException.getCause().getMessage());
     }
 
     @Test
     public void testServerExceptionHandlerByDuplicateKeyException() {
         DuplicateKeyException duplicateKeyException = new DuplicateKeyException("Test duplicateKeyException message!");
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleDuplicateKeyException(duplicateKeyException);
-        assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
-        assertEquals(result.getMessage(), ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
+        Assertions.assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
+        Assertions.assertEquals(result.getMessage(), ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
     }
 
     @Test
     public void testShiroExceptionHandler() {
         UnauthorizedException unauthorizedException = new UnauthorizedException("Test unauthorizedException");
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleUnauthorizedException(unauthorizedException);
-        assertEquals(result.getCode().intValue(), CommonErrorCode.TOKEN_NO_PERMISSION);
-        assertEquals(result.getMessage(), ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
+        Assertions.assertEquals(result.getCode().intValue(), CommonErrorCode.TOKEN_NO_PERMISSION);
+        Assertions.assertEquals(result.getMessage(), ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
     }
 
     @Test
     public void testNullPointExceptionHandler() {
         NullPointerException nullPointerException = new NullPointerException("TEST NULL POINT EXCEPTION");
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleNullPointException(nullPointerException);
-        assertEquals(result.getCode().intValue(), CommonErrorCode.NOT_FOUND_EXCEPTION);
-        assertEquals(result.getMessage(), ShenyuResultMessage.NOT_FOUND_EXCEPTION);
+        Assertions.assertEquals(result.getCode().intValue(), CommonErrorCode.NOT_FOUND_EXCEPTION);
+        Assertions.assertEquals(result.getMessage(), ShenyuResultMessage.NOT_FOUND_EXCEPTION);
     }
 
     @Test
@@ -134,8 +134,8 @@ public final class ExceptionHandlersTest {
         String[] supportedMethod = new String[]{"POST", "GET"};
         HttpRequestMethodNotSupportedException exception = new HttpRequestMethodNotSupportedException("POST" + supportedMethod + "request method", Arrays.asList(supportedMethod));
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleHttpRequestMethodNotSupportedException(exception);
-        assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
-        assertThat(result.getMessage(), containsString("method is not supported for this request. Supported methods are"));
+        Assertions.assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
+        MatcherAssert.assertThat(result.getMessage(), containsString("method is not supported for this request. Supported methods are"));
     }
 
     @Test
@@ -148,16 +148,16 @@ public final class ExceptionHandlersTest {
         List<FieldError> fieldErrors = spy(Collections.emptyList());
         when(bindingResult.getFieldErrors()).thenReturn(fieldErrors);
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleMethodArgumentNotValidException(exception);
-        assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
-        assertThat(result.getMessage(), containsString("Request error! invalid argument"));
+        Assertions.assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
+        MatcherAssert.assertThat(result.getMessage(), containsString("Request error! invalid argument"));
     }
 
     @Test
     public void testHandleMissingServletRequestParameterException() {
         MissingServletRequestParameterException exception = new MissingServletRequestParameterException("parameter1", "String");
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleMissingServletRequestParameterException(exception);
-        assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
-        assertThat(result.getMessage(), containsString("parameter is missing"));
+        Assertions.assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
+        MatcherAssert.assertThat(result.getMessage(), containsString("parameter is missing"));
     }
 
     @Test
@@ -166,8 +166,8 @@ public final class ExceptionHandlersTest {
         Class clazz = MethodArgumentTypeMismatchException.class;
         when(exception.getRequiredType()).thenReturn(clazz);
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleMethodArgumentTypeMismatchException(exception);
-        assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
-        assertThat(result.getMessage(), containsString("should be of type"));
+        Assertions.assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
+        MatcherAssert.assertThat(result.getMessage(), containsString("should be of type"));
     }
 
     @Test
@@ -176,6 +176,6 @@ public final class ExceptionHandlersTest {
         Set<ConstraintViolation<?>> violations = spy(Collections.emptySet());
         when(exception.getConstraintViolations()).thenReturn(violations);
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleConstraintViolationException(exception);
-        assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
+        Assertions.assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
     }
 }

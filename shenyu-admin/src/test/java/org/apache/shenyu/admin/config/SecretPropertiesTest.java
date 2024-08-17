@@ -40,7 +40,7 @@ public final class SecretPropertiesTest extends AbstractConfigurationTest {
         long randomLong = new Random().nextLong();
         String randomKey = String.valueOf(Math.abs(randomLong));
         if (LOG.isDebugEnabled()) {
-            LOG.debug("RandomKey is: " + randomKey);
+            LOG.debug("RandomKey is: {}", randomKey);
         }
         load(SecretPropertiesConfiguration.class, "shenyu.aes.secret.key=" + randomKey,
                 "shenyu.aes.secret.iv=" + randomKey);

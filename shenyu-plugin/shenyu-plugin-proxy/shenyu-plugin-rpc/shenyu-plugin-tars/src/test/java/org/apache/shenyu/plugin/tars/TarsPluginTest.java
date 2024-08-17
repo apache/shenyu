@@ -122,9 +122,7 @@ public class TarsPluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         RuleData data = mock(RuleData.class);
         SelectorData selectorData = mock(SelectorData.class);
-        assertThrows(IllegalArgumentException.class, () -> {
-            StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
-        });
+        assertThrows(IllegalArgumentException.class, () -> StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete());
     }
 
     @Test
@@ -143,9 +141,7 @@ public class TarsPluginTest {
         CompletableFuture<String> stringCompletableFuture = CompletableFuture.supplyAsync(() -> "", executorService);
         when(method.invoke(any(), any())).thenReturn(stringCompletableFuture);
         tarsInvokePrxList.setMethod(method);
-        assertThrows(IllegalArgumentException.class, () -> {
-            StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
-        });
+        assertThrows(IllegalArgumentException.class, () -> StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete());
     }
 
     @Test

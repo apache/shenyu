@@ -255,7 +255,7 @@ public interface Constants {
     /**
      * The constant LINE_SEPARATOR.
      */
-    String LINE_SEPARATOR = System.getProperty("line.separator");
+    String LINE_SEPARATOR = System.lineSeparator();
     
     /**
      * The constant URL_SEPARATOR.

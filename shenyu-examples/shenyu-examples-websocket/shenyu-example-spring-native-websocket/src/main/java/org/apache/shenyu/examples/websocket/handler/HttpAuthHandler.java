@@ -85,7 +85,7 @@ public class HttpAuthHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(final WebSocketSession session, final CloseStatus status) throws Exception {
         Object token = session.getAttributes().get("token");
-        LOG.info("closed with status: {}" + status);
+        LOG.info("closed with status: {}", status);
         if (Objects.nonNull(token)) {
             // The user exits and removes the cache.
             WsSessionManager.remove(token.toString());

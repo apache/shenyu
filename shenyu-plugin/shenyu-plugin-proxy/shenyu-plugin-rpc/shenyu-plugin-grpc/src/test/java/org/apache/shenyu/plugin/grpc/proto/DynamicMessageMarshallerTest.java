@@ -60,9 +60,7 @@ public class DynamicMessageMarshallerTest {
     @Test
     public void testParseThrowException() {
         InputStream inputStream = new ByteArrayInputStream("test".getBytes());
-        assertThrows(RuntimeException.class, () -> {
-            dynamicMessageMarshaller.parse(inputStream);
-        });
+        assertThrows(RuntimeException.class, () -> dynamicMessageMarshaller.parse(inputStream));
     }
 
     @Test
