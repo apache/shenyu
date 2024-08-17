@@ -58,7 +58,7 @@ public class WebSocketInterceptor implements HandshakeInterceptor {
         String uid = paramMap.get("token");
         if (StringUtils.isNotBlank(uid)) {
             attributes.put("token", uid);
-            LOG.info("user token " + uid + " shook hands successfully！");
+            LOG.info("user token {} shook hands successfully！", uid);
             return true;
         }
         LOG.info("user login has expired");

@@ -109,7 +109,7 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
         String url = request.getUrl();
         String body = request.getBody();
         RequestBuilder requestBuilder;
-
+        
         switch (request.getHttpMethod()) {
             case GET:
                 requestBuilder = RequestBuilder.get(url);
@@ -146,17 +146,17 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
                 requestBuilder.addHeader(name, value);
             }
         }
-        Future<HttpResponse> execute = httpAsyncClient.execute(requestBuilder.build(), new FutureCallback<HttpResponse>() {
+        Future<HttpResponse> execute = httpAsyncClient.execute(requestBuilder.build(), new FutureCallback<>() {
             @Override
             public void completed(final HttpResponse response) {
                 LOG.debug("HttpResponse completed statusLine={}", response.getStatusLine());
             }
-
+            
             @Override
             public void failed(final Exception ex) {
                 LOG.error("HttpResponse failed", ex);
             }
-
+            
             @Override
             public void cancelled() {
                 LOG.debug("HttpResponse cancelled.");
