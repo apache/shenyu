@@ -65,7 +65,7 @@ public final class ApplicationConfigCache {
                 LOG.error("modify ref have exception", e);
             }
         }
-    }).build(new CacheLoader<String, RefererConfig<CommonClient>>() {
+    }).build(new CacheLoader<>() {
         @Override
         @NonNull
         public RefererConfig<CommonClient> load(@NonNull final String key) {

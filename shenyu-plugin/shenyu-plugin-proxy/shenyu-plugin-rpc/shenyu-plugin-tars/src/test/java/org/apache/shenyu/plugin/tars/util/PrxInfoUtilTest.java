@@ -46,9 +46,7 @@ public class PrxInfoUtilTest {
 
     @Test
     public void testGetParamClassThrowsClassNotFoundException() throws Exception {
-        assertThrows(ClassNotFoundException.class, () -> {
-            PrxInfoUtil.getParamClass("className");
-        });
+        assertThrows(ClassNotFoundException.class, () -> PrxInfoUtil.getParamClass("className"));
     }
 
     @Test

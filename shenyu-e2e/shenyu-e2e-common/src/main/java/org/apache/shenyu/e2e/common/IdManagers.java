@@ -47,7 +47,7 @@ public class IdManagers {
             for (Map.Entry<String, String> entry : name2id.entrySet()) {
                 joiner.add(entry.getKey());
             }
-            log.info("plugin list: " + joiner);
+            log.info("plugin list: {}", joiner);
 
         }
         

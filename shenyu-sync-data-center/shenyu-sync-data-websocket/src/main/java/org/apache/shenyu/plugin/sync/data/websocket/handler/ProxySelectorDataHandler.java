@@ -48,18 +48,12 @@ public class ProxySelectorDataHandler extends AbstractDataHandler<ProxySelectorD
 
     @Override
     protected void doUpdate(final List<ProxySelectorData> dataList) {
-        dataList.forEach(data -> {
-            proxySelectorDataSubscribers.forEach(p -> {
-                p.onSubscribe(data);
-            });
-        });
+        dataList.forEach(data -> proxySelectorDataSubscribers.forEach(p -> p.onSubscribe(data)));
     }
 
     @Override
     protected void doDelete(final List<ProxySelectorData> dataList) {
-        dataList.forEach(proxySelectorData -> {
-            Optional.ofNullable(proxySelectorData)
-                    .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData)));
-        });
+        dataList.forEach(proxySelectorData -> Optional.ofNullable(proxySelectorData)
+                .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData))));
     }
 }

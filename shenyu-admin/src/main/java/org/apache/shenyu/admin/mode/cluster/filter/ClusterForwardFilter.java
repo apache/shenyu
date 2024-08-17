@@ -187,9 +187,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
         sourceHeaders.forEach((headerName, headerValues) -> {
             String name = removeSpecial(headerName);
             if (!response.containsHeader(name)) {
-                headerValues.forEach(headerValue -> {
-                    response.addHeader(name, removeSpecial(headerValue));
-                });
+                headerValues.forEach(headerValue -> response.addHeader(name, removeSpecial(headerValue)));
             }
         });
     }

@@ -56,7 +56,7 @@ public final class CommonHandleCacheTest {
     @Test
     public void cachedHandle() {
         commonHandleCache.cachedHandle(null, MOCK_VALUE);
-        assert cachedMockMap.size() == 0;
+        assert cachedMockMap.isEmpty();
         commonHandleCache.cachedHandle(MOCK_KEY, MOCK_VALUE);
         assert MOCK_VALUE.equals(commonHandleCache.obtainHandle(MOCK_KEY));
     }
@@ -66,6 +66,6 @@ public final class CommonHandleCacheTest {
         commonHandleCache.cachedHandle(MOCK_KEY, MOCK_VALUE);
         assert cachedMockMap.size() == 1;
         commonHandleCache.removeHandle(MOCK_KEY);
-        assert cachedMockMap.size() == 0;
+        assert cachedMockMap.isEmpty();
     }
 }

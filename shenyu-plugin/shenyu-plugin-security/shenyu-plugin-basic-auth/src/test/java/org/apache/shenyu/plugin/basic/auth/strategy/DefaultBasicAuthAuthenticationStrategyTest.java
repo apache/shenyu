@@ -18,13 +18,13 @@
 package org.apache.shenyu.plugin.basic.auth.strategy;
 
 import org.apache.shenyu.plugin.basic.auth.rule.DefaultBasicAuthRuleHandle;
+import org.hamcrest.MatcherAssert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static junit.framework.Assert.assertFalse;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DefaultBasicAuthAuthenticationStrategyTest {
@@ -39,8 +39,8 @@ public class DefaultBasicAuthAuthenticationStrategyTest {
     @Test
     public void testParseHandleJson() {
         String handleJson = "{\"authorization\":\"test:test123\"}";
-        assertThat(defaultBasicAuthAuthenticationStrategy.parseHandleJson(handleJson), notNullValue(DefaultBasicAuthRuleHandle.class));
-        assertThat(defaultBasicAuthAuthenticationStrategy.parseHandleJson(null), nullValue());
+        MatcherAssert.assertThat(defaultBasicAuthAuthenticationStrategy.parseHandleJson(handleJson), notNullValue(DefaultBasicAuthRuleHandle.class));
+        MatcherAssert.assertThat(defaultBasicAuthAuthenticationStrategy.parseHandleJson(null), nullValue());
     }
 
     @Test
@@ -57,7 +57,7 @@ public class DefaultBasicAuthAuthenticationStrategyTest {
         String wrongHandleJson = "{\"wrongAuthorization\":\"test:test123\"}";
         DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = defaultBasicAuthAuthenticationStrategy.parseHandleJson(wrongHandleJson);
 
-        assertFalse(defaultBasicAuthAuthenticationStrategy
+        Assertions.assertFalse(defaultBasicAuthAuthenticationStrategy
             .authenticate(defaultBasicAuthRuleHandle, "test:test123"));
     }
 
@@ -66,7 +66,7 @@ public class DefaultBasicAuthAuthenticationStrategyTest {
         String wrongHandleJson = "{\"authorization\":\"test:test123\"}";
         DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = defaultBasicAuthAuthenticationStrategy.parseHandleJson(wrongHandleJson);
 
-        assertFalse(defaultBasicAuthAuthenticationStrategy
+        Assertions.assertFalse(defaultBasicAuthAuthenticationStrategy
             .authenticate(defaultBasicAuthRuleHandle, "test:test456"));
     }
 
