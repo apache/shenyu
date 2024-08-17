@@ -25,6 +25,8 @@ import java.util.Properties;
 public class PropertiesConfig {
 
     private Properties props = new Properties();
+    
+    private String namespace;
 
     /**
      * getProps.
@@ -42,5 +44,23 @@ public class PropertiesConfig {
      */
     public void setProps(final Properties props) {
         this.props = props;
+    }
+    
+    /**
+     * getNamespace.
+     *
+     * @return String
+     */
+    public String getNamespace() {
+        return namespace;
+    }
+    
+    /**
+     * setNamespace.
+     *
+     * @param namespace namespace identifier
+     */
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
     }
 }

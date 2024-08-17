@@ -829,7 +829,11 @@ public interface Constants {
      * Hystrix plugin metrics.
      */
     String METRICS_HYSTRIX = "metricsHystrix";
-
+    
+    /**
+     * namespace constants start.
+     */
+    String SYS_DEFAULT_NAMESPACE_NAMESPACE_ID = "649330b6-c2d7-4edc-be8e-8a54df9eb385";
     /**
      * String q.
      */

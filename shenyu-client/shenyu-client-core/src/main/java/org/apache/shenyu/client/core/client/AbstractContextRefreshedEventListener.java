@@ -102,6 +102,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     private ApplicationContext context;
 
     private final Boolean isDiscoveryLocalMode;
+    
+    protected final String namespace;
 
     /**
      * Instantiates a new context refreshed event listener.
@@ -112,6 +114,12 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     public AbstractContextRefreshedEventListener(final PropertiesConfig clientConfig,
                                                  final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
+        String namespace = clientConfig.getNamespace();
+        if (StringUtils.isBlank(namespace)) {
+            LOG.warn("current shenyu.namespace is null, use default namespace: {}", ShenyuClientConstants.DEFAULT_NAMESPACE);
+            namespace = ShenyuClientConstants.DEFAULT_NAMESPACE;
+        }
+        this.namespace = namespace;
         this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         this.contextPath = Optional.ofNullable(props.getProperty(ShenyuClientConstants.CONTEXT_PATH)).map(UriUtils::repairData).orElse("");
         if (StringUtils.isBlank(appName) && StringUtils.isBlank(contextPath)) {
@@ -398,5 +406,9 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      */
     public ApplicationContext getContext() {
         return context;
+    }
+    
+    protected String getNamespace() {
+        return namespace;
     }
 }

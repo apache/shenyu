@@ -129,6 +129,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                     .rpcType(RpcTypeEnum.HTTP.getName())
                     .enabled(true)
                     .ruleName(getContextPath())
+                    .namespace(super.getNamespace())
                     .build());
             LOG.info("init spring mvc client success with isFull mode");
             publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap()));
@@ -149,6 +150,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                     .port(Integer.valueOf(getPort()))
                     .rpcType(RpcTypeEnum.HTTP.getName())
                     .eventType(EventType.REGISTER)
+                    .namespace(super.getNamespace())
                     .build();
         } catch (ShenyuException e) {
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");

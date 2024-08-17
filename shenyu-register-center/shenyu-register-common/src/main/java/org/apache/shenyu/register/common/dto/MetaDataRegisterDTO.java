@@ -62,6 +62,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     private long timeMillis;
 
     private boolean addPrefixed;
+    
+    private String namespace;
 
     /**
      * Instantiates a new Meta data register dto.
@@ -90,7 +92,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
                                final String parameterTypes, final String rpcExt,
                                final boolean enabled, final String host,
                                final Integer port, final List<String> pluginNames,
-                               final boolean registerMetaData, final boolean addPrefixed) {
+                               final boolean registerMetaData, final boolean addPrefixed, final String namespace) {
         this.appName = appName;
         this.contextPath = contextPath;
         this.path = path;
@@ -108,6 +110,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         this.registerMetaData = registerMetaData;
         this.timeMillis = System.currentTimeMillis();
         this.addPrefixed = addPrefixed;
+        this.namespace = namespace;
     }
 
     /**
@@ -134,6 +137,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         registerMetaData = builder.registerMetaData;
         timeMillis = System.currentTimeMillis();
         addPrefixed = builder.addPrefixed;
+        namespace = builder.namespace;
     }
 
     /**
@@ -473,14 +477,14 @@ public class MetaDataRegisterDTO implements DataTypeParent {
                 && Objects.equals(enabled, that.enabled) && Objects.equals(host, that.host)
                 && Objects.equals(port, that.port) && Objects.equals(pluginNames, that.pluginNames)
                 && Objects.equals(registerMetaData, that.registerMetaData)
-                && Objects.equals(addPrefixed, that.addPrefixed);
+                && Objects.equals(addPrefixed, that.addPrefixed) && Objects.equals(namespace, that.namespace);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(appName, contextPath, path, pathDesc, rpcType, serviceName, methodName,
                 ruleName, parameterTypes, rpcExt, enabled, host, port, pluginNames,
-                registerMetaData, addPrefixed);
+                registerMetaData, addPrefixed, namespace);
     }
 
     @Override
@@ -520,6 +524,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
                 + timeMillis
                 + ", addPrefixed="
                 + addPrefixed
+                + ", namespace="
+                + namespace
                 + '}';
     }
 
@@ -561,6 +567,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         private long timeMillis;
 
         private boolean addPrefixed;
+        
+        private String namespace;
 
         private Builder() {
         }
@@ -749,6 +757,17 @@ public class MetaDataRegisterDTO implements DataTypeParent {
          */
         public Builder addPrefixed(final boolean addPrefixed) {
             this.addPrefixed = addPrefixed;
+            return this;
+        }
+        
+        /**
+         * namespace.
+         *
+         * @param namespace namespace
+         * @return Builder builder
+         */
+        public Builder namespace(final String namespace) {
+            this.namespace = namespace;
             return this;
         }
 
