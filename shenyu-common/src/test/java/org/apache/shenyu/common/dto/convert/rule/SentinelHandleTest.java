@@ -40,10 +40,10 @@ public class SentinelHandleTest {
         handle.setFlowRuleControlBehavior(0);
         handle.setDegradeRuleEnable(0);
         handle.setDegradeRuleGrade(2);
-        handle.setDegradeRuleCount(Double.valueOf(10));
+        handle.setDegradeRuleCount(10.0);
         handle.setDegradeRuleTimeWindow(100);
         handle.setDegradeRuleMinRequestAmount(200);
-        handle.setDegradeRuleSlowRatioThreshold(Double.valueOf(10));
+        handle.setDegradeRuleSlowRatioThreshold(10.0);
         handle.setDegradeRuleStatIntervals(100);
         handle.setFallbackUri("fallbackUri");
         handle.setFlowRuleMaxQueueingTimeMs(500);

@@ -156,9 +156,7 @@ public class ShenYuBeforeEachSpec implements BeforeEachSpec {
          * @return ShenYuBeforeEachSpecBuilder
          */
         public ShenYuBeforeEachSpecBuilder waiting(final @NotNull Checker checker) {
-            this.waiting = (HttpWaiting) supplier -> {
-                WaitForHelper.waitForEffecting(supplier, (HttpChecker) checker);
-            };
+            this.waiting = (HttpWaiting) supplier -> WaitForHelper.waitForEffecting(supplier, (HttpChecker) checker);
             return this;
         }
         

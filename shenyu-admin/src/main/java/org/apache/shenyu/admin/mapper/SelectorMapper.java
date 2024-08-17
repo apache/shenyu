@@ -45,7 +45,7 @@ public interface SelectorMapper extends ExistProvider {
     Boolean existed(@Param("id") Serializable id);
 
     /**
-     * select selector by id.
+     * select selector by id and namespaceId.
      *
      * @param id          primary key.
      * @param namespaceId namespaceId.
@@ -78,7 +78,7 @@ public interface SelectorMapper extends ExistProvider {
     List<SelectorDO> selectByQuery(SelectorQuery selectorQuery);
 
     /**
-     * Find by plugin id list.
+     * Find list by plugin id and namespaceId.
      *
      * @param pluginId    the plugin id
      * @param namespaceId namespaceId.
@@ -87,7 +87,7 @@ public interface SelectorMapper extends ExistProvider {
     List<SelectorDO> findByPluginIdAndNamespaceId(String pluginId, String namespaceId);
 
     /**
-     * Find by plugin id and namespace id list.
+     * Find list by plugin id and namespaceId.
      *
      * @param pluginIds   the plugin ids
      * @param namespaceId namespaceId.
@@ -96,7 +96,7 @@ public interface SelectorMapper extends ExistProvider {
     List<SelectorDO> findByPluginIdsAndNamespaceId(@Param("list") List<String> pluginIds, String namespaceId);
 
     /**
-     * select select by name.
+     * select list by name and namespaceId.
      *
      * @param name        the name
      * @param namespaceId namespaceId.
@@ -105,7 +105,7 @@ public interface SelectorMapper extends ExistProvider {
     List<SelectorDO> selectByNameAndNamespaceId(String name, String namespaceId);
 
     /**
-     * Find by name and plugin id selector do.
+     * Find selector entity by name and plugin id and namespaceId.
      *
      * @param name        the name
      * @param pluginId    the plugin id
@@ -214,7 +214,7 @@ public interface SelectorMapper extends ExistProvider {
     /**
      * update status.
      *
-     * @param id      id
+     * @param id id
      * @param enabled enabled
      * @return result
      */

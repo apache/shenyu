@@ -27,9 +27,9 @@ public class ObjectTypeUtilsTest {
     public void testIsBasicType() {
         Object o = 1;
         assertTrue(ObjectTypeUtils.isBasicType(o));
-        o = new Short("1");
+        o = Short.valueOf("1");
         assertTrue(ObjectTypeUtils.isBasicType(o));
-        o = new Long("1");
+        o = Long.valueOf("1");
         assertTrue(ObjectTypeUtils.isBasicType(o));
         o = new Double("1");
         assertTrue(ObjectTypeUtils.isBasicType(o));

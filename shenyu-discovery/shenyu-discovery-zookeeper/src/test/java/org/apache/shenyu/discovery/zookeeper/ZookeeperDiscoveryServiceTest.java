@@ -20,10 +20,10 @@ package org.apache.shenyu.discovery.zookeeper;
 import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.WatcherRemoveCuratorFramework;
+import org.apache.curator.framework.api.ACLBackgroundPathAndBytesable;
 import org.apache.curator.framework.api.CreateBuilder;
 import org.apache.curator.framework.api.CreateBuilder2;
 import org.apache.curator.framework.api.GetChildrenBuilder;
-import org.apache.curator.framework.api.ACLBackgroundPathAndBytesable;
 import org.apache.curator.framework.api.ProtectACLCreateModeStatPathAndBytesable;
 import org.apache.curator.framework.imps.ExistsBuilderImpl;
 import org.apache.curator.framework.listen.Listenable;
@@ -33,6 +33,7 @@ import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.apache.zookeeper.data.Stat;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,15 +46,11 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ZookeeperDiscoveryServiceTest {
 
@@ -94,7 +91,7 @@ class ZookeeperDiscoveryServiceTest {
         when(curatorFramework.checkExists()).thenReturn(existsBuilder);
         when(existsBuilder.forPath(anyString())).thenReturn(mock(Stat.class));
         final Boolean result = zookeeperDiscoveryServiceUnderTest.exists("key");
-        assertTrue(result);
+        Assertions.assertTrue(result);
     }
 
     @Test
@@ -120,7 +117,7 @@ class ZookeeperDiscoveryServiceTest {
         when(curatorFramework.getChildren()).thenReturn(getChildrenBuilder);
         when(getChildrenBuilder.forPath(anyString())).thenReturn(new ArrayList<>());
         List<String> children = zookeeperDiscoveryServiceUnderTest.getRegisterData("/test");
-        assertEquals(0, children.size());
+        Assertions.assertEquals(0, children.size());
     }
 
     @Test
@@ -138,7 +135,7 @@ class ZookeeperDiscoveryServiceTest {
         Field cacheField = zookeeperDiscoveryServiceUnderTest.getClass().getDeclaredField("cacheMap");
         cacheField.setAccessible(true);
         Map<String, TreeCache> cacheMap = (Map<String, TreeCache>) cacheField.get(zookeeperDiscoveryServiceUnderTest);
-        assertNotNull(cacheMap.get("/key"));
+        Assertions.assertNotNull(cacheMap.get("/key"));
     }
 
     @Test
@@ -147,6 +144,6 @@ class ZookeeperDiscoveryServiceTest {
         Field cacheField = zookeeperDiscoveryServiceUnderTest.getClass().getDeclaredField("cacheMap");
         cacheField.setAccessible(true);
         Map<String, TreeCache> cacheMap = (Map<String, TreeCache>) cacheField.get(zookeeperDiscoveryServiceUnderTest);
-        assertNull(cacheMap.get("/key"));
+        Assertions.assertNull(cacheMap.get("/key"));
     }
 }

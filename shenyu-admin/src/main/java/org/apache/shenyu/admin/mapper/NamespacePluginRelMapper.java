@@ -63,10 +63,10 @@ public interface NamespacePluginRelMapper extends ExistProvider {
     List<NamespacePluginVO> selectByQuery(NamespacePluginQuery namespacePluginQuery);
 
     /**
-     * select plugin by namespacePluginId.
+     * select plugin by PluginId and namespaceId.
      *
      * @param pluginId    primary key.
-     * @param namespaceId namespace id.
+     * @param namespaceId namespaceId.
      * @return {@linkplain PluginVO}
      */
     NamespacePluginVO selectByPluginIdAndNamespaceId(String pluginId, String namespaceId);
@@ -92,7 +92,7 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      *
      * @param name    name
      * @param exclude exclude
-     * @param namespaceId namespace id.
+     * @param namespaceId namespaceId.
      * @return existed
      */
     Boolean nameExistedExclude(@Param("name") Serializable name, @Param("exclude") List<String> exclude, @Param("namespaceId") String namespaceId);
@@ -107,28 +107,28 @@ public interface NamespacePluginRelMapper extends ExistProvider {
     int updateSelective(NamespacePluginRelDO namespacePluginRelDO);
 
     /**
-     * select plugin by id.
+     * select plugin by ids and namespaceId.
      *
      * @param ids   primary keys.
-     * @param namespaceId namespace id.
+     * @param namespaceId namespaceId.
      * @return {@linkplain NamespacePluginRelDO}
      */
     List<NamespacePluginVO> selectByIdsAndNamespaceId(List<String> ids, String namespaceId);
 
 
     /**
-     * delete plugin.
+     * delete plugin by ids and namespaceId.
      *
      * @param ids         primary keys.
-     * @param namespaceId namespace id.
+     * @param namespaceId namespaceId.
      * @return rows int
      */
     int deleteByIdsAndNamespaceId(List<String> ids, String namespaceId);
 
     /**
-     * select all.
+     * select all by namespaceId.
      *
-     * @param namespaceId namespace id.
+     * @param namespaceId namespaceId.
      * @return {@linkplain List}
      */
     List<NamespacePluginVO> selectAllByNamespaceId(String namespaceId);

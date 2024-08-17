@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.plugin.ratelimiter.algorithm;
 
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * test for SlidingWindowRateLimiterAlgorithm.
@@ -39,18 +39,18 @@ public final class SlidingWindowRateLimiterAlgorithmTest {
 
     @Test
     public void getScriptNameTest() {
-        assertThat("sliding_window_request_rate_limiter.lua", is(slidingWindowRateLimiterAlgorithm.getScriptName()));
+        MatcherAssert.assertThat("sliding_window_request_rate_limiter.lua", is(slidingWindowRateLimiterAlgorithm.getScriptName()));
     }
 
     @Test
     public void getKeyNameTest() {
-        assertThat("sliding_window_request_rate_limiter", is(slidingWindowRateLimiterAlgorithm.getKeyName()));
+        MatcherAssert.assertThat("sliding_window_request_rate_limiter", is(slidingWindowRateLimiterAlgorithm.getKeyName()));
     }
 
     @Test
     public void getKeysTest() {
         String prefix = slidingWindowRateLimiterAlgorithm.getKeyName() + ".{" + ID;
         String tokenKey = prefix + "}.tokens";
-        assertThat(tokenKey, is(slidingWindowRateLimiterAlgorithm.getKeys(ID).get(0)));
+        MatcherAssert.assertThat(tokenKey, is(slidingWindowRateLimiterAlgorithm.getKeys(ID).get(0)));
     }
 }
