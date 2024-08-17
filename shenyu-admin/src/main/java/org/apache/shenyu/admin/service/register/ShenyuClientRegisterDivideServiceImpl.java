@@ -78,7 +78,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
     protected void registerMetadata(final MetaDataRegisterDTO dto) {
         if (dto.isRegisterMetaData()) {
             MetaDataService metaDataService = getMetaDataService();
-            MetaDataDO exist = metaDataService.findByPath(dto.getPath());
+            MetaDataDO exist = metaDataService.findByPath(dto.getPath(), dto.getNamespaceId());
             metaDataService.saveOrUpdateMetaData(exist, dto);
         }
     }

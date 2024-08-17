@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
+import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -110,7 +111,7 @@ public class MetaDataController {
     public ShenyuAdminResult detail(@PathVariable("id") final String id,
                                     @PathVariable("namespaceId") @Valid
                                     @Existed(provider = NamespaceMapper.class, message = "namespaceId is not existed") final String namespaceId) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, metaDataService.findById(id));
+        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, metaDataService.findById(id, namespaceId));
     }
 
     /**
@@ -131,23 +132,11 @@ public class MetaDataController {
      * @param ids the ids
      * @return the shenyu result
      */
-    @PostMapping("/batchDeleted")
-    @RequiresPermissions("system:meta:delete")
-    public ShenyuAdminResult batchDeleted(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
-        Integer deleteCount = metaDataService.delete(ids);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
-    }
-    
-    /**
-     * Batch deleted metadata.
-     *
-     * @param ids the ids
-     * @return the shenyu result
-     */
     @DeleteMapping("/batchDeleted")
     @RequiresPermissions("system:meta:delete")
-    public ShenyuAdminResult batchDelete(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
-        return batchDeleted(ids);
+    public ShenyuAdminResult batchDeleted(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
+        Integer deleteCount = metaDataService.delete(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 
     /**
@@ -159,7 +148,7 @@ public class MetaDataController {
     @PostMapping("/batchEnabled")
     @RequiresPermissions("system:meta:disable")
     public ShenyuAdminResult batchEnabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
-        final String result = metaDataService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
+        final String result = metaDataService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId());
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
         }

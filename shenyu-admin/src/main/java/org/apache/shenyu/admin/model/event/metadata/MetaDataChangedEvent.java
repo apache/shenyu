@@ -46,9 +46,9 @@ public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
     public String buildContext() {
         final MetaDataDO after = (MetaDataDO) getAfter();
         if (Objects.isNull(getBefore())) {
-            return String.format("the metadata [%s %s] is %s", after.getAppName(), after.getPath(), StringUtils.lowerCase(getType().getType().toString()));
+            return String.format("the namespace [%s] metadata [%s %s] is %s", after.getNamespaceId(), after.getAppName(), after.getPath(), StringUtils.lowerCase(getType().getType().toString()));
         }
-        return String.format("the metadata [%s %s] is %s : %s", after.getAppName(), after.getPath(), StringUtils.lowerCase(getType().getType().toString()), contrast());
+        return String.format("the namespace [%s]  metadata [%s %s] is %s : %s", after.getNamespaceId(), after.getAppName(), after.getPath(), StringUtils.lowerCase(getType().getType().toString()), contrast());
         
     }
     

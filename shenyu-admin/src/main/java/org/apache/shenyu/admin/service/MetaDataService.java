@@ -57,7 +57,7 @@ public interface MetaDataService {
      * @param ids primary key.
      * @return rows int
      */
-    int delete(List<String> ids);
+    int delete(List<String> ids, String namespaceId);
 
     /**
      * Find by id meta data vo.
@@ -65,7 +65,7 @@ public interface MetaDataService {
      * @param id the id
      * @return the meta data vo
      */
-    MetaDataVO findById(String id);
+    MetaDataVO findById(String id, String namespaceId);
 
     /**
      * List by page common pager.
@@ -107,10 +107,10 @@ public interface MetaDataService {
      * Enabled string.
      *
      * @param ids     the ids
-     * @param enabled the enable
+     * @param enabled the enabled
      * @return the string
      */
-    String enabled(List<String> ids, Boolean enabled);
+    String enabled(List<String> ids, Boolean enabled, String namespaceId);
 
     /**
      * Sync data.
@@ -123,7 +123,7 @@ public interface MetaDataService {
      * @param path the path of meta data
      * @return {@link MetaDataDO}
      */
-    MetaDataDO findByPath(String path);
+    MetaDataDO findByPath(String path,String namespaceId);
 
     /**
      * find meta data by service's name and method's name.
@@ -132,7 +132,7 @@ public interface MetaDataService {
      * @param methodName  the name of method
      * @return {@link MetaDataDO}
      */
-    MetaDataDO findByServiceNameAndMethodName(String serviceName, String methodName);
+    MetaDataDO findByServiceNameAndMethodName(String serviceName, String methodName, String namespaceId);
 
     /**
      * insert MetaDataDO.

@@ -42,12 +42,13 @@ public interface MetaDataMapper extends ExistProvider {
     Boolean existed(@Param("id") Serializable id);
     
     /**
-     * Select by id meta data do.
+     * Select meta data do by id and namespaceId.
      *
      * @param id the id
+     * @param namespaceId namespaceId.
      * @return the meta data do
      */
-    MetaDataDO selectById(String id);
+    MetaDataDO selectById(String id, String namespaceId);
     
     /**
      * Select a list of MetaDataDOs by idList.
@@ -55,7 +56,7 @@ public interface MetaDataMapper extends ExistProvider {
      * @param idList a list of ids
      * @return a list of MetaDataDOs
      */
-    List<MetaDataDO> selectByIdList(@Param("idList") List<String> idList);
+    List<MetaDataDO> selectByIdList(@Param("idList") List<String> idList, @Param("namespaceId") String namespaceId);
     
     /**
      * Find all list.
@@ -70,7 +71,7 @@ public interface MetaDataMapper extends ExistProvider {
      * @param path the path
      * @return the meta data do
      */
-    MetaDataDO findByPath(String path);
+    MetaDataDO findByPath(String path, String namespaceId);
     
     /**
      * Find by service name and method meta data do.
@@ -79,7 +80,7 @@ public interface MetaDataMapper extends ExistProvider {
      * @param methodName  the methodName
      * @return the meta data do
      */
-    List<MetaDataDO> findByServiceNameAndMethod(@Param("serviceName") String serviceName, @Param("methodName") String methodName);
+    List<MetaDataDO> findByServiceNameAndMethod(@Param("serviceName") String serviceName, @Param("methodName") String methodName, @Param("namespaceId") String namespaceId);
     
     /**
      * Select by query list.
@@ -151,7 +152,7 @@ public interface MetaDataMapper extends ExistProvider {
      * @param idList a list of ids
      * @return the count of deleted
      */
-    int deleteByIdList(@Param("idList") List<String> idList);
+    int deleteByIdList(@Param("idList") List<String> idList, @Param("namespaceId") String namespaceId);
     
     /**
      * the path is existed.

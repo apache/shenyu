@@ -53,6 +53,7 @@
         <include refid="Base_Column_List"/>
         FROM meta_data
         WHERE id = #{id,jdbcType=VARCHAR}
+        AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByIdList" resultMap="BaseResultMap">
@@ -63,6 +64,7 @@
         <foreach collection="idList" item="id" index="index" open="(" separator="," close=")">
             #{id,jdbcType=VARCHAR}
         </foreach>
+        AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <select id="findByPath" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -70,6 +72,7 @@
         <include refid="Base_Column_List"/>
         FROM meta_data
         WHERE path = #{path,jdbcType=VARCHAR}
+        AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <select id="findByServiceNameAndMethod" resultMap="BaseResultMap">
@@ -80,6 +83,7 @@
         <if test="methodName != null">
             AND method_name = #{methodName,jdbcType=VARCHAR}
         </if>
+        AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
 
@@ -101,7 +105,7 @@
                 path LIKE #{pathLike,jdbcType=VARCHAR}
             </if>
             <if test="namespaceId != null and namespaceId != ''">
-                AND namespace_id = #{condition.namespaceId, jdbcType=VARCHAR}
+                AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
             </if>
         </where>
     </select>
@@ -159,7 +163,8 @@
         method_name,
         parameter_types,
         rpc_ext,
-        enabled)
+        enabled,
+        namespace_id)
         VALUES
         (#{id,jdbcType=VARCHAR},
         #{dateCreated,jdbcType=TIMESTAMP},
@@ -172,7 +177,8 @@
         #{methodName,jdbcType=VARCHAR},
         #{parameterTypes,jdbcType=VARCHAR},
         #{rpcExt,jdbcType=VARCHAR},
-        #{enabled,jdbcType=TINYINT})
+        #{enabled,jdbcType=TINYINT},
+        #{namespaceId,jdbcType=TINYINT})
     </insert>
 
 
@@ -188,6 +194,7 @@
         parameter_types = #{parameterTypes,jdbcType=VARCHAR},
         rpc_ext= #{rpcExt,jdbcType=VARCHAR}
         WHERE id = #{id,jdbcType=VARCHAR}
+        AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </update>
 
     <update id="updateEnable" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
@@ -217,5 +224,6 @@
         <foreach collection="idList" item="id" index="index" open="(" separator="," close=")">
             #{id,jdbcType=VARCHAR}
         </foreach>
+        AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </delete>
 </mapper>

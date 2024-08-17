@@ -189,11 +189,12 @@ public class ApiServiceImpl implements ApiService {
             }
         });
         if (CollectionUtils.isNotEmpty(selectorIds)) {
+            // todo:[To be refactored with namespace]  Temporarily  hardcode
             selectorService.deleteByNamespaceId(selectorIds, SYS_DEFAULT_NAMESPACE_ID);
         }
         //clean metadata
-        Optional.ofNullable(metaDataService.findByPath(path))
-                .ifPresent(metaDataDO -> metaDataService.delete(Lists.newArrayList(metaDataDO.getId())));
+        Optional.ofNullable(metaDataService.findByPath(path, SYS_DEFAULT_NAMESPACE_ID))
+                .ifPresent(metaDataDO -> metaDataService.delete(Lists.newArrayList(metaDataDO.getId()), SYS_DEFAULT_NAMESPACE_ID));
     }
 
     private void register(final ApiDO apiDO) {
