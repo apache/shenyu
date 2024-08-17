@@ -45,15 +45,16 @@ public interface MetaDataMapper extends ExistProvider {
      * Select meta data do by id and namespaceId.
      *
      * @param id the id
-     * @param namespaceId namespaceId.
+     * @param namespaceId namespaceId
      * @return the meta data do
      */
     MetaDataDO selectById(String id, String namespaceId);
     
     /**
-     * Select a list of MetaDataDOs by idList.
+     * Select a list of MetaDataDOs by idList and namespaceId.
      *
      * @param idList a list of ids
+     * @param namespaceId namespaceId
      * @return a list of MetaDataDOs
      */
     List<MetaDataDO> selectByIdList(@Param("idList") List<String> idList, @Param("namespaceId") String namespaceId);
@@ -66,18 +67,20 @@ public interface MetaDataMapper extends ExistProvider {
     List<MetaDataDO> findAll();
     
     /**
-     * Find by path meta data do.
+     * Find meta data do by path and namespaceId.
      *
      * @param path the path
+     * @param namespaceId namespaceId
      * @return the meta data do
      */
     MetaDataDO findByPath(String path, String namespaceId);
     
     /**
-     * Find by service name and method meta data do.
+     * Find meta data do by service name and method and namespaceId.
      *
      * @param serviceName the service name
      * @param methodName  the methodName
+     * @param namespaceId namespaceId
      * @return the meta data do
      */
     List<MetaDataDO> findByServiceNameAndMethod(@Param("serviceName") String serviceName, @Param("methodName") String methodName, @Param("namespaceId") String namespaceId);
@@ -147,9 +150,10 @@ public interface MetaDataMapper extends ExistProvider {
     int delete(String id);
     
     /**
-     * batch delete by a list of ids.
+     * batch delete by a list of ids and namespaceId.
      *
      * @param idList a list of ids
+     * @param namespaceId namespaceId
      * @return the count of deleted
      */
     int deleteByIdList(@Param("idList") List<String> idList, @Param("namespaceId") String namespaceId);

@@ -64,6 +64,7 @@ public class MetaDataController {
      * @param path     the path
      * @param currentPage the current page
      * @param pageSize    the page size
+     * @param namespaceId namespaceId.
      * @return the shenyu result
      */
     @GetMapping("/queryList")
@@ -129,7 +130,7 @@ public class MetaDataController {
     /**
      * Batch deleted metadata.
      *
-     * @param ids the ids
+     * @param batchNamespaceCommonDTO batchNamespaceCommonDTO.
      * @return the shenyu result
      */
     @DeleteMapping("/batchDeleted")

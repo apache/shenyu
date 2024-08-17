@@ -54,7 +54,8 @@ public interface MetaDataService {
     /**
      * delete application authorities.
      *
-     * @param ids primary key.
+     * @param ids primary key
+     * @param namespaceId namespaceId
      * @return rows int
      */
     int delete(List<String> ids, String namespaceId);
@@ -63,6 +64,7 @@ public interface MetaDataService {
      * Find by id meta data vo.
      *
      * @param id the id
+     * @param namespaceId namespaceId
      * @return the meta data vo
      */
     MetaDataVO findById(String id, String namespaceId);
@@ -108,6 +110,7 @@ public interface MetaDataService {
      *
      * @param ids     the ids
      * @param enabled the enabled
+     * @param namespaceId namespaceId
      * @return the string
      */
     String enabled(List<String> ids, Boolean enabled, String namespaceId);
@@ -121,6 +124,7 @@ public interface MetaDataService {
      * find meta data by path.
      *
      * @param path the path of meta data
+     * @param namespaceId namespaceId
      * @return {@link MetaDataDO}
      */
     MetaDataDO findByPath(String path,String namespaceId);
@@ -130,6 +134,7 @@ public interface MetaDataService {
      *
      * @param serviceName the name of service
      * @param methodName  the name of method
+     * @param namespaceId namespaceId
      * @return {@link MetaDataDO}
      */
     MetaDataDO findByServiceNameAndMethodName(String serviceName, String methodName, String namespaceId);
