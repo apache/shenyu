@@ -177,12 +177,12 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public MetaDataDO findByPath(final String path, final String namespaceId) {
+    public MetaDataDO findByPathAndNamespaceId(final String path, final String namespaceId) {
         return metaDataMapper.findByPathAndNamespaceId(path, namespaceId);
     }
 
     @Override
-    public MetaDataDO findByServiceNameAndMethodName(final String serviceName, final String methodName, final String namespaceId) {
+    public MetaDataDO findByServiceNameAndMethodNameAndNamespaceId(final String serviceName, final String methodName, final String namespaceId) {
         final List<MetaDataDO> metadataList = metaDataMapper.findByServiceNameAndMethodAndNamespaceId(serviceName, methodName, namespaceId);
         return CollectionUtils.isEmpty(metadataList) ? null : metadataList.get(0);
     }

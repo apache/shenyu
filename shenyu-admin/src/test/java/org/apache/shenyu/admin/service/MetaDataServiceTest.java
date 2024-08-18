@@ -269,7 +269,7 @@ public final class MetaDataServiceTest {
                 .path("path1")
                 .build();
         given(this.metaDataMapper.findByPathAndNamespaceId(any(), any())).willReturn(metaDataDO1);
-        MetaDataDO metaDataDO = metaDataService.findByPath("path1", SYS_DEFAULT_NAMESPACE_ID);
+        MetaDataDO metaDataDO = metaDataService.findByPathAndNamespaceId("path1", SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(metaDataDO);
         Assertions.assertEquals(metaDataDO, metaDataDO1);
     }
@@ -286,7 +286,7 @@ public final class MetaDataServiceTest {
         given(this.metaDataMapper.findByServiceNameAndMethodAndNamespaceId(any(), any(), any()))
                 .willReturn(Collections.singletonList(metaDataDO1));
         MetaDataDO metaDataDO = metaDataService
-                .findByServiceNameAndMethodName("serviceName1", "method1", SYS_DEFAULT_NAMESPACE_ID);
+                .findByServiceNameAndMethodNameAndNamespaceId("serviceName1", "method1", SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(metaDataDO);
         Assertions.assertEquals(metaDataDO, metaDataDO1);
     }

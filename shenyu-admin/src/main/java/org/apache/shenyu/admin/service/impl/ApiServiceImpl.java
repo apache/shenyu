@@ -193,7 +193,7 @@ public class ApiServiceImpl implements ApiService {
             selectorService.deleteByNamespaceId(selectorIds, SYS_DEFAULT_NAMESPACE_ID);
         }
         //clean metadata
-        Optional.ofNullable(metaDataService.findByPath(path, SYS_DEFAULT_NAMESPACE_ID))
+        Optional.ofNullable(metaDataService.findByPathAndNamespaceId(path, SYS_DEFAULT_NAMESPACE_ID))
                 .ifPresent(metaDataDO -> metaDataService.deleteByIdsAndNamespaceId(Lists.newArrayList(metaDataDO.getId()), SYS_DEFAULT_NAMESPACE_ID));
     }
 

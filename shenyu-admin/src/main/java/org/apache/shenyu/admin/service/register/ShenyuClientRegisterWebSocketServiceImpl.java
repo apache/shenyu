@@ -71,7 +71,7 @@ public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPat
     protected void registerMetadata(final MetaDataRegisterDTO dto) {
         if (dto.isRegisterMetaData()) {
             MetaDataService metaDataService = getMetaDataService();
-            MetaDataDO exist = metaDataService.findByPath(dto.getPath(), dto.getNamespaceId());
+            MetaDataDO exist = metaDataService.findByPathAndNamespaceId(dto.getPath(), dto.getNamespaceId());
             metaDataService.saveOrUpdateMetaData(exist, dto);
         }
     }

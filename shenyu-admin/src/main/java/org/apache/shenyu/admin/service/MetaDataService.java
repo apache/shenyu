@@ -52,7 +52,7 @@ public interface MetaDataService {
     String createOrUpdate(MetaDataDTO metaDataDTO);
 
     /**
-     * delete application authorities.
+     * delete application authorities by ids and namespaceId.
      *
      * @param ids primary key
      * @param namespaceId namespaceId
@@ -61,7 +61,7 @@ public interface MetaDataService {
     int deleteByIdsAndNamespaceId(List<String> ids, String namespaceId);
 
     /**
-     * Find by id meta data vo.
+     * Find meta data vo by id and namespaceId.
      *
      * @param id the id
      * @param namespaceId namespaceId
@@ -106,7 +106,7 @@ public interface MetaDataService {
     List<MetaDataVO> listAllData();
 
     /**
-     * Enabled string.
+     * Enabled by ids and namespaceId.
      *
      * @param ids     the ids
      * @param enabled the enabled
@@ -121,23 +121,23 @@ public interface MetaDataService {
     void syncData();
 
     /**
-     * find meta data by path.
+     * find meta data by path and namespaceId.
      *
      * @param path the path of meta data
      * @param namespaceId namespaceId
      * @return {@link MetaDataDO}
      */
-    MetaDataDO findByPath(String path,String namespaceId);
+    MetaDataDO findByPathAndNamespaceId(String path, String namespaceId);
 
     /**
-     * find meta data by service's name and method's name.
+     * find meta data by service's name and method's name and namespaceId.
      *
      * @param serviceName the name of service
      * @param methodName  the name of method
      * @param namespaceId namespaceId
      * @return {@link MetaDataDO}
      */
-    MetaDataDO findByServiceNameAndMethodName(String serviceName, String methodName, String namespaceId);
+    MetaDataDO findByServiceNameAndMethodNameAndNamespaceId(String serviceName, String methodName, String namespaceId);
 
     /**
      * insert MetaDataDO.

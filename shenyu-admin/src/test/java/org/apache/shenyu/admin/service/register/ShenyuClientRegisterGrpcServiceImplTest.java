@@ -79,10 +79,10 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
     @Test
     public void testRegisterMetadata() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
-        when(metaDataService.findByPath(any())).thenReturn(metaDataDO);
+        when(metaDataService.findByPathAndNamespaceId(any())).thenReturn(metaDataDO);
         MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().path("/test").build();
         shenyuClientRegisterGrpcService.registerMetadata(metaDataDTO);
-        verify(metaDataService).findByPath("/test");
+        verify(metaDataService).findByPathAndNamespaceId("/test");
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
 
