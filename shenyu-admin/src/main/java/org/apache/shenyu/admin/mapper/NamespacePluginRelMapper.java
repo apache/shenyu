@@ -63,22 +63,21 @@ public interface NamespacePluginRelMapper extends ExistProvider {
     List<NamespacePluginVO> selectByQuery(NamespacePluginQuery namespacePluginQuery);
 
     /**
-     * select plugin by namespacePluginId.
+     * select plugin by PluginId and namespaceId.
      *
-     * @param id    primary key.
-     * @param namespaceId namespace id.
+     * @param pluginId    primary key.
+     * @param namespaceId namespaceId.
      * @return {@linkplain PluginVO}
      */
-    NamespacePluginVO selectById(String id, String namespaceId);
+    NamespacePluginVO selectByPluginIdAndNamespaceId(String pluginId, String namespaceId);
 
     /**
      * select plugin by pluginId.
      *
      * @param pluginId    primary key.
-     * @param namespaceId namespace id.
      * @return {@linkplain PluginVO}
      */
-    NamespacePluginVO selectByPluginId(String pluginId, String namespaceId);
+    NamespacePluginVO selectByPluginId(String pluginId);
 
     /**
      * search by condition.
@@ -93,7 +92,7 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      *
      * @param name    name
      * @param exclude exclude
-     * @param namespaceId namespace id.
+     * @param namespaceId namespaceId.
      * @return existed
      */
     Boolean nameExistedExclude(@Param("name") Serializable name, @Param("exclude") List<String> exclude, @Param("namespaceId") String namespaceId);
@@ -108,38 +107,38 @@ public interface NamespacePluginRelMapper extends ExistProvider {
     int updateSelective(NamespacePluginRelDO namespacePluginRelDO);
 
     /**
-     * select plugin by id.
+     * select plugin by ids and namespaceId.
      *
      * @param ids   primary keys.
-     * @param namespaceId namespace id.
+     * @param namespaceId namespaceId.
      * @return {@linkplain NamespacePluginRelDO}
      */
-    List<NamespacePluginVO> selectByIds(List<String> ids, String namespaceId);
+    List<NamespacePluginVO> selectByIdsAndNamespaceId(List<String> ids, String namespaceId);
 
 
     /**
-     * delete plugin.
+     * delete plugin by ids and namespaceId.
      *
      * @param ids         primary keys.
-     * @param namespaceId namespace id.
+     * @param namespaceId namespaceId.
      * @return rows int
      */
-    int deleteByIds(List<String> ids, String namespaceId);
+    int deleteByIdsAndNamespaceId(List<String> ids, String namespaceId);
+
+    /**
+     * select all by namespaceId.
+     *
+     * @param namespaceId namespaceId.
+     * @return {@linkplain List}
+     */
+    List<NamespacePluginVO> selectAllByNamespaceId(String namespaceId);
 
     /**
      * select all.
      *
-     * @param namespaceId namespace id.
      * @return {@linkplain List}
      */
-    List<NamespacePluginVO> selectAll(String namespaceId);
-
-    /**
-     * select all.
-     *
-     * @return {@linkplain List}
-     */
-    List<NamespacePluginVO> selectAll();
+    List<NamespacePluginVO> selectAllByNamespaceId();
 
     /**
      * enable data by a list of ids.

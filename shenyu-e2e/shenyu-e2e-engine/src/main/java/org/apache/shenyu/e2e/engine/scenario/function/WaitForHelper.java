@@ -89,7 +89,7 @@ public class WaitForHelper {
                     }
                     return;
                 } catch (AssertionError e) {
-                    log.debug("failed to check endpoint '" + endpoint + "'\n {}", e.getMessage());
+                    log.debug("failed to check endpoint '{}'\n {}", endpoint, e.getMessage());
                 }
                 
                 try {

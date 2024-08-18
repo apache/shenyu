@@ -20,11 +20,11 @@ package org.apache.shenyu.plugin.transform;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.base.utils.HttpParamConverter;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.BodyParamUtils;
+import org.apache.shenyu.plugin.base.utils.HttpParamConverter;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.MediaType;
@@ -34,7 +34,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -90,11 +89,7 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
                     if (map.isPresent()) {
                         String param = resolveBodyFromRequest(map.get());
                         LinkedMultiValueMap<String, String> linkedMultiValueMap;
-                        try {
-                            linkedMultiValueMap = BodyParamUtils.buildBodyParams(URLDecoder.decode(param, StandardCharsets.UTF_8.name()));
-                        } catch (UnsupportedEncodingException e) {
-                            return Mono.error(e);
-                        }
+                        linkedMultiValueMap = BodyParamUtils.buildBodyParams(URLDecoder.decode(param, StandardCharsets.UTF_8));
                         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, HttpParamConverter.toMap(() -> linkedMultiValueMap));
                     }
                     return chain.execute(exchange);

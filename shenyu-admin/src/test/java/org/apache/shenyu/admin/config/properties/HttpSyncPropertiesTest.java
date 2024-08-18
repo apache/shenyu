@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.config.properties;
 
 import org.apache.shenyu.admin.AbstractConfigurationTest;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -28,7 +29,6 @@ import java.time.Duration;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.comparesEqualTo;
-import static org.junit.Assert.assertEquals;
 
 /**
  * Test cases for HttpSyncProperties.
@@ -42,7 +42,7 @@ public final class HttpSyncPropertiesTest extends AbstractConfigurationTest {
         HttpSyncProperties httpSyncProperties = getContext().getBean(HttpSyncProperties.class);
         httpSyncProperties.setNotifyBatchSize(0);
         assertThat(httpSyncProperties.isEnabled(), comparesEqualTo(true));
-        assertEquals(httpSyncProperties.getNotifyBatchSize(), 0);
+        Assertions.assertEquals(httpSyncProperties.getNotifyBatchSize(), 0);
         assertThat(httpSyncProperties.getRefreshInterval(), comparesEqualTo(Duration.ofMinutes(5)));
     }
 

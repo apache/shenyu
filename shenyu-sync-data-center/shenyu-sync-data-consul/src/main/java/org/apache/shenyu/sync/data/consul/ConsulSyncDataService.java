@@ -120,7 +120,7 @@ public class ConsulSyncDataService extends AbstractPathDataSyncService {
                     new QueryParams(TimeUnit.MILLISECONDS.toSeconds(consulConfig.getWaitTime()), currentIndex));
             if (Objects.isNull(response.getValue()) || response.getValue().isEmpty()) {
                 if (LOG.isTraceEnabled()) {
-                    LOG.trace("No value for watchPathRoot " + watchPathRoot);
+                    LOG.trace("No value for watchPathRoot {}", watchPathRoot);
                 }
                 this.executor.schedule(() -> watchConfigKeyValues(watchPathRoot, updateHandler, deleteHandler),
                         consulConfig.getWatchDelay(), TimeUnit.MILLISECONDS);
@@ -129,7 +129,7 @@ public class ConsulSyncDataService extends AbstractPathDataSyncService {
             Long newIndex = response.getConsulIndex();
             if (Objects.isNull(newIndex)) {
                 if (LOG.isTraceEnabled()) {
-                    LOG.trace("Same index for watchPathRoot " + watchPathRoot);
+                    LOG.trace("Same index for watchPathRoot {}", watchPathRoot);
                 }
                 this.executor.schedule(() -> watchConfigKeyValues(watchPathRoot, updateHandler, deleteHandler),
                         consulConfig.getWatchDelay(), TimeUnit.MILLISECONDS);
@@ -143,7 +143,7 @@ public class ConsulSyncDataService extends AbstractPathDataSyncService {
             if (!this.consulIndexes.containsValue(newIndex)
                     && !currentIndex.equals(ConsulConstants.INIT_CONFIG_VERSION_INDEX)) {
                 if (LOG.isTraceEnabled()) {
-                    LOG.trace("watchPathRoot " + watchPathRoot + " has new index " + newIndex);
+                    LOG.trace("watchPathRoot {} has new index {}", watchPathRoot, newIndex);
                 }
                 final Long lastIndex = currentIndex;
                 final List<ConsulData> lastDatas = cacheConsulDataKeyMap.get(watchPathRoot);
@@ -179,13 +179,13 @@ public class ConsulSyncDataService extends AbstractPathDataSyncService {
                     return consulData;
                 }).collect(Collectors.toList()));
             } else if (LOG.isTraceEnabled()) {
-                LOG.info("Event for index already published for watchPathRoot " + watchPathRoot);
+                LOG.info("Event for index already published for watchPathRoot {}", watchPathRoot);
             }
             this.consulIndexes.put(watchPathRoot, newIndex);
             this.executor.schedule(() -> watchConfigKeyValues(watchPathRoot, updateHandler, deleteHandler),
                     -1, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
-            LOG.warn("Error querying consul Key/Values for watchPathRoot '" + watchPathRoot + "'. Message: ", e);
+            LOG.warn("Error querying consul Key/Values for watchPathRoot '{}'. Message: ", watchPathRoot, e);
             this.executor.schedule(() -> watchConfigKeyValues(watchPathRoot, updateHandler, deleteHandler),
                     consulConfig.getWatchDelay(), TimeUnit.MILLISECONDS);
         }

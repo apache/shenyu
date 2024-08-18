@@ -34,7 +34,7 @@ public class LoggingHuaweiLtsPluginDataHandlerTest {
     private final PluginData pluginData = new PluginData();
 
     @BeforeEach
-    private void setUp() {
+    public void setUp() {
         this.loggingHuaweiLtsPluginDataHandler = new LoggingHuaweiLtsPluginDataHandler();
         pluginData.setEnabled(true);
         pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
