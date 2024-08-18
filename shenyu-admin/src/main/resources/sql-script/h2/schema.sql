@@ -1385,3 +1385,6 @@ CREATE TABLE IF NOT EXISTS `scale_history`
     `date_updated`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`)
 );
+
+
+ALTER TABLE `selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;

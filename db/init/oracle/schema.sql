@@ -2858,6 +2858,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343266', '1346358560427216896', '1792749362445840485');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343267', '1346358560427216896', '1792749362445840486');
 
+
 -- ----------------------------
 -- Table structure for scale
 -- ----------------------------
@@ -2952,3 +2953,6 @@ comment on column SCALE_HISTORY.date_created
 comment on column SCALE_HISTORY.date_updated
     is 'update time';
 
+
+ALTER TABLE selector ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN selector.namespace_id IS 'namespaceId';
