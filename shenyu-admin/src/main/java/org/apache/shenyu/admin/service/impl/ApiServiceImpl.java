@@ -194,7 +194,7 @@ public class ApiServiceImpl implements ApiService {
         }
         //clean metadata
         Optional.ofNullable(metaDataService.findByPath(path, SYS_DEFAULT_NAMESPACE_ID))
-                .ifPresent(metaDataDO -> metaDataService.delete(Lists.newArrayList(metaDataDO.getId()), SYS_DEFAULT_NAMESPACE_ID));
+                .ifPresent(metaDataDO -> metaDataService.deleteByIdsAndNamespaceId(Lists.newArrayList(metaDataDO.getId()), SYS_DEFAULT_NAMESPACE_ID));
     }
 
     private void register(final ApiDO apiDO) {

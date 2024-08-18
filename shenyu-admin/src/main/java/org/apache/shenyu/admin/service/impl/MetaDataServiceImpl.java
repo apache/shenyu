@@ -107,7 +107,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public int delete(final List<String> ids, final String namespaceId) {
+    public int deleteByIdsAndNamespaceId(final List<String> ids, final String namespaceId) {
         List<MetaDataDO> deletedMetaData = metaDataMapper.selectByIdListAndNamespaceId(ids, namespaceId);
         if (CollectionUtils.isEmpty(deletedMetaData)) {
             return 0;
@@ -120,7 +120,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public String enabled(final List<String> ids, final Boolean enabled, final String namespaceId) {
+    public String enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
         List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdListAndNamespaceId(ids, namespaceId);
         if (CollectionUtils.isEmpty(metaDataDoList)) {
             return AdminConstants.ID_NOT_EXIST;
@@ -143,7 +143,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public MetaDataVO findById(final String id, final String namespaceId) {
+    public MetaDataVO findByIdAndNamespaceId(final String id, final String namespaceId) {
         return Optional.ofNullable(MetaDataTransfer.INSTANCE.mapToVO(metaDataMapper.selectByIdAndNamespaceId(id, namespaceId))).orElseGet(MetaDataVO::new);
     }
 

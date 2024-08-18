@@ -58,7 +58,7 @@ public interface MetaDataService {
      * @param namespaceId namespaceId
      * @return rows int
      */
-    int delete(List<String> ids, String namespaceId);
+    int deleteByIdsAndNamespaceId(List<String> ids, String namespaceId);
 
     /**
      * Find by id meta data vo.
@@ -67,7 +67,7 @@ public interface MetaDataService {
      * @param namespaceId namespaceId
      * @return the meta data vo
      */
-    MetaDataVO findById(String id, String namespaceId);
+    MetaDataVO findByIdAndNamespaceId(String id, String namespaceId);
 
     /**
      * List by page common pager.
@@ -113,7 +113,7 @@ public interface MetaDataService {
      * @param namespaceId namespaceId
      * @return the string
      */
-    String enabled(List<String> ids, Boolean enabled, String namespaceId);
+    String enabledByIdsAndNamespaceId(List<String> ids, Boolean enabled, String namespaceId);
 
     /**
      * Sync data.

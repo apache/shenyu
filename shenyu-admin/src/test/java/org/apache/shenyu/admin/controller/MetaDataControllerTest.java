@@ -139,7 +139,7 @@ public final class MetaDataControllerTest {
 
     @Test
     public void testEditor() throws Exception {
-        given(this.metaDataService.findById("1")).willReturn(metaDataVO);
+        given(this.metaDataService.findByIdAndNamespaceId("1", SYS_DEFAULT_NAMESPACE_ID)).willReturn(metaDataVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/{id}", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
@@ -200,7 +200,7 @@ public final class MetaDataControllerTest {
         final List<String> ids = new ArrayList<>(2);
         ids.add("1");
         ids.add("2");
-        given(this.metaDataService.delete(ids)).willReturn(2);
+        given(this.metaDataService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID)).willReturn(2);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/batchDeleted")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(ids)))
@@ -215,7 +215,7 @@ public final class MetaDataControllerTest {
         final BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Arrays.asList("1", "2"));
         batchCommonDTO.setEnabled(true);
-        given(this.metaDataService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(StringUtils.EMPTY);
+        given(this.metaDataService.enabledByIdsAndNamespaceId(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), SYS_DEFAULT_NAMESPACE_ID)).willReturn(StringUtils.EMPTY);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/batchEnabled")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
@@ -229,7 +229,7 @@ public final class MetaDataControllerTest {
         final BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Arrays.asList("1", "2"));
         batchCommonDTO.setEnabled(true);
-        given(this.metaDataService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(AdminConstants.ID_NOT_EXIST);
+        given(this.metaDataService.enabledByIdsAndNamespaceId(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), SYS_DEFAULT_NAMESPACE_ID)).willReturn(AdminConstants.ID_NOT_EXIST);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/batchEnabled")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
