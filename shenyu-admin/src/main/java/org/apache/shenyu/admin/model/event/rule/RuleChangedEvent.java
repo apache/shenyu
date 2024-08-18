@@ -46,9 +46,9 @@ public class RuleChangedEvent extends AdminDataModelChangedEvent {
     public String buildContext() {
         final RuleDO after = (RuleDO) getAfter();
         if (Objects.isNull(getBefore())) {
-            return String.format("the rule [%s] is %s", after.getName(), StringUtils.lowerCase(getType().getType().toString()));
+            return String.format("the namespace [%s] rule [%s] is %s", after.getNamespaceId(), after.getName(), StringUtils.lowerCase(getType().getType().toString()));
         }
-        return String.format("the rule [%s] is %s : %s", after.getName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
+        return String.format("the namespace [%s] rule [%s] is %s : %s", after.getNamespaceId(), after.getName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
         
     }
     

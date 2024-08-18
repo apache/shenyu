@@ -45,7 +45,8 @@
         method_name,
         parameter_types,
         rpc_ext,
-        enabled
+        enabled,
+        namespace_id
     </sql>
 
     <select id="selectByIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">

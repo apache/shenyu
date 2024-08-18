@@ -373,7 +373,7 @@ public class MetaDataVO implements Serializable {
                 + ", id='" + id + '\''
                 + ", dateCreated='" + dateCreated + '\''
                 + ", dateUpdated='" + dateUpdated + '\''
-                + ", enabled=" + enabled+ '\''
+                + ", enabled=" + enabled + '\''
                 + ", namespaceId=" + namespaceId
                 + '}';
     }

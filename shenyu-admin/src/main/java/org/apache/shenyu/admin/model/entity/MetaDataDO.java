@@ -294,8 +294,8 @@ public final class MetaDataDO extends BaseDO implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), appName, path, pathDesc, rpcType, serviceName, methodName, parameterTypes, rpcExt, enabled
-                , namespaceId);
+        return Objects.hash(super.hashCode(), appName, path, pathDesc, rpcType, serviceName, methodName, parameterTypes,
+                rpcExt, enabled, namespaceId);
     }
 
     public static final class MetaDataDOBuilder {

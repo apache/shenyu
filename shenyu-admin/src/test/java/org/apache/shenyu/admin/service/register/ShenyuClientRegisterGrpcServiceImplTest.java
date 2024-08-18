@@ -39,6 +39,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -79,10 +80,10 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
     @Test
     public void testRegisterMetadata() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
-        when(metaDataService.findByPathAndNamespaceId(any())).thenReturn(metaDataDO);
+        when(metaDataService.findByPathAndNamespaceId(any(), any())).thenReturn(metaDataDO);
         MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().path("/test").build();
         shenyuClientRegisterGrpcService.registerMetadata(metaDataDTO);
-        verify(metaDataService).findByPathAndNamespaceId("/test");
+        verify(metaDataService).findByPathAndNamespaceId("/test", SYS_DEFAULT_NAMESPACE_ID);
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
 
