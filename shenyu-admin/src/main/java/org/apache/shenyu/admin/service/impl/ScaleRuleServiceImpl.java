@@ -115,7 +115,7 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
     @Override
     public int update(final ScaleRuleDTO scaleRuleDTO) {
         final ScaleRuleDO after = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
-        return scaleRuleMapper.updateByPrimaryKeySelective(after);
+        return scaleRuleMapper.updateByPrimaryKey(after);
     }
 
     /**

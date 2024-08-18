@@ -62,9 +62,10 @@ public class ScalePolicyController {
      * @return ShenyuAdminResult
      */
     @GetMapping("/{id}")
-    public ShenyuAdminResult detailPolicy(@PathVariable("id") @Valid
-                                               @Existed(provider = ScalePolicyMapper.class,
-                                               message = "scale policy is not existed") final String id) {
+    public ShenyuAdminResult detailPolicy(@PathVariable("id")
+                                          @Valid
+                                          @Existed(provider = ScalePolicyMapper.class,
+                                                  message = "scale policy is not existed") final String id) {
         ScalePolicyVO scalePolicyVO = scalePolicyService.findById(id);
         return Optional.ofNullable(scalePolicyVO)
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item))
@@ -74,16 +75,11 @@ public class ScalePolicyController {
     /**
      * update scale policy.
      *
-     * @param id primary key
      * @param scalePolicyDTO scale policy info
      * @return ShenyuAdminResult
      */
-    @PutMapping("/{id}")
-    public ShenyuAdminResult updateScalePolicy(@PathVariable("id") @Valid
-                                               @Existed(provider = ScalePolicyMapper.class,
-                                                        message = "scale policy is not existed") final String id,
-                                               @Valid @RequestBody final ScalePolicyDTO scalePolicyDTO) {
-        scalePolicyDTO.setId(id);
+    @PutMapping("")
+    public ShenyuAdminResult updateScalePolicy(@Valid @RequestBody final ScalePolicyDTO scalePolicyDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, scalePolicyService.update(scalePolicyDTO));
     }
 }

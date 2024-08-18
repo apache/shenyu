@@ -48,13 +48,10 @@
     where id = #{id,jdbcType=VARCHAR}
   </delete>
   <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ScalePolicyDO">
-    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.String">
-      SELECT LAST_INSERT_ID()
-    </selectKey>
-    insert into scale_policy (sort, `status`, num, 
+    insert into scale_policy (id, sort, `status`, num,
       begin_time, end_time, date_created, 
       date_updated)
-    values (#{sort,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{num,jdbcType=INTEGER}, 
+    values (#{id,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{num,jdbcType=INTEGER},
       #{beginTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, #{dateCreated,jdbcType=TIMESTAMP}, 
       #{dateUpdated,jdbcType=TIMESTAMP})
   </insert>

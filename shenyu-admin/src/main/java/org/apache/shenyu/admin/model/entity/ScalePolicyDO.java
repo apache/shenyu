@@ -37,13 +37,6 @@ public final class ScalePolicyDO extends BaseDO {
     private static final long serialVersionUID = -6895279885108899135L;
 
     /**
-     * Column: id.
-     * Type: VARCHAR(128).
-     * Remark: primary key id.
-     */
-    private String id;
-
-    /**
      * Column: sort.
      * Type: INT.
      * Remark: sort.
@@ -97,8 +90,7 @@ public final class ScalePolicyDO extends BaseDO {
     public ScalePolicyDO() {
     }
 
-    public ScalePolicyDO(final String id, final Integer sort, final Integer status, final Integer num, final Date beginTime, final Date endTime) {
-        this.id = id;
+    public ScalePolicyDO(final Integer sort, final Integer status, final Integer num, final Date beginTime, final Date endTime) {
         this.sort = sort;
         this.status = status;
         this.num = num;

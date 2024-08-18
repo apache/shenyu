@@ -87,7 +87,7 @@ public class ScalePolicyDTO implements Serializable {
      *
      * @return the value of id
      */
-    public @Existed(provider = ScalePolicyMapper.class, nullOfIgnore = true, message = "scale policy is not existed") String getId() {
+    public String getId() {
         return id;
     }
 
@@ -96,7 +96,7 @@ public class ScalePolicyDTO implements Serializable {
      *
      * @param id id
      */
-    public void setId(@Existed(provider = ScalePolicyMapper.class, nullOfIgnore = true, message = "scale policy is not existed") final String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -105,7 +105,7 @@ public class ScalePolicyDTO implements Serializable {
      *
      * @return the value of sort
      */
-    public @NotNull Integer getSort() {
+    public Integer getSort() {
         return sort;
     }
 
@@ -114,7 +114,7 @@ public class ScalePolicyDTO implements Serializable {
      *
      * @param sort sort
      */
-    public void setSort(@NotNull final Integer sort) {
+    public void setSort(final Integer sort) {
         this.sort = sort;
     }
 
@@ -123,7 +123,7 @@ public class ScalePolicyDTO implements Serializable {
      *
      * @return the value of status
      */
-    public @NotNull Integer getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
@@ -132,7 +132,7 @@ public class ScalePolicyDTO implements Serializable {
      *
      * @param status status
      */
-    public void setStatus(@NotNull final Integer status) {
+    public void setStatus(final Integer status) {
         this.status = status;
     }
 
@@ -223,11 +223,11 @@ public class ScalePolicyDTO implements Serializable {
 
     public static final class ScalePolicyDTOBuilder {
 
-        private @Existed(provider = ScalePolicyMapper.class, nullOfIgnore = true, message = "scale policy is not existed") String id;
+        private String id;
 
-        private @NotNull Integer sort;
+        private Integer sort;
 
-        private @NotNull Integer status;
+        private Integer status;
 
         private Integer num;
 

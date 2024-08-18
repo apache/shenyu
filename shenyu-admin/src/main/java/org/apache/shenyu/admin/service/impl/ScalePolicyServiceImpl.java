@@ -69,6 +69,6 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
     @Override
     public int update(final ScalePolicyDTO scalePolicyDTO) {
         final ScalePolicyDO scalePolicy = ScalePolicyDO.buildScalePolicyDO(scalePolicyDTO);
-        return scalePolicyMapper.updateByPrimaryKeySelective(scalePolicy);
+        return scalePolicyMapper.updateByPrimaryKey(scalePolicy);
     }
 }

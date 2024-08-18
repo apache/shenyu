@@ -89,7 +89,8 @@ public class ScaleRlueController {
      * @return ShenyuAdminResult
      */
     @GetMapping("/{id}")
-    public ShenyuAdminResult detailRule(@PathVariable("id") @Valid
+    public ShenyuAdminResult detailRule(@PathVariable("id")
+                                        @Valid
                                         @Existed(provider = ScaleRuleMapper.class,
                                                 message = "scale role is not existed") final String id) {
         ScaleRuleVO scaleRuleVO = scaleRuleService.findById(id);
@@ -112,16 +113,11 @@ public class ScaleRlueController {
     /**
      * update rule.
      *
-     * @param id           id
      * @param scaleRuleDTO scaleRuleDTO
      * @return ShenyuAdminResult
      */
-    @PutMapping("/{id}")
-    public ShenyuAdminResult updateRule(@PathVariable("id") @Valid
-                                        @Existed(provider = ScaleRuleMapper.class,
-                                                message = "scale rule is not existed") final String id,
-                                        @Valid @RequestBody final ScaleRuleDTO scaleRuleDTO) {
-        scaleRuleDTO.setId(id);
+    @PutMapping("")
+    public ShenyuAdminResult updateRule(@Valid @RequestBody final ScaleRuleDTO scaleRuleDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, scaleRuleService.createOrUpdate(scaleRuleDTO));
     }
 

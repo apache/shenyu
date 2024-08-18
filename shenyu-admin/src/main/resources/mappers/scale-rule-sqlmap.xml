@@ -84,13 +84,10 @@
     where id = #{id,jdbcType=VARCHAR}
   </delete>
   <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ScaleRuleDO">
-    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.String">
-      SELECT LAST_INSERT_ID()
-    </selectKey>
-    insert into scale_rule (metric_name, `type`, sort, 
+    insert into scale_rule (id, metric_name, `type`, sort,
       `status`, minimum, maximum, 
       date_created, date_updated)
-    values (#{metricName,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER}, 
+    values (#{id,jdbcType=VARCHAR}, #{metricName,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER},
       #{status,jdbcType=INTEGER}, #{minimum,jdbcType=VARCHAR}, #{maximum,jdbcType=VARCHAR}, 
       #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
   </insert>

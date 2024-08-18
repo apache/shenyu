@@ -114,7 +114,7 @@ public class ScaleRuleDTO implements Serializable {
      *
      * @return the value of metricName
      */
-    public @NotBlank String getMetricName() {
+    public String getMetricName() {
         return metricName;
     }
 
@@ -123,7 +123,7 @@ public class ScaleRuleDTO implements Serializable {
      *
      * @param metricName metricName
      */
-    public void setMetricName(@NotBlank final String metricName) {
+    public void setMetricName(final String metricName) {
         this.metricName = metricName;
     }
 
@@ -132,7 +132,7 @@ public class ScaleRuleDTO implements Serializable {
      *
      * @return the value of type
      */
-    public @NotNull Integer getType() {
+    public Integer getType() {
         return type;
     }
 
@@ -141,7 +141,7 @@ public class ScaleRuleDTO implements Serializable {
      *
      * @param type type
      */
-    public void setType(@NotNull final Integer type) {
+    public void setType(final Integer type) {
         this.type = type;
     }
 
@@ -150,7 +150,7 @@ public class ScaleRuleDTO implements Serializable {
      *
      * @return the value of sort
      */
-    public @NotNull Integer getSort() {
+    public Integer getSort() {
         return sort;
     }
 
@@ -159,7 +159,7 @@ public class ScaleRuleDTO implements Serializable {
      *
      * @param sort sort
      */
-    public void setSort(@NotNull final Integer sort) {
+    public void setSort(final Integer sort) {
         this.sort = sort;
     }
 
@@ -168,7 +168,7 @@ public class ScaleRuleDTO implements Serializable {
      *
      * @return the value of status
      */
-    public @NotNull Integer getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
@@ -177,7 +177,7 @@ public class ScaleRuleDTO implements Serializable {
      *
      * @param status status
      */
-    public void setStatus(@NotNull final Integer status) {
+    public void setStatus(final Integer status) {
         this.status = status;
     }
 
@@ -253,13 +253,13 @@ public class ScaleRuleDTO implements Serializable {
 
         private String id;
 
-        private @NotBlank String metricName;
+        private String metricName;
 
-        private @NotNull Integer type;
+        private Integer type;
 
-        private @NotNull Integer sort;
+        private Integer sort;
 
-        private @NotNull Integer status;
+        private Integer status;
 
         private String minimum;
 
