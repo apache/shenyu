@@ -20,7 +20,9 @@ package org.apache.shenyu.admin.controller;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
+import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -79,6 +81,9 @@ public final class MetaDataControllerTest {
     @Mock
     private MetaDataMapper metaDataMapper;
 
+    @Mock
+    private NamespaceMapper namespaceMapper;
+
     private final MetaDataVO metaDataVO = new MetaDataVO("appName", "appPath", "desc", "rpcType", "serviceName", "methodName", "types", "rpcExt",
             "1", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()),
             true, SYS_DEFAULT_NAMESPACE_ID);
@@ -103,7 +108,8 @@ public final class MetaDataControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/queryList")
                 .param("path", "path")
                 .param("currentPage", String.valueOf(pageParameter.getCurrentPage()))
-                .param("pageSize", String.valueOf(pageParameter.getPageSize())))
+                .param("pageSize", String.valueOf(pageParameter.getPageSize()))
+                .param("namespaceId", SYS_DEFAULT_NAMESPACE_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].appName", is(metaDataVO.getAppName())))
@@ -140,7 +146,7 @@ public final class MetaDataControllerTest {
     @Test
     public void testEditor() throws Exception {
         given(this.metaDataService.findByIdAndNamespaceId("1", SYS_DEFAULT_NAMESPACE_ID)).willReturn(metaDataVO);
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/{id}", "1"))
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/{id}/{namespaceId}", "1", SYS_DEFAULT_NAMESPACE_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.appName", is(metaDataVO.getAppName())))
@@ -159,10 +165,13 @@ public final class MetaDataControllerTest {
         metaDataDTO.setServiceName("serviceName");
         metaDataDTO.setRuleName("ruleName");
         metaDataDTO.setEnabled(false);
+        metaDataDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         when(SpringBeanUtils.getInstance().getBean(MetaDataMapper.class)).thenReturn(metaDataMapper);
         when(metaDataMapper.existed(metaDataDTO.getId())).thenReturn(true);
         given(this.metaDataService.createOrUpdate(metaDataDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
+        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/createOrUpdate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
@@ -183,9 +192,12 @@ public final class MetaDataControllerTest {
         metaDataDTO.setServiceName("serviceName");
         metaDataDTO.setRuleName("ruleName");
         metaDataDTO.setEnabled(false);
+        metaDataDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         when(SpringBeanUtils.getInstance().getBean(MetaDataMapper.class)).thenReturn(metaDataMapper);
         when(metaDataMapper.existed(metaDataDTO.getId())).thenReturn(null);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
+        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/createOrUpdate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
@@ -200,10 +212,16 @@ public final class MetaDataControllerTest {
         final List<String> ids = new ArrayList<>(2);
         ids.add("1");
         ids.add("2");
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         given(this.metaDataService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID)).willReturn(2);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/batchDeleted")
+        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
+        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        final BatchNamespaceCommonDTO batchNamespaceCommonDTO = new BatchNamespaceCommonDTO();
+        batchNamespaceCommonDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        batchNamespaceCommonDTO.setIds(ids);
+        this.mockMvc.perform(MockMvcRequestBuilders.delete("/meta-data/batchDeleted")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(ids)))
+                .content(GsonUtils.getInstance().toJson(batchNamespaceCommonDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(2)))
@@ -229,6 +247,7 @@ public final class MetaDataControllerTest {
         final BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Arrays.asList("1", "2"));
         batchCommonDTO.setEnabled(true);
+        batchCommonDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         given(this.metaDataService.enabledByIdsAndNamespaceId(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), SYS_DEFAULT_NAMESPACE_ID)).willReturn(AdminConstants.ID_NOT_EXIST);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/batchEnabled")
                 .contentType(MediaType.APPLICATION_JSON)
