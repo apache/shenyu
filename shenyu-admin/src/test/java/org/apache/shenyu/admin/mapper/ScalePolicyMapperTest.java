@@ -99,7 +99,7 @@ public final class ScalePolicyMapperTest extends AbstractSpringIntegrationTest {
         int insert = scalePolicyMapper.insert(scalePolicyDO);
         assertThat(insert, equalTo(1));
 
-        scalePolicyDO.setNum(13);
+        scalePolicyDO.setNum(16);
         int update = scalePolicyMapper.updateByPrimaryKey(scalePolicyDO);
         assertThat(update, equalTo(1));
         ScalePolicyDO result = scalePolicyMapper.selectByPrimaryKey(scalePolicyDO.getId());
