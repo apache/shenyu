@@ -352,12 +352,6 @@
             <artifactId>shenyu-admin-listener-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.10.14</version>
-            <scope>compile</scope>
-        </dependency>
         <!-- shenyu-admin-listener end-->
     
     </dependencies>
