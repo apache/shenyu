@@ -48,7 +48,7 @@ public interface MetaDataMapper extends ExistProvider {
      * @param namespaceId namespaceId
      * @return the meta data do
      */
-    MetaDataDO selectById(String id, String namespaceId);
+    MetaDataDO selectByIdAndNamespaceId(String id, String namespaceId);
     
     /**
      * Select a list of MetaDataDOs by idList and namespaceId.
@@ -57,7 +57,7 @@ public interface MetaDataMapper extends ExistProvider {
      * @param namespaceId namespaceId
      * @return a list of MetaDataDOs
      */
-    List<MetaDataDO> selectByIdList(@Param("idList") List<String> idList, @Param("namespaceId") String namespaceId);
+    List<MetaDataDO> selectByIdListAndNamespaceId(@Param("idList") List<String> idList, @Param("namespaceId") String namespaceId);
     
     /**
      * Find all list.
@@ -73,7 +73,7 @@ public interface MetaDataMapper extends ExistProvider {
      * @param namespaceId namespaceId
      * @return the meta data do
      */
-    MetaDataDO findByPath(String path, String namespaceId);
+    MetaDataDO findByPathAndNamespaceId(String path, String namespaceId);
     
     /**
      * Find meta data do by service name and method and namespaceId.
@@ -83,7 +83,7 @@ public interface MetaDataMapper extends ExistProvider {
      * @param namespaceId namespaceId
      * @return the meta data do
      */
-    List<MetaDataDO> findByServiceNameAndMethod(@Param("serviceName") String serviceName, @Param("methodName") String methodName, @Param("namespaceId") String namespaceId);
+    List<MetaDataDO> findByServiceNameAndMethodAndNamespaceId(@Param("serviceName") String serviceName, @Param("methodName") String methodName, @Param("namespaceId") String namespaceId);
     
     /**
      * Select by query list.
@@ -156,7 +156,7 @@ public interface MetaDataMapper extends ExistProvider {
      * @param namespaceId namespaceId
      * @return the count of deleted
      */
-    int deleteByIdList(@Param("idList") List<String> idList, @Param("namespaceId") String namespaceId);
+    int deleteByIdListAndNamespaceId(@Param("idList") List<String> idList, @Param("namespaceId") String namespaceId);
     
     /**
      * the path is existed.

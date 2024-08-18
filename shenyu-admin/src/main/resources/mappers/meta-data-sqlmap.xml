@@ -48,7 +48,7 @@
         enabled
     </sql>
 
-    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectByIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SElECT
         <include refid="Base_Column_List"/>
         FROM meta_data
@@ -56,7 +56,7 @@
         AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByIdList" resultMap="BaseResultMap">
+    <select id="selectByIdListAndNamespaceId" resultMap="BaseResultMap">
         SElECT
         <include refid="Base_Column_List"/>
         FROM meta_data
@@ -67,7 +67,7 @@
         AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
-    <select id="findByPath" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="findByPathAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SElECT
         <include refid="Base_Column_List"/>
         FROM meta_data
@@ -75,7 +75,7 @@
         AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
-    <select id="findByServiceNameAndMethod" resultMap="BaseResultMap">
+    <select id="findByServiceNameAndMethodAndNamespaceId" resultMap="BaseResultMap">
         SElECT
         <include refid="Base_Column_List"/>
         FROM meta_data
@@ -217,7 +217,7 @@
         WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
 
-    <delete id="deleteByIdList" parameterType="java.lang.String">
+    <delete id="deleteByIdListAndNamespaceId" parameterType="java.lang.String">
         DELETE FROM meta_data
         WHERE id
         IN
