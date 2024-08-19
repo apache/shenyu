@@ -72,7 +72,7 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(LoggingConsolePlugin.class);
 
     private static String dataDesensitizeAlg = DataDesensitizeEnum.CHARACTER_REPLACE.getDataDesensitizeAlg();
-    
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
@@ -175,11 +175,11 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
     }
 
     static class LoggingServerHttpRequest extends ServerHttpRequestDecorator {
-        
+
         private final StringBuilder logInfo;
-        
+
         private final Boolean desensitized;
-        
+
         private final KeyWordMatch keyWordMatch;
 
         LoggingServerHttpRequest(final ServerHttpRequest delegate, final StringBuilder logInfo,
@@ -194,7 +194,11 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         @NonNull
         public Flux<DataBuffer> getBody() {
             BodyWriter writer = new BodyWriter();
-            return super.getBody().doOnNext(dataBuffer -> writer.write(dataBuffer.asByteBuffer().asReadOnlyBuffer())).doFinally(signal -> {
+            return super.getBody().doOnNext(dataBuffer -> {
+                try (DataBuffer.ByteBufferIterator bufferIterator = dataBuffer.readableByteBuffers()) {
+                    bufferIterator.forEachRemaining(byteBuffer -> writer.write(byteBuffer.asReadOnlyBuffer()));
+                }
+            }).doFinally(signal -> {
                 if (!writer.isEmpty()) {
                     logInfo.append("[Request Body Start]").append(System.lineSeparator());
                     // desensitize data
@@ -214,9 +218,9 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         private final StringBuilder logInfo;
 
         private final ServerHttpResponse serverHttpResponse;
-        
+
         private final Boolean desensitized;
-        
+
         private final KeyWordMatch keyWordMatch;
 
         LoggingServerHttpResponse(final ServerHttpResponse delegate, final StringBuilder logInfo,
@@ -251,7 +255,11 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
                 });
             }
             BodyWriter writer = new BodyWriter();
-            return Flux.from(body).doOnNext(buffer -> writer.write(buffer.asByteBuffer().asReadOnlyBuffer())).doFinally(signal -> {
+            return Flux.from(body).doOnNext(buffer -> {
+                try (DataBuffer.ByteBufferIterator bufferIterator = buffer.readableByteBuffers()) {
+                    bufferIterator.forEachRemaining(byteBuffer -> writer.write(byteBuffer.asReadOnlyBuffer()));
+                }
+            }).doFinally(signal -> {
                 logInfo.append("[Response Body Start]").append(System.lineSeparator());
                 // desensitize data
                 String responseBody = DataDesensitizeUtils.desensitizeBody(desensitized, writer.output(), keyWordMatch, dataDesensitizeAlg);
