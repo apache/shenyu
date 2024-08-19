@@ -83,8 +83,12 @@ public final class ShenyuClientRegisterTarsServiceImplTest {
         String serviceName = "metaDataService";
         String methodName = "registerMetadata";
         when(metaDataService.findByServiceNameAndMethodNameAndNamespaceId(any(), any(), any())).thenReturn(metaDataDO);
-        MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().serviceName(serviceName)
-                .methodName(methodName).namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+        MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO
+                .builder()
+                .serviceName(serviceName)
+                .methodName(methodName)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
+                .build();
         shenyuClientRegisterTarsService.registerMetadata(metaDataDTO);
         verify(metaDataService).findByServiceNameAndMethodNameAndNamespaceId(serviceName, methodName, SYS_DEFAULT_NAMESPACE_ID);
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);

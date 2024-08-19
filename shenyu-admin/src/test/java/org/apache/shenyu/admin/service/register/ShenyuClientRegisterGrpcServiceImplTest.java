@@ -81,7 +81,11 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
     public void testRegisterMetadata() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
         when(metaDataService.findByPathAndNamespaceId(any(), any())).thenReturn(metaDataDO);
-        MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().path("/test").namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+        MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO
+                .builder()
+                .path("/test")
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
+                .build();
         shenyuClientRegisterGrpcService.registerMetadata(metaDataDTO);
         verify(metaDataService).findByPathAndNamespaceId("/test", SYS_DEFAULT_NAMESPACE_ID);
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);
