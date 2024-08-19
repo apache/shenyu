@@ -205,6 +205,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
                 .sort(1)
                 .dateCreated(now)
                 .dateUpdated(now)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
     }
 }

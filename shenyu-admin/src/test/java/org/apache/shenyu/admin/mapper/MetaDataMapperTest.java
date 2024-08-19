@@ -251,6 +251,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .dateUpdated(now)
                 .dateCreated(now)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
     }
 
