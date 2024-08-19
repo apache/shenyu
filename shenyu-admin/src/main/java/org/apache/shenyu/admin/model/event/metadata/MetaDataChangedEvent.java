@@ -49,7 +49,7 @@ public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
             return String.format("the namespace [%s] metadata [%s %s] is %s", after.getNamespaceId(), after.getAppName(),
                     after.getPath(), StringUtils.lowerCase(getType().getType().toString()));
         }
-        return String.format("the namespace [%s]  metadata [%s %s] is %s : %s", after.getNamespaceId(), after.getAppName(),
+        return String.format("the namespace [%s] metadata [%s %s] is %s : %s", after.getNamespaceId(), after.getAppName(),
                 after.getPath(), StringUtils.lowerCase(getType().getType().toString()), contrast());
         
     }
