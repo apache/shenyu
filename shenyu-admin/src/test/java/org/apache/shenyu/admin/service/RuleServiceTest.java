@@ -345,6 +345,7 @@ public final class RuleServiceTest {
                 .matchMode(0)
                 .handle("{\"test1\":\"\"}")
                 .name("456")
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         if (StringUtils.isNotBlank(id)) {
             ruleDTO.setId(id);
