@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -91,6 +92,9 @@ public final class MetaDataServiceTest {
 
     @Mock
     private MetaDataQuery metaDataQuery;
+
+    @Mock
+    private NamespaceMapper namespaceMapper;
 
     @BeforeAll
     public static void beforeClass() {
@@ -333,9 +337,11 @@ public final class MetaDataServiceTest {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
         when(metaDataDTO.getId()).thenReturn("id");
         when(metaDataDTO.getPath()).thenReturn("path");
+        when(metaDataDTO.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
         when(metaDataMapper.pathExistedExclude("path", Collections.singletonList("id"))).thenReturn(null);
         when(metaDataMapper.selectByIdAndNamespaceId("id", SYS_DEFAULT_NAMESPACE_ID)).thenReturn(metaDataDO);
         when(metaDataMapper.update(any())).thenReturn(1);
+
         String msg = metaDataService.createOrUpdate(metaDataDTO);
         assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, msg);
     }
