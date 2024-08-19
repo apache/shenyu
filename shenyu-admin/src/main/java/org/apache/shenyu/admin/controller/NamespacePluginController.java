@@ -106,7 +106,7 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      * @param pluginId    pluginId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/pluginId={pluginId}&namespaceId={namespaceId}")
+    @GetMapping("/{pluginId}/{namespaceId}")
     @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult detailPlugin(@PathVariable("namespaceId")
                                           @Existed(message = "namespace is not existed", provider = NamespaceMapper.class) final String namespaceId,
