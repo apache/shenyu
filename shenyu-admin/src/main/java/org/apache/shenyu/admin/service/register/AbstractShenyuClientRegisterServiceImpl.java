@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
@@ -24,12 +25,11 @@ import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.DiscoveryService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.DiscoveryService;
-import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
-
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
@@ -45,14 +45,16 @@ import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
-import jakarta.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -64,7 +66,9 @@ import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMES
  * Abstract strategy.
  */
 public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
-
+    
+    private final Logger logger = LoggerFactory.getLogger(AbstractShenyuClientRegisterServiceImpl.class);
+    
     /**
      * The Event publisher.
      */
@@ -204,6 +208,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             discoveryUpstreamService.nativeCreateOrUpdate(discoveryUpstreamDTO);
         }
         DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName);
+        logger.info("register discoverySyncData:{}", JsonUtils.toJson(discoverySyncData));
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
     }
 

@@ -283,6 +283,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         ConfigDataCache newVal = new ConfigDataCache(group.name(), json, DigestUtils.md5Hex(json), System.currentTimeMillis());
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
         LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
+        LOG.info("update config json: {}", json);
     }
     
     /**
