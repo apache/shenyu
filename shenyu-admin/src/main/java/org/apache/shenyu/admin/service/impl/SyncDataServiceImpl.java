@@ -127,7 +127,7 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     @Override
     public boolean syncPluginData(final String pluginId, final String namespaceId) {
-        NamespacePluginVO namespacePluginVO = namespacePluginService.findById(pluginId, namespaceId);
+        NamespacePluginVO namespacePluginVO = namespacePluginService.findByPluginId(pluginId, namespaceId);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(PluginTransfer.INSTANCE.mapToData(namespacePluginVO))));
 
