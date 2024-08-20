@@ -96,8 +96,8 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     }
 
     @Override
-    public NamespacePluginVO findById(final String id, final String namespaceId) {
-        return this.namespacePluginRelMapper.selectByPluginIdAndNamespaceId(id, namespaceId);
+    public NamespacePluginVO findByPluginId(final String pluginId, final String namespaceId) {
+        return this.namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
     }
 
     @Override

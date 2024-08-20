@@ -43,7 +43,7 @@
     <select id="existed" resultType="java.lang.Boolean">
         SELECT true
         FROM plugin_ns_rel
-        WHERE id = #{id} limit 1
+        WHERE plugin_id = #{pluginId} limit 1
     </select>
 
 
