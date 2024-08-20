@@ -39,11 +39,11 @@ public interface NamespacePluginRelMapper extends ExistProvider {
     /**
      * existed.
      *
-     * @param id id
+     * @param pluginId pluginId
      * @return existed
      */
     @Override
-    Boolean existed(@Param("id") Serializable id);
+    Boolean existed(@Param("pluginId") Serializable pluginId);
 
 
     /**
