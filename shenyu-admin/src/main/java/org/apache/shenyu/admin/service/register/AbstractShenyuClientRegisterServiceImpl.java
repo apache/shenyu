@@ -67,7 +67,7 @@ import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMES
  */
 public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
     
-    private final Logger LOG = LoggerFactory.getLogger(AbstractShenyuClientRegisterServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(AbstractShenyuClientRegisterServiceImpl.class);
     
     /**
      * The Event publisher.
@@ -208,8 +208,8 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             discoveryUpstreamService.nativeCreateOrUpdate(discoveryUpstreamDTO);
         }
         DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("register discoverySyncData:{}", JsonUtils.toJson(discoverySyncData));
+        if (logger.isDebugEnabled()) {
+            logger.debug("register discoverySyncData:{}", JsonUtils.toJson(discoverySyncData));
         }
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
     }
