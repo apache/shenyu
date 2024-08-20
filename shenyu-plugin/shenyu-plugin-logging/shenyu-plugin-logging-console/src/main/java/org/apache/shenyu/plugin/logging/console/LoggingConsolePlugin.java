@@ -303,7 +303,7 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         String output() {
             try {
                 isClosed.compareAndSet(false, true);
-                return new String(stream.toByteArray(), StandardCharsets.UTF_8);
+                return stream.toString(StandardCharsets.UTF_8);
             } catch (Exception e) {
                 LOG.error("Write failed: ", e);
                 return "Write failed: " + e.getMessage();
