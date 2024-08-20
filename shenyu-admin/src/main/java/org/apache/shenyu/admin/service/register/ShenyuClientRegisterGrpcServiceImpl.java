@@ -79,7 +79,9 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
         MetaDataService metaDataService = getMetaDataService();
-        LOG.info("grpc register metadata:{}", GsonUtils.getInstance().toJson(metaDataDTO));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("grpc register metadata:{}", GsonUtils.getInstance().toJson(metaDataDTO));
+        }
         MetaDataDO exist = metaDataService.findByPath(metaDataDTO.getPath());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
@@ -145,7 +147,9 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
                 removeDiscoveryUpstream(selectorDO.getId(), grpcUpstream.getUpstreamUrl());
             }
             DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName);
-            LOG.info("grpc offline discoverySyncData:{}", GsonUtils.getInstance().toJson(discoverySyncData));
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("grpc offline discoverySyncData:{}", GsonUtils.getInstance().toJson(discoverySyncData));
+            }
             getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
         }
         return Constants.SUCCESS;
