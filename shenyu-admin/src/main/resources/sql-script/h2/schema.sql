@@ -1264,7 +1264,7 @@ INSERT IGNORE INTO `namespace` (`id`, `namespace_id`, `name`, `description`, `da
 CREATE TABLE IF NOT EXISTS `plugin_ns_rel` (
                                                `id` VARCHAR(128) NOT NULL COMMENT 'primary key id',
     `namespace_id` VARCHAR(50) NOT NULL COMMENT 'namespace id',
-    `plugin_id` INT NOT NULL COMMENT 'plugin id',
+    `plugin_id` varchar(128) NOT NULL COMMENT 'plugin id',
     `config` TEXT COMMENT 'plugin configuration',
     `sort` INT DEFAULT NULL COMMENT 'sort',
     `enabled` TINYINT NOT NULL DEFAULT 0 COMMENT 'whether to open (0, not open, 1 open)',
