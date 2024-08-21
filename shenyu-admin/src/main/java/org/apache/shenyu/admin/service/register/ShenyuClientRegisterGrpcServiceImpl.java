@@ -79,11 +79,10 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
         MetaDataService metaDataService = getMetaDataService();
-        MetaDataDO exist = metaDataService.findByPathAndNamespaceId(metaDataDTO.getPath(), metaDataDTO.getNamespaceId());
         if (LOG.isDebugEnabled()) {
             LOG.debug("grpc register metadata:{}", GsonUtils.getInstance().toJson(metaDataDTO));
         }
-        MetaDataDO exist = metaDataService.findByPathAndNamespaceId(metaDataDTO.getPath());
+        MetaDataDO exist = metaDataService.findByPathAndNamespaceId(metaDataDTO.getPath(), metaDataDTO.getNamespaceId());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
 

@@ -292,7 +292,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         return buildRuleDTO(selectorId, ruleHandler, metaDataDTO.getRuleName(), metaDataDTO.getPath(), metaDataDTO.getNamespaceId());
     }
 
-    private RuleDTO buildRuleDTO(final String selectorId, final String ruleHandler, final String ruleName, final String path) {
+    private RuleDTO buildRuleDTO(final String selectorId, final String ruleHandler, final String ruleName, final String path, final String namespaceId) {
         RuleDTO ruleDTO = RuleDTO.builder()
                 .selectorId(selectorId)
                 .name(ruleName)
