@@ -32,6 +32,11 @@ public class SelectorConditionQuery implements Serializable {
      */
     private String selectorId;
 
+    /**
+     * namespace id.
+     */
+    private String namespaceId;
+
     public SelectorConditionQuery() {
     }
 
@@ -57,20 +62,38 @@ public class SelectorConditionQuery implements Serializable {
         this.selectorId = selectorId;
     }
 
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof SelectorConditionQuery)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         SelectorConditionQuery that = (SelectorConditionQuery) o;
-        return Objects.equals(selectorId, that.selectorId);
+        return Objects.equals(selectorId, that.selectorId) && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(selectorId);
+        return Objects.hash(selectorId, namespaceId);
     }
 }
