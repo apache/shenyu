@@ -2776,7 +2776,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace(id)) */ INTO `namespace` (`id`,
 CREATE TABLE plugin_ns_rel (
                                id VARCHAR2(128) COLLATE utf8mb4_unicode_ci NOT NULL,
                                namespace_id VARCHAR2(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-                               plugin_id NUMBER(11) NOT NULL,
+                               plugin_id VARCHAR2(128) COLLATE utf8mb4_unicode_ci NOT NULL,
                                config CLOB COLLATE utf8mb4_unicode_ci,
                                sort NUMBER(11),
                                enabled NUMBER(4,0) NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),

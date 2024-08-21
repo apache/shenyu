@@ -108,7 +108,7 @@ public final class SyncDataServiceTest {
     public void syncPluginDataTest() {
         PluginVO pluginVO = buildPluginVO();
         NamespacePluginVO namespacePluginVO = new NamespacePluginVO();
-        given(this.namespacePluginService.findById(pluginVO.getId(), SYS_DEFAULT_NAMESPACE_ID)).willReturn(namespacePluginVO);
+        given(this.namespacePluginService.findByPluginId(pluginVO.getId(), SYS_DEFAULT_NAMESPACE_ID)).willReturn(namespacePluginVO);
         SelectorData selectorData = buildSelectorData();
         given(this.selectorService.findByPluginIdAndNamespaceId(pluginVO.getId(), SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.singletonList(selectorData));
 
