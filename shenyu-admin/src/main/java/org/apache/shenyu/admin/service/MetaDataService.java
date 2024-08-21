@@ -151,7 +151,7 @@ public interface MetaDataService {
      * Import shenyu meta data.
      *
      * @param metaDataList meta data list
-     * @return the config impotr result
+     * @return the config import result
      */
     ConfigImportResult importData(List<MetaDataDTO> metaDataList);
 }
