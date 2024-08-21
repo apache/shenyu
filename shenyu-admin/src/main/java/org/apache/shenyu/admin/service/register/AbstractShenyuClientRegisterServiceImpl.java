@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
@@ -24,12 +25,11 @@ import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.DiscoveryService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.DiscoveryService;
-import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
-
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
@@ -51,8 +51,6 @@ import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
-
-import jakarta.annotation.Resource;
 
 import java.util.Collections;
 import java.util.List;
@@ -294,7 +292,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         return buildRuleDTO(selectorId, ruleHandler, metaDataDTO.getRuleName(), metaDataDTO.getPath(), metaDataDTO.getNamespaceId());
     }
 
-    private RuleDTO buildRuleDTO(final String selectorId, final String ruleHandler, final String ruleName, final String path, final String namespaceId) {
+    private RuleDTO buildRuleDTO(final String selectorId, final String ruleHandler, final String ruleName, final String path) {
         RuleDTO ruleDTO = RuleDTO.builder()
                 .selectorId(selectorId)
                 .name(ruleName)
