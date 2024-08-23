@@ -31,87 +31,87 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class SwaggerDocParserTest {
 
-    public static final String DOC_INFO_JSON = "{\n" +
-            "  \"openapi\": \"3.0.1\",\n" +
-            "  \"info\": {\n" +
-            "    \"title\": \"shenyu-examples-http-swagger3 API\",\n" +
-            "    \"description\": \"shenyu-examples-http-swagger3 API\",\n" +
-            "    \"version\": \"3.0.1\",\n" +
-            "    \"contact\": {\n" +
-            "      \"name\": \"ShenYu\",\n" +
-            "      \"url\": \"https://github.com/apache/shenyu\",\n" +
-            "      \"email\": \"dev@shenyu.apache.org\"\n" +
-            "    }\n" +
-            "  },\n" +
-            "  \"servers\": [\n" +
-            "    {\n" +
-            "      \"url\": \"http://127.0.0.1:8190\",\n" +
-            "      \"description\": \"Local server\"\n" +
-            "    }\n" +
-            "  ],\n" +
-            "  \"tags\": [\n" +
-            "    {\n" +
-            "      \"name\": \"Order API\",\n" +
-            "      \"description\": \"Order Controller\"\n" +
-            "    }\n" +
-            "  ],\n" +
-            "  \"paths\": {\n" +
-            "    \"/order/path/{id}/{name}\": {\n" +
-            "      \"get\": {\n" +
-            "        \"tags\": [\"Order API\"],\n" +
-            "        \"summary\": \"Get path variable\",\n" +
-            "        \"parameters\": [\n" +
-            "          {\n" +
-            "            \"name\": \"id\",\n" +
-            "            \"in\": \"path\",\n" +
-            "            \"required\": true,\n" +
-            "            \"schema\": {\n" +
-            "              \"type\": \"string\"\n" +
-            "            }\n" +
-            "          },\n" +
-            "          {\n" +
-            "            \"name\": \"name\",\n" +
-            "            \"in\": \"path\",\n" +
-            "            \"required\": true,\n" +
-            "            \"schema\": {\n" +
-            "              \"type\": \"string\"\n" +
-            "            }\n" +
-            "          }\n" +
-            "        ],\n" +
-            "        \"responses\": {\n" +
-            "          \"200\": {\n" +
-            "            \"description\": \"Successful response\",\n" +
-            "            \"content\": {\n" +
-            "              \"application/json\": {\n" +
-            "                \"schema\": {\n" +
-            "                  \"$ref\": \"#/components/schemas/OrderDTO\"\n" +
-            "                }\n" +
-            "              }\n" +
-            "            }\n" +
-            "          }\n" +
-            "        }\n" +
-            "      }\n" +
-            "    }\n" +
-            "  },\n" +
-            "  \"components\": {\n" +
-            "    \"schemas\": {\n" +
-            "      \"OrderDTO\": {\n" +
-            "        \"type\": \"object\",\n" +
-            "        \"required\": [\"id\", \"name\"],\n" +
-            "        \"properties\": {\n" +
-            "          \"id\": {\n" +
-            "            \"type\": \"string\",\n" +
-            "            \"example\": \"100000\"\n" +
-            "          },\n" +
-            "          \"name\": {\n" +
-            "            \"type\": \"string\",\n" +
-            "            \"example\": \"jack\"\n" +
-            "          }\n" +
-            "        }\n" +
-            "      }\n" +
-            "    }\n" +
-            "  }\n" +
-            "}\n";
+    public static final String DOC_INFO_JSON = "{\n"
+            + "  \"openapi\": \"3.0.1\",\n"
+            + "  \"info\": {\n"
+            + "    \"title\": \"shenyu-examples-http-swagger3 API\",\n"
+            + "    \"description\": \"shenyu-examples-http-swagger3 API\",\n"
+            + "    \"version\": \"3.0.1\",\n"
+            + "    \"contact\": {\n"
+            + "      \"name\": \"ShenYu\",\n"
+            + "      \"url\": \"https://github.com/apache/shenyu\",\n"
+            + "      \"email\": \"dev@shenyu.apache.org\"\n"
+            + "    }\n"
+            + "  },\n"
+            + "  \"servers\": [\n"
+            + "    {\n"
+            + "      \"url\": \"http://127.0.0.1:8190\",\n"
+            + "      \"description\": \"Local server\"\n"
+            + "    }\n"
+            + "  ],\n"
+            + "  \"tags\": [\n"
+            + "    {\n"
+            + "      \"name\": \"Order API\",\n"
+            + "      \"description\": \"Order Controller\"\n"
+            + "    }\n"
+            + "  ],\n"
+            + "  \"paths\": {\n"
+            + "    \"/order/path/{id}/{name}\": {\n"
+            + "      \"get\": {\n"
+            + "        \"tags\": [\"Order API\"],\n"
+            + "        \"summary\": \"Get path variable\",\n"
+            + "        \"parameters\": [\n"
+            + "          {\n"
+            + "            \"name\": \"id\",\n"
+            + "            \"in\": \"path\",\n"
+            + "            \"required\": true,\n"
+            + "            \"schema\": {\n"
+            + "              \"type\": \"string\"\n"
+            + "            }\n"
+            + "          },\n"
+            + "          {\n"
+            + "            \"name\": \"name\",\n"
+            + "            \"in\": \"path\",\n"
+            + "            \"required\": true,\n"
+            + "            \"schema\": {\n"
+            + "              \"type\": \"string\"\n"
+            + "            }\n"
+            + "          }\n"
+            + "        ],\n"
+            + "        \"responses\": {\n"
+            + "          \"200\": {\n"
+            + "            \"description\": \"Successful response\",\n"
+            + "            \"content\": {\n"
+            + "              \"application/json\": {\n"
+            + "                \"schema\": {\n"
+            + "                  \"$ref\": \"#/components/schemas/OrderDTO\"\n"
+            + "                }\n"
+            + "              }\n"
+            + "            }\n"
+            + "          }\n"
+            + "        }\n"
+            + "      }\n"
+            + "    }\n"
+            + "  },\n"
+            + "  \"components\": {\n"
+            + "    \"schemas\": {\n"
+            + "      \"OrderDTO\": {\n"
+            + "        \"type\": \"object\",\n"
+            + "        \"required\": [\"id\", \"name\"],\n"
+            + "        \"properties\": {\n"
+            + "          \"id\": {\n"
+            + "            \"type\": \"string\",\n"
+            + "            \"example\": \"100000\"\n"
+            + "          },\n"
+            + "          \"name\": {\n"
+            + "            \"type\": \"string\",\n"
+            + "            \"example\": \"jack\"\n"
+            + "          }\n"
+            + "        }\n"
+            + "      }\n"
+            + "    }\n"
+            + "  }\n"
+            + "}\n";
 
     @InjectMocks
     private SwaggerDocParser swaggerDocParser;
