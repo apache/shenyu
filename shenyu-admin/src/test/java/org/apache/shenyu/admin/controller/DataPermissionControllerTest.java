@@ -37,6 +37,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.Collections;
+
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -74,7 +76,7 @@ public class DataPermissionControllerTest {
         final PageParameter pageParameter = new PageParameter(currentPage, pageSize);
         final CommonPager<DataPermissionPageVO> commonPager = new CommonPager<>(pageParameter, Collections.singletonList(dataPermissionPageVO));
         given(this.dataPermissionService.listSelectorsByPage(
-                new SelectorQuery(pluginId, name, pageParameter), userId)).willReturn(commonPager);
+                new SelectorQuery(pluginId, name, pageParameter, SYS_DEFAULT_NAMESPACE_ID), userId)).willReturn(commonPager);
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/data-permission/selector")
                 .param("currentPage", String.valueOf(currentPage))
