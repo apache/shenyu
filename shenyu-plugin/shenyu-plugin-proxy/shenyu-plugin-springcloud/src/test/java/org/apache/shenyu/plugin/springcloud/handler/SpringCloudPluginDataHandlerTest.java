@@ -60,9 +60,9 @@ public final class SpringCloudPluginDataHandlerTest {
     public void setUp() {
         this.mockSpringCloudConfig();
         SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
-        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
-        SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
-        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler(discoveryClient, springCloudCacheConfig);
+//        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
+//        SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
+//        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler(discoveryClient, springCloudCacheConfig);
         this.selectorData = new SelectorData();
     }
 

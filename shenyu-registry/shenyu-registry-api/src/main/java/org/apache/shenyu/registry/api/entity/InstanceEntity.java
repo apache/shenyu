@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.registry.api.entity;
 
+import java.net.URI;
 import java.util.Objects;
 
 /**
@@ -29,6 +30,8 @@ public class InstanceEntity {
     private String host;
 
     private Integer port;
+
+    private URI uri;
     
     /**
      * Instantiates a new Instance register dto.
@@ -119,6 +122,24 @@ public class InstanceEntity {
         this.port = port;
     }
 
+    /**
+     * getUri.
+     *
+     * @return URI uri
+     */
+    public URI getUri() {
+        return uri;
+    }
+
+    /**
+     * setUri.
+     *
+     * @param uri uri
+     */
+    public void setUri(final URI uri) {
+        this.uri = uri;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -163,6 +184,8 @@ public class InstanceEntity {
 
         private Integer port;
 
+        private URI uri;
+
         private Builder() {
         }
     
@@ -198,7 +221,18 @@ public class InstanceEntity {
             this.port = port;
             return this;
         }
-    
+
+        /**
+         * uri.
+         *
+         * @param uri uri
+         * @return Builder builder
+         */
+        public Builder uri(final URI uri) {
+            this.uri = uri;
+            return this;
+        }
+
         /**
          * build.
          *

@@ -39,6 +39,7 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -189,9 +190,20 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
         List<InstanceInfo> instances = eurekaClient.getInstancesByVipAddressAndAppName(null, selectKey, true);
         return instances.stream()
                 .map(i -> InstanceEntity.builder()
-                        .appName(i.getAppName()).host(i.getHostName()).port(i.getPort())
+                        .appName(i.getAppName()).host(i.getHostName()).port(i.getPort()).uri(getURI(i))
                         .build()
                 ).collect(Collectors.toList());
+    }
+
+    private URI getURI(final InstanceInfo instance) {
+        boolean secure = instance.isPortEnabled(InstanceInfo.PortType.SECURE);
+        String scheme = secure ? "https" : "http";
+        int port = instance.getPort();
+        if (port <= 0) {
+            port = secure ? 443 : 80;
+        }
+        String uri = String.format("%s://%s:%s", scheme, instance.getIPAddr(), port);
+        return URI.create(uri);
     }
     
     @Override

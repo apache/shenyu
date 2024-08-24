@@ -173,7 +173,7 @@ public final class NamespacePluginRelDO extends BaseDO {
         return Optional.ofNullable(namespacePluginDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.builder()
-                    .config(item.getConfig())
+                    .config(item.getConfig() == null ? "" : item.getConfig())
                     .enabled(item.getEnabled())
                     .sort(item.getSort())
                     .namespaceId(item.getNamespaceId())

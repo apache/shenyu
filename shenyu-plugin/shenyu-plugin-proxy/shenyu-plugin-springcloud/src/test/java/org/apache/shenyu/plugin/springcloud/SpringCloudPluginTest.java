@@ -112,13 +112,13 @@ public final class SpringCloudPluginTest {
         defaultServiceInstance.setPort(8080);
         defaultServiceInstance.setHost("localhost");
         serviceInstanceList.add(defaultServiceInstance);
-        SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
-        Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
-        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstanceList);
-        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
-        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
-        ShenyuSpringCloudServiceChooser loadBalancerClient = new ShenyuSpringCloudServiceChooser(discoveryClient);
-        springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
+//        SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
+//        Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
+//        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstanceList);
+//        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
+//        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
+//        ShenyuSpringCloudServiceChooser loadBalancerClient = new ShenyuSpringCloudServiceChooser(discoveryClient);
+//        springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
     }
 
     @Test

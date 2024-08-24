@@ -26,10 +26,13 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
+import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,10 +48,10 @@ public final class ShenyuSpringCloudServiceChooser {
     
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuSpringCloudServiceChooser.class);
 
-    private final DiscoveryClient discoveryClient;
+    private ShenyuInstanceRegisterRepository repository;
 
-    public ShenyuSpringCloudServiceChooser(final DiscoveryClient discoveryClient) {
-        this.discoveryClient = discoveryClient;
+    public ShenyuSpringCloudServiceChooser(final RegisterConfig config) {
+        this.repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config);
     }
 
     /**
@@ -63,7 +66,7 @@ public final class ShenyuSpringCloudServiceChooser {
     public Upstream choose(final String serviceId, final String selectorId,
                            final String ip, final String loadbalancer) {
         // load service instance by serviceId
-        List<ServiceInstance> available = this.getServiceInstance(serviceId);
+        List<InstanceEntity> available = this.getServiceInstance(serviceId);
         if (CollectionUtils.isEmpty(available)) {
             LOG.info("choose return 1");
             return null;
@@ -81,7 +84,7 @@ public final class ShenyuSpringCloudServiceChooser {
         }
         // select server from available to choose
         final List<Upstream> choose = new ArrayList<>(available.size());
-        for (ServiceInstance serviceInstance : available) {
+        for (InstanceEntity serviceInstance : available) {
             divideUpstreams.stream()
                     .filter(Upstream::isStatus)
                     .filter(upstream -> Objects.equals(upstream.getUrl(), serviceInstance.getUri().getRawAuthority()))
@@ -121,9 +124,9 @@ public final class ShenyuSpringCloudServiceChooser {
      * @param serviceId serviceId
      * @return {@linkplain ServiceInstance}
      */
-    private List<ServiceInstance> getServiceInstance(final String serviceId) {
+    private List<InstanceEntity> getServiceInstance(final String serviceId) {
         if (CollectionUtils.isEmpty(ServiceInstanceCache.getServiceInstance(serviceId))) {
-            List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
+            List<InstanceEntity> instances = repository.selectInstances(serviceId);
             LOG.info("getServiceInstance: {}", JsonUtils.toJson(instances));
             return Optional.ofNullable(instances).orElse(Collections.emptyList());
         }
@@ -138,7 +141,7 @@ public final class ShenyuSpringCloudServiceChooser {
      * @return Upstream List
      */
     private List<Upstream> buildUpstream(final String serviceId) {
-        List<ServiceInstance> serviceInstanceList = this.getServiceInstance(serviceId);
+        List<InstanceEntity> serviceInstanceList = this.getServiceInstance(serviceId);
         if (CollectionUtils.isEmpty(serviceInstanceList)) {
             return Collections.emptyList();
         }
