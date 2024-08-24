@@ -1264,7 +1264,7 @@ INSERT IGNORE INTO `namespace` (`id`, `namespace_id`, `name`, `description`, `da
 CREATE TABLE IF NOT EXISTS `plugin_ns_rel` (
                                                `id` VARCHAR(128) NOT NULL COMMENT 'primary key id',
     `namespace_id` VARCHAR(50) NOT NULL COMMENT 'namespace id',
-    `plugin_id` INT NOT NULL COMMENT 'plugin id',
+    `plugin_id` varchar(128) NOT NULL COMMENT 'plugin id',
     `config` TEXT COMMENT 'plugin configuration',
     `sort` INT DEFAULT NULL COMMENT 'sort',
     `enabled` TINYINT NOT NULL DEFAULT 0 COMMENT 'whether to open (0, not open, 1 open)',
@@ -1341,3 +1341,5 @@ INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1792779493541343265', '1346358560427216896', '1792749362445840484', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1792779493541343266', '1346358560427216896', '1792749362445840485', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1792779493541343267', '1346358560427216896', '1792749362445840486', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
+
+ALTER TABLE `selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;

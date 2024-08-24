@@ -17,13 +17,12 @@
 
 package org.apache.shenyu.plugin.base.utils;
 
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -87,10 +86,6 @@ public final class HttpParamConverter {
      * @return the string
      */
     public static String decodeQueryParam(final String value) {
-        try {
-            return URLDecoder.decode(value, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new ShenyuException(e);
-        }
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
     }
 }

@@ -65,7 +65,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
                     config.destroy();
                 }
             })
-            .build(new CacheLoader<String, ReferenceConfig<GenericService>>() {
+            .build(new CacheLoader<>() {
                 @Override
                 @Nonnull
                 public ReferenceConfig<GenericService> load(@Nonnull final String key) {

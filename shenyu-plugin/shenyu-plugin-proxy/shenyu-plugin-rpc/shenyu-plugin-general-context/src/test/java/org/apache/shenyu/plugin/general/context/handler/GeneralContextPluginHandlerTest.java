@@ -20,13 +20,12 @@ package org.apache.shenyu.plugin.general.context.handler;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
@@ -52,7 +51,7 @@ public class GeneralContextPluginHandlerTest {
     @Test
     public void testHandlerRule() {
         this.generalContextPluginDataHandler.handlerRule(this.ruleData);
-        assertNotNull(GeneralContextPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
+        Assertions.assertNotNull(GeneralContextPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
     }
 
     @Test
@@ -70,6 +69,6 @@ public class GeneralContextPluginHandlerTest {
 
     @Test
     public void testPluginNamed() {
-        assertEquals(this.generalContextPluginDataHandler.pluginNamed(), PluginEnum.GENERAL_CONTEXT.getName());
+        Assertions.assertEquals(this.generalContextPluginDataHandler.pluginNamed(), PluginEnum.GENERAL_CONTEXT.getName());
     }
 }

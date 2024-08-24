@@ -51,9 +51,7 @@ public class JarDependencyUtilsTest {
     @Test
     public void test() {
         try (MockedConstruction<ByteArrayInputStream> byteStream = mockConstruction(ByteArrayInputStream.class);
-             MockedConstruction<ZipInputStream> zipStream = mockConstruction(ZipInputStream.class, (mock, context) -> {
-                 when(mock.getNextEntry()).thenReturn(new ZipEntry("abc.class")).thenReturn(null);
-             });
+             MockedConstruction<ZipInputStream> zipStream = mockConstruction(ZipInputStream.class, (mock, context) -> when(mock.getNextEntry()).thenReturn(new ZipEntry("abc.class")).thenReturn(null));
              MockedConstruction<ClassNode> classNode = mockConstruction(ClassNode.class, (mock, context) -> {
                  Field superName = ClassNode.class.getDeclaredField("superName");
                  superName.set(mock, "superName");

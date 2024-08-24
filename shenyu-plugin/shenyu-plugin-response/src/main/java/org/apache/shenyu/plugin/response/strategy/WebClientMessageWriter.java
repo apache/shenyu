@@ -56,7 +56,7 @@ public class WebClientMessageWriter implements MessageWriter {
     /**
      * the cross headers.
      */
-    private static final Set<String> CORS_HEADERS = new HashSet<String>() {
+    private static final Set<String> CORS_HEADERS = new HashSet<>() {
         {
             add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS);
             add(HttpHeaders.ACCESS_CONTROL_MAX_AGE);
@@ -151,7 +151,7 @@ public class WebClientMessageWriter implements MessageWriter {
         // pdf => .pdf
         // octet-stream => octet-stream
         // force-download => force-download
-        Set<String> commonBinaryTypes = new HashSet<String>() {
+        Set<String> commonBinaryTypes = new HashSet<>() {
             {
                 add("image");
                 add("audio");

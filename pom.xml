@@ -85,7 +85,7 @@
         <skipTests>false</skipTests>
         <!-- maven plugin version start -->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
-        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.3</nexus-staging-maven-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
@@ -175,7 +175,7 @@
         <resilience.version>1.7.1</resilience.version>
         <sentinel.version>1.8.3</sentinel.version>
         <lettuce.version>6.1.2.RELEASE</lettuce.version>
-        <protobuf-java.version>3.21.12</protobuf-java.version>
+        <protobuf-java.version>3.25.1</protobuf-java.version>
         <aliyun-log-producer.version>0.3.10</aliyun-log-producer.version>
         <tencent-log-sdk.version>1.0.14</tencent-log-sdk.version>
         <jsonpath.version>2.4.0</jsonpath.version>
