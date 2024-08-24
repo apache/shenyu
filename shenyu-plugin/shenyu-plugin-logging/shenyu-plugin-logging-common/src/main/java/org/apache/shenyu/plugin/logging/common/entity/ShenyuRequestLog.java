@@ -28,6 +28,8 @@ public class ShenyuRequestLog {
 
     private String method;
 
+    private String requestMethod;
+
     private String requestHeader;
 
     private String responseHeader;
@@ -191,6 +193,24 @@ public class ShenyuRequestLog {
      */
     public void setMethod(final String method) {
         this.method = method;
+    }
+
+    /**
+     * get requestMethod.
+     *
+     * @return requestMethod
+     */
+    public String getRequestMethod() {
+        return requestMethod;
+    }
+
+    /**
+     * set method.
+     *
+     * @param requestMethod requestMethod
+     */
+    public void setRequestMethod(final String requestMethod) {
+        this.requestMethod = requestMethod;
     }
 
     /**

@@ -29,7 +29,7 @@ import java.util.Optional;
  * The type Divide shenyu context decorator.
  */
 public class DivideShenyuContextDecorator implements ShenyuContextDecorator {
-    
+
     @Override
     public ShenyuContext decorator(final ShenyuContext shenyuContext, final MetaData metaData) {
         String path = shenyuContext.getPath();
