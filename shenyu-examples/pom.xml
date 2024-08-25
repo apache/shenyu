@@ -38,7 +38,7 @@
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
         <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
         <maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
-        <swagger.version>2.9.2</swagger.version>
+        <swagger.version>2.6.0</swagger.version>
     </properties>
 
     <modules>
