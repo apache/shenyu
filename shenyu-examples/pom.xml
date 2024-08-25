@@ -44,7 +44,7 @@
     <modules>
         <module>shenyu-examples-common</module>
         <module>shenyu-examples-http</module>
-        <module>shenyu-examples-http-swagger2</module>
+        <module>shenyu-examples-http-swagger3</module>
         <module>shenyu-examples-https</module>
         <module>shenyu-examples-dubbo</module>
         <module>shenyu-examples-springcloud</module>
@@ -63,14 +63,8 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger2</artifactId>
-                <version>${swagger.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger-ui</artifactId>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
                 <version>${swagger.version}</version>
             </dependency>
         </dependencies>
