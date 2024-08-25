@@ -82,7 +82,7 @@ public class HierarchicalWheelTimer implements Timer {
                                   final Long startMs) {
         ThreadFactory threadFactory = ShenyuThreadFactory.create(executorName, false);
         taskExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(), threadFactory);
+                new LinkedBlockingQueue<>(), threadFactory);
         workerThread = threadFactory.newThread(new Worker(this));
         timingWheel = new TimingWheel(tickMs, wheelSize, startMs, taskCounter, delayQueue);
     }

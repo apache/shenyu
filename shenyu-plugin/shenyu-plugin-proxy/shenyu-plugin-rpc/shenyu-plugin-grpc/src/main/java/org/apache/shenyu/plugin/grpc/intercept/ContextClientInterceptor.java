@@ -34,12 +34,10 @@ import java.util.Optional;
 public class ContextClientInterceptor implements ClientInterceptor {
     @Override
     public <R, P> ClientCall<R, P> interceptCall(final MethodDescriptor<R, P> methodDescriptor, final CallOptions callOptions, final Channel channel) {
-        return new ForwardingClientCall.SimpleForwardingClientCall<R, P>(channel.newCall(methodDescriptor, callOptions)) {
+        return new ForwardingClientCall.SimpleForwardingClientCall<>(channel.newCall(methodDescriptor, callOptions)) {
             @Override
             public void start(final Listener<P> responseListener, final Metadata headers) {
-                Optional.ofNullable(GrpcPlugin.RPC_CONTEXT_KEY.get()).ifPresent(map -> map.forEach((k, v) -> {
-                    headers.put(Metadata.Key.of(k, Metadata.ASCII_STRING_MARSHALLER), v);
-                }));
+                Optional.ofNullable(GrpcPlugin.RPC_CONTEXT_KEY.get()).ifPresent(map -> map.forEach((k, v) -> headers.put(Metadata.Key.of(k, Metadata.ASCII_STRING_MARSHALLER), v)));
                 super.start(responseListener, headers);
             }
         };

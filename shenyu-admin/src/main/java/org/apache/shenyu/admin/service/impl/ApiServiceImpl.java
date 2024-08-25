@@ -63,6 +63,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.ApiService}.
  */
@@ -186,7 +188,7 @@ public class ApiServiceImpl implements ApiService {
             }
         });
         if (CollectionUtils.isNotEmpty(selectorIds)) {
-            selectorService.delete(selectorIds);
+            selectorService.deleteByNamespaceId(selectorIds, SYS_DEFAULT_NAMESPACE_ID);
         }
         //clean metadata
         Optional.ofNullable(metaDataService.findByPath(path))

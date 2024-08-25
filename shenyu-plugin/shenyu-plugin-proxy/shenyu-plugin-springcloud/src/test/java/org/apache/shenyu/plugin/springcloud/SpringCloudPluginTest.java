@@ -140,9 +140,7 @@ public final class SpringCloudPluginTest {
         shenyuContext.setRealUrl("http://localhost/test");
         shenyuContext.setHttpMethod(HttpMethod.GET.name());
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-        assertThrows(NullPointerException.class, () -> {
-            StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, rule)).expectSubscription().verifyComplete();
-        });
+        assertThrows(NullPointerException.class, () -> StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, rule)).expectSubscription().verifyComplete());
 
         Mono<Void> complete = springCloudPlugin.doExecute(exchange, chain, selector, rule);
         assertThrows(NullPointerException.class, () -> StepVerifier.create(complete).expectSubscription().verifyComplete());

@@ -39,6 +39,7 @@ import javassist.bytecode.annotation.LongMemberValue;
 import javassist.bytecode.annotation.MemberValue;
 import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.bytecode.ClassGenerator;
 import org.apache.dubbo.common.utils.ReflectUtils;
@@ -85,7 +86,7 @@ public class ApacheDubboClientValidator implements Validator {
         this.clazz = ReflectUtils.forName(url.getServiceInterface());
         String shenyuValidation = url.getParameter("shenyuValidation");
         ValidatorFactory factory;
-        if (Objects.nonNull(shenyuValidation) && shenyuValidation.length() > 0) {
+        if (StringUtils.isNoneBlank(shenyuValidation)) {
             factory = Validation.byProvider((Class) ReflectUtils.forName(shenyuValidation)).configure().buildValidatorFactory();
         } else {
             factory = Validation.buildDefaultValidatorFactory();
@@ -281,7 +282,7 @@ public class ApacheDubboClientValidator implements Validator {
         }
 
         if (!violations.isEmpty()) {
-            LOG.error("Failed to validate service: " + clazz.getName() + ", method: " + methodName + ", cause: " + violations);
+            LOG.error("Failed to validate service: {}, method: {}, cause: {}", clazz.getName(), methodName, violations);
             StringBuilder validateError = new StringBuilder();
             violations.forEach(each -> validateError.append(each.getMessage()).append(","));
             throw new ValidationException(validateError.substring(0, validateError.length() - 1));

@@ -127,9 +127,13 @@ jobs:
       - name: Cluster Test after Healthcheck
         if: steps.filter.outputs.changed == 'true'
         run: |
-          kubectl get all
-          kubectl get all -n shenyu-ingress
+          echo "----------kubectl get all -o wide----------"
+          kubectl get all -o wide
+          echo "----------kubectl get all -n shenyu-ingress -o wide----------"
+          kubectl get all -n shenyu-ingress -o wide
+          echo "----------kubectl get events --all-namespaces----------"
           kubectl get events --all-namespaces
+          echo "----------kubectl logs -l app=shenyu-ingress-controller -n shenyu-ingress --tail=-1----------"
           kubectl logs -l app=shenyu-ingress-controller -n shenyu-ingress --tail=-1
           if [[ ${{steps.test.outcome}} == "failure" ]]; then
             echo "Test Failed"
