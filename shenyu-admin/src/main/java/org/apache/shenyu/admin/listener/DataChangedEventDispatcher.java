@@ -71,7 +71,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
     @SuppressWarnings("unchecked")
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
         for (DataChangedListener listener : listeners) {
-            if ((!(listener instanceof AbstractDataChangedListener))
+            if (!(listener instanceof AbstractDataChangedListener)
                     && clusterProperties.isEnabled()
                     && Objects.nonNull(shenyuClusterSelectMasterService)
                     && !shenyuClusterSelectMasterService.isMaster()) {
