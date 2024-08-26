@@ -85,7 +85,7 @@
         <skipTests>false</skipTests>
         <!-- maven plugin version start -->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
-        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.3</nexus-staging-maven-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
@@ -184,6 +184,7 @@
         <opengauss-jdbc.version>5.0.0-og</opengauss-jdbc.version>
         <wasmtime-java.version>0.19.0</wasmtime-java.version>
         <bcprov-jdk18on.version>1.78</bcprov-jdk18on.version>
+        <oceanbase.version>2.4.12</oceanbase.version>
         <!-- dependency version end -->
     </properties>
 
@@ -579,6 +580,13 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk18on</artifactId>
                 <version>${bcprov-jdk18on.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.oceanbase</groupId>
+                <artifactId>oceanbase-client</artifactId>
+                <version>${oceanbase.version}</version>
+                <scope>provided</scope>
             </dependency>
 
         </dependencies>
