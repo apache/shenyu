@@ -70,6 +70,9 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     @Override
     public void init(final RegisterConfig config) {
+        if (!config.getEnabled()) {
+            return ;
+        }
         Properties properties = config.getProps();
         String meta = config.getServerLists();
         String appId = properties.getProperty("appId", "shenyu");

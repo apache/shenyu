@@ -58,6 +58,9 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
 
     @Override
     public void init(final RegisterConfig config) {
+        if (!config.getEnabled()) {
+            return ;
+        }
         Properties props = config.getProps();
         int sessionTimeout = Integer.parseInt(props.getProperty("sessionTimeout", "3000"));
         int connectionTimeout = Integer.parseInt(props.getProperty("connectionTimeout", "3000"));
@@ -77,7 +80,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         if (!StringUtils.isEmpty(digest)) {
             zkConfig.setDigest(digest);
         }
-
+        LOGGER.info("zookeeper init");
         this.client = new ZookeeperClient(zkConfig);
         this.client.getClient().getConnectionStateListenable().addListener((c, newState) -> {
             if (newState == ConnectionState.RECONNECTED) {

@@ -53,6 +53,9 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
 
     @Override
     public void init(final RegisterConfig config) {
+        if (!config.getEnabled()) {
+            return ;
+        }
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
         this.groupName = properties.getProperty("groupName", "SHENYU_GROUP");
@@ -63,6 +66,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
         nacosProperties.put(PropertyKeyConst.PASSWORD, properties.getProperty(PropertyKeyConst.PASSWORD, ""));
         nacosProperties.put(PropertyKeyConst.ACCESS_KEY, properties.getProperty(PropertyKeyConst.ACCESS_KEY, ""));
         nacosProperties.put(PropertyKeyConst.SECRET_KEY, properties.getProperty(PropertyKeyConst.SECRET_KEY, ""));
+        LOGGER.info("nacos init");
         try {
             this.namingService = NamingFactory.createNamingService(nacosProperties);
         } catch (NacosException e) {

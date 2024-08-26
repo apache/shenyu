@@ -93,6 +93,9 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     @Override
     public void init(final RegisterConfig config) {
+        if (!config.getEnabled()) {
+            return ;
+        }
         final Properties props = config.getProps();
         this.checkTtl = props.getProperty("checkTtl", "5");
         this.token = props.getProperty("token", "");
