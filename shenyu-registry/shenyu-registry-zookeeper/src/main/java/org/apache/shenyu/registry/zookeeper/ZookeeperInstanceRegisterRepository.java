@@ -59,7 +59,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     @Override
     public void init(final RegisterConfig config) {
         if (!config.getEnabled()) {
-            return ;
+            return;
         }
         Properties props = config.getProps();
         int sessionTimeout = Integer.parseInt(props.getProperty("sessionTimeout", "3000"));

@@ -65,7 +65,7 @@ public class PolarisInstanceRegisterRepository implements ShenyuInstanceRegister
     @Override
     public void init(final RegisterConfig config) {
         if (!config.getEnabled()) {
-            return ;
+            return;
         }
         Configuration configuration = buildConfiguration(config);
         SDKContext sdkContext = SDKContext.initContextByConfig(configuration);

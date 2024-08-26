@@ -54,7 +54,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     @Override
     public void init(final RegisterConfig config) {
         if (!config.getEnabled()) {
-            return ;
+            return;
         }
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
