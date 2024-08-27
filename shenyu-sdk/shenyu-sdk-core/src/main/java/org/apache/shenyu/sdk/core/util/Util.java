@@ -117,8 +117,8 @@ public final class Util {
         // method.isDefault() is not sufficient for our usage as it does not check
         // for synthetic methods. As a result, it picks up overridden methods as well as actual default
         // methods.
-        return ((method.getModifiers()
-                & (Modifier.ABSTRACT | Modifier.PUBLIC | Modifier.STATIC | 0x00001000)) == Modifier.PUBLIC)
+        return (method.getModifiers()
+                & (Modifier.ABSTRACT | Modifier.PUBLIC | Modifier.STATIC | 0x00001000)) == Modifier.PUBLIC
                 && method.getDeclaringClass().isInterface();
     }
 
