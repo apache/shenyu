@@ -90,6 +90,7 @@ public class ShenyuNettyWebServerConfiguration {
         NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
         NettyHttpProperties nettyHttpProperties = Optional.ofNullable(properties.getIfAvailable()).orElse(new NettyHttpProperties());
         webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyHttpProperties, httpServer -> {
+            HttpServer server = httpServer;
             // Configure sni certificates
             NettyHttpProperties.SniProperties sniProperties = nettyHttpProperties.getSni();
             if (sniProperties.getEnabled()) {
@@ -115,19 +116,19 @@ public class ShenyuNettyWebServerConfiguration {
                     SslCrtAndKeyFile defaultCert = certificates.get(0);
                     TcpSslContextSpec defaultSpec = TcpSslContextSpec.forServer(new File(defaultCert.getKeyCertChainFile()),
                             new File(defaultCert.getKeyFile()));
-
-                    httpServer = httpServer.secure(spec -> spec.sslContext(defaultSpec)
+                    
+                    server = server.secure(spec -> spec.sslContext(defaultSpec)
                                 .setSniAsyncMappings(shenyuSniAsyncMapping), false);
                 } else if ("k8s".equals(sniProperties.getMod())) {
                     TcpSslContextSpec defaultSpec = Objects.requireNonNull(tcpSslContextSpecs.getIfAvailable());
-                    httpServer = httpServer.secure(spec -> spec.sslContext(defaultSpec)
+                    server = server.secure(spec -> spec.sslContext(defaultSpec)
                             .setSniAsyncMappings(shenyuSniAsyncMapping), false);
                     shenyuSniAsyncMapping.addSslProvider("shenyu-default", SslProvider.builder().sslContext(defaultSpec).build());
                 } else {
                     throw new ShenyuException("Cannot read the sni mod");
                 }
             }
-            return httpServer;
+            return server;
         }));
         return webServerFactory;
     }

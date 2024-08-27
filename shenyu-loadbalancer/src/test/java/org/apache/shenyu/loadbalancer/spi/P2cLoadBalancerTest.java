@@ -49,7 +49,7 @@ public class P2cLoadBalancerTest {
         final P2cLoadBalancer p2cLoadBalancer = new P2cLoadBalancer();
         Upstream upstream = p2cLoadBalancer.doSelect(upstreamList, "localhost");
         Upstream upstream1 = p2cLoadBalancer.doSelect(upstreamList, "localhost");
-        Assertions.assertTrue((upstream.getUrl().equals("baidu.com") && upstream1.getUrl().equals("pro.jd.com"))
+        Assertions.assertTrue(upstream.getUrl().equals("baidu.com") && upstream1.getUrl().equals("pro.jd.com")
                 || upstream1.getUrl().equals("baidu.com") && upstream.getUrl().equals("pro.jd.com"));
     }
 

@@ -40,7 +40,7 @@ public class EmptyPicker extends AbstractPicker {
 
     @Override
     public boolean isEquivalentTo(final AbstractPicker picker) {
-        return picker instanceof EmptyPicker && (Objects.equal(status, ((EmptyPicker) picker).status) || (status.isOk() && ((EmptyPicker) picker).status.isOk()));
+        return picker instanceof EmptyPicker && (Objects.equal(status, ((EmptyPicker) picker).status) || status.isOk() && ((EmptyPicker) picker).status.isOk());
     }
 
     @Override
