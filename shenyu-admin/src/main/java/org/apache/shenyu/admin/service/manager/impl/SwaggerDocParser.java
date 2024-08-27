@@ -247,9 +247,8 @@ public class SwaggerDocParser implements DocParser {
     }
 
     protected List<DocParameter> buildDocParameters(final String ref, final JsonObject docRoot, final boolean doSubRef) {
-        JsonObject responseObject = docRoot.getAsJsonObject("definitions").getAsJsonObject(ref);
-        String className = responseObject.get("title").getAsString();
-        JsonObject extProperties = docRoot.getAsJsonObject(className);
+        JsonObject responseObject = docRoot.getAsJsonObject("components").getAsJsonObject("schemas").getAsJsonObject(ref);
+        JsonObject extProperties = responseObject.getAsJsonObject("properties");
         JsonArray requiredProperties = responseObject.getAsJsonArray("required");
         List<String> requiredFieldList = this.jsonArrayToStringList(requiredProperties);
         JsonObject properties = responseObject.getAsJsonObject("properties");
