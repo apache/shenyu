@@ -82,12 +82,13 @@ public class ApacheDubboProxyService {
             pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());
         }
         return Mono.fromFuture(invokeAsync(genericService, metaData.getMethodName(), pair.getLeft(), pair.getRight()).thenApply(ret -> {
-            if (Objects.isNull(ret)) {
-                ret = Constants.DUBBO_RPC_RESULT_EMPTY;
+            Object result = ret;
+            if (Objects.isNull(result)) {
+                result = Constants.DUBBO_RPC_RESULT_EMPTY;
             }
-            exchange.getAttributes().put(Constants.RPC_RESULT, ret);
+            exchange.getAttributes().put(Constants.RPC_RESULT, result);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
-            return ret;
+            return result;
         })).onErrorMap(exception -> exception instanceof GenericException ? new ShenyuException(((GenericException) exception).getExceptionMessage()) : new ShenyuException(exception));
     }
     
