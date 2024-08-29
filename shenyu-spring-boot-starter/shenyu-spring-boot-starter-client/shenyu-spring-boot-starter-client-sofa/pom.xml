@@ -25,6 +25,10 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-spring-boot-starter-client-sofa</artifactId>
 
+    <properties>
+        <runtime-sofa-boot-starter.version>4.3.0</runtime-sofa-boot-starter.version>
+    </properties>
+    
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -39,7 +43,7 @@
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>runtime-sofa-boot-starter</artifactId>
-            <version>3.1.4</version>
+            <version>${runtime-sofa-boot-starter.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -43,7 +43,7 @@ spec:
         all: shenyu-examples-sofa
     spec:
       containers:
-        - image: zookeeper:latest
+        - image: zookeeper:3.5
           name: shenyu-zk
           resources: {}
           ports:

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:8-jre-alpine
+FROM eclipse-temurin:17-centos7
 
 ENV APP_NAME shenyu-examples-grpc
 ENV LOCAL_PATH /opt/${APP_NAME}
@@ -27,4 +27,4 @@ WORKDIR ${LOCAL_PATH}
 EXPOSE 55290
 EXPOSE 8080
 
-CMD java -jar ${APP_NAME}.jar
+CMD java --add-opens java.base/java.lang=ALL-UNNAMED -jar ${APP_NAME}.jar

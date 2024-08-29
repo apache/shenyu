@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.manager.impl;
 
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,10 +27,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * test cases for DocManagerImpl.
@@ -49,11 +48,11 @@ public class DocManagerImplTest {
         instance.setContextPath("/testClusterName");
         AtomicBoolean atomicBoolean = new AtomicBoolean(false);
         docManager.addDocInfo(instance, SwaggerDocParserTest.DOC_INFO_JSON, "", docInfo -> {
-            assertEquals(docInfo.getTitle(), "shenyu-examples-http-swagger2 API");
-            assertEquals(docInfo.getClusterName(), "testClusterName");
+            Assertions.assertEquals(docInfo.getTitle(), "shenyu-examples-http-swagger3 API");
+            Assertions.assertEquals(docInfo.getClusterName(), "testClusterName");
             atomicBoolean.set(true);
         });
 
-        assertTrue(atomicBoolean.get());
+        Assertions.assertTrue(atomicBoolean.get());
     }
 }

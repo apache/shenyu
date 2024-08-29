@@ -27,7 +27,7 @@
 
     <properties>
         <nacos-discovery.version>2021.0.1.0</nacos-discovery.version>
-        <eureka-client.version>3.1.2</eureka-client.version>
+        <eureka-client.version>4.1.2</eureka-client.version>
     </properties>
 
     <dependencies>
@@ -243,7 +243,6 @@
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>
-            <version>5.7.6</version>
             <exclusions>
                 <exclusion>
                     <groupId>net.jcip</groupId>
@@ -252,6 +251,29 @@
                 <exclusion>
                     <groupId>io.grpc</groupId>
                     <artifactId>grpc-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-io</artifactId>
+                    <groupId>commons-io</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>okio</artifactId>
+                    <groupId>com.squareup.okio</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>sofa-common-tools</artifactId>
+                    <groupId>com.alipay.sofa.common</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.alipay.sofa.common</groupId>
+            <artifactId>sofa-common-tools</artifactId>
+            <version>${sofa-common-tools.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -325,6 +347,7 @@
         <dependency>
             <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo</artifactId>
+            <version>${apache.dubbo.version}</version>
         </dependency>
         <!-- Dubbo Nacos registry dependency -->
         <!--  <dependency>

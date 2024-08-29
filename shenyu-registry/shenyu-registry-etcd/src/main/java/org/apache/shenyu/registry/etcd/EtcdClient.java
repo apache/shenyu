@@ -66,16 +66,16 @@ public class EtcdClient {
     private void initLease() {
         try {
             this.globalLeaseId = client.getLeaseClient().grant(ttl).get().getID();
-            client.getLeaseClient().keepAlive(globalLeaseId, new StreamObserver<LeaseKeepAliveResponse>() {
+            client.getLeaseClient().keepAlive(globalLeaseId, new StreamObserver<>() {
                 @Override
                 public void onNext(final LeaseKeepAliveResponse leaseKeepAliveResponse) {
                 }
-
+                
                 @Override
                 public void onError(final Throwable throwable) {
                     LOGGER.error("keep alive error", throwable);
                 }
-
+                
                 @Override
                 public void onCompleted() {
                 }
@@ -125,7 +125,7 @@ public class EtcdClient {
         try {
             return this.client.getKVClient().get(bytesOf(key), getOption).get();
         } catch (ExecutionException | InterruptedException e) {
-            LOGGER.error("etcd getRange key {} error {}", key, e);
+            LOGGER.error("etcd getRange key {} error", key, e);
             throw new ShenyuException(e);
         }
     }

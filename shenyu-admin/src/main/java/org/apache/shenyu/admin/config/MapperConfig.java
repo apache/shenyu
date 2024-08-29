@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.config;
 
+import com.github.pagehelper.dialect.helper.MySqlDialect;
+import com.github.pagehelper.page.PageAutoDialect;
 import org.apache.shenyu.admin.mybatis.og.interceptor.OpenGaussSQLPrepareInterceptor;
 import org.apache.shenyu.admin.mybatis.og.interceptor.OpenGaussSQLQueryInterceptor;
 import org.apache.shenyu.admin.mybatis.og.interceptor.OpenGaussSqlUpdateInterceptor;
@@ -25,6 +27,7 @@ import org.apache.shenyu.admin.mybatis.oracle.OracleSQLUpdateInterceptor;
 import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSQLPrepareInterceptor;
 import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSQLQueryInterceptor;
 import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSqlUpdateInterceptor;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -143,6 +146,19 @@ public class MapperConfig {
         @ConditionalOnMissingBean(OpenGaussSqlUpdateInterceptor.class)
         public OpenGaussSqlUpdateInterceptor openGaussSqlUpdateInterceptor() {
             return new OpenGaussSqlUpdateInterceptor();
+        }
+    }
+
+    @Configuration
+    @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "oceanbase")
+    static class OceanBaseSQLConfig implements InitializingBean {
+
+        /**
+         * Register auto dialect alias.
+         */
+        @Override
+        public void afterPropertiesSet() {
+            PageAutoDialect.registerDialectAlias("oceanbase", MySqlDialect.class);
         }
     }
 }

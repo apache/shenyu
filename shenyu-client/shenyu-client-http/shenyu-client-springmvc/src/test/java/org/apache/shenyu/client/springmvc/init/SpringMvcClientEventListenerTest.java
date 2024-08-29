@@ -28,6 +28,7 @@ import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -178,13 +179,13 @@ public class SpringMvcClientEventListenerTest {
     public void testOnBuildApiSuperPath() {
         SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, false);
 
-        Assert.assertEquals("super-path", "/order", springMvcClientEventListener.buildApiSuperPath(
-            SpringMvcClientTestBean.class, AnnotatedElementUtils.findMergedAnnotation(SpringMvcClientTestBean.class, ShenyuSpringMvcClient.class)));
+        Assertions.assertEquals("/order", springMvcClientEventListener.buildApiSuperPath(
+            SpringMvcClientTestBean.class, AnnotatedElementUtils.findMergedAnnotation(SpringMvcClientTestBean.class, ShenyuSpringMvcClient.class)), "super-path");
 
         when(env.getProperty("spring.mvc.servlet.path")).thenReturn("/servlet-path");
         when(env.getProperty("server.servlet.context-path")).thenReturn("/servlet-context-path");
-        Assert.assertEquals("super-path", "/servlet-context-path/servlet-path/order", springMvcClientEventListener.buildApiSuperPath(
-            SpringMvcClientTestBean.class, AnnotatedElementUtils.findMergedAnnotation(SpringMvcClientTestBean.class, ShenyuSpringMvcClient.class)));
+        Assertions.assertEquals("/servlet-context-path/servlet-path/order", springMvcClientEventListener.buildApiSuperPath(
+            SpringMvcClientTestBean.class, AnnotatedElementUtils.findMergedAnnotation(SpringMvcClientTestBean.class, ShenyuSpringMvcClient.class)), "super-path");
         registerUtilsMockedStatic.close();
     }
 

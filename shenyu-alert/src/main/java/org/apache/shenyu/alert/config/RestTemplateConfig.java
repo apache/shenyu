@@ -36,7 +36,7 @@ public class RestTemplateConfig {
      * @param factory ClientHttpRequestFactory
      * @return RestTemplate
      */
-    @Bean
+    @Bean(name = "alterRestTemplate")
     public RestTemplate restTemplate(final ClientHttpRequestFactory factory) {
         RestTemplate restTemplate = new RestTemplate(factory);
         restTemplate.setInterceptors(Collections.singletonList(new HeaderRequestInterceptor()));

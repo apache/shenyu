@@ -194,7 +194,7 @@ public class JsonMessage {
             default:
                 grpcMethodType = MethodDescriptor.MethodType.UNKNOWN;
         }
-
+        
         return grpcMethodType;
     }
 

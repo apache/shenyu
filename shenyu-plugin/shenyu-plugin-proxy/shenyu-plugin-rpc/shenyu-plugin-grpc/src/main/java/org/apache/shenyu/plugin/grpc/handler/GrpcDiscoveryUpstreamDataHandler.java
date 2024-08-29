@@ -21,8 +21,12 @@ import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
@@ -36,13 +40,18 @@ import java.util.stream.Collectors;
  *  GrpcDiscoveryUpstreamDataHandler.
  */
 public class GrpcDiscoveryUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(GrpcDiscoveryUpstreamDataHandler.class);
 
     @Override
     public void handlerDiscoveryUpstreamData(final DiscoverySyncData discoverySyncData) {
         if (Objects.isNull(discoverySyncData) || Objects.isNull(discoverySyncData.getSelectorId())) {
             return;
         }
-        ApplicationConfigCache.getInstance().handlerUpstream(discoverySyncData.getSelectorId(), convertUpstreamList(discoverySyncData.getUpstreamDataList()));
+        LOG.info("discovery grpc upstream data:{}", JsonUtils.toJson(discoverySyncData));
+        final String selectorId = discoverySyncData.getSelectorId();
+        ApplicationConfigCache.getInstance().handlerUpstream(selectorId, convertUpstreamList(discoverySyncData.getUpstreamDataList()));
+        GrpcClientCache.initGrpcClient(selectorId);
     }
 
     private List<GrpcUpstream> convertUpstreamList(final List<DiscoveryUpstreamData> upstreamList) {

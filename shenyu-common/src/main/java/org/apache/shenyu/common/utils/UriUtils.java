@@ -43,6 +43,18 @@ public class UriUtils {
     }
 
     /**
+     * create URI {@link URI}.
+     *
+     * @param scheme    scheme eg:http
+     * @param authority registry or server eg: 127.0.0.1:8080
+     * @param path      path eg:/ fallback
+     * @return created {@link URI} from uri
+     */
+    public static URI createUri(final String scheme, final String authority, final String path) {
+        return createUri(scheme + "://" + authority + repairData(path));
+    }
+
+    /**
      * Repair data string.
      *
      * @param name the name
@@ -100,7 +112,7 @@ public class UriUtils {
      */
     public static int getActualPort(final String scheme, final Integer port) {
         Integer actualPort = port;
-        if (Objects.isNull(port) || port.intValue() < 0) {
+        if (Objects.isNull(port) || port < 0) {
             if (!"http".equals(scheme) && !"ws".equals(scheme)) {
                 if ("https".equals(scheme) || "wss".equals(scheme)) {
                     actualPort = 443;

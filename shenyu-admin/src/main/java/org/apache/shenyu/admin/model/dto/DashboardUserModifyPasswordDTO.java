@@ -20,8 +20,8 @@ package org.apache.shenyu.admin.model.dto;
 import org.apache.shenyu.admin.model.constant.RegConstant;
 import org.apache.shenyu.admin.utils.FailI18nMessage;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import java.io.Serializable;
 
 /**

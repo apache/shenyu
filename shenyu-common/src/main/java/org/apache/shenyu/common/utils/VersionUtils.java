@@ -88,7 +88,7 @@ public final class VersionUtils {
             if (i >= 0) {
                 file = file.substring(i + 1);
             }
-            while (file.length() > 0 && !Character.isDigit(file.charAt(0))) {
+            while (StringUtils.isNoneBlank(file) && !Character.isDigit(file.charAt(0))) {
                 i = file.indexOf("-");
                 if (i < 0) {
                     break;

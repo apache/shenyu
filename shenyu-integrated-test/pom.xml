@@ -58,13 +58,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <spring-cloud.version>3.1.2</spring-cloud.version>
+        <spring-cloud.version>4.1.2</spring-cloud.version>
         <gson.version>2.9.0</gson.version>
         <okhttp3.version>4.9.3</okhttp3.version>
         <tars-client.version>1.7.2</tars-client.version>
-        <sofa-rpc-all.version>5.7.6</sofa-rpc-all.version>
-        <curator.version>4.0.1</curator.version>
-        <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
+<!--        <sofa-rpc-all.version>5.13.0</sofa-rpc-all.version>-->
+<!--        <curator.version>4.0.1</curator.version>-->
+        <maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
     </properties>
 
     <dependencies>
@@ -132,6 +132,7 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>${maven-checkstyle-plugin.version}</version>
                 <configuration>
+                    <consoleOutput>true</consoleOutput>
                     <configLocation>/../script/shenyu_checkstyle.xml</configLocation>
                     <headerLocation>/../script/checkstyle-header.txt</headerLocation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>

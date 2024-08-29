@@ -45,7 +45,7 @@ import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.model.event.plugin.BatchPluginDeletedEvent;
+import org.apache.shenyu.admin.model.event.plugin.BatchNamespacePluginDeletedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
@@ -89,6 +89,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SelectorService}.
@@ -173,10 +175,13 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public String registerDefault(final MetaDataRegisterDTO dto, final String pluginName, final String selectorHandler) {
         String contextPath = ContextPathUtils.buildContextPath(dto.getContextPath(), dto.getAppName());
-        SelectorDO selectorDO = findByNameAndPluginName(contextPath, pluginName);
+        // todo:[To be refactored with namespace]  Temporarily  hardcode
+        String namespaceId = StringUtils.defaultIfEmpty(dto.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
+        SelectorDO selectorDO = findByNameAndPluginNameAndNamespaceId(contextPath, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
             SelectorDTO selectorDTO = SelectorUtil.buildSelectorDTO(contextPath, pluginMapper.selectByName(pluginName).getId());
             selectorDTO.setHandle(selectorHandler);
+            selectorDTO.setNamespaceId(namespaceId);
             return registerDefault(selectorDTO);
         }
         return selectorDO.getId();
@@ -210,7 +215,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public int update(final SelectorDTO selectorDTO) {
-        final SelectorDO before = selectorMapper.selectById(selectorDTO.getId());
+        final SelectorDO before = selectorMapper.selectByIdAndNamespaceId(selectorDTO.getId(), selectorDTO.getNamespaceId());
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         final int selectorCount = selectorMapper.updateSelective(selectorDO);
 
@@ -248,7 +253,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public int updateSelective(final SelectorDO selectorDO) {
-        final SelectorDO before = selectorMapper.selectById(selectorDO.getId());
+        final SelectorDO before = selectorMapper.selectByIdAndNamespaceId(selectorDO.getId(), selectorDO.getNamespaceId());
         final int updateCount = selectorMapper.updateSelective(selectorDO);
         if (updateCount > 0) {
             selectorEventPublisher.onUpdated(selectorDO, before);
@@ -257,14 +262,16 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     /**
-     * delete selectors.
+     * delete selectors by ids and namespaceId.
      *
      * @param ids primary key.
+     * @param namespaceId namespaceId.
      * @return rows
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int delete(final List<String> ids) {
+    public int deleteByNamespaceId(final List<String> ids, final String namespaceId) {
+        //todo:[Namespace] To be renovated
         final List<SelectorDO> selectors = selectorMapper.selectByIdSet(new TreeSet<>(ids));
         List<PluginDO> pluginDOS = pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId));
         unbindDiscovery(selectors, pluginDOS);
@@ -302,15 +309,16 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     /**
-     * find selector by id.
+     * find selector by id and namespaceId.
      *
      * @param id primary key.
+     * @param namespaceId namespaceId.
      * @return {@link SelectorVO}
      */
     @Override
-    public SelectorVO findById(final String id) {
+    public SelectorVO findByIdAndNamespaceId(final String id, final String namespaceId) {
         final List<SelectorConditionVO> conditions = ListUtil.map(selectorConditionMapper.selectByQuery(new SelectorConditionQuery(id)), SelectorConditionVO::buildSelectorConditionVO);
-        SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorMapper.selectById(id), conditions);
+        SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorMapper.selectByIdAndNamespaceId(id, namespaceId), conditions);
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(id);
         if (Objects.nonNull(discoveryHandlerDO)) {
             selectorVO.setDiscoveryHandler(DiscoveryTransfer.INSTANCE.mapToVo(discoveryHandlerDO));
@@ -328,33 +336,35 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
-    public SelectorDO findByName(final String name) {
-        List<SelectorDO> doList = selectorMapper.selectByName(name);
+    public SelectorDO findByNameAndNamespaceId(final String name, final String namespaceId) {
+        List<SelectorDO> doList = selectorMapper.selectByNameAndNamespaceId(name, namespaceId);
         return CollectionUtils.isNotEmpty(doList) ? doList.get(0) : null;
     }
 
     @Override
-    public List<SelectorDO> findListByName(final String name) {
-        return selectorMapper.selectByName(name);
+    public List<SelectorDO> findListByNameAndNamespaceId(final String name, final String namespaceId) {
+        return selectorMapper.selectByNameAndNamespaceId(name, namespaceId);
     }
 
     /**
-     * Find selectorDO by name and plugin name.
+     * Find selectorDO by name and plugin name and namespaceId.
      *
      * @param name       the name
      * @param pluginName the plugin name
+     * @param namespaceId namespaceId
      * @return the selector do
      */
     @Override
-    public SelectorDO findByNameAndPluginName(final String name, final String pluginName) {
+    public SelectorDO findByNameAndPluginNameAndNamespaceId(final String name, final String pluginName, final String namespaceId) {
         PluginDO pluginDO = pluginMapper.selectByName(pluginName);
-        return selectorMapper.findByNameAndPluginId(name, pluginDO.getId());
+        return selectorMapper.findByNameAndPluginIdAndNamespaceId(name, pluginDO.getId(), namespaceId);
     }
 
     @Override
-    public SelectorDO findByNameAndPluginNameForUpdate(final String name, final String pluginName) {
+    public SelectorDO findByNameAndPluginNameAndNamespaceIdForUpdate(final String name, final String pluginName, final String namespaceId) {
         PluginDO pluginDO = pluginMapper.selectByNameForUpdate(pluginName);
-        return selectorMapper.findByNameAndPluginId(name, pluginDO.getId());
+        // todo:[To be refactored with namespace]  Temporarily hardcode
+        return selectorMapper.findByNameAndPluginIdAndNamespaceId(name, pluginDO.getId(), namespaceId);
     }
 
     @Override
@@ -363,7 +373,7 @@ public class SelectorServiceImpl implements SelectorService {
         if (CollectionUtils.isEmpty(pluginDOList)) {
             return Lists.newArrayList();
         }
-        List<String> pluginIds = pluginDOList.stream().map(it -> it.getId()).collect(Collectors.toList());
+        List<String> pluginIds = pluginDOList.stream().map(BaseDO::getId).collect(Collectors.toList());
         SelectorQuery selectorQuery = new SelectorQuery();
         selectorQuery.setName(name);
         selectorQuery.setPluginIds(pluginIds);
@@ -371,20 +381,21 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
-    public SelectorData buildByName(final String name) {
-        return buildSelectorData(this.findByName(name));
+    public SelectorData buildByNameAndNamespaceId(final String name, final String namespaceId) {
+        return buildSelectorData(this.findByNameAndNamespaceId(name, namespaceId));
     }
 
     /**
-     * Build by name selector data.
+     * Build by name and namespaceId selector data.
      *
      * @param name       the name
      * @param pluginName the plugin name
+     * @param namespaceId the namespaceId.
      * @return the selector data
      */
     @Override
-    public SelectorData buildByName(final String name, final String pluginName) {
-        return buildSelectorData(findByNameAndPluginName(name, pluginName));
+    public SelectorData buildByNameAndPluginNameAndNamespaceId(final String name, final String pluginName, final String namespaceId) {
+        return buildSelectorData(findByNameAndPluginNameAndNamespaceId(name, pluginName, namespaceId));
     }
 
     /**
@@ -409,8 +420,8 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
-    public List<SelectorData> findByPluginId(final String pluginId) {
-        return this.buildSelectorDataList(selectorMapper.findByPluginId(pluginId));
+    public List<SelectorData> findByPluginIdAndNamespaceId(final String pluginId, final String namespaceId) {
+        return this.buildSelectorDataList(selectorMapper.findByPluginIdAndNamespaceId(pluginId, namespaceId));
     }
 
     @Override
@@ -476,9 +487,9 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean enabled(final List<String> ids, final Boolean enabled) {
+    public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
         ids.forEach(id -> {
-            SelectorDO selectorDO = selectorMapper.selectById(id);
+            SelectorDO selectorDO = selectorMapper.selectByIdAndNamespaceId(id, namespaceId);
             SelectorDO before = JsonUtils.jsonToObject(JsonUtils.toJson(selectorDO), SelectorDO.class);
             selectorDO.setEnabled(enabled);
             if (selectorMapper.updateEnable(id, enabled) > 0) {
@@ -493,9 +504,9 @@ public class SelectorServiceImpl implements SelectorService {
      *
      * @param event event
      */
-    @EventListener(value = BatchPluginDeletedEvent.class)
-    public void onPluginDeleted(final BatchPluginDeletedEvent event) {
-        deleteSelector(selectorMapper.findByPluginIds(event.getDeletedPluginIds()), event.getPlugins());
+    @EventListener(value = BatchNamespacePluginDeletedEvent.class)
+    public void onPluginDeleted(final BatchNamespacePluginDeletedEvent event) {
+        deleteSelector(selectorMapper.findByPluginIdsAndNamespaceId(event.getDeletedPluginIds(), event.getNamespaceId()), event.getPlugins());
     }
 
     private void createCondition(final String selectorId, final List<SelectorConditionDTO> selectorConditions) {

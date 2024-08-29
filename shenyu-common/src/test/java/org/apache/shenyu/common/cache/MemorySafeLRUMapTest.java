@@ -39,10 +39,10 @@ public class MemorySafeLRUMapTest {
     @Test
     public void testLru() {
         try {
-            MemorySafeLRUMap<Integer, Integer> lru = new MemorySafeLRUMap<Integer, Integer>(1, 1024) {
-    
+            MemorySafeLRUMap<Integer, Integer> lru = new MemorySafeLRUMap<>(1, 1024) {
+                
                 private static final long serialVersionUID = 8897028073615563875L;
-    
+                
                 @Override
                 public boolean isFull() {
                     //just for test

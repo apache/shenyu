@@ -21,18 +21,13 @@ import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
 import org.apache.shenyu.admin.lock.RegisterExecutionRepository;
 import org.apache.shenyu.admin.lock.impl.PlatformTransactionRegisterExecutionRepository;
 import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.register.client.server.api.ShenyuClientServerRegisterRepository;
+import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.apache.shenyu.spi.ExtensionLoader;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.jdbc.lock.DefaultLockRepository;
-import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
-import org.springframework.integration.jdbc.lock.LockRepository;
-import javax.sql.DataSource;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
@@ -45,7 +40,7 @@ import java.util.stream.Collectors;
  */
 @Configuration
 public class RegisterCenterConfiguration {
-
+    
     /**
      * Shenyu register center config shenyu register center config.
      *
@@ -56,26 +51,22 @@ public class RegisterCenterConfiguration {
     public ShenyuRegisterCenterConfig shenyuRegisterCenterConfig() {
         return new ShenyuRegisterCenterConfig();
     }
-
+    
     /**
      * Shenyu client server register repository server register repository.
      *
-     * @param shenyuRegisterCenterConfig the shenyu register center config
      * @param shenyuClientRegisterService the shenyu client register service
+     * @param discoveryService the discovery service
      * @return the shenyu server register repository
      */
-    @Bean(destroyMethod = "close")
-    public ShenyuClientServerRegisterRepository shenyuClientServerRegisterRepository(final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig,
-                                                                               final List<ShenyuClientRegisterService> shenyuClientRegisterService) {
-        String registerType = shenyuRegisterCenterConfig.getRegisterType();
-        ShenyuClientServerRegisterRepository registerRepository = ExtensionLoader.getExtensionLoader(ShenyuClientServerRegisterRepository.class).getJoin(registerType);
+    @Bean
+    public RegisterClientServerDisruptorPublisher registerClientServerDisruptorPublisher(final List<ShenyuClientRegisterService> shenyuClientRegisterService, final DiscoveryService discoveryService) {
         RegisterClientServerDisruptorPublisher publisher = RegisterClientServerDisruptorPublisher.getInstance();
         Map<String, ShenyuClientRegisterService> registerServiceMap = shenyuClientRegisterService.stream().collect(Collectors.toMap(ShenyuClientRegisterService::rpcType, Function.identity()));
-        publisher.start(registerServiceMap);
-        registerRepository.init(publisher, shenyuRegisterCenterConfig);
-        return registerRepository;
+        publisher.start(registerServiceMap, discoveryService);
+        return publisher;
     }
-
+    
     /**
      * Shenyu client server register  server global lock repository.
      *
@@ -88,28 +79,5 @@ public class RegisterCenterConfiguration {
     public RegisterExecutionRepository registerExecutionRepository(final PlatformTransactionManager platformTransactionManager, final PluginMapper pluginMapper) {
         return new PlatformTransactionRegisterExecutionRepository(platformTransactionManager, pluginMapper);
     }
-
-
-    /**
-     * Shenyu Admin distributed lock by spring-integration-jdbc.
-     *
-     * @param dataSource the dataSource
-     * @return  defaultLockRepository
-     */
-    @Bean
-    @ConfigurationProperties(prefix = "shenyu.distributed-lock")
-    public DefaultLockRepository defaultLockRepository(final DataSource dataSource) {
-        return new DefaultLockRepository(dataSource);
-    }
-
-    /**
-     * Shenyu Admin distributed lock by spring-integration-jdbc.
-     *
-     * @param lockRepository the lockRepository
-     * @return the shenyu Admin register repository
-     */
-    @Bean
-    public JdbcLockRegistry jdbcLockRegistry(final LockRepository lockRepository) {
-        return new JdbcLockRegistry(lockRepository);
-    }
+    
 }
