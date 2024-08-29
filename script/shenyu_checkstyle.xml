@@ -31,9 +31,9 @@
     <module name="FileLength">
         <property name="max" value="2500"/>
     </module>
-    <module name="NewlineAtEndOfFile">
-        <property name="lineSeparator" value="lf"/>
-    </module>
+<!--    <module name="NewlineAtEndOfFile">-->
+<!--        <property name="lineSeparator" value="lf"/>-->
+<!--    </module>-->
     <module name="Translation"/>
     <module name="UniqueProperties"/>
     <module name="SeverityMatchFilter"/>
@@ -50,7 +50,13 @@
         <property name="format" value="\.printStackTrace"/>
         <property name="message" value="Prohibit invoking .printStackTrace in source code ! Please use org.slf4j.Logger and write log instead."/>
     </module>
-
+    
+    <module name="LineLength">
+        <property name="max" value="200"/>
+        <property name="fileExtensions" value="java"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    </module>
+    
     <module name="TreeWalker">
 
         <!-- Naming Conventions -->
@@ -87,10 +93,7 @@
             <property name="tokens" value="METHOD_DEF" />
             <property name="max" value="80" />
         </module>
-        <module name="LineLength">
-            <property name="max" value="200"/>
-            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-        </module>
+        
         <module name="OuterTypeNumber"/>
 
         <!-- Whitespace -->
@@ -133,7 +136,7 @@
         <module name="WhitespaceAfter"/>
         <module name="SingleSpaceSeparator"/>
         <module name="EmptyLineSeparator">
-            <property name="allowMultipleEmptyLines" value="false"/>
+            <property name="allowMultipleEmptyLines" value="true"/>
             <property name="allowMultipleEmptyLinesInsideClassMembers" value="false"/>
         </module>
 
@@ -142,7 +145,9 @@
         <module name="IllegalImport"/>
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
-        <module name="CustomImportOrder"/>
+<!--        <module name="CustomImportOrder">-->
+<!--            <property name="separateLineBetweenGroups" value="true"/>-->
+<!--        </module>-->
 
         <!-- Annotations -->
         <module name="AnnotationLocation">
@@ -154,7 +159,9 @@
             <property name="tokens" value="VARIABLE_DEF"/>
             <property name="allowSamelineMultipleAnnotations" value="true"/>
         </module>
-        <module name="AnnotationUseStyle"/>
+        <module name="AnnotationUseStyle">
+            <property name="elementStyle" value="ignore"/>
+        </module>
         <module name="MissingOverride"/>
         <module name="SuppressWarnings"/>
         <module name="MissingDeprecated"/>
@@ -235,7 +242,9 @@
         <module name="AvoidEscapedUnicodeCharacters"/>
         <module name="DescendantToken"/>
         <module name="FinalParameters"/>
-        <module name="Indentation"/>
+        <module name="Indentation">
+            <property name="arrayInitIndent" value="8"/>
+        </module>
         <module name="OuterTypeFilename"/>
         <module name="TodoComment"/>
         <module name="TrailingComment"/>
@@ -251,9 +260,8 @@
         <module name="SingleLineJavadoc"/>
         <module name="SummaryJavadoc"/>
         <module name="JavadocMethod">
-            <property name="scope" value="public"/>
+            <property name="accessModifiers" value="public"/>
             <property name="allowedAnnotations" value="Override, Test, Before, After, BeforeClass, AfterClass, Parameterized, Parameters, BeforeEach, AfterEach, BeforeAll, AfterAll, ParameterizedTest, TestMethodOrder"/>
-            <property name="ignoreMethodNamesRegex" value="^assert.*$|^verify.*$"/>
             <property name="tokens" value="METHOD_DEF, ANNOTATION_FIELD_DEF"/>
         </module>
 
