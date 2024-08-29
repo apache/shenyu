@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service.publish;
 
-import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
@@ -25,17 +24,11 @@ import org.apache.shenyu.admin.model.event.plugin.BatchPluginChangedEvent;
 import org.apache.shenyu.admin.model.event.plugin.BatchPluginDeletedEvent;
 import org.apache.shenyu.admin.model.event.plugin.PluginChangedEvent;
 import org.apache.shenyu.admin.model.event.plugin.PluginCreatedEvent;
-import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.SessionUtil;
-import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * PluginEventPublisher.
@@ -56,8 +49,6 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
      */
     @Override
     public void onCreated(final PluginDO plugin) {
-        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.CREATE,
-                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(plugin))));
         publish(new PluginCreatedEvent(plugin, SessionUtil.visitorName()));
     }
     
@@ -69,8 +60,6 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
      */
     @Override
     public void onUpdated(final PluginDO plugin, final PluginDO before) {
-        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(plugin))));
         publish(new PluginChangedEvent(plugin, before, EventTypeEnum.PLUGIN_UPDATE, SessionUtil.visitorName()));
     }
     
@@ -82,10 +71,8 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
     @Override
     public void onDeleted(final PluginDO plugin) {
         publish(new PluginChangedEvent(plugin, null, EventTypeEnum.PLUGIN_DELETE, SessionUtil.visitorName()));
-        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
-                Stream.of(plugin).map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
     }
-    
+
     /**
      * on plugin deleted.
      *
@@ -94,10 +81,8 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
     @Override
     public void onDeleted(final Collection<PluginDO> plugins) {
         publish(new BatchPluginDeletedEvent(plugins, SessionUtil.visitorName()));
-        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
-                plugins.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
     }
-    
+
     /**
      * on plugin batch enabled.
      *
@@ -105,8 +90,6 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
      */
     public void onEnabled(final Collection<PluginDO> plugins) {
         publish(new BatchPluginChangedEvent(plugins, null, EventTypeEnum.PLUGIN_UPDATE, SessionUtil.visitorName()));
-        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                plugins.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
     }
     
     /**

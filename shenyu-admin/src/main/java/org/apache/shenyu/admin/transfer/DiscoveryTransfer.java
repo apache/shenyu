@@ -33,6 +33,7 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.util.Optional;
@@ -64,6 +65,19 @@ public enum DiscoveryTransfer {
             .url(data.getUrl())
             .dateUpdated(data.getDateUpdated())
             .dateCreated(data.getDateCreated()).build()).orElse(null);
+    }
+    
+    /**
+     * mapToCommonUpstream.
+     *
+     * @param discoveryUpstreamData discoveryUpstreamData
+     * @return CommonUpstream
+     */
+    public CommonUpstream mapToCommonUpstream(DiscoveryUpstreamData discoveryUpstreamData) {
+        return Optional.ofNullable(discoveryUpstreamData).map(data -> {
+            String url = data.getUrl();
+            return new CommonUpstream(data.getProtocol(), url.split(":")[0], url, false, data.getDateCreated().getTime());
+        }).orElse(null);
     }
 
     /**

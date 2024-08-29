@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.integratedtest.common.dto;
 
+/**
+ * The Admin Response.
+ * @param <T> classType
+ */
 public class AdminResponse<T> {
 
     private Integer code;

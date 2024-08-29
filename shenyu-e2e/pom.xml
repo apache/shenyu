@@ -40,7 +40,7 @@
     </licenses>
 
     <properties>
-        <java.version>8</java.version>
+        <java.version>17</java.version>
         <junit.version>5.8.2</junit.version>
         <assertj.version>3.22.0</assertj.version>
         <hamcrest.version>1.3</hamcrest.version>
@@ -54,7 +54,7 @@
         <jetbrains-annotations.version>23.0.0</jetbrains-annotations.version>
         <apache-rat-plugin.version>0.15</apache-rat-plugin.version>
         <spring-framework.version>5.3.30</spring-framework.version>
-        <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
+        <maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
         <guava.version>32.0.0-jre</guava.version>
         <commons-collection.verion>4.4</commons-collection.verion>
         <websocket.version>1.5.1</websocket.version>
@@ -68,6 +68,11 @@
     </modules>
 
     <dependencies>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>2.1.1</version>
+        </dependency>
         <dependency>
             <groupId>org.java-websocket</groupId>
             <artifactId>Java-WebSocket</artifactId>

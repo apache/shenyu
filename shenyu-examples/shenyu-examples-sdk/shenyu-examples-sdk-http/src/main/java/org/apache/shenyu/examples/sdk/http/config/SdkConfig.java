@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.examples.sdk.http.config;
 
-import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.interceptor.ShenyuSdkRequestInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,11 +36,6 @@ public class SdkConfig {
      */
     @Bean
     public ShenyuSdkRequestInterceptor getShenyuSdkRequestInterceptor() {
-        return new ShenyuSdkRequestInterceptor() {
-            @Override
-            public void apply(final ShenyuRequest shenyuRequest) {
-                shenyuRequest.getHeaders().put("X-Auth", Collections.singleton("currentToken"));
-            }
-        };
+        return shenyuRequest -> shenyuRequest.getHeaders().put("X-Auth", Collections.singleton("currentToken"));
     }
 }

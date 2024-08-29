@@ -255,7 +255,7 @@ public interface Constants {
     /**
      * The constant LINE_SEPARATOR.
      */
-    String LINE_SEPARATOR = System.getProperty("line.separator");
+    String LINE_SEPARATOR = System.lineSeparator();
     
     /**
      * The constant URL_SEPARATOR.
@@ -799,6 +799,16 @@ public interface Constants {
      * the plugin end time of plugin lifecycle.
      */
     String PLUGIN_END_TIME = "pluginEndTime:";
+
+    /**
+     * the chain start time of chain lifecycle.
+     */
+    String CHAIN_START_TIME = "chainStartTime:";
+
+    /**
+     * the chain end time of chain lifecycle.
+     */
+    String CHAIN_END_TIME = "chainEndTime:";
 
     /**
      * ratelimiter plugin metrics.

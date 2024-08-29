@@ -20,21 +20,19 @@ package org.apache.shenyu.sync.data.http;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import com.google.common.collect.Lists;
+import okhttp3.OkHttpClient;
 import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import okhttp3.OkHttpClient;
-import wiremock.org.apache.http.HttpHeaders;
-import wiremock.org.apache.http.entity.ContentType;
+import wiremock.org.apache.hc.core5.http.ContentType;
+import wiremock.org.apache.hc.core5.http.HttpHeaders;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -45,6 +43,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 
 /**
  * AccessTokenManagerTest.
@@ -69,7 +69,7 @@ public class AccessTokenManagerTest {
     public void before() {
         this.wireMockServer = new WireMockServer(
                 options()
-                        .extensions(new ResponseTemplateTransformer(false))
+                        .extensions(mock(ResponseTemplateTransformer.class))
                         .dynamicPort());
         this.wireMockServer.start();
         wireMockServer.stubFor(get(urlPathEqualTo("/platform/login"))
@@ -100,7 +100,7 @@ public class AccessTokenManagerTest {
     @Test
     public void testLogin() {
         accessTokenManager.login(Lists.newArrayList(httpConfig.getUrl().split(",")));
-        Assert.assertEquals(this.accessToken, accessTokenManager.getAccessToken());
+        assertEquals(this.accessToken, accessTokenManager.getAccessToken());
     }
 
     // mock configs fetch api response

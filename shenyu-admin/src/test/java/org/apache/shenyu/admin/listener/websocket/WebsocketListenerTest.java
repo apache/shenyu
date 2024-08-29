@@ -20,9 +20,9 @@ package org.apache.shenyu.admin.listener.websocket;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.servlet.ServletRequestEvent;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletRequestEvent;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import static org.apache.shenyu.admin.listener.websocket.WebsocketListener.CLIENT_IP_NAME;
 import static org.mockito.Mockito.mock;

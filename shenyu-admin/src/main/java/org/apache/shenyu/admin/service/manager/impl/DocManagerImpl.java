@@ -28,7 +28,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.google.gson.JsonObject;
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.bean.DocInfo;

@@ -19,14 +19,11 @@ package org.apache.shenyu.plugin.param.mapping.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 /**
  * Test case for {@link ParamMappingPluginDataHandler}.
@@ -52,7 +49,7 @@ public class ParamMappingPluginDataTest {
     @Test
     public void testHandlerRule() {
         this.paramMappingPluginDataHandler.handlerRule(this.ruleData);
-        assertNotNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
+        Assertions.assertNotNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
     }
 
     @Test
@@ -62,13 +59,13 @@ public class ParamMappingPluginDataTest {
         ruleData.setSelectorId("test");
         ruleData.setName("test-param-mappin-plugin");
         this.paramMappingPluginDataHandler.removeRule(this.ruleData);
-        assertNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
+        Assertions.assertNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
         this.paramMappingPluginDataHandler.removeRule(ruleData);
-        assertNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        Assertions.assertNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Test
     public void testPluginNamed() {
-        assertEquals(this.paramMappingPluginDataHandler.pluginNamed(), "paramMapping");
+        Assertions.assertEquals(this.paramMappingPluginDataHandler.pluginNamed(), "paramMapping");
     }
 }

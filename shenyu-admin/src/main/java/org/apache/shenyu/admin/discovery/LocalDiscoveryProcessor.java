@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.model.event.discovery.DiscoveryStreamUpdatedEvent;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
@@ -37,6 +38,8 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.apache.shenyu.admin.model.enums.EventTypeEnum.LOCAL_DISCOVERY_UPSTREAM_UPDATE;
 
 /**
  * LocalDiscoveryProcessor.
@@ -87,6 +90,8 @@ public class LocalDiscoveryProcessor implements DiscoveryProcessor, ApplicationE
         discoverySyncData.setUpstreamDataList(upstreamDataList);
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
         eventPublisher.publishEvent(dataChangedEvent);
+        DiscoveryStreamUpdatedEvent discoveryStreamUpdatedEvent = new DiscoveryStreamUpdatedEvent(discoverySyncData, LOCAL_DISCOVERY_UPSTREAM_UPDATE);
+        eventPublisher.publishEvent(discoveryStreamUpdatedEvent);
     }
 
     @Override

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.impl.SyncDataServiceImpl;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -38,6 +39,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.time.LocalDateTime;
 import java.util.Collections;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.mockito.BDDMockito.given;
@@ -89,13 +91,14 @@ public final class SyncDataServiceTest {
     @Mock
     private DiscoveryUpstreamService discoveryUpstreamService;
 
+    @Mock
+    private NamespacePluginService namespacePluginService;
+
     @Test
     public void syncAllTest() {
-        PluginData pluginData = buildPluginData();
         SelectorData selectorData = buildSelectorData();
         RuleData ruleData = buildRuleData();
         given(this.appAuthService.syncData()).willReturn(ShenyuAdminResult.success());
-        given(this.pluginService.listAll()).willReturn(Collections.singletonList(pluginData));
         given(this.selectorService.listAll()).willReturn(Collections.singletonList(selectorData));
         given(this.ruleService.listAll()).willReturn(Collections.singletonList(ruleData));
         assertThat(syncDataService.syncAll(DataEventTypeEnum.CREATE), greaterThan(false));
@@ -104,11 +107,12 @@ public final class SyncDataServiceTest {
     @Test
     public void syncPluginDataTest() {
         PluginVO pluginVO = buildPluginVO();
-        given(this.pluginService.findById(pluginVO.getId())).willReturn(pluginVO);
+        NamespacePluginVO namespacePluginVO = new NamespacePluginVO();
+        given(this.namespacePluginService.findByPluginId(pluginVO.getId(), SYS_DEFAULT_NAMESPACE_ID)).willReturn(namespacePluginVO);
         SelectorData selectorData = buildSelectorData();
-        given(this.selectorService.findByPluginId(pluginVO.getId())).willReturn(Collections.singletonList(selectorData));
+        given(this.selectorService.findByPluginIdAndNamespaceId(pluginVO.getId(), SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.singletonList(selectorData));
 
-        assertThat(syncDataService.syncPluginData(pluginVO.getId()), greaterThan(false));
+        assertThat(syncDataService.syncPluginData(pluginVO.getId(), SYS_DEFAULT_NAMESPACE_ID), greaterThan(false));
     }
 
 
@@ -196,7 +200,6 @@ public final class SyncDataServiceTest {
                 dateTime,
                 dateTime,
                 "",
-                null
-        );
+                null);
     }
 }

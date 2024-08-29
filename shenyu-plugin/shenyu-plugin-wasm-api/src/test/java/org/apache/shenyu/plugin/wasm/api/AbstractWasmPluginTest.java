@@ -105,7 +105,7 @@ public class AbstractWasmPluginTest {
             funcMap.put("get_args", WasmFunctions.wrap(store, WasmValType.I64, WasmValType.I64, WasmValType.I32, WasmValType.I32,
                 (argId, addr, len) -> {
                     String config = "hello from java " + argId;
-                    LOG.info("java side->" + config);
+                    LOG.info("java side->{}", config);
                     assertEquals("hello from java 0", config);
                     ByteBuffer buf = super.getBuffer();
                     for (int i = 0; i < len && i < config.length(); i++) {
@@ -123,7 +123,7 @@ public class AbstractWasmPluginTest {
                     String result = new String(bytes, StandardCharsets.UTF_8);
                     assertEquals("rust result", result);
                     RESULTS.put(argId, result);
-                    LOG.info("java side->" + result);
+                    LOG.info("java side->{}", result);
                     return 0;
                 }));
             return funcMap;

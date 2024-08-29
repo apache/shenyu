@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
@@ -52,24 +53,26 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
     @NonNull
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange, @NonNull final Throwable throwable) {
         LOG.error("handle error: {} formatError:{} throwable:", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
-        HttpStatus httpStatus;
+        HttpStatusCode httpStatusCode;
         Object errorResult;
         String errorMsg = "";
         if (throwable instanceof IllegalArgumentException) {
-            httpStatus = HttpStatus.BAD_REQUEST;
-            errorResult = ShenyuResultWrap.error(exchange, httpStatus.value(), throwable.getMessage(), null);
+            httpStatusCode = HttpStatus.BAD_REQUEST;
+            errorResult = ShenyuResultWrap.error(exchange, httpStatusCode.value(), throwable.getMessage(), null);
             errorMsg = throwable.getMessage();
         } else if (throwable instanceof ResponseStatusException) {
-            httpStatus = ((ResponseStatusException) throwable).getStatus();
+            httpStatusCode = ((ResponseStatusException) throwable).getStatusCode();
+            HttpStatus httpStatus = (HttpStatus) httpStatusCode;
             String errMsg = StringUtils.hasLength(((ResponseStatusException) throwable).getReason()) ? ((ResponseStatusException) throwable).getReason() : httpStatus.getReasonPhrase();
-            errorResult = ShenyuResultWrap.error(exchange, httpStatus.value(), errMsg, null);
+            errorResult = ShenyuResultWrap.error(exchange, httpStatusCode.value(), errMsg, null);
             errorMsg = errMsg;
         } else {
-            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-            errorResult = ShenyuResultWrap.error(exchange, httpStatus.value(), httpStatus.getReasonPhrase(), null);
+            httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+            HttpStatus httpStatus = (HttpStatus) httpStatusCode;
+            errorResult = ShenyuResultWrap.error(exchange, httpStatusCode.value(), httpStatus.getReasonPhrase(), null);
             errorMsg = httpStatus.getReasonPhrase();
         }
-        exchange.getResponse().setStatusCode(httpStatus);
+        exchange.getResponse().setStatusCode(httpStatusCode);
         Map<String, String> labels = new HashMap<>(8);
         labels.put("global", "error");
         labels.put("component", "gateway");

@@ -30,13 +30,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * custom Stateless AccessControlFilter.
@@ -100,6 +101,9 @@ public class StatelessAuthFilter extends AccessControlFilter {
             return tokenValue;
         }
         Cookie[] cookies = httpServletRequest.getCookies();
+        if (Objects.isNull(cookies)) {
+            return "";
+        }
         return Arrays.stream(cookies)
                 .filter(cookie -> StringUtils.equals(tokenName, cookie.getName()))
                 .findAny()

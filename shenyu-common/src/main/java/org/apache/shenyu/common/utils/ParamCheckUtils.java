@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 
 /**
@@ -31,7 +32,7 @@ public class ParamCheckUtils {
      * @return the boolean
      */
     public static boolean bodyIsEmpty(final String body) {
-        return null == body || "".equals(body) || "null".equals(body);
+        return null == body || StringUtils.isEmpty(body) || "null".equals(body);
     }
 
     /**

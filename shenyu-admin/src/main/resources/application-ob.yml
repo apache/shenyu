@@ -1,0 +1,53 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+shenyu:
+  database:
+    dialect: oceanbase
+    init_enable: true
+
+spring:
+  datasource:
+    url: jdbc:oceanbase://localhost:2881/shenyu
+    username: root
+    password: 12345678
+    driver-class-name: com.oceanbase.jdbc.Driver
+    hikari:
+      connection-timeout: 30000
+      minimum-idle: 5
+      maximum-pool-size: 20
+      auto-commit: true
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+      connection-init-sql: SET NAMES utf8mb4
+      validation-timeout: 800
+  integration:
+    jdbc:
+      platform: mysql
+  mail:
+    # Attention: this is mail server address.
+    host: smtp.qq.com
+    username: shenyu@apache.com
+    # Attention: this is not email account password, this requires an email authorization code
+    password: your-password
+    #Attention: Tencent mail smtps 465,smtp 587
+    port: 587
+    properties:
+      mail:
+        smtp:
+          socketFactoryClass: javax.net.ssl.SSLSocketFactory
+          ssl:
+            enable: true

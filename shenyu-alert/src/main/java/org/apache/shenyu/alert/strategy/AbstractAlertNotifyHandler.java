@@ -23,7 +23,7 @@ import org.springframework.web.client.RestTemplate;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -38,7 +38,7 @@ abstract class AbstractAlertNotifyHandler implements AlertNotifyHandler {
     @Resource
     private TemplateEngine templateEngine;
     
-    @Resource
+    @Resource(name = "alterRestTemplate")
     private RestTemplate restTemplate;
     
     protected String renderContent(final AlarmContent alert) {
