@@ -308,7 +308,7 @@ public class HttpTestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 
-        String downloadFileName = URLEncoder.encode("downloadFile.txt", "UTF-8");
+        String downloadFileName = URLEncoder.encode("downloadFile.txt", StandardCharsets.UTF_8);
         headers.setContentDispositionFormData("attachment", downloadFileName);
 
         return new ResponseEntity<>(body.getBytes(StandardCharsets.UTF_8), headers, HttpStatus.CREATED);

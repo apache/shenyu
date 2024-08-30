@@ -34,6 +34,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -111,7 +113,7 @@ public final class ZookeeperDataChangedListenerTest {
     @Test
     public void testOnMetaDataChangedCreate() throws UnsupportedEncodingException {
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
-        String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), "UTF-8"));
+        String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
 
         zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.CREATE);
         verify(zkClient, times(1)).createOrUpdate(metaDataPath, metaData, CreateMode.PERSISTENT);
@@ -123,7 +125,7 @@ public final class ZookeeperDataChangedListenerTest {
     @Test
     public void testOnMetaDataChangedUpdate() throws UnsupportedEncodingException {
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
-        String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), "UTF-8"));
+        String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
 
         zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.UPDATE);
         verify(zkClient, times(1)).createOrUpdate(metaDataPath, metaData, CreateMode.PERSISTENT);
@@ -135,7 +137,7 @@ public final class ZookeeperDataChangedListenerTest {
     @Test
     public void testOnMetaDataChangedDelete() throws UnsupportedEncodingException {
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
-        String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), "UTF-8"));
+        String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
 
         when(zkClient.isExist(metaDataPath)).thenReturn(true);
         zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.DELETE);

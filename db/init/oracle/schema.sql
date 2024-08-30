@@ -2776,7 +2776,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace(id)) */ INTO `namespace` (`id`,
 CREATE TABLE plugin_ns_rel (
                                id VARCHAR2(128) COLLATE utf8mb4_unicode_ci NOT NULL,
                                namespace_id VARCHAR2(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-                               plugin_id NUMBER(11) NOT NULL,
+                               plugin_id VARCHAR2(128) COLLATE utf8mb4_unicode_ci NOT NULL,
                                config CLOB COLLATE utf8mb4_unicode_ci,
                                sort NUMBER(11),
                                enabled NUMBER(4,0) NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
@@ -2857,3 +2857,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343265', '1346358560427216896', '1792749362445840484');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343266', '1346358560427216896', '1792749362445840485');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343267', '1346358560427216896', '1792749362445840486');
+
+
+ALTER TABLE selector ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN selector.namespace_id IS 'namespaceId';

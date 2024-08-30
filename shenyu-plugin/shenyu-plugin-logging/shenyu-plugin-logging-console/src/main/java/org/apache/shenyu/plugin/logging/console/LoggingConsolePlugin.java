@@ -135,10 +135,10 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
             logInfo.append("[Query Params Start]").append(System.lineSeparator());
             params.forEach((key, value) -> {
                 // desensitized query parameters
-                value = Lists.newArrayList(value);
-                DataDesensitizeUtils.desensitizeList(desensitized, key, value, keyWordMatch, dataDesensitizeAlg);
+                List<String> list = Lists.newArrayList(value);
+                DataDesensitizeUtils.desensitizeList(desensitized, key, list, keyWordMatch, dataDesensitizeAlg);
                 logInfo.append(key).append(": ")
-                        .append(StringUtils.join(value, ",")).append(System.lineSeparator());
+                        .append(StringUtils.join(list, ",")).append(System.lineSeparator());
             });
             logInfo.append("[Query Params End]").append(System.lineSeparator());
         }

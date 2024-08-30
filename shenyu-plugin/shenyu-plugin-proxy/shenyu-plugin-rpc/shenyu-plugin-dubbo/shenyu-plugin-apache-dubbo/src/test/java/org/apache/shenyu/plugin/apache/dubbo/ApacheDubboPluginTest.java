@@ -86,9 +86,7 @@ public final class ApacheDubboPluginTest {
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         SelectorData selectorData = mock(SelectorData.class);
         RuleData data = mock(RuleData.class);
-        assertThrows(NullPointerException.class, () -> {
-            StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
-        });
+        assertThrows(NullPointerException.class, () -> StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete());
     }
 
     @Test
@@ -99,9 +97,7 @@ public final class ApacheDubboPluginTest {
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         SelectorData selectorData = mock(SelectorData.class);
         RuleData data = mock(RuleData.class);
-        assertThrows(NullPointerException.class, () -> {
-            StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
-        });
+        assertThrows(NullPointerException.class, () -> StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete());
     }
 
     @Test
@@ -119,9 +115,7 @@ public final class ApacheDubboPluginTest {
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         SelectorData selectorData = mock(SelectorData.class);
         RuleData data = mock(RuleData.class);
-        assertThrows(NullPointerException.class, () -> {
-            StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
-        });
+        assertThrows(NullPointerException.class, () -> StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete());
     }
 
     @Test

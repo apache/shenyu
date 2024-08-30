@@ -52,6 +52,14 @@
                     <artifactId>grpc-netty</artifactId>
                     <groupId>io.grpc</groupId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>protobuf-java-util</artifactId>
+                    <groupId>com.google.protobuf</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>protobuf-java</artifactId>
+                    <groupId>com.google.protobuf</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
 
