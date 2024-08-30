@@ -32,6 +32,7 @@ import io.kubernetes.client.openapi.models.V1IngressTLS;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyStream;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -269,7 +270,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
         if (Objects.nonNull(service.getPort())) {
             if (service.getPort().getNumber() != null && service.getPort().getNumber() > 0) {
                 return String.valueOf(service.getPort().getNumber());
-            } else if (service.getPort().getName() != null && !"".equals(service.getPort().getName().trim())) {
+            } else if (service.getPort().getName() != null && StringUtils.isNoneBlank(service.getPort().getName().trim())) {
                 return service.getPort().getName().trim();
             }
         }

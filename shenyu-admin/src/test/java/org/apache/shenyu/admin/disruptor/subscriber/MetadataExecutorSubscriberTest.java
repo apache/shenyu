@@ -16,10 +16,11 @@
  */
     
 package org.apache.shenyu.admin.disruptor.subscriber;
-    
+
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.type.DataType;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,13 +28,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-    
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-    
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -54,14 +53,14 @@ public class MetadataExecutorSubscriberTest {
     
     @Test
     public void testGetType() {
-        assertEquals(DataType.META_DATA, metadataExecutorSubscriber.getType());
+        Assertions.assertEquals(DataType.META_DATA, metadataExecutorSubscriber.getType());
     }
     
     @Test
     public void testExecutor() {
         List<MetaDataRegisterDTO> list = new ArrayList<>();
         metadataExecutorSubscriber.executor(list);
-        assertTrue(list.isEmpty());
+        Assertions.assertTrue(list.isEmpty());
         list.add(MetaDataRegisterDTO.builder().appName("test").build());
         ShenyuClientRegisterService service = mock(ShenyuClientRegisterService.class);
         when(shenyuClientRegisterService.get(any())).thenReturn(service);

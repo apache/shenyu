@@ -19,9 +19,9 @@ package org.apache.shenyu.plugin.basic.auth.rule;
 
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link BasicAuthRuleHandle}.

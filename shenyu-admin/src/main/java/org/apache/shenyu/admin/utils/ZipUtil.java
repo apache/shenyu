@@ -85,7 +85,7 @@ public final class ZipUtil {
                         out.write(buffer, 0, offset);
                     }
                     String entryName = entry.getName();
-                    itemList.add(new ZipItem(entryName, out.toString("UTF-8")));
+                    itemList.add(new ZipItem(entryName, out.toString(StandardCharsets.UTF_8)));
                 } catch (IOException e) {
                     LOG.error("unzip error", e);
                 }

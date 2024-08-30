@@ -41,9 +41,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(
         classes = PolarisSyncDataConfiguration.class,
         properties = {
-                "shenyu.sync.polaris.url=" + PolarisSyncDataConfigurationTest.URL,
-                "shenyu.sync.polaris.namespace=default",
-                "shenyu.sync.polaris.fileGroup=fileGroup"
+            "shenyu.sync.polaris.url=" + PolarisSyncDataConfigurationTest.URL,
+            "shenyu.sync.polaris.namespace=default",
+            "shenyu.sync.polaris.fileGroup=fileGroup"
         })
 @EnableAutoConfiguration
 public final class PolarisSyncDataConfigurationTest {

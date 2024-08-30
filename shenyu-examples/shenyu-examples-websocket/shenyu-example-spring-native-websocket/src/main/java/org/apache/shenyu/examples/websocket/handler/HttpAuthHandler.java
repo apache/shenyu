@@ -66,8 +66,8 @@ public class HttpAuthHandler extends TextWebSocketHandler {
         String payload = message.getPayload();
         Object token = session.getAttributes().get("token");
         LOG.info("server received {}, sent {}", token, payload);
-        boolean isTestClose = (Objects.nonNull(token) && Objects.equals(token, "testCloseStatus"))
-            || (Objects.nonNull(payload) && Objects.equals(payload, "testCloseStatus"));
+        boolean isTestClose = Objects.nonNull(token) && Objects.equals(token, "testCloseStatus")
+            || Objects.nonNull(payload) && Objects.equals(payload, "testCloseStatus");
         if (isTestClose) {
             session.close(new CloseStatus(4400, "test:apache shenyu server close, return closeStatus"));
         } else {
@@ -85,7 +85,7 @@ public class HttpAuthHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(final WebSocketSession session, final CloseStatus status) throws Exception {
         Object token = session.getAttributes().get("token");
-        LOG.info("closed with status: {}" + status);
+        LOG.info("closed with status: {}", status);
         if (Objects.nonNull(token)) {
             // The user exits and removes the cache.
             WsSessionManager.remove(token.toString());
