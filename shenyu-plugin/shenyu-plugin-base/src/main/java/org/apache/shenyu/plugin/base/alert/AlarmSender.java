@@ -64,9 +64,7 @@ public class AlarmSender {
             ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
             enabled = shenyuConfig.getAlert().getEnabled();
         }
-        AlarmThreadPoolExecutor.getInstance().execute(() -> {
-            alarmService.alarm(alarmContent); 
-        });
+        AlarmThreadPoolExecutor.getInstance().execute(() -> alarmService.alarm(alarmContent));
     }
     
     /**

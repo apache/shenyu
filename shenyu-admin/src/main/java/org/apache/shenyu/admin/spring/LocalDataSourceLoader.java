@@ -32,7 +32,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -59,7 +59,7 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
 
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
-        if ((bean instanceof DataSourceProperties) && Boolean.TRUE.equals(dataBaseProperties.getInitEnable())) {
+        if (bean instanceof DataSourceProperties && Boolean.TRUE.equals(dataBaseProperties.getInitEnable())) {
             this.init((DataSourceProperties) bean);
         }
         return bean;

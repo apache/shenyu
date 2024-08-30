@@ -28,11 +28,13 @@
     <artifactId>shenyu-integrated-test-k8s-ingress-sofa</artifactId>
     <name>shenyu-integrated-test-k8s-ingress-sofa</name>
 
+    <properties>
+        <curator.version>4.3.0</curator.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>
-            <version>5.7.6</version>
             <exclusions>
                 <exclusion>
                     <groupId>net.jcip</groupId>
@@ -42,25 +44,48 @@
                     <groupId>io.grpc</groupId>
                     <artifactId>grpc-core</artifactId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>commons-io</artifactId>
+                    <groupId>commons-io</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>grpc-context</artifactId>
+                    <groupId>io.grpc</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>sofa-common-tools</artifactId>
+                    <groupId>com.alipay.sofa.common</groupId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.alipay.sofa.common</groupId>
+            <artifactId>sofa-common-tools</artifactId>
+            <version>${sofa-common-tools.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-client</artifactId>
-            <version>4.0.1</version>
+            <version>${curator.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-io</artifactId>
+                    <groupId>commons-io</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-framework</artifactId>
-            <version>4.0.1</version>
+            <version>${curator.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
-            <version>4.0.1</version>
+            <version>${curator.version}</version>
         </dependency>
 
         <dependency>
@@ -86,8 +111,28 @@
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-k8s</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-compress</artifactId>
+                    <groupId>org.apache.commons</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-io</artifactId>
+                    <groupId>commons-io</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- shenyu kubernetes controller end -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.15.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-context</artifactId>
+            <version>1.65.1</version>
+        </dependency>
     </dependencies>
 
     <profiles>

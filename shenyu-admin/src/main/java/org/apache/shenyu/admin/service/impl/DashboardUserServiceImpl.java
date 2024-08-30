@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import jakarta.annotation.Nullable;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
@@ -60,7 +61,6 @@ import org.springframework.ldap.support.LdapEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -72,25 +72,25 @@ import java.util.stream.Collectors;
  */
 @Service
 public class DashboardUserServiceImpl implements DashboardUserService {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(DashboardUserServiceImpl.class);
-    
+
     private final DashboardUserMapper dashboardUserMapper;
-    
+
     private final UserRoleMapper userRoleMapper;
-    
+
     private final RoleMapper roleMapper;
-    
+
     @Nullable
     private final LdapProperties ldapProperties;
-    
+
     @Nullable
     private final LdapTemplate ldapTemplate;
-    
+
     private final JwtProperties jwtProperties;
-    
+
     private final UserEventPublisher publisher;
-    
+
     private final DashboardProperties properties;
 
     private final SecretProperties secretProperties;
@@ -114,7 +114,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         this.properties = properties;
         this.secretProperties = secretProperties;
     }
-    
+
     /**
      * create or update dashboard user.
      *
@@ -126,7 +126,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public int createOrUpdate(final DashboardUserDTO dashboardUserDTO) {
         return StringUtils.isBlank(dashboardUserDTO.getId()) ? create(dashboardUserDTO) : update(dashboardUserDTO);
     }
-    
+
     @Override
     public int create(final DashboardUserDTO dashboardUserDTO) {
         Assert.notBlack(dashboardUserDTO.getPassword(), "password is not null");
@@ -141,7 +141,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         }
         return insertCount;
     }
-    
+
     @Override
     public int update(final DashboardUserDTO dashboardUserDTO) {
         // 【mandatory】This function can only be used by the admin user
@@ -169,7 +169,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         }
         return updateCount;
     }
-    
+
     /**
      * delete dashboard users.
      *
@@ -192,11 +192,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         if (deleteCount > 0) {
             userRoleMapper.deleteByUserIdList(deletedIds);
             publisher.onDeleted(deletedUser);
-            
+
         }
         return deleteCount;
     }
-    
+
     /**
      * find dashboard user by id.
      *
@@ -205,25 +205,25 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     @Override
     public DashboardUserEditVO findById(final String id) {
-        
+
         DashboardUserVO dashboardUserVO = DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectById(id));
-        
+
         Set<String> roleIdSet = userRoleMapper.findByUserId(id)
                 .stream()
                 .map(UserRoleDO::getRoleId)
                 .collect(Collectors.toSet());
-        
+
         List<RoleDO> allRoleDOList = roleMapper.selectAll();
         List<RoleVO> allRoles = ListUtil.map(allRoleDOList, RoleVO::buildRoleVO);
-        
+
         List<RoleDO> roleDOList = allRoleDOList.stream()
                 .filter(roleDO -> roleIdSet.contains(roleDO.getId()))
                 .collect(Collectors.toList());
         List<RoleVO> roles = ListUtil.map(roleDOList, RoleVO::buildRoleVO);
-        
+
         return DashboardUserEditVO.buildDashboardUserEditVO(dashboardUserVO, roles, allRoles);
     }
-    
+
     /**
      * find dashboard user by query.
      *
@@ -235,7 +235,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public DashboardUserVO findByQuery(final String userName, final String password) {
         return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.findByQuery(userName, password));
     }
-    
+
     /**
      * find dashboard user by username.
      *
@@ -246,7 +246,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public DashboardUserVO findByUserName(final String userName) {
         return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectByUserName(userName));
     }
-    
+
     /**
      * find page of dashboard user by query.
      *
@@ -259,16 +259,17 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             () -> dashboardUserMapper.countByQuery(dashboardUserQuery),
             () -> ListUtil.map(dashboardUserMapper.selectByQuery(dashboardUserQuery), DashboardUserVO::buildDashboardUserVO));
     }
-    
+
     /**
      * To deal with the admin login.
      *
      * @param userName default username is admin
      * @param password admin password
+     * @param clientId client id
      * @return {@linkplain LoginDashboardUserVO}
      */
     @Override
-    public LoginDashboardUserVO login(final String userName, final String password) {
+    public LoginDashboardUserVO login(final String userName, final String password, final String clientId) {
         DashboardUserVO dashboardUserVO = null;
         final String cbcDecryptPassword;
         if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())) {
@@ -280,11 +281,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         if (Objects.nonNull(ldapTemplate)) {
             dashboardUserVO = loginByLdap(userName, cbcDecryptPassword);
         }
-        
+
         if (Objects.isNull(dashboardUserVO)) {
             dashboardUserVO = loginByDatabase(userName, cbcDecryptPassword);
         }
-        
+
         final LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
         final DashboardUserVO finalDashboardUserVO = dashboardUserVO;
         return Optional.ofNullable(loginDashboardUserVO)
@@ -292,12 +293,18 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                     if (Boolean.FALSE.equals(loginUser.getEnabled())) {
                         return loginUser;
                     }
+                    if (clientId != null) {
+                        DashboardUserDO userDO = new DashboardUserDO();
+                        userDO.setId(loginUser.getId());
+                        userDO.setClientId(clientId);
+                        dashboardUserMapper.updateSelective(userDO);
+                    }
                     return loginUser.setToken(JwtUtils.generateToken(finalDashboardUserVO.getUserName(), finalDashboardUserVO.getPassword(),
-                            jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
+                            clientId, jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
                 })
                 .orElse(null);
     }
-    
+
     /**
      * modify password.
      *
@@ -310,7 +317,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         Assert.notNull(before, "current user is not found");
         Assert.isTrue(Boolean.TRUE.equals(before.getEnabled()), "current user is locked");
         Assert.isTrue(Objects.equals(before.getPassword(), dashboardUserModifyPasswordDTO.getOldPassword()), "old password is error");
-        
+
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserModifyPasswordDTO);
         int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
         if (updateCount > 0) {
@@ -318,18 +325,18 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         }
         return updateCount;
     }
-    
+
     @Override
     public boolean checkUserPassword(final String userId) {
         final DashboardUserDO userDO = dashboardUserMapper.selectById(userId);
-        
+
         WebI18nAssert.isTrue(!Objects.equals(userDO.getDateCreated(), userDO.getDateUpdated()), FailI18nMessage.PASSWORD_IS_DEFAULT);
-        
+
         // The password has not been changed for a long time
         WebI18nAssert.isTrue(passwordUsedLongTime(userDO), FailI18nMessage.PASSWORD_USED_FOR_LONG_TIME);
-        
+
         // Weak password blacklist
-        
+
         return true;
     }
 
@@ -362,11 +369,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             return null;
         }
     }
-    
+
     private DashboardUserVO loginByDatabase(final String userName, final String password) {
         return findByQuery(userName, DigestUtils.sha512Hex(password));
     }
-    
+
     /**
      * bind user and role id.
      *
@@ -384,7 +391,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                         .build()))
                 .collect(Collectors.toList()));
     }
-    
+
     private boolean passwordUsedLongTime(final DashboardUserDO userDO) {
         return userDO.getDateUpdated().getTime() >= System.currentTimeMillis() - properties.getSuperAdminPasswordValidDuration();
     }

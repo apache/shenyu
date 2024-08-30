@@ -36,8 +36,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
+import jakarta.websocket.RemoteEndpoint;
+import jakarta.websocket.Session;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Set;
@@ -138,6 +138,7 @@ public final class WebsocketCollectorTest {
     public void testSend() throws IOException {
         RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
         when(session.getBasicRemote()).thenReturn(basic);
+        when(session.isOpen()).thenReturn(true);
         websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());
         WebsocketCollector.send(null, DataEventTypeEnum.MYSELF);

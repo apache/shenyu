@@ -20,6 +20,7 @@ package org.apache.shenyu.springboot.starter.sync.data.websocket;
 import org.apache.shenyu.plugin.sync.data.websocket.WebsocketSyncDataService;
 import org.apache.shenyu.plugin.sync.data.websocket.config.WebsocketConfig;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,9 +29,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test case for {@link WebsocketSyncDataConfiguration}.
@@ -53,7 +54,7 @@ public final class WebsocketSyncDataConfigurationTest {
 
     @Autowired
     private WebsocketSyncDataService websocketSyncDataService;
-
+    
     @Test
     public void testWebsocketSyncDataService() {
         assertNotNull(websocketSyncDataService);
@@ -61,6 +62,6 @@ public final class WebsocketSyncDataConfigurationTest {
 
     @Test
     public void testWebsocketConfig() {
-        assertThat(websocketConfig.getUrls(), is("ws://localhost:9095/websocket"));
+        assertThat(websocketConfig.getUrls(), is(Lists.newArrayList("ws://localhost:9095/websocket")));
     }
 }

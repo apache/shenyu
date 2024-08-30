@@ -27,7 +27,7 @@ import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
@@ -56,7 +56,7 @@ public class WebClientMessageWriter implements MessageWriter {
     /**
      * the cross headers.
      */
-    private static final Set<String> CORS_HEADERS = new HashSet<String>() {
+    private static final Set<String> CORS_HEADERS = new HashSet<>() {
         {
             add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS);
             add(HttpHeaders.ACCESS_CONTROL_MAX_AGE);
@@ -89,7 +89,7 @@ public class WebClientMessageWriter implements MessageWriter {
 
             exchange.getAttributes().put(Constants.RESPONSE_MONO, responseMono);
             // watcher httpStatus
-            final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);
+            final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);
             Optional.ofNullable(consumer).ifPresent(c -> c.accept(response.getStatusCode()));
             return responseMono;
         }));
@@ -151,7 +151,7 @@ public class WebClientMessageWriter implements MessageWriter {
         // pdf => .pdf
         // octet-stream => octet-stream
         // force-download => force-download
-        Set<String> commonBinaryTypes = new HashSet<String>() {
+        Set<String> commonBinaryTypes = new HashSet<>() {
             {
                 add("image");
                 add("audio");

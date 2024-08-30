@@ -30,22 +30,26 @@ values ('1722804548510507021', '14', 'percentage', 'percentage', 1, 2, 3, '{"req
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1722804548510507022', '3', 'rewriteMetaData', 'rewriteMetaData', 3, 2, 3, '{"required":"1","defaultValue":"false"}');
 
-CREATE TABLE INT_LOCK  (
-    LOCK_KEY CHAR(36),
-    REGION VARCHAR(100),
-    CLIENT_ID CHAR(36),
-    CREATED_DATE TIMESTAMP NOT NULL,
-    constraint INT_LOCK_PK primary key (LOCK_KEY, REGION)
+-- ----------------------------
+-- Table structure for SHENYU_LOCK
+-- ----------------------------
+CREATE TABLE SHENYU_LOCK  (
+   LOCK_KEY CHAR(36),
+   REGION VARCHAR(100),
+   CLIENT_ID CHAR(36),
+   CREATED_DATE TIMESTAMP NOT NULL,
+   constraint SHENYU_LOCK_PK primary key (LOCK_KEY, REGION)
 );
 -- Add comments to the columns
 comment on column INT_LOCK.LOCK_KEY
   is 'LOCK_KEY';
-comment on column INT_LOCK.REGION
+comment on column SHENYU_LOCK.REGION
   is 'REGION';
-comment on column INT_LOCK.CLIENT_ID
+comment on column SHENYU_LOCK.CLIENT_ID
   is 'CLIENT_ID';
-comment on column INT_LOCK.CREATED_DATE
+comment on column SHENYU_LOCK.CREATED_DATE
   is 'CREATED_DATE';
+
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES('1347048240677269503','1346777766301888512','SHENYU.PLUGIN.BATCH.OPENED','','','','2','3','','1','0','system:authen:open','1');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1351007708748849151', '1346358560427216896', '1347048240677269503');
@@ -54,3 +58,168 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES('1386680049203195916','1346777157943259136','SHENYU.COMMON.IMPORT', '', '', '', 2, 0, '', 1, 0, 'system:manager:importConfig', 1);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1386680049203195906', '1346358560427216896', '1386680049203195915');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1386680049203195907', '1346358560427216896', '1386680049203195916');
+
+
+-- ----------------------------
+-- Table structure for cluster_master
+-- ----------------------------
+create table cluster_master
+(
+    id                   varchar(128)   not null,
+    master_host          varchar(255)   not null,
+    master_port          varchar(255)   not null,
+    context_path          varchar(255)   not null,
+    date_created      timestamp(3) default SYSDATE not null,
+    date_updated      timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+)
+;
+-- Add comments to the columns
+comment
+on column alert_receiver.id
+  is 'primary key id';
+comment
+on column alert_receiver.master_host
+  is 'master host';
+comment
+on column alert_receiver.master_port
+  is 'master port';
+comment
+on column alert_receiver.context_path
+  is 'master context_path';
+comment
+on column alert_receiver.date_created
+  is 'create time';
+comment
+on column alert_receiver.date_updated
+  is 'update time';
+
+
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES ('1792749362445840474', '1357956838021890048', 'SHENYU.MENU.SYSTEM.MANAGMENT.NAMESPACE', 'namespace', '/config/namespace', 'namespace', 1, 0, 'appstore', 0, 0, '', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES ('1792749362445840475', '1792749362445840474', 'SHENYU.BUTTON.SYSTEM.ADD', '', '', '', 2, 0, '', 1, 0, 'system:namespace:add', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES ('1792749362445840476', '1792749362445840474', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 1, '', 1, 0, 'system:namespace:list', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES ('1792749362445840477', '1792749362445840474', 'SHENYU.BUTTON.SYSTEM.DELETE', '', '', '', 2, 2, '', 1, 0, 'system:namespace:delete', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES ('1792749362445840478', '1792749362445840474', 'SHENYU.BUTTON.SYSTEM.EDIT', '', '', '', 2, 3, '', 1, 0, 'system:namespace:edit', 1);
+
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343252', '1346358560427216896', '1792749362445840474');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343253', '1346358560427216896', '1792749362445840475');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343254', '1346358560427216896', '1792749362445840476');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343255', '1346358560427216896', '1792749362445840477');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343256', '1346358560427216896', '1792749362445840478');
+
+CREATE TABLE namespace (
+                             id VARCHAR2(128) NOT NULL,
+                             namespace_id VARCHAR2(50) NOT NULL,
+                             name VARCHAR2(255) NOT NULL,
+                             description VARCHAR2(255),
+                             date_created      timestamp(3) default SYSDATE not null,
+                             date_updated      timestamp(3) default SYSDATE not null,
+                             CONSTRAINT pk_namespace PRIMARY KEY (id)
+);
+
+
+COMMENT ON COLUMN namespace.id IS 'namespace primary key';
+COMMENT ON COLUMN namespace.namespace_id IS 'namespace id';
+COMMENT ON COLUMN namespace.name IS 'namespace name';
+COMMENT ON COLUMN namespace.description IS 'namespace desc';
+COMMENT ON COLUMN namespace.date_created IS 'create time';
+COMMENT ON COLUMN namespace.date_updated IS 'update time';
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace(id)) */ INTO `namespace` (`id`, `namespace_id`, `name`, `description`) VALUES ('1', '649330b6-c2d7-4edc-be8e-8a54df9eb385', 'default', 'default-namespace');
+
+
+CREATE TABLE plugin_ns_rel (
+                               id VARCHAR2(128) COLLATE utf8mb4_unicode_ci NOT NULL,
+                               namespace_id VARCHAR2(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+                               plugin_id NUMBER(11) NOT NULL,
+                               config CLOB COLLATE utf8mb4_unicode_ci,
+                               sort NUMBER(11),
+                               enabled NUMBER(4,0) NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
+                               date_created      timestamp(3) default SYSDATE not null,
+                               date_updated      timestamp(3) default SYSDATE not null,
+                               CONSTRAINT pk_plugin_ns_rel PRIMARY KEY (id)
+);
+
+COMMENT ON COLUMN plugin_ns_rel.id IS 'Primary key ID';
+COMMENT ON COLUMN plugin_ns_rel.namespace_id IS 'Namespace ID';
+COMMENT ON COLUMN plugin_ns_rel.plugin_id IS 'Plugin ID';
+COMMENT ON COLUMN plugin_ns_rel.config IS 'Plugin configuration';
+COMMENT ON COLUMN plugin_ns_rel.sort IS 'Sort order';
+COMMENT ON COLUMN plugin_ns_rel.enabled IS 'Whether the plugin is enabled (0 = not open, 1 = open)';
+COMMENT ON COLUMN plugin_ns_rel.date_created IS 'Creation time';
+COMMENT ON COLUMN plugin_ns_rel.date_updated IS 'Update time';
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822145','649330b6-c2d7-4edc-be8e-8a54df9eb385','1', NULL, 20, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822146','649330b6-c2d7-4edc-be8e-8a54df9eb385','10', NULL, 140, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822147','649330b6-c2d7-4edc-be8e-8a54df9eb385','11', '{"protocol":"zookeeper","register":"127.0.0.1:2181","threadpool":"shared"}', 310, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822148','649330b6-c2d7-4edc-be8e-8a54df9eb385','12', NULL, 310, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822149','649330b6-c2d7-4edc-be8e-8a54df9eb385','13', '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}', 310, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822150','649330b6-c2d7-4edc-be8e-8a54df9eb385','14', NULL, 80, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822151','649330b6-c2d7-4edc-be8e-8a54df9eb385','15', '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}', 310, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822152','649330b6-c2d7-4edc-be8e-8a54df9eb385','16', NULL, 110, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822153','649330b6-c2d7-4edc-be8e-8a54df9eb385','17', '{"registerProtocol":"direct","registerAddress":"127.0.0.1:2181","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}', 310, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822154','649330b6-c2d7-4edc-be8e-8a54df9eb385','18', NULL, 160, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822155','649330b6-c2d7-4edc-be8e-8a54df9eb385','19', '{"secretKey":"key"}', 30, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822156','649330b6-c2d7-4edc-be8e-8a54df9eb385','2', '{"model":"black"}', 50, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822157','649330b6-c2d7-4edc-be8e-8a54df9eb385','20', NULL, 120, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822158','649330b6-c2d7-4edc-be8e-8a54df9eb385','21', NULL, 40, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822159','649330b6-c2d7-4edc-be8e-8a54df9eb385','22', NULL, 70, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822160','649330b6-c2d7-4edc-be8e-8a54df9eb385','23', NULL, 220, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822161','649330b6-c2d7-4edc-be8e-8a54df9eb385','24', NULL, 100, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822162','649330b6-c2d7-4edc-be8e-8a54df9eb385','25', NULL, 410, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822163','649330b6-c2d7-4edc-be8e-8a54df9eb385','26', '{"multiSelectorHandle":"1"}', 200, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822164','649330b6-c2d7-4edc-be8e-8a54df9eb385','27', NULL, 125, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822165','649330b6-c2d7-4edc-be8e-8a54df9eb385','28', '{"port": 9500,"bossGroupThreadCount": 1,"maxPayloadSize": 65536,"workerGroupThreadCount": 12,"userName": "shenyu","password": "shenyu","isEncryptPassword": false,"encryptMode": "","leakDetectorLevel": "DISABLED"}', 125, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822166','649330b6-c2d7-4edc-be8e-8a54df9eb385','29', '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9876","producerGroup":"shenyu-plugin-logging-rocketmq"}', 170, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822167','649330b6-c2d7-4edc-be8e-8a54df9eb385','3', NULL, 90, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822168','649330b6-c2d7-4edc-be8e-8a54df9eb385','30', '{"cacheType":"memory"}', 10, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822169','649330b6-c2d7-4edc-be8e-8a54df9eb385','31', NULL, 1, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822170','649330b6-c2d7-4edc-be8e-8a54df9eb385','32', '{"host":"localhost", "port": "9200"}', 190, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822171','649330b6-c2d7-4edc-be8e-8a54df9eb385','33', '{"host":"localhost", "port": "9092"}', 180, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822172','649330b6-c2d7-4edc-be8e-8a54df9eb385','34', '{"projectName": "shenyu", "logStoreName": "shenyu-logstore", "topic": "shenyu-topic"}', 175, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822173','649330b6-c2d7-4edc-be8e-8a54df9eb385','35', '{"topic":"shenyu-access-logging", "serviceUrl": "pulsar://localhost:6650"}', 185, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822174','649330b6-c2d7-4edc-be8e-8a54df9eb385','36', '{"endpoint": "ap-guangzhou.cls.tencentcs.com", "topic": "shenyu-topic"}', 176, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822175','649330b6-c2d7-4edc-be8e-8a54df9eb385','38', '{"host":"127.0.0.1","port":"8123","databse":"shenyu-gateway","username":"foo","password":"bar"}', 195, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822176','649330b6-c2d7-4edc-be8e-8a54df9eb385','39', '{"endpoint":"http://localhost:8000"}', 40, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822177','649330b6-c2d7-4edc-be8e-8a54df9eb385','4', '{"master":"mymaster","mode":"standalone","url":"192.168.1.1:6379","password":"abc"}', 60, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822178','649330b6-c2d7-4edc-be8e-8a54df9eb385','40', NULL, 150, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822179','649330b6-c2d7-4edc-be8e-8a54df9eb385','42', NULL, 320, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822180','649330b6-c2d7-4edc-be8e-8a54df9eb385','43', '{"totalSizeInBytes":"104857600","maxBlockMs":"0","ioThreadCount":"1","batchSizeThresholdInBytes":"524288","batchCountThreshold":"4096","lingerMs":"2000","retries":"100","baseRetryBackoffMs":"100","maxRetryBackoffMs":"100","enableLocalTest":"true","setGiveUpExtraLongSingleLog":"false"}', 177, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822181','649330b6-c2d7-4edc-be8e-8a54df9eb385','44', '{"defaultHandleJson":"{\"authorization\":\"test:test123\"}"}', 150, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822182','649330b6-c2d7-4edc-be8e-8a54df9eb385','45', '{"host":"127.0.0.1","port":5672,"password":"admin","username":"admin","exchangeName":"exchange.logging.plugin","queueName":"queue.logging.plugin","routingKey":"topic.logging","virtualHost":"/","exchangeType":"direct","durable":"true","exclusive":"false","autoDelete":"false"}', 171, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822183','649330b6-c2d7-4edc-be8e-8a54df9eb385','5', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', 200, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822184','649330b6-c2d7-4edc-be8e-8a54df9eb385','6', '{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared","corethreads":0,"threads":2147483647,"queues":0}', 310, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822185','649330b6-c2d7-4edc-be8e-8a54df9eb385','8', NULL, 200, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822186','649330b6-c2d7-4edc-be8e-8a54df9eb385','9', NULL, 130, 0);
+
+
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)VALUES ('1792749362445840479', '1357956838021890048', 'SHENYU.MENU.SYSTEM.MANAGMENT.NAMESPACEPLUGIN', 'namespacePlugin', '/config/namespacePlugin', 'namespacePlugin', 1, 2, 'build', 0, 0, '', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)VALUES ('1792749362445840480', '1792749362445840479', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 0, '', 1, 0, 'system:namespacePlugin:list', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)VALUES ('1792749362445840481', '1792749362445840479', 'SHENYU.BUTTON.SYSTEM.DELETE', '', '', '', 2, 1, '', 1, 0, 'system:namespacePlugin:delete', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)VALUES ('1792749362445840482', '1792749362445840479', 'SHENYU.BUTTON.SYSTEM.ADD', '', '', '', 2, 2, '', 1, 0, 'system:namespacePlugin:add', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)VALUES ('1792749362445840483', '1792749362445840479', 'SHENYU.BUTTON.SYSTEM.SYNCHRONIZE', '', '', '', 2, 3, '', 1, 0, 'system:namespacePlugin:modify', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)VALUES ('1792749362445840484', '1792749362445840479', 'SHENYU.BUTTON.SYSTEM.ENABLE', '', '', '', 2, 4, '', 1, 0, 'system:namespacePlugin:disable', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)VALUES ('1792749362445840485', '1792749362445840479', 'SHENYU.BUTTON.SYSTEM.EDIT', '', '', '', 2, 5, '', 1, 0, 'system:namespacePlugin:edit', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)VALUES ('1792749362445840486', '1792749362445840479', 'SHENYU.BUTTON.SYSTEM.RESOURCE', '', '', '', 2, 6, '', 1, 0, 'system:namespacePlugin:resource', 1);
+
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343260', '1346358560427216896', '1792749362445840479');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343261', '1346358560427216896', '1792749362445840480');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343262', '1346358560427216896', '1792749362445840481');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343263', '1346358560427216896', '1792749362445840482');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343264', '1346358560427216896', '1792749362445840483');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343265', '1346358560427216896', '1792749362445840484');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343266', '1346358560427216896', '1792749362445840485');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343267', '1346358560427216896', '1792749362445840486');
+
+/* add column into dashboard_user table */
+ALTER TABLE dashboard_user ADD client_id VARCHAR(32) NULL;
+COMMENT ON COLUMN dashboard_user.client_id IS 'client id';
+
+ALTER TABLE selector ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN selector.namespace_id IS 'namespaceId';
+
+UPDATE selector SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;

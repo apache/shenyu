@@ -66,7 +66,7 @@ public class ShenyuTestHttpRouter {
     @NonNull
     private Mono<ServerResponse> testRetry(final ServerRequest req) {
         int i = ATOMIC_INTEGER.incrementAndGet();
-        LOG.info("Retry count: " + i);
+        LOG.info("Retry count: {}", i);
         ResultBean resultBean = new ResultBean(1, "msg", "this is retry hello world");
         return ok().body(Mono.just(resultBean), ResultBean.class);
     }

@@ -28,6 +28,6 @@ public class RequestMethodParameterData implements ParameterData {
     
     @Override
     public String builder(final String paramName, final ServerWebExchange exchange) {
-        return exchange.getRequest().getMethodValue();
+        return exchange.getRequest().getMethod().name();
     }
 }

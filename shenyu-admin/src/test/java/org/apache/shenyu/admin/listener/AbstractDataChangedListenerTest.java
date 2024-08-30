@@ -17,24 +17,24 @@
 
 package org.apache.shenyu.admin.listener;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.NamespacePluginService;
+import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.ProxySelectorService;
-import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConfigData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,7 +58,7 @@ public final class AbstractDataChangedListenerTest {
 
     private AppAuthService appAuthService;
 
-    private PluginService pluginService;
+    private NamespacePluginService namespacePluginService;
 
     private RuleService ruleService;
 
@@ -74,7 +74,7 @@ public final class AbstractDataChangedListenerTest {
     public void setUp() throws Exception {
         listener = new MockAbstractDataChangedListener();
         appAuthService = mock(AppAuthService.class);
-        pluginService = mock(PluginService.class);
+        namespacePluginService = mock(NamespacePluginService.class);
         ruleService = mock(RuleService.class);
         selectorService = mock(SelectorService.class);
         metaDataService = mock(MetaDataService.class);
@@ -85,9 +85,9 @@ public final class AbstractDataChangedListenerTest {
         Field appAuthServiceField = clazz.getDeclaredField("appAuthService");
         appAuthServiceField.setAccessible(true);
         appAuthServiceField.set(listener, appAuthService);
-        Field pluginServiceField = clazz.getDeclaredField("pluginService");
-        pluginServiceField.setAccessible(true);
-        pluginServiceField.set(listener, pluginService);
+        Field namespacePluginServiceField = clazz.getDeclaredField("namespacePluginService");
+        namespacePluginServiceField.setAccessible(true);
+        namespacePluginServiceField.set(listener, namespacePluginService);
         Field ruleServiceField = clazz.getDeclaredField("ruleService");
         ruleServiceField.setAccessible(true);
         ruleServiceField.set(listener, ruleService);
@@ -107,7 +107,7 @@ public final class AbstractDataChangedListenerTest {
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
         when(appAuthService.listAll()).thenReturn(appAuthDatas);
         List<PluginData> pluginDatas = Lists.newArrayList(mock(PluginData.class));
-        when(pluginService.listAll()).thenReturn(pluginDatas);
+        when(namespacePluginService.listAll()).thenReturn(pluginDatas);
         List<RuleData> ruleDatas = Lists.newArrayList(mock(RuleData.class));
         when(ruleService.listAll()).thenReturn(ruleDatas);
         List<SelectorData> selectorDatas = Lists.newArrayList(mock(SelectorData.class));
@@ -118,6 +118,9 @@ public final class AbstractDataChangedListenerTest {
         when(proxySelectorService.listAll()).thenReturn(proxySelectorDatas);
         List<DiscoverySyncData> discoverySyncDatas = Lists.newArrayList(mock(DiscoverySyncData.class));
         when(discoveryUpstreamService.listAll()).thenReturn(discoverySyncDatas);
+        
+        // clear first
+        listener.getCache().clear();
     }
 
     @AfterEach

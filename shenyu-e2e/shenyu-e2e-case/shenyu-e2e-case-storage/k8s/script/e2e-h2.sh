@@ -33,8 +33,11 @@ sh "${curPath}"/healthcheck.sh h2 http://localhost:31095/actuator/health http://
 
 kubectl get pod -o wide
 
-## run e2e-test
+kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
 
+kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
+## run e2e-test
+sleep 60s
 curl -S "http://localhost:31195/actuator/pluginData"
 
 ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test

@@ -99,6 +99,16 @@ public interface DiscoveryUpstreamService {
      */
     void deleteBySelectorIdAndUrl(String selectorId, String url);
 
+
+    /**
+     * changeStatusBySelectorIdAndUrl.
+     *
+     * @param selectorId selectorId
+     * @param url        url
+     * @param enabled    enabled
+     */
+    void changeStatusBySelectorIdAndUrl(String selectorId, String url, Boolean enabled);
+
     /**
      * Import the discoveryUpstream data list.
      * @param discoveryUpstreamList the discoveryUpstream data

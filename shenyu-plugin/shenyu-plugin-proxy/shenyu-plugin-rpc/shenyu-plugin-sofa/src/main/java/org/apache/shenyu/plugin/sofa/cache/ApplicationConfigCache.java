@@ -83,7 +83,7 @@ public final class ApplicationConfigCache {
                     }
                 }
             })
-            .build(new CacheLoader<String, ConsumerConfig<GenericService>>() {
+            .build(new CacheLoader<>() {
                 
                 @Override
                 @NonNull

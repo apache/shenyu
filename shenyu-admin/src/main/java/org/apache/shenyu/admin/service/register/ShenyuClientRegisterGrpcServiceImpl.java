@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
@@ -37,20 +38,25 @@ import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+
 /**
  * grpc service register.
  */
 @Service
 public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientRegisterGrpcServiceImpl.class);
 
     @Resource
     private GrpcSelectorHandleConverter grpcSelectorHandleConverter;
@@ -73,6 +79,9 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
         MetaDataService metaDataService = getMetaDataService();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("grpc register metadata:{}", GsonUtils.getInstance().toJson(metaDataDTO));
+        }
         MetaDataDO exist = metaDataService.findByPath(metaDataDTO.getPath());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
@@ -124,7 +133,8 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     public String offline(final String selectorName, final List<URIRegisterDTO> offlineList) {
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         SelectorService selectorService = getSelectorService();
-        SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, pluginName);
+        // todo:[To be refactored with namespace] Temporarily hardcode
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
         if (Objects.isNull(selectorDO)) {
             return Constants.SUCCESS;
         }
@@ -137,6 +147,9 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
                 removeDiscoveryUpstream(selectorDO.getId(), grpcUpstream.getUpstreamUrl());
             }
             DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("grpc offline discoverySyncData:{}", GsonUtils.getInstance().toJson(discoverySyncData));
+            }
             getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
         }
         return Constants.SUCCESS;

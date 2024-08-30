@@ -204,15 +204,15 @@ public final class DashboardUserServiceTest {
         ldapProperties.setBaseDn("test");
         ReflectionTestUtils.setField(dashboardUserService, "ldapProperties", ldapProperties);
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", ldapTemplate);
-        LoginDashboardUserVO loginDashboardUserVO = dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD);
+        LoginDashboardUserVO loginDashboardUserVO = dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null);
         assertEquals(TEST_USER_NAME, loginDashboardUserVO.getUserName());
         assertEquals(DigestUtils.sha512Hex(TEST_PASSWORD), loginDashboardUserVO.getPassword());
 
         // test loginByDatabase
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
-        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD));
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null));
         verify(dashboardUserMapper).findByQuery(eq(TEST_USER_NAME), anyString());
-        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD));
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null));
         verify(dashboardUserMapper, times(2)).findByQuery(eq(TEST_USER_NAME), anyString());
 
         // test loginByDatabase AES password
@@ -221,9 +221,9 @@ public final class DashboardUserServiceTest {
         secretPropertiesTmp.setIv("6075877187097700");
         ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretPropertiesTmp);
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
-        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD)));
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD), null));
         verify(dashboardUserMapper, times(3)).findByQuery(eq(TEST_USER_NAME), anyString());
-        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD)));
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD), null));
         verify(dashboardUserMapper, times(4)).findByQuery(eq(TEST_USER_NAME), anyString());
 
     }
@@ -235,7 +235,7 @@ public final class DashboardUserServiceTest {
                 .dateUpdated(new Timestamp(System.currentTimeMillis()))
                 .build();
     }
-    
+
     private void assertLoginSuccessful(final DashboardUserDO dashboardUserDO, final DashboardUserVO dashboardUserVO) {
         assertEquals(dashboardUserDO.getId(), dashboardUserVO.getId());
         assertEquals(dashboardUserDO.getUserName(), dashboardUserVO.getUserName());

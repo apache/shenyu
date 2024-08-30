@@ -34,6 +34,8 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -44,6 +46,8 @@ import java.util.concurrent.CompletableFuture;
  * sofa proxy service is use GenericService.
  */
 public class SofaProxyService {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(SofaProxyService.class);
     
     private final SofaParamResolveService sofaParamResolveService;
     
@@ -79,7 +83,7 @@ public class SofaProxyService {
             pair = sofaParamResolveService.buildParameter(body, metaData.getParameterTypes());
         }
         CompletableFuture<Object> future = new CompletableFuture<>();
-        RpcInvokeContext.getContext().setResponseCallback(new SofaResponseCallback<Object>() {
+        RpcInvokeContext.getContext().setResponseCallback(new SofaResponseCallback<>() {
             @Override
             public void onAppResponse(final Object o, final String s, final RequestBase requestBase) {
                 future.complete(o);
@@ -98,14 +102,15 @@ public class SofaProxyService {
         GenericService genericService = reference.refer();
         genericService.$genericInvoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         return Mono.fromFuture(future.thenApply(ret -> {
-            if (Objects.isNull(ret)) {
-                ret = Constants.SOFA_RPC_RESULT_EMPTY;
+            Object result = ret;
+            if (Objects.isNull(result)) {
+                result = Constants.SOFA_RPC_RESULT_EMPTY;
             }
             
-            GenericObject genericObject = (GenericObject) ret;
+            GenericObject genericObject = (GenericObject) result;
             exchange.getAttributes().put(Constants.RPC_RESULT, genericObject.getFields());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
-            return ret;
+            return result;
         })).onErrorMap(ShenyuException::new);
     }
 }

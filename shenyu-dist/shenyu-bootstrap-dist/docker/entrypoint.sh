@@ -24,7 +24,7 @@ EXT_LIB=${DEPLOY_DIR}/ext-lib
 CLASS_PATH=.:${DEPLOY_DIR}/conf:${DEPLOY_DIR}/lib/*:${EXT_LIB}/*
 if [ -z "${BOOT_JVM}" ]; then
     JAVA_OPTS=" -server -Xmx2g -Xms2g -Xmn1g -Xss512k -XX:+DisableExplicitGC   -XX:LargePageSizeInBytes=128m"
-    JAVA_OPTS="${JAVA_OPTS} -XX:+UseFastAccessorMethods  -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly  -XX:CMSInitiatingOccupancyFraction=70"
+#    JAVA_OPTS="${JAVA_OPTS} -XX:+UseFastAccessorMethods  -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly  -XX:CMSInitiatingOccupancyFraction=70"
     echo "Use default jvm options: $JAVA_OPTS"
 else
     JAVA_OPTS=${BOOT_JVM}
