@@ -88,7 +88,7 @@ INSERT INTO `shenyu`.`namespace` (`id`, `namespace_id`, `name`, `description`, `
 CREATE TABLE `plugin_ns_rel` (
                                  `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
                                  `namespace_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace id',
-                                 `plugin_id` int(11) NOT NULL COMMENT 'plugin id',
+                                 `plugin_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'plugin id',
                                  `config` text COLLATE utf8mb4_unicode_ci COMMENT 'plugin configuration',
                                  `sort` int(11) DEFAULT NULL COMMENT 'sort',
                                  `enabled` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'whether to open (0, not open, 1 open)',
@@ -168,3 +168,10 @@ INSERT INTO `shenyu`.`permission` (`id`, `object_id`, `resource_id`, `date_creat
 
 /* add column into dashboard_user table */
 ALTER TABLE `shenyu`.`dashboard_user` ADD COLUMN `client_id` varchar(32) NULL DEFAULT NULL COMMENT 'client id';
+
+
+ALTER TABLE `shenyu`.`selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
+
+UPDATE selector
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespaceId IS NULL;

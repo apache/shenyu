@@ -44,7 +44,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SyncDataService}.
@@ -111,7 +111,7 @@ public class SyncDataServiceImpl implements SyncDataService {
 
         List<PluginData> pluginDataList = namespacePluginService.listAll();
         //todo:[Namespace] Temporarily only synchronize plugin data for the default namespace
-        List<PluginData> pluginDataListFilter = pluginDataList.stream().filter(v -> v.getNamespaceId().equals(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)).collect(Collectors.toList());
+        List<PluginData> pluginDataListFilter = pluginDataList.stream().filter(v -> v.getNamespaceId().equals(SYS_DEFAULT_NAMESPACE_ID)).collect(Collectors.toList());
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, pluginDataListFilter));
 
         List<SelectorData> selectorDataList = selectorService.listAll();
@@ -127,11 +127,11 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     @Override
     public boolean syncPluginData(final String pluginId, final String namespaceId) {
-        NamespacePluginVO namespacePluginVO = namespacePluginService.findById(pluginId, namespaceId);
+        NamespacePluginVO namespacePluginVO = namespacePluginService.findByPluginId(pluginId, namespaceId);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(PluginTransfer.INSTANCE.mapToData(namespacePluginVO))));
 
-        List<SelectorData> selectorDataList = selectorService.findByPluginId(pluginId);
+        List<SelectorData> selectorDataList = selectorService.findByPluginIdAndNamespaceId(pluginId, namespaceId);
 
         if (!CollectionUtils.isEmpty(selectorDataList)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));

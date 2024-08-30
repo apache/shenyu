@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
@@ -47,8 +49,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -103,16 +103,16 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      * detail plugin of namespace.
      *
      * @param namespaceId namespace id.
-     * @param id          id.
+     * @param pluginId    pluginId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/id={id}&namespaceId={namespaceId}")
+    @GetMapping("/{pluginId}/{namespaceId}")
     @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult detailPlugin(@PathVariable("namespaceId")
                                           @Existed(message = "namespace is not existed", provider = NamespaceMapper.class) final String namespaceId,
-                                          @PathVariable("id")
-                                          @Existed(message = "id is not existed", provider = NamespacePluginRelMapper.class) final String id) {
-        NamespacePluginVO namespacePluginVO = namespacePluginService.findById(id, namespaceId);
+                                          @PathVariable("pluginId")
+                                          @Existed(message = "pluginId is not existed", provider = NamespacePluginRelMapper.class) final String pluginId) {
+        NamespacePluginVO namespacePluginVO = namespacePluginService.findByPluginId(pluginId, namespaceId);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, namespacePluginVO);
     }
 

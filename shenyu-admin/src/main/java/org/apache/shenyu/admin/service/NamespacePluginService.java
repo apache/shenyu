@@ -53,13 +53,13 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
     String delete(List<String> ids, String namespaceId);
 
     /**
-     * find plugin namespace by id.
+     * find plugin namespace by pluginId.
      *
-     * @param id    pk.
+     * @param pluginId    the pluginId.
      * @param namespaceId the namespaceId
      * @return {@linkplain PluginVO}
      */
-    NamespacePluginVO findById(String id, String namespaceId);
+    NamespacePluginVO findByPluginId(String pluginId, String namespaceId);
 
     /**
      * find page of plugin namespace by query.

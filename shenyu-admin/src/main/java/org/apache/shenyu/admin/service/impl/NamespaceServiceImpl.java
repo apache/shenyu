@@ -80,7 +80,7 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     @Override
     public String delete(final List<String> ids) {
-        if (ids.contains(AdminConstants.SYS_DEFAULT_NAMESPACE_ID)) {
+        if (ids.contains(AdminConstants.DEFAULT_NAMESPACE_PRIMARY_KEY)) {
             return AdminConstants.SYS_DEFAULT_NAMESPACE_ID_DELETE;
         }
         List<NamespaceDO> namespaceDOS = namespaceMapper.selectByIds(ids);
