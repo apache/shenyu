@@ -327,9 +327,9 @@ public class ShenyuTrie {
                 ShenyuTrieNode newCurrentNode = currentNode.getFailToNode();
                 // search failToNode's parentNode
                 ShenyuTrieNode parentNode = newCurrentNode.getParentNode();
-                if (Objects.isNull(parentNode) || (Objects.nonNull(parentNode.getFailToNode()) && Objects.nonNull(newCurrentNode.getFailToNode())
+                if (Objects.isNull(parentNode) || Objects.nonNull(parentNode.getFailToNode()) && Objects.nonNull(newCurrentNode.getFailToNode())
                         && completeResolveConflict(parentNode, wildcard, matchAll, pathVariable, startIndex)
-                        && parentNode.getFailToNode().equals(newCurrentNode.getFailToNode()) && "/".equals(parentNode.getParentNode().getMatchStr()))) {
+                        && parentNode.getFailToNode().equals(newCurrentNode.getFailToNode()) && "/".equals(parentNode.getParentNode().getMatchStr())) {
                     return null;
                 }
                 startIndex--;
@@ -349,7 +349,7 @@ public class ShenyuTrie {
                 startIndex++;
                 continue;
             }
-            if ((startIndex == pathParts.length - 1 && checkNode(currentNode, bizInfo)) || (Objects.nonNull(currentNode) && isMatchAll(currentNode.getMatchStr()) && checkNode(currentNode, bizInfo))) {
+            if (startIndex == pathParts.length - 1 && checkNode(currentNode, bizInfo) || Objects.nonNull(currentNode) && isMatchAll(currentNode.getMatchStr()) && checkNode(currentNode, bizInfo)) {
                 return currentNode;
             }
         }

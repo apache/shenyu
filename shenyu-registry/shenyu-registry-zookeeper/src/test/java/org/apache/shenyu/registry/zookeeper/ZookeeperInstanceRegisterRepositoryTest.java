@@ -64,9 +64,7 @@ public final class ZookeeperInstanceRegisterRepositoryTest {
             }).when(listenable).addListener(any());
             repository.init(config);
             repository.persistInstance(mock(InstanceEntity.class));
-            connectionStateListeners.forEach(connectionStateListener -> {
-                connectionStateListener.stateChanged(null, ConnectionState.RECONNECTED);
-            });
+            connectionStateListeners.forEach(connectionStateListener -> connectionStateListener.stateChanged(null, ConnectionState.RECONNECTED));
             repository.close();
         }
     }

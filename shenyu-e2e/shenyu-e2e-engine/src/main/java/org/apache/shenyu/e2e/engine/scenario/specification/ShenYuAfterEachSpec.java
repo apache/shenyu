@@ -92,9 +92,7 @@ public class ShenYuAfterEachSpec implements AfterEachSpec {
          * @return ShenYuAfterEachSpecBuilder
          */
         public ShenYuAfterEachSpecBuilder deleteWaiting(final @NotNull Checker checker) {
-            this.deleteWaiting = (HttpWaiting) supplier -> {
-                WaitForHelper.waitForEffecting(supplier, (HttpChecker) checker);
-            };
+            this.deleteWaiting = (HttpWaiting) supplier -> WaitForHelper.waitForEffecting(supplier, (HttpChecker) checker);
             return this;
         }
 

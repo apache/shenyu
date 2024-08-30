@@ -82,11 +82,16 @@ public final class SelectorDO extends BaseDO {
      * handle.
      */
     private String handle;
-    
+
     /**
      * match restful.
      */
     private Boolean matchRestful;
+
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
 
     public SelectorDO() {
     }
@@ -100,7 +105,8 @@ public final class SelectorDO extends BaseDO {
                       final Boolean loged,
                       final Boolean continued,
                       final String handle,
-                      final Boolean matchRestful) {
+                      final Boolean matchRestful,
+                      final String namespaceId) {
         this.pluginId = pluginId;
         this.name = name;
         this.matchMode = matchMode;
@@ -111,7 +117,9 @@ public final class SelectorDO extends BaseDO {
         this.continued = continued;
         this.handle = handle;
         this.matchRestful = matchRestful;
+        this.namespaceId = namespaceId;
     }
+
 
     /**
      * Gets the value of pluginId.
@@ -274,7 +282,7 @@ public final class SelectorDO extends BaseDO {
     public void setHandle(final String handle) {
         this.handle = handle;
     }
-    
+
     /**
      * get match restful.
      *
@@ -283,7 +291,7 @@ public final class SelectorDO extends BaseDO {
     public Boolean getMatchRestful() {
         return matchRestful;
     }
-    
+
     /**
      * set match restful.
      *
@@ -292,7 +300,25 @@ public final class SelectorDO extends BaseDO {
     public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
-    
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     /**
      * builder method.
      *
@@ -323,12 +349,13 @@ public final class SelectorDO extends BaseDO {
                 && Objects.equals(loged, that.loged)
                 && Objects.equals(continued, that.continued)
                 && Objects.equals(handle, that.handle)
-                && Objects.equals(matchRestful, that.matchRestful);
+                && Objects.equals(matchRestful, that.matchRestful)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), pluginId, name, matchMode, type, sort, enabled, loged, continued, handle, matchRestful);
+        return Objects.hash(super.hashCode(), pluginId, name, matchMode, type, sort, enabled, loged, continued, handle, matchRestful, namespaceId);
     }
 
     /**
@@ -351,6 +378,7 @@ public final class SelectorDO extends BaseDO {
                     .pluginId(item.getPluginId())
                     .name(item.getName())
                     .matchRestful(item.getMatchRestful())
+                    .namespaceId(item.getNamespaceId())
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
                 selectorDO.setId(UUIDUtils.getInstance().generateShortUuid());
@@ -370,9 +398,9 @@ public final class SelectorDO extends BaseDO {
     /**
      * Trans from selector data.
      *
-     * @param selectorDO        the selector do
-     * @param pluginName        the plugin name
-     * @param conditionDataList the condition data list
+     * @param selectorDO              the selector do
+     * @param pluginName              the plugin name
+     * @param conditionDataList       the condition data list
      * @param beforeConditionDataList before condition data list
      * @return the selector data
      */
@@ -393,9 +421,10 @@ public final class SelectorDO extends BaseDO {
                 .conditionList(conditionDataList)
                 .matchRestful(selectorDO.getMatchRestful())
                 .beforeConditionList(beforeConditionDataList)
+                .namespaceId(selectorDO.getNamespaceId())
                 .build();
     }
-    
+
     /**
      * selector data transform.
      *
@@ -433,8 +462,10 @@ public final class SelectorDO extends BaseDO {
         private Boolean continued;
 
         private String handle;
-        
+
         private Boolean matchRestful;
+
+        private String namespaceId;
 
         private SelectorDOBuilder() {
         }
@@ -570,7 +601,7 @@ public final class SelectorDO extends BaseDO {
             this.handle = handle;
             return this;
         }
-    
+
         /**
          * match restful.
          *
@@ -579,6 +610,17 @@ public final class SelectorDO extends BaseDO {
          */
         public SelectorDOBuilder matchRestful(final Boolean matchRestful) {
             this.matchRestful = matchRestful;
+            return this;
+        }
+
+        /**
+         * namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return SelectorDOBuilder
+         */
+        public SelectorDOBuilder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
 
@@ -602,6 +644,7 @@ public final class SelectorDO extends BaseDO {
             selectorDO.setContinued(continued);
             selectorDO.setHandle(handle);
             selectorDO.setMatchRestful(matchRestful);
+            selectorDO.setNamespaceId(namespaceId);
             return selectorDO;
         }
     }

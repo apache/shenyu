@@ -180,9 +180,7 @@ public class EtcdDiscoveryServiceTest {
         when(watchResponse.getEvents()).thenReturn(events);
         final DataChangedEventListener mockListener = mock(DataChangedEventListener.class);
         etcdDiscoveryServiceUnderTest.watch(key, mockListener);
-        listeners.forEach(listener -> {
-            listener.onNext(watchResponse);
-        });
+        listeners.forEach(listener -> listener.onNext(watchResponse));
 
         final Field cacheField = etcdDiscoveryServiceUnderTest.getClass().getDeclaredField("watchCache");
         cacheField.setAccessible(true);
