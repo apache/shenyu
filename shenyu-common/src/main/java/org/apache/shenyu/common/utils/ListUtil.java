@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -185,8 +186,7 @@ public final class ListUtil {
      * @return list1
      */
     public static <T> List<T> merge(final List<T> list1, final List<T> list2) {
-        list1.addAll(list2);
-        return list1;
+        return ListUtils.union(list1, list2);
     }
     
     /**
