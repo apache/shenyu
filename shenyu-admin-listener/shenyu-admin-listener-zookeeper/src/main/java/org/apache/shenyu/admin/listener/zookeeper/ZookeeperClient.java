@@ -161,6 +161,7 @@ public class ZookeeperClient {
         try {
             client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
+            LOGGER.error("create or update key with value error, key:{} value:{}", key, value, e);
             throw new ShenyuException(e);
         }
     }
