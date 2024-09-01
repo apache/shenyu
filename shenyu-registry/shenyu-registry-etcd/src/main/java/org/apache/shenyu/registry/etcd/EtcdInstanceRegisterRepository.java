@@ -52,9 +52,6 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
 
     @Override
     public void init(final RegisterConfig config) {
-        if (!config.getEnabled()) {
-            return;
-        }
         Properties props = config.getProps();
         long timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
         long ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));

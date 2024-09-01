@@ -59,9 +59,6 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
     
     @Override
     public void init(final RegisterConfig config) {
-        if (!config.getEnabled()) {
-            return;
-        }
         eurekaInstanceConfig = new MyDataCenterInstanceConfig();
         eurekaClientConfig = new DefaultEurekaClientConfig() {
             @Override
