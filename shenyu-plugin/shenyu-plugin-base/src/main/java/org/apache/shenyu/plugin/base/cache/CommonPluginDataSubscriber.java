@@ -272,7 +272,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             return;
         }
         if (Objects.isNull(oldPluginData) || Objects.isNull(oldPluginData.getSort())
-                || (!Objects.equals(oldPluginData.getSort(), pluginData.getSort()))) {
+                || !Objects.equals(oldPluginData.getSort(), pluginData.getSort())) {
             eventPublisher.publishEvent(new PluginHandlerEvent(PluginHandlerEventEnum.SORTED, pluginData));
         }
     }
