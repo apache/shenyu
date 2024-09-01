@@ -87,6 +87,7 @@ metadata:
   labels:
     app: kafka
 spec:
+  type: NodePort
   ports:
     - port: 9092
       name: client
