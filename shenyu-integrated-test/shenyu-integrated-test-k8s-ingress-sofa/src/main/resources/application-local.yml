@@ -46,10 +46,10 @@ shenyu:
 
 logging:
   level:
-    root: info
+    root: debug
     org.springframework.boot: info
     org.apache.ibatis: info
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
-    org.apache.shenyu: info
+    org.apache.shenyu: debug
 
