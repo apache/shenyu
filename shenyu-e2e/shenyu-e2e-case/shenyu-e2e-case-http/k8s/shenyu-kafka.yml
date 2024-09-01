@@ -37,6 +37,7 @@ spec:
           ports:
             - containerPort: 2181
 
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -51,6 +52,7 @@ spec:
   selector:
     app: zookeeper
 
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -79,6 +81,7 @@ spec:
           ports:
             - containerPort: 9092
 
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -94,6 +97,5 @@ spec:
       protocol: TCP
       targetPort: 9092
       nodePort: 31877
-
   selector:
     app: kafka
