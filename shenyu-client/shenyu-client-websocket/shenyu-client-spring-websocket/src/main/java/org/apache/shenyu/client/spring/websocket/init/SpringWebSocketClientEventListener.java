@@ -106,7 +106,8 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
         // Filter out is not controller out
         if (Boolean.TRUE.equals(isFull)) {
             LOG.info("init spring websocket client success with isFull mode");
-            publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap()));
+            List<String> namespaceIds = super.getNamespace();
+            namespaceIds.forEach(namespaceId -> publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId)));
             return Collections.emptyMap();
         }
         Map<String, Object> endpointBeans = context.getBeansWithAnnotation(ShenyuServerEndpoint.class);
@@ -115,7 +116,9 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
     }
 
     @Override
-    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, Object> beans) {
+    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context,
+                                                 final Map<String, Object> beans,
+                                                 final String namespaceId) {
         try {
             return URIRegisterDTO.builder()
                     .contextPath(getContextPath())
@@ -125,6 +128,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
                     .port(Integer.valueOf(getPort()))
                     .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
                     .eventType(EventType.REGISTER)
+                    .namespaceId(namespaceId)
                     .build();
         } catch (ShenyuException e) {
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
@@ -161,11 +165,14 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
                                @NonNull final ShenyuSpringWebSocketClient beanShenyuClient,
                                final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
-        for (Method method : methods) {
-            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
-                    pathJoin(getContextPath(), superPath), clazz, method);
-            getPublisher().publishEvent(metaData);
-            getMetaDataMap().put(method, metaData);
+        List<String> namespaceIds = super.getNamespace();
+        for (String namespaceId : namespaceIds) {
+            for (Method method : methods) {
+                final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
+                        pathJoin(getContextPath(), superPath), clazz, method, namespaceId);
+                getPublisher().publishEvent(metaData);
+                getMetaDataMap().put(method, metaData);
+            }
         }
     }
 
@@ -178,10 +185,13 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
         ShenyuSpringWebSocketClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, getAnnotationType());
         methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
         if (Objects.nonNull(methodShenyuClient)) {
-            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
-                    buildApiPath(method, superPath, methodShenyuClient), clazz, method);
-            getPublisher().publishEvent(metaData);
-            getMetaDataMap().put(method, metaData);
+            List<String> namespaceIds = super.getNamespace();
+            for (String namespaceId : namespaceIds) {
+                final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
+                        buildApiPath(method, superPath, methodShenyuClient), clazz, method,namespaceId);
+                getPublisher().publishEvent(metaData);
+                getMetaDataMap().put(method, metaData);
+            }
         }
     }
 
@@ -203,7 +213,9 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
     }
 
     @Override
-    protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean, @NonNull final ShenyuSpringWebSocketClient webSocketClient, final String path, final Class<?> clazz, final Method method) {
+    protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean, @NonNull final ShenyuSpringWebSocketClient webSocketClient,
+                                                   final String path, final Class<?> clazz,
+                                                   final Method method, final String namespaceId) {
         return MetaDataRegisterDTO.builder()
                 .contextPath(getContextPath())
                 .appName(getAppName())
@@ -211,6 +223,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
                 .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
                 .enabled(true)
                 .ruleName(StringUtils.defaultIfBlank(webSocketClient.ruleName(), getContextPath()))
+                .namespaceId(namespaceId)
                 .build();
     }
     

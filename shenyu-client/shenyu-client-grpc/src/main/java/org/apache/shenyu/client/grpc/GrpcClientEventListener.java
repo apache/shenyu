@@ -99,7 +99,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     }
     
     @Override
-    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, BindableService> beans) {
+    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, BindableService> beans, final String namespaceId) {
         return URIRegisterDTO.builder()
                 .contextPath(getContextPath())
                 .appName(getIpAndPort())
@@ -107,6 +107,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .eventType(EventType.REGISTER)
                 .host(super.getHost())
                 .port(Integer.parseInt(getPort()))
+                .namespaceId(namespaceId)
                 .build();
     }
     
@@ -135,18 +136,23 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     @Override
     protected void handleClass(final Class<?> clazz, final BindableService bean, @NonNull final ShenyuGrpcClient beanShenyuClient, final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
-        for (Method method : methods) {
-            if (Modifier.isPublic(method.getModifiers())) {
-                final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
-                        buildApiPath(method, superPath, null), clazz, method);
-                getPublisher().publishEvent(metaData);
-                getMetaDataMap().put(method, metaData);
+        List<String> namespaceIds = super.getNamespace();
+        for (String namespaceId : namespaceIds) {
+            for (Method method : methods) {
+                if (Modifier.isPublic(method.getModifiers())) {
+                    final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
+                            buildApiPath(method, superPath, null), clazz, method, namespaceId);
+                    getPublisher().publishEvent(metaData);
+                    getMetaDataMap().put(method, metaData);
+                }
             }
         }
     }
     
     @Override
-    protected MetaDataRegisterDTO buildMetaDataDTO(final BindableService bean, @NonNull final ShenyuGrpcClient shenyuClient, final String path, final Class<?> clazz, final Method method) {
+    protected MetaDataRegisterDTO buildMetaDataDTO(final BindableService bean, @NonNull final ShenyuGrpcClient shenyuClient,
+                                                   final String path, final Class<?> clazz,
+                                                   final Method method, final String namespaceId) {
         String desc = shenyuClient.desc();
         String configRuleName = shenyuClient.ruleName();
         String ruleName = StringUtils.defaultIfBlank(configRuleName, path);
@@ -170,6 +176,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .rpcType(RpcTypeEnum.GRPC.getName())
                 .rpcExt(buildRpcExt(shenyuClient, methodType))
                 .enabled(shenyuClient.enabled())
+                .namespaceId(namespaceId)
                 .build();
     }
     

@@ -23,6 +23,11 @@ package org.apache.shenyu.common.constant;
 public interface Constants {
     
     /**
+     * The constant string separator.
+     */
+    String SEPARATOR_CHARS = ";";
+    
+    /**
      * The constant SUCCESS.
      */
     String SUCCESS = "success";
@@ -830,9 +835,6 @@ public interface Constants {
      */
     String METRICS_HYSTRIX = "metricsHystrix";
     
-    /**
-     * namespace constants start.
-     */
     /**
      * The constant SYS_DEFAULT_NAMESPACE_ID.
      */

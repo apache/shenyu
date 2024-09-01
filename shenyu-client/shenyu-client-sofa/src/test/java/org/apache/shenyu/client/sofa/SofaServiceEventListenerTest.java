@@ -20,6 +20,7 @@ package org.apache.shenyu.client.sofa;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -121,7 +122,7 @@ public class SofaServiceEventListenerTest {
                 .port(Integer.parseInt(PORT))
                 .build();
         Map<String, ServiceFactoryBean> beans = new HashMap<>();
-        URIRegisterDTO realURIRegisterDTO = sofaServiceEventListener.buildURIRegisterDTO(applicationContext, beans);
+        URIRegisterDTO realURIRegisterDTO = sofaServiceEventListener.buildURIRegisterDTO(applicationContext, beans, Constants.SYS_DEFAULT_NAMESPACE_ID);
 
         assertEquals(expectedURIRegisterDTO, realURIRegisterDTO);
     }
@@ -207,7 +208,7 @@ public class SofaServiceEventListenerTest {
                         shenyuSofaClient,
                         SUPER_PATH_NOT_CONTAINS_STAR,
                         SofaServiceEventListener.class,
-                        method);
+                        method, Constants.SYS_DEFAULT_NAMESPACE_ID);
         MetaDataRegisterDTO expectedMetaDataRegisterDTO = MetaDataRegisterDTO
                 .builder()
                 .appName(APP_NAME)

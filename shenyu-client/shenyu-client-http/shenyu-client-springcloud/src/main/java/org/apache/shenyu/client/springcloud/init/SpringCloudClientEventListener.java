@@ -125,23 +125,27 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
     protected Map<String, Object> getBeans(final ApplicationContext context) {
         // Filter out is not controller out
         if (Boolean.TRUE.equals(isFull)) {
-            getPublisher().publishEvent(MetaDataRegisterDTO.builder()
-                    .contextPath(getContextPath())
-                    .appName(getAppName())
-                    .path(UriComponentsBuilder.fromUriString(PathUtils.decoratorPathWithSlash(getContextPath()) + EVERY_PATH).build().encode().toUriString())
-                    .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
-                    .enabled(true)
-                    .ruleName(getContextPath())
-                    .build());
             LOG.info("init spring cloud client success with isFull mode");
-            publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap()));
+            List<String> namespaceIds = super.getNamespace();
+            namespaceIds.forEach(namespaceId -> {
+                getPublisher().publishEvent(MetaDataRegisterDTO.builder()
+                        .contextPath(getContextPath())
+                        .appName(getAppName())
+                        .path(UriComponentsBuilder.fromUriString(PathUtils.decoratorPathWithSlash(getContextPath()) + EVERY_PATH).build().encode().toUriString())
+                        .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
+                        .enabled(true)
+                        .ruleName(getContextPath())
+                        .namespaceId(namespaceId)
+                        .build());
+                publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId));
+            });
             return Collections.emptyMap();
         }
         return context.getBeansWithAnnotation(Controller.class);
     }
 
     @Override
-    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, Object> beans) {
+    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, Object> beans, final String namespaceId) {
         try {
             return URIRegisterDTO.builder()
                     .contextPath(getContextPath())
@@ -150,6 +154,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                     .port(Integer.valueOf(getPort()))
                     .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                     .eventType(EventType.REGISTER)
+                    .namespaceId(namespaceId)
                     .build();
         } catch (ShenyuException e) {
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
@@ -166,10 +171,13 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
         // the result of ReflectionUtils#getUniqueDeclaredMethods contains methods such as hashCode, wait, toSting
         // add Objects.nonNull(requestMapping) to make sure not register wrong method
         if (Objects.nonNull(methodShenyuClient) && Objects.nonNull(requestMapping)) {
-            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
-                    buildApiPath(method, superPath, methodShenyuClient), clazz, method);
-            getPublisher().publishEvent(metaData);
-            getMetaDataMap().put(method, metaData);
+            List<String> namespaceIds = super.getNamespace();
+            for (String namespaceId : namespaceIds) {
+                final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
+                        buildApiPath(method, superPath, methodShenyuClient), clazz, method, namespaceId);
+                getPublisher().publishEvent(metaData);
+                getMetaDataMap().put(method, metaData);
+            }
         }
     }
 
@@ -235,7 +243,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean,
                                                    final @NonNull ShenyuSpringCloudClient shenyuClient,
-                                                   final String path, final Class<?> clazz, final Method method) {
+                                                   final String path, final Class<?> clazz, final Method method, final String namespaceId) {
         return MetaDataRegisterDTO.builder()
                 .contextPath(StringUtils.defaultIfBlank(getContextPath(), this.servletContextPath))
                 .addPrefixed(addPrefixed)
@@ -252,6 +260,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                 .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                 .enabled(shenyuClient.enabled())
                 .ruleName(StringUtils.defaultIfBlank(shenyuClient.ruleName(), path))
+                .namespaceId(namespaceId)
                 .build();
     }
 

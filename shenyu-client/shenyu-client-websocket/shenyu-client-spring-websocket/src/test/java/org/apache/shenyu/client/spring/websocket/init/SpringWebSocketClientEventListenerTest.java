@@ -20,6 +20,7 @@ package org.apache.shenyu.client.spring.websocket.init;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -106,7 +107,7 @@ public class SpringWebSocketClientEventListenerTest {
 
     @Test
     public void testBuildURIRegisterDTO() {
-        URIRegisterDTO uriRegisterDTO = eventListener.buildURIRegisterDTO(applicationContext, Collections.emptyMap());
+        URIRegisterDTO uriRegisterDTO = eventListener.buildURIRegisterDTO(applicationContext, Collections.emptyMap(), Constants.SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(uriRegisterDTO);
         assertEquals("/contextPath", uriRegisterDTO.getContextPath());
         assertEquals("appName", uriRegisterDTO.getAppName());
@@ -156,7 +157,7 @@ public class SpringWebSocketClientEventListenerTest {
     @Test
     public void testBuildMetaDataDTO() throws NoSuchMethodException {
         Method method = mockClass.getClass().getMethod("mockMethod");
-        MetaDataRegisterDTO metaDataRegisterDTO = eventListener.buildMetaDataDTO(mockClass, annotation, SUPER_PATH, MockClass.class, method);
+        MetaDataRegisterDTO metaDataRegisterDTO = eventListener.buildMetaDataDTO(mockClass, annotation, SUPER_PATH, MockClass.class, method, Constants.SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(metaDataRegisterDTO);
     }
 

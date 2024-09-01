@@ -94,7 +94,9 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
     }
 
     @Override
-    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, Object> beans) {
+    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context,
+                                                 final Map<String, Object> beans,
+                                                 final String namespaceId) {
         return URIRegisterDTO.builder()
                 .contextPath(this.getContextPath())
                 .appName(this.getAppName())
@@ -102,6 +104,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
                 .eventType(EventType.REGISTER)
                 .host(this.getHost())
                 .port(Integer.parseInt(this.getPort()))
+                .namespaceId(namespaceId)
                 .build();
     }
 
@@ -123,7 +126,8 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
                                                    final ShenyuMotanClient shenyuMotanClient,
                                                    final String path,
                                                    final Class<?> clazz,
-                                                   final Method method) {
+                                                   final Method method,
+                                                   final String namespaceId) {
         Integer timeout = Optional.ofNullable(((BasicServiceConfigBean) applicationContext.getBean(BASE_SERVICE_CONFIG)).getRequestTimeout()).orElse(1000);
         MotanService service = AnnotatedElementUtils.findMergedAnnotation(clazz, MotanService.class);
         String desc = shenyuMotanClient.desc();
@@ -159,6 +163,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
                 .rpcType(RpcTypeEnum.MOTAN.getName())
                 .rpcExt(buildRpcExt(method, timeout, protocol))
                 .enabled(shenyuMotanClient.enabled())
+                .namespaceId(namespaceId)
                 .build();
     }
 
@@ -174,11 +179,14 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
     @Override
     protected void handleClass(final Class<?> clazz, final Object bean, final ShenyuMotanClient beanShenyuClient, final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
-        for (Method method : methods) {
-            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
-                    buildApiPath(method, superPath, null), clazz, method);
-            publisher.publishEvent(metaData);
-            getMetaDataMap().put(method, metaData);
+        List<String> namespaceIds = super.getNamespace();
+        for (String namespaceId : namespaceIds) {
+            for (Method method : methods) {
+                final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
+                        buildApiPath(method, superPath, null), clazz, method, namespaceId);
+                publisher.publishEvent(metaData);
+                getMetaDataMap().put(method, metaData);
+            }
         }
     }
 
