@@ -71,7 +71,7 @@ public abstract class AbstractApiRegistrar<D extends DataTypeParent> implements 
      * Parses the apiDefinition as a registrable objects.
      *
      * @param apiDefinition apiDefinition to be parsed
-     * @return
+     * @return registrable objects
      */
     protected abstract List<D> parse(ApiBean.ApiDefinition apiDefinition);
 

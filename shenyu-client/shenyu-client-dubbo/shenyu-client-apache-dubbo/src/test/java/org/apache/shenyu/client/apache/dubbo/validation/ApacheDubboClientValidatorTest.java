@@ -91,7 +91,7 @@ public final class ApacheDubboClientValidatorTest {
                 .validate(
                         "methodTwo",
                         new Class<?>[]{MockValidationParameter.class},
-                        new Object[]{new MockValidationParameter("NotBeNull")}));
+                        new Object[]{new MockValidationParameter()}));
     }
 
     @Test

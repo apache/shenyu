@@ -124,7 +124,7 @@ public final class MetaDataCache {
                 .orElseGet(() -> {
                     final MetaData value = META_DATA_MAP.values()
                             .stream()
-                            .filter(data -> PathMatchUtils.match(data.getPath(), path))
+                            .filter(data -> data.getEnabled() && PathMatchUtils.match(data.getPath(), path))
                             .findFirst()
                             .orElse(null);
                     final String metaPath = Optional.ofNullable(value)

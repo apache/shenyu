@@ -102,14 +102,15 @@ public class SofaProxyService {
         GenericService genericService = reference.refer();
         genericService.$genericInvoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         return Mono.fromFuture(future.thenApply(ret -> {
-            if (Objects.isNull(ret)) {
-                ret = Constants.SOFA_RPC_RESULT_EMPTY;
+            Object result = ret;
+            if (Objects.isNull(result)) {
+                result = Constants.SOFA_RPC_RESULT_EMPTY;
             }
             
-            GenericObject genericObject = (GenericObject) ret;
+            GenericObject genericObject = (GenericObject) result;
             exchange.getAttributes().put(Constants.RPC_RESULT, genericObject.getFields());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
-            return ret;
+            return result;
         })).onErrorMap(ShenyuException::new);
     }
 }
