@@ -187,7 +187,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         //update upstream
         List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).collect(Collectors.toList());
         String handler = buildHandle(validUriList, selectorDO);
-        LOG.info("doRegisterURI handler: {}", handler);
+        LOG.debug("doRegisterURI handler: {}", handler);
         if (handler != null) {
             selectorDO.setHandle(handler);
             // todo:[To be refactored with namespace] Temporarily hardcode
