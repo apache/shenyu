@@ -70,7 +70,7 @@ public final class AdminConstants {
     /**
      * The constant SYS_DEFAULT_NAMESPACE_ID_DELETE.
      */
-    public static final String SYS_DEFAULT_NAMESPACE_ID_DELETE = "The default namespace can't deleted！";
+    public static final String SYS_DEFAULT_NAMESPACE_ID_DELETE = "The default namespace cannot delete！";
 
     /**
      * The constant SYS_DEFAULT_NAMESPACE_ID.
