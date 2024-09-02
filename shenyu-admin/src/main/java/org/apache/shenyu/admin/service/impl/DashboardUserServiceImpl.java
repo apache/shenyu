@@ -300,7 +300,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                         dashboardUserMapper.updateSelective(userDO);
                     }
                     return loginUser.setToken(JwtUtils.generateToken(finalDashboardUserVO.getUserName(), finalDashboardUserVO.getPassword(),
-                            clientId, jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
+                            Optional.ofNullable(clientId).orElse(finalDashboardUserVO.getClientId()), jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
                 })
                 .orElse(null);
     }
