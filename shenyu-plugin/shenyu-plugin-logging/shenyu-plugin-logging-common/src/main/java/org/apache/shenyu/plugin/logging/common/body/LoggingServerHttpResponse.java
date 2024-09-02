@@ -140,7 +140,9 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         BodyWriter writer = new BodyWriter();
         return Flux.from(body).doOnNext(buffer -> {
             if (LogCollectUtils.isNotBinaryType(getHeaders())) {
-                writer.write(buffer.asByteBuffer().asReadOnlyBuffer());
+                try (DataBuffer.ByteBufferIterator bufferIterator = buffer.readableByteBuffers()) {
+                    bufferIterator.forEachRemaining(byteBuffer -> writer.write(byteBuffer.asReadOnlyBuffer()));
+                }
             }
         }).doFinally(signal -> logResponse(shenyuContext, writer));
     }
