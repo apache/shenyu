@@ -66,8 +66,8 @@ public class HttpAuthHandler extends TextWebSocketHandler {
         String payload = message.getPayload();
         Object token = session.getAttributes().get("token");
         LOG.info("server received {}, sent {}", token, payload);
-        boolean isTestClose = (Objects.nonNull(token) && Objects.equals(token, "testCloseStatus"))
-            || (Objects.nonNull(payload) && Objects.equals(payload, "testCloseStatus"));
+        boolean isTestClose = Objects.nonNull(token) && Objects.equals(token, "testCloseStatus")
+            || Objects.nonNull(payload) && Objects.equals(payload, "testCloseStatus");
         if (isTestClose) {
             session.close(new CloseStatus(4400, "test:apache shenyu server close, return closeStatus"));
         } else {
