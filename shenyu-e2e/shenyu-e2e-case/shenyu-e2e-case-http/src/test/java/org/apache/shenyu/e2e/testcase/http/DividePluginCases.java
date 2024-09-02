@@ -84,7 +84,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .build();
     }
 
-    private  ShenYuScenarioSpec testKafkaHello(){
+    private  ShenYuScenarioSpec testKafkaHello() {
         return ShenYuScenarioSpec.builder()
                 .name("testKafkaHello")
                 .beforeEachSpec(
