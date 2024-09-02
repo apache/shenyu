@@ -30,7 +30,7 @@ import java.util.List;
 public class RuleQueryCondition extends BaseExcludedSearchCondition implements SearchCondition, SwitchCondition {
     
     /**
-     * search keyword: rule name  name.
+     * search keyword: rule name.
      */
     private String keyword;
     
@@ -49,6 +49,11 @@ public class RuleQueryCondition extends BaseExcludedSearchCondition implements S
      */
     @JsonIgnore
     private String userId;
+
+    /**
+     * namespace id.
+     */
+    private String namespaceId;
     
     /**
      * Gets the value of userId.
@@ -124,4 +129,23 @@ public class RuleQueryCondition extends BaseExcludedSearchCondition implements S
     public void setSelectors(final List<String> selectors) {
         this.selectors = selectors;
     }
+
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
 }
