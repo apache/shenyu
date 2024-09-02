@@ -72,7 +72,7 @@ spec:
     spec:
       containers:
         - name: kafka
-          image: wurstmeister/kafka:2.12-2.1.1
+          image: bitnami/kafka:3.6.2
           env:
             - name: KAFKA_ADVERTISED_LISTENERS
               value: PLAINTEXT://kafka:9092
