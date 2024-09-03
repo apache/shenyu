@@ -83,6 +83,11 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     protected static final String PATH_SEPARATOR = "/";
 
     protected static final String EVERY_PATH = "**";
+    
+    /**
+     * multiple namespace support.
+     */
+    protected final List<String> namespace;
 
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
@@ -103,11 +108,6 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     private ApplicationContext context;
 
     private final Boolean isDiscoveryLocalMode;
-    
-    /**
-     * multiple namespace support.
-     */
-    protected final List<String> namespace;
 
     /**
      * Instantiates a new context refreshed event listener.
