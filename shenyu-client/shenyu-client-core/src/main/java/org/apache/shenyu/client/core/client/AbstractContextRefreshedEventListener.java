@@ -344,6 +344,10 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
         return result.toString();
     }
+    
+    protected List<String> getNamespace() {
+        return namespace;
+    }
 
     protected abstract MetaDataRegisterDTO buildMetaDataDTO(T bean,
                                                             @NonNull A shenyuClient,
@@ -423,9 +427,5 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      */
     public ApplicationContext getContext() {
         return context;
-    }
-    
-    protected List<String> getNamespace() {
-        return namespace;
     }
 }
