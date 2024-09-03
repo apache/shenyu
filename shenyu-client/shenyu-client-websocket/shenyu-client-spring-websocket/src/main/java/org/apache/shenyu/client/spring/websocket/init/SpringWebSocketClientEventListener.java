@@ -188,7 +188,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
             List<String> namespaceIds = super.getNamespace();
             for (String namespaceId : namespaceIds) {
                 final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
-                        buildApiPath(method, superPath, methodShenyuClient), clazz, method,namespaceId);
+                        buildApiPath(method, superPath, methodShenyuClient), clazz, method, namespaceId);
                 getPublisher().publishEvent(metaData);
                 getMetaDataMap().put(method, metaData);
             }
