@@ -124,11 +124,11 @@ public final class PermissionServiceTest {
         when(mockDashboardUserMapper.selectByUserName("admin")).thenReturn(dashboardUserDO);
         when(mockUserRoleMapper.findByUserId("1")).thenReturn(Collections.singletonList(userRoleDO));
         when(mockPermissionMapper.findByObjectIds(Collections.singletonList("1346358560427216896"))).thenReturn(permissionDOS);
-//        when(mockResourceMapper.selectById("1346775491550474240")).thenReturn(resourceDO1);
-//        when(mockResourceMapper.selectById("1346776175553376256")).thenReturn(resourceDO2);
-//        when(mockResourceMapper.selectById("1346777157943259136")).thenReturn(resourceDO3);
-//        when(mockResourceMapper.selectById("1347053375029653504")).thenReturn(resourceDO4);
-//        when(mockResourceMapper.selectAll()).thenReturn(Arrays.asList(resourceDO1, resourceDO2, resourceDO3, resourceDO4));
+//        when(mockResourceMapper.selectByIdAndNamespaceId("1346775491550474240")).thenReturn(resourceDO1);
+//        when(mockResourceMapper.selectByIdAndNamespaceId("1346776175553376256")).thenReturn(resourceDO2);
+//        when(mockResourceMapper.selectByIdAndNamespaceId("1346777157943259136")).thenReturn(resourceDO3);
+//        when(mockResourceMapper.selectByIdAndNamespaceId("1347053375029653504")).thenReturn(resourceDO4);
+//        when(mockResourceMapper.selectAllByNamespaceId()).thenReturn(Arrays.asList(resourceDO1, resourceDO2, resourceDO3, resourceDO4));
         when(mockResourceMapper.selectByUserName("admin")).thenReturn(Arrays.asList(resourceDO2, resourceDO3, resourceDO1, resourceDO4));
         when(mockResourceMapper.selectByResourceType(ResourceTypeConstants.MENU_TYPE_2)).thenReturn(Collections.singletonList(resourceDO4));
         permissionServiceImplUnderTest = new PermissionServiceImpl(mockPermissionMapper, mockResourceMapper, dashboardProperties);

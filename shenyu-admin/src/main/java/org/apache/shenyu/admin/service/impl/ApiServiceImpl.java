@@ -172,10 +172,11 @@ public class ApiServiceImpl implements ApiService {
         //clean rule
         final List<RuleVO> rules = ruleService.searchByCondition(condition);
         if (CollectionUtils.isNotEmpty(rules)) {
-            ruleService.delete(rules.stream()
+            ruleService.deleteByIdsAndNamespaceId(rules.stream()
                     .map(RuleVO::getId)
                     .distinct()
-                    .collect(Collectors.toList()));
+                    // todo:[To be refactored with namespace]  Temporarily  hardcode
+                    .collect(Collectors.toList()), SYS_DEFAULT_NAMESPACE_ID);
         }
         //clean selector
         List<SelectorDO> selectorDOList = selectorService.findByNameAndPluginNames(apiDO.getContextPath(), PluginEnum.getUpstreamNames());
@@ -188,11 +189,12 @@ public class ApiServiceImpl implements ApiService {
             }
         });
         if (CollectionUtils.isNotEmpty(selectorIds)) {
+            // todo:[To be refactored with namespace]  Temporarily  hardcode
             selectorService.deleteByNamespaceId(selectorIds, SYS_DEFAULT_NAMESPACE_ID);
         }
         //clean metadata
-        Optional.ofNullable(metaDataService.findByPath(path))
-                .ifPresent(metaDataDO -> metaDataService.delete(Lists.newArrayList(metaDataDO.getId())));
+        Optional.ofNullable(metaDataService.findByPathAndNamespaceId(path, SYS_DEFAULT_NAMESPACE_ID))
+                .ifPresent(metaDataDO -> metaDataService.deleteByIdsAndNamespaceId(Lists.newArrayList(metaDataDO.getId()), SYS_DEFAULT_NAMESPACE_ID));
     }
 
     private void register(final ApiDO apiDO) {
