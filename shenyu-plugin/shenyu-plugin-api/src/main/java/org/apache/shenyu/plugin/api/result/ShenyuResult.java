@@ -56,7 +56,7 @@ public interface ShenyuResult<T> {
      */
     default Object format(ServerWebExchange exchange, Object origin) {
         // basic data or upstream data
-        if (ObjectTypeUtils.isBasicType(origin) || (origin instanceof byte[])) {
+        if (ObjectTypeUtils.isBasicType(origin) || origin instanceof byte[]) {
             return origin;
         }
         // error result or rpc origin result.

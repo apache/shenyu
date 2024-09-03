@@ -51,7 +51,7 @@ public class LeastActiveLoadBalanceTest {
         final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();
         Upstream upstream = leastActiveLoadBalance.doSelect(onlyOneList, "localhost");
         Upstream upstream1 = leastActiveLoadBalance.doSelect(onlyOneList, "localhost");
-        Assertions.assertTrue((upstream.getUrl().equals("baidu.com") && upstream1.getUrl().equals("pro.jd.com"))
+        Assertions.assertTrue(upstream.getUrl().equals("baidu.com") && upstream1.getUrl().equals("pro.jd.com")
                 || upstream1.getUrl().equals("baidu.com") && upstream.getUrl().equals("pro.jd.com"));
     }
 }
