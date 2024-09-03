@@ -55,7 +55,7 @@ import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMES
  */
 @Service
 public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientRegisterGrpcServiceImpl.class);
 
     @Resource
@@ -82,7 +82,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
         if (LOG.isDebugEnabled()) {
             LOG.debug("grpc register metadata:{}", GsonUtils.getInstance().toJson(metaDataDTO));
         }
-        MetaDataDO exist = metaDataService.findByPath(metaDataDTO.getPath());
+        MetaDataDO exist = metaDataService.findByPathAndNamespaceId(metaDataDTO.getPath(), metaDataDTO.getNamespaceId());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
 

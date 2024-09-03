@@ -67,7 +67,7 @@ import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMES
 public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
     
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuClientRegisterServiceImpl.class);
-    
+
     /**
      * The Event publisher.
      */
@@ -140,6 +140,8 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      */
     @Override
     public String register(final MetaDataRegisterDTO dto) {
+        String namespaceId = StringUtils.defaultIfEmpty(dto.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
+        dto.setNamespaceId(namespaceId);
         //handler plugin selector
         String selectorHandler = selectorHandler(dto);
         String selectorId = selectorService.registerDefault(dto, PluginNameAdapter.rpcTypeAdapter(rpcType()), selectorHandler);
@@ -288,14 +290,15 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      */
     protected RuleDTO buildContextPathDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {
         String contextPath = metaDataDTO.getContextPath();
-        return buildRuleDTO(selectorId, ruleHandler, contextPath, PathUtils.decoratorPath(contextPath));
+        String namespaceId = metaDataDTO.getNamespaceId();
+        return buildRuleDTO(selectorId, ruleHandler, contextPath, PathUtils.decoratorPath(contextPath), namespaceId);
     }
 
     private RuleDTO buildRpcDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {
-        return buildRuleDTO(selectorId, ruleHandler, metaDataDTO.getRuleName(), metaDataDTO.getPath());
+        return buildRuleDTO(selectorId, ruleHandler, metaDataDTO.getRuleName(), metaDataDTO.getPath(), metaDataDTO.getNamespaceId());
     }
 
-    private RuleDTO buildRuleDTO(final String selectorId, final String ruleHandler, final String ruleName, final String path) {
+    private RuleDTO buildRuleDTO(final String selectorId, final String ruleHandler, final String ruleName, final String path, final String namespaceId) {
         RuleDTO ruleDTO = RuleDTO.builder()
                 .selectorId(selectorId)
                 .name(ruleName)
@@ -305,6 +308,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
                 .matchRestful(Boolean.FALSE)
                 .sort(1)
                 .handle(ruleHandler)
+                .namespaceId(namespaceId)
                 .build();
 
         String conditionPath = this.rewritePath(path);

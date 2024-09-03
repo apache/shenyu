@@ -77,6 +77,11 @@ public class MetaData {
     private Boolean enabled;
 
     /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
+    /**
      * no args constructor.
      */
     public MetaData() {
@@ -95,9 +100,10 @@ public class MetaData {
      * @param parameterTypes parameterTypes
      * @param rpcExt         rpcExt
      * @param enabled        enabled
+     * @param namespaceId    namespaceId
      */
     public MetaData(final String id, final String appName, final String contextPath, final String path, final String rpcType, final String serviceName,
-                    final String methodName, final String parameterTypes, final String rpcExt, final Boolean enabled) {
+                    final String methodName, final String parameterTypes, final String rpcExt, final Boolean enabled, final String namespaceId) {
         this.id = id;
         this.appName = appName;
         this.contextPath = contextPath;
@@ -108,6 +114,7 @@ public class MetaData {
         this.parameterTypes = parameterTypes;
         this.rpcExt = rpcExt;
         this.enabled = enabled;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -317,6 +324,24 @@ public class MetaData {
         this.enabled = enabled;
     }
 
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -369,6 +394,8 @@ public class MetaData {
                 + '\''
                 + ", enabled="
                 + enabled
+                + ", namespaceId="
+                + namespaceId
                 + '}';
     }
 
@@ -436,6 +463,11 @@ public class MetaData {
          * enabled.
          */
         private Boolean enabled;
+
+        /**
+         * namespaceId.
+         */
+        private String namespaceId;
 
         /**
          * no args constructor.
@@ -559,6 +591,17 @@ public class MetaData {
          */
         public Builder enabled(final Boolean enabled) {
             this.enabled = enabled;
+            return this;
+        }
+
+        /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }
