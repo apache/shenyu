@@ -120,14 +120,14 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void registerDiscoveryConfig(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
-        SelectorDO selectorDO = findAndLockOnDB(discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName());
+        SelectorDO selectorDO = findAndLockOnDB(discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName(), discoveryConfigRegisterDTO.getNamespaceId());
         bindingDiscovery(discoveryConfigRegisterDTO, selectorDO);
     }
 
-    private SelectorDO findAndLockOnDB(final String selectorName, final String pluginName) {
+    private SelectorDO findAndLockOnDB(final String selectorName, final String pluginName, final String namespaceId) {
         SelectorDO selectorDO = null;
         for (int i = 0; i < 3; i++) {
-            selectorDO = selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
+            selectorDO = selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(selectorName, pluginName, namespaceId);
             if (selectorDO != null) {
                 return selectorDO;
             }
