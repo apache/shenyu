@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.NotBlank;
@@ -92,6 +93,13 @@ public class MetaDataDTO implements Serializable {
      */
     @NotNull
     private Boolean enabled;
+
+    /**
+     * namespaceId.
+     */
+    @NotBlank
+    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    private String namespaceId;
     
     /**
      * Gets the value of id.
@@ -307,6 +315,24 @@ public class MetaDataDTO implements Serializable {
      */
     public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
+    }
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
     }
     
     @Override
