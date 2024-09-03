@@ -39,12 +39,18 @@ public class MetaDataQuery implements Serializable {
      */
     private PageParameter pageParameter;
 
+    /**
+     * namespace id.
+     */
+    private String namespaceId;
+
     public MetaDataQuery() {
     }
 
-    public MetaDataQuery(final String path, final PageParameter pageParameter) {
+    public MetaDataQuery(final String path, final PageParameter pageParameter, final String namespaceId) {
         this.path = path;
         this.pageParameter = pageParameter;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -83,6 +89,24 @@ public class MetaDataQuery implements Serializable {
         this.pageParameter = pageParameter;
     }
 
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -92,11 +116,12 @@ public class MetaDataQuery implements Serializable {
             return false;
         }
         MetaDataQuery that = (MetaDataQuery) o;
-        return Objects.equals(path, that.path) && Objects.equals(pageParameter, that.pageParameter);
+        return Objects.equals(path, that.path) && Objects.equals(pageParameter, that.pageParameter)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(path, pageParameter);
+        return Objects.hash(path, pageParameter, namespaceId);
     }
 }

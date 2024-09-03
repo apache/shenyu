@@ -2677,3 +2677,8 @@ INSERT INTO "public"."permission" VALUES ('1792779493541343267', '13463585604272
 ALTER TABLE "public"."selector" ADD COLUMN namespace_id VARCHAR(50) NULL;
 COMMENT ON COLUMN "public"."selector"."namespace_id" IS 'namespaceId';
 
+ALTER TABLE "public"."rule" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."meta_data" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespaceId';
