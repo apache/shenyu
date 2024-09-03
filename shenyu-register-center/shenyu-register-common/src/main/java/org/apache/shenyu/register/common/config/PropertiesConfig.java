@@ -60,7 +60,7 @@ public class PropertiesConfig {
      *
      * @param namespace namespace identifier
      */
-    public void setNamespace(String namespace) {
+    public void setNamespace(final String namespace) {
         this.namespace = namespace;
     }
 }

@@ -250,7 +250,7 @@ public class URIRegisterDTO implements DataTypeParent {
      *
      * @param namespaceId namespace id
      */
-    public void setNamespaceId(String namespaceId) {
+    public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
     
