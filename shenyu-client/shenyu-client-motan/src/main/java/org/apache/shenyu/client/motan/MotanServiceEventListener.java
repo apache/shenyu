@@ -31,7 +31,7 @@ import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -67,7 +67,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
 
     private String group;
 
-    public MotanServiceEventListener(final PropertiesConfig clientConfig,
+    public MotanServiceEventListener(final ShenyuClientConfig clientConfig,
                                      final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
     }
@@ -107,7 +107,12 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
                 .namespaceId(namespaceId)
                 .build();
     }
-
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.MOTAN.getName();
+    }
+    
     @Override
     protected String buildApiSuperPath(final Class<?> clazz, final ShenyuMotanClient shenyuMotanClient) {
         if (Objects.nonNull(shenyuMotanClient) && !StringUtils.isBlank(shenyuMotanClient.path())) {

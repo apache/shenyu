@@ -30,7 +30,7 @@ import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -67,9 +67,9 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
 
     private final String ipAndPort;
 
-    public TarsServiceBeanEventListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public TarsServiceBeanEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
-        Properties props = clientConfig.getProps();
+        Properties props = clientConfig.getClient().get(getClientName()).getProps();
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         String port = props.getProperty(ShenyuClientConstants.PORT);
         if (StringUtils.isAnyBlank(contextPath, this.getHost(), port)) {
@@ -113,7 +113,12 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
                 .namespaceId(namespaceId)
                 .build();
     }
-
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.TARS.getName();
+    }
+    
     @Override
     protected String buildApiSuperPath(final Class<?> clazz, @Nullable final ShenyuTarsClient shenyuTarsClient) {
         if (Objects.nonNull(shenyuTarsClient) && !StringUtils.isBlank(shenyuTarsClient.path())) {

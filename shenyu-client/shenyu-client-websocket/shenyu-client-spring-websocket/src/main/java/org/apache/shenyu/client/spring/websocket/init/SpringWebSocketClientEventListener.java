@@ -30,7 +30,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -78,10 +78,10 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
      */
-    public SpringWebSocketClientEventListener(final PropertiesConfig clientConfig,
+    public SpringWebSocketClientEventListener(final ShenyuClientConfig clientConfig,
                                               final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
-        Properties props = clientConfig.getProps();
+        Properties props = clientConfig.getClient().get(getClientName()).getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         this.protocol = props.getProperty(ShenyuClientConstants.PROTOCOL, ShenyuClientConstants.WS);
         mappingAnnotation.add(ShenyuSpringWebSocketClient.class);
@@ -134,7 +134,12 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
         }
     }
-
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.WEB_SOCKET.getName();
+    }
+    
     @Override
     protected void handle(final String beanName, final Object bean) {
         Class<?> clazz = getCorrectedClass(bean);

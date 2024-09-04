@@ -38,6 +38,8 @@ import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -115,9 +117,13 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      * @param clientConfig                   the shenyu client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
-    public AbstractContextRefreshedEventListener(final PropertiesConfig clientConfig,
+    public AbstractContextRefreshedEventListener(final ShenyuClientConfig clientConfig,
                                                  final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = clientConfig.getProps();
+        ClientPropertiesConfig config = clientConfig.getClient().get(getClientName());
+        if (Objects.isNull(config)) {
+            throw new ShenyuClientIllegalArgumentException("clientConfig must config " + getClientName() + " properties");
+        }
+        Properties props = config.getProps();
         String namespace = clientConfig.getNamespace();
         if (StringUtils.isBlank(namespace)) {
             LOG.warn("current shenyu.namespace is null, use default namespace: {}", Constants.SYS_DEFAULT_NAMESPACE_ID);
@@ -272,6 +278,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     protected abstract URIRegisterDTO buildURIRegisterDTO(ApplicationContext context,
                                                           Map<String, T> beans,
                                                           String namespaceId);
+    
+    protected abstract String getClientName();
 
     protected void handle(final String beanName, final T bean) {
         Class<?> clazz = getCorrectedClass(bean);

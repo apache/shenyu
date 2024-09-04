@@ -30,7 +30,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -65,7 +65,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
      * @param clientConfig                   the shenyu dubbo client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
-    public ApacheDubboServiceBeanListener(final PropertiesConfig clientConfig,
+    public ApacheDubboServiceBeanListener(final ShenyuClientConfig clientConfig,
                                           final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
     }
@@ -123,6 +123,11 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                     .namespaceId(namespaceId)
                     .build();
         }).orElse(null);
+    }
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.DUBBO.getName();
     }
     
     private String buildAppName(final ServiceBean<?> serviceBean) {

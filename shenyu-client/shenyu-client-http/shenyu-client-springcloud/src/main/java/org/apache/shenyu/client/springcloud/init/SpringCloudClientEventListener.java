@@ -160,7 +160,12 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
         }
     }
-
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.SPRING_CLOUD.getName();
+    }
+    
     @Override
     protected void handleMethod(final Object bean, final Class<?> clazz,
                                 @Nullable final ShenyuSpringCloudClient beanShenyuClient, final Method method,

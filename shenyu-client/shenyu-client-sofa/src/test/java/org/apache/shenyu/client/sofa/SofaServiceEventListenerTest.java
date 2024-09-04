@@ -22,7 +22,8 @@ import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFact
 import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -237,15 +238,20 @@ public class SofaServiceEventListenerTest {
         properties.setProperty("username", USERNAME);
         properties.setProperty("password", PASSWORD);
         properties.setProperty("appName", APP_NAME);
-        PropertiesConfig config = new PropertiesConfig();
+        ClientPropertiesConfig config = new ClientPropertiesConfig();
         config.setProps(properties);
+        
+        ShenyuClientConfig clientConfig = new ShenyuClientConfig();
+        Map<String, ClientPropertiesConfig> client = new HashMap<>();
+        client.put(RpcTypeEnum.SOFA.getName(), config);
+        clientConfig.setClient(client);
 
         ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
         mockRegisterCenter.setServerLists("http://localhost:58080");
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
 
-        return new SofaServiceEventListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
+        return new SofaServiceEventListener(clientConfig, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
     }
 
 }

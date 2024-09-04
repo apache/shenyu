@@ -28,7 +28,7 @@ import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -59,7 +59,7 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
 
     private static final Logger LOG = LoggerFactory.getLogger(SofaServiceEventListener.class);
 
-    public SofaServiceEventListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public SofaServiceEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
     }
 
@@ -82,7 +82,12 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
                 .namespaceId(namespaceId)
                 .build();
     }
-
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.SOFA.getName();
+    }
+    
     @Override
     protected String buildApiSuperPath(final Class<?> clazz,
                                        final ShenyuSofaClient beanShenyuClient) {

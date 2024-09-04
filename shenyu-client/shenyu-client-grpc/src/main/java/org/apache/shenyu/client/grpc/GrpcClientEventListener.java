@@ -32,7 +32,7 @@ import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -66,7 +66,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
      * @param clientConfig the shenyu grpc client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
-    public GrpcClientEventListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public GrpcClientEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
         if (StringUtils.isAnyBlank(getContextPath(), getIpAndPort(), getPort())) {
             throw new ShenyuClientIllegalArgumentException("grpc client must config the contextPath, ipAndPort");
@@ -109,6 +109,11 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .port(Integer.parseInt(getPort()))
                 .namespaceId(namespaceId)
                 .build();
+    }
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.GRPC.getName();
     }
     
     @Override

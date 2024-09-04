@@ -30,6 +30,8 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -87,12 +89,12 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @param env                            the env
      */
-    public SpringMvcClientEventListener(final PropertiesConfig clientConfig,
+    public SpringMvcClientEventListener(final ShenyuClientConfig clientConfig,
                                         final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
                                         final Environment env) {
         super(clientConfig, shenyuClientRegisterRepository);
         this.env = env;
-        Properties props = clientConfig.getProps();
+        Properties props = clientConfig.getClient().get(getClientName()).getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         this.protocol = props.getProperty(ShenyuClientConstants.PROTOCOL, ShenyuClientConstants.HTTP);
         this.addPrefixed = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.ADD_PREFIXED,
@@ -161,7 +163,12 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
         }
     }
-
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.HTTP.getName();
+    }
+    
     @Override
     protected String buildApiSuperPath(final Class<?> clazz, @Nullable final ShenyuSpringMvcClient beanShenyuClient) {
         final String servletPath = StringUtils.defaultString(this.env.getProperty("spring.mvc.servlet.path"), "");
