@@ -28,7 +28,6 @@ import org.apache.shenyu.admin.model.event.plugin.NamespacePluginCreatedEvent;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.SessionUtil;
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.springframework.context.ApplicationEventPublisher;
@@ -39,6 +38,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * NamespacePluginEventPublisher.
