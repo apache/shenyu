@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.mapper.ScalePolicyMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -58,12 +59,12 @@ public class ScalePolicyDTO implements Serializable {
     /**
      * begin time.
      */
-    private String beginTime;
+    private LocalDateTime beginTime;
 
     /**
      * end time.
      */
-    private String endTime;
+    private LocalDateTime endTime;
 
     public ScalePolicyDTO() {
     }
@@ -72,8 +73,8 @@ public class ScalePolicyDTO implements Serializable {
                           final Integer sort,
                           final Integer status,
                           final Integer num,
-                          final String beginTime,
-                          final String endTime) {
+                          final LocalDateTime beginTime,
+                          final LocalDateTime endTime) {
         this.id = id;
         this.sort = sort;
         this.status = status;
@@ -159,7 +160,7 @@ public class ScalePolicyDTO implements Serializable {
      *
      * @return the value of beginTime
      */
-    public String getBeginTime() {
+    public LocalDateTime getBeginTime() {
         return beginTime;
     }
 
@@ -168,7 +169,7 @@ public class ScalePolicyDTO implements Serializable {
      *
      * @param beginTime beginTime
      */
-    public void setBeginTime(final String beginTime) {
+    public void setBeginTime(final LocalDateTime beginTime) {
         this.beginTime = beginTime;
     }
 
@@ -177,7 +178,7 @@ public class ScalePolicyDTO implements Serializable {
      *
      * @return the value of endTime
      */
-    public String getEndTime() {
+    public LocalDateTime getEndTime() {
         return endTime;
     }
 
@@ -186,7 +187,7 @@ public class ScalePolicyDTO implements Serializable {
      *
      * @param endTime endTime
      */
-    public void setEndTime(final String endTime) {
+    public void setEndTime(final LocalDateTime endTime) {
         this.endTime = endTime;
     }
 
@@ -231,9 +232,9 @@ public class ScalePolicyDTO implements Serializable {
 
         private Integer num;
 
-        private String beginTime;
+        private LocalDateTime beginTime;
 
-        private String endTime;
+        private LocalDateTime endTime;
 
         private ScalePolicyDTOBuilder() {
         }
@@ -288,7 +289,7 @@ public class ScalePolicyDTO implements Serializable {
          * @param beginTime beginTime
          * @return ScalePolicyDTOBuilder
          */
-        public ScalePolicyDTOBuilder beginTime(final String beginTime) {
+        public ScalePolicyDTOBuilder beginTime(final LocalDateTime beginTime) {
             this.beginTime = beginTime;
             return this;
         }
@@ -299,7 +300,7 @@ public class ScalePolicyDTO implements Serializable {
          * @param endTime endTime
          * @return ScalePolicyDTOBuilder
          */
-        public ScalePolicyDTOBuilder endTime(final String endTime) {
+        public ScalePolicyDTOBuilder endTime(final LocalDateTime endTime) {
             this.endTime = endTime;
             return this;
         }
