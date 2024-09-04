@@ -31,6 +31,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -87,11 +88,11 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @param env                            the env
      */
-    public SpringCloudClientEventListener(final PropertiesConfig clientConfig,
+    public SpringCloudClientEventListener(final ShenyuClientConfig clientConfig,
                                           final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
                                           final Environment env) {
         super(clientConfig, shenyuClientRegisterRepository);
-        Properties props = clientConfig.getProps();
+        Properties props = clientConfig.getClient().get(getClientName()).getProps();
         this.env = env;
         if (StringUtils.isBlank(getAppName())) {
             String errorMsg = "spring cloud param must config the appName";

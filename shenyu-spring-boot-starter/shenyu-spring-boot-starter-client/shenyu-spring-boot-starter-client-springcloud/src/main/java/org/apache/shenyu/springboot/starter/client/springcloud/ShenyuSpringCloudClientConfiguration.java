@@ -56,6 +56,6 @@ public class ShenyuSpringCloudClientConfiguration {
     public SpringCloudClientEventListener springCloudClientEventListener(final ShenyuClientConfig clientConfig,
                                                                         final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
                                                                         final Environment env) {
-        return new SpringCloudClientEventListener(clientConfig.getClient().get(RpcTypeEnum.SPRING_CLOUD.getName()), shenyuClientRegisterRepository, env);
+        return new SpringCloudClientEventListener(clientConfig, shenyuClientRegisterRepository, env);
     }
 }
