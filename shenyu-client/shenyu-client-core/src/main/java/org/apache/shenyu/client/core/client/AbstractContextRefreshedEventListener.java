@@ -37,7 +37,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
