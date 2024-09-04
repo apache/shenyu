@@ -136,7 +136,7 @@ jobs:
           echo "----------kubectl logs -l app=shenyu-ingress-controller -n shenyu-ingress --tail=-1----------"
           kubectl logs -l app=shenyu-ingress-controller -n shenyu-ingress --tail=-1
           echo "----------kubectl logs -l app=shenyu-examples-sofa-deployment -n shenyu-ingress --tail=-1----------"
-          kubectl logs -l app=shenyu-examples-sofa-deployment -n shenyu-ingress --tail=-1
+          kubectl logs -l app=shenyu-examples-sofa -n shenyu-ingress --tail=-1
           echo "----------kubectl logs -l app=shenyu-zk -n shenyu-ingress --tail=-1----------"
           kubectl logs -l app=shenyu-zk -n shenyu-ingress --tail=-1
           if [[ ${{steps.test.outcome}} == "failure" ]]; then
