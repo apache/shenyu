@@ -2956,3 +2956,10 @@ comment on column SCALE_HISTORY.date_updated
 
 ALTER TABLE selector ADD namespace_id VARCHAR2(50) NULL;
 COMMENT ON COLUMN selector.namespace_id IS 'namespaceId';
+
+
+ALTER TABLE rule ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN rule.namespace_id IS 'namespaceId';
+
+ALTER TABLE meta_data ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN meta_data.namespace_id IS 'namespaceId';

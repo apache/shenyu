@@ -1388,3 +1388,9 @@ CREATE TABLE IF NOT EXISTS `scale_history`
 
 
 ALTER TABLE `selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
+
+ALTER TABLE `selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
+
+ALTER TABLE `rule` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
+
+ALTER TABLE `meta_data` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' ;
