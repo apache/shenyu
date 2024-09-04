@@ -121,6 +121,7 @@ public class SofaServiceEventListenerTest {
                 .eventType(EventType.REGISTER)
                 .host(HOST)
                 .port(Integer.parseInt(PORT))
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         Map<String, ServiceFactoryBean> beans = new HashMap<>();
         URIRegisterDTO realURIRegisterDTO = sofaServiceEventListener.buildURIRegisterDTO(applicationContext, beans, Constants.SYS_DEFAULT_NAMESPACE_ID);
@@ -186,7 +187,7 @@ public class SofaServiceEventListenerTest {
     public void testBuildMetaDataDTO() throws NoSuchMethodException {
         Method method = SofaServiceEventListener
                 .class
-                .getDeclaredMethod(METHOD_NAME, ApplicationContext.class, Map.class);
+                .getDeclaredMethod(METHOD_NAME, ApplicationContext.class, Map.class, String.class);
         given(shenyuSofaClient.path()).willReturn(PATH);
         given(shenyuSofaClient.desc()).willReturn(DESC);
         given(shenyuSofaClient.ruleName()).willReturn(CONFIG_RULE_NAME);
@@ -199,7 +200,7 @@ public class SofaServiceEventListenerTest {
         doReturn(Comparable.class).when(serviceFactoryBean).getInterfaceClass();
 
         String expectedParameterTypes = "org.springframework.context.ApplicationContext,java.util.Map#java.lang.String#"
-                + "com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean";
+                + "com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean,java.lang.String";
         String expectedPath = "/sofa/findByIdsAndName/path";
         String expectedRpcExt = "{\"loadbalance\":\"loadBalance\",\"retries\":0,\"timeout\":0}";
 
@@ -225,6 +226,7 @@ public class SofaServiceEventListenerTest {
                 .rpcType(RpcTypeEnum.SOFA.getName())
                 .rpcExt(expectedRpcExt)
                 .enabled(ENABLED)
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .build();
 
         assertEquals(expectedMetaDataRegisterDTO, realMetaDataRegisterDTO);
