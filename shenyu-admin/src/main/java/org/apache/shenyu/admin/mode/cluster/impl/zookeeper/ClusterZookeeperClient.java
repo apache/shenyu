@@ -110,7 +110,7 @@ public class ClusterZookeeperClient implements AutoCloseable {
      */
     public boolean isExist(final String key) {
         try {
-            return null != client.checkExists().forPath(key);
+            return null != client.checkExists() && null != client.checkExists().forPath(key);
         } catch (Exception e) {
             throw new ShenyuException(e);
         }

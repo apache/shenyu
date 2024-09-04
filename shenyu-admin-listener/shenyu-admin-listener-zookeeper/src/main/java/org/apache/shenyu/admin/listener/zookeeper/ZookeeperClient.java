@@ -109,7 +109,7 @@ public class ZookeeperClient {
      */
     public boolean isExist(final String key) {
         try {
-            return null != client.checkExists().forPath(key);
+            return null != client.checkExists() && null != client.checkExists().forPath(key);
         } catch (Exception e) {
             LOGGER.error("check if key exist error", e);
             return false;
