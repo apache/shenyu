@@ -107,8 +107,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public DiscoveryVO discovery(final String pluginName, final String level) {
-        return DiscoveryTransfer.INSTANCE.mapToVo(discoveryMapper.selectByPluginNameAndLevel(pluginName, level));
+    public DiscoveryVO discovery(final String pluginName, final String level, final String namespaceId) {
+        return DiscoveryTransfer.INSTANCE.mapToVo(discoveryMapper.selectByPluginNameAndLevel(pluginName, level, namespaceId));
     }
 
     @Override
@@ -146,7 +146,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         proxySelectorDTO.setName(selectorDO.getName());
         proxySelectorDTO.setId(selectorDO.getId());
         proxySelectorDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
-        DiscoveryDO discoveryDO = discoveryMapper.selectByPluginNameAndLevel(discoveryConfigRegisterDTO.getPluginName(), DiscoveryLevel.PLUGIN.getCode());
+        DiscoveryDO discoveryDO = discoveryMapper.selectByPluginNameAndLevel(discoveryConfigRegisterDTO.getPluginName(), DiscoveryLevel.PLUGIN.getCode(), discoveryConfigRegisterDTO.getNamespaceId());
         if (discoveryDO == null) {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             discoveryDO = DiscoveryDO.builder()
@@ -157,6 +157,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                     .type(discoveryConfigRegisterDTO.getDiscoveryType())
                     .serverList(discoveryConfigRegisterDTO.getServerList())
                     .props(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())))
+                    .namespaceId(discoveryConfigRegisterDTO.getNamespaceId())
                     .dateCreated(currentTime)
                     .dateUpdated(currentTime)
                     .build();

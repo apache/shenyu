@@ -60,8 +60,8 @@ public class DiscoveryController {
      * @return {@link org.apache.shenyu.admin.model.vo.DiscoveryVO}
      */
     @GetMapping("")
-    public ShenyuAdminResult discovery(final String pluginName, final String level) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.discovery(pluginName, level));
+    public ShenyuAdminResult discovery(final String pluginName, final String level, final String namespaceId) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.discovery(pluginName, level, namespaceId));
     }
 
     /**

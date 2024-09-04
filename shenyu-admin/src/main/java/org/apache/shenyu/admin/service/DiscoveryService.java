@@ -39,9 +39,10 @@ public interface DiscoveryService {
      *
      * @param pluginName plugin name
      * @param level      level
+     * @param namespaceId namespaceId
      * @return the discovery
      */
-    DiscoveryVO discovery(String pluginName, String level);
+    DiscoveryVO discovery(String pluginName, String level, final String namespaceId);
 
     /**
      * Create or update string.

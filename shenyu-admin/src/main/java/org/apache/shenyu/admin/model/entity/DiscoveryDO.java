@@ -37,6 +37,8 @@ public final class DiscoveryDO extends BaseDO {
 
     private String props;
 
+    private String namespaceId;
+
     public DiscoveryDO() {
 
     }
@@ -160,6 +162,24 @@ public final class DiscoveryDO extends BaseDO {
     }
 
     /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
+    /**
      * builder.
      *
      * @return discoveryDOBuilder
@@ -185,12 +205,13 @@ public final class DiscoveryDO extends BaseDO {
                 && Objects.equals(level, discoveryDO.level)
                 && Objects.equals(serverList, discoveryDO.serverList)
                 && Objects.equals(pluginName, discoveryDO.pluginName)
-                && Objects.equals(props, discoveryDO.props);
+                && Objects.equals(props, discoveryDO.props)
+                && Objects.equals(namespaceId, discoveryDO.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), name, type, level, serverList, pluginName, props);
+        return Objects.hash(super.hashCode(), name, type, level, serverList, pluginName, props,namespaceId);
     }
 
     public static final class DiscoveryDOBuilder {
@@ -212,6 +233,8 @@ public final class DiscoveryDO extends BaseDO {
         private String pluginName;
 
         private String props;
+
+        private String namespaceId;
 
         private DiscoveryDOBuilder() {
 
@@ -316,6 +339,18 @@ public final class DiscoveryDO extends BaseDO {
         }
 
         /**
+         * namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return DiscoveryDOBuilder
+         */
+        public DiscoveryDOBuilder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
+            return this;
+        }
+
+
+        /**
          * build DiscoveryDO.
          * @return DiscoveryDO
          */
@@ -330,6 +365,7 @@ public final class DiscoveryDO extends BaseDO {
             discoveryDO.setServerList(serverList);
             discoveryDO.setPluginName(pluginName);
             discoveryDO.setProps(props);
+            discoveryDO.setProps(namespaceId);
             return discoveryDO;
         }
     }
