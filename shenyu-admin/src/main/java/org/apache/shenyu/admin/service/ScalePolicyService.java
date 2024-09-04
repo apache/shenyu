@@ -23,7 +23,7 @@ import org.apache.shenyu.admin.model.vo.ScalePolicyVO;
 import java.util.List;
 
 /**
- * this is scale policy service.
+ * this is the scale policy service.
  */
 public interface ScalePolicyService {
 
