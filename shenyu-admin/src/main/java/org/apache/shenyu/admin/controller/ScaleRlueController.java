@@ -73,7 +73,7 @@ public class ScaleRlueController {
      * @param pageSize    pageSize
      * @return org.apache.shenyu.admin.model.result.ShenyuAdminResult
      */
-    @GetMapping("")
+    @GetMapping
     public ShenyuAdminResult queryRule(final String metricName,
                                        @RequestParam @NotNull final Integer currentPage,
                                        @RequestParam @NotNull final Integer pageSize) {
@@ -105,7 +105,7 @@ public class ScaleRlueController {
      * @param scaleRuleDTO scaleRuleDTO
      * @return ShenyuAdminResult
      */
-    @PostMapping("")
+    @PostMapping
     public ShenyuAdminResult createRule(@Valid @RequestBody final ScaleRuleDTO scaleRuleDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, scaleRuleService.createOrUpdate(scaleRuleDTO));
     }
@@ -116,7 +116,7 @@ public class ScaleRlueController {
      * @param scaleRuleDTO scaleRuleDTO
      * @return ShenyuAdminResult
      */
-    @PutMapping("")
+    @PutMapping
     public ShenyuAdminResult updateRule(@Valid @RequestBody final ScaleRuleDTO scaleRuleDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, scaleRuleService.createOrUpdate(scaleRuleDTO));
     }

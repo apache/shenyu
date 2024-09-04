@@ -69,8 +69,8 @@ public class ScalePolicyDTO implements Serializable {
     }
 
     public ScalePolicyDTO(final String id,
-                          @NotNull final Integer sort,
-                          @NotNull final Integer status,
+                          final Integer sort,
+                          final Integer status,
                           final Integer num,
                           final String beginTime,
                           final String endTime) {

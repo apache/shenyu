@@ -78,7 +78,7 @@ public class ScalePolicyController {
      * @param scalePolicyDTO scale policy info
      * @return ShenyuAdminResult
      */
-    @PutMapping("")
+    @PutMapping
     public ShenyuAdminResult updateScalePolicy(@Valid @RequestBody final ScalePolicyDTO scalePolicyDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, scalePolicyService.update(scalePolicyDTO));
     }
