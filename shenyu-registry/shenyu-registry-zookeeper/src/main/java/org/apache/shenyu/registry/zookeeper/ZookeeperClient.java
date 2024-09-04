@@ -158,6 +158,10 @@ public class ZookeeperClient {
     public void createOrUpdate(final String key, final String value, final CreateMode mode) {
         String val = StringUtils.isEmpty(value) ? "" : value;
         try {
+            if (isExist(key)) {
+                client.setData().forPath(key, val.getBytes(StandardCharsets.UTF_8));
+                return;
+            }
             client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             throw new ShenyuException(e);

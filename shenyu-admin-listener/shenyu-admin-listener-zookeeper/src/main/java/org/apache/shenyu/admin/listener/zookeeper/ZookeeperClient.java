@@ -138,7 +138,7 @@ public class ZookeeperClient {
      * @return value.
      */
     public String get(final String key) {
-        TreeCache cache = findFromcache(key);
+        TreeCache cache = findFromCache(key);
         if (Objects.isNull(cache)) {
             return getDirectly(key);
         }
@@ -159,6 +159,10 @@ public class ZookeeperClient {
     public void createOrUpdate(final String key, final String value, final CreateMode mode) {
         String val = StringUtils.isEmpty(value) ? "" : value;
         try {
+            if (isExist(key)) {
+                client.setData().forPath(key, val.getBytes(StandardCharsets.UTF_8));
+                return;
+            }
             client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             LOGGER.error("create or update key with value error, key:{} value:{}", key, value, e);
@@ -245,7 +249,7 @@ public class ZookeeperClient {
      * @param key key.
      * @return cache.
      */
-    private TreeCache findFromcache(final String key) {
+    private TreeCache findFromCache(final String key) {
         for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
             if (key.startsWith(cache.getKey())) {
                 return cache.getValue();
