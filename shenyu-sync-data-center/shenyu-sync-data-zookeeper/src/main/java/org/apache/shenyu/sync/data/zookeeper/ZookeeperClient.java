@@ -160,6 +160,7 @@ public class ZookeeperClient implements AutoCloseable {
         String val = StringUtils.isEmpty(value) ? "" : value;
         try {
             if (null != client.checkExists() && null != client.checkExists().forPath(key)) {
+                LOGGER.info("path exists, update zookeeper key={} with value={}", key, val);
                 client.setData().forPath(key, val.getBytes(StandardCharsets.UTF_8));
                 return;
             }
