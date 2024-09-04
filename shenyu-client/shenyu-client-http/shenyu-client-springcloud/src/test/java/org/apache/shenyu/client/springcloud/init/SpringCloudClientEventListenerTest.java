@@ -138,7 +138,8 @@ public final class SpringCloudClientEventListenerTest {
         clientConfig.setClient(client);
         // hit error
         when(env.getProperty("spring.application.name")).thenReturn("");
-        Assert.assertThrows(ShenyuClientIllegalArgumentException.class, () -> new SpringCloudClientEventListener(clientConfig, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env));
+        Assert.assertThrows(ShenyuClientIllegalArgumentException.class,
+                () -> new SpringCloudClientEventListener(clientConfig, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env));
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
         return new SpringCloudClientEventListener(clientConfig, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env);
     }
