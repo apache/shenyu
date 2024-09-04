@@ -109,7 +109,7 @@ public class ZookeeperClient {
      */
     public boolean isExist(final String key) {
         try {
-            return null != client.checkExists() && null != client.checkExists().forPath(key);
+            return null != client.checkExists().forPath(key);
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
@@ -158,7 +158,7 @@ public class ZookeeperClient {
     public void createOrUpdate(final String key, final String value, final CreateMode mode) {
         String val = StringUtils.isEmpty(value) ? "" : value;
         try {
-            if (isExist(key)) {
+            if (null != client.checkExists() && null != client.checkExists().forPath(key)) {
                 client.setData().forPath(key, val.getBytes(StandardCharsets.UTF_8));
                 return;
             }
