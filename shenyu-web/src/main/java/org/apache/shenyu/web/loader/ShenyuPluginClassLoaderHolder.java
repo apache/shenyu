@@ -22,23 +22,23 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * ShenyuPluginClassloaderHolder.
+ * ShenyuPluginClassLoaderHolder.
  */
-public final class ShenyuPluginClassloaderHolder {
+public final class ShenyuPluginClassLoaderHolder {
 
-    private static final ShenyuPluginClassloaderHolder HOLDER = new ShenyuPluginClassloaderHolder();
+    private static final ShenyuPluginClassLoaderHolder HOLDER = new ShenyuPluginClassLoaderHolder();
 
     private final Map<String, ShenyuPluginClassLoader> pluginCache = new ConcurrentHashMap<>();
 
-    private ShenyuPluginClassloaderHolder() {
+    private ShenyuPluginClassLoaderHolder() {
     }
 
     /**
      * getSingleton.
      *
-     * @return ShenyuPluginClassloaderHolder
+     * @return ShenyuPluginClassLoaderHolder
      */
-    public static ShenyuPluginClassloaderHolder getSingleton() {
+    public static ShenyuPluginClassLoaderHolder getSingleton() {
         return HOLDER;
     }
 
