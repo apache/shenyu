@@ -21,7 +21,6 @@ import io.grpc.ConnectivityState;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
 import io.grpc.Status;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.grpc.loadbalance.picker.AbstractPicker;
 import org.apache.shenyu.plugin.grpc.loadbalance.picker.AbstractReadyPicker;
 import org.apache.shenyu.plugin.grpc.loadbalance.picker.EmptyPicker;
@@ -159,7 +158,6 @@ public abstract class AbstractLoadBalancer extends LoadBalancer {
     
     @Override
     public void handleNameResolutionError(final Status error) {
-        LOG.error("AbstractLoadBalancer.handleNameResolutionError,set state to TRANSIENT_FAILURE, error:{}", error);
         updateBalancingState(TRANSIENT_FAILURE,
                 currentPicker instanceof AbstractReadyPicker ? currentPicker : new EmptyPicker(error));
     }
@@ -168,7 +166,6 @@ public abstract class AbstractLoadBalancer extends LoadBalancer {
      * Updates picker with the list of active subchannels (state == READY).
      */
     private void updateBalancingState() {
-        LOG.info("AbstractLoadBalancer.updateBalancingState, serviceName:{}, subchannels:{}", getServiceName(), JsonUtils.toJson(subchannels));
         final List<Subchannel> activeList = subchannels.values()
                 .stream()
                 .filter(r -> SubChannels.getStateInfo(r).getState() == READY)

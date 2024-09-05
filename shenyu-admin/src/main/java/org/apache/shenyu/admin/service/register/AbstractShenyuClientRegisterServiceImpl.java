@@ -50,8 +50,6 @@ import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Collections;
@@ -66,8 +64,6 @@ import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMES
  */
 public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
     
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuClientRegisterServiceImpl.class);
-
     /**
      * The Event publisher.
      */
@@ -178,7 +174,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             return "";
         }
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
-        LOG.info("doRegisterURI pluginName: {}, pluginName: {}", pluginName, selectorName);
         // todo:[To be refactored with namespace] Temporarily hardcode
         SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
         if (Objects.isNull(selectorDO)) {
@@ -189,7 +184,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         //update upstream
         List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).collect(Collectors.toList());
         String handler = buildHandle(validUriList, selectorDO);
-        LOG.debug("doRegisterURI handler: {}", handler);
         if (handler != null) {
             selectorDO.setHandle(handler);
             // todo:[To be refactored with namespace] Temporarily hardcode
