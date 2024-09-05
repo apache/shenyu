@@ -164,6 +164,7 @@ public class ZookeeperClient {
                     client.setData().forPath(key, val.getBytes(StandardCharsets.UTF_8));
                     return;
                 }
+                LOGGER.info("path not exists, set zookeeper key={} with value={}", key, val);
                 client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
             }
         } catch (Exception e) {
