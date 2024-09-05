@@ -38,7 +38,7 @@ public enum AlertTransfer {
      * @param alertReceiverDTO the alert receiver dto
      * @return the alert receiver do
      */
-    public AlertReceiverDO mapToAlertReciverDO(final AlertReceiverDTO alertReceiverDTO) {
+    public AlertReceiverDO mapToAlertReceiverDO(final AlertReceiverDTO alertReceiverDTO) {
         return Optional.ofNullable(alertReceiverDTO)
                 .map(v -> {
                     AlertReceiverDO alertReceiverDO = new AlertReceiverDO();
