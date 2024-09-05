@@ -67,7 +67,7 @@ public class ShenyuGrpcClientConfiguration {
         if (props != null) {
             props.setProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.valueOf(ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode)).toString());
         }
-        return new GrpcClientEventListener(clientConfig.getClient().get(RpcTypeEnum.GRPC.getName()), shenyuClientRegisterRepository);
+        return new GrpcClientEventListener(clientConfig, shenyuClientRegisterRepository);
     }
 
     /**
