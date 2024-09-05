@@ -18,7 +18,6 @@
 package org.apache.shenyu.springboot.starter.client.sofa;
 
 import org.apache.shenyu.client.sofa.SofaServiceEventListener;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
@@ -49,6 +48,6 @@ public class ShenyuSofaClientConfiguration {
      */
     @Bean
     public SofaServiceEventListener sofaServiceEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new SofaServiceEventListener(clientConfig.getClient().get(RpcTypeEnum.SOFA.getName()), shenyuClientRegisterRepository);
+        return new SofaServiceEventListener(clientConfig, shenyuClientRegisterRepository);
     }
 }
