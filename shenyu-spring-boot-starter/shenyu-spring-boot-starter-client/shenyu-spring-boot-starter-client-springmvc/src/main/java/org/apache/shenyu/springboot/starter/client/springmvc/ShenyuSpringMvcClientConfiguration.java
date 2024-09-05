@@ -71,6 +71,9 @@ public class ShenyuSpringMvcClientConfiguration {
         String discoveryMode = env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
         if (props != null) {
             String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
+            if (StringUtils.isBlank(appName) && StringUtils.isBlank(applicationName)) {
+                throw new IllegalArgumentException("spring.application.name or shenyu.client.http.props.appName must not be empty");
+            }
             if (StringUtils.isBlank(appName)) {
                 props.setProperty(ShenyuClientConstants.APP_NAME, applicationName);
             }
@@ -80,7 +83,7 @@ public class ShenyuSpringMvcClientConfiguration {
             }
             props.setProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.valueOf(ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode)).toString());
         }
-        return new SpringMvcClientEventListener(clientPropertiesConfig, shenyuClientRegisterRepository, env);
+        return new SpringMvcClientEventListener(clientConfig, shenyuClientRegisterRepository, env);
     }
 
     /**
