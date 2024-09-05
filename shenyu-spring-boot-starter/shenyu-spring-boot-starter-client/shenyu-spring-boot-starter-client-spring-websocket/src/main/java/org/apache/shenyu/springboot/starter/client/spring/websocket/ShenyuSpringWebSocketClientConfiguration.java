@@ -66,7 +66,7 @@ public class ShenyuSpringWebSocketClientConfiguration {
         if (props != null) {
             props.setProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.valueOf(ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode)).toString());
         }
-        return new SpringWebSocketClientEventListener(clientConfig.getClient().get(RpcTypeEnum.WEB_SOCKET.getName()), shenyuClientRegisterRepository);
+        return new SpringWebSocketClientEventListener(clientConfig, shenyuClientRegisterRepository);
     }
 
     /**

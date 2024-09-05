@@ -28,7 +28,7 @@ import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -47,6 +47,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -58,7 +59,7 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
 
     private static final Logger LOG = LoggerFactory.getLogger(SofaServiceEventListener.class);
 
-    public SofaServiceEventListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public SofaServiceEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
     }
 
@@ -69,7 +70,8 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
 
     @Override
     protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context,
-                                                 final Map<String, ServiceFactoryBean> beans) {
+                                                 final Map<String, ServiceFactoryBean> beans,
+                                                 final String namespaceId) {
         return URIRegisterDTO.builder()
                 .contextPath(this.getContextPath())
                 .appName(this.getAppName())
@@ -77,9 +79,15 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
                 .eventType(EventType.REGISTER)
                 .host(super.getHost())
                 .port(Integer.parseInt(getPort()))
+                .namespaceId(namespaceId)
                 .build();
     }
-
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.SOFA.getName();
+    }
+    
     @Override
     protected String buildApiSuperPath(final Class<?> clazz,
                                        final ShenyuSofaClient beanShenyuClient) {
@@ -108,7 +116,8 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
                                                    @NonNull final ShenyuSofaClient shenyuSofaClient,
                                                    final String superPath,
                                                    final Class<?> clazz,
-                                                   final Method method) {
+                                                   final Method method,
+                                                   final String namespaceId) {
         String appName = this.getAppName();
         String contextPath = this.getContextPath();
         String path = pathJoin(contextPath, superPath, shenyuSofaClient.path());
@@ -143,6 +152,7 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
                 .rpcType(RpcTypeEnum.SOFA.getName())
                 .rpcExt(buildRpcExt(shenyuSofaClient))
                 .enabled(shenyuSofaClient.enabled())
+                .namespaceId(namespaceId)
                 .build();
     }
 
@@ -184,18 +194,23 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
         }
         final ShenyuSofaClient beanSofaClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSofaClient.class);
         final String superPath = buildApiSuperPath(clazz, beanSofaClient);
+        List<String> namespaceIds = super.getNamespace();
         if (superPath.contains("*") && Objects.nonNull(beanSofaClient)) {
             Method[] declaredMethods = ReflectionUtils.getDeclaredMethods(clazz);
-            for (Method declaredMethod : declaredMethods) {
-                getPublisher().publishEvent(buildMetaDataDTO(serviceBean, beanSofaClient, superPath, clazz, declaredMethod));
+            for (String namespaceId : namespaceIds) {
+                for (Method declaredMethod : declaredMethods) {
+                    getPublisher().publishEvent(buildMetaDataDTO(serviceBean, beanSofaClient, superPath, clazz, declaredMethod, namespaceId));
+                }
             }
             return;
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
-        for (Method method : methods) {
-            ShenyuSofaClient methodSofaClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSofaClient.class);
-            if (Objects.nonNull(methodSofaClient)) {
-                getPublisher().publishEvent(buildMetaDataDTO(serviceBean, methodSofaClient, superPath, clazz, method));
+        for (String namespaceId : namespaceIds) {
+            for (Method method : methods) {
+                ShenyuSofaClient methodSofaClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSofaClient.class);
+                if (Objects.nonNull(methodSofaClient)) {
+                    getPublisher().publishEvent(buildMetaDataDTO(serviceBean, methodSofaClient, superPath, clazz, method, namespaceId));
+                }
             }
         }
     }
