@@ -137,7 +137,7 @@ public class ZookeeperClient {
      * @return value.
      */
     public String get(final String key) {
-        TreeCache cache = findFromcache(key);
+        TreeCache cache = findFromCache(key);
         if (Objects.isNull(cache)) {
             return getDirectly(key);
         }
@@ -257,7 +257,7 @@ public class ZookeeperClient {
      * @param key key.
      * @return cache.
      */
-    private TreeCache findFromcache(final String key) {
+    private TreeCache findFromCache(final String key) {
         for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
             if (key.startsWith(cache.getKey())) {
                 return cache.getValue();
