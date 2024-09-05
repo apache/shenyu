@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.transfer.NamespaceTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.NamespaceIDUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
@@ -80,7 +81,7 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     @Override
     public String delete(final List<String> ids) {
-        if (ids.contains(AdminConstants.DEFAULT_NAMESPACE_PRIMARY_KEY)) {
+        if (ids.contains(Constants.DEFAULT_NAMESPACE_PRIMARY_KEY)) {
             return AdminConstants.SYS_DEFAULT_NAMESPACE_ID_DELETE;
         }
         List<NamespaceDO> namespaceDOS = namespaceMapper.selectByIds(ids);
