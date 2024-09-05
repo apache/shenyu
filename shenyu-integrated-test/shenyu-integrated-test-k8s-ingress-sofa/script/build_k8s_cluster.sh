@@ -29,6 +29,8 @@ kubectl apply -f ./shenyu-examples/shenyu-examples-sofa/shenyu-examples-sofa-ser
 kubectl get pod -o wide -n shenyu-ingress
 
 echo "Waiting for shenyu-examples-sofa-service to be ready"
+echo kubectl get pod -o wide -n shenyu-ingress| grep shenyu-examples-sofa-deployment | awk '{print $1}'
+echo kubectl get pod -o wide -n shenyu-ingress| grep shenyu-examples-sofa | awk '{print $1}'
 kubectl logs "$(kubectl get pod -o wide -n shenyu-ingress| grep shenyu-examples-sofa-deployment | awk '{print $1}')" -n shenyu-ingress
 kubectl logs "$(kubectl get pod -o wide -n shenyu-ingress| grep shenyu-examples-sofa | awk '{print $1}')" -n shenyu-ingress
 
