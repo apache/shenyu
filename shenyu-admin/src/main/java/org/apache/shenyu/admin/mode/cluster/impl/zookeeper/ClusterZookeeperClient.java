@@ -159,13 +159,13 @@ public class ClusterZookeeperClient implements AutoCloseable {
     public void createOrUpdate(final String key, final String value, final CreateMode mode) {
         String val = StringUtils.isEmpty(value) ? "" : value;
         try {
-            synchronized (client) {
+            synchronized (key) {
                 if (null != client.checkExists() && null != client.checkExists().forPath(key)) {
-                    LOGGER.debug("path exists, update zookeeper key={} with value={}", key, val);
+                    LOGGER.info("path exists, update zookeeper key={} with value={}", key, val);
                     client.setData().forPath(key, val.getBytes(StandardCharsets.UTF_8));
                     return;
                 }
-                LOGGER.debug("path not exists, set zookeeper key={} with value={}", key, val);
+                LOGGER.info("path not exists, set zookeeper key={} with value={}", key, val);
                 client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
             }
         } catch (Exception e) {
