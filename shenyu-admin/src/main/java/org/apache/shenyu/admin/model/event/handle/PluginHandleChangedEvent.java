@@ -34,7 +34,7 @@ public class PluginHandleChangedEvent extends AdminDataModelChangedEvent {
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
      * @param source   Current plugin state
-     * @param before   Before the change plugiin state
+     * @param before   Before the change plugin state
      * @param type     event type
      * @param operator operator
      */
