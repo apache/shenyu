@@ -82,9 +82,9 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     }
 
     @Override
-    public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> discoeryUpstreamList, final DataEventTypeEnum eventType) {
+    public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> discoveryUpstreamList, final DataEventTypeEnum eventType) {
         WebsocketData<DiscoverySyncData> configData =
-                new WebsocketData<>(ConfigGroupEnum.DISCOVER_UPSTREAM.name(), eventType.name(), discoeryUpstreamList);
+                new WebsocketData<>(ConfigGroupEnum.DISCOVER_UPSTREAM.name(), eventType.name(), discoveryUpstreamList);
         WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
     }
 
