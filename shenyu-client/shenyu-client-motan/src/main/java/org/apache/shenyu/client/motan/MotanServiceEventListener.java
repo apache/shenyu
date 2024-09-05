@@ -31,7 +31,7 @@ import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -67,7 +67,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
 
     private String group;
 
-    public MotanServiceEventListener(final PropertiesConfig clientConfig,
+    public MotanServiceEventListener(final ShenyuClientConfig clientConfig,
                                      final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
     }
@@ -94,7 +94,9 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
     }
 
     @Override
-    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, Object> beans) {
+    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context,
+                                                 final Map<String, Object> beans,
+                                                 final String namespaceId) {
         return URIRegisterDTO.builder()
                 .contextPath(this.getContextPath())
                 .appName(this.getAppName())
@@ -102,9 +104,15 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
                 .eventType(EventType.REGISTER)
                 .host(this.getHost())
                 .port(Integer.parseInt(this.getPort()))
+                .namespaceId(namespaceId)
                 .build();
     }
-
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.MOTAN.getName();
+    }
+    
     @Override
     protected String buildApiSuperPath(final Class<?> clazz, final ShenyuMotanClient shenyuMotanClient) {
         if (Objects.nonNull(shenyuMotanClient) && !StringUtils.isBlank(shenyuMotanClient.path())) {
@@ -123,7 +131,8 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
                                                    final ShenyuMotanClient shenyuMotanClient,
                                                    final String path,
                                                    final Class<?> clazz,
-                                                   final Method method) {
+                                                   final Method method,
+                                                   final String namespaceId) {
         Integer timeout = Optional.ofNullable(((BasicServiceConfigBean) applicationContext.getBean(BASE_SERVICE_CONFIG)).getRequestTimeout()).orElse(1000);
         MotanService service = AnnotatedElementUtils.findMergedAnnotation(clazz, MotanService.class);
         String desc = shenyuMotanClient.desc();
@@ -159,6 +168,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
                 .rpcType(RpcTypeEnum.MOTAN.getName())
                 .rpcExt(buildRpcExt(method, timeout, protocol))
                 .enabled(shenyuMotanClient.enabled())
+                .namespaceId(namespaceId)
                 .build();
     }
 
@@ -174,11 +184,14 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
     @Override
     protected void handleClass(final Class<?> clazz, final Object bean, final ShenyuMotanClient beanShenyuClient, final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
-        for (Method method : methods) {
-            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
-                    buildApiPath(method, superPath, null), clazz, method);
-            publisher.publishEvent(metaData);
-            getMetaDataMap().put(method, metaData);
+        List<String> namespaceIds = super.getNamespace();
+        for (String namespaceId : namespaceIds) {
+            for (Method method : methods) {
+                final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
+                        buildApiPath(method, superPath, null), clazz, method, namespaceId);
+                publisher.publishEvent(metaData);
+                getMetaDataMap().put(method, metaData);
+            }
         }
     }
 
