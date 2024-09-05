@@ -17,9 +17,13 @@
 
 package org.apache.shenyu.admin.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
+import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageCondition;
@@ -41,12 +45,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import java.util.List;
-
 /**
  * this is rule controller.
  */
@@ -66,16 +64,20 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      * @param name        rule name.
      * @param currentPage current page.
      * @param pageSize    page size.
+     * @param namespaceId namespaceId.
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
     public AdminResult<CommonPager<RuleVO>> queryRules(final String selectorId, final String name,
                                                        @RequestParam @NotNull final Integer currentPage,
-                                                       @RequestParam @NotNull final Integer pageSize) {
+                                                       @RequestParam @NotNull final Integer pageSize,
+                                                       @Valid @Existed(message = "namespaceId is not existed",
+                                                               provider = NamespaceMapper.class) final String namespaceId) {
         final RuleQueryCondition condition = new RuleQueryCondition();
         condition.setUserId(SessionUtil.visitor().getUserId());
         condition.setSelectors(ListUtil.of(selectorId));
         condition.setKeyword(name);
+        condition.setNamespaceId(namespaceId);
         return searchAdaptor(new PageCondition<>(currentPage, pageSize, condition));
     }
 
@@ -83,13 +85,16 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      * detail rule.
      *
      * @param id rule id.
+     * @param namespaceId namespaceId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/{namespaceId}")
     public ShenyuAdminResult detailRule(@PathVariable("id") @Valid
                                         @Existed(provider = RuleMapper.class,
-                                                message = "rule is not existed") final String id) {
-        RuleVO ruleVO = ruleService.findById(id);
+                                                message = "rule is not existed") final String id,
+                                        @PathVariable("namespaceId") @Valid
+                                        @Existed(provider = NamespaceMapper.class, message = "namespaceId is not existed") final String namespaceId) {
+        RuleVO ruleVO = ruleService.findByIdAndNamespaceId(id, namespaceId);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, ruleVO);
     }
 
@@ -130,7 +135,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      */
     @PostMapping("/batchEnabled")
     public ShenyuAdminResult batchEnabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
-        if (!ruleService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())) {
+        if (!ruleService.enabledByIdsAndNamespaceId(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId())) {
             return ShenyuAdminResult.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
@@ -139,12 +144,12 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
     /**
      * delete rules.
      *
-     * @param ids primary key.
+     * @param batchNamespaceCommonDTO batchNamespaceCommonDTO.
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deleteRules(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
-        Integer deleteCount = ruleService.delete(ids);
+    public ShenyuAdminResult deleteRules(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
+        Integer deleteCount = ruleService.deleteByIdsAndNamespaceId(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 

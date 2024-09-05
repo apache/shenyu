@@ -277,6 +277,7 @@ public class AdminClient extends BaseClient {
         RuleQueryCondition condition = RuleQueryCondition.builder()
                 .keyword(keyword)
                 .selectors(selectors)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                 .switchStatus(true)
                 .build();
         return search("/rule/list/search", condition, SEARCHED_RULES_TYPE_REFERENCE);
@@ -333,6 +334,7 @@ public class AdminClient extends BaseClient {
      * @return RuleDTO
      */
     public RuleDTO create(final RuleData rule) {
+        rule.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         RuleDTO dto = create("/rule", rule);
         Rules.INSTANCE.put(rule.getName(), dto.getId());
         return dto;
