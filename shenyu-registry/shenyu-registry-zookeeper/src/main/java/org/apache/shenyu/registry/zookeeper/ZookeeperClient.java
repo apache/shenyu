@@ -158,7 +158,7 @@ public class ZookeeperClient {
     public void createOrUpdate(final String key, final String value, final CreateMode mode) {
         String val = StringUtils.isEmpty(value) ? "" : value;
         try {
-            synchronized (key) {
+            synchronized (ZookeeperClient.class) {
                 if (null != client.checkExists() && null != client.checkExists().forPath(key)) {
                     LOGGER.info("path exists, update zookeeper key={} with value={}", key, val);
                     client.setData().forPath(key, val.getBytes(StandardCharsets.UTF_8));
