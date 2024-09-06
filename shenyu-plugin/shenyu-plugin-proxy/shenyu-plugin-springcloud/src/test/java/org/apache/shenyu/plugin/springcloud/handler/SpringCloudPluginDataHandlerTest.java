@@ -134,7 +134,7 @@ public final class SpringCloudPluginDataHandlerTest {
     }
     
     private void mockSpringCloudConfig() {
-        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        final ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         RegisterConfig registerConfig = new RegisterConfig();
         registerConfig.setRegisterType("nacos");
         registerConfig.setEnabled(true);

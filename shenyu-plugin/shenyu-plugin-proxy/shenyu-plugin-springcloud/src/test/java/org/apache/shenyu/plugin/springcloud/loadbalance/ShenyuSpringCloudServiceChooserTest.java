@@ -39,14 +39,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.cloud.client.DefaultServiceInstance;
-import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -77,7 +74,7 @@ public class ShenyuSpringCloudServiceChooserTest {
 //        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
 
         RegisterConfig registerConfig = SpringBeanUtils.getInstance().getBean(RegisterConfig.class);
-        ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
+        final ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
         InstanceEntity instanceEntity = new InstanceEntity();
         instanceEntity.setAppName("serviceId");
         instanceEntity.setUri(URI.create("http://localhost:8080"));
@@ -91,17 +88,13 @@ public class ShenyuSpringCloudServiceChooserTest {
     }
 
     @Test
-    public void testChoose() {
+    public void testChoose() throws InterruptedException {
         final String ip = "0.0.0.0";
         final String selectorId = "1";
         final String loadbalancer = "roundRobin";
 
         // th process of register instance needs some time
-        try {
-            Thread.sleep(10000);
-        } catch (Throwable t) {
-
-        }
+        Thread.sleep(10000);
 
         // serviceInstance is null
         Upstream upstreamIsNull = serviceChooser.choose("test", selectorId, ip, loadbalancer);
@@ -140,7 +133,7 @@ public class ShenyuSpringCloudServiceChooserTest {
     }
 
     @Test
-    public void testLoadBalancer() {
+    public void testLoadBalancer() throws InterruptedException {
         final List<DefaultServiceInstance> serviceInstances = new ArrayList<>();
 //        DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
 //        defaultServiceInstance.setServiceId("serviceId");
@@ -163,7 +156,7 @@ public class ShenyuSpringCloudServiceChooserTest {
 //        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstances);
 //        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
         RegisterConfig registerConfig = SpringBeanUtils.getInstance().getBean(RegisterConfig.class);
-        ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(registerConfig.getRegisterType());
+        final ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(registerConfig.getRegisterType());
 //        InstanceEntity instanceEntity1 = new InstanceEntity();
 //        instanceEntity1.setAppName("serviceId");
 //        instanceEntity1.setUri(URI.create("http://localhost:8080"));
@@ -178,11 +171,8 @@ public class ShenyuSpringCloudServiceChooserTest {
         instanceEntity2.setPort(8081);
         repository.persistInstance(instanceEntity2);
 
-        try {
-            Thread.sleep(10000);
-        } catch (Throwable t) {
+        Thread.sleep(10000);
 
-        }
 //        final SimpleDiscoveryClient simpleDiscoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
 //        final ShenyuSpringCloudServiceChooser shenyuServiceChoose = new ShenyuSpringCloudServiceChooser(simpleDiscoveryClient);
 
@@ -205,7 +195,7 @@ public class ShenyuSpringCloudServiceChooserTest {
     }
     
     private void mockSpringCloudConfig() {
-        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        final ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         RegisterConfig registerConfig = new RegisterConfig();
         registerConfig.setRegisterType("nacos");
         registerConfig.setEnabled(true);
