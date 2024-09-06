@@ -150,6 +150,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
             if (LOG.isDebugEnabled()) {
                 LOG.debug("grpc offline discoverySyncData:{}", GsonUtils.getInstance().toJson(discoverySyncData));
             }
+            LOG.info("grpc offline discoverySyncData:{}", GsonUtils.getInstance().toJson(discoverySyncData));
             getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
         }
         return Constants.SUCCESS;
