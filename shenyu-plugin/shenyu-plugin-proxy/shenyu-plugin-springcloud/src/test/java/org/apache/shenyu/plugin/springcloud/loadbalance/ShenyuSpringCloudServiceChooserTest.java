@@ -18,18 +18,9 @@
 package org.apache.shenyu.plugin.springcloud.loadbalance;
 
 import org.apache.shenyu.common.config.ShenyuConfig.SpringCloudCacheConfig;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
-import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
-import org.apache.shenyu.registry.api.entity.InstanceEntity;
-import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +32,6 @@ import org.mockito.quality.Strictness;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
