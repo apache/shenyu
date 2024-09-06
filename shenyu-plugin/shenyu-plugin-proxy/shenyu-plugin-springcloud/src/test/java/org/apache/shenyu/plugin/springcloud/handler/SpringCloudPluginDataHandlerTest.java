@@ -28,6 +28,7 @@ import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -59,9 +61,10 @@ public final class SpringCloudPluginDataHandlerTest {
     public void setUp() {
         this.mockSpringCloudConfig();
         SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
+        RegisterConfig registerConfig = SpringBeanUtils.getInstance().getBean(RegisterConfig.class);
 //        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
-//        SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
-//        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler(discoveryClient, springCloudCacheConfig);
+        SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
+        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler(registerConfig, springCloudCacheConfig);
         this.selectorData = new SelectorData();
     }
 
@@ -132,7 +135,15 @@ public final class SpringCloudPluginDataHandlerTest {
     
     private void mockSpringCloudConfig() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        RegisterConfig registerConfig = new RegisterConfig();
+        registerConfig.setRegisterType("nacos");
+        registerConfig.setEnabled(true);
+        registerConfig.setServerLists("localhost:8848");
+        Properties properties = new Properties();
+        properties.setProperty("nacosNameSpace", "ShenyuRegisterCenter");
+        registerConfig.setProps(properties);
         when(context.getBean(SpringCloudCacheConfig.class)).thenReturn(new SpringCloudCacheConfig());
+        when(context.getBean(RegisterConfig.class)).thenReturn(registerConfig);
         SpringBeanUtils.getInstance().setApplicationContext(context);
     }
 }

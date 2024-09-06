@@ -25,6 +25,10 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
+import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +47,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * The Test Case For ShenyuSpringCloudLoadBalancerClientTest.
@@ -58,22 +63,31 @@ public class ShenyuSpringCloudServiceChooserTest {
     @BeforeEach
     public void setup() {
         this.mockSpringCloudConfig();
-        final List<DefaultServiceInstance> serviceInstanceList = new ArrayList<>();
-        DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
-        defaultServiceInstance.setServiceId("serviceId");
-        defaultServiceInstance.setUri(URI.create("http://localhost:8080"));
-        defaultServiceInstance.setInstanceId("serviceId");
-        defaultServiceInstance.setPort(8080);
-        defaultServiceInstance.setHost("localhost");
-        serviceInstanceList.add(defaultServiceInstance);
-        SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
-        Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
-        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstanceList);
-        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
-//        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
-//        serviceChooser = new ShenyuSpringCloudServiceChooser(discoveryClient);
-//        SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
-//        springCloudPluginDataHandler = new SpringCloudPluginDataHandler(discoveryClient, springCloudCacheConfig);
+//        final List<DefaultServiceInstance> serviceInstanceList = new ArrayList<>();
+//        DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
+//        defaultServiceInstance.setServiceId("serviceId");
+//        defaultServiceInstance.setUri(URI.create("http://localhost:8080"));
+//        defaultServiceInstance.setInstanceId("serviceId");
+//        defaultServiceInstance.setPort(8080);
+//        defaultServiceInstance.setHost("localhost");
+//        serviceInstanceList.add(defaultServiceInstance);
+//        SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
+//        Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
+//        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstanceList);
+//        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
+
+        RegisterConfig registerConfig = SpringBeanUtils.getInstance().getBean(RegisterConfig.class);
+        ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
+        InstanceEntity instanceEntity = new InstanceEntity();
+        instanceEntity.setAppName("serviceId");
+        instanceEntity.setUri(URI.create("http://localhost:8080"));
+        instanceEntity.setHost("localhost");
+        instanceEntity.setPort(8080);
+        repository.persistInstance(instanceEntity);
+        // SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
+        serviceChooser = new ShenyuSpringCloudServiceChooser(registerConfig);
+        SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
+        springCloudPluginDataHandler = new SpringCloudPluginDataHandler(registerConfig, springCloudCacheConfig);
     }
 
     @Test
@@ -81,6 +95,13 @@ public class ShenyuSpringCloudServiceChooserTest {
         final String ip = "0.0.0.0";
         final String selectorId = "1";
         final String loadbalancer = "roundRobin";
+
+        // th process of register instance needs some time
+        try {
+            Thread.sleep(10000);
+        } catch (Throwable t) {
+
+        }
 
         // serviceInstance is null
         Upstream upstreamIsNull = serviceChooser.choose("test", selectorId, ip, loadbalancer);
@@ -121,29 +142,50 @@ public class ShenyuSpringCloudServiceChooserTest {
     @Test
     public void testLoadBalancer() {
         final List<DefaultServiceInstance> serviceInstances = new ArrayList<>();
-        DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
-        defaultServiceInstance.setServiceId("serviceId");
-        defaultServiceInstance.setUri(URI.create("http://localhost:8081"));
-        defaultServiceInstance.setInstanceId("serviceId");
-        defaultServiceInstance.setPort(8081);
-        defaultServiceInstance.setHost("localhost");
+//        DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
+//        defaultServiceInstance.setServiceId("serviceId");
+//        defaultServiceInstance.setUri(URI.create("http://localhost:8081"));
+//        defaultServiceInstance.setInstanceId("serviceId");
+//        defaultServiceInstance.setPort(8081);
+//        defaultServiceInstance.setHost("localhost");
+//
+//        DefaultServiceInstance defaultServiceInstance2 = new DefaultServiceInstance();
+//        defaultServiceInstance2.setServiceId("serviceId");
+//        defaultServiceInstance2.setUri(URI.create("http://localhost:8080"));
+//        defaultServiceInstance2.setInstanceId("serviceId");
+//        defaultServiceInstance2.setPort(8080);
+//        defaultServiceInstance2.setHost("localhost");
+//        serviceInstances.add(defaultServiceInstance);
+//        serviceInstances.add(defaultServiceInstance2);
+//
+//        SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
+//        Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
+//        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstances);
+//        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
+        RegisterConfig registerConfig = SpringBeanUtils.getInstance().getBean(RegisterConfig.class);
+        ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(registerConfig.getRegisterType());
+//        InstanceEntity instanceEntity1 = new InstanceEntity();
+//        instanceEntity1.setAppName("serviceId");
+//        instanceEntity1.setUri(URI.create("http://localhost:8080"));
+//        instanceEntity1.setHost("localhost");
+//        instanceEntity1.setPort(8080);
+//        repository.persistInstance(instanceEntity1);
 
-        DefaultServiceInstance defaultServiceInstance2 = new DefaultServiceInstance();
-        defaultServiceInstance2.setServiceId("serviceId");
-        defaultServiceInstance2.setUri(URI.create("http://localhost:8080"));
-        defaultServiceInstance2.setInstanceId("serviceId");
-        defaultServiceInstance2.setPort(8080);
-        defaultServiceInstance2.setHost("localhost");
-        serviceInstances.add(defaultServiceInstance);
-        serviceInstances.add(defaultServiceInstance2);
+        InstanceEntity instanceEntity2 = new InstanceEntity();
+        instanceEntity2.setAppName("serviceId");
+        instanceEntity2.setUri(URI.create("http://localhost:8081"));
+        instanceEntity2.setHost("localhost");
+        instanceEntity2.setPort(8081);
+        repository.persistInstance(instanceEntity2);
 
-        SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
-        Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
-        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstances);
-        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
+        try {
+            Thread.sleep(10000);
+        } catch (Throwable t) {
+
+        }
 //        final SimpleDiscoveryClient simpleDiscoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
 //        final ShenyuSpringCloudServiceChooser shenyuServiceChoose = new ShenyuSpringCloudServiceChooser(simpleDiscoveryClient);
-//
+
 //        final String ip = "0.0.0.0";
 //        final String selectorId = "1";
 //        final String loadbalancer = "roundRobin";
@@ -156,15 +198,23 @@ public class ShenyuSpringCloudServiceChooserTest {
 //                .id("1")
 //                .build();
 //        springCloudPluginDataHandler.handlerSelector(selectorData);
-//        Upstream upstream1 = shenyuServiceChoose.choose("serviceId", selectorId, ip, loadbalancer);
-//        Upstream upstream2 = shenyuServiceChoose.choose("serviceId", selectorId, ip, loadbalancer);
+//        Upstream upstream1 = serviceChooser.choose("serviceId", selectorId, ip, loadbalancer);
+//        Upstream upstream2 = serviceChooser.choose("serviceId", selectorId, ip, loadbalancer);
 //        // if roundRobin, upstream1 not equals upstream2
 //        Assertions.assertNotEquals(upstream1, upstream2);
     }
     
     private void mockSpringCloudConfig() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        RegisterConfig registerConfig = new RegisterConfig();
+        registerConfig.setRegisterType("nacos");
+        registerConfig.setEnabled(true);
+        registerConfig.setServerLists("localhost:8848");
+        Properties properties = new Properties();
+        properties.setProperty("namespace", "ShenyuRegisterCenter");
+        registerConfig.setProps(properties);
         when(context.getBean(SpringCloudCacheConfig.class)).thenReturn(new SpringCloudCacheConfig());
+        when(context.getBean(RegisterConfig.class)).thenReturn(registerConfig);
         SpringBeanUtils.getInstance().setApplicationContext(context);
     }
 }

@@ -73,7 +73,7 @@ public final class ShenyuSpringCloudServiceChooser {
         }
         final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudPluginDataHandler.SELECTOR_CACHED.get().obtainHandle(selectorId);
         // not gray flow
-        if (!springCloudSelectorHandle.getGray()) {
+        if (springCloudSelectorHandle != null && !springCloudSelectorHandle.getGray()) {
             // load service from register center
             return this.doSelect(serviceId, ip, loadbalancer);
         }
