@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+
 /**
  * DiscoveryHandler.
  */
@@ -134,6 +136,14 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private DiscoverySyncData buildProxySelectorData(final String value) {
         List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
+        discoveryUpstreamDTOS.forEach(discoveryUpstreamData->{
+            if (StringUtils.isBlank(discoveryUpstreamData.getNamespaceId())){
+                discoveryUpstreamData.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+            }
+        });
+        discoveryUpstreamDTOS = discoveryUpstreamDTOS.stream()
+                .filter(upstreamData -> contextInfo.getNamespaceId().equals(upstreamData.getNamespaceId()))
+                .collect(Collectors.toList());
         discoveryUpstreamDTOS.forEach(discoveryUpstreamData -> {
             discoveryUpstreamData.setDiscoveryHandlerId(discoveryHandlerId);
             if (StringUtils.isBlank(discoveryUpstreamData.getProtocol())) {
@@ -145,6 +155,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         data.setSelectorId(contextInfo.getSelectorId());
         data.setSelectorName(contextInfo.getSelectorName());
         data.setPluginName(contextInfo.getPluginName());
+        data.setNamespaceId(contextInfo.getNamespaceId());
         return data;
     }
 

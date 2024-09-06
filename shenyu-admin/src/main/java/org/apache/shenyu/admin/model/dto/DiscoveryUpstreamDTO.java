@@ -84,6 +84,11 @@ public class DiscoveryUpstreamDTO implements Serializable {
      */
     private Timestamp dateUpdated;
 
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
 
     /**
      * getId.
@@ -258,5 +263,23 @@ public class DiscoveryUpstreamDTO implements Serializable {
      */
     public void setDateUpdated(final Timestamp dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
     }
 }

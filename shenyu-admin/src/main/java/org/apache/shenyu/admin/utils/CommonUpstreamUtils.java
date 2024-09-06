@@ -64,15 +64,17 @@ public class CommonUpstreamUtils {
      * @param host     host
      * @param port     port
      * @param protocol protocol
+     * @param namespaceId namespaceId
      * @return DiscoveryUpstreamDTO
      */
-    public static DiscoveryUpstreamDTO buildDefaultDiscoveryUpstreamDTO(final String host, final Integer port, final String protocol) {
+    public static DiscoveryUpstreamDTO buildDefaultDiscoveryUpstreamDTO(final String host, final Integer port, final String protocol, final String namespaceId) {
         DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
         discoveryUpstreamDTO.setProps("{\"warmupTime\":\"10\"}");
         discoveryUpstreamDTO.setUrl(buildUrl(host, port));
         discoveryUpstreamDTO.setProtocol(protocol);
         discoveryUpstreamDTO.setStatus(0);
         discoveryUpstreamDTO.setWeight(DEFAULT_WEIGHT);
+        discoveryUpstreamDTO.setNamespaceId(namespaceId);
         return discoveryUpstreamDTO;
     }
 

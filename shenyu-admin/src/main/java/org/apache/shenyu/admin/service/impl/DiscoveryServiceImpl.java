@@ -146,6 +146,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         proxySelectorDTO.setName(selectorDO.getName());
         proxySelectorDTO.setId(selectorDO.getId());
         proxySelectorDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
+        proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
         DiscoveryDO discoveryDO = discoveryMapper.selectByPluginNameAndLevel(discoveryConfigRegisterDTO.getPluginName(), DiscoveryLevel.PLUGIN.getCode(), discoveryConfigRegisterDTO.getNamespaceId());
         if (discoveryDO == null) {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
@@ -302,7 +303,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
-    public String registerDefaultDiscovery(final String selectorId, final String pluginName) {
+    public String registerDefaultDiscovery(final String selectorId, final String pluginName, final String namespaceId) {
         DiscoveryHandlerDO discoveryHandlerDB = discoveryHandlerMapper.selectBySelectorId(selectorId);
         if (Objects.nonNull(discoveryHandlerDB)) {
             return discoveryHandlerDB.getId();
@@ -314,6 +315,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         discoveryDO.setPluginName(pluginName);
         discoveryDO.setType(DiscoveryMode.LOCAL.name().toLowerCase());
         discoveryDO.setId(discoveryId);
+        discoveryDO.setNamespaceId(namespaceId);
         discoveryMapper.insertSelective(discoveryDO);
         DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
         String discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();

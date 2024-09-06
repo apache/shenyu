@@ -97,9 +97,10 @@ public interface DiscoveryService {
      *
      * @param selectorId selectorId
      * @param pluginName pluginName
+     * @param namespaceId namespaceId
      * @return discoveryHandlerId
      */
-    String registerDefaultDiscovery(String selectorId, String pluginName);
+    String registerDefaultDiscovery(String selectorId, String pluginName, String namespaceId);
 
     /**
      * Import discovery data list.

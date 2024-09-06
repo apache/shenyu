@@ -258,6 +258,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
                         .id(UUIDUtils.getInstance().generateShortUuid())
                         .discoveryHandlerId(discoveryHandlerId)
+                        .namespaceId(discoveryUpstream.getNamespaceId())
                         .protocol(discoveryUpstream.getProtocol())
                         .url(discoveryUpstream.getUrl())
                         .status(discoveryUpstream.getStatus())
@@ -282,6 +283,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 .type(proxySelectorAddDTO.getDiscovery().getDiscoveryType())
                 .serverList(proxySelectorAddDTO.getDiscovery().getServerList())
                 .pluginName(proxySelectorAddDTO.getPluginName())
+                .namespaceId(proxySelectorAddDTO.getNamespaceId())
                 .level(DiscoveryLevel.SELECTOR.getCode())
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
@@ -327,6 +329,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         proxySelectorDTO.setPluginName(proxySelectorAddDTO.getPluginName());
         proxySelectorDTO.setName(proxySelectorAddDTO.getName());
         proxySelectorDTO.setId(selectorId);
+        proxySelectorDTO.setNamespaceId(proxySelectorAddDTO.getNamespaceId());
         DiscoveryHandlerDTO discoveryHandlerDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO);
         discoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO);
         addUpstreamList(proxySelectorAddDTO, currentTime, discoveryProcessor, discoveryHandlerId, proxySelectorDTO);
@@ -369,6 +372,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
                     .id(UUIDUtils.getInstance().generateShortUuid())
                     .discoveryHandlerId(discoveryHandlerId)
+                    .namespaceId(discoveryDO.getNamespaceId())
                     .protocol(discoveryUpstream.getProtocol())
                     .url(discoveryUpstream.getUrl())
                     .status(discoveryUpstream.getStatus())

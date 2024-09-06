@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.entity;
 
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.util.StringUtils;
 
@@ -60,6 +61,11 @@ public class DiscoveryUpstreamDO extends BaseDO {
      * props.
      */
     private String props;
+
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
 
     /**
      * DiscoveryUpstreamDO.
@@ -220,6 +226,24 @@ public class DiscoveryUpstreamDO extends BaseDO {
     }
 
     /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
+    /**
      * buildDiscoveryUpstreamDO.
      *
      * @param discoveryUpstreamDTO discoveryUpstreamDTO
@@ -236,6 +260,7 @@ public class DiscoveryUpstreamDO extends BaseDO {
                     .weight(item.getWeight())
                     .props(item.getProps())
                     .url(item.getUrl())
+                    .namespaceId(item.getNamespaceId())
                     .dateCreated(currentTime)
                     .dateUpdated(currentTime).build();
             if (StringUtils.hasLength(item.getId())) {
@@ -297,6 +322,11 @@ public class DiscoveryUpstreamDO extends BaseDO {
          * props.
          */
         private String props;
+
+        /**
+         * namespaceId.
+         */
+        private String namespaceId;
 
         /**
          * id.
@@ -407,6 +437,17 @@ public class DiscoveryUpstreamDO extends BaseDO {
         }
 
         /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public DiscoveryUpstreamBuilder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
+            return this;
+        }
+
+        /**
          * build.
          *
          * @return DiscoveryUpstreamDO
@@ -421,6 +462,7 @@ public class DiscoveryUpstreamDO extends BaseDO {
             discoveryUpstreamDO.setStatus(this.status);
             discoveryUpstreamDO.setWeight(this.weight);
             discoveryUpstreamDO.setProps(this.props);
+            discoveryUpstreamDO.setNamespaceId(this.namespaceId);
             discoveryUpstreamDO.setDateCreated(this.dateCreated);
             discoveryUpstreamDO.setDateUpdated(this.dateUpdated);
             return discoveryUpstreamDO;

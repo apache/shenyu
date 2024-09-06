@@ -138,6 +138,9 @@
             <if test="props != null">
                 props,
             </if>
+            <if test="namespaceId != null">
+                namespace_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             #{id, jdbcType=VARCHAR},
@@ -164,6 +167,9 @@
             </if>
             <if test="props != null">
                 #{props, jdbcType=LONGVARCHAR},
+            </if>
+            <if test="namespaceId != null">
+                #{namespaceId, jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
