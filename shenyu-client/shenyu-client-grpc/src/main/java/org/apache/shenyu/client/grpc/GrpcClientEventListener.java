@@ -32,7 +32,7 @@ import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -66,7 +66,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
      * @param clientConfig the shenyu grpc client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
-    public GrpcClientEventListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public GrpcClientEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
         if (StringUtils.isAnyBlank(getContextPath(), getIpAndPort(), getPort())) {
             throw new ShenyuClientIllegalArgumentException("grpc client must config the contextPath, ipAndPort");
@@ -99,7 +99,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     }
     
     @Override
-    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, BindableService> beans) {
+    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, BindableService> beans, final String namespaceId) {
         return URIRegisterDTO.builder()
                 .contextPath(getContextPath())
                 .appName(getIpAndPort())
@@ -107,7 +107,13 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .eventType(EventType.REGISTER)
                 .host(super.getHost())
                 .port(Integer.parseInt(getPort()))
+                .namespaceId(namespaceId)
                 .build();
+    }
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.GRPC.getName();
     }
     
     @Override
@@ -135,18 +141,23 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     @Override
     protected void handleClass(final Class<?> clazz, final BindableService bean, @NonNull final ShenyuGrpcClient beanShenyuClient, final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
-        for (Method method : methods) {
-            if (Modifier.isPublic(method.getModifiers())) {
-                final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
-                        buildApiPath(method, superPath, null), clazz, method);
-                getPublisher().publishEvent(metaData);
-                getMetaDataMap().put(method, metaData);
+        List<String> namespaceIds = super.getNamespace();
+        for (String namespaceId : namespaceIds) {
+            for (Method method : methods) {
+                if (Modifier.isPublic(method.getModifiers())) {
+                    final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
+                            buildApiPath(method, superPath, null), clazz, method, namespaceId);
+                    getPublisher().publishEvent(metaData);
+                    getMetaDataMap().put(method, metaData);
+                }
             }
         }
     }
     
     @Override
-    protected MetaDataRegisterDTO buildMetaDataDTO(final BindableService bean, @NonNull final ShenyuGrpcClient shenyuClient, final String path, final Class<?> clazz, final Method method) {
+    protected MetaDataRegisterDTO buildMetaDataDTO(final BindableService bean, @NonNull final ShenyuGrpcClient shenyuClient,
+                                                   final String path, final Class<?> clazz,
+                                                   final Method method, final String namespaceId) {
         String desc = shenyuClient.desc();
         String configRuleName = shenyuClient.ruleName();
         String ruleName = StringUtils.defaultIfBlank(configRuleName, path);
@@ -170,6 +181,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .rpcType(RpcTypeEnum.GRPC.getName())
                 .rpcExt(buildRpcExt(shenyuClient, methodType))
                 .enabled(shenyuClient.enabled())
+                .namespaceId(namespaceId)
                 .build();
     }
     

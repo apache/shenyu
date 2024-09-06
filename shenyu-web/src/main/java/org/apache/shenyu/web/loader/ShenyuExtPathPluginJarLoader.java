@@ -61,7 +61,7 @@ public class ShenyuExtPathPluginJarLoader {
         }
         Sets.SetView<String> removePluginSet = Sets.difference(pluginJarName, currentPaths);
         for (String removePath : removePluginSet) {
-            ShenyuPluginClassloaderHolder.getSingleton().removePluginClassLoader(removePath);
+            ShenyuPluginClassLoaderHolder.getSingleton().removePluginClassLoader(removePath);
         }
         pluginJarName = currentPaths;
         return uploadPluginJars;

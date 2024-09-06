@@ -48,14 +48,14 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * grpc service register.
  */
 @Service
 public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientRegisterGrpcServiceImpl.class);
 
     @Resource
@@ -82,7 +82,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
         if (LOG.isDebugEnabled()) {
             LOG.debug("grpc register metadata:{}", GsonUtils.getInstance().toJson(metaDataDTO));
         }
-        MetaDataDO exist = metaDataService.findByPath(metaDataDTO.getPath());
+        MetaDataDO exist = metaDataService.findByPathAndNamespaceId(metaDataDTO.getPath(), metaDataDTO.getNamespaceId());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
 

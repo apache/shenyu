@@ -38,7 +38,7 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
     Boolean existed(@Param("id") Serializable key);
 
     /**
-     * selectByIds.
+     * selectByIdsAndNamespaceId.
      *
      * @param ids id list
      * @return discoveryUpstreamDO list
@@ -46,7 +46,7 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
     List<DiscoveryUpstreamDO> selectByIds(@Param("ids") List<String> ids);
 
     /**
-     * selectAll.
+     * selectAllByNamespaceId.
      *
      * @return discoveryUpstreamDO list
      */
@@ -102,7 +102,7 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
     int updateSelective(DiscoveryUpstreamDO discoveryUpstreamDO);
 
     /**
-     * deleteByIds.
+     * deleteByIdsAndNamespaceId.
      *
      * @param ids id list
      * @return rows int

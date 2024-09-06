@@ -26,6 +26,8 @@ import jakarta.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Random;
+
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -43,7 +45,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
         int insert = ruleMapper.insert(ruleDO);
         assertThat(insert, equalTo(1));
 
-        RuleDO resultRuleDO = ruleMapper.selectById(ruleDO.getId());
+        RuleDO resultRuleDO = ruleMapper.selectByIdAndNamespaceId(ruleDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
         assertThat(ruleDO, equalTo(resultRuleDO));
 
         int delete = ruleMapper.delete(ruleDO.getId());
@@ -138,7 +140,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
         int update = ruleMapper.update(ruleDO);
         assertThat(update, equalTo(1));
 
-        RuleDO resultRuleDO = ruleMapper.selectById(ruleDO.getId());
+        RuleDO resultRuleDO = ruleMapper.selectByIdAndNamespaceId(ruleDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
         assertThat(ruleDO, equalTo(resultRuleDO));
 
         int delete = ruleMapper.delete(ruleDO.getId());
@@ -155,7 +157,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
         int update = ruleMapper.update(ruleDO);
         assertThat(update, equalTo(1));
 
-        RuleDO resultRuleDO = ruleMapper.selectById(ruleDO.getId());
+        RuleDO resultRuleDO = ruleMapper.selectByIdAndNamespaceId(ruleDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
         assertThat(ruleDO.getHandle(), equalTo(resultRuleDO.getHandle()));
 
         int delete = ruleMapper.delete(ruleDO.getId());
@@ -171,7 +173,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
         int delete = ruleMapper.delete(ruleDO.getId());
         assertThat(delete, equalTo(1));
 
-        RuleDO resultRuleDO = ruleMapper.selectById(ruleDO.getId());
+        RuleDO resultRuleDO = ruleMapper.selectByIdAndNamespaceId(ruleDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
         assertThat(resultRuleDO, equalTo(null));
     }
 
@@ -203,6 +205,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
                 .sort(1)
                 .dateCreated(now)
                 .dateUpdated(now)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
     }
 }
