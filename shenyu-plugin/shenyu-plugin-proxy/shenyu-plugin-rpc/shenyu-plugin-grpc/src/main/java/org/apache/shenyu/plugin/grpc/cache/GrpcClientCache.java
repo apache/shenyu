@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.grpc.cache;
 
 import com.google.common.collect.Maps;
-import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.plugin.grpc.client.GrpcClientBuilder;
 import org.apache.shenyu.plugin.grpc.client.ShenyuGrpcClient;
 
