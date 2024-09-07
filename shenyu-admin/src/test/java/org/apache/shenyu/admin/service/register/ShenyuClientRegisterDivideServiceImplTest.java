@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service.register;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.service.converter.DivideSelectorHandleConverter;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
@@ -69,8 +68,6 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
 
     @BeforeEach
     public void setUp() {
-        DivideSelectorHandleConverter divideSelectorHandleConverter = new DivideSelectorHandleConverter();
-        ReflectionTestUtils.setField(shenyuClientRegisterDivideService, "divideSelectorHandleConverter", divideSelectorHandleConverter);
     }
 
     @Test
