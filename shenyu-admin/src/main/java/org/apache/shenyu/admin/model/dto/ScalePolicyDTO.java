@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * this is scale policy from by web front.
+ * this is the scale policy from by web front.
  */
 public class ScalePolicyDTO implements Serializable {
 
