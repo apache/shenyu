@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -65,7 +66,8 @@ public final class BatchSelectorDeletedEventTest {
 
     @Test
     void buildContext() {
-        String expectMsg = String.format("the selector[%s] is %s", selectorDO.getName(), StringUtils.lowerCase(batchSelectorDeletedEvent.getType().getType().toString()));
+        String expectMsg = String.format("the namespace [%s] selector[%s] is %s", selectorDO.getNamespaceId(),
+                selectorDO.getName(), StringUtils.lowerCase(batchSelectorDeletedEvent.getType().getType().toString()));
 
         String actualMsg = batchSelectorDeletedEvent.buildContext();
 
@@ -110,6 +112,7 @@ public final class BatchSelectorDeletedEventTest {
         selectorDTO.setName("kuan");
         selectorDTO.setType(SelectorTypeEnum.FULL_FLOW.getCode());
         selectorDTO.setHandle("[{\"upstreamHost\": \"127.0.0.1\", \"protocol\": \"http://\", \"upstreamUrl\": \"anotherUrl\"}]");
+        selectorDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         SelectorConditionDTO selectorConditionDTO1 = new SelectorConditionDTO();
         selectorConditionDTO1.setId("111");
         selectorConditionDTO1.setSelectorId("456");

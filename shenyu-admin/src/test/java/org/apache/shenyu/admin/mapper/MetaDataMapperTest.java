@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.hasItems;
@@ -60,9 +61,8 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         MetaDataDO metaDataDO = getMetaDataDO();
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
-
         String id = metaDataDO.getId();
-        MetaDataDO result = metaDataMapper.selectById(id);
+        MetaDataDO result = metaDataMapper.selectByIdAndNamespaceId(id, SYS_DEFAULT_NAMESPACE_ID);
         assertThat(result.getId(), comparesEqualTo(id));
     }
 
@@ -77,7 +77,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         assertThat(count2, comparesEqualTo(1));
 
         List<String> idList = Stream.of(metaDataDO.getId(), metaDataDO2.getId()).collect(Collectors.toList());
-        List<MetaDataDO> resultList = metaDataMapper.selectByIdList(idList);
+        List<MetaDataDO> resultList = metaDataMapper.selectByIdListAndNamespaceId(idList, SYS_DEFAULT_NAMESPACE_ID);
         assertThat(resultList, hasItems(metaDataDO2, metaDataDO));
         assertThat(resultList.size(), comparesEqualTo(idList.size()));
     }
@@ -99,7 +99,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
 
-        MetaDataDO result = metaDataMapper.findByPath(metaDataDO.getPath());
+        MetaDataDO result = metaDataMapper.findByPathAndNamespaceId(metaDataDO.getPath(), SYS_DEFAULT_NAMESPACE_ID);
         assertThat(result.getId(), comparesEqualTo(metaDataDO.getId()));
     }
 
@@ -109,7 +109,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
 
-        MetaDataDO result = metaDataMapper.findByServiceNameAndMethod(metaDataDO.getServiceName(), metaDataDO.getMethodName()).get(0);
+        MetaDataDO result = metaDataMapper.findByServiceNameAndMethodAndNamespaceId(metaDataDO.getServiceName(), metaDataDO.getMethodName(), SYS_DEFAULT_NAMESPACE_ID).get(0);
         assertThat(result.getId(), comparesEqualTo(metaDataDO.getId()));
     }
 
@@ -176,7 +176,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         metaDataDO.setAppName("testAppName_update");
         metaDataMapper.update(metaDataDO);
 
-        MetaDataDO result = metaDataMapper.selectById(metaDataDO.getId());
+        MetaDataDO result = metaDataMapper.selectByIdAndNamespaceId(metaDataDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
         assertThat(result.getAppName(), comparesEqualTo("testAppName_update"));
     }
 
@@ -189,7 +189,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         metaDataDO.setEnabled(true);
         metaDataMapper.updateEnable(metaDataDO);
 
-        MetaDataDO result = metaDataMapper.selectById(metaDataDO.getId());
+        MetaDataDO result = metaDataMapper.selectByIdAndNamespaceId(metaDataDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
         assertTrue(result.getEnabled());
     }
 
@@ -207,7 +207,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         int ret = metaDataMapper.updateEnableBatch(idList, true);
         assertThat(ret, comparesEqualTo(idList.size()));
 
-        List<MetaDataDO> resultList = metaDataMapper.selectByIdList(idList);
+        List<MetaDataDO> resultList = metaDataMapper.selectByIdListAndNamespaceId(idList, SYS_DEFAULT_NAMESPACE_ID);
         resultList.forEach(result -> assertTrue(result.getEnabled()));
     }
 
@@ -232,7 +232,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         assertThat(count2, comparesEqualTo(1));
 
         List<String> idList = Stream.of(metaDataDO.getId(), metaDataDO2.getId()).collect(Collectors.toList());
-        int result = metaDataMapper.deleteByIdList(idList);
+        int result = metaDataMapper.deleteByIdListAndNamespaceId(idList, SYS_DEFAULT_NAMESPACE_ID);
         assertThat(result, comparesEqualTo(idList.size()));
     }
 
@@ -251,6 +251,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .dateUpdated(now)
                 .dateCreated(now)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
     }
 

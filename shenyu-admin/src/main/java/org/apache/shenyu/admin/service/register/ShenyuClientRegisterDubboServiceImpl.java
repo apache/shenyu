@@ -64,7 +64,7 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
         MetaDataService metaDataService = getMetaDataService();
-        MetaDataDO exist = metaDataService.findByPath(metaDataDTO.getPath());
+        MetaDataDO exist = metaDataService.findByPathAndNamespaceId(metaDataDTO.getPath(), metaDataDTO.getNamespaceId());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
 

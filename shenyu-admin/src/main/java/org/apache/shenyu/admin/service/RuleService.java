@@ -88,20 +88,22 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
     int update(RuleDTO ruleDTO);
 
     /**
-     * delete rules.
+     * delete rules by ids and namespaceId.
      *
      * @param ids primary key.
+     * @param namespaceId namespaceId.
      * @return rows int
      */
-    int delete(List<String> ids);
+    int deleteByIdsAndNamespaceId(List<String> ids, String namespaceId);
 
     /**
-     * find rule by id.
+     * find rule by id and namespaceId.
      *
      * @param id primary key.
+     * @param namespaceId namespaceId.
      * @return {@linkplain RuleVO}
      */
-    RuleVO findById(String id);
+    RuleVO findByIdAndNamespaceId(String id, String namespaceId);
 
     /**
      * find page of rule by query.
@@ -166,11 +168,12 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
     ConfigImportResult importData(List<RuleDTO> ruleList);
 
     /**
-     * Enabled string.
+     * Enabled string by ids and namespaceId.
      *
      * @param ids     the ids
-     * @param enabled the enable
+     * @param enabled the enabled
+     * @param namespaceId the namespaceId.
      * @return the result
      */
-    Boolean enabled(List<String> ids, Boolean enabled);
+    Boolean enabledByIdsAndNamespaceId(List<String> ids, Boolean enabled, String namespaceId);
 }

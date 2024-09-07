@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -47,6 +48,7 @@ public class BatchMetaDataChangedEventTest {
                 .methodName("post")
                 .parameterTypes("java.lang.String")
                 .enabled(true)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
 
         two = MetaDataDO.builder()
@@ -59,6 +61,7 @@ public class BatchMetaDataChangedEventTest {
                 .methodName("post")
                 .parameterTypes("java.lang.String")
                 .enabled(true)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
     }
 
@@ -67,7 +70,7 @@ public class BatchMetaDataChangedEventTest {
         BatchMetaDataChangedEvent batchMetaDataChangedEvent =
                 new BatchMetaDataChangedEvent(Arrays.asList(one, two), null, EventTypeEnum.META_DATA_UPDATE, "test-operator");
 
-        String context = String.format("the meta data [%s] is %s",
+        String context = String.format("the namespace [649330b6-c2d7-4edc-be8e-8a54df9eb385] meta data [%s] is %s",
                 "testAppNameOne,testAppNameTwo", StringUtils.lowerCase(EventTypeEnum.META_DATA_UPDATE.getType().toString()));
 
         assertEquals(context, batchMetaDataChangedEvent.buildContext());
