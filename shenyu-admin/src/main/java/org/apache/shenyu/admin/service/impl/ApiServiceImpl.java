@@ -179,7 +179,7 @@ public class ApiServiceImpl implements ApiService {
                     .collect(Collectors.toList()), SYS_DEFAULT_NAMESPACE_ID);
         }
         //clean selector
-        List<SelectorDO> selectorDOList = selectorService.findByNameAndPluginNames(apiDO.getContextPath(), PluginEnum.getUpstreamNames());
+        List<SelectorDO> selectorDOList = selectorService.findByNameAndPluginNamesAndNamespaceId(apiDO.getContextPath(), PluginEnum.getUpstreamNames(), SYS_DEFAULT_NAMESPACE_ID);
         ArrayList<String> selectorIds = Lists.newArrayList();
         Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new).stream().forEach(selectorDO -> {
             final String selectorId = selectorDO.getId();
