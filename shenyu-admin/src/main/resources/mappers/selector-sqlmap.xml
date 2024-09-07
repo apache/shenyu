@@ -118,8 +118,9 @@
                <include refid="Base_Column_List"/>
           FROM selector
         <where>
+            namespace_id = #{namespaceId, jdbcType=VARCHAR}
             <if test="pluginId != null">
-                plugin_id = #{pluginId, jdbcType=VARCHAR}
+                AND plugin_id = #{pluginId, jdbcType=VARCHAR}
             </if>
             <if test="pluginIds != null and pluginIds.size > 0">
                 AND plugin_id IN
