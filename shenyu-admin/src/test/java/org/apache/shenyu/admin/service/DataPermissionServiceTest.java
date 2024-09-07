@@ -124,7 +124,7 @@ public final class DataPermissionServiceTest {
 
     @Test
     public void assertListSelectorsByPage() {
-        SelectorQuery selectorQuery = new SelectorQuery("1", null, new PageParameter(1, 10));
+        SelectorQuery selectorQuery = new SelectorQuery("1", null, new PageParameter(1, 10), SYS_DEFAULT_NAMESPACE_ID);
         given(selectorMapper.countByQuery(selectorQuery)).willReturn(100);
         given(selectorMapper.selectByQuery(selectorQuery)).willReturn(Collections.singletonList(SelectorDO.buildSelectorDO(selectorDTO)));
         given(dataPermissionMapper.selectDataIds(Collections.singletonList("1"), "1001", 0)).willReturn(Collections.singletonList("1"));
