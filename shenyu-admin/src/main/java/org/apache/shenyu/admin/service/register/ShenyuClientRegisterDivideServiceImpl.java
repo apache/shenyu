@@ -40,7 +40,6 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
