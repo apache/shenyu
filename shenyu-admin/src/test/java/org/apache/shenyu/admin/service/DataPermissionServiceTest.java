@@ -45,7 +45,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -124,7 +124,7 @@ public final class DataPermissionServiceTest {
 
     @Test
     public void assertListSelectorsByPage() {
-        SelectorQuery selectorQuery = new SelectorQuery("1", null, new PageParameter(1, 10));
+        SelectorQuery selectorQuery = new SelectorQuery("1", null, new PageParameter(1, 10), SYS_DEFAULT_NAMESPACE_ID);
         given(selectorMapper.countByQuery(selectorQuery)).willReturn(100);
         given(selectorMapper.selectByQuery(selectorQuery)).willReturn(Collections.singletonList(SelectorDO.buildSelectorDO(selectorDTO)));
         given(dataPermissionMapper.selectDataIds(Collections.singletonList("1"), "1001", 0)).willReturn(Collections.singletonList("1"));

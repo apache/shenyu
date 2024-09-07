@@ -90,7 +90,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SelectorService}.
@@ -368,7 +368,7 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
-    public List<SelectorDO> findByNameAndPluginNames(final String name, final List<String> pluginNames) {
+    public List<SelectorDO> findByNameAndPluginNamesAndNamespaceId(final String name, final List<String> pluginNames, final String namespaceID) {
         final List<PluginDO> pluginDOList = pluginMapper.selectByNames(pluginNames);
         if (CollectionUtils.isEmpty(pluginDOList)) {
             return Lists.newArrayList();
@@ -377,6 +377,7 @@ public class SelectorServiceImpl implements SelectorService {
         SelectorQuery selectorQuery = new SelectorQuery();
         selectorQuery.setName(name);
         selectorQuery.setPluginIds(pluginIds);
+        selectorQuery.setNamespaceId(namespaceID);
         return selectorMapper.selectByQuery(selectorQuery);
     }
 
