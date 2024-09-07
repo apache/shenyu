@@ -365,7 +365,7 @@ public final class DiscoveryDO extends BaseDO {
             discoveryDO.setServerList(serverList);
             discoveryDO.setPluginName(pluginName);
             discoveryDO.setProps(props);
-            discoveryDO.setProps(namespaceId);
+            discoveryDO.setNamespaceId(namespaceId);
             return discoveryDO;
         }
     }

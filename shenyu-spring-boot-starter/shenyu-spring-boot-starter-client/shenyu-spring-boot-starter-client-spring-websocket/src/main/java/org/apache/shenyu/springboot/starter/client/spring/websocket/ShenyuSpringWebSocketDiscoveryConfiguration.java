@@ -25,6 +25,7 @@ import org.apache.shenyu.client.spring.websocket.init.SpringWebSocketClientEvent
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.register.client.http.HttpClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -50,8 +51,9 @@ public class ShenyuSpringWebSocketDiscoveryConfiguration {
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     public ClientDiscoveryConfigRefreshedEventListener clientDiscoveryConfigRefreshedEventListener(final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
                                                                                                    final HttpClientRegisterRepository httpClientRegisterRepository,
-                                                                                                   final ClientRegisterConfig clientRegisterConfig) {
-        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository, clientRegisterConfig, PluginEnum.WEB_SOCKET);
+                                                                                                   final ClientRegisterConfig clientRegisterConfig,
+                                                                                                   final ShenyuClientConfig shenyuClientConfig) {
+        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository, clientRegisterConfig, PluginEnum.WEB_SOCKET, shenyuClientConfig);
     }
 
     /**
@@ -63,12 +65,13 @@ public class ShenyuSpringWebSocketDiscoveryConfiguration {
      */
     @Bean("websocketInstanceRegisterListener")
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
-    public InstanceRegisterListener instanceRegisterListener(final SpringWebSocketClientEventListener eventListener, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
+    public InstanceRegisterListener instanceRegisterListener(final SpringWebSocketClientEventListener eventListener, final ShenyuDiscoveryConfig shenyuDiscoveryConfig, final ShenyuClientConfig shenyuClientConfig) {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setProtocol(ShenyuClientConstants.WS);
         discoveryUpstreamData.setStatus(0);
         discoveryUpstreamData.setWeight(50);
         discoveryUpstreamData.setUrl(eventListener.getHost() + ":" + eventListener.getPort());
+        discoveryUpstreamData.setNamespaceId(shenyuClientConfig.getNamespace());
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 
