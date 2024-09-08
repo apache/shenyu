@@ -112,7 +112,6 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
                 canAddList.addAll(diffStatusList);
             }
         }
-        LOG.info("grpc buildHandle canAddList:{}", GsonUtils.getInstance().toJson(canAddList));
         if (doSubmit(selectorDO.getId(), canAddList)) {
             return null;
         }
@@ -146,7 +145,6 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
             if (LOG.isDebugEnabled()) {
                 LOG.debug("grpc offline discoverySyncData:{}", GsonUtils.getInstance().toJson(discoverySyncData));
             }
-            LOG.info("grpc offline discoverySyncData:{}", GsonUtils.getInstance().toJson(discoverySyncData));
             getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
         }
         return Constants.SUCCESS;

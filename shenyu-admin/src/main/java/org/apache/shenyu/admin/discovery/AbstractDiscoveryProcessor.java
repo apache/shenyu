@@ -142,7 +142,6 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
         discoverySyncData.setSelectorName(proxySelectorDTO.getName());
         List<DiscoveryUpstreamData> upstreamDataList = upstreamDTOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
         discoverySyncData.setUpstreamDataList(upstreamDataList);
-        LOG.info("shenyu discovery local mode changeUpstream:{}", GsonUtils.getInstance().toJson(discoverySyncData));
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
         eventPublisher.publishEvent(dataChangedEvent);
     }
@@ -182,7 +181,6 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
             discoverySyncData.setSelectorName(proxySelectorDTO.getName());
             discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
             discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
-            LOG.info("fetch all discovery upstream data:{}", GsonUtils.getInstance().toJson(discoverySyncData));
             DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
             eventPublisher.publishEvent(dataChangedEvent);
         }

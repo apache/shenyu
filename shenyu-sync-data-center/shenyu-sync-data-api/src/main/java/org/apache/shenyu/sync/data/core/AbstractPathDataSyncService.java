@@ -34,8 +34,6 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -47,8 +45,6 @@ import java.util.Optional;
  * Abstract method to monitor child node changes.
  */
 public abstract class AbstractPathDataSyncService implements SyncDataService {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractPathDataSyncService.class);
 
     private final PluginDataSubscriber pluginDataSubscriber;
 
@@ -82,7 +78,6 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
      * @param eventType eventType
      */
     public void event(final String updatePath, final String updateData, final String registerPath, final EventType eventType) {
-        LOG.info("path:{}, data:{}, registerPath:{}, eventType:{}", updatePath, updateData, registerPath, eventType);
         switch (registerPath) {
             case DefaultPathConstants.PLUGIN_PARENT:
                 pluginHandlerEvent(updatePath, updateData, eventType);
@@ -278,7 +273,6 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
     }
 
     protected void cacheDiscoveryUpstreamData(final DiscoverySyncData upstreamDataList) {
-        LOG.info("discovery upstream data:{}", GsonUtils.getInstance().toJson(upstreamDataList));
         Optional.ofNullable(discoveryUpstreamDataSubscribers)
                 .ifPresent(data -> discoveryUpstreamDataSubscribers.forEach(e -> e.onSubscribe(upstreamDataList)));
     }

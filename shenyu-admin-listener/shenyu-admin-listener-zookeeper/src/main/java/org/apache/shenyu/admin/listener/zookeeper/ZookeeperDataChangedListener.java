@@ -18,17 +18,12 @@
 package org.apache.shenyu.admin.listener.zookeeper;
 
 import org.apache.shenyu.admin.listener.AbstractPathDataChangedListener;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.zookeeper.CreateMode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Use zookeeper to push data changes.
  */
 public class ZookeeperDataChangedListener extends AbstractPathDataChangedListener {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperDataChangedListener.class);
 
     private final ZookeeperClient zkClient;
 
@@ -38,7 +33,6 @@ public class ZookeeperDataChangedListener extends AbstractPathDataChangedListene
 
     @Override
     public void createOrUpdate(final String path, final Object data) {
-        LOG.info("createOrUpdate path:{}, data:{}", path, GsonUtils.getInstance().toJson(data));
         zkClient.createOrUpdate(path, data, CreateMode.PERSISTENT);
     }
 

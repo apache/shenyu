@@ -42,8 +42,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
@@ -53,8 +51,6 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
  */
 @Service
 public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPathRegisterService {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientRegisterWebSocketServiceImpl.class);
 
     @Override
     public String rpcType() {
@@ -125,7 +121,6 @@ public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPat
                 removeDiscoveryUpstream(selectorDO.getId(), webSocketUpstream.getUrl());
             }
             DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName);
-            LOG.info("websocket offline discoverySyncData:{}", GsonUtils.getInstance().toJson(discoverySyncData));
             getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
         }
         return Constants.SUCCESS;

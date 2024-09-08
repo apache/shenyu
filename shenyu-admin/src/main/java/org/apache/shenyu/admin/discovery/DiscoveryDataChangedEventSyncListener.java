@@ -28,7 +28,6 @@ import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
@@ -122,7 +121,6 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                 throw new IllegalStateException("shenyu DiscoveryDataChangedEventSyncListener find IllegalState");
         }
         fillFullyDiscoverySyncData(discoverySyncData);
-        LOG.info("shenyu [DiscoveryDataChangedEventSyncListener] DiscoverySyncData {}", GsonUtils.getInstance().toJson(discoverySyncData));
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
         eventPublisher.publishEvent(dataChangedEvent);
     }

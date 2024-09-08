@@ -28,7 +28,7 @@ PRGDIR=$(dirname "$CUR_PATH")
 kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-cm.yml
 
 # init shenyu sync
-SYNC_ARRAY=("zookeeper" "etcd")
+SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
 #SYNC_ARRAY=("websocket" "nacos")
 MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
 for sync in "${SYNC_ARRAY[@]}"; do
