@@ -328,6 +328,7 @@ public class UpstreamCheckService {
     }
 
     private void check(final String selectorId, final List<CommonUpstream> upstreamList) {
+        LOG.info("UpstreamCacheManager check the selectorId: {}, upstreamList: {}", selectorId, GsonUtils.getInstance().toJson(upstreamList));
         final List<CompletableFuture<CommonUpstream>> checkFutures = new ArrayList<>(upstreamList.size());
         for (CommonUpstream commonUpstream : upstreamList) {
             checkFutures.add(CompletableFuture.supplyAsync(() -> {
@@ -370,6 +371,7 @@ public class UpstreamCheckService {
             return;
         }
         removePendingSync(successList);
+        LOG.info("UpstreamCacheManager updateHandler selectorId={}|json={}", selectorId, GsonUtils.getGson().toJson(successList));
         if (!successList.isEmpty()) {
             UPSTREAM_MAP.put(selectorId, successList);
             updateSelectorHandler(selectorId, successList);
