@@ -332,6 +332,7 @@ public class UpstreamCheckService {
         for (CommonUpstream commonUpstream : upstreamList) {
             checkFutures.add(CompletableFuture.supplyAsync(() -> {
                 final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
+                LOG.info("UpstreamCacheManager check the url: {}, host: {} result: {}", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost(), pass);
                 if (pass) {
                     if (!commonUpstream.isStatus()) {
                         commonUpstream.setTimestamp(System.currentTimeMillis());
@@ -408,6 +409,7 @@ public class UpstreamCheckService {
 
         // publish discovery change event.
         List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamService.findBySelectorId(selectorId);
+        LOG.info("UpstreamCacheManager discoveryUpstreamDataList selectorId={}|discoveryUpstreamDataList={}", selectorId, GsonUtils.getGson().toJson(discoveryUpstreamDataList));
         discoveryUpstreamDataList.removeIf(u -> {
             for (CommonUpstream alive : aliveList) {
                 if (alive.getUpstreamUrl().equals(u.getUrl())) {
@@ -426,6 +428,7 @@ public class UpstreamCheckService {
         discoverySyncData.setPluginName(pluginName);
         discoverySyncData.setSelectorId(selectorId);
         discoverySyncData.setSelectorName(selectorDO.getName());
+        LOG.info("UpstreamCacheManager update selectorId={}|json={}", selectorId, GsonUtils.getGson().toJson(aliveList));
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
     }
 
