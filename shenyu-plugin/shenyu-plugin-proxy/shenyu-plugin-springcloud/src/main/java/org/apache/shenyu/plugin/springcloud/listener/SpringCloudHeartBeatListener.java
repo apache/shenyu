@@ -25,9 +25,7 @@ import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
 
 import static org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler.SELECTOR_CACHED;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
-import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
-import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
