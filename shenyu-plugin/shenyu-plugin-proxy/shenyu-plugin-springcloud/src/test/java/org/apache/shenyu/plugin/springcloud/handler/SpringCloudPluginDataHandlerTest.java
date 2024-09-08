@@ -29,6 +29,7 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,7 +65,7 @@ public final class SpringCloudPluginDataHandlerTest {
         RegisterConfig registerConfig = SpringBeanUtils.getInstance().getBean(RegisterConfig.class);
 //        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
         SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
-        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler(registerConfig, springCloudCacheConfig);
+        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler(ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig), springCloudCacheConfig);
         this.selectorData = new SelectorData();
     }
 

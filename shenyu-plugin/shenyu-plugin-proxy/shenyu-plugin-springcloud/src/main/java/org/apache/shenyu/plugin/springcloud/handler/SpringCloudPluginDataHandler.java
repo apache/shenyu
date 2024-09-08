@@ -60,8 +60,8 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
 
     private final SpringCloudCacheConfig springCloudCacheConfig;
 
-    public SpringCloudPluginDataHandler(final RegisterConfig config, final SpringCloudCacheConfig springCloudCacheConfig) {
-        this.repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(config.getRegisterType());
+    public SpringCloudPluginDataHandler(final ShenyuInstanceRegisterRepository repository, final SpringCloudCacheConfig springCloudCacheConfig) {
+        this.repository = repository;
         this.springCloudCacheConfig = springCloudCacheConfig;
     }
 

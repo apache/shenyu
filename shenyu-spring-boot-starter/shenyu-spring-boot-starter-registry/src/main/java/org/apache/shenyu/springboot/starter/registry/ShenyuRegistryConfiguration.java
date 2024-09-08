@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.springboot.starter.registry;
 
+import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -50,5 +52,16 @@ public class ShenyuRegistryConfiguration {
     @Bean
     public RegistryListener instanceRegisterListener(final RegisterConfig config) {
         return new RegistryListener(config);
+    }
+
+    /**
+     * Instance instanceShenyuInstanceRegisterRepository.
+     *
+     * @param config the config
+     * @return the instance register listener
+     */
+    @Bean
+    public ShenyuInstanceRegisterRepository instanceShenyuInstanceRegisterRepository(final RegisterConfig config) {
+        return ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config);
     }
 }

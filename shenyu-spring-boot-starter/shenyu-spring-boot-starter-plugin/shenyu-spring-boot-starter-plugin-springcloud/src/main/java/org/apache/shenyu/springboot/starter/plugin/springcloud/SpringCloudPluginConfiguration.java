@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.springcloud.context.SpringCloudShenyuContextDeco
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.apache.shenyu.plugin.springcloud.listener.SpringCloudHeartBeatListener;
 import org.apache.shenyu.plugin.springcloud.loadbalance.ShenyuSpringCloudServiceChooser;
+import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -54,12 +55,12 @@ public class SpringCloudPluginConfiguration {
     /**
      * shenyu springcloud loadbalancer.
      *
-     * @param config RegisterConfig
+     * @param repository ShenyuInstanceRegisterRepository
      * @return {@linkplain ShenyuSpringCloudServiceChooser}
      */
     @Bean
-    public ShenyuSpringCloudServiceChooser shenyuSpringCloudLoadBalancerClient(final RegisterConfig config) {
-        return new ShenyuSpringCloudServiceChooser(config);
+    public ShenyuSpringCloudServiceChooser shenyuSpringCloudLoadBalancerClient(final ShenyuInstanceRegisterRepository repository) {
+        return new ShenyuSpringCloudServiceChooser(repository);
     }
 
     /**
@@ -86,28 +87,28 @@ public class SpringCloudPluginConfiguration {
     /**
      * Spring cloud plugin data handler.
      *
-     * @param config RegisterConfig
+     * @param repository ShenyuInstanceRegisterRepository
      * @param shenyuConfig the shenyu config
      *
      * @return the plugin data handler
      */
     @Bean
-    public PluginDataHandler springCloudPluginDataHandler(final RegisterConfig config,
+    public PluginDataHandler springCloudPluginDataHandler(final ShenyuInstanceRegisterRepository repository,
                                                           final ShenyuConfig shenyuConfig) {
-        return new SpringCloudPluginDataHandler(config, shenyuConfig.getSpringCloudCache());
+        return new SpringCloudPluginDataHandler(repository, shenyuConfig.getSpringCloudCache());
     }
     
     /**
      * Spring cloud heart beat listener.
      *
-     * @param config RegisterConfig
+     * @param repository ShenyuInstanceRegisterRepository
      * @param shenyuConfig the shenyu config
      * @return the spring cloud heartbeat listener {@linkplain SpringCloudHeartBeatListener}
      */
     @Bean
-    public SpringCloudHeartBeatListener springCloudHeartBeatListener(final RegisterConfig config,
+    public SpringCloudHeartBeatListener springCloudHeartBeatListener(final ShenyuInstanceRegisterRepository repository,
                                                                      final ShenyuConfig shenyuConfig) {
-        return new SpringCloudHeartBeatListener(config, shenyuConfig.getSpringCloudCache());
+        return new SpringCloudHeartBeatListener(repository, shenyuConfig.getSpringCloudCache());
     }
 
 }

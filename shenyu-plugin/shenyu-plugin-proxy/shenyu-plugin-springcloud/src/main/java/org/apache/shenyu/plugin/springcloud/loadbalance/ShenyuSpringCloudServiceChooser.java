@@ -50,8 +50,8 @@ public final class ShenyuSpringCloudServiceChooser {
 
     private ShenyuInstanceRegisterRepository repository;
 
-    public ShenyuSpringCloudServiceChooser(final RegisterConfig config) {
-        this.repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(config.getRegisterType());
+    public ShenyuSpringCloudServiceChooser(final ShenyuInstanceRegisterRepository repository) {
+        this.repository = repository;
     }
 
     /**

@@ -47,8 +47,8 @@ public class SpringCloudHeartBeatListener implements ApplicationListener<Heartbe
 
     private final SpringCloudCacheConfig cacheConfig;
 
-    public SpringCloudHeartBeatListener(final RegisterConfig config, final SpringCloudCacheConfig cacheConfig) {
-        this.repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(config.getRegisterType());
+    public SpringCloudHeartBeatListener(final ShenyuInstanceRegisterRepository repository, final SpringCloudCacheConfig cacheConfig) {
+        this.repository = repository;
         this.cacheConfig = cacheConfig;
     }
     
