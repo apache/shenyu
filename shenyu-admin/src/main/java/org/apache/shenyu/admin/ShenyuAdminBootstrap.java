@@ -30,7 +30,7 @@ public class ShenyuAdminBootstrap {
     /**
      * Main entrance.
      *
-     * @param args startup arguments
+     * @param args startup arguments.
      */
     public static void main(final String[] args) {
         SpringApplication.run(ShenyuAdminBootstrap.class, args);
