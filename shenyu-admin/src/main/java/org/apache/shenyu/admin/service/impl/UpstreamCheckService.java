@@ -411,6 +411,11 @@ public class UpstreamCheckService {
 
         // publish discovery change event.
         List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamService.findBySelectorId(selectorId);
+        
+        if (CollectionUtils.isEmpty(discoveryUpstreamDataList)) {
+            discoveryUpstreamDataList = aliveList.stream().map(DiscoveryTransfer.INSTANCE::mapToDiscoveryUpstreamData).collect(Collectors.toList());
+        }
+        
         LOG.info("UpstreamCacheManager discoveryUpstreamDataList selectorId={}|discoveryUpstreamDataList={}", selectorId, GsonUtils.getGson().toJson(discoveryUpstreamDataList));
         discoveryUpstreamDataList.removeIf(u -> {
             for (CommonUpstream alive : aliveList) {
@@ -425,12 +430,13 @@ public class UpstreamCheckService {
             LOG.info("change alive selectorId={}|url={}", selectorId, upstream.getUrl());
             discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, upstream.getUrl(), Boolean.TRUE);
         });
+        
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
         discoverySyncData.setPluginName(pluginName);
         discoverySyncData.setSelectorId(selectorId);
         discoverySyncData.setSelectorName(selectorDO.getName());
-        LOG.info("UpstreamCacheManager update selectorId={}|json={}", selectorId, GsonUtils.getGson().toJson(aliveList));
+        LOG.info("UpstreamCacheManager update selectorId={}|json={}", selectorId, GsonUtils.getGson().toJson(discoverySyncData));
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
     }
 
