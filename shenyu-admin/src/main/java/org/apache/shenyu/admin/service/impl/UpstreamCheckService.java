@@ -328,12 +328,10 @@ public class UpstreamCheckService {
     }
 
     private void check(final String selectorId, final List<CommonUpstream> upstreamList) {
-        LOG.info("UpstreamCacheManager check the selectorId: {}, upstreamList: {}", selectorId, GsonUtils.getInstance().toJson(upstreamList));
         final List<CompletableFuture<CommonUpstream>> checkFutures = new ArrayList<>(upstreamList.size());
         for (CommonUpstream commonUpstream : upstreamList) {
             checkFutures.add(CompletableFuture.supplyAsync(() -> {
                 final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
-                LOG.info("UpstreamCacheManager check the url: {}, host: {} result: {}", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost(), pass);
                 if (pass) {
                     if (!commonUpstream.isStatus()) {
                         commonUpstream.setTimestamp(System.currentTimeMillis());
@@ -371,7 +369,6 @@ public class UpstreamCheckService {
             return;
         }
         removePendingSync(successList);
-        LOG.info("UpstreamCacheManager updateHandler selectorId={}|json={}", selectorId, GsonUtils.getGson().toJson(successList));
         if (!successList.isEmpty()) {
             UPSTREAM_MAP.put(selectorId, successList);
             updateSelectorHandler(selectorId, successList);
@@ -416,8 +413,6 @@ public class UpstreamCheckService {
             discoveryUpstreamDataList = aliveList.stream().map(DiscoveryTransfer.INSTANCE::mapToDiscoveryUpstreamData).collect(Collectors.toList());
         }
         
-        LOG.info("UpstreamCacheManager discoveryUpstreamDataList selectorId={}|discoveryUpstreamDataList={}", selectorId, GsonUtils.getGson().toJson(discoveryUpstreamDataList));
-        
         discoveryUpstreamDataList.removeIf(u -> {
             for (CommonUpstream alive : aliveList) {
                 if (alive.getUpstreamUrl().equals(u.getUrl())) {
@@ -437,7 +432,7 @@ public class UpstreamCheckService {
         discoverySyncData.setPluginName(pluginName);
         discoverySyncData.setSelectorId(selectorId);
         discoverySyncData.setSelectorName(selectorDO.getName());
-        LOG.info("UpstreamCacheManager update selectorId={}|json={}", selectorId, GsonUtils.getGson().toJson(discoverySyncData));
+        LOG.debug("UpstreamCacheManager update selectorId={}|json={}", selectorId, GsonUtils.getGson().toJson(discoverySyncData));
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
     }
 

@@ -91,7 +91,6 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     @Override
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         List<GrpcUpstream> addList = buildGrpcUpstreamList(uriList);
-        LOG.info("grpc buildHandle addList:{}", GsonUtils.getInstance().toJson(addList));
         List<GrpcUpstream> canAddList = new CopyOnWriteArrayList<>();
         boolean isEventDeleted = uriList.size() == 1 && EventType.DELETED.equals(uriList.get(0).getEventType());
         if (isEventDeleted) {

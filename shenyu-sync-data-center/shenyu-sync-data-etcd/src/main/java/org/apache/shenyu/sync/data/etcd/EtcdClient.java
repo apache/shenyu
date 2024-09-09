@@ -17,16 +17,15 @@
 
 package org.apache.shenyu.sync.data.etcd;
 
+import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.Watch;
-import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.WatchOption;
 import io.etcd.jetcd.watch.WatchEvent;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,7 +86,6 @@ public class EtcdClient {
             LOG.warn("get key {} is empty", key);
             return null;
         }
-        LOG.info("get key {} value:{}", key, JsonUtils.toJson(keyValues));
         return keyValues.iterator().next().getValue().toString(UTF_8);
     }
 
