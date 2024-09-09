@@ -48,6 +48,7 @@ public class ShenyuSpringMvcDiscoveryConfiguration {
      * @param shenyuDiscoveryConfig        shenyuDiscoveryConfig
      * @param httpClientRegisterRepository httpClientRegisterRepository
      * @param clientRegisterConfig         clientRegisterConfig
+     * @param shenyuClientConfig           shenyuClientConfig
      * @return ClientDiscoveryConfigRefreshedEventListener
      */
     @Bean("SpringMvcClientDiscoveryConfigRefreshedEventListener")
@@ -65,12 +66,15 @@ public class ShenyuSpringMvcDiscoveryConfiguration {
      *
      * @param clientRegisterConfig  clientRegisterConfig
      * @param shenyuDiscoveryConfig shenyuDiscoveryConfig
+     * @param shenyuClientConfig    shenyuClientConfig
      * @return InstanceRegisterListener
      */
     @Bean("springmvcInstanceRegisterListener")
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     @Primary
-    public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig, final ShenyuDiscoveryConfig shenyuDiscoveryConfig, final ShenyuClientConfig shenyuClientConfig) {
+    public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig,
+                                                             final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
+                                                             final ShenyuClientConfig shenyuClientConfig) {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setUrl(clientRegisterConfig.getHost() + ":" + clientRegisterConfig.getPort());
         discoveryUpstreamData.setStatus(0);

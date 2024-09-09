@@ -44,6 +44,7 @@ public class ShenyuSpringWebSocketDiscoveryConfiguration {
      * @param shenyuDiscoveryConfig        shenyuDiscoveryConfig
      * @param httpClientRegisterRepository httpClientRegisterRepository
      * @param clientRegisterConfig         clientRegisterConfig
+     * @param shenyuClientConfig           shenyuClientConfig
      * @return ClientDiscoveryConfigRefreshedEventListener
      */
     @Bean("WebSocketClientDiscoveryConfigRefreshedEventListener")
@@ -61,11 +62,14 @@ public class ShenyuSpringWebSocketDiscoveryConfiguration {
      *
      * @param eventListener         eventListener
      * @param shenyuDiscoveryConfig discoveryConfig
+     * @param shenyuClientConfig    shenyuClientConfig
      * @return InstanceRegisterListener
      */
     @Bean("websocketInstanceRegisterListener")
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
-    public InstanceRegisterListener instanceRegisterListener(final SpringWebSocketClientEventListener eventListener, final ShenyuDiscoveryConfig shenyuDiscoveryConfig, final ShenyuClientConfig shenyuClientConfig) {
+    public InstanceRegisterListener instanceRegisterListener(final SpringWebSocketClientEventListener eventListener,
+                                                             final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
+                                                             final ShenyuClientConfig shenyuClientConfig) {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setProtocol(ShenyuClientConstants.WS);
         discoveryUpstreamData.setStatus(0);
