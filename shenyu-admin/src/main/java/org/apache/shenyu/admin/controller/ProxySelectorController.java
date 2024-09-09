@@ -57,6 +57,7 @@ public class ProxySelectorController {
      * @param name        name
      * @param currentPage currentPage
      * @param pageSize    pageSize
+     * @param namespaceId namespaceId
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")

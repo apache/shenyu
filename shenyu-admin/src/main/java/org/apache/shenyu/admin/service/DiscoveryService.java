@@ -42,7 +42,7 @@ public interface DiscoveryService {
      * @param namespaceId namespaceId
      * @return the discovery
      */
-    DiscoveryVO discovery(String pluginName, String level, final String namespaceId);
+    DiscoveryVO discovery(String pluginName, String level, String namespaceId);
 
     /**
      * Create or update string.

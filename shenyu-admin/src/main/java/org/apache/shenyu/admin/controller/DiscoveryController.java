@@ -57,6 +57,7 @@ public class DiscoveryController {
      *
      * @param pluginName plugin name
      * @param level      level
+     * @param namespaceId namespaceId
      * @return {@link org.apache.shenyu.admin.model.vo.DiscoveryVO}
      */
     @GetMapping("")

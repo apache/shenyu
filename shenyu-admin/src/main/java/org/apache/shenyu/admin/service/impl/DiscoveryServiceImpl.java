@@ -63,8 +63,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
-
 @Service
 public class DiscoveryServiceImpl implements DiscoveryService {
 
@@ -210,6 +208,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .id(discoveryDTO.getId())
                 .name(discoveryDTO.getName())
                 .pluginName(discoveryDTO.getPluginName())
+                .namespaceId(discoveryDTO.getNamespaceId())
                 .level(discoveryDTO.getLevel())
                 .type(discoveryDTO.getType())
                 .serverList(discoveryDTO.getServerList())
@@ -237,6 +236,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .type(discoveryDTO.getType())
                 .serverList(discoveryDTO.getServerList())
                 .props(discoveryDTO.getProps())
+                .namespaceId(discoveryDTO.getNamespaceId())
                 .dateUpdated(currentTime)
                 .build();
         return discoveryMapper.updateSelective(discoveryDO) > 0 ? DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO) : null;

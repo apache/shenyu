@@ -136,8 +136,8 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private DiscoverySyncData buildProxySelectorData(final String value) {
         List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
-        discoveryUpstreamDTOS.forEach(discoveryUpstreamData->{
-            if (StringUtils.isBlank(discoveryUpstreamData.getNamespaceId())){
+        discoveryUpstreamDTOS.forEach(discoveryUpstreamData -> {
+            if (StringUtils.isBlank(discoveryUpstreamData.getNamespaceId())) {
                 discoveryUpstreamData.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
             }
         });

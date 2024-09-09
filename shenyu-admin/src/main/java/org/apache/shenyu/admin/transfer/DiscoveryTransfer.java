@@ -133,6 +133,7 @@ public enum DiscoveryTransfer {
             DiscoveryVO discoveryVO = new DiscoveryVO();
             discoveryVO.setId(data.getId());
             discoveryVO.setName(data.getName());
+            discoveryVO.setNamespaceId(data.getNamespaceId());
             discoveryVO.setType(data.getType());
             discoveryVO.setLevel(data.getLevel());
             discoveryVO.setServerList(data.getServerList());

@@ -119,6 +119,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             vo.setId(proxySelectorDO.getId());
             vo.setName(proxySelectorDO.getName());
             vo.setType(proxySelectorDO.getType());
+            vo.setNamespaceId(proxySelectorDO.getNamespaceId());
             vo.setForwardPort(proxySelectorDO.getForwardPort());
             vo.setCreateTime(proxySelectorDO.getDateCreated());
             vo.setUpdateTime(proxySelectorDO.getDateUpdated());
