@@ -417,6 +417,7 @@ public class UpstreamCheckService {
         }
         
         LOG.info("UpstreamCacheManager discoveryUpstreamDataList selectorId={}|discoveryUpstreamDataList={}", selectorId, GsonUtils.getGson().toJson(discoveryUpstreamDataList));
+        
         discoveryUpstreamDataList.removeIf(u -> {
             for (CommonUpstream alive : aliveList) {
                 if (alive.getUpstreamUrl().equals(u.getUrl())) {
