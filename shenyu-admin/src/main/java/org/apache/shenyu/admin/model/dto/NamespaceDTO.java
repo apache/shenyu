@@ -19,6 +19,8 @@ package org.apache.shenyu.admin.model.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
+
 import java.io.Serializable;
 
 /**
@@ -36,14 +38,14 @@ public class NamespaceDTO implements Serializable {
     /**
      * namespace name.
      */
-    @Max(value = 255, message = "The maximum length is 255")
+    @Length(max = 255, message = "The maximum length is 255")
     @NotNull(message = "namespace name not null")
     private String name;
 
     /**
      * namespace description.
      */
-    @Max(value = 255, message = "The maximum length is 255")
+    @Length(max = 255, message = "The maximum length is 255")
     @NotNull(message = "namespace description not null")
     private String description;
 
