@@ -166,7 +166,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
             List<String> selectorIds = selectorDOStreamSupplier.get().map(SelectorDO::getId).collect(Collectors.toList());
 
             Set<String> hasDataPermissionSelectorIds = new HashSet<>();
-            if (!selectorIds.isEmpty()){
+            if (!selectorIds.isEmpty()) {
                 hasDataPermissionSelectorIds.addAll(dataPermissionMapper.selectDataIds(selectorIds,
                         userId, AdminDataPermissionTypeEnum.SELECTOR.ordinal()));
             }
