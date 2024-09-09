@@ -26,7 +26,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * this is scale rule from by web front.
+ * this is the scale rule from by web front.
  */
 public class ScaleRuleDTO implements Serializable {
 
