@@ -27,7 +27,9 @@ import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
+import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.ServiceInstance;
@@ -48,8 +50,11 @@ public final class ShenyuSpringCloudServiceChooser {
 
     private ShenyuInstanceRegisterRepository repository;
 
-    public ShenyuSpringCloudServiceChooser(final ShenyuInstanceRegisterRepository repository) {
-        this.repository = repository;
+    private RegisterConfig registerConfig;
+
+    public ShenyuSpringCloudServiceChooser(final RegisterConfig registerConfig) {
+        this.repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
+        this.registerConfig = registerConfig;
     }
 
     /**
@@ -124,6 +129,7 @@ public final class ShenyuSpringCloudServiceChooser {
      */
     private List<InstanceEntity> getServiceInstance(final String serviceId) {
         if (CollectionUtils.isEmpty(ServiceInstanceCache.getServiceInstance(serviceId))) {
+            repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
             List<InstanceEntity> instances = repository.selectInstances(serviceId);
             LOG.info("getServiceInstance: {}", JsonUtils.toJson(instances));
             return Optional.ofNullable(instances).orElse(Collections.emptyList());

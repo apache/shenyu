@@ -25,7 +25,9 @@ import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
 
 import static org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler.SELECTOR_CACHED;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
+import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
@@ -45,8 +47,8 @@ public class SpringCloudHeartBeatListener implements ApplicationListener<Heartbe
 
     private final SpringCloudCacheConfig cacheConfig;
 
-    public SpringCloudHeartBeatListener(final ShenyuInstanceRegisterRepository repository, final SpringCloudCacheConfig cacheConfig) {
-        this.repository = repository;
+    public SpringCloudHeartBeatListener(final RegisterConfig registerConfig, final SpringCloudCacheConfig cacheConfig) {
+        this.repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
         this.cacheConfig = cacheConfig;
     }
     

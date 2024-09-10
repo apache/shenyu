@@ -65,7 +65,7 @@ public final class SpringCloudPluginDataHandlerTest {
         RegisterConfig registerConfig = SpringBeanUtils.getInstance().getBean(RegisterConfig.class);
 //        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
         SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
-        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler(ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig), springCloudCacheConfig);
+        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler(registerConfig, springCloudCacheConfig);
         this.selectorData = new SelectorData();
     }
 
