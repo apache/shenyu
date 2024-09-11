@@ -407,6 +407,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             proxySelectorDTO.setPluginName(discoveryDO.getPluginName());
             proxySelectorDTO.setName(selectorDO.getName());
             proxySelectorDTO.setId(selectorDO.getId());
+            proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
             discoveryProcessorHolder.chooseProcessor(discoveryDO.getType()).fetchAll(discoveryHandlerDTO, proxySelectorDTO);
         }
     }

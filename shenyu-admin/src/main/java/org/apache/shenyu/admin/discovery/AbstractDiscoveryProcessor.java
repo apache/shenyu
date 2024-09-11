@@ -182,6 +182,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
             discoverySyncData.setSelectorName(proxySelectorDTO.getName());
             discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
             discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
+            discoverySyncData.setNamespaceId(proxySelectorDTO.getNamespaceId());
             DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
             eventPublisher.publishEvent(dataChangedEvent);
         }

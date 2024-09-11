@@ -97,7 +97,8 @@
         level,
         server_list,
         plugin_name,
-        props)
+        props,
+        namespace_id)
         VALUES
         (#{id, jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
@@ -107,7 +108,8 @@
         #{level, jdbcType=VARCHAR},
         #{serverList, jdbcType=VARCHAR},
         #{pluginName, jdbcType=VARCHAR},
-        #{props, jdbcType=LONGVARCHAR})
+        #{props, jdbcType=LONGVARCHAR},
+        #{namespaceId, jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryDO">

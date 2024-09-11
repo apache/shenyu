@@ -2376,3 +2376,9 @@ ALTER TABLE `shenyu`.`selector` ADD COLUMN `namespace_id` varchar(50) NULL COMME
 ALTER TABLE `shenyu`.`rule` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
 
 ALTER TABLE `shenyu`.`meta_data` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId';
+
+ALTER TABLE `shenyu`.`discovery` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `plugin_name`;
+
+ALTER TABLE `shenyu`.`discovery_upstream` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `discovery_handler_id`;
+
+ALTER TABLE `shenyu`.`proxy_selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `props`;

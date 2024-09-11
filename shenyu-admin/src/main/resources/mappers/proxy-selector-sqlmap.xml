@@ -121,7 +121,7 @@
     </select>
 
     <select id="selectByHandlerId" resultType="org.apache.shenyu.admin.model.entity.ProxySelectorDO">
-        SELECT ps.id , ps.name, ps.plugin_name , ps.type, ps.forward_port , ps.props
+        SELECT ps.id , ps.name, ps.plugin_name , ps.type, ps.forward_port , ps.props, ps.namespace_id
         FROM proxy_selector ps inner join discovery_rel dr on ps.id = dr.proxy_selector_id
         where dr.discovery_handler_id = #{discoveryHandlerId}
     </select>

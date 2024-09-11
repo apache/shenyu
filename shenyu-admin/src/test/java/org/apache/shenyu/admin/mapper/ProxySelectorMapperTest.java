@@ -112,6 +112,7 @@ class ProxySelectorMapperTest extends AbstractSpringIntegrationTest {
         proxySelectorDO.setForwardPort(8080);
         proxySelectorDO.setType("tcp");
         proxySelectorDO.setProps("test");
+        proxySelectorDO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         proxySelectorDO.setDateCreated(new Timestamp(System.currentTimeMillis()));
         proxySelectorDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
         return proxySelectorDO;

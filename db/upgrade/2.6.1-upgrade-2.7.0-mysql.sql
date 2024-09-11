@@ -189,3 +189,23 @@ UPDATE meta_data
 SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
 WHERE namespace_id IS NULL;
 
+ALTER TABLE `shenyu`.`discovery` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `plugin_name`;
+
+UPDATE discovery
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;
+
+ALTER TABLE `shenyu`.`discovery_upstream` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `discovery_handler_id`;
+
+UPDATE discovery_upstream
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;
+
+
+ALTER TABLE `shenyu`.`proxy_selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `props`;
+
+UPDATE proxy_selector
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;
+
+
