@@ -335,6 +335,7 @@ public class AdminClient extends BaseClient {
      */
     public RuleDTO create(final RuleData rule) {
         rule.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        rule.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         RuleDTO dto = create("/rule", rule);
         Rules.INSTANCE.put(rule.getName(), dto.getId());
         return dto;
