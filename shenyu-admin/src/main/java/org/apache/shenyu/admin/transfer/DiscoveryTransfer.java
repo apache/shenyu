@@ -43,6 +43,7 @@ import java.util.Properties;
  * DiscoveryTransfer.
  */
 public enum DiscoveryTransfer {
+
     /**
      * The constant INSTANCE.
      */
@@ -101,7 +102,11 @@ public enum DiscoveryTransfer {
         }).orElse(null);
     }
 
-
+    /**
+     * mapToVo.
+     * @param discoveryRelDO discoveryRelDO
+     * @return DiscoveryRelVO
+     */
     public DiscoveryRelVO mapToVo(DiscoveryRelDO discoveryRelDO) {
         return Optional.ofNullable(discoveryRelDO).map(data -> {
             DiscoveryRelVO discoveryRelVO = new DiscoveryRelVO();
