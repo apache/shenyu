@@ -44,7 +44,7 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * spring mvc websocket service register.
@@ -71,7 +71,7 @@ public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPat
     protected void registerMetadata(final MetaDataRegisterDTO dto) {
         if (dto.isRegisterMetaData()) {
             MetaDataService metaDataService = getMetaDataService();
-            MetaDataDO exist = metaDataService.findByPath(dto.getPath());
+            MetaDataDO exist = metaDataService.findByPathAndNamespaceId(dto.getPath(), dto.getNamespaceId());
             metaDataService.saveOrUpdateMetaData(exist, dto);
         }
     }

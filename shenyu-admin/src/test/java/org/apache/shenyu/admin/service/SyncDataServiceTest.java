@@ -39,7 +39,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.time.LocalDateTime;
 import java.util.Collections;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.mockito.BDDMockito.given;

@@ -153,7 +153,7 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public int update(final RuleDTO ruleDTO) {
-        final RuleDO before = ruleMapper.selectById(ruleDTO.getId());
+        final RuleDO before = ruleMapper.selectByIdAndNamespaceId(ruleDTO.getId(), ruleDTO.getNamespaceId());
         Assert.notNull(before, "the updated rule is not found");
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
@@ -191,14 +191,15 @@ public class RuleServiceImpl implements RuleService {
     }
 
     /**
-     * find rule by id.
+     * find rule by id and namespaceId.
      *
-     * @param id primary key..
+     * @param id primary key.
+     * @param namespaceId namespaceId.
      * @return {@linkplain RuleVO}
      */
     @Override
-    public RuleVO findById(final String id) {
-        return RuleVO.buildRuleVO(ruleMapper.selectById(id),
+    public RuleVO findByIdAndNamespaceId(final String id, final String namespaceId) {
+        return RuleVO.buildRuleVO(ruleMapper.selectByIdAndNamespaceId(id, namespaceId),
                 map(ruleConditionMapper.selectByQuery(new RuleConditionQuery(id)), RuleConditionVO::buildRuleConditionVO));
     }
 
@@ -291,9 +292,9 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean enabled(final List<String> ids, final Boolean enabled) {
+    public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
         ids.forEach(id -> {
-            RuleDO ruleDO = ruleMapper.selectById(id);
+            RuleDO ruleDO = ruleMapper.selectByIdAndNamespaceId(id, namespaceId);
             RuleDO before = JsonUtils.jsonToObject(JsonUtils.toJson(ruleDO), RuleDO.class);
             ruleDO.setEnabled(enabled);
             if (ruleMapper.updateEnable(id, enabled) > 0) {
@@ -304,14 +305,14 @@ public class RuleServiceImpl implements RuleService {
     }
 
     /**
-     * delete rules.
+     * delete rules by ids and namespaceId.
      *
      * @param ids primary key.
      * @return rows
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int delete(final List<String> ids) {
+    public int deleteByIdsAndNamespaceId(final List<String> ids, final String namespaceId) {
         List<RuleDO> rules = ruleMapper.selectByIds(ids);
         final int deleteCount = ruleMapper.deleteByIds(ids);
         if (deleteCount > 0) {

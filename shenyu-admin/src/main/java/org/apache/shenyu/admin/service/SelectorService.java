@@ -168,9 +168,10 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      *
      * @param name        name
      * @param pluginNames pluginNames
+     * @param namespaceId namespaceId
      * @return selectorDO list
      */
-    List<SelectorDO> findByNameAndPluginNames(String name, List<String> pluginNames);
+    List<SelectorDO> findByNameAndPluginNamesAndNamespaceId(String name, List<String> pluginNames, String namespaceId);
 
     /**
      * Build selector data by name and namespaceId.

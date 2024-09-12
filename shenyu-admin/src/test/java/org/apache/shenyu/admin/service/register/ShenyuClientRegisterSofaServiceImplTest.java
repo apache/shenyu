@@ -74,7 +74,7 @@ public final class ShenyuClientRegisterSofaServiceImplTest {
     @Test
     public void testRegisterMetadata() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
-        when(metaDataService.findByServiceNameAndMethodName(any(), any())).thenReturn(metaDataDO);
+        when(metaDataService.findByServiceNameAndMethodNameAndNamespaceId(any(), any(), any())).thenReturn(metaDataDO);
         MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().build();
         shenyuClientRegisterSofaService.registerMetadata(metaDataDTO);
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);

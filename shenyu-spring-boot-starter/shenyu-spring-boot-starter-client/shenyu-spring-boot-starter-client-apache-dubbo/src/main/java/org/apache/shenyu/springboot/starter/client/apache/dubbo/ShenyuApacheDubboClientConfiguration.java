@@ -18,7 +18,6 @@
 package org.apache.shenyu.springboot.starter.client.apache.dubbo;
 
 import org.apache.shenyu.client.apache.dubbo.ApacheDubboServiceBeanListener;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
@@ -50,6 +49,6 @@ public class ShenyuApacheDubboClientConfiguration {
     @Bean
     public ApacheDubboServiceBeanListener apacheDubboServiceBeanListener(final ShenyuClientConfig clientConfig,
                                                                          final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new ApacheDubboServiceBeanListener(clientConfig.getClient().get(RpcTypeEnum.DUBBO.getName()), shenyuClientRegisterRepository);
+        return new ApacheDubboServiceBeanListener(clientConfig, shenyuClientRegisterRepository);
     }
 }

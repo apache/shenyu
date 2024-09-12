@@ -128,7 +128,7 @@ public final class AlertReceiverServiceTest {
     }
 
     private AlertReceiverDO buildAlertReceiverDO(final String id) {
-        AlertReceiverDO alertReceiverDO = AlertTransfer.INSTANCE.mapToAlertReciverDO(buildAlertReceiverDTO(id));
+        AlertReceiverDO alertReceiverDO = AlertTransfer.INSTANCE.mapToAlertReceiverDO(buildAlertReceiverDTO(id));
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         alertReceiverDO.setDateCreated(now);
         alertReceiverDO.setDateUpdated(now);

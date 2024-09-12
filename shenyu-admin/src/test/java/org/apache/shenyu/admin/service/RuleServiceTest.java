@@ -64,7 +64,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -126,21 +126,21 @@ public final class RuleServiceTest {
     public void testDelete() {
         publishEvent();
         RuleDO ruleDO = buildRuleDO("123");
-        given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
+        given(this.ruleMapper.selectByIdAndNamespaceId("123", SYS_DEFAULT_NAMESPACE_ID)).willReturn(ruleDO);
         final List<String> ids = Collections.singletonList(ruleDO.getId());
         given(this.ruleMapper.deleteByIds(ids)).willReturn(ids.size());
-        assertEquals(this.ruleService.delete(ids), ids.size());
+        assertEquals(this.ruleService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID), ids.size());
     }
 
     @Test
     public void testFindById() {
         RuleDO ruleDO = buildRuleDO("123");
-        given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
+        given(this.ruleMapper.selectByIdAndNamespaceId("123", SYS_DEFAULT_NAMESPACE_ID)).willReturn(ruleDO);
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
         given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
         RuleVO ruleVO = buildRuleVO();
-        final RuleVO ruleVOById = this.ruleService.findById("123");
+        final RuleVO ruleVOById = this.ruleService.findByIdAndNamespaceId("123", SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(ruleVOById);
         assertEquals(ruleVOById.getId(), ruleVO.getId());
     }
@@ -294,7 +294,7 @@ public final class RuleServiceTest {
 
     private void testUpdate() {
         RuleDTO ruleDTO = buildRuleDTO("123");
-        given(this.ruleMapper.selectById("123")).willReturn(RuleDO.builder().id("123").build());
+        given(this.ruleMapper.selectByIdAndNamespaceId("123", SYS_DEFAULT_NAMESPACE_ID)).willReturn(RuleDO.builder().id("123").build());
         given(this.ruleMapper.updateSelective(any())).willReturn(1);
         assertThat(this.ruleService.createOrUpdate(ruleDTO), greaterThan(0));
     }
@@ -345,6 +345,7 @@ public final class RuleServiceTest {
                 .matchMode(0)
                 .handle("{\"test1\":\"\"}")
                 .name("456")
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         if (StringUtils.isNotBlank(id)) {
             ruleDTO.setId(id);
