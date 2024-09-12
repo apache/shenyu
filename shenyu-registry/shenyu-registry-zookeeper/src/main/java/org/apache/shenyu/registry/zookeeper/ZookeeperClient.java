@@ -159,7 +159,7 @@ public class ZookeeperClient {
         String val = StringUtils.isEmpty(value) ? "" : value;
         try {
             synchronized (ZookeeperClient.class) {
-                if (null != client.checkExists() && null != client.checkExists().forPath(key)) {
+                if (Objects.nonNull(client.checkExists()) && Objects.nonNull(client.checkExists().forPath(key))) {
                     LOG.debug("path exists, update zookeeper key={} with value={}", key, val);
                     client.setData().forPath(key, val.getBytes(StandardCharsets.UTF_8));
                     return;
