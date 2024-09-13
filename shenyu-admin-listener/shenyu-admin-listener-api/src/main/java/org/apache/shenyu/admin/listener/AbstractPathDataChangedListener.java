@@ -26,6 +26,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,7 +103,7 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
             }
             // create or update
             createOrUpdate(upstreamPath, data);
-            LOG.info("[DataChangedListener] change discoveryUpstream path={}|data={}", upstreamPath, data);
+            LOG.info("[DataChangedListener] change discoveryUpstream path={}|data={}", upstreamPath, GsonUtils.getInstance().toJson(data));
         }
     }
 
