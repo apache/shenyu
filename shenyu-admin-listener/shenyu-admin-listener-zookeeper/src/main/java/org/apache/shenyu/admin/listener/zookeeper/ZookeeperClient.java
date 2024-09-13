@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ZookeeperClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperClient.class);
 
     private final ZookeeperConfig config;
 
@@ -75,7 +75,7 @@ public class ZookeeperClient {
         try {
             this.client.blockUntilConnected();
         } catch (InterruptedException e) {
-            LOGGER.warn("Interrupted during zookeeper client starting.");
+            LOG.warn("Interrupted during zookeeper client starting.");
             Thread.currentThread().interrupt();
         }
     }
@@ -111,7 +111,6 @@ public class ZookeeperClient {
         try {
             return null != client.checkExists().forPath(key);
         } catch (Exception e) {
-            LOGGER.error("check if key exist error", e);
             return false;
         }
     }
@@ -138,7 +137,7 @@ public class ZookeeperClient {
      * @return value.
      */
     public String get(final String key) {
-        TreeCache cache = findFromcache(key);
+        TreeCache cache = findFromCache(key);
         if (Objects.isNull(cache)) {
             return getDirectly(key);
         }
@@ -159,8 +158,17 @@ public class ZookeeperClient {
     public void createOrUpdate(final String key, final String value, final CreateMode mode) {
         String val = StringUtils.isEmpty(value) ? "" : value;
         try {
-            client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
+            synchronized (ZookeeperClient.class) {
+                if (Objects.nonNull(client.checkExists()) && Objects.nonNull(client.checkExists().forPath(key))) {
+                    LOG.debug("path exists, update zookeeper key={} with value={}", key, val);
+                    client.setData().forPath(key, val.getBytes(StandardCharsets.UTF_8));
+                    return;
+                }
+                LOG.debug("path not exists, set zookeeper key={} with value={}", key, val);
+                client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
+            }
         } catch (Exception e) {
+            LOG.error("create or update key with value error, key:{} value:{}", key, value, e);
             throw new ShenyuException(e);
         }
     }
@@ -244,7 +252,7 @@ public class ZookeeperClient {
      * @param key key.
      * @return cache.
      */
-    private TreeCache findFromcache(final String key) {
+    private TreeCache findFromCache(final String key) {
         for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
             if (key.startsWith(cache.getKey())) {
                 return cache.getValue();

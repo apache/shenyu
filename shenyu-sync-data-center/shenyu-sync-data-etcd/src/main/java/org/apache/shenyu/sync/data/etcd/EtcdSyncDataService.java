@@ -85,9 +85,11 @@ public class EtcdSyncDataService extends AbstractPathDataSyncService {
                     final String nodeData = etcdClient.get(updatePath);
                     super.event(updatePath, nodeData, registerPath, EventType.PUT);
                 });
+            } else {
+                LOG.info("etcd watcher path {} is empty", registerPath);
             }
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            LOG.error("watcherData0 errors", e);
         }
     }
 
