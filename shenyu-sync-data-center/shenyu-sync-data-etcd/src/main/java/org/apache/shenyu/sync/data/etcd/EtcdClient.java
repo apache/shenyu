@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.sync.data.etcd;
 
+import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.Watch;
-import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.WatchOption;
 import io.etcd.jetcd.watch.WatchEvent;
@@ -79,13 +79,13 @@ public class EtcdClient {
         try {
             keyValues = client.getKVClient().get(bytesOf(key)).get().getKvs();
         } catch (InterruptedException | ExecutionException e) {
-            LOG.error(e.getMessage(), e);
+            LOG.error("get key error, key:{}", key, e);
         }
 
         if (CollectionUtils.isEmpty(keyValues)) {
+            LOG.warn("get key {} is empty", key);
             return null;
         }
-
         return keyValues.iterator().next().getValue().toString(UTF_8);
     }
 
@@ -104,7 +104,7 @@ public class EtcdClient {
                     .get().getKvs().stream()
                     .collect(Collectors.toMap(e -> e.getKey().toString(UTF_8), e -> e.getValue().toString(UTF_8)));
         } catch (ExecutionException | InterruptedException e) {
-            LOG.error("etcd getKeysMapByPrefix key {} error {}", prefix, e);
+            LOG.error("etcd getKeysMapByPrefix key {} error", prefix, e);
             throw new ShenyuException(e);
         }
 
