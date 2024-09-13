@@ -65,12 +65,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: '.github/filters.yml'
-          list-files: json
-
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
