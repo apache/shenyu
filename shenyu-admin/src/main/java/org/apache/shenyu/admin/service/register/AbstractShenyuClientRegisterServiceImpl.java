@@ -63,7 +63,7 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
  * Abstract strategy.
  */
 public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
-
+    
     /**
      * The Event publisher.
      */

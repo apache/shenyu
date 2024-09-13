@@ -24,7 +24,6 @@ import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.converter.DivideSelectorHandleConverter;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
@@ -41,7 +40,6 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -55,9 +53,6 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
  */
 @Service
 public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRegisterService {
-
-    @Resource
-    private DivideSelectorHandleConverter divideSelectorHandleConverter;
 
     @Override
     public String rpcType() {

@@ -31,6 +31,7 @@ import org.apache.shenyu.admin.model.vo.DiscoveryHandlerVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryRelVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
+import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
@@ -333,5 +334,13 @@ public enum DiscoveryTransfer {
             return discoveryUpstreamDTO;
         }).orElse(null);
     }
-
+    
+    /**
+     * mapToDiscoveryUpstreamData.
+     * @param commonUpstream commonUpstream
+     * @return DiscoveryUpstreamData
+     */
+    public DiscoveryUpstreamData mapToDiscoveryUpstreamData(CommonUpstream commonUpstream) {
+        return mapToData(CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(commonUpstream.getUpstreamUrl().split(":")[0], Integer.valueOf(commonUpstream.getUpstreamUrl().split(":")[1]), commonUpstream.getProtocol()));
+    }
 }
