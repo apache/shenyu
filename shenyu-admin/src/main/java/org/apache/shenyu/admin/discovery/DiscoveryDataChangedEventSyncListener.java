@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
  */
 public class DiscoveryDataChangedEventSyncListener implements DataChangedEventListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DiscoveryDataChangedEventSyncListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DiscoveryDataChangedEventSyncListener.class);
 
     private final KeyValueParser keyValueParser;
 
@@ -82,7 +82,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getValue());
         final List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
         if (CollectionUtils.isEmpty(upstreamDataList)) {
-            LOGGER.warn("shenyu proxySelectorData#discoveryUpstreamList is empty");
+            LOG.warn("shenyu proxySelectorData#discoveryUpstreamList is empty");
             return;
         }
         switch (currentEvent) {
@@ -95,10 +95,10 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                             d.setDateCreated(new Timestamp(System.currentTimeMillis()));
                             d.setDateUpdated(new Timestamp(System.currentTimeMillis()));
                             discoveryUpstreamMapper.insert(DiscoveryTransfer.INSTANCE.mapToDo(d));
-                            LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", d.getUrl());
+                            LOG.info("shenyu [DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", d.getUrl());
                         }
                     } catch (DuplicateKeyException ex) {
-                        LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener]  Upstream {} exist", d.getUrl());
+                        LOG.info("shenyu [DiscoveryDataChangedEventSyncListener]  Upstream {} exist", d.getUrl());
                     }
                 });
                 break;
@@ -106,14 +106,14 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                 upstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(discoveryUpstreamDO -> {
                     discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
                     int effect = discoveryUpstreamMapper.updateDiscoveryHandlerIdAndUrl(discoveryUpstreamDO);
-                    LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}, effect = {} ", discoveryUpstreamDO.getUrl(), effect);
+                    LOG.info("shenyu [DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}, effect = {} ", discoveryUpstreamDO.getUrl(), effect);
                 });
                 break;
             case DELETED:
                 if (CollectionUtils.isNotEmpty(upstreamDataList)) {
                     upstreamDataList.forEach(up -> {
                         discoveryUpstreamMapper.deleteByUrl(discoveryHandlerId, up.getUrl());
-                        LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] DELETE Upstream {}", up.getUrl());
+                        LOG.info("shenyu [DiscoveryDataChangedEventSyncListener] DELETE Upstream {}", up.getUrl());
                     });
                 }
                 break;
