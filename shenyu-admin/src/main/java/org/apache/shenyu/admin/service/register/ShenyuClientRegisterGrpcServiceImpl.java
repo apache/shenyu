@@ -119,7 +119,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
 
     private List<GrpcUpstream> buildGrpcUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
-                .map(dto -> CommonUpstreamUtils.buildDefaultGrpcUpstream(dto.getHost(), dto.getPort()))
+                .map(dto -> CommonUpstreamUtils.buildDefaultGrpcUpstream(dto.getHost(), dto.getPort(), dto.getNamespaceId()))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 
@@ -137,7 +137,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(validOfflineUrl)) {
             for (URIRegisterDTO offlineUrl : validOfflineUrl) {
-                GrpcUpstream grpcUpstream = CommonUpstreamUtils.buildDefaultGrpcUpstream(offlineUrl.getHost(), offlineUrl.getPort());
+                GrpcUpstream grpcUpstream = CommonUpstreamUtils.buildDefaultGrpcUpstream(offlineUrl.getHost(), offlineUrl.getPort(), offlineUrl.getNamespaceId());
                 removeDiscoveryUpstream(selectorDO.getId(), grpcUpstream.getUpstreamUrl());
             }
             DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName, selectorDO.getNamespaceId());
