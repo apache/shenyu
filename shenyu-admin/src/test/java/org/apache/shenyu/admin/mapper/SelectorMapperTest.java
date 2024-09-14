@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.mapper;
 
+import jakarta.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -24,18 +25,17 @@ import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
 
-import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 
 /**
  * Test Cases for SelectorMapper.
@@ -51,7 +51,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
-        SelectorDO selector = selectorMapper.selectById(selectorDO.getId());
+        SelectorDO selector = selectorMapper.selectByIdAndNamespaceId(selectorDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(selector);
         assertEquals(selectorDO.getId(), selector.getId());
         assertEquals(selectorDO.getContinued(), selector.getContinued());
@@ -84,7 +84,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
-        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), selectorDO.getName(), new PageParameter());
+        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), selectorDO.getName(), new PageParameter(), SYS_DEFAULT_NAMESPACE_ID);
         List<SelectorDO> list = selectorMapper.selectByQuery(query);
         assertNotNull(list);
         assertEquals(list.size(), 1);
@@ -100,7 +100,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
-        List<SelectorDO> list = selectorMapper.findByPluginId(selectorDO.getPluginId());
+        List<SelectorDO> list = selectorMapper.findByPluginIdAndNamespaceId(selectorDO.getPluginId(), selectorDO.getNamespaceId());
         assertNotNull(list);
         assertEquals(list.size(), 1);
         assertNotNull(selectorDO.getPluginId(), list.get(0).getPluginId());
@@ -114,7 +114,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         SelectorDO selectorDO = buildSelectorDO();
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
-        List<SelectorDO> doList = selectorMapper.selectByName(selectorDO.getName());
+        List<SelectorDO> doList = selectorMapper.selectByNameAndNamespaceId(selectorDO.getName(), SYS_DEFAULT_NAMESPACE_ID);
         assertEquals(doList.size(), 1);
         assertNotNull(doList.get(0));
         assertEquals(selectorDO.getName(), doList.get(0).getName());
@@ -129,7 +129,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
-        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), selectorDO.getName(), new PageParameter());
+        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), selectorDO.getName(), new PageParameter(), SYS_DEFAULT_NAMESPACE_ID);
         Integer count = selectorMapper.countByQuery(query);
         assertNotNull(count);
         assertEquals(Integer.valueOf(1), count);
@@ -237,6 +237,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
                 .matchRestful(false)
                 .continued(Boolean.TRUE)
                 .handle("handle")
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
     }
 }

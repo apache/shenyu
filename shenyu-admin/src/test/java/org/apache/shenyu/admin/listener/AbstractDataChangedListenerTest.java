@@ -17,13 +17,10 @@
 
 package org.apache.shenyu.admin.listener;
 
-import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.NamespacePluginService;
-import org.apache.shenyu.admin.service.NamespaceService;
-import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -34,9 +31,10 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -134,6 +132,9 @@ public final class AbstractDataChangedListenerTest {
         namespaceVO.setNamespaceId(namespaceId);
         list.add(namespaceVO);
         when(namespaceService.list()).thenReturn(list);
+
+        // clear first
+        listener.getCache().clear();
     }
 
     @AfterEach

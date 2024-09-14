@@ -52,7 +52,7 @@ public final class ApplicationConfigCache {
 
     private final LoadingCache<String, ShenyuServiceInstanceLists> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
-            .build(new CacheLoader<String, ShenyuServiceInstanceLists>() {
+            .build(new CacheLoader<>() {
                 @Override
                 @NonNull
                 public ShenyuServiceInstanceLists load(@NonNull final String key) {

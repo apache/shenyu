@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ConsumerConfig;
@@ -65,7 +65,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
                     config.destroy();
                 }
             })
-            .build(new CacheLoader<String, ReferenceConfig<GenericService>>() {
+            .build(new CacheLoader<>() {
                 @Override
                 @Nonnull
                 public ReferenceConfig<GenericService> load(@Nonnull final String key) {

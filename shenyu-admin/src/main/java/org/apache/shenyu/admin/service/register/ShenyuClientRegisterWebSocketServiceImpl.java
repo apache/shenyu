@@ -44,6 +44,8 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
+
 /**
  * spring mvc websocket service register.
  */
@@ -69,7 +71,7 @@ public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPat
     protected void registerMetadata(final MetaDataRegisterDTO dto) {
         if (dto.isRegisterMetaData()) {
             MetaDataService metaDataService = getMetaDataService();
-            MetaDataDO exist = metaDataService.findByPath(dto.getPath());
+            MetaDataDO exist = metaDataService.findByPathAndNamespaceId(dto.getPath(), dto.getNamespaceId());
             metaDataService.saveOrUpdateMetaData(exist, dto);
         }
     }
@@ -105,7 +107,8 @@ public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPat
     public String offline(final String selectorName, final List<URIRegisterDTO> offlineList) {
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         SelectorService selectorService = getSelectorService();
-        SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, pluginName);
+        // todo:[To be refactored with namespace] Temporarily hardcode
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
         if (Objects.isNull(selectorDO)) {
             return Constants.SUCCESS;
         }

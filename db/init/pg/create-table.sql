@@ -202,6 +202,7 @@ CREATE TABLE "public"."dashboard_user" (
   "password" varchar(128) COLLATE "pg_catalog"."default",
   "role" int4 NOT NULL,
   "enabled" int2 NOT NULL,
+  "client_id" varchar(32) COLLATE "pg_catalog"."default",
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
@@ -217,7 +218,7 @@ COMMENT ON COLUMN "public"."dashboard_user"."date_updated" IS 'update time';
 -- ----------------------------
 -- Records of dashboard_user
 -- ----------------------------
-INSERT INTO "public"."dashboard_user" VALUES ('1', 'admin', 'ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413', 1, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."dashboard_user" VALUES ('1', 'admin', 'ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413', 1, 1, null, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 
 -- ----------------------------
 -- Table structure for data_permission
@@ -2790,3 +2791,11 @@ INSERT INTO "public"."permission" VALUES ('1792779493541343265', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1792779493541343266', '1346358560427216896', '1792749362445840485', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1792779493541343267', '1346358560427216896', '1792749362445840486', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
 
+ALTER TABLE "public"."selector" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."selector"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."rule" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."meta_data" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespaceId';

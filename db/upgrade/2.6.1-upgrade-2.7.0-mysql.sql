@@ -88,7 +88,7 @@ INSERT INTO `shenyu`.`namespace` (`id`, `namespace_id`, `name`, `description`, `
 CREATE TABLE `plugin_ns_rel` (
                                  `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
                                  `namespace_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace id',
-                                 `plugin_id` int(11) NOT NULL COMMENT 'plugin id',
+                                 `plugin_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'plugin id',
                                  `config` text COLLATE utf8mb4_unicode_ci COMMENT 'plugin configuration',
                                  `sort` int(11) DEFAULT NULL COMMENT 'sort',
                                  `enabled` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'whether to open (0, not open, 1 open)',
@@ -165,3 +165,27 @@ INSERT INTO `shenyu`.`permission` (`id`, `object_id`, `resource_id`, `date_creat
 INSERT INTO `shenyu`.`permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1792779493541343265', '1346358560427216896', '1792749362445840484', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
 INSERT INTO `shenyu`.`permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1792779493541343266', '1346358560427216896', '1792749362445840485', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
 INSERT INTO `shenyu`.`permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1792779493541343267', '1346358560427216896', '1792749362445840486', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
+
+/* add column into dashboard_user table */
+ALTER TABLE `shenyu`.`dashboard_user` ADD COLUMN `client_id` varchar(32) NULL DEFAULT NULL COMMENT 'client id';
+
+
+ALTER TABLE `shenyu`.`selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
+
+UPDATE selector
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;
+
+
+ALTER TABLE `shenyu`.`rule` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
+
+UPDATE rule
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;
+
+ALTER TABLE `shenyu`.`meta_data` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId';
+
+UPDATE meta_data
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;
+

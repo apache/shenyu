@@ -22,7 +22,7 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;

@@ -24,7 +24,7 @@ import org.apache.shenyu.client.apache.dubbo.validation.service.TestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.validation.ValidationException;
+import jakarta.validation.ValidationException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -91,7 +91,7 @@ public final class ApacheDubboClientValidatorTest {
                 .validate(
                         "methodTwo",
                         new Class<?>[]{MockValidationParameter.class},
-                        new Object[]{new MockValidationParameter("NotBeNull")}));
+                        new Object[]{new MockValidationParameter()}));
     }
 
     @Test

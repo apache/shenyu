@@ -41,12 +41,14 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
+
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * spring mvc http service register.
@@ -76,7 +78,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
     protected void registerMetadata(final MetaDataRegisterDTO dto) {
         if (dto.isRegisterMetaData()) {
             MetaDataService metaDataService = getMetaDataService();
-            MetaDataDO exist = metaDataService.findByPath(dto.getPath());
+            MetaDataDO exist = metaDataService.findByPathAndNamespaceId(dto.getPath(), dto.getNamespaceId());
             metaDataService.saveOrUpdateMetaData(exist, dto);
         }
     }
@@ -121,7 +123,8 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
     public String offline(final String selectorName, final List<URIRegisterDTO> uriList) {
         final SelectorService selectorService = getSelectorService();
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
-        SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, pluginName);
+        // todo:[To be refactored with namespace] Temporarily hardcode
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
         if (Objects.isNull(selectorDO)) {
             return Constants.SUCCESS;
         }
@@ -133,7 +136,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         existList.removeAll(needToRemove);
         final String handler = GsonUtils.getInstance().toJson(existList);
         selectorDO.setHandle(handler);
-        SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
+        SelectorData selectorData = selectorService.buildByNameAndPluginNameAndNamespaceId(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), SYS_DEFAULT_NAMESPACE_ID);
         selectorData.setHandle(handler);
         // update db
         selectorService.updateSelective(selectorDO);

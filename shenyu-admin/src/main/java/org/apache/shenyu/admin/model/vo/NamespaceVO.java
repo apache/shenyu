@@ -32,7 +32,7 @@ public class NamespaceVO implements Serializable {
     private String id;
 
     /**
-     * name.
+     * namespaceId.
      */
     private String namespaceId;
 

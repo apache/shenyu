@@ -43,16 +43,16 @@ public class MemorySafeWindowTinyLFUMapTest {
     @Test
     public void testWindowTinyLFU() {
         try {
-            MemorySafeWindowTinyLFUMap<Integer, Integer> cache = new MemorySafeWindowTinyLFUMap<Integer, Integer>(1, 1024) {
-    
+            MemorySafeWindowTinyLFUMap<Integer, Integer> cache = new MemorySafeWindowTinyLFUMap<>(1, 1024) {
+                
                 private static final long serialVersionUID = 8897028073615563875L;
-    
+                
                 @Override
                 public synchronized boolean isFull() {
                     //just for test
                     return size() > 1;
                 }
-    
+                
                 @Override
                 public synchronized void cleanUp() {
                     super.cleanUp();

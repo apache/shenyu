@@ -52,7 +52,9 @@ spec:
           env:
             - name: shenyu.register.serverLists
               value: http://shenyu-admin:9095
-            - name: com.alipay.sofa.rpc.registry-address
+#            - name: com.alipay.sofa.rpc.registry-address
+#              value: zookeeper://shenyu-zk:2181
+            - name: sofa.boot.rpc.registry.address
               value: zookeeper://shenyu-zk:2181
           ports:
             - containerPort: 28011

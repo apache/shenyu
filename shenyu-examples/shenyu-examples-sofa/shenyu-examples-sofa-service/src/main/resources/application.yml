@@ -23,12 +23,17 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: sofa
-com:
-  alipay:
-    sofa:
-      rpc:
-        registry-address: zookeeper://127.0.0.1:2181
-        bolt-port: 8888
+#com:
+#  alipay:
+#    sofa:
+#      rpc:
+#        registry-address: zookeeper://127.0.0.1:2181
+#        bolt-port: 8888
+sofa:
+  boot:
+    rpc:
+      registry:
+        address: zookeeper://127.0.0.1:2181
 
 shenyu:
   register:

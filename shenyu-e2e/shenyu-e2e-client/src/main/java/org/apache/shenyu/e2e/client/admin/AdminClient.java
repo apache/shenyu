@@ -61,7 +61,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -76,19 +78,19 @@ public class AdminClient extends BaseClient {
 
     private static final Logger log = LoggerFactory.getLogger(AdminClient.class);
 
-    private static final TypeReference<PaginatedResources<PluginDTO>> PAGINATED_PLUGINS_TYPE_REFERENCE = new TypeReference<PaginatedResources<PluginDTO>>() {
+    private static final TypeReference<PaginatedResources<PluginDTO>> PAGINATED_PLUGINS_TYPE_REFERENCE = new TypeReference<>() {
     };
 
-    private static final TypeReference<SearchedResources<SelectorDTO>> SEARCHED_SELECTORS_TYPE_REFERENCE = new TypeReference<SearchedResources<SelectorDTO>>() {
+    private static final TypeReference<SearchedResources<SelectorDTO>> SEARCHED_SELECTORS_TYPE_REFERENCE = new TypeReference<>() {
     };
 
-    private static final TypeReference<SearchedResources<RuleDTO>> SEARCHED_RULES_TYPE_REFERENCE = new TypeReference<SearchedResources<RuleDTO>>() {
+    private static final TypeReference<SearchedResources<RuleDTO>> SEARCHED_RULES_TYPE_REFERENCE = new TypeReference<>() {
     };
 
-    private static final TypeReference<SearchedResources<FakeResourceDTO>> FAKE_VALUE_TYPE = new TypeReference<SearchedResources<FakeResourceDTO>>() {
+    private static final TypeReference<SearchedResources<FakeResourceDTO>> FAKE_VALUE_TYPE = new TypeReference<>() {
     };
 
-    private static final TypeReference<List<MetaDataDTO>> SEARCHED_METADATAS_TYPE_REFERENCE = new TypeReference<List<MetaDataDTO>>() {
+    private static final TypeReference<List<MetaDataDTO>> SEARCHED_METADATAS_TYPE_REFERENCE = new TypeReference<>() {
     };
 
     private final MultiValueMap<String, String> basicAuth = new HttpHeaders();
@@ -241,6 +243,7 @@ public class AdminClient extends BaseClient {
                 .keyword(keyword)
                 .plugins(plugins)
                 .switchStatus(true)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                 .build();
         return search("/selector/list/search", condition, SEARCHED_SELECTORS_TYPE_REFERENCE);
     }
@@ -248,8 +251,8 @@ public class AdminClient extends BaseClient {
     /**
      * Fetch the selectors by the given conditions.
      *
-     * @param keyword expected selectors included the word. return all if absent.
-     * @param page page.
+     * @param keyword  expected selectors included the word. return all if absent.
+     * @param page     page.
      * @param pageSize size.
      * @param plugins  expected selectors under specified plugins. return all if absent.
      * @return paginated info with  list of {@link SelectorDTO}s
@@ -266,7 +269,7 @@ public class AdminClient extends BaseClient {
     /**
      * Fetch the rules by the given conditions.
      *
-     * @param keyword expected selectors included the word. return all if absent.
+     * @param keyword   expected selectors included the word. return all if absent.
      * @param selectors expected selectors under specified plugins. return all if absent.
      * @return paginated info with list of {@link RuleDTO}s
      */
@@ -274,6 +277,7 @@ public class AdminClient extends BaseClient {
         RuleQueryCondition condition = RuleQueryCondition.builder()
                 .keyword(keyword)
                 .selectors(selectors)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                 .switchStatus(true)
                 .build();
         return search("/rule/list/search", condition, SEARCHED_RULES_TYPE_REFERENCE);
@@ -295,9 +299,9 @@ public class AdminClient extends BaseClient {
         ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + uri, entity, ShenYuResult.class);
         ShenYuResult rst = assertAndGet(response, "query success");
 
-        return Assertions.assertDoesNotThrow(
-            () -> mapper.readValue(rst.getData().traverse(), valueType),
-                "checking cast to SearchedResources<T>"
+        return Assertions.assertDoesNotThrow(() -> mapper.readValue(
+            rst.getData().traverse(), valueType),
+            "checking cast to SearchedResources<T>"
         );
     }
 
@@ -306,7 +310,7 @@ public class AdminClient extends BaseClient {
         ShenYuResult rst = assertAndGet(response, "query success");
         return Assertions.assertDoesNotThrow(
             () -> mapper.readValue(rst.getData().traverse(), valueType),
-                "checking cast to SearchedResources<T>"
+            "checking cast to SearchedResources<T>"
         );
     }
 
@@ -317,6 +321,7 @@ public class AdminClient extends BaseClient {
      * @return SelectorDTO
      */
     public SelectorDTO create(final SelectorData selector) {
+        selector.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         SelectorDTO dto = create("/selector", selector);
         Selectors.INSTANCE.put(selector.getName(), dto.getId());
         return dto;
@@ -329,6 +334,7 @@ public class AdminClient extends BaseClient {
      * @return RuleDTO
      */
     public RuleDTO create(final RuleData rule) {
+        rule.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         RuleDTO dto = create("/rule", rule);
         Rules.INSTANCE.put(rule.getName(), dto.getId());
         return dto;
@@ -436,8 +442,10 @@ public class AdminClient extends BaseClient {
             log.info("delete resources, effected size: 0, cause by: there is not resources in ShenYuAdmin");
             return;
         }
-
-        HttpEntity<List<String>> entity = new HttpEntity<>(ids, basicAuth);
+        Map<String, Object> body = new HashMap<>();
+        body.put("ids", ids);
+        body.put("namespaceId", SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, basicAuth);
         ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri, HttpMethod.DELETE, entity, ShenYuResult.class);
         ShenYuResult rst = assertAndGet(response, "delete success");
         Integer deleted = Assertions.assertDoesNotThrow(() -> rst.toObject(Integer.class), "checking to cast object");

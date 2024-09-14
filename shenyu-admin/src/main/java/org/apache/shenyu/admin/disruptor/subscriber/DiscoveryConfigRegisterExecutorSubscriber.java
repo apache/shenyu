@@ -46,9 +46,7 @@ public class DiscoveryConfigRegisterExecutorSubscriber implements ExecutorTypeSu
 
     @Override
     public void executor(final Collection<DiscoveryConfigRegisterDTO> discoveryConfigRegisterDTOS) {
-        executorService.schedule(() -> {
-            discoveryConfigRegisterDTOS.forEach(discoveryService::registerDiscoveryConfig);
-        }, 2, TimeUnit.SECONDS);
+        executorService.schedule(() -> discoveryConfigRegisterDTOS.forEach(discoveryService::registerDiscoveryConfig), 2, TimeUnit.SECONDS);
     }
 
     @Override

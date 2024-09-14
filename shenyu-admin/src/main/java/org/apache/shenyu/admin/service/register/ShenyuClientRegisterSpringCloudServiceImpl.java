@@ -33,7 +33,7 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -65,7 +65,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextP
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
         MetaDataService metaDataService = getMetaDataService();
-        MetaDataDO metaDataDO = metaDataService.findByPath(metaDataDTO.getPath());
+        MetaDataDO metaDataDO = metaDataService.findByPathAndNamespaceId(metaDataDTO.getPath(), metaDataDTO.getNamespaceId());
         metaDataService.saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
 

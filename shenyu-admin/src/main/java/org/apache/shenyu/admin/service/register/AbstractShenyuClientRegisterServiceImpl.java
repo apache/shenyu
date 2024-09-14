@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
@@ -24,12 +25,11 @@ import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.DiscoveryService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.DiscoveryService;
-import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
-
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
@@ -52,11 +52,12 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
 
-import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * Abstract strategy.
@@ -135,6 +136,8 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      */
     @Override
     public String register(final MetaDataRegisterDTO dto) {
+        String namespaceId = StringUtils.defaultIfEmpty(dto.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
+        dto.setNamespaceId(namespaceId);
         //handler plugin selector
         String selectorHandler = selectorHandler(dto);
         String selectorId = selectorService.registerDefault(dto, PluginNameAdapter.rpcTypeAdapter(rpcType()), selectorHandler);
@@ -171,7 +174,8 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             return "";
         }
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
-        SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, pluginName);
+        // todo:[To be refactored with namespace] Temporarily hardcode
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
         if (Objects.isNull(selectorDO)) {
             throw new ShenyuException("doRegister Failed to execute,wait to retry.");
         }
@@ -182,7 +186,8 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         String handler = buildHandle(validUriList, selectorDO);
         if (handler != null) {
             selectorDO.setHandle(handler);
-            SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
+            // todo:[To be refactored with namespace] Temporarily hardcode
+            SelectorData selectorData = selectorService.buildByNameAndPluginNameAndNamespaceId(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), SYS_DEFAULT_NAMESPACE_ID);
             selectorData.setHandle(handler);
             // update db
             selectorService.updateSelective(selectorDO);
@@ -279,14 +284,15 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      */
     protected RuleDTO buildContextPathDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {
         String contextPath = metaDataDTO.getContextPath();
-        return buildRuleDTO(selectorId, ruleHandler, contextPath, PathUtils.decoratorPath(contextPath));
+        String namespaceId = metaDataDTO.getNamespaceId();
+        return buildRuleDTO(selectorId, ruleHandler, contextPath, PathUtils.decoratorPath(contextPath), namespaceId);
     }
 
     private RuleDTO buildRpcDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {
-        return buildRuleDTO(selectorId, ruleHandler, metaDataDTO.getRuleName(), metaDataDTO.getPath());
+        return buildRuleDTO(selectorId, ruleHandler, metaDataDTO.getRuleName(), metaDataDTO.getPath(), metaDataDTO.getNamespaceId());
     }
 
-    private RuleDTO buildRuleDTO(final String selectorId, final String ruleHandler, final String ruleName, final String path) {
+    private RuleDTO buildRuleDTO(final String selectorId, final String ruleHandler, final String ruleName, final String path, final String namespaceId) {
         RuleDTO ruleDTO = RuleDTO.builder()
                 .selectorId(selectorId)
                 .name(ruleName)
@@ -296,6 +302,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
                 .matchRestful(Boolean.FALSE)
                 .sort(1)
                 .handle(ruleHandler)
+                .namespaceId(namespaceId)
                 .build();
 
         String conditionPath = this.rewritePath(path);

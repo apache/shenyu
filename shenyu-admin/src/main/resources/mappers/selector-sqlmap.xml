@@ -32,6 +32,7 @@
         <result column="continued" jdbcType="TINYINT" property="continued"/>
         <result column="match_restful" jdbcType="TINYINT" property="matchRestful"/>
         <result column="handle" jdbcType="VARCHAR" property="handle"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -47,7 +48,8 @@
         loged,
         continued,
         match_restful,
-        handle
+        handle,
+        namespace_id
     </sql>
 
     <sql id="Base_Column_List_Alis">
@@ -63,15 +65,25 @@
         ${alis}.loged,
         ${alis}.continued,
         ${alis}.match_restful,
-        ${alis}.handle
+        ${alis}.handle,
+        ${alis}.namespace_id
     </sql>
 
-    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectByIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector
-         WHERE id = #{id, jdbcType=VARCHAR}
+          WHERE id = #{id, jdbcType=VARCHAR}
+          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM selector
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
 
     <select id="selectByIdSet" resultMap="BaseResultMap">
         SELECT
@@ -83,19 +95,21 @@
                  </foreach>
     </select>
 
-    <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectByNameAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector
          WHERE name = #{name, jdbcType=VARCHAR}
+         AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
-    <select id="findByNameAndPluginId" resultMap="BaseResultMap">
+    <select id="findByNameAndPluginIdAndNamespaceId" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector
          WHERE name = #{name, jdbcType=VARCHAR}
            AND plugin_id = #{pluginId, jdbcType=VARCHAR}
+           AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
@@ -104,8 +118,9 @@
                <include refid="Base_Column_List"/>
           FROM selector
         <where>
+            namespace_id = #{namespaceId, jdbcType=VARCHAR}
             <if test="pluginId != null">
-                plugin_id = #{pluginId, jdbcType=VARCHAR}
+                AND plugin_id = #{pluginId, jdbcType=VARCHAR}
             </if>
             <if test="pluginIds != null and pluginIds.size > 0">
                 AND plugin_id IN
@@ -127,14 +142,15 @@
         ORDER BY sort
     </select>
 
-    <select id="findByPluginId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="findByPluginIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector
          WHERE plugin_id = #{pluginId, jdbcType=VARCHAR}
+         AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
-    <select id="findByPluginIds" parameterType="java.util.List" resultMap="BaseResultMap">
+    <select id="findByPluginIdsAndNamespaceId" parameterType="java.util.List" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector
@@ -142,6 +158,7 @@
         <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
         </foreach>
+         AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
@@ -200,12 +217,18 @@
                     #{id, jdbcType=VARCHAR}
                 </foreach>
             </if>
+
             <if test="condition.userId != null and condition.userId != ''">
                 AND exists(select true
                     from data_permission
                     where data_id = selector.id
                         and user_id = #{condition.userId})
             </if>
+            <if test="condition.namespaceId != null and condition.namespaceId != ''">
+                AND namespace_id = #{condition.namespaceId, jdbcType=VARCHAR}
+            </if>
+
+
         </where>
     </select>
 
@@ -243,7 +266,8 @@
                     loged,
                     continued,
                     match_restful,
-                    handle)
+                    handle,
+                    namespace_id)
             VALUES
                     (#{id, jdbcType=VARCHAR},
                     #{dateCreated, jdbcType=TIMESTAMP},
@@ -257,7 +281,8 @@
                     #{loged, jdbcType=TINYINT},
                     #{continued, jdbcType=TINYINT},
                     #{matchRestful, jdbcType=TINYINT},
-                    #{handle, jdbcType=VARCHAR})
+                    #{handle, jdbcType=VARCHAR},
+                    #{namespaceId, jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">
@@ -300,6 +325,9 @@
             <if test="handle != null">
                 handle,
             </if>
+            <if test="namespaceId != null">
+                namespace_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
                 #{id, jdbcType=VARCHAR},
@@ -338,6 +366,9 @@
             </if>
             <if test="handle != null">
                 #{handle, jdbcType=VARCHAR},
+            </if>
+            <if test="namespaceId != null">
+                #{namespaceId, jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -400,7 +431,8 @@
                 handle = #{handle, jdbcType=VARCHAR},
             </if>
         </set>
-        WHERE id = #{id, jdbcType=VARCHAR}
+            WHERE id = #{id, jdbcType=VARCHAR}
+            AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </update>
 
     <update id="updateEnable">

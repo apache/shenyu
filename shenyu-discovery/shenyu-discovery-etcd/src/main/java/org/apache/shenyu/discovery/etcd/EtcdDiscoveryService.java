@@ -97,18 +97,18 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
         try {
             lease = etcdClient.getLeaseClient();
             this.leaseId = lease.grant(ttl).get().getID();
-            lease.keepAlive(leaseId, new StreamObserver<LeaseKeepAliveResponse>() {
+            lease.keepAlive(leaseId, new StreamObserver<>() {
                 @Override
                 public void onNext(final LeaseKeepAliveResponse leaseKeepAliveResponse) {
                 }
-
+                
                 @Override
                 public void onError(final Throwable throwable) {
                     if (!isShuttingDown) {
                         LOGGER.error("etcd lease keep alive error", throwable);
                     }
                 }
-
+                
                 @Override
                 public void onCompleted() {
                 }
@@ -154,8 +154,8 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
                         switch (event.getEventType()) {
                             case PUT:
                                 dataChangedEvent = event.getKeyValue().getCreateRevision() == event.getKeyValue().getModRevision()
-                                        ? new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.ADDED)
-                                        : new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.UPDATED);
+                                    ? new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.ADDED)
+                                    : new DiscoveryDataChangedEvent(path, value, DiscoveryDataChangedEvent.Event.UPDATED);
                                 break;
                             case DELETE:
                                 dataChangedEvent = new DiscoveryDataChangedEvent(path, event.getPrevKV().getValue().toString(StandardCharsets.UTF_8), DiscoveryDataChangedEvent.Event.DELETED);

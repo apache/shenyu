@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -44,6 +45,7 @@ public class MetaDataChangedEventTest {
                 .parameterTypes("java.lang.String")
                 .rpcExt("test")
                 .enabled(true)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
     }
 
@@ -52,7 +54,7 @@ public class MetaDataChangedEventTest {
         MetaDataChangedEvent deleteEvent =
                 new MetaDataChangedEvent(createDO, null, EventTypeEnum.META_DATA_DELETE, "test-operator");
 
-        String context = String.format("the metadata [%s %s] is %s",
+        String context = String.format("the namespace [%s] metadata [%s %s] is %s", createDO.getNamespaceId(),
                 createDO.getAppName(), createDO.getPath(), StringUtils.lowerCase(EventTypeEnum.META_DATA_DELETE.getType().toString()));
 
         assertEquals(context, deleteEvent.buildContext());

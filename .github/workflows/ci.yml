@@ -25,19 +25,9 @@ jobs:
   build:
     strategy:
       matrix:
-        java: [ 8, 11, 17 ]
+        java: [ 17 ]
         os: [ ubuntu-latest, windows-latest ]
         include:
-          - java: 12
-            os: ubuntu-latest
-          - java: 13
-            os: ubuntu-latest
-          - java: 14
-            os: ubuntu-latest
-          - java: 15
-            os: ubuntu-latest
-          - java: 16
-            os: ubuntu-latest
           - java: 17
             os: ubuntu-latest
           - java: 18
@@ -71,10 +61,11 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - uses: actions/setup-java@v1
+      - uses: actions/setup-java@v3
         if: steps.filter.outputs.changed == 'true'
         with:
           java-version: ${{ matrix.java }}
+          distribution: 'temurin'
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean test -Prelease

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -27,14 +28,15 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
 import org.apache.shenyu.admin.service.DataPermissionService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * this is dataPermission controller.
@@ -56,6 +58,7 @@ public class DataPermissionController {
      * @param userId      user id
      * @param pluginId    plugin id
      * @param name        selector name
+     * @param namespaceId namespaceId
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/selector")
@@ -63,9 +66,11 @@ public class DataPermissionController {
                                                              @RequestParam("pageSize") final Integer pageSize,
                                                              @RequestParam("userId") final String userId,
                                                              @RequestParam("pluginId") final String pluginId,
-                                                             @RequestParam(value = "name", required = false) final String name) {
+                                                             @RequestParam(value = "name", required = false) final String name,
+                                                             @Valid @Existed(message = "namespaceId is not existed",
+                                                                     provider = NamespaceMapper.class) final String namespaceId) {
         CommonPager<DataPermissionPageVO> selectorList = dataPermissionService.listSelectorsByPage(
-                new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize)), userId);
+                new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize), namespaceId), userId);
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, selectorList);
     }
     

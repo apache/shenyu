@@ -63,6 +63,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
 
     private boolean addPrefixed;
 
+    private String namespaceId;
+
     /**
      * Instantiates a new Meta data register dto.
      *
@@ -82,6 +84,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
      * @param pluginNames      the plugin names
      * @param registerMetaData the register meta data
      * @param addPrefixed      the prefix forward status
+     * @param namespaceId      the namespaceId
      */
     public MetaDataRegisterDTO(final String appName, final String contextPath,
                                final String path, final String pathDesc,
@@ -90,7 +93,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
                                final String parameterTypes, final String rpcExt,
                                final boolean enabled, final String host,
                                final Integer port, final List<String> pluginNames,
-                               final boolean registerMetaData, final boolean addPrefixed) {
+                               final boolean registerMetaData, final boolean addPrefixed,
+                               final String namespaceId) {
         this.appName = appName;
         this.contextPath = contextPath;
         this.path = path;
@@ -108,6 +112,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         this.registerMetaData = registerMetaData;
         this.timeMillis = System.currentTimeMillis();
         this.addPrefixed = addPrefixed;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -134,6 +139,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         registerMetaData = builder.registerMetaData;
         timeMillis = System.currentTimeMillis();
         addPrefixed = builder.addPrefixed;
+        namespaceId = builder.namespaceId;
     }
 
     /**
@@ -456,6 +462,24 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         this.addPrefixed = prefixForwardEnable;
     }
 
+    /**
+     * Gets the value of namespaceId.
+     *
+     * @return the value of namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -473,14 +497,15 @@ public class MetaDataRegisterDTO implements DataTypeParent {
                 && Objects.equals(enabled, that.enabled) && Objects.equals(host, that.host)
                 && Objects.equals(port, that.port) && Objects.equals(pluginNames, that.pluginNames)
                 && Objects.equals(registerMetaData, that.registerMetaData)
-                && Objects.equals(addPrefixed, that.addPrefixed);
+                && Objects.equals(addPrefixed, that.addPrefixed)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(appName, contextPath, path, pathDesc, rpcType, serviceName, methodName,
                 ruleName, parameterTypes, rpcExt, enabled, host, port, pluginNames,
-                registerMetaData, addPrefixed);
+                registerMetaData, addPrefixed, namespaceId);
     }
 
     @Override
@@ -520,6 +545,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
                 + timeMillis
                 + ", addPrefixed="
                 + addPrefixed
+                + ", namespaceId="
+                + namespaceId
                 + '}';
     }
 
@@ -561,6 +588,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         private long timeMillis;
 
         private boolean addPrefixed;
+
+        private String namespaceId;
 
         private Builder() {
         }
@@ -749,6 +778,17 @@ public class MetaDataRegisterDTO implements DataTypeParent {
          */
         public Builder addPrefixed(final boolean addPrefixed) {
             this.addPrefixed = addPrefixed;
+            return this;
+        }
+
+        /**
+         * namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return SelectorDOBuilder
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
 

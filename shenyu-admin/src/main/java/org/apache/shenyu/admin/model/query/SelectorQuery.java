@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.query;
 
 import java.util.List;
+
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 import java.util.Objects;
@@ -49,19 +50,26 @@ public class SelectorQuery extends FilterQuery {
      */
     private PageParameter pageParameter;
 
+    /**
+     * namespace id.
+     */
+    private String namespaceId;
+
     public SelectorQuery() {
     }
 
-    public SelectorQuery(final String pluginId, final String name, final PageParameter pageParameter) {
+    public SelectorQuery(final String pluginId, final String name, final PageParameter pageParameter, final String namespaceId) {
         this.pluginId = pluginId;
         this.name = name;
         this.pageParameter = pageParameter;
+        this.namespaceId = namespaceId;
     }
 
-    public SelectorQuery(final List<String> pluginIds, final String name, final PageParameter pageParameter) {
+    public SelectorQuery(final List<String> pluginIds, final String name, final PageParameter pageParameter, final String namespaceId) {
         this.pluginIds = pluginIds;
         this.name = name;
         this.pageParameter = pageParameter;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -136,23 +144,42 @@ public class SelectorQuery extends FilterQuery {
         this.pageParameter = pageParameter;
     }
 
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof SelectorQuery)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         if (!super.equals(o)) {
             return false;
         }
         SelectorQuery that = (SelectorQuery) o;
-        return Objects.equals(pluginId, that.pluginId) && Objects.equals(name, that.name) && Objects.equals(pageParameter, that.pageParameter);
+        return Objects.equals(pluginId, that.pluginId) && Objects.equals(pluginIds, that.pluginIds) && Objects.equals(name, that.name)
+                && Objects.equals(pageParameter, that.pageParameter) && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), pluginId, name, pageParameter);
+        return Objects.hash(super.hashCode(), pluginId, pluginIds, name, pageParameter, namespaceId);
     }
 }

@@ -189,3 +189,22 @@ INSERT INTO "public"."permission" VALUES ('1792779493541343264', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1792779493541343265', '1346358560427216896', '1792749362445840484', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1792779493541343266', '1346358560427216896', '1792749362445840485', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1792779493541343267', '1346358560427216896', '1792749362445840486', '2024-06-25 20:00:00.000', '2024-06-25 20:00:00.000');
+
+/* add column into dashboard_user table */
+ALTER TABLE "public"."dashboard_user" ADD COLUMN client_id VARCHAR(32) NULL;
+COMMENT ON COLUMN "public"."dashboard_user".client_id IS 'client id';
+
+ALTER TABLE "public"."selector" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."selector"."namespace_id" IS 'namespaceId';
+
+UPDATE "public"."selector" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+ALTER TABLE "public"."rule" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespaceId';
+
+UPDATE "public"."rule" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+ALTER TABLE "public"."meta_data" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespaceId';
+
+UPDATE "public"."meta_data" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;

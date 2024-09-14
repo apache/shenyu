@@ -39,6 +39,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -81,11 +82,15 @@ public final class ShenyuClientRegisterTarsServiceImplTest {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
         String serviceName = "metaDataService";
         String methodName = "registerMetadata";
-        when(metaDataService.findByServiceNameAndMethodName(any(), any())).thenReturn(metaDataDO);
-        MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().serviceName(serviceName)
-                .methodName(methodName).build();
+        when(metaDataService.findByServiceNameAndMethodNameAndNamespaceId(any(), any(), any())).thenReturn(metaDataDO);
+        MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO
+                .builder()
+                .serviceName(serviceName)
+                .methodName(methodName)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
+                .build();
         shenyuClientRegisterTarsService.registerMetadata(metaDataDTO);
-        verify(metaDataService).findByServiceNameAndMethodName(serviceName, methodName);
+        verify(metaDataService).findByServiceNameAndMethodNameAndNamespaceId(serviceName, methodName, SYS_DEFAULT_NAMESPACE_ID);
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
     

@@ -17,14 +17,15 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -93,6 +94,13 @@ public final class RuleDTO implements Serializable {
     
     @NotNull
     private Boolean matchRestful;
+
+    /**
+     * namespaceId.
+     */
+    @NotBlank
+    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    private String namespaceId;
     
     public RuleDTO() {
     }
@@ -106,7 +114,8 @@ public final class RuleDTO implements Serializable {
                    @NotNull final Integer sort,
                    final String handle,
                    @Valid final List<RuleConditionDTO> ruleConditions,
-                   @NotNull final Boolean matchRestful) {
+                   @NotNull final Boolean matchRestful,
+                   @Valid final String namespaceId) {
         this.id = id;
         this.selectorId = selectorId;
         this.matchMode = matchMode;
@@ -117,6 +126,7 @@ public final class RuleDTO implements Serializable {
         this.handle = handle;
         this.ruleConditions = ruleConditions;
         this.matchRestful = matchRestful;
+        this.namespaceId = namespaceId;
     }
     
     /**
@@ -298,6 +308,24 @@ public final class RuleDTO implements Serializable {
     public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
     
     /**
      * builder method.
@@ -326,12 +354,14 @@ public final class RuleDTO implements Serializable {
                 && Objects.equals(sort, ruleDTO.sort)
                 && Objects.equals(handle, ruleDTO.handle)
                 && Objects.equals(ruleConditions, ruleDTO.ruleConditions)
-                && Objects.equals(matchRestful, ruleDTO.getMatchRestful());
+                && Objects.equals(matchRestful, ruleDTO.getMatchRestful())
+                && Objects.equals(namespaceId, ruleDTO.namespaceId);
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(id, selectorId, matchMode, name, enabled, loged, sort, handle, ruleConditions, matchRestful);
+        return Objects.hash(id, selectorId, matchMode, name, enabled, loged, sort, handle, ruleConditions, matchRestful,
+                namespaceId);
     }
     
     public static final class RuleDTOBuilder {
@@ -355,6 +385,8 @@ public final class RuleDTO implements Serializable {
         private List<RuleConditionDTO> ruleConditions;
         
         private Boolean matchRestful;
+
+        private String namespaceId;
         
         private RuleDTOBuilder() {
         }
@@ -468,6 +500,17 @@ public final class RuleDTO implements Serializable {
             this.matchRestful = matchRestful;
             return this;
         }
+
+        /**
+         * namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return RuleDOBuilder
+         */
+        public RuleDTOBuilder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
+            return this;
+        }
         
         /**
          * build method.
@@ -475,7 +518,8 @@ public final class RuleDTO implements Serializable {
          * @return build object.
          */
         public RuleDTO build() {
-            return new RuleDTO(id, selectorId, matchMode, name, enabled, loged, sort, handle, ruleConditions, matchRestful);
+            return new RuleDTO(id, selectorId, matchMode, name, enabled, loged, sort, handle, ruleConditions, matchRestful,
+                    namespaceId);
         }
     }
 }

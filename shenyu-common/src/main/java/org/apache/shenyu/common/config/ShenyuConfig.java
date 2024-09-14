@@ -19,6 +19,7 @@ package org.apache.shenyu.common.config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.TrieMatchModeEnum;
 
 import java.util.ArrayList;
@@ -1151,7 +1152,7 @@ public class ShenyuConfig {
         private static final Set<String> DEFAULT_ALLOWED_HEADERS;
 
         static {
-            DEFAULT_ALLOWED_HEADERS = new HashSet<String>() {
+            DEFAULT_ALLOWED_HEADERS = new HashSet<>() {
                 {
                     add("x-requested-with");
                     add("authorization");
@@ -1162,6 +1163,7 @@ public class ShenyuConfig {
                     add("token");
                     add("username");
                     add("client");
+                    add(Constants.SHENYU_AUTHORIZATION);
                 }
             };
         }

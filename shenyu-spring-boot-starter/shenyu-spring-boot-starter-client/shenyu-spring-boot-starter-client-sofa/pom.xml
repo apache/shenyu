@@ -26,7 +26,7 @@
     <artifactId>shenyu-spring-boot-starter-client-sofa</artifactId>
 
     <properties>
-        <runtime-sofa-boot-starter.version>3.22.0</runtime-sofa-boot-starter.version>
+        <runtime-sofa-boot-starter.version>4.3.0</runtime-sofa-boot-starter.version>
     </properties>
     
     <dependencies>

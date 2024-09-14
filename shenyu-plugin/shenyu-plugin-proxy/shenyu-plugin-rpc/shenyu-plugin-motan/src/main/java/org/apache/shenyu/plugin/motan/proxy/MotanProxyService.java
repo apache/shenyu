@@ -108,12 +108,13 @@ public class MotanProxyService {
         initThreadPool();
         CompletableFuture<Object> future = CompletableFuture.supplyAsync(responseFuture::getValue, threadPool);
         return Mono.fromFuture(future.thenApply(ret -> {
-            if (Objects.isNull(ret)) {
-                ret = Constants.MOTAN_RPC_RESULT_EMPTY;
+            Object result = ret;
+            if (Objects.isNull(result)) {
+                result = Constants.MOTAN_RPC_RESULT_EMPTY;
             }
-            exchange.getAttributes().put(Constants.RPC_RESULT, ret);
+            exchange.getAttributes().put(Constants.RPC_RESULT, result);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
-            return ret;
+            return result;
         })).onErrorMap(ShenyuException::new);
     }
 
@@ -126,7 +127,7 @@ public class MotanProxyService {
             // should not execute to here
             threadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                     60L, TimeUnit.SECONDS,
-                    new SynchronousQueue<Runnable>(),
+                    new SynchronousQueue<>(),
                     factory);
             return;
         }

@@ -29,7 +29,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -87,12 +87,12 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @param env                            the env
      */
-    public SpringMvcClientEventListener(final PropertiesConfig clientConfig,
+    public SpringMvcClientEventListener(final ShenyuClientConfig clientConfig,
                                         final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
                                         final Environment env) {
         super(clientConfig, shenyuClientRegisterRepository);
         this.env = env;
-        Properties props = clientConfig.getProps();
+        Properties props = clientConfig.getClient().get(getClientName()).getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         this.protocol = props.getProperty(ShenyuClientConstants.PROTOCOL, ShenyuClientConstants.HTTP);
         this.addPrefixed = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.ADD_PREFIXED,
@@ -121,17 +121,22 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     protected Map<String, Object> getBeans(final ApplicationContext context) {
         // Filter out
         if (Boolean.TRUE.equals(isFull)) {
-            getPublisher().publishEvent(MetaDataRegisterDTO.builder()
-                    .contextPath(getContextPath())
-                    .addPrefixed(addPrefixed)
-                    .appName(getAppName())
-                    .path(UriComponentsBuilder.fromUriString(PathUtils.decoratorPathWithSlash(getContextPath()) + EVERY_PATH).build().encode().toUriString())
-                    .rpcType(RpcTypeEnum.HTTP.getName())
-                    .enabled(true)
-                    .ruleName(getContextPath())
-                    .build());
             LOG.info("init spring mvc client success with isFull mode");
-            publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap()));
+            List<String> namespaceIds = super.getNamespace();
+            namespaceIds.forEach(namespaceId -> {
+                getPublisher().publishEvent(MetaDataRegisterDTO.builder()
+                        .contextPath(getContextPath())
+                        .addPrefixed(addPrefixed)
+                        .appName(getAppName())
+                        .path(UriComponentsBuilder.fromUriString(PathUtils.decoratorPathWithSlash(getContextPath()) + EVERY_PATH).build().encode().toUriString())
+                        .rpcType(RpcTypeEnum.HTTP.getName())
+                        .enabled(true)
+                        .ruleName(getContextPath())
+                        .namespaceId(namespaceId)
+                        .build());
+                
+                publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId));
+            });
             return Collections.emptyMap();
         }
         return context.getBeansWithAnnotation(Controller.class);
@@ -139,7 +144,8 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
 
     @Override
     protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context,
-                                                 final Map<String, Object> beans) {
+                                                 final Map<String, Object> beans,
+                                                 final String namespaceId) {
         try {
             return URIRegisterDTO.builder()
                     .contextPath(getContextPath())
@@ -149,19 +155,25 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                     .port(Integer.valueOf(getPort()))
                     .rpcType(RpcTypeEnum.HTTP.getName())
                     .eventType(EventType.REGISTER)
+                    .namespaceId(namespaceId)
                     .build();
         } catch (ShenyuException e) {
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
         }
     }
-
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.HTTP.getName();
+    }
+    
     @Override
     protected String buildApiSuperPath(final Class<?> clazz, @Nullable final ShenyuSpringMvcClient beanShenyuClient) {
         final String servletPath = StringUtils.defaultString(this.env.getProperty("spring.mvc.servlet.path"), "");
         final String servletContextPath = StringUtils.defaultString(this.env.getProperty("server.servlet.context-path"), "");
         final String rootPath = String.format("/%s/%s/", servletContextPath, servletPath);
-        if (Objects.nonNull(beanShenyuClient) && StringUtils.isNotBlank(beanShenyuClient.path())) {
-            return formatPath(String.format("%s/%s", rootPath, beanShenyuClient.path()));
+        if (Objects.nonNull(beanShenyuClient) && StringUtils.isNotBlank(beanShenyuClient.path()[0])) {
+            return formatPath(String.format("%s/%s", rootPath, beanShenyuClient.path()[0]));
         }
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(clazz, RequestMapping.class);
         // Only the first path is supported temporarily
@@ -186,10 +198,13 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         // the result of ReflectionUtils#getUniqueDeclaredMethods contains method such as hashCode, wait, toSting
         // add Objects.nonNull(requestMapping) to make sure not register wrong method
         if (Objects.nonNull(methodShenyuClient) && Objects.nonNull(requestMapping)) {
-            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
-                    buildApiPath(method, superPath, methodShenyuClient), clazz, method);
-            getPublisher().publishEvent(metaData);
-            getMetaDataMap().put(method, metaData);
+            List<String> namespaceIds = super.getNamespace();
+            for (String namespaceId : namespaceIds) {
+                final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
+                        buildApiPath(method, superPath, methodShenyuClient), clazz, method, namespaceId);
+                getPublisher().publishEvent(metaData);
+                getMetaDataMap().put(method, metaData);
+            }
         }
     }
 
@@ -197,8 +212,8 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     protected String buildApiPath(final Method method, final String superPath,
                                   @NonNull final ShenyuSpringMvcClient methodShenyuClient) {
         String contextPath = getContextPath();
-        if (StringUtils.isNotBlank(methodShenyuClient.path())) {
-            return pathJoin(contextPath, superPath, methodShenyuClient.path());
+        if (StringUtils.isNotBlank(methodShenyuClient.path()[0])) {
+            return pathJoin(contextPath, superPath, methodShenyuClient.path()[0]);
         }
         final String path = getPathByMethod(method);
         if (StringUtils.isNotBlank(path)) {
@@ -240,7 +255,8 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean,
                                                    @NonNull final ShenyuSpringMvcClient shenyuClient,
                                                    final String path, final Class<?> clazz,
-                                                   final Method method) {
+                                                   final Method method,
+                                                   final String namespaceId) {
         return MetaDataRegisterDTO.builder()
                 .contextPath(getContextPath())
                 .addPrefixed(addPrefixed)
@@ -258,6 +274,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                 .enabled(shenyuClient.enabled())
                 .ruleName(StringUtils.defaultIfBlank(shenyuClient.ruleName(), path))
                 .registerMetaData(shenyuClient.registerMetaData())
+                .namespaceId(namespaceId)
                 .build();
     }
 

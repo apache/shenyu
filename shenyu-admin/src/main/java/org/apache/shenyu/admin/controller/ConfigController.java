@@ -32,9 +32,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.Map;
 
 import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
@@ -44,6 +46,7 @@ import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMES
  */
 @ResponseBody
 @RequestMapping("/configs")
+@RestController
 public class ConfigController {
 
     private final HttpLongPollingDataChangedListener longPollingListener;

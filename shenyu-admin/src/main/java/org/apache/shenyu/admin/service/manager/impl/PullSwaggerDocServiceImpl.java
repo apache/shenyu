@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +56,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
 
     private static final HttpUtils HTTP_UTILS = new HttpUtils();
 
-    private static final String SWAGGER_V2_PATH = "/v2/api-docs";
+    private static final String SWAGGER_V3_PATH = "/v3/api-docs";
 
     private static final long PULL_MIN_INTERVAL_TIME = 30 * 1000;
 
@@ -181,7 +181,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
         uriComponentsBuilder.host(instance.getIp());
         uriComponentsBuilder.port(instance.getPort());
         uriComponentsBuilder.path(Optional.ofNullable(instance.getContextPath()).orElse(""));
-        uriComponentsBuilder.path(SWAGGER_V2_PATH);
+        uriComponentsBuilder.path(SWAGGER_V3_PATH);
         return uriComponentsBuilder.build().toUriString();
     }
 

@@ -51,9 +51,7 @@ public class CompleteObserverTest {
         Throwable throwable = new Throwable("error");
         completeObserver.onError(throwable);
         ListenableFuture<Void> future = completeObserver.getCompletionFuture();
-        assertThrows(Throwable.class, () -> {
-            future.get();
-        });
+        assertThrows(Throwable.class, future::get);
     }
     
     @Test

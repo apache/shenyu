@@ -27,4 +27,4 @@ WORKDIR ${LOCAL_PATH}
 EXPOSE 55290
 EXPOSE 8080
 
-CMD java -jar ${APP_NAME}.jar
+CMD java --add-opens java.base/java.lang=ALL-UNNAMED -jar ${APP_NAME}.jar

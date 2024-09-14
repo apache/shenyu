@@ -50,6 +50,7 @@ public final class DivideShenyuContextDecoratorTest {
         MetaData metaData = new MetaData();
         ShenyuContext shenyuContext = new ShenyuContext();
         shenyuContext.setPath(MOCK_CONTEXT_PATH);
+        shenyuContext.setHttpMethod(MOCK_CONTEXT_PATH);
         ShenyuContext decorator = divideShenyuContextDecorator.decorator(shenyuContext, metaData);
         assert MOCK_CONTEXT_PATH.equals(decorator.getMethod());
         assert MOCK_CONTEXT_PATH.equals(decorator.getRealUrl());

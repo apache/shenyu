@@ -28,8 +28,8 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
-import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.BearerToken;
+import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.Permission;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
@@ -99,6 +99,13 @@ public class ShiroRealm extends AuthorizingRealm {
         DashboardUserVO dashboardUserVO = dashboardUserService.findByUserName(userName);
         if (Objects.isNull(dashboardUserVO)) {
             throw new AuthenticationException(String.format("userName(%s) can not be found.", userName));
+        }
+
+        String clientIdFromToken = JwtUtils.getClientId(token);
+        if (StringUtils.isNotEmpty(clientIdFromToken)
+                && StringUtils.isNotEmpty(dashboardUserVO.getClientId())
+                && !StringUtils.equals(dashboardUserVO.getClientId(), clientIdFromToken)) {
+            throw new AuthenticationException("clientId is invalid or does not match");
         }
 
         if (!JwtUtils.verifyToken(token, dashboardUserVO.getPassword())) {

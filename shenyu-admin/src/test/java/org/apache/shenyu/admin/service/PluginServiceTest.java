@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
@@ -53,6 +54,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -84,9 +86,12 @@ public final class PluginServiceTest {
     @Mock
     private PluginHandleService pluginHandleService;
 
+    @Mock
+    private NamespacePluginRelMapper namespacePluginRelMapper;
+
     @BeforeEach
     public void setUp() {
-        pluginService = new PluginServiceImpl(pluginMapper, modelDataEventPublisher, pluginHandleService);
+        pluginService = new PluginServiceImpl(pluginMapper, modelDataEventPublisher, pluginHandleService, namespacePluginRelMapper);
     }
 
     @Test
@@ -104,7 +109,7 @@ public final class PluginServiceTest {
 
         final List<SelectorDO> selectorDOList = new ArrayList<>();
         selectorDOList.add(SelectorDO.builder().id("101").build());
-        when(selectorMapper.findByPluginIds(Collections.singletonList("101"))).thenReturn(selectorDOList);
+        when(selectorMapper.findByPluginIdsAndNamespaceId(Collections.singletonList("101"), SYS_DEFAULT_NAMESPACE_ID)).thenReturn(selectorDOList);
         assertEquals(StringUtils.EMPTY, pluginService.delete(Collections.singletonList("123")));
     }
 

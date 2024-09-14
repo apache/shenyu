@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
-import org.apache.shenyu.admin.controller.ConfigController;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.service.NamespaceService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -31,7 +30,6 @@ import org.springframework.context.annotation.Configuration;
  * http long polling.
  */
 @Configuration
-@ConditionalOnProperty(name = "shenyu.sync.http.enabled", havingValue = "true")
 @EnableConfigurationProperties(HttpSyncProperties.class)
 public class HttpLongPollingSyncConfiguration {
 

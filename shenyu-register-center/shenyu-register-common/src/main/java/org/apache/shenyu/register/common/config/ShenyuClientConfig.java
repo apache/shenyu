@@ -28,7 +28,7 @@ import java.util.Objects;
  */
 public final class ShenyuClientConfig {
     
-    private Map<String, ClientPropertiesConfig> client = new HashMap<String, ClientPropertiesConfig>() {
+    private Map<String, ClientPropertiesConfig> client = new HashMap<>() {
         @Override
         public ClientPropertiesConfig get(final Object key) {
             ClientPropertiesConfig config = super.get(key);
@@ -38,6 +38,8 @@ public final class ShenyuClientConfig {
             return config;
         }
     };
+    
+    private String namespace;
     
     /**
      * Gets client.
@@ -55,6 +57,24 @@ public final class ShenyuClientConfig {
      */
     public void setClient(final Map<String, ClientPropertiesConfig> client) {
         this.client = client;
+    }
+    
+    /**
+     * getNamespace.
+     *
+     * @return String
+     */
+    public String getNamespace() {
+        return namespace;
+    }
+
+    /**
+     * setNamespace.
+     *
+     * @param namespace namespace identifier
+     */
+    public void setNamespace(final String namespace) {
+        this.namespace = namespace;
     }
 
     /**

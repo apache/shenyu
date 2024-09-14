@@ -19,7 +19,7 @@ package org.apache.shenyu.client.apache.dubbo.validation.mock;
 
 import org.apache.dubbo.validation.MethodValidated;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
