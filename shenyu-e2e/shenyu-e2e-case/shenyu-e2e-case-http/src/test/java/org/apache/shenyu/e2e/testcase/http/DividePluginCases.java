@@ -68,7 +68,8 @@ public class DividePluginCases implements ShenYuScenarioProvider {
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
                 testDivideHello(),
-                testRocketMQHello()
+                testRocketMQHello(),
+                testKafkaHello()
         );
     }
 
@@ -116,8 +117,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 StringDeserializer.class.getName());
                                         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                                                 StringDeserializer.class.getName());
-                                        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG
-                                                ,"127.0.0.1:31877");
+                                        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:31877");
                                         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
                                         consumer.subscribe(Arrays.asList(TOPIC));
                                         AtomicReference<Boolean> keepCosuming = new AtomicReference<>(true);
