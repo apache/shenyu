@@ -38,6 +38,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collections;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,7 +72,7 @@ public final class ConfigControllerTest {
     public void testFetchConfigs() throws Exception {
         // Configure HttpLongPollingDataChangedListener.fetchConfig(...).
         final ConfigData<?> configData = new ConfigData<>("md5-value1", 0L, Collections.emptyList());
-        doReturn(configData).when(mockLongPollingListener).fetchConfig(ConfigGroupEnum.APP_AUTH, "649330b6-c2d7-4edc-be8e-8a54df9eb385");
+        doReturn(configData).when(mockLongPollingListener).fetchConfig(ConfigGroupEnum.APP_AUTH, SYS_DEFAULT_NAMESPACE_ID);
 
         // Run the test
         final MockHttpServletResponse response = mockMvc.perform(get("/configs/fetch")

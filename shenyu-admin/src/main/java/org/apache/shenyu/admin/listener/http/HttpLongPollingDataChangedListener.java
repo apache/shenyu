@@ -62,7 +62,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * HTTP long polling, which blocks the client's request thread
@@ -292,7 +292,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
      * @return the namespaceId
      */
     private static String getNamespaceId(final HttpServletRequest request) {
-        String namespaceId = SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+        String namespaceId = SYS_DEFAULT_NAMESPACE_ID;
         if (StringUtils.isNotEmpty(request.getParameter("namespaceId"))) {
             namespaceId = request.getParameter("namespaceId");
         }

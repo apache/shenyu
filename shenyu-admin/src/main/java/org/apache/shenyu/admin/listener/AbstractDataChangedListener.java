@@ -50,6 +50,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
+
 
 /**
  * Abstract class for ConfigEventListener.
@@ -178,9 +180,9 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        Optional<String> namespaceId = changed.stream().map(PluginData::getNamespaceId).findFirst();
-        this.updatePluginCache(namespaceId.get());
-        this.afterPluginChanged(changed, eventType, namespaceId.get());
+        String namespaceId = changed.stream().map(PluginData::getNamespaceId).findFirst().orElse(SYS_DEFAULT_NAMESPACE_ID);
+        this.updatePluginCache(namespaceId);
+        this.afterPluginChanged(changed, eventType, namespaceId);
     }
 
     /**
