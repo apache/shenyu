@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.listener;
 
+import jakarta.annotation.Resource;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
@@ -30,12 +31,12 @@ import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConfigData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -44,9 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
-import jakarta.annotation.Resource;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
