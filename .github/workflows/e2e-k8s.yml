@@ -65,22 +65,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: '.github/filters.yml'
-          list-files: json
-
       - name: Build with Maven
-        if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
 
       - name: Save ShenYu Maven Repos
-        if: steps.filter.outputs.changed == 'true' && steps.restore-maven-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
 #      - name: Build shenyu-e2e-engine with Maven
 #        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-engine -am clean install
