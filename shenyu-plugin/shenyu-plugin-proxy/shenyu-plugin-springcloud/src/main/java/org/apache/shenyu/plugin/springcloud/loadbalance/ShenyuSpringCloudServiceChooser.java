@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.springcloud.loadbalance;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
@@ -53,7 +54,7 @@ public final class ShenyuSpringCloudServiceChooser {
     private RegisterConfig registerConfig;
 
     public ShenyuSpringCloudServiceChooser(final RegisterConfig registerConfig) {
-        LOG.info("ShenyuSpringCloudServiceChooser registerConfig = {}", registerConfig);
+        LOG.info("ShenyuSpringCloudServiceChooser registerConfig = {}", GsonUtils.getInstance().toJson(registerConfig));
         this.repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
         this.registerConfig = registerConfig;
     }
