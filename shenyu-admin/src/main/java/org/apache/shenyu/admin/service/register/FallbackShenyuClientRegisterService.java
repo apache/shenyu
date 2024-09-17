@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
 
-    private final Logger logger = LoggerFactory.getLogger(FallbackShenyuClientRegisterService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FallbackShenyuClientRegisterService.class);
 
     private final Map<String, FallbackHolder> fallsRegisters = new ConcurrentHashMap<>();
 
@@ -64,9 +64,9 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         try {
             this.removeFallBack(key);
             result = this.doRegisterURI(selectorName, uriList);
-            logger.info("Register success: {},{}", selectorName, uriList);
+            LOG.info("Register success: {},{}", selectorName, uriList);
         } catch (Exception ex) {
-            logger.warn("Register exception: cause:{}", ex.getMessage());
+            LOG.error("Register exception: cause:", ex);
             result = "";
             this.addFallback(key, new FallbackHolder(selectorName, uriList));
         }
@@ -81,7 +81,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         FallbackRegisterTask registryTask = new FallbackRegisterTask(key, this);
         fallsRegisters.put(key, holder);
         timer.add(registryTask);
-        logger.info("Add to Fallback and wait for execution, {}:{}", holder.getSelectorName(), holder.getUriList());
+        LOG.info("Add to Fallback and wait for execution, {}:{}", holder.getSelectorName(), holder.getUriList());
     }
 
     private void removeFallBack(final String key) {
@@ -94,7 +94,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
             List<URIRegisterDTO> uriList = fallbackHolder.getUriList();
             String selectorName = fallbackHolder.getSelectorName();
             this.doRegisterURI(selectorName, uriList);
-            logger.info("Register success: {},{}", selectorName, uriList);
+            LOG.info("Register success: {},{}", selectorName, uriList);
         }
     }
 
