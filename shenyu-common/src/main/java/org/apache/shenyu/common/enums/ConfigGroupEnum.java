@@ -60,7 +60,12 @@ public enum ConfigGroupEnum {
     /**
      * discoveryUpstream data group enum.
      */
-    DISCOVER_UPSTREAM;
+    DISCOVER_UPSTREAM,
+
+    /**
+     * heartbeat data group enum.
+     */
+    HEARTBEAT;
 
     /**
      * Acquire by name config group enum.

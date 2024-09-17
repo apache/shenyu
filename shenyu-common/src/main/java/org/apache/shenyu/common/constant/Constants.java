@@ -252,6 +252,12 @@ public interface Constants {
      */
     String URI = "uri";
 
+    
+    /**
+     * The constant HEARTBEAT.
+     */
+    String HEARTBEAT = "heartbeat";
+
     /**
      * The constant header key of sign plugin version-2.
      */

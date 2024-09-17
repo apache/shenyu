@@ -130,6 +130,15 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
         doUnregister(offlineDTO);
     }
     
+    @Override
+    public void sendHeartbeat(final URIRegisterDTO heartbeatDTO) {
+        if (RuntimeUtils.listenByOther(heartbeatDTO.getPort())) {
+            return;
+        }
+        heartbeatDTO.setEventType(EventType.HEARTBEAT);
+        doRegister(heartbeatDTO, Constants.URI_PATH, Constants.HEARTBEAT);
+    }
+    
     /**
      * doPersistApiDoc.
      *

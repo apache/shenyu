@@ -49,7 +49,12 @@ class FallbackShenyuClientRegisterServiceTest {
         String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList) {
             return "doRegisterURI";
         }
-
+        
+        @Override
+        String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList) {
+            return "doHeartbeat";
+        }
+        
         @Override
         public String rpcType() {
             return "grpc";
@@ -72,7 +77,12 @@ class FallbackShenyuClientRegisterServiceTest {
         String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList) {
             throw new ShenyuException("Exception");
         }
-
+        
+        @Override
+        String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList) {
+            throw new ShenyuException("Exception");
+        }
+        
         @Override
         public String rpcType() {
             return "grpc";

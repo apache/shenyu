@@ -45,5 +45,10 @@ public enum EventType {
     /**
      * offline event type.
      */
-    OFFLINE
+    OFFLINE,
+
+    /**
+     * heartbeat event type.
+     */
+    HEARTBEAT
 }
