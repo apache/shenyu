@@ -109,6 +109,7 @@ public class DividePluginTest {
         formData.add("sort", "170");
         formData.add("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"rocketmq-dialevoneid:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
         adminClient.changePluginStatus("29", formData);
+        formData = new LinkedMultiValueMap<>();
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq");
         LOG.info("start loggingKafka plugin");
         formData.add("id", "33");
