@@ -67,7 +67,7 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        if (pluginData == null) {
+        if (pluginData == null || StringUtils.isBlank(pluginData.getConfig())) {
             return;
         }
         if (!pluginData.getEnabled()) {

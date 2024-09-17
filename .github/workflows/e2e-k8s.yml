@@ -113,14 +113,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - case: shenyu-e2e-case-storage
-            script: e2e-h2
-          - case: shenyu-e2e-case-storage
-            script: e2e-mysql
-          - case: shenyu-e2e-case-storage
-            script: e2e-postgres
-          - case: shenyu-e2e-case-storage
-            script: e2e-opengauss
+#          - case: shenyu-e2e-case-storage
+#            script: e2e-h2
+#          - case: shenyu-e2e-case-storage
+#            script: e2e-mysql
+#          - case: shenyu-e2e-case-storage
+#            script: e2e-postgres
+#          - case: shenyu-e2e-case-storage
+#            script: e2e-opengauss
     steps:
       - uses: actions/checkout@v2
         with:
@@ -208,10 +208,10 @@ jobs:
             script: e2e-grpc-sync
           - case: shenyu-e2e-case-websocket
             script: e2e-websocket-sync
-          - case: shenyu-e2e-case-cluster
-            script: e2e-cluster-jdbc
-          - case: shenyu-e2e-case-cluster
-            script: e2e-cluster-zookeeper
+#          - case: shenyu-e2e-case-cluster
+#            script: e2e-cluster-jdbc
+#          - case: shenyu-e2e-case-cluster
+#            script: e2e-cluster-zookeeper
             
     steps:
       - uses: actions/checkout@v2

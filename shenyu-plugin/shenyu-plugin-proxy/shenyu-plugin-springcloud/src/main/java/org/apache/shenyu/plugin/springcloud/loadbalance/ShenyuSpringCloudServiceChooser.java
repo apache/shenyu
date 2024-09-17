@@ -53,6 +53,7 @@ public final class ShenyuSpringCloudServiceChooser {
     private RegisterConfig registerConfig;
 
     public ShenyuSpringCloudServiceChooser(final RegisterConfig registerConfig) {
+        LOG.info("ShenyuSpringCloudServiceChooser registerConfig = {}", registerConfig);
         this.repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
         this.registerConfig = registerConfig;
     }

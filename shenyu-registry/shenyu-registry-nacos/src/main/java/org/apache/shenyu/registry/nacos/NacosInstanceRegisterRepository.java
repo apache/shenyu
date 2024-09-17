@@ -55,7 +55,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     public void init(final RegisterConfig config) {
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
-        this.groupName = properties.getProperty("groupName", "SHENYU_GROUP");
+        this.groupName = properties.getProperty("groupName", "DEFAULT_GROUP");
         String serverAddr = config.getServerLists();
         nacosProperties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
         nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty(NAMESPACE, ""));
@@ -63,7 +63,6 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
         nacosProperties.put(PropertyKeyConst.PASSWORD, properties.getProperty(PropertyKeyConst.PASSWORD, ""));
         nacosProperties.put(PropertyKeyConst.ACCESS_KEY, properties.getProperty(PropertyKeyConst.ACCESS_KEY, ""));
         nacosProperties.put(PropertyKeyConst.SECRET_KEY, properties.getProperty(PropertyKeyConst.SECRET_KEY, ""));
-        LOGGER.info("nacos init");
         try {
             this.namingService = NamingFactory.createNamingService(nacosProperties);
         } catch (NacosException e) {
