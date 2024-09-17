@@ -129,7 +129,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                 discoveryUpstreamMapper.insert(discoveryUpstreamDO);
             }
         }
-     }
+    }
 
     /**
      * delete.

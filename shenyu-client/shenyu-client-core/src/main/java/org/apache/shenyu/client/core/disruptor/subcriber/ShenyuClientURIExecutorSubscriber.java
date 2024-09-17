@@ -46,7 +46,7 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientURIExecutorSubscriber.class);
     
-    private final static List<URIRegisterDTO> URIS = Lists.newArrayList();
+    private static final List<URIRegisterDTO> URIS = Lists.newArrayList();
     
     private final ShenyuClientRegisterRepository shenyuClientRegisterRepository;
     
