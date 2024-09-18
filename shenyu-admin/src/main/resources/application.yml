@@ -59,7 +59,7 @@ shenyu:
     props:
       sessionTimeout: 5000
       connectionTimeout: 2000
-      checked: false
+      checked: true
       zombieCheckThreads: 10
       zombieCheckTimes: 5
       scheduledTime: 10
@@ -222,5 +222,5 @@ logging:
     org.apache.ibatis: info
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
-    org.apache.shenyu: debug
+    org.apache.shenyu: info
 #    org.apache.shenyu.admin.utils.HttpUtils: debug
