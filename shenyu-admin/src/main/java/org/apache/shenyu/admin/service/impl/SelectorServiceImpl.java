@@ -70,7 +70,6 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -169,7 +168,6 @@ public class SelectorServiceImpl implements SelectorService {
             selectorMapper.insertSelective(selectorDO);
             createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
         }
-        LOG.info("publish selector register event: {}", GsonUtils.getInstance().toJson(selectorDO));
         publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
         return selectorDO.getId();
     }
@@ -207,7 +205,6 @@ public class SelectorServiceImpl implements SelectorService {
         final int selectorCount = selectorMapper.insertSelective(selectorDO);
         selectorDTO.setId(selectorDO.getId());
         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
-        LOG.info("publish selector create event: {}", GsonUtils.getInstance().toJson(selectorDO));
         publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
         if (selectorCount > 0) {
             selectorEventPublisher.onCreated(selectorDO);
@@ -247,7 +244,6 @@ public class SelectorServiceImpl implements SelectorService {
         //delete rule condition then add
         selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(selectorDO.getId()));
         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
-        LOG.info("publish selector update event: {}", GsonUtils.getInstance().toJson(selectorDO));
         publishEvent(selectorDO, selectorDTO.getSelectorConditions(), beforeSelectorConditionList);
         if (selectorCount > 0) {
             selectorEventPublisher.onUpdated(selectorDO, before);
