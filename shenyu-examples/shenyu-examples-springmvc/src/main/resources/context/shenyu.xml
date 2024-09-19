@@ -22,8 +22,19 @@
     
     <bean id="springMvcClientEventListener"
           class="org.apache.shenyu.client.springmvc.init.SpringMvcClientEventListener">
-        <constructor-arg ref="clientPropertiesConfig"/>
+        <constructor-arg ref="shenyuClientConfig"/>
         <constructor-arg ref="clientRegisterRepository"/>
+        <constructor-arg ref="env"/>
+    </bean>
+
+    <bean id="env" class="org.springframework.core.env.StandardEnvironment" />
+
+    <bean id="shenyuClientConfig" class="org.apache.shenyu.register.common.config.ShenyuClientConfig">
+        <property name="client">
+            <map>
+                <entry key="http" value-ref="clientPropertiesConfig"/>
+            </map>
+        </property>
     </bean>
 
     <!-- config ShenyuRegisterCenterConfig according to your registerType -->
