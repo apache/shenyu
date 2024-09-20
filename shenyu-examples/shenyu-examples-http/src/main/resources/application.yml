@@ -32,7 +32,7 @@ shenyu:
       props:
         contextPath: /http
         appName: http
-        port: 8189
+  #          port: 8189
 #  discovery:
 #    enable: true
 #    protocol: http://  # https://
