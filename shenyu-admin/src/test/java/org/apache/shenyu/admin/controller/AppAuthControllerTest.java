@@ -61,6 +61,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -183,7 +184,7 @@ public final class AppAuthControllerTest {
     @Test
     public void testFindPageByQuery() throws Exception {
         final PageParameter pageParameter = new PageParameter();
-        final AppAuthQuery appAuthQuery = new AppAuthQuery("testAppKey", "18600000000", pageParameter);
+        final AppAuthQuery appAuthQuery = new AppAuthQuery("testAppKey", "18600000000", pageParameter, SYS_DEFAULT_NAMESPACE_ID);
         final CommonPager<AppAuthVO> commonPager = new CommonPager<>(pageParameter, Collections.singletonList(appAuthVO));
         given(this.appAuthService.listByPage(appAuthQuery)).willReturn(commonPager);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/appAuth/findPageByQuery")
