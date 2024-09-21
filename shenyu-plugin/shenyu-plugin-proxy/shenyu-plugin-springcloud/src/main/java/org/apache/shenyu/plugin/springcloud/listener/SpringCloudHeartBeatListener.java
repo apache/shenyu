@@ -18,9 +18,11 @@
 package org.apache.shenyu.plugin.springcloud.listener;
 
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig.SpringCloudCacheConfig;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.utils.LogUtils;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
 
 import static org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler.SELECTOR_CACHED;
@@ -43,12 +45,12 @@ public class SpringCloudHeartBeatListener implements ApplicationListener<Heartbe
     
     private static final Logger LOG = LoggerFactory.getLogger(SpringCloudHeartBeatListener.class);
 
-    private final ShenyuInstanceRegisterRepository repository;
+    private ShenyuInstanceRegisterRepository repository;
 
     private final SpringCloudCacheConfig cacheConfig;
 
     public SpringCloudHeartBeatListener(final RegisterConfig registerConfig, final SpringCloudCacheConfig cacheConfig) {
-        this.repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
+        //this.repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
         this.cacheConfig = cacheConfig;
     }
     
@@ -56,6 +58,9 @@ public class SpringCloudHeartBeatListener implements ApplicationListener<Heartbe
     public void onApplicationEvent(final HeartbeatEvent event) {
         if (!cacheConfig.getEnabled()) {
             return;
+        }
+        if (StringUtils.isNotBlank(BaseDataCache.getRegisterType())) {
+            repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(BaseDataCache.getRegisterType());
         }
         LogUtils.debug(LOG, "shenyu receive spring cloud heartbeat event");
         Map<String, SpringCloudSelectorHandle> map = SELECTOR_CACHED.get().getAllCache();

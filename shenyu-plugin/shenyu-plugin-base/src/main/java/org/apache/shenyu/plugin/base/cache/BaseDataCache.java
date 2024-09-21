@@ -51,6 +51,11 @@ public final class BaseDataCache {
      */
     private static final ConcurrentMap<String, List<RuleData>> RULE_MAP = Maps.newConcurrentMap();
 
+    /**
+     * springCloud -> registerType.
+     */
+    private static String registerType = "";
+
     private BaseDataCache() {
     }
     
@@ -298,5 +303,23 @@ public final class BaseDataCache {
                 SELECTOR_MAP.put(key, Lists.newArrayList(data));
             }
         }
+    }
+
+    /**
+     * Obtain springCloudPlugin registerType.
+     *
+     * @return the registerType
+     */
+    public static String getRegisterType() {
+        return registerType;
+    }
+
+    /**
+     * set registerType.
+     *
+     * @param registerType registerType
+     */
+    public static void setRegisterType(final String registerType) {
+        BaseDataCache.registerType = registerType;
     }
 }

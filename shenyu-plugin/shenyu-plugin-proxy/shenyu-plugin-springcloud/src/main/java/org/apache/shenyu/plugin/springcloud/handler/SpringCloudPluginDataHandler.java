@@ -61,7 +61,7 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
     private final SpringCloudCacheConfig springCloudCacheConfig;
 
     public SpringCloudPluginDataHandler(final RegisterConfig registerConfig, final SpringCloudCacheConfig springCloudCacheConfig) {
-        this.repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
+        //this.repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
         this.springCloudCacheConfig = springCloudCacheConfig;
     }
 
@@ -73,7 +73,6 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
         if (!pluginData.getEnabled()) {
             return;
         }
-
         PluginData oldPluginData = BaseDataCache.getInstance().obtainPluginData(pluginData.getName());
         String newConfig = pluginData.getConfig();
         String oldConfig = oldPluginData != null ? oldPluginData.getConfig() : "";
@@ -88,7 +87,10 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
 
         if (!newRegisterConfig.equals(oldRegisterConfig)) {
             RegisterConfig refreshRegisterConfig = GsonUtils.getInstance().fromJson(newConfig, RegisterConfig.class);
-            this.repository.close();
+            if (this.repository != null) {
+                this.repository.close();
+            }
+            BaseDataCache.setRegisterType(refreshRegisterConfig.getRegisterType());
             this.repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(refreshRegisterConfig);
         }
     }

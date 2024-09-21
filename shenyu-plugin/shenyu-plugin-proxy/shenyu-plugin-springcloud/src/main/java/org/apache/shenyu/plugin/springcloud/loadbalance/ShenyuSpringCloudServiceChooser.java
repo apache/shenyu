@@ -18,13 +18,14 @@
 package org.apache.shenyu.plugin.springcloud.loadbalance;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
@@ -54,8 +55,7 @@ public final class ShenyuSpringCloudServiceChooser {
     private RegisterConfig registerConfig;
 
     public ShenyuSpringCloudServiceChooser(final RegisterConfig registerConfig) {
-        LOG.info("ShenyuSpringCloudServiceChooser registerConfig = {}", GsonUtils.getInstance().toJson(registerConfig));
-        this.repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
+        //this.repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
         this.registerConfig = registerConfig;
     }
 
@@ -70,6 +70,11 @@ public final class ShenyuSpringCloudServiceChooser {
      */
     public Upstream choose(final String serviceId, final String selectorId,
                            final String ip, final String loadbalancer) {
+        // load shenyu instance registry
+        if (StringUtils.isNotBlank(BaseDataCache.getRegisterType())) {
+            repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(BaseDataCache.getRegisterType());
+        }
+
         // load service instance by serviceId
         List<InstanceEntity> available = this.getServiceInstance(serviceId);
         if (CollectionUtils.isEmpty(available)) {
@@ -131,7 +136,6 @@ public final class ShenyuSpringCloudServiceChooser {
      */
     private List<InstanceEntity> getServiceInstance(final String serviceId) {
         if (CollectionUtils.isEmpty(ServiceInstanceCache.getServiceInstance(serviceId))) {
-            repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(registerConfig);
             List<InstanceEntity> instances = repository.selectInstances(serviceId);
             LOG.info("getServiceInstance: {}", JsonUtils.toJson(instances));
             return Optional.ofNullable(instances).orElse(Collections.emptyList());
