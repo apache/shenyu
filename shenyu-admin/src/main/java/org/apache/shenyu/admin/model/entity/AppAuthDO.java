@@ -60,10 +60,12 @@ public final class AppAuthDO extends BaseDO {
 
     private String extInfo;
 
+    private String namespaceId;
+
     public AppAuthDO() {
     }
 
-    public AppAuthDO(final String appKey, final String appSecret, final Boolean enabled, final Boolean open, final String userId, final String phone, final String extInfo) {
+    public AppAuthDO(final String appKey, final String appSecret, final Boolean enabled, final Boolean open, final String userId, final String phone, final String extInfo, final String namespaceId) {
         this.appKey = appKey;
         this.appSecret = appSecret;
         this.enabled = enabled;
@@ -71,6 +73,7 @@ public final class AppAuthDO extends BaseDO {
         this.userId = userId;
         this.phone = phone;
         this.extInfo = extInfo;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -200,6 +203,24 @@ public final class AppAuthDO extends BaseDO {
     }
 
     /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
+    /**
      * Build AppAuthDO object with given AppAuthDTO object.
      *
      * @param appAuthDTO {@linkplain AppAuthDTO}
@@ -243,6 +264,7 @@ public final class AppAuthDO extends BaseDO {
                     .appSecret(SignUtils.generateKey())
                     .open(item.getOpen())
                     .enabled(true)
+                    .namespaceId(item.getNamespaceId())
                     .dateCreated(currentTime)
                     .dateUpdated(currentTime)
                     .build();
@@ -276,12 +298,13 @@ public final class AppAuthDO extends BaseDO {
                 && open.equals(appAuthDO.open)
                 && userId.equals(appAuthDO.userId)
                 && phone.equals(appAuthDO.phone)
-                && extInfo.equals(appAuthDO.extInfo);
+                && extInfo.equals(appAuthDO.extInfo)
+                && namespaceId.equals(appAuthDO.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(appKey, appSecret, enabled, open, userId, phone, extInfo);
+        return Objects.hash(appKey, appSecret, enabled, open, userId, phone, extInfo, namespaceId);
     }
 
     public static final class AppAuthDOBuilder {
@@ -301,6 +324,8 @@ public final class AppAuthDO extends BaseDO {
         private String extInfo;
 
         private String id;
+
+        private String namespaceId;
 
         private Timestamp dateCreated;
 
@@ -398,6 +423,17 @@ public final class AppAuthDO extends BaseDO {
         }
 
         /**
+         * namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return AppAuthDOBuilder
+         */
+        public AppAuthDOBuilder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
+            return this;
+        }
+
+        /**
          * dateCreated.
          *
          * @param dateCreated the dateCreated.
@@ -436,6 +472,7 @@ public final class AppAuthDO extends BaseDO {
             appAuthDO.setId(id);
             appAuthDO.setDateCreated(dateCreated);
             appAuthDO.setDateUpdated(dateUpdated);
+            appAuthDO.setNamespaceId(namespaceId);
             return appAuthDO;
         }
     }

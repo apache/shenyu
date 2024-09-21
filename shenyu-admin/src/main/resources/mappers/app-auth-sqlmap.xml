@@ -37,7 +37,9 @@
         app_secret,user_id,
         phone,
         ext_info,
-        open,enabled,
+        open,
+        enabled,
+        namespace_id,
         date_created,
         date_updated
     </sql>
@@ -85,6 +87,9 @@
                <include refid="Base_Column_List"/>
           FROM app_auth
         <where>
+            <if test="namespaceId != null and namespaceId != ''">
+                AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+            </if>
             <if test="appKey != null and appKey != ''">
                 AND app_key = #{appKey, jdbcType=VARCHAR}
             </if>
@@ -98,6 +103,7 @@
         SELECT count(1)
           FROM app_auth
         <where>
+            namespace_id = #{namespaceId, jdbcType=VARCHAR}
             <if test="appKey != null and appKey != ''">
                 AND app_key = #{appKey, jdbcType=VARCHAR}
             </if>
@@ -137,6 +143,7 @@
                     ext_info,
                     open,
                     enabled,
+                    namespace_id,
                     date_created,
                     date_updated)
              VALUES
@@ -148,6 +155,7 @@
                     #{extInfo, jdbcType=VARCHAR},
                     #{open, jdbcType=TINYINT},
                     #{enabled, jdbcType=TINYINT},
+                    #{namespaceId, jdbcType=VARCHAR},
                     #{dateCreated, jdbcType=TIMESTAMP},
                     #{dateUpdated, jdbcType=TIMESTAMP})
     </insert>
@@ -227,6 +235,7 @@
                open = #{open, jdbcType=TINYINT},
                enabled = #{enabled, jdbcType=TINYINT}
          WHERE id = #{id, jdbcType=VARCHAR}
+         AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.AppAuthDO">
