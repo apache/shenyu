@@ -900,7 +900,7 @@ INSERT INTO `plugin` VALUES ('30', 'cache', '{\"cacheType\":\"memory\"}', 'Cache
 INSERT INTO `plugin` VALUES ('4', 'rateLimiter', '{\"master\":\"mymaster\",\"mode\":\"standalone\",\"url\":\"192.168.1.1:6379\",\"password\":\"abc\"}', 'FaultTolerance', 60, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('5', 'divide', '{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\"}', 'Proxy', 200, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('6', 'dubbo', '{\"register\":\"zookeeper://localhost:2181\",\"multiSelectorHandle\":\"1\",\"threadpool\":\"shared\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0}', 'Proxy', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
-INSERT INTO `plugin` VALUES ('8', 'springCloud', NULL, 'Proxy', 200, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
+INSERT INTO `plugin` VALUES ('8', 'springCloud', '{"enabled":true,"registerType":"nacos","serverLists":"localhost:8848","props":{ "nacosNameSpace": "ShenyuRegisterCenter"}}', 'Proxy', 200, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('9', 'hystrix', NULL, 'FaultTolerance', 130, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('32', 'loggingElasticSearch','{\"host\":\"localhost\", \"port\": \"9200\"}', 'Logging', 190, 0, '2022-06-19 22:00:00', '2022-06-19 22:00:00',null);
 INSERT INTO `plugin` VALUES ('33', 'loggingKafka','{\"host\":\"localhost\", \"port\": \"9092\"}', 'Logging', 180, 0, '2022-07-04 22:00:00', '2022-07-02 22:00:00',null);

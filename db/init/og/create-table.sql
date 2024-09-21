@@ -959,7 +959,7 @@ INSERT INTO "public"."plugin" VALUES ('3', 'rewrite', NULL, 'HttpProcess', 90, 0
 INSERT INTO "public"."plugin" VALUES ('4', 'rateLimiter', '{"master":"mymaster","mode":"standalone","url":"192.168.1.1:6379","password":"abc"}', 'FaultTolerance', 60, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('5', 'divide', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', 'Proxy', 200, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('6', 'dubbo', '{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared","corethreads":0,"threads":2147483647,"queues":0}', 'Proxy', 310, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
-INSERT INTO "public"."plugin" VALUES ('8', 'springCloud', NULL, 'Proxy', 200, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
+INSERT INTO "public"."plugin" VALUES ('8', 'springCloud', '{"enabled":true,"registerType":"nacos","serverLists":"localhost:8848","props":{ "nacosNameSpace": "ShenyuRegisterCenter"}}', 'Proxy', 200, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('9', 'hystrix', NULL, 'FaultTolerance', 130, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('27', 'generalContext', NULL, 'Common', 125, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('28', 'mqtt', '{"port": 9500,"bossGroupThreadCount": 1,"maxPayloadSize": 65536,"workerGroupThreadCount": 12,"userName": "shenyu","password": "shenyu","isEncryptPassword": false,"encryptMode": "","leakDetectorLevel": "DISABLED"}', 'Proxy', 125, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);

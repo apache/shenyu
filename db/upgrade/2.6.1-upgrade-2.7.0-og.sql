@@ -207,3 +207,5 @@ ALTER TABLE "public"."meta_data" ADD COLUMN namespace_id VARCHAR(50) NULL;
 COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespaceId';
 
 UPDATE "public"."meta_data" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+INSERT INTO "public"."plugin" VALUES ('8', 'springCloud', '{"enabled":true,"registerType":"nacos","serverLists":"localhost:8848","props":{ "nacosNameSpace": "ShenyuRegisterCenter"}}', 'Proxy', 200, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
