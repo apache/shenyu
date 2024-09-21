@@ -87,7 +87,9 @@
                <include refid="Base_Column_List"/>
           FROM app_auth
         <where>
-            namespace_id = #{namespaceId, jdbcType=VARCHAR}
+            <if test="namespaceId != null and namespaceId != ''">
+                AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+            </if>
             <if test="appKey != null and appKey != ''">
                 AND app_key = #{appKey, jdbcType=VARCHAR}
             </if>
