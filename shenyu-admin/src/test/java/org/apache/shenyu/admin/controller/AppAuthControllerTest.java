@@ -207,7 +207,7 @@ public final class AppAuthControllerTest {
                 .param("phone", "18600000000")
                 .param("currentPage", String.valueOf(pageParameter.getCurrentPage()))
                 .param("pageSize", String.valueOf(pageParameter.getPageSize()))
-                .param("namespaceId",SYS_DEFAULT_NAMESPACE_ID))
+                .param("namespaceId", SYS_DEFAULT_NAMESPACE_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].appKey", is(appAuthVO.getAppKey())))
