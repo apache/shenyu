@@ -53,12 +53,12 @@ import java.util.stream.Collectors;
  * The type spring cloud plugin data handler.
  */
 public class SpringCloudPluginDataHandler implements PluginDataHandler {
-
-    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudPluginDataHandler.class);
     
     public static final Supplier<CommonHandleCache<String, SpringCloudSelectorHandle>> SELECTOR_CACHED = new BeanHolder<>(CommonHandleCache::new);
     
     public static final Supplier<CommonHandleCache<String, SpringCloudRuleHandle>> RULE_CACHED = new BeanHolder<>(CommonHandleCache::new);
+
+    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudPluginDataHandler.class);
 
     private ShenyuInstanceRegisterRepository repository;
 
