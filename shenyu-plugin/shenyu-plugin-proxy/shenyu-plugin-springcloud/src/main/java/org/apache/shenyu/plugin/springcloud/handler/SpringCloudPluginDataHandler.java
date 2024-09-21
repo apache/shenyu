@@ -37,10 +37,13 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
+import org.apache.shenyu.plugin.springcloud.loadbalance.ShenyuSpringCloudServiceChooser;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,6 +54,8 @@ import java.util.stream.Collectors;
  * The type spring cloud plugin data handler.
  */
 public class SpringCloudPluginDataHandler implements PluginDataHandler {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudPluginDataHandler.class);
     
     public static final Supplier<CommonHandleCache<String, SpringCloudSelectorHandle>> SELECTOR_CACHED = new BeanHolder<>(CommonHandleCache::new);
     
@@ -67,6 +72,7 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
+        LOG.info("pluginData = {}", GsonUtils.getInstance().toJson(pluginData));
         if (pluginData == null || StringUtils.isBlank(pluginData.getConfig())) {
             return;
         }
@@ -91,6 +97,7 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
                 this.repository.close();
             }
             BaseDataCache.setRegisterType(refreshRegisterConfig.getRegisterType());
+            LOG.info("springCloud handlerPlugin refreshRegisterConfig = {}", GsonUtils.getInstance().toJson(refreshRegisterConfig));
             this.repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(refreshRegisterConfig);
         }
     }
