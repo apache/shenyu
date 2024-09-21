@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -116,19 +117,6 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, namespacePluginVO);
     }
 
-//    /**
-//     * create plugin.
-//     *
-//     * @param pluginDTO plugin.
-//     * @return {@linkplain ShenyuAdminResult}
-//     */
-//    @PostMapping("")
-//    @RequiresPermissions("system:plugin:add")
-//    public ShenyuAdminResult createPlugin(@Valid @ModelAttribute final PluginDTO pluginDTO) {
-//        return ShenyuAdminResult.success(pluginService.createOrUpdate(pluginDTO));
-//    }
-
-
     /**
      * update plugin of namespace.
      *
@@ -137,11 +125,11 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      * @param namespacePluginDTO plugin namespace.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PutMapping("/pluginId={pluginId}&namespaceId={namespaceId}")
+    @PutMapping
     @RequiresPermissions("system:plugin:edit")
-    public ShenyuAdminResult updatePlugin(@PathVariable("namespaceId")
+    public ShenyuAdminResult updatePlugin(@RequestParam("namespaceId")
                                           @Existed(message = "namespace is not existed", provider = NamespaceMapper.class) final String namespaceId,
-                                          @PathVariable("pluginId")
+                                          @RequestParam("pluginId")
                                           @Existed(message = "PluginMapper is not existed", provider = PluginMapper.class) final String pluginId,
                                           @Valid @ModelAttribute final NamespacePluginDTO namespacePluginDTO) {
         namespacePluginDTO.setPluginId(pluginId);
@@ -206,10 +194,10 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      * @param id          the id
      * @return the mono
      */
-    @PutMapping("/syncPluginData/id={id}&namespaceId={namespaceId}")
-    public ShenyuAdminResult syncPluginData(@PathVariable("namespaceId")
+    @PutMapping("/syncPluginData")
+    public ShenyuAdminResult syncPluginData(@RequestParam("namespaceId")
                                             @Existed(message = "namespace is not existed", provider = NamespaceMapper.class) final String namespaceId,
-                                            @PathVariable("id")
+                                            @RequestParam("id")
                                             @Existed(message = "plugin is not existed",
                                                     provider = PluginMapper.class) final String id) {
         return ShenyuAdminResult.success(syncDataService.syncPluginData(id, namespaceId) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
