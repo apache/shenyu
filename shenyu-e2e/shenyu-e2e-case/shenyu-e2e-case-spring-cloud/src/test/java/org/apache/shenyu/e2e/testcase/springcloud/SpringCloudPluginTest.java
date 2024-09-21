@@ -80,6 +80,7 @@ public class SpringCloudPluginTest {
         formData.add("enabled", "true");
         formData.add("role", "Proxy");
         formData.add("sort", "200");
+        formData.add("config", "{\"enabled\":true,\"registerType\":\"nacos\",\"serverLists\":\"localhost:8848\",\"props\":{ \"nacosNameSpace\": \"ShenyuRegisterCenter\"}}");
         adminClient.changePluginStatus("8", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.springcloud.SpringCloudPlugin");
 
