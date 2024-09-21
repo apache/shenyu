@@ -74,7 +74,7 @@ public final class ShenyuSpringCloudServiceChooser {
         if (StringUtils.isNotBlank(BaseDataCache.getRegisterType())) {
             repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(BaseDataCache.getRegisterType());
         }
-
+        LOG.info("BaseDataCache.getRegisterType() = {}", BaseDataCache.getRegisterType());
         // load service instance by serviceId
         List<InstanceEntity> available = this.getServiceInstance(serviceId);
         if (CollectionUtils.isEmpty(available)) {
