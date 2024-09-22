@@ -35,9 +35,9 @@ public interface SyncDataService {
     /**
      * Sync plugin data boolean.
      *
-     * @param pluginId    the plugin id
+     * @param id    the namespace plugin id
      * @return the boolean
      */
-    boolean syncPluginData(String pluginId);
+    boolean syncPluginData(String id);
 
 }

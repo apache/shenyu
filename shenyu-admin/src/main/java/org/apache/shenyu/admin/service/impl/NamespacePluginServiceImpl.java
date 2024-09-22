@@ -66,7 +66,7 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     }
 
     @Override
-    public NamespacePluginVO findById(String id) {
+    public NamespacePluginVO findById(final String id) {
         return namespacePluginRelMapper.selectById(id);
     }
     

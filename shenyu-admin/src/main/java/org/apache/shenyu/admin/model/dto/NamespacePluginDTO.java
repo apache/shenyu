@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.model.dto;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
-import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.Min;

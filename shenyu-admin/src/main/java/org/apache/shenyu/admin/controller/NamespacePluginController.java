@@ -117,6 +117,7 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     /**
      * update plugin of namespace.
      *
+     * @param id                namespace plugin relation id.
      * @param namespacePluginDTO plugin namespace.
      * @return {@linkplain ShenyuAdminResult}
      */
