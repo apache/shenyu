@@ -1262,7 +1262,7 @@ INSERT IGNORE INTO `namespace` (`id`, `namespace_id`, `name`, `description`, `da
 -- Table structure for namespace_plugin_rel
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `namespace_plugin_rel` (
-                                               `id` VARCHAR(128) NOT NULL COMMENT 'primary key id',
+    `id` VARCHAR(128) NOT NULL COMMENT 'primary key id',
     `namespace_id` VARCHAR(50) NOT NULL COMMENT 'namespace id',
     `plugin_id` varchar(128) NOT NULL COMMENT 'plugin id',
     `config` TEXT COMMENT 'plugin configuration',

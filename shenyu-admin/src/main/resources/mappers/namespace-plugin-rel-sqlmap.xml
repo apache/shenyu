@@ -42,7 +42,7 @@
 
     <select id="existed" resultType="java.lang.Boolean">
         SELECT true
-        FROM plugin_ns_rel
+        FROM namespace_plugin_rel
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
@@ -262,16 +262,7 @@
         p.role AS role,
         p.name AS name,
         p.plugin_jar AS pluginJar
-        FROM
-        ( SELECT
-        <include refid="Base_Column_List"/>
-        FROM namespace_plugin_rel
-        <where>
-            <if test="namespaceId != null">
-                AND  npr.namespace_id = #{namespaceId, jdbcType=BOOLEAN}
-            </if>
-        </where>
-        ) npr
+        FROM namespace_plugin_rel npr
         LEFT JOIN plugin p ON p.id = npr.plugin_id
         ORDER BY
         sort,
