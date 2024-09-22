@@ -43,7 +43,7 @@
     <select id="existed" resultType="java.lang.Boolean">
         SELECT true
         FROM plugin_ns_rel
-        WHERE plugin_id = #{pluginId} limit 1
+        WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
 
@@ -296,4 +296,25 @@
         </foreach>
     </update>
 
+    <select id="selectById" resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
+        SELECT
+        pnr.id as id,
+        pnr.namespace_id AS namespaceId,
+        pnr.plugin_id AS pluginId,
+        pnr.config AS config,
+        pnr.sort AS sort,
+        pnr.enabled AS enabled,
+        pnr.date_created AS dateCreated,
+        pnr.date_updated AS dateUpdated,
+        p.role AS role,
+        p.name AS name,
+        p.plugin_jar AS pluginJar
+        FROM
+        ( SELECT
+        <include refid="Base_Column_List"/>
+        FROM plugin_ns_rel
+        WHERE id = #{id, jdbcType=VARCHAR}
+        ) pnr
+        LEFT JOIN plugin p ON p.id = pnr.plugin_id
+    </select>
 </mapper>
