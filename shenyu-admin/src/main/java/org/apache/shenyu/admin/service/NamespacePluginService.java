@@ -60,15 +60,6 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
     String delete(List<String> ids);
 
     /**
-     * find plugin namespace by pluginId.
-     *
-     * @param pluginId    the pluginId.
-     * @param namespaceId the namespaceId
-     * @return {@linkplain PluginVO}
-     */
-    NamespacePluginVO findByPluginId(String pluginId, String namespaceId);
-
-    /**
      * find page of plugin namespace by query.
      *
      * @param namespacePluginQuery {@linkplain NamespacePluginQuery}

@@ -100,11 +100,6 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     }
 
     @Override
-    public NamespacePluginVO findByPluginId(final String pluginId, final String namespaceId) {
-        return this.namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
-    }
-
-    @Override
     public CommonPager<NamespacePluginVO> listByPage(final NamespacePluginQuery namespacePluginQuery) {
         return PageResultUtils.result(namespacePluginQuery.getPageParameter(), () -> namespacePluginRelMapper.selectByQuery(namespacePluginQuery));
     }
