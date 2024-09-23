@@ -502,7 +502,7 @@ public class AdminClient extends BaseClient {
         putResource("/namespacePlugin", id, NamespacePluginDTO.class, requestBody);
     }
 
-    private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, Map<String, String> requestBody) {
+    private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final Map<String, String> requestBody) {
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, basicAuth);
         
         ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri + "/" + id, HttpMethod.PUT, requestEntity, ShenYuResult.class);
