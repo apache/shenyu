@@ -117,6 +117,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                 .appSecret(appAuthDO.getAppSecret())
                 .open(appAuthDO.getOpen())
                 .enabled(appAuthDO.getEnabled())
+                .namespaceId(appAuthDO.getNamespaceId())
                 .paramDataList(Lists.newArrayList(new AuthParamData(authParamDO.getAppName(), authParamDO.getAppParam())))
                 .build();
 
@@ -546,6 +547,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                 .appSecret(appAuthDO.getAppSecret())
                 .open(appAuthDO.getOpen())
                 .enabled(appAuthDO.getEnabled())
+                .namespaceId(appAuthDO.getNamespaceId())
                 .build();
         List<AuthParamDO> authParamDOList = authParamMapper.findByAuthId(appAuthDO.getId());
         if (CollectionUtils.isNotEmpty(authParamDOList)) {
@@ -571,6 +573,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                 .appSecret(appAuthDO.getAppSecret())
                 .open(appAuthDO.getOpen())
                 .enabled(appAuthDO.getEnabled())
+                .namespaceId(appAuthDO.getNamespaceId())
                 .build();
         if (CollectionUtils.isNotEmpty(authParamDataList)) {
             data.setParamDataList(authParamDataList);
