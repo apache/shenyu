@@ -31,7 +31,8 @@ public final class ConfigDataCacheTest {
         String group = "default";
         String json = "{\"name\":\"shenyu\"}";
         String md51 = "8e8a3a2fdbd4368f169aa88c5fdce5a1";
-        ConfigDataCache cache = new ConfigDataCache(group, json, md51, 0);
+        String namespaceId = "649330b6-c2d7-4edc-be8e-8a54df9eb385";
+        ConfigDataCache cache = new ConfigDataCache(group, json, md51, 0, namespaceId);
         assertEquals(cache.getMd5(), md51);
         assertEquals(cache.getJson(), json);
         assertEquals(cache.getGroup(), group);

@@ -42,9 +42,9 @@ public class DataChangedEvent extends ApplicationEvent {
     /**
      * Instantiates a new Data changed event.
      *
-     * @param groupKey the group key
-     * @param type     the type
-     * @param source   the source
+     * @param groupKey    the group key
+     * @param type        the type
+     * @param source      the source
      */
     public DataChangedEvent(final ConfigGroupEnum groupKey, final DataEventTypeEnum type, final List<?> source) {
         super(source.stream().filter(Objects::nonNull).collect(Collectors.toList()));

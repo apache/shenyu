@@ -31,6 +31,8 @@ public class ConfigDataCache {
     private final String json;
 
     private volatile long lastModifyTime;
+
+    private final String namespaceId;
     
     /**
      * Instantiates a new Config data cache.
@@ -40,11 +42,12 @@ public class ConfigDataCache {
      * @param md5            the md5
      * @param lastModifyTime the last modify time
      */
-    public ConfigDataCache(final String group, final String json, final String md5, final long lastModifyTime) {
+    public ConfigDataCache(final String group, final String json, final String md5, final long lastModifyTime, final String namespaceId) {
         this.group = group;
         this.json = json;
         this.md5 = md5;
         this.lastModifyTime = lastModifyTime;
+        this.namespaceId = namespaceId;
     }
     
     /**
@@ -92,6 +95,15 @@ public class ConfigDataCache {
      */
     public String getJson() {
         return json;
+    }
+
+    /**
+     * Gets namespaceId.
+     *
+     * @return the namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
     }
 
     @Override

@@ -19,6 +19,7 @@ package org.apache.shenyu.sync.data.http;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -84,6 +85,8 @@ public final class HttpSyncDataServiceTest {
 
     private HttpSyncDataService httpSyncDataService;
 
+    private ShenyuConfig shenyuConfig;
+
     @BeforeEach
     public void before() {
         this.wireMockServer = new WireMockServer(
@@ -123,6 +126,7 @@ public final class HttpSyncDataServiceTest {
         this.authDataSubscriber = mock(AuthDataSubscriber.class);
         this.proxySelectorDataSubscriber = mock(ProxySelectorDataSubscriber.class);
         this.discoveryUpstreamDataSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
+        this.shenyuConfig = mock(ShenyuConfig.class);
 
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .readTimeout(Duration.ofMillis(Objects.isNull(httpConfig.getReadTimeout()) ? (int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT : httpConfig.getReadTimeout()))
@@ -133,7 +137,7 @@ public final class HttpSyncDataServiceTest {
         AccessTokenManager accessTokenManager = new AccessTokenManager(okHttpClient, httpConfig);
         this.httpSyncDataService = new HttpSyncDataService(httpConfig, pluginDataSubscriber, new OkHttpClient(),
                 Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber), Collections.singletonList(proxySelectorDataSubscriber),
-                Collections.singletonList(discoveryUpstreamDataSubscriber), accessTokenManager);
+                Collections.singletonList(discoveryUpstreamDataSubscriber), accessTokenManager, shenyuConfig);
     }
 
     @AfterEach
