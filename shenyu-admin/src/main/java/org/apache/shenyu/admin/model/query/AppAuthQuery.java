@@ -44,13 +44,19 @@ public class AppAuthQuery implements Serializable {
      */
     private PageParameter pageParameter;
 
+    /**
+     * namespace id.
+     */
+    private String namespaceId;
+
     public AppAuthQuery() {
     }
 
-    public AppAuthQuery(final String appKey, final String phone, final PageParameter pageParameter) {
+    public AppAuthQuery(final String appKey, final String phone, final PageParameter pageParameter, final String namespaceId) {
         this.appKey = appKey;
         this.phone = phone;
         this.pageParameter = pageParameter;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -107,6 +113,24 @@ public class AppAuthQuery implements Serializable {
         this.pageParameter = pageParameter;
     }
 
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -116,11 +140,12 @@ public class AppAuthQuery implements Serializable {
             return false;
         }
         AppAuthQuery that = (AppAuthQuery) o;
-        return Objects.equals(appKey, that.appKey) && Objects.equals(phone, that.phone) && Objects.equals(pageParameter, that.pageParameter);
+        return Objects.equals(appKey, that.appKey) && Objects.equals(phone, that.phone) && Objects.equals(pageParameter, that.pageParameter)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(appKey, phone, pageParameter);
+        return Objects.hash(appKey, phone, pageParameter, namespaceId);
     }
 }
