@@ -20,6 +20,7 @@ package org.apache.shenyue.e2e.testcase.websocket;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+import org.apache.shenyu.e2e.constant.Constants;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
@@ -65,13 +66,15 @@ public class WebSocketPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         LOG.info("start websocket plugin");
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "26");
-        formData.add("name", "websocket");
-        formData.add("enabled", "true");
-        formData.add("role", "Proxy");
-        formData.add("sort", "200");
-        adminClient.changePluginStatus("1", formData);
+        MultiValueMap<String, String> reqBody = new LinkedMultiValueMap<>();
+        reqBody.add("id", "26");
+        reqBody.add("pluginId", "26");
+        reqBody.add("name", "websocket");
+        reqBody.add("enabled", "true");
+        reqBody.add("role", "Proxy");
+        reqBody.add("sort", "200");
+        reqBody.add("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        adminClient.changePluginStatus("1", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.websocket.WebSocketPlugin");
 
     }

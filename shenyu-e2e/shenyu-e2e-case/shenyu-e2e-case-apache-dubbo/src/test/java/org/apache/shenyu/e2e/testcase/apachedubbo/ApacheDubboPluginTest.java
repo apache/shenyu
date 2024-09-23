@@ -20,6 +20,7 @@ package org.apache.shenyu.e2e.testcase.apachedubbo;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+import org.apache.shenyu.e2e.constant.Constants;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
@@ -63,16 +64,17 @@ public class ApacheDubboPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         LOG.info("start dubbo plugin");
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "6");
-        formData.add("name", "dubbo");
-        formData.add("enabled", "true");
-        formData.add("role", "Proxy");
-        formData.add("sort", "310");
-        formData.add("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\","
+        MultiValueMap<String, String> reqBody = new LinkedMultiValueMap<>();
+        reqBody.add("id", "6");
+        reqBody.add("pluginId", "6");
+        reqBody.add("name", "dubbo");
+        reqBody.add("enabled", "true");
+        reqBody.add("role", "Proxy");
+        reqBody.add("sort", "310");
+        reqBody.add("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        reqBody.add("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\","
                 + "\"threadpool\":\"shared\",\"threads\":2147483647,\"register\":\"zookeeper://shenyu-zookeeper:2181\"}");
-        adminClient.changePluginStatus("6", formData);
-        adminClient.changePluginStatus("6", formData);
+        adminClient.changePluginStatus("6", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin");
         LOG.info("start dubbo plugin success!");
     }

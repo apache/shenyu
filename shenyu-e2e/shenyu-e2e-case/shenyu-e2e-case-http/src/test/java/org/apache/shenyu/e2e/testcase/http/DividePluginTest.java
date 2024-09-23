@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+import org.apache.shenyu.e2e.constant.Constants;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
@@ -101,14 +102,16 @@ public class DividePluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         LOG.info("start loggingRocketMQ plugin");
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "29");
-        formData.add("name", "loggingRocketMQ");
-        formData.add("enabled", "true");
-        formData.add("role", "Logging");
-        formData.add("sort", "170");
-        formData.add("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"rocketmq-dialevoneid:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
-        adminClient.changePluginStatus("29", formData);
+        MultiValueMap<String, String> reqBody = new LinkedMultiValueMap<>();
+        reqBody.add("id", "29");
+        reqBody.add("pluginId", "29");
+        reqBody.add("name", "loggingRocketMQ");
+        reqBody.add("enabled", "true");
+        reqBody.add("role", "Logging");
+        reqBody.add("sort", "170");
+        reqBody.add("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        reqBody.add("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"rocketmq-dialevoneid:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
+        adminClient.changePluginStatus("29", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq");
     }
 

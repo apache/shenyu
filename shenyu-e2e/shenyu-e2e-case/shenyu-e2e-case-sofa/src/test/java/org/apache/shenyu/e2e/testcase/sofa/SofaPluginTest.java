@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+import org.apache.shenyu.e2e.constant.Constants;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
@@ -61,14 +62,16 @@ public class SofaPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
 
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "11");
-        formData.add("name", "sofa");
-        formData.add("enabled", "true");
-        formData.add("role", "Proxy");
-        formData.add("sort", "310");
-        formData.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zookeeper:2181\"}");
-        adminClient.changePluginStatus("11", formData);
+        MultiValueMap<String, String> reqBody = new LinkedMultiValueMap<>();
+        reqBody.add("id", "11");
+        reqBody.add("pluginId", "11");
+        reqBody.add("name", "sofa");
+        reqBody.add("enabled", "true");
+        reqBody.add("role", "Proxy");
+        reqBody.add("sort", "310");
+        reqBody.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zookeeper:2181\"}");
+        reqBody.add("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        adminClient.changePluginStatus("11", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
     }
     
