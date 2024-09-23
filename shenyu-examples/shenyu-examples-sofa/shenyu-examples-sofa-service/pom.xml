@@ -35,7 +35,7 @@
         <sofa-common-tools.version>2.1.1</sofa-common-tools.version>
         <commons-io.version>2.15.1</commons-io.version>
         <httpclient.version>4.5.13</httpclient.version>
-        <protobuf-java.version>3.21.7</protobuf-java.version>
+        <protobuf-java.version>3.25.5</protobuf-java.version>
         <zookeeper.version>3.5.7</zookeeper.version>
         <guava.version>32.1.2-jre</guava.version>
         <grpc.version>1.53.0</grpc.version>
