@@ -67,7 +67,6 @@ public class GrpcPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         
         Map<String, String> reqBody = new HashMap<>();
-        reqBody.put("id", "15");
         reqBody.put("pluginId", "15");
         reqBody.put("name", "grpc");
         reqBody.put("enabled", "true");
@@ -75,7 +74,7 @@ public class GrpcPluginTest {
         reqBody.put("sort", "310");
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         reqBody.put("config", "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}");
-        adminClient.changePluginStatus("15", reqBody);
+        adminClient.changePluginStatus("1801816010882822151", reqBody);
         Map<String, Integer> plugins = gatewayClient.getPlugins();
         LOGGER.info("shenyu e2e plugin list ={}", plugins);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.grpc.GrpcPlugin");

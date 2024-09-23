@@ -105,7 +105,6 @@ public class DividePluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         LOG.info("start loggingRocketMQ plugin");
         Map<String, String> reqBody = new HashMap<>();
-        reqBody.put("id", "29");
         reqBody.put("pluginId", "29");
         reqBody.put("name", "loggingRocketMQ");
         reqBody.put("enabled", "true");
@@ -113,7 +112,7 @@ public class DividePluginTest {
         reqBody.put("sort", "170");
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         reqBody.put("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"rocketmq-dialevoneid:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
-        adminClient.changePluginStatus("29", reqBody);
+        adminClient.changePluginStatus("1801816010882822166", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq");
     }
 

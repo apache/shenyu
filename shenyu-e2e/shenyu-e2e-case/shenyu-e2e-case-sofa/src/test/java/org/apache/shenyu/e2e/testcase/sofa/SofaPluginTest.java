@@ -65,7 +65,6 @@ public class SofaPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
 
         Map<String, String> reqBody = new HashMap<>();
-        reqBody.put("id", "11");
         reqBody.put("pluginId", "11");
         reqBody.put("name", "sofa");
         reqBody.put("enabled", "true");
@@ -73,7 +72,7 @@ public class SofaPluginTest {
         reqBody.put("sort", "310");
         reqBody.put("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zookeeper:2181\"}");
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
-        adminClient.changePluginStatus("11", reqBody);
+        adminClient.changePluginStatus("1801816010882822147", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
     }
     

@@ -78,14 +78,13 @@ public class SpringCloudPluginTest {
         LOG.info("selectorCache: {}", selectorCache);
         LOG.info("start spring cloud  plugin");
         Map<String, String> reqBody = new HashMap<>();
-        reqBody.put("id", "8");
         reqBody.put("pluginId", "8");
         reqBody.put("name", "springCloud");
         reqBody.put("enabled", "true");
         reqBody.put("role", "Proxy");
         reqBody.put("sort", "200");
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
-        adminClient.changePluginStatus("8", reqBody);
+        adminClient.changePluginStatus("1801816010882822185", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.springcloud.SpringCloudPlugin");
 
     }
